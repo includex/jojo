@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.domain.battle.combat
+
+import com.jojo.game.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.*
 
@@ -83,17 +85,6 @@ internal class CombatSettlementAccumulator(
         )
         return CombatPassRecord(primaryResult, primaryHarm)
     }
-
-    /**
-     * 공개 메서드 `applySettlement`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun applySettlement(attacker: BattleUnit) {
         if (attacker.hitPoints <= 0) env.onDefeat(attacker.id)

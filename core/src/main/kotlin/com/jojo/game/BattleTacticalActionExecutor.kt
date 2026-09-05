@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattlePropertyResolver
@@ -50,7 +51,7 @@ internal object BattleTacticalActionExecutor {
     ): TacticalActionResult {
         val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected("공격 유닛이 없습니다.")
         val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
-        return PhysicalCombatResolver.executeForcedAttack(attacker, target, env.physicalCombatEnvironment())
+        return ForcedPhysicalCombatResolver.executeForcedAttack(attacker, target, env.physicalCombatEnvironment())
     }
 
     fun useProperty(

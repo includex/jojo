@@ -57,6 +57,8 @@ import com.jojo.game.presentation.battle.overlay.BattleInformationOverlayControl
 import com.jojo.game.presentation.battle.overlay.BattleSaveLoadOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleSettingsOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleTreasureOverlayView
+import com.jojo.game.presentation.battle.overlay.BattleForcesOverlayController
+import com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayController
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 import com.badlogic.gdx.Gdx
@@ -845,13 +847,9 @@ void main() {
     }
     private val settingsOverlay by lazy { BattleSettingsOverlayController(settingLayer) }
 
-    /** MenuLayer.WJYL → ForcesListLayer. */
-    private var forcesLayer: ForcesListLayer? = null
-    private var forcesPressedRow: Int? = null
-    private var forcesPressedTab: Int? = null
-    private var forcesClosePressed = false
-    private var unitInfoLayer: UnitInfoLayer? = null
-    private var unitInfoPressed: Int? = null
+    /** MenuLayer.WJYL and its UnitInfoLayer follow-up route. */
+    private val forcesOverlay = BattleForcesOverlayController()
+    private val unitInfoOverlay = BattleUnitInfoOverlayController()
     private var jiqiLayer: JiQiLayer? = null
     private var jiqiPressed = false
     private var jiqiRouteInstalled = false
@@ -1464,8 +1462,8 @@ void main() {
                 reward = rewardFlow != null,
                 itemUpgrade = itemUpgradeFlow != null,
                 scriptWinConditions = scriptWinConditions != null,
-                unitInfo = unitInfoLayer != null,
-                forces = forcesLayer != null,
+                unitInfo = unitInfoOverlay.isVisible(),
+                forces = forcesOverlay.isVisible(),
                 helper = helperOverlay.view() != null,
                 setting = settingsOverlay.view() != null,
                 save = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null,
@@ -1667,20 +1665,8 @@ void main() {
                 rewardFlow?.let { advanceRewardFlow(); return true }
                 itemUpgradeFlow?.let { closeItemUpgrade(); return true }
                 scriptWinConditions?.let { return true }
-                unitInfoLayer?.let {
-                    unitInfoPressed = when {
-                        world.x in 700.71f..810.71f && world.y in 17.207f..67.207f -> 9; world.x in 970f..1140f && world.y in 35f..95f -> 5; world.x in 1140f..1280f && world.y in 35f..95f -> 6; world.x in 760f..870f && world.y in 35f..95f -> 7; world.x in 80f..850f && world.y in 650f..720f -> ((world.x - 80f) / 150f).toInt(); else -> null
-                    }; return true
-                }
-                forcesLayer?.let { layer ->
-                    forcesClosePressed = world.x in 1135f..1310f && world.y in 88f..145f
-                    forcesPressedTab = if (layer.view().tabsVisible && world.y in 88f..145f) when {
-                        world.x in 215f..345f -> 0; world.x in 360f..495f -> 1; else -> null
-                    } else null
-                    forcesPressedRow =
-                        if (!forcesClosePressed && forcesPressedTab == null && world.x in 170f..1318f && world.y in 150f..614f) ((614f - world.y) / 60f).toInt() else null
-                    return true
-                }
+                if (unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
+                if (forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
                 if (helperOverlay.dispatch(BattleHelperOverlayController.Intent.PointerDown(world.x, world.y))) return true
                 if (settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
                 if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
@@ -1844,41 +1830,15 @@ void main() {
                     layer.cancel(WinConditionsLayer.TOUCH_END)
                     return true
                 }
-                unitInfoLayer?.let { layer ->
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    val released = when {
-                        world.x in 700.71f..810.71f && world.y in 17.207f..67.207f -> 9; world.x in 970f..1140f && world.y in 35f..95f -> 5; world.x in 1140f..1280f && world.y in 35f..95f -> 6; world.x in 760f..870f && world.y in 35f..95f -> 7; world.x in 80f..850f && world.y in 650f..720f -> ((world.x - 80f) / 150f).toInt(); else -> null
-                    }
-                    if (released != null && released == unitInfoPressed) {
-                        if (released == 9) jiqiLayer = BattleUnitInfoJiqiRoute.open(
-                            layer,
-                            listOf(85, 57, 39, 95, 24, 22, 99, 48),
-                            UnitInfoLayer.TOUCH_END
-                        )
-                        else layer.onButton(released, UnitInfoLayer.TOUCH_END)
-                    }
-                    unitInfoPressed = null; if (!layer.ref().attached) unitInfoLayer = null; return true
+                val unitInfoResult = unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(world.x, world.y))
+                if (unitInfoResult.consumed) {
+                    handleUnitInfoOverlayEffect(unitInfoResult.effect)
+                    return true
                 }
-                forcesLayer?.let { layer ->
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    val tab = if (layer.view().tabsVisible && world.y in 88f..145f) when {
-                        world.x in 215f..345f -> 0; world.x in 360f..495f -> 1; else -> null
-                    } else null
-                    if (forcesClosePressed && world.x in 1135f..1310f && world.y in 88f..145f) {
-                        layer.onClose(ForcesListLayer.TOUCH_END); forcesLayer = null
-                    } else if (tab != null && tab == forcesPressedTab) layer.changeSel(tab)
-                    else {
-                        val row =
-                            if (world.x in 170f..1318f && world.y in 150f..614f) ((614f - world.y) / 60f).toInt() else null; if (row != null && row == forcesPressedRow) layer.onRowTouch(
-                            row,
-                            ForcesListLayer.TOUCH_END
-                        )?.let { u ->
-                            selectedUnitId =
-                                battle.units.values.firstOrNull { it.characterId == u.id }?.id; openUnitInfoLayer(u.id); eventMessage =
-                            "${u.name} · ${u.post} · Lv${u.level} · HP ${u.hp}/${u.maxHp}"
-                        }
-                    }
-                    forcesPressedRow = null; forcesPressedTab = null; forcesClosePressed = false; return true
+                val forcesResult = forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerUp(world.x, world.y))
+                if (forcesResult.consumed) {
+                    handleForcesOverlayEffect(forcesResult.effect)
+                    return true
                 }
                 val settingsResult = settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerUp(world.x, world.y))
                 if (settingsResult.consumed) return true
@@ -2538,11 +2498,11 @@ void main() {
                 batch.projectionMatrix = viewport.camera.combined
                 battleSaveLoadOverlayRenderer.draw(view)
             }
-            battleForcesOverlayView()?.let { view ->
+            forcesOverlay.view()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battleForcesOverlayRenderer.draw(view)
             }
-            battleUnitInfoOverlayView()?.let { view ->
+            unitInfoOverlay.view()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battleUnitInfoOverlayRenderer.draw(view)
             }
@@ -2566,7 +2526,7 @@ void main() {
             // SaveLayer body, which is a layer-stack mismatch rather than a
             // text-rasterization difference. Terrain/property keep the source
             // dialogue stack; Save and Menu replace it.
-            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) == null && helperOverlay.view() == null && forcesLayer == null && unitInfoLayer == null && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
+            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) == null && helperOverlay.view() == null && !forcesOverlay.isVisible() && !unitInfoOverlay.isVisible() && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
                 drawScriptDialogue()
                 drawScriptChoice()
                 drawScriptInfoLayer()
@@ -4676,7 +4636,7 @@ void main() {
 
                 ScriptPresentationPhase.TIMED -> {
                     if (now < active.endsAt) return
-                    if (active.request is ScenarioScriptPresentationRequest.UnitHighlight) unitInfoLayer = null
+                    if (active.request is ScenarioScriptPresentationRequest.UnitHighlight) unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
                     activeScriptPresentation = null
                     scriptRuntime.resumeExternalDelay()
                     return
@@ -8684,6 +8644,18 @@ void main() {
         if (postBattleSaveLayer) finishVictoryRoute()
     }
 
+    private fun handleForcesOverlayEffect(effect: BattleForcesOverlayController.Effect) {
+        val selected = effect as? BattleForcesOverlayController.Effect.UnitSelected ?: return
+        val unit = selected.unit
+        selectedUnitId = battle.units.values.firstOrNull { it.characterId == unit.characterId }?.id
+        openUnitInfoLayer(unit.characterId)
+        eventMessage = "${unit.name} · ${unit.post} · Lv${unit.level} · HP ${unit.hp}/${unit.maxHp}"
+    }
+
+    private fun handleUnitInfoOverlayEffect(effect: BattleUnitInfoOverlayController.Effect) {
+        if (effect is BattleUnitInfoOverlayController.Effect.JiqiOpened) jiqiLayer = effect.layer
+    }
+
     private fun menuIndexAt(x: Float, y: Float): Int? {
         if (y !in 116.29f..204.29f || x !in 15.13372f..1159.1337f) return null
         val visualSlot = ((x - 15.13372f) / 88f).toInt()
@@ -8757,55 +8729,6 @@ void main() {
             AutoBattleFlow.Overlay.TUOGUAN -> BattleAutoOverlayKind.TUOGUAN
         }
         return BattleAutoOverlayView(overlay = overlay, checked = state.checked)
-    }
-
-    private fun battleUnitInfoOverlayView(): BattleUnitInfoOverlayView? {
-        val state = unitInfoLayer?.ref() ?: return null
-        val unit = state.unit
-        return BattleUnitInfoOverlayView(
-            tab = state.tab,
-            unit = BattleUnitInfoUnitView(
-                name = unit.name,
-                post = unit.post,
-                level = unit.level,
-                hp = unit.hp,
-                maxHp = unit.maxHp,
-                mp = unit.mp,
-                maxMp = unit.maxMp,
-                attack = unit.attack,
-                defense = unit.defense,
-                spirit = unit.spirit,
-                critical = unit.critical,
-                morale = unit.morale,
-            ),
-            buttons = state.buttons.toList(),
-            magicRows = state.magicRows.toList(),
-        )
-    }
-
-    private fun battleForcesOverlayView(): BattleForcesOverlayView? {
-        val state = forcesLayer?.view() ?: return null
-        return BattleForcesOverlayView(
-            selectedTab = state.selectedTab,
-            tabsVisible = state.tabsVisible,
-            rows = state.rows.map { row ->
-                val unit = row.unit
-                BattleForcesRowView(
-                    values = listOf(
-                        unit.name,
-                        unit.post,
-                        unit.level.toString(),
-                        "${unit.hp}/${unit.maxHp}",
-                        "${unit.mp}/${unit.maxMp}",
-                        unit.attack.toString(),
-                        unit.defense.toString(),
-                        unit.spirit.toString(),
-                        unit.critical.toString(),
-                        unit.morale.toString(),
-                    ),
-                )
-            },
-        )
     }
 
     private fun autoBattlePromptButtonAt(x: Float, y: Float): Int? = when {
@@ -9081,7 +9004,7 @@ void main() {
 
         val mine = battle.units.values.filter { it.visible && it.isPlayerSide() }.map(::asSource)
         val enemy = battle.units.values.filter { it.visible && it.type().isEnemySide() }.map(::asSource)
-        forcesLayer = ForcesListLayer().also { it.onCreate(mine, enemy, 1) }
+        forcesOverlay.open(mine, enemy, 1)
         eventMessage = "부대 정보 일람: 아군/적군 탭을 선택할 수 있습니다."
     }
 
@@ -9118,8 +9041,7 @@ void main() {
 
         val rows = source.map(::row)
         val index = rows.indexOfFirst { it.id == selectedCharacterId }.coerceAtLeast(0)
-        unitInfoLayer =
-            UnitInfoLayer(rows, flag = UnitInfoLayer.BATTLE_FLAG, editEnabled = true).also { it.onCreate(index) }
+        unitInfoOverlay.open(rows, index)
     }
 
     private fun toMagicUi(profile: GameDataCatalog.MagicProfile) = MagicUiList.Magic(
@@ -9900,11 +9822,11 @@ void main() {
     private fun installJiqiRouteFixture() {
         jiqiRouteInstalled = true
         openUnitInfoLayer(battle.units.values.firstOrNull()?.characterId ?: 0)
-        val rates = listOf(85, 57, 39, 95, 24, 22, 99, 48)
-        jiqiLayer = unitInfoLayer?.let { BattleUnitInfoJiqiRoute.open(it, rates, UnitInfoLayer.TOUCH_END) }
+        val result = unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.OpenJiqi)
+        handleUnitInfoOverlayEffect(result.effect)
         // Source UIScene leaves only BattleScreen and id27 in the deterministic
         // child-layer oracle after the actual route has executed.
-        unitInfoLayer = null
+        unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
     }
 
     private fun drawJiqiLayer() {

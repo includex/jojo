@@ -171,6 +171,7 @@ class ScenarioScreen(
     private var nextEntryFlowInputAt = 0f
     private var hallFixtureInstalled = false
     private val hallInteraction = HallInteractionController()
+    private val hallOverlayInteraction = HallOverlayInteractionController()
     private val hallInteractionView get() = hallInteraction.view
     private val hallMenuOpen get() = hallInteractionView.menuOpen
     private var hallManagement: HallManagement? = null
@@ -2228,72 +2229,19 @@ class ScenarioScreen(
     }
 
     private fun handleHallInfoTap(kind: HallInfo, x: Float, y: Float) {
-        val close = when (kind) {
-            HallInfo.FORCES -> x in 973.5f..1128.5f && y in 73f..125f
-            HallInfo.PROPERTY -> x in 932f..1058f && y in 45f..98f
-            HallInfo.TERRAIN -> x in 979f..1105f && y in 91f..145f
-            HallInfo.TREASURE -> x in 912f..1048f && y in 77f..132f
-            HallInfo.HELPER -> x in 1008f..1144f && y in 27f..82f
-        }
-        if (close) {
-            hallInfo = null
-            return
-        }
-        when (kind) {
-            HallInfo.FORCES -> if (x in 147f..1134f) {
-                val row = (0 until 7).firstOrNull { index ->
-                    val rowY = 469.63f - index * 53.32f
-                    y in rowY..(rowY + 53.32f)
-                }
-                row?.let { hallEquipUnitIds().sorted().getOrNull(it) }?.let(::openHallUnitInfo)
+        when (val intent = hallOverlayInteraction.infoTap(HallInfoInputKind.valueOf(kind.name), x, y)) {
+            HallInfoInputIntent.None -> Unit
+            HallInfoInputIntent.Close -> hallInfo = null
+            is HallInfoInputIntent.OpenForcesRow -> hallEquipUnitIds().sorted().getOrNull(intent.row)?.let(::openHallUnitInfo)
+            is HallInfoInputIntent.SelectPropertyTab -> HallPropertyTab.entries.getOrNull(intent.tab)?.let { hallPropertyTab = it }
+            is HallInfoInputIntent.OpenPropertyRow -> hallPropertyItemIds().getOrNull(intent.row)?.let { itemId ->
+                val level = if (hallPropertyTab >= HallPropertyTab.AUXILIARY) "---" else (campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1).toString()
+                val experience = if (hallPropertyTab >= HallPropertyTab.AUXILIARY) 0 else campaign.inventory.itemExperiences(itemId).firstOrNull() ?: 0
+                val profile = gameDataCatalog.equipmentProfile(itemId) ?: return@let
+                openHallItem(itemId, level, experience, campaign.inventory.items[itemId]?.let { it > 0 } == true && gameDataCatalog.equipmentCategory(profile) != 3)
             }
-
-            HallInfo.PROPERTY -> if (y in 40f..100f) {
-                val tab = ((x - 226f) / 150f).toInt()
-                HallPropertyTab.entries.getOrNull(tab)?.let { hallPropertyTab = it }
-            } else if (x in 217f..1062f) {
-                val row = (0 until 7).firstOrNull { index ->
-                    val rowY = 481.58f - index * 67.08f
-                    y in rowY..(rowY + 65.36f)
-                }
-                row?.let { hallPropertyItemIds().getOrNull(it) }?.let { itemId ->
-                    val level =
-                        if (hallPropertyTab >= HallPropertyTab.AUXILIARY) "---" else (campaign.inventory.itemLevels(
-                            itemId
-                        ).firstOrNull() ?: 1).toString()
-                    val exp =
-                        if (hallPropertyTab >= HallPropertyTab.AUXILIARY) 0 else campaign.inventory.itemExperiences(
-                            itemId
-                        ).firstOrNull() ?: 0
-                    openHallItem(
-                        itemId,
-                        level,
-                        exp,
-                        canDrop = campaign.inventory.items[itemId]?.let { it > 0 } == true && gameDataCatalog.equipmentCategory(
-                            requireNotNull(gameDataCatalog.equipmentProfile(itemId))
-                        ) != 3)
-                }
-            }
-
-            HallInfo.TERRAIN -> if (y in 91f..145f) {
-                when {
-                    x in 246f..411f -> hallTerrainTab = TerrainLayer.Tab.RISE
-                    x in 420f..620f -> hallTerrainTab = TerrainLayer.Tab.EXPEND
-                }
-            }
-
-            HallInfo.TREASURE -> {
-                gameDataCatalog.treasureProfiles().take(6).forEachIndexed { index, item ->
-                    val cx = 232.10f + index % 2 * 410.22f
-                    val cy = 413.23f - index / 2 * 165.98f
-                    if (x in cx..(cx + 405.06f) && y in cy..(cy + 163.40f) && item.id in campaign.inventory.discoveredTreasures) {
-                        openHallItem(item.id, "1", 0, canDrop = false)
-                        return
-                    }
-                }
-            }
-
-            else -> Unit
+            is HallInfoInputIntent.SelectTerrainTab -> hallTerrainTab = if (intent.index == 0) TerrainLayer.Tab.RISE else TerrainLayer.Tab.EXPEND
+            is HallInfoInputIntent.OpenTreasureRow -> gameDataCatalog.treasureProfiles().take(6).getOrNull(intent.row)?.takeIf { it.id in campaign.inventory.discoveredTreasures }?.let { openHallItem(it.id, "1", 0, false) }
         }
     }
 
@@ -2359,27 +2307,18 @@ class ScenarioScreen(
     }
 
     private fun handleExclusiveTap(layer: ExclusiveLayer, x: Float, y: Float) {
-        val sourceX = x / .86f
-        val sourceY = y / .86f
-        when {
-            sourceX in 147.282f..347.282f && sourceY in 54.533f..108.533f -> layer.onButton(0, ExclusiveLayer.TOUCH_END)
-            sourceX in 354.241f..554.241f && sourceY in 54.533f..108.533f -> layer.onButton(1, ExclusiveLayer.TOUCH_END)
-            sourceX in 1141.864f..1341.864f && sourceY in 54.533f..108.533f -> layer.onButton(
-                2,
-                ExclusiveLayer.TOUCH_END
-            )
-
-            sourceX !in 136.186f..1352.186f || sourceY !in 47f..753f -> layer.onCancel(ExclusiveLayer.TOUCH_END)
+        when (hallOverlayInteraction.exclusiveTap(x, y)) {
+            HallLayerTapIntent.PRIMARY -> layer.onButton(0, ExclusiveLayer.TOUCH_END)
+            HallLayerTapIntent.SECONDARY -> layer.onButton(1, ExclusiveLayer.TOUCH_END)
+            HallLayerTapIntent.CLOSE -> layer.onCancel(ExclusiveLayer.TOUCH_END)
+            HallLayerTapIntent.CANCEL -> layer.onCancel(ExclusiveLayer.TOUCH_END)
+            HallLayerTapIntent.NONE -> Unit
         }
         if (!layer.attached) hallExclusiveLayer = null
     }
 
     private fun handleMagicTap(layer: MagicInfoLayer, x: Float, y: Float) {
-        val sourceX = x / .86f
-        val sourceY = y / .86f
-        if (sourceX in 874.764f..1022.364f && sourceY in 144.022f..194.022f ||
-            sourceX !in 452.686f..1035.686f || sourceY !in 130f..670f
-        ) layer.close(UnitInfoLayer.TOUCH_END)
+        if (hallOverlayInteraction.magicTap(x, y) == HallLayerTapIntent.CLOSE) layer.close(UnitInfoLayer.TOUCH_END)
         if (!layer.attached) hallMagicLayer = null
     }
 
@@ -2432,24 +2371,21 @@ class ScenarioScreen(
     }
 
     private fun handleHallUnitInfoTap(layer: UnitInfoLayer, x: Float, y: Float) {
-        // Global123's bottom-row button8 is exposed only when GVar4074 is set.
-        if (x in 505f..655f && y in 36f..83f) openHallFeatsFromUnitInfo()
-        else if (x !in 169f..1162f || y !in 10f..678f) layer.onCancel(UnitInfoLayer.TOUCH_END)
+        when (hallOverlayInteraction.unitInfoTap(x, y)) {
+            HallLayerTapIntent.PRIMARY -> openHallFeatsFromUnitInfo()
+            HallLayerTapIntent.CLOSE -> layer.onCancel(UnitInfoLayer.TOUCH_END)
+            else -> Unit
+        }
         if (!layer.ref().attached) hallUnitInfoLayer = null
     }
 
     private fun handleHallFeatsTap(layer: FeatsLayer, x: Float, y: Float) {
-        val sx = x / .86f
-        val sy = y / .86f
-        if (hallFeatsHelpOpen) {
-            // MsgBox has one confirmation button for flag=5.
-            if (sx in 654.186f..834.186f && sy in 271.285f..321.285f) hallFeatsHelpOpen = false
-            return
-        }
-        when {
-            sx in 1059.386f..1206.986f && sy in 96f..152f -> layer.onButton(0, FeatsLayer.TOUCH_END)
-            sx in 904.386f..1051.986f && sy in 96f..152f -> openHallFeatsHelp()
-            sx !in 267.686f..1220.686f || sy !in 83.5f..716.5f -> layer.onCancel(FeatsLayer.TOUCH_END)
+        when (hallOverlayInteraction.featsTap(x, y, hallFeatsHelpOpen)) {
+            HallLayerTapIntent.PRIMARY -> if (hallFeatsHelpOpen) hallFeatsHelpOpen = false
+            HallLayerTapIntent.SECONDARY -> openHallFeatsHelp()
+            HallLayerTapIntent.CLOSE -> layer.onButton(0, FeatsLayer.TOUCH_END)
+            HallLayerTapIntent.CANCEL -> layer.onCancel(FeatsLayer.TOUCH_END)
+            HallLayerTapIntent.NONE -> Unit
         }
         if (!layer.attached) hallFeatsLayer = null
     }

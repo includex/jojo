@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.domain.battle.combat
+
+import com.jojo.game.*
 import com.jojo.game.domain.battle.*
 
 /**
@@ -6,18 +8,6 @@ import com.jojo.game.domain.battle.*
  * directional splash area geometry, splash target harm resolution, and damage transfer.
  */
 internal object PhysicalAttackAreaResolver {
-
-    /**
-     * 공개 메서드 `physicalEffectPositions`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Set<Pair<Int, Int>>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun physicalEffectPositions(attacker: BattleUnit, target: BattleUnit): Set<Pair<Int, Int>> {
         val effectArea =

@@ -1,13 +1,11 @@
 package com.jojo.game.domain.battle
+import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
 import com.jojo.game.BattleUnit
-import com.jojo.game.BasePhysicalDamageContext
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.MagicDamageCalculator
-import com.jojo.game.PhysicalAttackAreaResolver
-import com.jojo.game.PhysicalDamageCalculator
 import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
 import com.jojo.game.domain.battle.BattleAttributeCalculator
