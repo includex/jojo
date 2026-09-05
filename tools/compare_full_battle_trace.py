@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare source/port Yingchuan traces at stable camp-entry boundaries."""
+"""Compare source/game Yingchuan traces at stable camp-entry boundaries."""
 import argparse
 import json
 from pathlib import Path
@@ -18,7 +18,7 @@ def boundaries(trace):
 
 def units(row):
     # Character ID is stable across the original's global BattleUnit indices
-    # and the port's faction-local keys.
+    # and the game's faction-local keys.
     return {unit[1]: unit for unit in row["units"] if unit[9] and unit[10]}
 
 
@@ -32,37 +32,37 @@ def state(unit):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
-    parser.add_argument("port", type=Path)
+    parser.add_argument("game", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     source = json.loads(args.source.read_text())
-    port = json.loads(args.port.read_text())
-    sb, pb = boundaries(source), boundaries(port)
+    game = json.loads(args.game.read_text())
+    sb, pb = boundaries(source), boundaries(game)
     records = []
     for key in sorted(sb.keys() & pb.keys()):
         su, pu = units(sb[key]), units(pb[key])
         differences = []
         for character in sorted(su.keys() | pu.keys()):
             if character not in su or character not in pu:
-                differences.append({"character": character, "source": state(su[character]) if character in su else None, "port": state(pu[character]) if character in pu else None})
+                differences.append({"character": character, "source": state(su[character]) if character in su else None, "game": state(pu[character]) if character in pu else None})
                 continue
-            source_state, port_state = state(su[character]), state(pu[character])
-            changed = {field: [source_state[field], port_state[field]] for field in source_state if source_state[field] != port_state[field]}
+            source_state, game_state = state(su[character]), state(pu[character])
+            changed = {field: [source_state[field], game_state[field]] for field in source_state if source_state[field] != game_state[field]}
             if changed:
                 differences.append({"character": character, "fields": changed})
         records.append({
             "round": key[0], "camp": key[1],
-            "sourceTime": sb[key]["t"], "portTime": pb[key]["t"],
+            "sourceTime": sb[key]["t"], "gameTime": pb[key]["t"],
             "timestampDelta": pb[key]["t"] - sb[key]["t"],
             "differenceCount": len(differences), "differences": differences,
         })
     source_rng = [event["value"] for event in source["rng"] if event["flag"] == 0]
-    port_rng = [event["value"] for event in port["rng"] if event["flag"] == 0]
-    mismatch = next((i for i, pair in enumerate(zip(source_rng, port_rng)) if pair[0] != pair[1]), None)
+    game_rng = [event["value"] for event in game["rng"] if event["flag"] == 0]
+    mismatch = next((i for i, pair in enumerate(zip(source_rng, game_rng)) if pair[0] != pair[1]), None)
     report = {
-        "sourceSummary": source.get("summary"), "portSummary": port.get("summary"),
+        "sourceSummary": source.get("summary"), "gameSummary": game.get("summary"),
         "commonBoundaries": len(records),
-        "sourceDefaultRngCount": len(source_rng), "portDefaultRngCount": len(port_rng),
+        "sourceDefaultRngCount": len(source_rng), "gameDefaultRngCount": len(game_rng),
         "firstDefaultRngMismatch": mismatch,
         "boundaries": records,
     }

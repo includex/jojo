@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Executes recovered ControlManager/Control/Ctrl* selection before canonically
- * recording BattleLayer._ai2's move/attack/end hand-off. */
+ * recording BattleScreen._ai2's move/attack/end hand-off. */
 const fs=require('node:fs'),path=require('node:path');
 const fixture=JSON.parse(fs.readFileSync(process.argv[2],'utf8')),output=process.argv[3];
 global.cc={v2:(x,y)=>({x,y}),_RF:{push(){},pop(){}}};

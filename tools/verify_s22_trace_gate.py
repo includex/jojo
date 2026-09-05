@@ -20,7 +20,7 @@ from compare_battle_camp_boundaries import GROWTH_FIELDS, camp_boundaries, compa
 
 FORMAT = "jojo-yingchuan-full-battle-trace/v1"
 SOURCE_DEFAULT = Path("/Users/ain/workspace/jojo_mobile/sgccz-desktop/build/diagnostic-s22-harm-r8/traces/S_22.json")
-PORT_DEFAULT = Path("build/port-full-battle-batch-v30/traces/S_22.json")
+GAME_DEFAULT = Path("build/game-full-battle-batch-v30/traces/S_22.json")
 FOCAL_ROUND, FOCAL_CAMP, FOCAL_ACTOR, FOCAL_TARGET, FOCAL_ACTION = 6, 2, 217, 5, 25
 _ANIME = re.compile(r"(?:anime|action)[_-]?(\d+)", re.IGNORECASE)
 
@@ -139,61 +139,61 @@ def _terminal_sequence(trace: dict[str, Any]) -> dict[str, Any]:
             "complete": terminal and bool(callbacks)}
 
 
-def _sequence_mismatch(source: Any, port: Any) -> dict[str, Any] | None:
-    return None if source == port else {"source": source, "port": port}
+def _sequence_mismatch(source: Any, game: Any) -> dict[str, Any] | None:
+    return None if source == game else {"source": source, "game": game}
 
 
-def build_report(source_path: Path, port_path: Path) -> dict[str, Any]:
-    missing = [str(path) for path in (source_path, port_path) if not path.is_file()]
+def build_report(source_path: Path, game_path: Path) -> dict[str, Any]:
+    missing = [str(path) for path in (source_path, game_path) if not path.is_file()]
     if missing:
         return {"format": "jojo-s22-trace-parity-gate/v1", "passed": False,
                 "missingTraces": missing}
     try:
-        source, port = json.loads(source_path.read_text(encoding="utf-8")), json.loads(port_path.read_text(encoding="utf-8"))
+        source, game = json.loads(source_path.read_text(encoding="utf-8")), json.loads(game_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         return {"format": "jojo-s22-trace-parity-gate/v1", "passed": False,
                 "readError": str(error)}
-    schema_errors = _schema_errors(source, "source") + _schema_errors(port, "port")
+    schema_errors = _schema_errors(source, "source") + _schema_errors(game, "game")
     if schema_errors:
         return {"format": "jojo-s22-trace-parity-gate/v1", "passed": False,
                 "schemaErrors": schema_errors}
 
-    boundaries = compare(camp_boundaries(source_path), camp_boundaries(port_path))
-    source_growth, port_growth = _boundary_growth_gaps(source_path), _boundary_growth_gaps(port_path)
-    source_focal, port_focal = _focal_sequence(source), _focal_sequence(port)
-    source_terminal, port_terminal = _terminal_sequence(source), _terminal_sequence(port)
+    boundaries = compare(camp_boundaries(source_path), camp_boundaries(game_path))
+    source_growth, game_growth = _boundary_growth_gaps(source_path), _boundary_growth_gaps(game_path)
+    source_focal, game_focal = _focal_sequence(source), _focal_sequence(game)
+    source_terminal, game_terminal = _terminal_sequence(source), _terminal_sequence(game)
     blockers: list[dict[str, Any]] = []
-    for side, growth in (("source", source_growth), ("port", port_growth)):
+    for side, growth in (("source", source_growth), ("game", game_growth)):
         if not growth["complete"]:
             blockers.append({"observation": "growth", "side": side,
                              "reason": "all boundary units need level, abilities, posts, arm, and experience",
                              "samples": growth["missingSamples"]})
-    for side, focal in (("source", source_focal), ("port", port_focal)):
+    for side, focal in (("source", source_focal), ("game", game_focal)):
         if not focal["complete"]:
             blockers.append({"observation": "round6-217-to-5-callback", "side": side,
                              "reason": "requires anime25 presentation plus an explicit callback with actor=217 and target=5",
                              "evidence": focal})
-    for side, terminal in (("source", source_terminal), ("port", port_terminal)):
+    for side, terminal in (("source", source_terminal), ("game", game_terminal)):
         if not terminal["complete"]:
             blockers.append({"observation": "terminal-callback-sequence", "side": side,
                              "reason": "requires summary.end, an end frame, and explicit callbacks on an end frame",
                              "evidence": terminal})
     tactical_mismatch = boundaries["profiles"]["tactical"]["mismatchCount"] > 0
     growth_mismatch = boundaries["profiles"]["growth"]["mismatchCount"] > 0
-    focal_mismatch = _sequence_mismatch(source_focal["targetedCallbacks"], port_focal["targetedCallbacks"])
-    terminal_mismatch = _sequence_mismatch(source_terminal["terminalCallbacks"], port_terminal["terminalCallbacks"])
+    focal_mismatch = _sequence_mismatch(source_focal["targetedCallbacks"], game_focal["targetedCallbacks"])
+    terminal_mismatch = _sequence_mismatch(source_terminal["terminalCallbacks"], game_terminal["terminalCallbacks"])
     passed = not (boundaries["boundaryMismatchCount"] or tactical_mismatch or growth_mismatch or
                   blockers or focal_mismatch or terminal_mismatch)
     return {
         "format": "jojo-s22-trace-parity-gate/v1",
         "policy": {"screenshotsUsed": False, "timestampsIgnored": True,
                    "missingEvidenceFails": True, "growthRequired": list(GROWTH_FIELDS)},
-        "source": str(source_path), "port": str(port_path),
+        "source": str(source_path), "game": str(game_path),
         "campBoundaries": boundaries,
-        "growthEvidence": {"source": source_growth, "port": port_growth},
-        "round6Attack": {"source": source_focal, "port": port_focal,
+        "growthEvidence": {"source": source_growth, "game": game_growth},
+        "round6Attack": {"source": source_focal, "game": game_focal,
                            "callbackOrderMismatch": focal_mismatch},
-        "terminalSequence": {"source": source_terminal, "port": port_terminal,
+        "terminalSequence": {"source": source_terminal, "game": game_terminal,
                              "callbackOrderMismatch": terminal_mismatch},
         "comparisonBlockers": blockers, "passed": passed,
     }
@@ -202,10 +202,10 @@ def build_report(source_path: Path, port_path: Path) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", nargs="?", type=Path, default=SOURCE_DEFAULT)
-    parser.add_argument("port", nargs="?", type=Path, default=PORT_DEFAULT)
+    parser.add_argument("game", nargs="?", type=Path, default=GAME_DEFAULT)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
-    report = build_report(args.source, args.port)
+    report = build_report(args.source, args.game)
     encoded = json.dumps(report, ensure_ascii=False, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -3,9 +3,9 @@
 
 Unlike a screenshot check this uses the actual emitted sprite records.  It
 checks the time axis, logical grid delta, authored direction and mirror flag,
-then compares the source and port streams.  Hall direction values are
+then compares the source and game streams.  Hall direction values are
 ``0=up, 1=right, 2=down, 3=left`` (the latter two are easy to accidentally
-reverse while porting).
+reverse during implementation).
 """
 from __future__ import annotations
 
@@ -63,22 +63,22 @@ def audit(rows: list[dict], label: str) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
-    parser.add_argument("port", type=Path)
+    parser.add_argument("game", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    source, port = read(args.source), read(args.port)
-    errors = audit(source, "source") + audit(port, "port")
-    if len(source) != len(port):
-        errors.append(f"draw count differs source={len(source)} port={len(port)}")
+    source, game = read(args.source), read(args.game)
+    errors = audit(source, "source") + audit(game, "game")
+    if len(source) != len(game):
+        errors.append(f"draw count differs source={len(source)} game={len(game)}")
     # Keep the report useful even when an implementation emits a wrong stream.
-    report = {"source": str(args.source), "port": str(args.port), "sourceDraws": len(source), "portDraws": len(port), "errors": errors, "equal": not errors}
+    report = {"source": str(args.source), "game": str(args.game), "sourceDraws": len(source), "gameDraws": len(game), "errors": errors, "equal": not errors}
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if errors:
         print("HALL_WALK_DIRECTION_BLOCKED " + json.dumps(report, ensure_ascii=False))
         return 1
-    print(f"HALL_WALK_DIRECTION_OK draws={len(source)}/{len(port)} timestamps=0.04s direction=0:up,1:right,2:down,3:left")
+    print(f"HALL_WALK_DIRECTION_OK draws={len(source)}/{len(game)} timestamps=0.04s direction=0:up,1:right,2:down,3:left")
     return 0
 
 

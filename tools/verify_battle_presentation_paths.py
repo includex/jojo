@@ -5,8 +5,8 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-LAYER = (ROOT / "core/src/main/kotlin/com/jojo/port/BattleLayer.kt").read_text()
-TURN = (ROOT / "core/src/main/kotlin/com/jojo/port/BattleTurnController.kt").read_text()
+LAYER = (ROOT / "core/src/main/kotlin/com/jojo/game/BattleScreen.kt").read_text()
+TURN = (ROOT / "core/src/main/kotlin/com/jojo/game/BattleTurnController.kt").read_text()
 
 checks = {
     "incremental-ai": "battle.resolveAiTurn(maxUnits = 1)" in LAYER,
@@ -25,7 +25,7 @@ checks = {
     "controller-awaits-ai": "completeAiPresentation" in TURN and TURN.count("hasPendingAiPresentation()") == 2,
 }
 
-# All real BattleLayer mutations must remain in the reviewed presentation
+# All real BattleScreen mutations must remain in the reviewed presentation
 # entry points. Headless ScenarioBatchVerificationScreen intentionally has no
 # renderer and is excluded from this gameplay audit.
 expected_calls = {

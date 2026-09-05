@@ -6,6 +6,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = "jojo-libgdx-port"
+rootProject.name = "jojo-game"
 
-include("core", "desktop", "android")
+include("core", "desktop", "android", "verification")

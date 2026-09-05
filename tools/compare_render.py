@@ -75,7 +75,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("reference", type=Path, help="original Cocos capture")
-    parser.add_argument("actual", type=Path, help="ported LibGDX capture")
+    parser.add_argument("actual", type=Path, help="current LibGDX game capture")
     parser.add_argument("diff", type=Path, nargs="?", help="optional amplified diff PNG")
     parser.add_argument("--crop", type=parse_crop, metavar="X,Y,W,H", help="compare this absolute image region only")
     args = parser.parse_args()

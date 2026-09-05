@@ -1,7 +1,7 @@
 {
   "runtimeIntegrationDebt": [],
   "isolatedSourceContracts": [
-    "BattleScenePort"
+    "BattleSceneCoordinator"
   ],
   "obsoleteDuplicates": []
 }

@@ -24,11 +24,11 @@ def source_frame(atlas: Image.Image, rect: dict[str, int], uv: list[float]) -> I
 
 def main() -> None:
     if len(sys.argv) != 4:
-        raise SystemExit("usage: verify_battle_menu_assets.py <source-build> <port-assets> <source-menu-snapshot>")
-    source_build, port_assets, snapshot_path = map(Path, sys.argv[1:])
+        raise SystemExit("usage: verify_battle_menu_assets.py <source-build> <game-assets> <source-menu-snapshot>")
+    source_build, game_assets, snapshot_path = map(Path, sys.argv[1:])
     snapshot = json.loads(snapshot_path.read_text())
     atlas = Image.open(source_build / "battle-menu-atlas.png").convert("RGBA")
-    output = port_assets / "ui" / "battle-menu"
+    output = game_assets / "ui" / "battle-menu"
     expected_paths = {
         "Canvas/Layer/bg": "background.png",
         "Canvas/Layer/bg/box1": "frame.png",

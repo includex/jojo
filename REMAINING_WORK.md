@@ -1,4 +1,4 @@
-# Desktop Port Remaining Work
+# Desktop Game Remaining Work
 
 Updated: 2026-09-02 (KST, R_00 street-dialogue staged comparison and packaged-app verification)
 
@@ -8,8 +8,8 @@ Every item below is complete only when all four artifacts exist and the Gradle
 gate is green:
 
 1. Recovered-original JS factory/prototype is run in a minimal Cocos mock.
-2. Kotlin direct port is driven by the same fixture.
-3. Source and port canonical state/event/output traces are compared exactly.
+2. Kotlin direct game is driven by the same fixture.
+3. Source and game canonical state/event/output traces are compared exactly.
 4. The gate is included in `verifyBehaviorPairwise` and `:core:test` where
    appropriate.
 
@@ -21,15 +21,15 @@ comparison starts after the behavioural gate for its owning component is green.
 The original verifier now accepts the verification-only
 `--capture-python-battle-raw-hold-ms=N` option. It pauses immediately before
 the existing destructive map-only diagnostic, leaving the normal S_00
-BattleLayer untouched for external capture. The paired controller
-`.port-isolated/raw-framebuffer-common-space/capture_source_battle_hud_live.cjs`
-captures that scene through Cocos `RenderTexture`; the port captures its
+BattleScreen untouched for external capture. The paired controller
+`.verification-work/raw-framebuffer-common-space/capture_source_battle_hud_live.cjs`
+captures that scene through Cocos `RenderTexture`; the game captures its
 matching seven-second settle phase with `--capture-state=hud`.
 
 The resulting 2560×1376 raw RGB comparison is MAE 1.4368849 with 457,097
 changed pixels and 61,728 alpha mismatches. The source `SHOW_SAY` bubble
 placement, six-second avatar tick, and RenderTexture source-over panel alpha
-are now applied to the port. The remaining work is to classify and remove the
+are now applied to the game. The remaining work is to classify and remove the
 non-text/non-sampling sprite and HUD residuals, then rerun every interactive
 screen transition. This is a valid full-scene baseline, but not a strict-pass
 result.
@@ -47,9 +47,9 @@ requested cumulative order: panel, portrait, speaker, full dialogue text,
 background, then Hall characters. The original capture mode now disables the
 typing scheduler for the full-text stages and records DialogueLayer node,
 SpriteFrame, HallUnit, animation, and speech-marker state. This is a live
-original render; the port does not reuse the source framebuffer.
+original render; the game does not reuse the source framebuffer.
 
-The port now uses the original `U_select_11-1` panel, right-side portrait,
+The game now uses the original `U_select_11-1` panel, right-side portrait,
 36px-equivalent speaker label with its 2px cyan outline, RichText geometry,
 opaque-framebuffer blend equation, HallLayer's 2x map scale, both direction
 textures from `Pmapobj2`, the `animeRR` action/frame map, and the original
@@ -63,18 +63,18 @@ rasterization and unbiassed Cocos/LibGDX texture sampling: portrait and marker
 bounds are identical, speaker/body bounds differ by at most one pixel, and a
 character registration search selects non-flipped `(0,0)` as the best offset.
 Exact measurements are stored in
-`.port-isolated/street-dialogue/final-compare.json`.
+`.verification-work/street-dialogue/final-compare.json`.
 
 The character-stage capture also verifies all four live Hall units against the
 original: IDs/directions/actions are `182/2/0`, `0/2/0`, `181/0/0`, and
 `157/0/0`; each selects the same `[0,0,48,64]` frame, direction 2 uses
 `Pmapobj2.t0`, direction 0 uses `Pmapobj2.t1`, and the rendered size is
-`82.56x110.08`. The source and port speaker-marker bounds are identical.
+`82.56x110.08`. The source and game speaker-marker bounds are identical.
 
 After removing the old battle-dialogue reference-frame shortcut, the ordinary
 Kotlin SayLayer was also corrected to the live source panel/portrait parent
 position (`+96` logical y). Its three Yingchuan dialogue states now pass the
-real source-vs-port actor, name, text, portrait, and geometry gate.
+real source-vs-game actor, name, text, portrait, and geometry gate.
 
 `./gradlew test :desktop:check --no-daemon` passed after the final change
 (`508 actionable`, `402 executed`, 8m13s). `package-macos-app.sh` rebuilt
@@ -91,7 +91,7 @@ scenario modules.
 
 `./gradlew verifyBehaviorPairwise :core:test :desktop:check --no-daemon` was
 re-run green in the isolated candidate on 2026-08-31 after 192 actionable
-tasks. The root aggregate currently includes these source-vs-port
+tasks. The root aggregate currently includes these source-vs-game
 families:
 
 - Menu, map terrain/minimap/map info, save/load/settings/property/helper.
@@ -104,7 +104,7 @@ families:
 - Newly isolated single-factory gates: `Welcome`, `SendGiftsLayer`,
   `ProgressLayer2`, and `Head`.
 
-The platform source/port gate now exercises 30 cases, including `StatementLayer`
+The platform reference/game gate now exercises 30 cases, including `StatementLayer`
 at negative, 32-bit integer end, 29/30/59/60/150-minute timer boundaries and
 non-ending input, plus plain and trailing-delimiter `VersionInfoLayer` text.
 Kotlin uses floor division rather than truncating integer division to preserve
@@ -113,7 +113,7 @@ JavaScript `Math.floor` behavior for negative timers. It also compares the origi
 `schedule(1,time,0)`); actual callback ordering remains an explicit engine
 scheduler boundary. All candidate Kotlin `JavaExec`
 trace tasks declare the checked-in tool JSON set as Gradle inputs, preventing a
-fixture edit from reusing a stale port trace. The corresponding original-JS
+fixture edit from reusing a stale game trace. The corresponding original-JS
 `Exec` traces now track the same fixture set and the recovered-module source
 tree, preventing stale source-side outputs as well. The full behaviour
 aggregate was re-run after this wiring change (latest run: 164 tasks executed;
@@ -128,15 +128,15 @@ source trace task below.
 
 | Module(s) | Required source contract | Status |
 |---|---|---|
-| `ui/InfoLayer.js` | Rich-text tag-aware reveal, short-text auto-close, scheduled close, touch fast-forward/next, `SKIP`, callback/remove order | Exact isolated source/port gate green (10 cases, including the observed R_00 Hall first-reveal/close trace); not yet root-aggregated |
-| `framework/serviceLayer.js`, `framework/skmLayer.js` | Button event routing, callback/remove ordering, skm flag bit promotion and inverted close event branch | Exact isolated source/port gate green (15 cases); not yet root-aggregated |
-| Item advanced (`game-data/Item.js`) | Free/unit-owned/auxiliary/property ownership, drop/delete, slot attrs, level/EXP, skills/phase cache | Exact isolated source/port gate green (15 groups; Item/ItemStore surface inventory); not yet root-aggregated |
+| `ui/InfoLayer.js` | Rich-text tag-aware reveal, short-text auto-close, scheduled close, touch fast-forward/next, `SKIP`, callback/remove order | Exact isolated reference/game gate green (10 cases, including the observed R_00 Hall first-reveal/close trace); not yet root-aggregated |
+| `framework/serviceLayer.js`, `framework/skmLayer.js` | Button event routing, callback/remove ordering, skm flag bit promotion and inverted close event branch | Exact isolated reference/game gate green (15 cases); not yet root-aggregated |
+| Item advanced (`game-data/Item.js`) | Free/unit-owned/auxiliary/property ownership, drop/delete, slot attrs, level/EXP, skills/phase cache | Exact isolated reference/game gate green (15 groups; Item/ItemStore surface inventory); not yet root-aggregated |
 
 ### P1: behaviour gates complete in isolation, awaiting approved aggregation
 
-- `ui/DefineUnitLayer.js`: exact isolated source/port gate green (6 cases),
+- `ui/DefineUnitLayer.js`: exact isolated reference/game gate green (6 cases),
   including validation, confirm/reset mutation and face path.
-- `ui/Hall.js`: exact isolated source/port gate green (16 registry entries,
+- `ui/Hall.js`: exact isolated reference/game gate green (16 registry entries,
   5 resource routes and 2 save lifecycles).
 - Any `InfoLayer` rendering asset outcome must later be paired with the
   rendering phase, not assumed from its behaviour gate.
@@ -144,7 +144,7 @@ source trace task below.
 ### P2: behaviour gates complete in isolation, awaiting approved aggregation
 
 - `framework/UIFrame.js`, `UILayer.js`, `UIScene.js`, `Sound.js`: exact
-  isolated source/port gates are green (12 UI-framework-core cases and the
+  isolated reference/game gates are green (12 UI-framework-core cases and the
   corresponding UI-layer/scene/sound gates). Native/delegating boundaries are
   separately enumerated; no monolithic mock gate is being used as evidence.
   UIFrame now additionally has a native-adapter trace (31 operations / 27
@@ -164,12 +164,12 @@ source trace task below.
   143 magic rows and 40 arms, including 640,000 posts-skill and 51,200
   unit-skill states plus 143×256 magic masks. This remains a finite,
   hash-pinned corpus proof—not arbitrary mutated Model/Item/RNG parity.
-- `game-data/HallUnit.js`: exact isolated source/port gate green (10 cases),
+- `game-data/HallUnit.js`: exact isolated reference/game gate green (10 cases),
   covering initialization/load, direction, z-order, direct/A* and
   pause/resume/save continuation.
   Its live-engine addendum now runs hidden Lwjgl3 with real source atlas files
   through `Animation<TextureRegion>` and `SpriteBatch`: the source Cocos RAF
-  probe and port have the same five atlas selections (`1,1,1,1,0`) and the
+  probe and game have the same five atlas selections (`1,1,1,1,0`) and the
   same 48x64 rectangles, in addition to the scheduler/action phase trace.
   This is deliberately not a cross-backend framebuffer-pixel claim.
 - ItemStore/Item: exact isolated 57/57 recovered surface exercise exists;
@@ -188,7 +188,7 @@ source trace task below.
 5. Only after contract parity is green, perform rendered image comparison as a
    regression check; investigate each mismatch from original source first.
 
-Current rendering status: the R_00 map fixture now has source/port immutable
+Current rendering status: the R_00 map fixture now has reference/game immutable
 run binding, a reproducible source image, and matching map texture, viewport,
 quad and UV evidence. It does **not** have exact pixel parity: the same
 default-framebuffer raw RGBA capture has RGB MAE `0.3393193` (alpha exact),
@@ -217,12 +217,12 @@ all non-map nodes, resets `content.y` from the normal battle offset (464) to
 the isolated-map offset (0), and forces a reversible compositor-surface
 refresh before `Page.captureScreenshot`.  It asserts immediately before the
 capture that the map is active while map children, battle units, and labels are
-all inactive.  A fresh source/port run produces two 2560×1376 pure-map PNGs.
+all inactive.  A fresh reference/game run produces two 2560×1376 pure-map PNGs.
 Applying the measured `[-0.11, 0]` LibGDX raster sample-centre offset (without
 changing the source logical quad) reduced the stock linear-sampler comparison
 to 2,562,951 changed pixels, RGB MAE 0.4196548343628876, and maximum channel
 delta 9.  Raw source-texture/framebuffer reconstruction then identified
-Cocos's 8-bit-rounded bilinear weights.  The port now applies that sampler to
+Cocos's 8-bit-rounded bilinear weights.  The game now applies that sampler to
 the map quad only (and restores SpriteBatch before units/HUD).  For the
 isolated map-only fixture, using the physical framebuffer ratio and fragment
 pixel centres—not LibGDX's slightly different logical-window viewport—removes
@@ -279,20 +279,20 @@ opaque destination-alpha blend contract. The same source frame proves its
 replacing Kotlin's NinePatch with direct authored stretch yields RGB MAE
 `3.438048464752907` and 1,543,605 changed pixels. The live speaker Label
 color `[35,2,234,255]` reduces it further to `3.4298553703367247` and
-1,543,074 changed pixels. Separate exact source/port gates now verify all 19
+1,543,074 changed pixels. Separate exact reference/game gates now verify all 19
 visible unit frame rects/mirrors and the panel's
 Simple/stretch rendering mode. This
 establishes the full dialogue composition as a
 real P0 framebuffer mismatch; it replaces neither the map-only fixture nor
 its zero-difference criterion. A separate raw text-band regression guard now
 keeps the corrected vertical source transform within two framebuffer rows and
-asserts opaque source/port alpha.
+asserts opaque reference/game alpha.
 
 The current R_00 launch path now selects the explicit `게임 시작` setup row
 (the source's first row intentionally loops) in both desktop capture bootstrap
 and all-scenario verification. The dialogue fixture additionally leaves its
 BattleHall roster empty, matching the original source capture: S_00's five
-visible allies are authored by `createFriend`, and a nonempty port roster
+visible allies are authored by `createFriend`, and a nonempty game roster
 incorrectly materializes extra `createMine` actors. Re-reading the source
 SayLayer tree corrected the ordinary (non-modal) panel/body/face origins to
 `y=332/468.314/330`. The fresh same-contract raw comparison is now RGB MAE
@@ -330,7 +330,7 @@ semantic content and layout are no longer the limiting factors.
 The source helper now also captures the live Cocos `cc.Label._ttfTexture`
 behind the RichText segment. `tools/export_cocos_ttf_texture.py` turns that
 bottom-origin raw RGBA dump into a text-SHA-256-keyed cache asset, and
-BattleLayer uses the cache when available with its FreeType path retained as a
+BattleScreen uses the cache when available with its FreeType path retained as a
 general fallback. The first R_00 cache entry reproduces the original 545×52
 body raster and reduces the deterministic full-frame result to RGB MAE
 `2.1027627634447676`, 464,234 changed pixels, and zero alpha mismatches.
@@ -379,7 +379,7 @@ A separate fresh CDP controller now captures the real R_00 opening Battle
 `SayLayer` before that CLI's later wait, including source-owned strings,
 visible first typewriter text, RichText metrics and panel subtree. Its matching
 Kotlin `yingchuan-opening-say` fixture now passes an exact semantic/layout
-source-versus-port gate for the first `꺼` glyph, strings/remaining text,
+source-versus-game gate for the first `꺼` glyph, strings/remaining text,
 Panel_cancel, bg0/body/face and RichText fields. This is a different state
 from `dialogue-1`, so it does not change that matrix's still-failing 6/7 gate.
 
@@ -399,7 +399,7 @@ distinct P0 composition gap.
 
 - `./gradlew :desktop:check --no-daemon` was rerun successfully on
   2026-09-01 (10m 7s).  The run completed the scenario choice suite and the
-  source/port Yingchuan actor-state and 8-modal framebuffer smoke gates.  Its
+  reference/game Yingchuan actor-state and 8-modal framebuffer smoke gates.  Its
   green result does not include a strict cross-backend framebuffer equality
   claim; that remains governed by the map-only residual above.
 
@@ -415,14 +415,14 @@ distinct P0 composition gap.
   oracle paths and verifies the sibling recovered source and encrypted Game
   asset root. A separate reconciliation gate hash-pins all 98 recovered
   `Unit.js` declarations to exactly one isolated controlled-contract gate
-  (unmapped: 0). The meta-runner itself resolves `.port-isolated` and the
+  (unmapped: 0). The meta-runner itself resolves `.verification-work` and the
   sibling original checkout relative to its own path, rather than from a
   workstation-specific absolute path. The meta-run still deliberately excludes
   strict framebuffer/composition pixel gates, central aggregation and the
   documented production OS/mobile service boundaries.
 - The nested LibGDX candidate's source-trace harnesses now resolve the actual
   sibling `~/workspace/jojo_mobile` tree rather than a nonexistent
-  `.port-isolated/jojo_mobile` path. `./gradlew :core:test --no-daemon` now
+  `.verification-work/jojo_mobile` path. `./gradlew :core:test --no-daemon` now
   completes green with 166 actionable tasks; this restores executable source
   versus Kotlin behaviour checks in the isolated worktree, but does not close
   the unaggregated or pixel-parity work above. `verifySourceRootResolution`
@@ -593,7 +593,7 @@ distinct P0 composition gap.
   evidence; none are without evidence. It deliberately does not turn those
   declarations into a completion claim. The 13 isolated contracts still await
   the planned central aggregation.
-- Execute the full rendering matrix and retain source/port trace artifacts for
+- Execute the full rendering matrix and retain reference/game trace artifacts for
   every mismatch resolution.
 - Aggregate every currently isolated green gate into `verifyBehaviorPairwise`
   and `:core:test` only after resolving the documented central type/name

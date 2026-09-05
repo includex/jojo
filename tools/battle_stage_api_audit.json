@@ -1,7 +1,7 @@
 {
   "format": "jojo-battle-stage-api-audit/v1",
   "sourceDirectory": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/decompiled-python",
-  "runtime": "/Users/ain/workspace/jojo/core/src/main/kotlin/com/jojo/port/PythonAstRuntime.kt",
+  "runtime": "/Users/ain/workspace/jojo/core/src/main/kotlin/com/jojo/game/ScenarioInterpreter.kt",
   "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/recovered-js/modules",
   "scripts": 58,
   "callSites": 42516,

@@ -40,8 +40,8 @@ for (const [sourceLayer, state] of fixtures) {
   assert.ok(stack.overlaysBefore?.some(layer => layer.name === "SayLayer" && layer.active), `${sourceLayer} lost original SayLayer stack`);
   const capture = `/tmp/jojo-${state}.png`;
   const output = run("./gradlew", [":desktop:run", "--no-daemon", `--args=--battle --scenario=S_00 --capture-state=${state} --capture=${capture}`], root);
-  assert.match(output, /RENDER_CAPTURE_OK:/, `port did not report ${state} capture`);
-  assert.ok(existsSync(capture) && statSync(capture).size > 4096, `empty port capture: ${state}`);
+  assert.match(output, /RENDER_CAPTURE_OK:/, `game did not report ${state} capture`);
+  assert.ok(existsSync(capture) && statSync(capture).size > 4096, `empty game capture: ${state}`);
   const [width, height] = pngSize(capture);
   assert.ok(width >= 1280 && height >= 720, `unexpected ${state} framebuffer ${width}×${height}`);
   results.push({ sourceLayer, state, width, height });

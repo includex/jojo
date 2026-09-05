@@ -8,11 +8,11 @@ val arm64Natives by configurations.creating
 val generatedJniLibs = layout.buildDirectory.dir("generated/jniLibs")
 
 android {
-    namespace = "com.jojo.port.android"
+    namespace = "com.jojo.game.android"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.jojo.port"
+        applicationId = "com.jojo.game"
         minSdk = 23
         targetSdk = 36
         versionCode = 1

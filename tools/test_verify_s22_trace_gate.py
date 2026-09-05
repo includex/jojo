@@ -30,12 +30,12 @@ def trace(*, growth=True, callbacks=True, terminal=True):
 
 
 class S22TraceGateTest(unittest.TestCase):
-    def report(self, source, port):
+    def report(self, source, game):
         with tempfile.TemporaryDirectory() as root:
-            source_path, port_path = Path(root) / "source.json", Path(root) / "port.json"
+            source_path, game_path = Path(root) / "source.json", Path(root) / "game.json"
             source_path.write_text(json.dumps(source), encoding="utf-8")
-            port_path.write_text(json.dumps(port), encoding="utf-8")
-            return build_report(source_path, port_path)
+            game_path.write_text(json.dumps(game), encoding="utf-8")
+            return build_report(source_path, game_path)
 
     def test_complete_matching_log_evidence_passes(self):
         report = self.report(trace(), trace())
@@ -47,12 +47,12 @@ class S22TraceGateTest(unittest.TestCase):
         self.assertEqual("growth", report["comparisonBlockers"][0]["observation"])
 
     def test_flat_trace_growth_metadata_is_compared(self):
-        port = trace()
-        # This is the current port trace shape: growth components live directly
+        game = trace()
+        # This is the current game trace shape: growth components live directly
         # in unit metadata, not under a synthetic ``growth`` object.
-        for frame in port["frames"]:
+        for frame in game["frames"]:
             frame["units"][0][17]["experience"] = 1
-        report = self.report(trace(), port)
+        report = self.report(trace(), game)
         self.assertFalse(report["passed"])
         self.assertEqual(1, report["campBoundaries"]["profiles"]["growth"]["mismatchCount"])
 
@@ -69,9 +69,9 @@ class S22TraceGateTest(unittest.TestCase):
         self.assertIn("terminal-callback-sequence", blockers)
 
     def test_callback_order_drift_fails(self):
-        port = trace()
-        port["frames"][1]["callbacks"].reverse()
-        report = self.report(trace(), port)
+        game = trace()
+        game["frames"][1]["callbacks"].reverse()
+        report = self.report(trace(), game)
         self.assertFalse(report["passed"])
         self.assertIsNotNone(report["round6Attack"]["callbackOrderMismatch"])
 

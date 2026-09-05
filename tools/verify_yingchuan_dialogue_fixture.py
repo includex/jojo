@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks the source/port Cocos-texture fixture for Yingchuan scene0."""
+"""Checks the source/game Cocos-texture fixture for Yingchuan scene0."""
 from __future__ import annotations
 
 import json
@@ -27,7 +27,7 @@ def fixture_bounds(path: Path, step: int = 3) -> tuple[tuple[int, int, int, int]
     speaker_area = (400, 200, 750, 540)
     speaker = bounds(image, speaker_area, lambda r, g, b: b > 120 and b > r * 1.8 and b > g * 1.3)
     # Step 1 deliberately captures Cocos on a typewriter boundary while the
-    # port reports the authored complete string.  Its body glyphs are not a
+    # game reports the authored complete string.  Its body glyphs are not a
     # pixel oracle; panel, portrait, speaker and composited RGB still are.
     body = None if step in (1, 2) else bounds(image, (430, 370, 600, 480), lambda r, g, b: r < 35 and g < 35 and b < 35)
     return speaker, body
@@ -37,7 +37,7 @@ def speaker_blue_mean(path: Path, box: tuple[int, int, int, int]) -> tuple[float
     """Compare the already-composited special-name raster, not merely its box.
 
     The source extracted speaker asset has authored cyan/green edge pixels.  A
-    port that tints that finished raster (as though it were an uncoloured
+    game that tints that finished raster (as though it were an uncoloured
     Label) retains the same bounds but is visibly wrong.  Select only strong
     blue glyph pixels so the translucent dialogue panel below is not sampled.
     """
@@ -54,9 +54,9 @@ def speaker_blue_mean(path: Path, box: tuple[int, int, int, int]) -> tuple[float
     return tuple(sum(pixel[channel] for pixel in samples) / len(samples) for channel in range(3))
 
 
-def mean_delta(source: Path, port: Path, area: tuple[int, int, int, int]) -> tuple[float, float, float]:
+def mean_delta(source: Path, game: Path, area: tuple[int, int, int, int]) -> tuple[float, float, float]:
     expected = Image.open(source).convert("RGB")
-    actual = Image.open(port).convert("RGB")
+    actual = Image.open(game).convert("RGB")
     left, top, right, bottom = area
     count = (right - left) * (bottom - top)
     return tuple(
@@ -166,8 +166,8 @@ def portrait_geometry(path: Path) -> tuple[int, int, int, int]:
     )
 
 
-def portrait_alignment(source_path: Path, port_path: Path, snapshot_path: Path) -> tuple[int, int]:
-    """Find the port portrait translation inside the authoritative Cocos node rect.
+def portrait_alignment(source_path: Path, game_path: Path, snapshot_path: Path) -> tuple[int, int]:
+    """Find the game portrait translation inside the authoritative Cocos node rect.
 
     The former yellow connected-component predicate happened to isolate a
     useful region in Head/192, but selected unrelated fragments in Head/182.
@@ -179,7 +179,7 @@ def portrait_alignment(source_path: Path, port_path: Path, snapshot_path: Path) 
     canvas = nodes["Canvas"]
     portrait = nodes["Canvas/Layer/bg0/face"]
     source = Image.open(source_path).convert("RGB")
-    port = Image.open(port_path).convert("RGB")
+    game = Image.open(game_path).convert("RGB")
     canvas_width, canvas_height = canvas["size"]
     scale_x, scale_y = source.width / canvas_width, source.height / canvas_height
     x, y, width, height = portrait["screenRect"]
@@ -199,7 +199,7 @@ def portrait_alignment(source_path: Path, port_path: Path, snapshot_path: Path) 
     for dy in range(-8, 9):
         for dx in range(-8, 9):
             score = sum(
-                sum(abs(a - b) for a, b in zip(rgb, port.getpixel((px + dx, py + dy))))
+                sum(abs(a - b) for a, b in zip(rgb, game.getpixel((px + dx, py + dy))))
                 for px, py, rgb in samples
             )
             candidates.append((score, dx, dy))
@@ -207,14 +207,14 @@ def portrait_alignment(source_path: Path, port_path: Path, snapshot_path: Path) 
     return dx, dy
 
 
-def assert_near(label: str, source: tuple[int, ...], port: tuple[int, ...],
+def assert_near(label: str, source: tuple[int, ...], game: tuple[int, ...],
                 tolerance: int | tuple[int, ...]) -> None:
-    deltas = tuple(abs(a - b) for a, b in zip(source, port))
+    deltas = tuple(abs(a - b) for a, b in zip(source, game))
     tolerances = (tolerance,) * len(deltas) if isinstance(tolerance, int) else tolerance
     if len(tolerances) != len(deltas):
         raise AssertionError(f"{label} invalid tolerance shape: {tolerances}")
     if any(delta > allowed for delta, allowed in zip(deltas, tolerances)):
-        raise AssertionError(f"{label} source={source}, port={port}, deltas={deltas}, tolerance={tolerance}")
+        raise AssertionError(f"{label} source={source}, game={game}, deltas={deltas}, tolerance={tolerance}")
 
 
 def assert_source_contract(snapshot_path: Path, source_image: Path,
@@ -252,14 +252,14 @@ def assert_source_contract(snapshot_path: Path, source_image: Path,
 def main() -> None:
     if len(sys.argv) not in (3, 4, 5):
         raise SystemExit(
-            "usage: verify_yingchuan_dialogue_fixture.py <source.png> <port.png> [source-snapshot.json] [step]"
+            "usage: verify_yingchuan_dialogue_fixture.py <source.png> <game.png> [source-snapshot.json] [step]"
         )
-    source, port = map(Path, sys.argv[1:3])
+    source, game = map(Path, sys.argv[1:3])
     step = int(sys.argv[4]) if len(sys.argv) == 5 else 3
     expected_speakers = {1: (529, 471, 628, 526), 2: (529, 471, 628, 526), 3: (529, 306, 686, 361)}
     expected_body = (473, 398, 533, 450)
     source_bounds = fixture_bounds(source, step)
-    port_bounds = fixture_bounds(port, step)
+    game_bounds = fixture_bounds(game, step)
     expected = (expected_speakers[step], expected_body if step == 3 else None)
     if source_bounds != expected:
         raise AssertionError(f"source text fixture changed: source={source_bounds}, expected={expected}")
@@ -267,16 +267,16 @@ def main() -> None:
     # slightly different sub-pixel phases.  This is the allowed sampler/raster
     # tolerance; the independent full-raster colour check below must be exact
     # enough to catch a semantic tint.
-    if any(abs(actual - reference) > 3 for actual, reference in zip(port_bounds[0], expected[0])):
-        raise AssertionError(f"speaker bounds source={source_bounds[0]}, port={port_bounds[0]}, expected={expected[0]}")
+    if any(abs(actual - reference) > 3 for actual, reference in zip(game_bounds[0], expected[0])):
+        raise AssertionError(f"speaker bounds source={source_bounds[0]}, game={game_bounds[0]}, expected={expected[0]}")
     # Body glyphs are not a geometry oracle: Cocos Canvas and FreeType can
     # differ by a pixel at the baseline.  Keep only a loose sanity check here;
     # the non-raster panel/portrait assertions below are the fidelity gate.
     if step == 3:
-        assert_near("body text bounds", source_bounds[1], port_bounds[1], 3)
+        assert_near("body text bounds", source_bounds[1], game_bounds[1], 3)
 
     source_panel, source_tail = panel_geometry(source)
-    port_panel, port_tail = panel_geometry(port)
+    game_panel, game_tail = panel_geometry(game)
     if len(sys.argv) >= 4:
         assert_source_contract(Path(sys.argv[3]), source, source_panel)
     # Top/bottom are the screen-space anchoring gate and remain strict.  The
@@ -284,20 +284,20 @@ def main() -> None:
     # so its colour-predicate edge may move several pixels while the submitted
     # quad is identical.  The old camera-space regression moved both Y edges by
     # 165 px and therefore cannot hide inside these axis-specific tolerances.
-    assert_near("dialogue panel geometry", source_panel, port_panel, (8, 3, 8, 3))
-    assert_near("dialogue panel tail profile", source_tail, port_tail, 8)
+    assert_near("dialogue panel geometry", source_panel, game_panel, (8, 3, 8, 3))
+    assert_near("dialogue panel tail profile", source_tail, game_tail, 8)
 
     if len(sys.argv) >= 4:
-        portrait_shift = portrait_alignment(source, port, Path(sys.argv[3]))
+        portrait_shift = portrait_alignment(source, game, Path(sys.argv[3]))
         assert_near("dialogue portrait translation", portrait_shift, (0, 0), 1)
         portrait_description = f"shift={portrait_shift}"
     else:
         source_portrait = portrait_geometry(source)
-        port_portrait = portrait_geometry(port)
-        assert_near("dialogue portrait geometry", source_portrait, port_portrait, 4)
+        game_portrait = portrait_geometry(game)
+        assert_near("dialogue portrait geometry", source_portrait, game_portrait, 4)
         portrait_description = str(source_portrait)
     source_mean = speaker_blue_mean(source, source_bounds[0])
-    port_mean = speaker_blue_mean(port, port_bounds[0])
+    game_mean = speaker_blue_mean(game, game_bounds[0])
     # Font rasterization is explicitly outside the parity scope.  The source
     # snapshot contract above still asserts Label.color and LabelOutline;
     # bounds remain a strict placement gate.  Keep composited means in the
@@ -305,20 +305,20 @@ def main() -> None:
     # These full compositing checks cover opacity/blend and the DynamicAtlas
     # portrait decode.  Geometry is checked independently above, while a modest
     # MAE allowance absorbs GPU sampler/sub-pixel differences.
-    panel_delta = mean_delta(source, port, (423, source_panel[1] + 35, 1700, source_panel[3] - 25))
+    panel_delta = mean_delta(source, game, (423, source_panel[1] + 35, 1700, source_panel[3] - 25))
     if any(value > 14.0 for value in panel_delta):
         raise AssertionError(f"dialogue panel opacity/blend mean delta={panel_delta}")
-    portrait_delta = mean_delta(source, port, (1800, 230, 2150, 650))
+    portrait_delta = mean_delta(source, game, (1800, 230, 2150, 650))
     if any(value > 12.0 for value in portrait_delta):
         raise AssertionError(f"portrait mean delta={portrait_delta}")
     rounded_mean = tuple(round(value, 2) for value in source_mean)
-    rounded_port_mean = tuple(round(value, 2) for value in port_mean)
+    rounded_portrait_mean = tuple(round(value, 2) for value in game_mean)
     rounded_panel = tuple(round(value, 2) for value in panel_delta)
     rounded_portrait = tuple(round(value, 2) for value in portrait_delta)
     print(
         f"YINGCHUAN_DIALOGUE_FIXTURE_OK step={step} speaker={expected[0]} body={source_bounds[1]} "
         f"panel={source_panel} tail={source_tail} portrait={portrait_description} "
-        f"blueMean={rounded_mean}/{rounded_port_mean} panelMAE={rounded_panel} portraitMAE={rounded_portrait}"
+        f"blueMean={rounded_mean}/{rounded_portrait_mean} panelMAE={rounded_panel} portraitMAE={rounded_portrait}"
     )
 
 

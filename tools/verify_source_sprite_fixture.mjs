@@ -51,14 +51,14 @@ try {
     "original Cocos did not produce the requested frame samples");
 
   const ticks = sourceFrames.map(source => Math.floor(source.stateTime * 24 + 1e-6));
-  const portOutput = run("./gradlew", [":desktop:dumpSpriteMatrix", "--no-daemon", `--args=--action=${action} --direction=${direction} --ticks=${ticks.join(",")}`], root);
-  const portFrames = [...portOutput.matchAll(/PORT_SPRITE_FRAME (?:action=\d+ direction=\d+ )?f(\d+) tick=(\d+) source=(\w+) x=(\d+) y=(\d+) width=(\d+) height=(\d+) flipX=(\w+)/g)];
-  assert.equal(portFrames.length, sourceFrames.length, "port did not emit every requested frame");
+  const gameOutput = run("./gradlew", [":desktop:dumpSpriteMatrix", "--no-daemon", `--args=--action=${action} --direction=${direction} --ticks=${ticks.join(",")}`], root);
+  const gameFrames = [...gameOutput.matchAll(/GAME_SPRITE_FRAME (?:action=\d+ direction=\d+ )?f(\d+) tick=(\d+) source=(\w+) x=(\d+) y=(\d+) width=(\d+) height=(\d+) flipX=(\w+)/g)];
+  assert.equal(gameFrames.length, sourceFrames.length, "game did not emit every requested frame");
   for (const source of sourceFrames) {
     const tick = ticks[source.index];
-    const [, index, portTick, atlas, x, y, width, height, flipX] = portFrames[source.index];
+    const [, index, gameTick, atlas, x, y, width, height, flipX] = gameFrames[source.index];
     assert.equal(Number(index), source.index);
-    assert.equal(Number(portTick), tick);
+    assert.equal(Number(gameTick), tick);
     const encoded = Number(source.frameName);
     const sourceIndex = Number.isFinite(encoded) ? ((encoded >>> 24) & 255) : null;
     const sourceAtlas = Number.isFinite(encoded) ? ((encoded >>> 16) & 255) : null;

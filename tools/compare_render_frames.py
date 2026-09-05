@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic RGBA pixel comparison used by source-versus-port fixtures."""
+"""Deterministic RGBA pixel comparison used by source-versus-game fixtures."""
 from __future__ import annotations
 
 import sys
@@ -10,13 +10,13 @@ from PIL import Image, ImageChops
 
 def main() -> None:
     if len(sys.argv) not in (3, 4):
-        raise SystemExit("usage: compare_render_frames.py <source.png> <port.png> [diff.png]")
-    source_path, port_path = map(Path, sys.argv[1:3])
+        raise SystemExit("usage: compare_render_frames.py <source.png> <game.png> [diff.png]")
+    source_path, game_path = map(Path, sys.argv[1:3])
     source = Image.open(source_path).convert("RGBA")
-    port = Image.open(port_path).convert("RGBA")
-    if source.size != port.size:
-        raise AssertionError(f"frame dimensions differ: source={source.size} port={port.size}")
-    diff = ImageChops.difference(source, port)
+    game = Image.open(game_path).convert("RGBA")
+    if source.size != game.size:
+        raise AssertionError(f"frame dimensions differ: source={source.size} game={game.size}")
+    diff = ImageChops.difference(source, game)
     bbox = diff.getbbox()
     changed = sum(pixel != (0, 0, 0, 0) for pixel in diff.getdata())
     total = source.width * source.height

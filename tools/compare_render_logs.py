@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic semantic comparator for original and port render logs.
+"""Deterministic semantic comparator for original and game render logs.
 
 Supported inputs:
   * canonical logs: {"draws": [{path, rect, asset, opacity, blend, visible, text}]}
@@ -8,7 +8,7 @@ Supported inputs:
   * LibGDX composition traces: {viewport, backgroundId, units, ...}
 
 Geometry is normalized by each log's viewport, so Cocos' 1488x800 and the
-port's 1280x688 describe the same coordinate space.  No image comparison is
+game's 1280x688 describe the same coordinate space.  No image comparison is
 performed.  Exit status is 0 only when all semantic fields and draw order
 match; 1 means a render difference and 2 means invalid input/arguments.
 """
@@ -29,7 +29,7 @@ TIMING_KEYS = frozenset({
     "frametime", "fps", "duration", "capturedat", "generatedat",
 })
 # `phase` and `layer` remain in the diagnostic record, but are not pixels or
-# draw state. The Cocos owner can legitimately be HallLayer while the port
+# draw state. The Cocos owner can legitimately be HallLayer while the game
 # delegates the identical draw to DialogueLayer. Compare the emitted output,
 # not implementation ownership.
 SEMANTIC_FIELDS = ("draw_type", "rect", "asset", "opacity", "blend", "visible", "text")
@@ -203,7 +203,7 @@ def adapt(data: Any) -> tuple[str, list[Draw]]:
     if isinstance(data.get("snapshot"), dict) and isinstance(data["snapshot"].get("nodes"), list):
         return "cocos-snapshot", _cocos(data)
     if "viewport" in data and any(key in data for key in ("units", "backgroundId", "dialogue", "hallCommand")):
-        return "port-composition", _composition(data)
+        return "game-composition", _composition(data)
     raise ValueError("unrecognized render log format")
 
 
@@ -335,7 +335,7 @@ def text_report(report: dict[str, Any]) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("expected", type=Path, help="original/canonical expected JSON log")
-    parser.add_argument("actual", type=Path, help="port/canonical actual JSON log")
+    parser.add_argument("actual", type=Path, help="game/canonical actual JSON log")
     parser.add_argument("--float-tolerance", type=float, default=1e-5,
                         help="absolute tolerance for float serialization only (default: 1e-5)")
     parser.add_argument("--json-out", type=Path, help="write the machine-readable diff report")

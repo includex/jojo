@@ -5,7 +5,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.jojo.port"
+    group = "com.jojo.game"
     version = "0.1.0"
 
     repositories {
@@ -15,13 +15,12 @@ allprojects {
 }
 
 /**
- * Source-vs-port behaviour gate.  Each child task executes recovered JS and
- * the Kotlin port against the same fixture and compares their canonical
- * traces; more layer gates are added here as they are recovered.
+ * Reference-behaviour gate. Each child task executes the source reference and
+ * the current game against the same fixture and compares canonical traces.
  */
 tasks.register("verifyBehaviorPairwise") {
     group = "verification"
-    description = "Runs all recovered-JS ↔ Kotlin isolated behaviour trace comparisons."
+    description = "Runs source-reference ↔ current-game isolated behaviour comparisons."
     dependsOn(
         ":core:verifyMenuLayerTrace",
         ":core:verifyMenuLayerSwitchTrace",
@@ -37,7 +36,7 @@ tasks.register("verifyBehaviorPairwise") {
         ":core:verifyMiniMapLayerPairwise",
         ":core:verifyUnitInfoPairwise",
         ":core:verifyLoadGamePairwise",
-        ":core:verifyBattleLayerPairwise",
+        ":core:verifyBattleScreenPairwise",
         ":core:verifyFightPresentationPairwise",
         ":core:verifyEnemyTurnPairwise",
         ":core:verifyForcesListLayerPairwise",
@@ -80,7 +79,7 @@ tasks.register("verifyIsolatedFixtureOracles") {
     description = "Runs fixture-only source comparisons; success is not runtime-route coverage."
     dependsOn(
         ":core:verifyHeadPairwise",
-        ":core:verifyBattleScenePortBehavior",
+        ":core:verifyBattleSceneCoordinatorBehavior",
         ":core:verifyProgressionLayerPairwise",
         ":core:verifyEditMutationPairwise",
         ":core:verifyUnitListInfoPairwise",
@@ -89,7 +88,7 @@ tasks.register("verifyIsolatedFixtureOracles") {
 
 tasks.register("auditRecoveredSourceInventories") {
     group = "source inventory"
-    description = "Audits recovered-only registries and overridden fixture branch coverage; no port parity claim."
+    description = "Audits deprecated registries and overridden fixture branch coverage; no game-parity claim."
     dependsOn(
         ":core:auditCoreBoundarySourceInventory",
         ":core:auditBattleControlSourceInventory",

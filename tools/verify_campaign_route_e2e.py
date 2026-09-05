@@ -15,8 +15,8 @@ import sys
 from typing import Any
 
 
-SCENARIO_SCREEN = re.compile(r"^ScenarioPreviewScreen:(R_[0-9]{2})$")
-BATTLE_SCREEN = re.compile(r"^BattleLayer:(S_[0-9]{2})$")
+SCENARIO_SCREEN = re.compile(r"^ScenarioScreen:(R_[0-9]{2})$")
+BATTLE_SCREEN = re.compile(r"^BattleScreen:(S_[0-9]{2})$")
 # Recovered R scripts whose stage.jumpScene() may replace Hall directly,
 # without entering the same-numbered battle. Keep this source-derived and
 # closed so an arbitrary missing S screen cannot pass as a branch jump.
@@ -141,7 +141,7 @@ def validate(trace: dict[str, Any], stop_module: str, stop_scene: int) -> dict[s
     assert isinstance(input_records, list), "missing auditable inputRecords"
     assert all(isinstance(record, dict) for record in input_records), input_records
     assert route and route[0] == "TitleScreen", route
-    assert route[-1] == f"ScenarioPreviewScreen:{actual_module}:scene{actual_scene}", route
+    assert route[-1] == f"ScenarioScreen:{actual_module}:scene{actual_scene}", route
     assert not any(value.endswith(":transition") for value in inputs), inputs
 
     modules = _screen_modules(route)
@@ -170,7 +170,7 @@ def validate(trace: dict[str, Any], stop_module: str, stop_scene: int) -> dict[s
     overshoot_transition = None
     if completion == "checkpoint":
         assert actual_module == stop_module and actual_scene >= stop_scene, (requested_stop, actual_stop)
-        requested_marker = f"ScenarioPreviewScreen:{stop_module}:scene{stop_scene}"
+        requested_marker = f"ScenarioScreen:{stop_module}:scene{stop_scene}"
         assert requested_marker in route, (requested_marker, route)
     else:
         assert _module_stage(str(actual_module)) > _module_stage(stop_module), (requested_stop, actual_stop)
@@ -194,21 +194,21 @@ def validate(trace: dict[str, Any], stop_module: str, stop_scene: int) -> dict[s
     scenario_modules = [module for module in modules if module.startswith("R_")]
     battle_modules = [module for module in modules if module.startswith("S_")]
     for module in scenario_modules:
-        base = route.index(f"ScenarioPreviewScreen:{module}")
-        scene0 = route.index(f"ScenarioPreviewScreen:{module}:scene0")
+        base = route.index(f"ScenarioScreen:{module}")
+        scene0 = route.index(f"ScenarioScreen:{module}:scene0")
         assert base < scene0, (module, base, scene0)
 
     for module in battle_modules:
-        base = route.index(f"BattleLayer:{module}")
+        base = route.index(f"BattleScreen:{module}")
         next_screen = min(
             (index for index in range(base + 1, len(route)) if SCENARIO_SCREEN.fullmatch(route[index])),
             default=len(route),
         )
         markers = [
-            f"BattleLayer:{module}:scene1",
-            f"BattleLayer:{module}:result-scene1",
-            f"BattleLayer:{module}:scene2",
-            f"BattleLayer:{module}:save-prompt",
+            f"BattleScreen:{module}:scene1",
+            f"BattleScreen:{module}:result-scene1",
+            f"BattleScreen:{module}:scene2",
+            f"BattleScreen:{module}:save-prompt",
         ]
         _ordered(route, markers, next_screen)
         assert f"{module}:auto-battle-confirm" in inputs, (module, inputs)
@@ -248,7 +248,7 @@ def validate(trace: dict[str, Any], stop_module: str, stop_scene: int) -> dict[s
         preparation_battles.add(source_scenario)
         screen = f"BattlePreparationScreen:{return_scenario}->{source_scenario}"
         start_input = f"{source_scenario}:preparation-start"
-        battle = f"BattleLayer:{source_scenario}"
+        battle = f"BattleScreen:{source_scenario}"
         assert screen in route, (screen, route)
         assert start_input in inputs, (start_input, inputs)
         assert route.index(screen) < route.index(battle), preparation
@@ -256,8 +256,8 @@ def validate(trace: dict[str, Any], stop_module: str, stop_scene: int) -> dict[s
     if "S_01" in battle_modules:
         assert preparations, "R_01 -> S_01 did not traverse BattlePreparationScreen"
         assert trace.get("sawR01DepartureDialogue") is True, trace
-        hall_button = "ScenarioPreviewScreen:R_01:hall-battle-button"
-        scene8 = "ScenarioPreviewScreen:R_01:scene8"
+        hall_button = "ScenarioScreen:R_01:hall-battle-button"
+        scene8 = "ScenarioScreen:R_01:scene8"
         assert hall_button in route, route
         assert scene8 in route, route
         assert "R_01:hall-battle-button" in inputs, inputs

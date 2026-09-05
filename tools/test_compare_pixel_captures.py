@@ -20,12 +20,12 @@ class PixelCaptureComparatorTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source.png"
-            port = root / "port.png"
+            game = root / "game.png"
             Image.new("RGB", (2, 1), (10, 20, 30)).save(source)
             image = Image.new("RGB", (2, 1), (10, 20, 30))
             image.putpixel((1, 0), (11, 20, 30))
-            image.save(port)
-            report = MODULE.compare(source, port, "raw")
+            image.save(game)
+            report = MODULE.compare(source, game, "raw")
             self.assertEqual("fail", report["status"])
             self.assertEqual(1, report["normalized"]["changedPixels"])
             self.assertEqual("raw", report["normalization"]["mode"])
@@ -34,15 +34,15 @@ class PixelCaptureComparatorTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source.png"
-            port = root / "port.png"
+            game = root / "game.png"
             profile = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB"))
             pixels = Image.new("RGB", (2, 2), (42, 84, 126))
             pixels.save(source, icc_profile=profile.tobytes())
-            pixels.save(port)
-            report = MODULE.compare(source, port, "source-to-srgb")
+            pixels.save(game)
+            report = MODULE.compare(source, game, "source-to-srgb")
             self.assertEqual("pass", report["status"])
             self.assertTrue(report["sourceProfile"]["embedded"])
-            self.assertFalse(report["portProfile"]["embedded"])
+            self.assertFalse(report["gameProfile"]["embedded"])
             self.assertEqual("sRGB", report["normalization"]["target"])
             self.assertTrue(report["normalized"]["pixelEqual"])
 
@@ -50,20 +50,20 @@ class PixelCaptureComparatorTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source.png"
-            port = root / "port.png"
+            game = root / "game.png"
             Image.new("RGB", (1, 1), "black").save(source)
-            Image.new("RGB", (1, 1), "black").save(port)
+            Image.new("RGB", (1, 1), "black").save(game)
             with self.assertRaisesRegex(ValueError, "embedded source ICC"):
-                MODULE.compare(source, port, "source-to-srgb")
+                MODULE.compare(source, game, "source-to-srgb")
 
     def test_dimension_mismatch_is_not_a_pixel_pass(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source.png"
-            port = root / "port.png"
+            game = root / "game.png"
             Image.new("RGB", (1, 1), "black").save(source)
-            Image.new("RGB", (2, 1), "black").save(port)
-            report = MODULE.compare(source, port, "raw")
+            Image.new("RGB", (2, 1), "black").save(game)
+            report = MODULE.compare(source, game, "raw")
             self.assertEqual("dimension-mismatch", report["status"])
             self.assertFalse(report["pixelEqual"])
 

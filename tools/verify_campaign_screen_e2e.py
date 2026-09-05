@@ -9,26 +9,26 @@ trace = json.loads(trace_path.read_text(encoding="utf-8"))
 battle = json.loads(battle_path.read_text(encoding="utf-8"))
 expected = [
     "TitleScreen",
-    "ScenarioPreviewScreen:R_00",
-    "ScenarioPreviewScreen:R_00:scene0",
-    "ScenarioPreviewScreen:R_00:scene1",
-    "ScenarioPreviewScreen:R_00:scene2",
-    "ScenarioPreviewScreen:R_00:scene3",
-    "BattleLayer:S_00",
-    "BattleLayer:S_00:scene1",
-    "BattleLayer:S_00:result-scene1",
-    "BattleLayer:S_00:scene2",
-    "BattleLayer:S_00:save-prompt",
-    "ScenarioPreviewScreen:R_01",
-    "ScenarioPreviewScreen:R_01:scene0",
-    "ScenarioPreviewScreen:R_01:scene1",
+    "ScenarioScreen:R_00",
+    "ScenarioScreen:R_00:scene0",
+    "ScenarioScreen:R_00:scene1",
+    "ScenarioScreen:R_00:scene2",
+    "ScenarioScreen:R_00:scene3",
+    "BattleScreen:S_00",
+    "BattleScreen:S_00:scene1",
+    "BattleScreen:S_00:result-scene1",
+    "BattleScreen:S_00:scene2",
+    "BattleScreen:S_00:save-prompt",
+    "ScenarioScreen:R_01",
+    "ScenarioScreen:R_01:scene0",
+    "ScenarioScreen:R_01:scene1",
 ]
 assert trace["format"] == "jojo-campaign-screen-e2e/v1", trace
 assert trace["route"] == expected, trace["route"]
 assert trace["screenClassesVerified"] is True, trace
 assert trace["transitionEnterCount"] == 0, trace
 # Initial battle scene1 contains the authored startOper hand-off; accepting a
-# tactical move before it was the former port-only bootstrap shortcut.
+# tactical move before it was the former game-only bootstrap shortcut.
 assert trace["playerMoveBeforeScene1"] is False, trace
 assert "->" in trace["committedPlayerMove"], trace
 assert trace["campaignStages"] == [0, 1, 2], trace

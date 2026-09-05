@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Compare active Cocos BattleUnit placement against the same port capture state. */
+/** Compare active Cocos BattleUnit placement against the same game capture state. */
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
@@ -36,12 +36,12 @@ function sourceActors(snapshot) {
     .sort((a, b) => a.id - b.id || a.x - b.x || a.y - b.y);
 }
 
-function portActors(output) {
+function gameActors(output) {
   const unitLine = output.match(/DIALOGUE_CAPTURE_UNITS: (.*)/)?.[1];
-  assert.ok(unitLine, "port did not emit the Yingchuan dialogue fixture");
+  assert.ok(unitLine, "game did not emit the Yingchuan dialogue fixture");
   return unitLine.split(";").map(value => {
   const match = value.match(/^[^/]+\/(\d+)@(\d+),(\d+)\/d(\d+)\/v(true|false)$/);
-  assert.ok(match, `unparseable port unit: ${value}`);
+  assert.ok(match, `unparseable game unit: ${value}`);
   return { id: Number(match[1]), x: Number(match[2]), y: Number(match[3]), direction: Number(match[4]), visible: match[5] === "true" };
   }).filter(unit => unit.visible).map(({ visible, ...unit }) => unit).sort((a, b) => a.id - b.id || a.x - b.x || a.y - b.y);
 }
@@ -50,7 +50,7 @@ const expected = [
   // The original capture lands at a typewriter frame boundary.  Cocos may
   // expose the trailing whitespace before or after that boundary; both are
   // the same authored prefix.  Do not turn that scheduler race into a false
-  // source/port behavioural failure.
+  // source/game behavioural failure.
   { step: 1, speaker: "235", text: "하지만, 얼마나 ", sourceTexts: ["하지만, 얼마나", "하지만, 얼마나 ", "하지만, 얼마나 증"] },
   { step: 2, speaker: "235", text: "하지만, 얼마나 증오스러운 일인가......." },
   { step: 3, speaker: "477", text: "아!" },
@@ -74,29 +74,29 @@ for (const fixture of expected) {
     .flatMap(node => node.labels || []).find(name => name.length > 0);
   assert.ok((fixture.sourceTexts ?? [fixture.text]).includes(sourceText),
     `source dialogue ${fixture.step} unexpectedly changed: ${JSON.stringify(sourceText)}`);
-  const portImage = resolve(root, `build/yingchuan-dialogue-${fixture.step}-port.png`);
-  try { unlinkSync(portImage); } catch { /* absent is fresh */ }
+  const gameImage = resolve(root, `build/yingchuan-dialogue-${fixture.step}-game.png`);
+  try { unlinkSync(gameImage); } catch { /* absent is fresh */ }
   const classpath = process.env.JOJO_DESKTOP_CLASSPATH;
-  const portOutput = classpath
+  const gameOutput = classpath
     ? run("java", ["-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp", classpath,
-      "com.jojo.port.desktop.DesktopLauncher", "--battle", "--scenario=S_00",
-      `--capture-state=yingchuan-dialogue-${fixture.step}`, `--capture=${portImage}`], root)
+      "com.jojo.game.desktop.DesktopLauncher", "--battle", "--scenario=S_00",
+      `--capture-state=yingchuan-dialogue-${fixture.step}`, `--capture=${gameImage}`], root)
     : run("./gradlew", [
       ":desktop:run", "--no-daemon",
-      `--args=--battle --scenario=S_00 --capture-state=yingchuan-dialogue-${fixture.step} --capture=${portImage}`,
+      `--args=--battle --scenario=S_00 --capture-state=yingchuan-dialogue-${fixture.step} --capture=${gameImage}`,
     ], root);
-  const state = portOutput.match(/DIALOGUE_CAPTURE_STATE: speaker=(\d+) name=(.*?) text=(.*?) face=/);
-  assert.ok(state, `port did not report dialogue ${fixture.step}`);
-  assert.equal(state[1], fixture.speaker, `port dialogue ${fixture.step} speaker differs from source`);
-  assert.equal(state[2], sourceName, `port dialogue ${fixture.step} displayed name differs from source`);
+  const state = gameOutput.match(/DIALOGUE_CAPTURE_STATE: speaker=(\d+) name=(.*?) text=(.*?) face=/);
+  assert.ok(state, `game did not report dialogue ${fixture.step}`);
+  assert.equal(state[1], fixture.speaker, `game dialogue ${fixture.step} speaker differs from source`);
+  assert.equal(state[2], sourceName, `game dialogue ${fixture.step} displayed name differs from source`);
   assert.equal(state[3], fixture.step === 1 ? "하지만, 얼마나 증오스러운 일인가......." : fixture.text,
-    `port dialogue ${fixture.step} source text differs`);
-  assert.deepEqual(portActors(portOutput), sourceActors(sourceSnapshot),
+    `game dialogue ${fixture.step} source text differs`);
+  assert.deepEqual(gameActors(gameOutput), sourceActors(sourceSnapshot),
     `Yingchuan active BattleUnit placement differs at dialogue input ${fixture.step}`);
   run("python3", [
     "tools/verify_yingchuan_dialogue_fixture.py",
     sourceImage,
-    portImage,
+    gameImage,
     sourceState,
     String(fixture.step),
   ], root);

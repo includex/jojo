@@ -1,0 +1,68 @@
+package com.jojo.game
+
+/** The first application route selected before LibGDX creates a screen. */
+enum class GameEntryPoint {
+    TITLE,
+    SCENARIO,
+    BATTLE,
+}
+
+/** Explicit scenario inputs used by deterministic diagnostics and scripted runs. */
+data class ScenarioRunConfiguration(
+    val choices: List<Int> = emptyList(),
+    val allowPendingChoiceAfterScript: Boolean = false,
+    val globals: Map<Int, Int> = emptyMap(),
+    val unitAttributes: List<Triple<Int, Int, Int>> = emptyList(),
+    val variables: Map<Int, Int> = emptyMap(),
+    val ambition: Int? = null,
+    val randomSequence: List<Int> = emptyList(),
+    val infoTransferRandomSequence: List<Int> = emptyList(),
+    val battleRound: Int = 1,
+    val battleCamp: Int = 1,
+    val battleAttributes: Map<Int, Map<Int, Int>> = emptyMap(),
+    val battlePositions: Map<Int, Pair<Int, Int>> = emptyMap(),
+    val battlePositionsByCamp: Map<Int, List<Pair<Int, Int>>> = emptyMap(),
+    val battleEnemyDefeated: Boolean = false,
+    val startScene: String = "scene1",
+    val startLabel: String? = null,
+    val choiceTracePath: String? = null,
+    val randomTracePath: String? = null,
+    val stopAfterRandomTrace: Boolean = false,
+    val stopAfterRandomTraceCount: Int? = null,
+)
+
+data class VerificationConfiguration(
+    val scenario: Boolean = false,
+    val battle: Boolean = false,
+    val firstBranch: Boolean = false,
+    val alternateBranch: Boolean = false,
+    val scriptedBattle: Boolean = false,
+)
+
+data class RenderCaptureConfiguration(
+    val screenshotPath: String? = null,
+    val rawCapturePath: String? = null,
+    val mapTextureDumpPath: String? = null,
+    val mapDither: String? = null,
+    val mapFilter: String? = null,
+    val mapSampler: String? = null,
+    val mapSampleOffset: Pair<Float, Float>? = null,
+    val compositionTracePath: String? = null,
+    val renderEventLogPath: String? = null,
+    val state: String? = null,
+)
+
+/** Immutable platform-to-game composition contract. */
+data class GameLaunchConfiguration(
+    val entryPoint: GameEntryPoint = GameEntryPoint.TITLE,
+    val initialScenario: String = "R_00",
+    val battleReturnScenario: String? = null,
+    val initialScenarioExplicit: Boolean = false,
+    val scenarioRun: ScenarioRunConfiguration = ScenarioRunConfiguration(),
+    val verification: VerificationConfiguration = VerificationConfiguration(),
+    val capture: RenderCaptureConfiguration = RenderCaptureConfiguration(),
+    val fullBattleTrace: FullBattleTraceConfig? = null,
+    val yingchuanEntryFlowTracePath: String? = null,
+    val campaignE2eTrace: CampaignE2eTraceConfig? = null,
+    val automatedRun: Boolean = false,
+)

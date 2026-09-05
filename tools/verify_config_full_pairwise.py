@@ -3,8 +3,8 @@ import json
 import sys
 
 source = json.load(open(sys.argv[1]))
-port = json.load(open(sys.argv[2]))
-if source != port:
+game = json.load(open(sys.argv[2]))
+if source != game:
     raise SystemExit("CONFIG_FULL_PAIRWISE_MISMATCH")
 inventory = source["all_enumerable_config_exports"]
 

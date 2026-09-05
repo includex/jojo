@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evidence-first source/port matrix for MenuLayer, TerrainLayer and WinCon.
+"""Evidence-first source/game matrix for MenuLayer, TerrainLayer and WinCon.
 
 The tool deliberately reports a state as ``missing`` instead of comparing a
 different screen.  That makes absent capture-state injection visible in CI and
@@ -19,60 +19,60 @@ STATES = (
     (
         "menu-open",
         "python-source-battle-verification-menu.png",
-        "port-menu-open.png",
+        "game-menu-open.png",
         "Canvas/Layer/menu_button TOUCH_END",
         "MenuLayer.onCreate(weather, round, max_round)",
     ),
     (
         "terrain-rise",
         "python-source-battle-verification-layer-TerrainLayer-rise.png",
-        "port-terrain-rise.png",
+        "game-terrain-rise.png",
         "MenuLayer.button6 TOUCH_END → TerrainLayer.onCreate → sel(0)",
         "TerrainLayer._initPanel0 (rise)",
     ),
     (
         "terrain-expend",
         "python-source-battle-verification-layer-TerrainLayer-expend.png",
-        "port-terrain-expend.png",
+        "game-terrain-expend.png",
         "TerrainLayer.bg/button1 TOUCH_END",
         "TerrainLayer.sel(1) → _initPanel1 (expend)",
     ),
     (
         "terrain-close",
         "python-source-battle-verification-layer-TerrainLayer-close.png",
-        "port-terrain-close.png",
+        "game-terrain-close.png",
         "TerrainLayer.bg/button2 TOUCH_END",
         "TerrainLayer.removeFromParent; map input resumes",
     ),
     (
         "wincon-open",
         "python-source-battle-verification-layer-WinConBoxLayer-open.png",
-        "port-wincon-open.png",
-        "MenuLayer.button9 TOUCH_END → BattleLayer WIN_CONDITION",
+        "game-wincon-open.png",
+        "MenuLayer.button9 TOUCH_END → BattleScreen WIN_CONDITION",
         "WinConBoxLayer.onCreate(info, func); scrollToTop",
     ),
     (
         "wincon-confirm",
         "python-source-battle-verification-layer-WinConBoxLayer-confirm.png",
-        "port-wincon-confirm.png",
+        "game-wincon-confirm.png",
         "WinConBoxLayer.bg0/button TOUCH_END",
         "removeFromParent then original continuation func",
     ),
 )
 
 
-def compare(source: Path, port: Path) -> dict[str, object]:
+def compare(source: Path, game: Path) -> dict[str, object]:
     expected = Image.open(source).convert("RGB")
-    actual = Image.open(port).convert("RGB")
+    actual = Image.open(game).convert("RGB")
     if expected.size != actual.size:
-        return {"status": "dimension-mismatch", "source_size": expected.size, "port_size": actual.size}
+        return {"status": "dimension-mismatch", "source_size": expected.size, "game_size": actual.size}
     delta = ImageChops.difference(expected, actual)
     changed = sum(value != (0, 0, 0) for value in delta.getdata())
     total = expected.width * expected.height
     return {
         "status": "compared",
         "source_size": expected.size,
-        "port_size": actual.size,
+        "game_size": actual.size,
         "changed_pixels": changed,
         "total_pixels": total,
         "changed_ratio": changed / total if total else 0,
@@ -98,16 +98,16 @@ def asserted_menu_stack(image: Path, owner: str) -> tuple[bool, str]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source_dir", type=Path)
-    parser.add_argument("port_dir", type=Path)
+    parser.add_argument("game_dir", type=Path)
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
     rows = []
-    for state, source_name, port_name, source_input, expected_result in STATES:
-        source, port = args.source_dir / source_name, args.port_dir / port_name
+    for state, source_name, game_name, source_input, expected_result in STATES:
+        source, game = args.source_dir / source_name, args.game_dir / game_name
         row = {
             "state": state,
             "source": str(source),
-            "port": str(port),
+            "game": str(game),
             "source_input": source_input,
             "expected_result": expected_result,
         }
@@ -115,12 +115,12 @@ def main() -> None:
             row.update(status="missing-source", reason="original Electron fixture was not generated")
         elif state == "menu-open" and not asserted_menu_stack(source, "source")[0]:
             row.update(status="invalid-source-stack", reason=asserted_menu_stack(source, "source")[1])
-        elif not port.exists():
-            row.update(status="missing-port", reason="no matching Kotlin capture-state output")
-        elif state == "menu-open" and not asserted_menu_stack(port, "port")[0]:
-            row.update(status="invalid-port-stack", reason=asserted_menu_stack(port, "port")[1])
+        elif not game.exists():
+            row.update(status="missing-game", reason="no matching Kotlin capture-state output")
+        elif state == "menu-open" and not asserted_menu_stack(game, "game")[0]:
+            row.update(status="invalid-game-stack", reason=asserted_menu_stack(game, "game")[1])
         else:
-            row.update(compare(source, port))
+            row.update(compare(source, game))
         rows.append(row)
     report = {"matrix_version": 1, "states": rows}
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -35,7 +35,7 @@ def trace(engine, frames, camera=True):
 
 class FullBattleOrderVerifierTest(unittest.TestCase):
     def test_dialogue_revision_preserves_same_tick_close_and_reopen(self):
-        observed = trace("libgdx-port", [[], [], []])
+        observed = trace("jojo-game", [[], [], []])
         observed["frames"][0].update(dialogue=1, dialogueRevision=1, dialogueIdentity="210:a")
         observed["frames"][1].update(dialogue=1, dialogueRevision=2, dialogueIdentity="211:b")
         observed["frames"][2].update(dialogue=0, dialogueRevision=2, dialogueIdentity="")
@@ -43,7 +43,7 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
 
         self.assertEqual(["open", "close", "open", "close"], dialogue_sequence(observed))
 
-    def test_dialogue_content_normalizes_source_br_and_port_newlines(self):
+    def test_dialogue_content_normalizes_source_br_and_game_newlines(self):
         source = trace("cocos-original", [[], []])
         source["frames"][0].update(
             dialogue=1, dialogueRevision=1, dialogueIdentity="source-layer-1",
@@ -53,30 +53,30 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             dialogue=1, dialogueRevision=1, dialogueIdentity="source-layer-1",
             dialogueSpeakerId="33", dialogueText="첫 줄<br/>둘째 줄",
         )
-        port = trace("libgdx-port", [[], []])
-        port["frames"][0].update(
-            dialogue=1, dialogueRevision=1, dialogueIdentity="port-call-1",
+        game = trace("jojo-game", [[], []])
+        game["frames"][0].update(
+            dialogue=1, dialogueRevision=1, dialogueIdentity="game-call-1",
             dialogueSpeakerId="3", dialogueText="첫 줄\n둘째 줄",
         )
-        port["frames"][1].update(
-            dialogue=1, dialogueRevision=1, dialogueIdentity="port-call-1",
+        game["frames"][1].update(
+            dialogue=1, dialogueRevision=1, dialogueIdentity="game-call-1",
             dialogueSpeakerId="33", dialogueText="첫 줄\n둘째 줄",
         )
 
         self.assertEqual([("3", "첫 줄\n둘째 줄")], dialogue_content_sequence(source))
-        self.assertIsNone(build_report(source, port)["dialogueContentMismatch"])
+        self.assertIsNone(build_report(source, game)["dialogueContentMismatch"])
 
     def test_asymmetric_dialogue_identity_is_a_capability_gap_not_a_sequence_failure(self):
         source = trace("cocos-original", [[], [], []])
         source["frames"][0].update(dialogue=1)
         source["frames"][1].update(dialogue=1)
         source["frames"][2].update(dialogue=0)
-        port = trace("libgdx-port", [[], [], []])
-        port["frames"][0].update(dialogue=1, dialogueRevision=1, dialogueIdentity="210:a")
-        port["frames"][1].update(dialogue=1, dialogueRevision=2, dialogueIdentity="211:b")
-        port["frames"][2].update(dialogue=0, dialogueRevision=2, dialogueIdentity="")
+        game = trace("jojo-game", [[], [], []])
+        game["frames"][0].update(dialogue=1, dialogueRevision=1, dialogueIdentity="210:a")
+        game["frames"][1].update(dialogue=1, dialogueRevision=2, dialogueIdentity="211:b")
+        game["frames"][2].update(dialogue=0, dialogueRevision=2, dialogueIdentity="")
 
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertIsNone(report["dialogueSequenceMismatch"])
         self.assertIsNotNone(report["dialogueComparisonBlocked"])
@@ -87,7 +87,7 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
         )
 
     def test_unobserved_round_boundary_camp_is_not_fabricated(self):
-        observed = trace("libgdx-port", [[], []])
+        observed = trace("jojo-game", [[], []])
         observed["frames"][0].update(round=2, camp=3)
         observed["frames"][1].update(round=3, camp=0)
 
@@ -215,12 +215,12 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 0)],
         ]
 
-        source, port = trace("cocos-original", frames), trace("libgdx-port", frames)
-        for observed in (source, port):
+        source, game = trace("cocos-original", frames), trace("jojo-game", frames)
+        for observed in (source, game):
             for frame in observed["frames"]:
                 for field in ("dialogueRevision", "dialogueIdentity", "dialogueSpeakerId", "dialogueText"):
                     del frame[field]
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertFalse(report["passed"])
         self.assertEqual(
@@ -234,12 +234,12 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21)],
             [unit(10, 2, 1, 1, 100, 0)],
         ]
-        source, port = trace("cocos-original", frames), trace("libgdx-port", frames)
-        for observed in (source, port):
+        source, game = trace("cocos-original", frames), trace("jojo-game", frames)
+        for observed in (source, game):
             for frame in observed["frames"]:
                 frame.update(dialogue=1, dialogueRevision=1, dialogueIdentity="say-1")
 
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertFalse(report["passed"])
         self.assertIn(
@@ -253,13 +253,13 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21)],
             [unit(10, 2, 1, 1, 100, 0)],
         ]
-        source, port = trace("cocos-original", frames), trace("libgdx-port", frames)
-        for observed in (source, port):
+        source, game = trace("cocos-original", frames), trace("jojo-game", frames)
+        for observed in (source, game):
             observed["summary"]["end"] = False
             for frame in observed["frames"]:
                 frame.update(dialogueRevision=0, dialogueIdentity="", dialogueSpeakerId="", dialogueText="")
 
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertFalse(report["passed"])
         self.assertIsNotNone(report["terminalMismatch"])
@@ -270,13 +270,13 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21)],
             [unit(10, 2, 1, 1, 100, 0)],
         ]
-        source, port = trace("cocos-original", frames), trace("libgdx-port", frames)
-        port["config"]["toolSeed"] = 999
-        for observed in (source, port):
+        source, game = trace("cocos-original", frames), trace("jojo-game", frames)
+        game["config"]["toolSeed"] = 999
+        for observed in (source, game):
             for frame in observed["frames"]:
                 frame.update(dialogueRevision=0, dialogueIdentity="", dialogueSpeakerId="", dialogueText="")
 
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertFalse(report["passed"])
         self.assertEqual({"toolSeed": [1000, 999]}, report["configMismatch"]["seedDifferences"])
@@ -288,7 +288,7 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 75, 32)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0)],
         ]
-        report = build_report(trace("cocos-original", frames), trace("libgdx-port", frames))
+        report = build_report(trace("cocos-original", frames), trace("jojo-game", frames))
         self.assertTrue(report["passed"])
         self.assertEqual(report["commonDecisionEpisodes"], 1)
 
@@ -299,13 +299,13 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 75, 32)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0)],
         ]
-        port = [
+        game = [
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 100, 0)],
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 75, 0)],
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 75, 32)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0)],
         ]
-        report = build_report(trace("cocos-original", source), trace("libgdx-port", port))
+        report = build_report(trace("cocos-original", source), trace("jojo-game", game))
         self.assertFalse(report["passed"])
         self.assertTrue(report["orderMismatches"])
 
@@ -316,12 +316,12 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 75, 32), unit(30, 0, 3, 1, 100, 0)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0), unit(30, 0, 3, 1, 100, 0)],
         ]
-        port = [
+        game = [
             source[0], source[1],
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 100, 0), unit(30, 0, 3, 1, 75, 32)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 100, 0), unit(30, 0, 3, 1, 75, 0)],
         ]
-        report = build_report(trace("cocos-original", source), trace("libgdx-port", port))
+        report = build_report(trace("cocos-original", source), trace("jojo-game", game))
         self.assertEqual(report["commonDecisionEpisodes"], 0)
         self.assertTrue(report["decisionDivergences"])
         self.assertTrue(report["insufficientCommonCoverage"])
@@ -333,13 +333,13 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 21), unit(20, 0, 2, 1, 75, 32), unit(30, 2, 3, 1, 100, 0)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0), unit(30, 2, 3, 1, 100, 0)],
         ]
-        port = common + [
+        game = common + [
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0), unit(30, 2, 3, 1, 100, 20)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0), unit(30, 2, 4, 1, 100, 20)],
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0), unit(30, 2, 4, 1, 100, 0)],
         ]
 
-        report = build_report(trace("cocos-original", common), trace("libgdx-port", port))
+        report = build_report(trace("cocos-original", common), trace("jojo-game", game))
 
         self.assertEqual(1, report["commonDecisionEpisodes"])
         self.assertTrue(report["decisionDivergences"])
@@ -353,15 +353,15 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 0), unit(20, 0, 2, 1, 75, 0)],
         ]
         source = trace("cocos-original", frames)
-        port = trace("libgdx-port", frames)
-        for observed, text in ((source, "원본 대사"), (port, "다른 대사")):
+        game = trace("jojo-game", frames)
+        for observed, text in ((source, "원본 대사"), (game, "다른 대사")):
             for frame in observed["frames"]:
                 frame.update(
                     dialogue=1, dialogueRevision=1, dialogueIdentity="say-1",
                     dialogueSpeakerId="10", dialogueText=text,
                 )
 
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertIsNotNone(report["dialogueContentMismatch"])
         self.assertFalse(report["passed"])
@@ -372,24 +372,24 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 0, 23), unit(20, 0, 2, 1, 100, 32)],
             [unit(10, 2, 1, 1, 0, 23, visible=0), unit(20, 0, 2, 1, 100, 0)],
         ]
-        port = [
+        game = [
             [unit(10, 2, 1, 1, 0, 0), unit(20, 0, 2, 1, 100, 0)],
             [unit(10, 2, 1, 1, 0, 23), unit(20, 0, 2, 1, 100, 0)],
             [unit(10, 2, 1, 1, 0, 23, visible=0), unit(20, 0, 2, 1, 100, 0)],
         ]
 
-        report = build_report(trace("cocos-original", source), trace("libgdx-port", port))
+        report = build_report(trace("cocos-original", source), trace("jojo-game", game))
 
         self.assertEqual([], report["decisionDivergences"])
         self.assertEqual([], report["orderMismatches"])
 
     def test_missing_source_camera_is_an_explicit_capability_gap(self):
         frames = [[unit(10, 2, 1, 1, 100, 0)]]
-        report = build_report(trace("cocos-original", frames, camera=False), trace("libgdx-port", frames))
+        report = build_report(trace("cocos-original", frames, camera=False), trace("jojo-game", frames))
         self.assertIn("camera", [gap["observation"] for gap in report["capabilityGaps"]])
 
     def test_camera_focus_before_episode_is_not_an_episode_callback(self):
-        observed = trace("libgdx-port", [
+        observed = trace("jojo-game", [
             [unit(1, 1, 0, 0, 100, 0)],
             [unit(1, 1, 0, 0, 100, 20)],
             [unit(1, 1, 0, 0, 100, 20)],
@@ -420,19 +420,19 @@ class FullBattleOrderVerifierTest(unittest.TestCase):
             [unit(10, 2, 1, 1, 100, 0, statuses=poisoned, status_rounds=poisoned_rounds)],
         ]
         source = trace("cocos-original", frames)
-        port = trace("libgdx-port", frames)
+        game = trace("jojo-game", frames)
 
-        report = build_report(source, port)
+        report = build_report(source, game)
 
         self.assertTrue(report["source"]["capabilities"]["statusState"])
-        self.assertTrue(report["port"]["capabilities"]["statusState"])
+        self.assertTrue(report["game"]["capabilities"]["statusState"])
         self.assertTrue(report["passed"])
 
     def test_action_point_only_source_does_not_create_false_decision_divergence(self):
         frames = [[unit(10, 2, 1, 1, 100, 0)], [unit(10, 2, 1, 1, 100, 1)]]
         source = trace("cocos-original", frames)
-        port_frames = [frames[0], [unit(10, 2, 1, 1, 100, 21)], [unit(10, 2, 1, 1, 100, 0)]]
-        report = build_report(source, trace("libgdx-port", port_frames))
+        game_frames = [frames[0], [unit(10, 2, 1, 1, 100, 21)], [unit(10, 2, 1, 1, 100, 0)]]
+        report = build_report(source, trace("jojo-game", game_frames))
         self.assertIsNotNone(report["actionComparisonBlocked"])
         self.assertEqual(report["decisionDivergences"], [])
 

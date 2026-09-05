@@ -10,22 +10,22 @@
       "evidence": [
         "SettingLayer.js attaches AchievementsLayer when stageReward() is non-empty",
         "The recovered AchievementsLayer creates Logo_12-1 rows, battleName labels, level/gold and three star markers",
-        "The port routes a deterministic AchievementsFixtureScreen and the source/port draw-event fixture covers the authored Logo_12-1 prefab"
+        "The game routes a deterministic AchievementsFixtureScreen and the source/game draw-event fixture covers the authored Logo_12-1 prefab"
       ],
-      "verification": "Source and port canonical draw streams compare strictly (23/23, zero differences)."
+      "verification": "Source and game canonical draw streams compare strictly (23/23, zero differences)."
     },
     {
       "id": "attribute",
       "registry": "Global130 AttributeLayer",
-      "classification": "actual-script-caller-port-headless",
+      "classification": "actual-script-caller-game-headless",
       "productionCaller": "ui/StageLayer.js showAttrbute(t)",
       "sourceLines": "recovered-js/modules/ui/StageLayer.js:484-485",
       "evidence": [
         "StageLayer.js attaches AttributeLayer for truthy script payloads and removes it otherwise",
         "AttributeLayer.js renders pooled scrollview rows label0/label1 from the supplied [name,value] list",
-        "The port has CharacterAbilityTraceHarness attribute_pool_rows coverage and StageLayerPort.showAttribute rows/removal lifecycle; no screen-level StageLayer overlay or draw-event fixture yet"
+        "The game has CharacterAbilityTraceHarness attribute_pool_rows coverage and StageLayerGame.showAttribute rows/removal lifecycle; no screen-level StageLayer overlay or draw-event fixture yet"
       ],
-      "verification": "Behavioral source/port trace passes; keep screenshot gate blocked until the StageLayer attribute overlay is rendered and routed."
+      "verification": "Behavioral source/game trace passes; keep screenshot gate blocked until the StageLayer attribute overlay is rendered and routed."
     },
     {
       "id": "help",
@@ -35,20 +35,20 @@
       "evidence": [
         "HelpLayer.js is a standalone prefab with close listeners and static instructional text",
         "Instance.jumpHelp() is an empty method; no recovered module attaches HelpLayer",
-        "The port MiscUiTraceHarness verifies HelpLayer text and close touch semantics, but no production route exists"
+        "The game MiscUiTraceHarness verifies HelpLayer text and close touch semantics, but no production route exists"
       ],
       "verification": "Behavioral trace passes; keep blocked because attaching this orphan prefab would invent a lifecycle."
     },
     {
       "id": "generic-list",
       "registry": "Global129 ListLayer",
-      "classification": "actual-script-caller-port-headless",
+      "classification": "actual-script-caller-game-headless",
       "productionCaller": "ui/StageLayer.js list(t)",
       "sourceLines": "recovered-js/modules/ui/StageLayer.js:474-482",
       "evidence": [
         "StageLayer.js pauses the script, injects a callback, and attaches ListLayer",
         "ListLayer.js renders Logo_12-1 rows, labels, alternating imgs, toggles and optional sort buttons",
-        "The port MiscUiTraceHarness verifies list selection/cancel semantics and StageLayerPort.showList/finishList pause-resume lifecycle; no StageLayer script overlay renderer is implemented"
+        "The game MiscUiTraceHarness verifies list selection/cancel semantics and StageLayerGame.showList/finishList pause-resume lifecycle; no StageLayer script overlay renderer is implemented"
       ],
       "verification": "Behavioral trace passes; keep screenshot gate blocked until a real StageLayer ListLayer route and draw events exist."
     },
@@ -60,7 +60,7 @@
       "evidence": [
         "ResetLayer.js only animates Logo_12-1/progressBar and invokes the injected callback on completion",
         "No recovered module references ResetLayer outside its implementation",
-        "The port progression trace covers callback/removal semantics, but there is no production caller or render route"
+        "The game progression trace covers callback/removal semantics, but there is no production caller or render route"
       ],
       "verification": "Behavioral trace passes; keep blocked because direct attachment would invent a lifecycle."
     },
@@ -72,7 +72,7 @@
       "evidence": [
         "Instance.js registers SendGiftsLayer at Global117",
         "No recovered module references SendGiftsLayer outside its implementation and registry",
-        "The port SendGiftsTraceHarness verifies close inversion and CmdLayer/skmLayer routing, but no production caller reaches it"
+        "The game SendGiftsTraceHarness verifies close inversion and CmdLayer/skmLayer routing, but no production caller reaches it"
       ],
       "verification": "Behavioral trace passes; keep blocked because direct attachment would invent a lifecycle."
     },
@@ -135,7 +135,7 @@
         "Source actual canonical/repeat logs each contain the Hall map and authored skip button submissions",
         "Source route sidecars confirm registered/enabled flags 256 and Skip id14 attachment"
       ],
-      "verification": "original-skip-open canonical/repeat are byte-identical; port strict comparison is owned by the Skip route agent."
+      "verification": "original-skip-open canonical/repeat are byte-identical; game strict comparison is owned by the Skip route agent."
     }
   ]
 }

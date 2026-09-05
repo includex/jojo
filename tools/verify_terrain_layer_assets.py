@@ -17,8 +17,8 @@ def digest(path: Path) -> str:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        raise SystemExit("usage: verify_terrain_layer_assets.py <cocos-assets> <port-assets>")
-    assets, port = map(Path, sys.argv[1:])
+        raise SystemExit("usage: verify_terrain_layer_assets.py <cocos-assets> <game-assets>")
+    assets, game = map(Path, sys.argv[1:])
     config = json.loads((assets / "Game" / "config.54cec.json").read_text())
     native = dict(zip(config["versions"]["native"][::2], config["versions"]["native"][1::2]))
     for terrain_id in range(28):
@@ -39,7 +39,7 @@ def main() -> None:
                 break
         if original is None:
             raise SystemExit(f"missing source Game/Terrain/{terrain_id}")
-        copied = port / "terrain-icons" / f"{terrain_id}.png"
+        copied = game / "terrain-icons" / f"{terrain_id}.png"
         if not copied.exists() or digest(original) != digest(copied):
             raise SystemExit(f"terrain icon mismatch: {terrain_id}")
     print("TERRAIN_LAYER_ASSETS_OK count=28")

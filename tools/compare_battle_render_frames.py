@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict, GPU-tolerant comparison for fresh source/port battle frames."""
+"""Strict, GPU-tolerant comparison for fresh source/game battle frames."""
 from __future__ import annotations
 
 import argparse
@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageFilter, ImageOps, ImageStat
 
 
-def structural_delta(source: Image.Image, port: Image.Image) -> Image.Image:
+def structural_delta(source: Image.Image, game: Image.Image) -> Image.Image:
     """Return a GPU-colour-tolerant edge delta.
 
     Cocos/WebGL and LibGDX/OpenGL apply slightly different texture filtering
@@ -20,13 +20,13 @@ def structural_delta(source: Image.Image, port: Image.Image) -> Image.Image:
     """
     def edges(image: Image.Image) -> Image.Image:
         return ImageOps.grayscale(image).filter(ImageFilter.GaussianBlur(1)).filter(ImageFilter.FIND_EDGES)
-    return ImageChops.difference(edges(source), edges(port))
+    return ImageChops.difference(edges(source), edges(game))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path)
-    parser.add_argument("port", type=Path)
+    parser.add_argument("game", type=Path)
     parser.add_argument("report", type=Path)
     parser.add_argument("--max-structural-mae", type=float, default=1.1)
     parser.add_argument("--structural-pixel-threshold", type=int, default=8)
@@ -34,12 +34,12 @@ def main() -> None:
     args = parser.parse_args()
 
     source = Image.open(args.source).convert("RGB")
-    port = Image.open(args.port).convert("RGB")
-    if source.size != port.size:
-        raise AssertionError(f"frame dimensions differ: source={source.size} port={port.size}")
-    rgb_delta = ImageChops.difference(source, port)
+    game = Image.open(args.game).convert("RGB")
+    if source.size != game.size:
+        raise AssertionError(f"frame dimensions differ: source={source.size} game={game.size}")
+    rgb_delta = ImageChops.difference(source, game)
     rgb_mae = tuple(ImageStat.Stat(rgb_delta).mean)
-    delta = structural_delta(source, port)
+    delta = structural_delta(source, game)
     structural_mae = ImageStat.Stat(delta).mean[0]
     changed = sum(pixel > args.structural_pixel_threshold for pixel in delta.getdata())
     total = source.width * source.height
@@ -48,7 +48,7 @@ def main() -> None:
     report = {
         "format": "jojo-fresh-battle-frame-compare/v2",
         "source": str(args.source),
-        "port": str(args.port),
+        "game": str(args.game),
         "size": list(source.size),
         "rgbChannelMaeDiagnostic": list(rgb_mae),
         "structuralMae": structural_mae,

@@ -3,7 +3,7 @@
 
 The live renderer emits stable checkpoints at the authored 0.04s tile step.
 This verifier reconstructs the linear tween between those checkpoints at
-0.01s (60/100fps-safe) and compares source/port positions, velocity, action,
+0.01s (60/100fps-safe) and compares source/game positions, velocity, action,
 direction, and the final idle transition. It therefore catches a frozen or
 reversed actor even when the endpoints happen to match.
 """
@@ -43,14 +43,14 @@ def samples(rows, label):
     return out, errors
 
 def main():
-    p = argparse.ArgumentParser(); p.add_argument("source", type=Path); p.add_argument("port", type=Path); p.add_argument("--output", type=Path); a = p.parse_args()
-    sr, se = samples(read(a.source), "source"); pr, pe = samples(read(a.port), "port")
+    p = argparse.ArgumentParser(); p.add_argument("source", type=Path); p.add_argument("game", type=Path); p.add_argument("--output", type=Path); a = p.parse_args()
+    sr, se = samples(read(a.source), "source"); pr, pe = samples(read(a.game), "game")
     errors = se + pe
-    if len(sr) != len(pr): errors.append(f"frame sample count differs source={len(sr)} port={len(pr)}")
+    if len(sr) != len(pr): errors.append(f"frame sample count differs source={len(sr)} game={len(pr)}")
     else:
         for i, (s, q) in enumerate(zip(sr, pr)):
-            if s != q: errors.append(f"sample[{i}] differs source={s} port={q}"); break
-    report = {"source": str(a.source), "port": str(a.port), "sourceSamples": len(sr), "portSamples": len(pr), "sampleStep": .01, "errors": errors, "equal": not errors}
+            if s != q: errors.append(f"sample[{i}] differs source={s} game={q}"); break
+    report = {"source": str(a.source), "game": str(a.game), "sourceSamples": len(sr), "gameSamples": len(pr), "sampleStep": .01, "errors": errors, "equal": not errors}
     if a.output: a.output.parent.mkdir(parents=True, exist_ok=True); a.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(("HALL_WALK_FRAME_BLOCKED " if errors else "HALL_WALK_FRAME_OK ") + json.dumps(report, ensure_ascii=False))
     return 1 if errors else 0

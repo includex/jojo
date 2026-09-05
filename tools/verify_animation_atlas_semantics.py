@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the source-to-port frame-stride/rate contracts used by battle visuals."""
+"""Guard the source-to-game frame-stride/rate contracts used by battle visuals."""
 
 from __future__ import annotations
 
@@ -50,13 +50,13 @@ def main() -> None:
     require(ui_frame, "C * (w + 2 * i) + i", "CreateAnime padded row stride")
     require(ui_frame, "R += 1 / 24 * H", "CreateAnime authored tick duration")
 
-    battle_layer = (args.repo / "core/src/main/kotlin/com/jojo/port/BattleLayer.kt").read_text()
-    object_timeline = (args.repo / "core/src/main/kotlin/com/jojo/port/BattleObjectAnimationTimeline.kt").read_text()
-    battle_timeline = (args.repo / "core/src/main/kotlin/com/jojo/port/BattleSpriteTimeline.kt").read_text()
-    hall_timeline = (args.repo / "core/src/main/kotlin/com/jojo/port/HallUnitRender.kt").read_text()
-    magic = (args.repo / "core/src/main/kotlin/com/jojo/port/MagicEffectCatalog.kt").read_text()
-    state = (args.repo / "core/src/main/kotlin/com/jojo/port/BattleUnitStateAnimation.kt").read_text()
-    menu = (args.repo / "core/src/main/kotlin/com/jojo/port/MenuLayer.kt").read_text()
+    battle_layer = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleScreen.kt").read_text()
+    object_timeline = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleObjectAnimationTimeline.kt").read_text()
+    battle_timeline = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleSpriteTimeline.kt").read_text()
+    hall_timeline = (args.repo / "core/src/main/kotlin/com/jojo/game/HallUnitRender.kt").read_text()
+    magic = (args.repo / "core/src/main/kotlin/com/jojo/game/MagicEffectCatalog.kt").read_text()
+    state = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleUnitStateAnimation.kt").read_text()
+    menu = (args.repo / "core/src/main/kotlin/com/jojo/game/MenuLayer.kt").read_text()
 
     require(object_timeline, "const val FRAME_SIZE = 48", "object frame size")
     require(object_timeline, "const val FRAME_TICKS = 8", "object frame hold")

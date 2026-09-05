@@ -17,15 +17,15 @@ SPEC.loader.exec_module(MODULE)
 class BattleFrameStructuralComparatorTest(unittest.TestCase):
     def test_broad_gpu_colour_shift_has_no_structural_delta(self):
         source = Image.new("RGB", (256, 128), (50, 120, 70))
-        port = Image.new("RGB", source.size, (44, 121, 53))
-        self.assertLess(ImageStat.Stat(MODULE.structural_delta(source, port)).mean[0], 1.1)
+        game = Image.new("RGB", source.size, (44, 121, 53))
+        self.assertLess(ImageStat.Stat(MODULE.structural_delta(source, game)).mean[0], 1.1)
 
     def test_different_actor_pose_remains_visible_after_sampler_filter(self):
         source = Image.new("RGB", (256, 128), (50, 120, 70))
-        port = Image.new("RGB", source.size, (44, 121, 53))
+        game = Image.new("RGB", source.size, (44, 121, 53))
         ImageDraw.Draw(source).rectangle((80, 32, 120, 96), fill=(230, 60, 20))
-        ImageDraw.Draw(port).ellipse((80, 32, 120, 96), fill=(230, 60, 20))
-        delta = MODULE.structural_delta(source, port)
+        ImageDraw.Draw(game).ellipse((80, 32, 120, 96), fill=(230, 60, 20))
+        delta = MODULE.structural_delta(source, game)
         changed_ratio = sum(value > 8 for value in delta.getdata()) / (256 * 128)
         self.assertGreater(changed_ratio, 0.003)
 

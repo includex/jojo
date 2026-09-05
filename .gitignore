@@ -2,7 +2,7 @@
 .gradle/
 .kotlin/
 .lwjgl/
-.port-isolated/
+.verification-work/
 build/
 **/build/
 local.properties

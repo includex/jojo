@@ -35,7 +35,7 @@ def checksum(path: Path) -> str:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        raise SystemExit("usage: verify_character_visual_assets.py <cocos-assets> <port-assets>")
+        raise SystemExit("usage: verify_character_visual_assets.py <cocos-assets> <game-assets>")
     assets, exported = map(Path, sys.argv[1:])
     config = json.loads((assets / "Game/config.54cec.json").read_text())
     native_versions = dict(zip(config["versions"]["native"][::2], config["versions"]["native"][1::2]))

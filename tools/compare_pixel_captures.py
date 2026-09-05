@@ -63,31 +63,31 @@ def metrics(expected: Image.Image, actual: Image.Image) -> dict[str, Any]:
     }
 
 
-def compare(source_path: Path, port_path: Path, color_space: str) -> dict[str, Any]:
+def compare(source_path: Path, game_path: Path, color_space: str) -> dict[str, Any]:
     source_file = Image.open(source_path)
-    port_file = Image.open(port_path)
+    game_file = Image.open(game_path)
     source_profile = profile_metadata(source_file)
-    port_profile = profile_metadata(port_file)
+    game_profile = profile_metadata(game_file)
     report: dict[str, Any] = {
         "comparisonKind": "framebuffer-pixels",
         "source": str(source_path),
-        "port": str(port_path),
+        "game": str(game_path),
         "sourceSize": list(source_file.size),
-        "portSize": list(port_file.size),
+        "gameSize": list(game_file.size),
         "sourceProfile": source_profile,
-        "portProfile": port_profile,
+        "gameProfile": game_profile,
         "raw": None,
         "normalized": None,
     }
-    if source_file.size != port_file.size:
+    if source_file.size != game_file.size:
         report.update({"status": "dimension-mismatch", "pixelEqual": False})
         source_file.close()
-        port_file.close()
+        game_file.close()
         return report
 
     source_rgb = source_file.convert("RGB")
-    port_rgb = port_file.convert("RGB")
-    report["raw"] = metrics(source_rgb, port_rgb)
+    game_rgb = game_file.convert("RGB")
+    report["raw"] = metrics(source_rgb, game_rgb)
     if color_space == "source-to-srgb":
         payload = source_file.info.get("icc_profile")
         if not payload:
@@ -102,27 +102,27 @@ def compare(source_path: Path, port_path: Path, color_space: str) -> dict[str, A
             "mode": color_space,
             "source": "embedded ICC",
             "target": "sRGB",
-            "portInterpretation": "sRGB (untagged framebuffer)" if not port_profile["embedded"] else "embedded ICC not transformed",
+            "gameInterpretation": "sRGB (untagged framebuffer)" if not game_profile["embedded"] else "embedded ICC not transformed",
         }
     else:
         report["normalization"] = {"mode": "raw", "source": "none", "target": "none"}
-    report["normalized"] = metrics(source_rgb, port_rgb)
+    report["normalized"] = metrics(source_rgb, game_rgb)
     report["pixelEqual"] = report["normalized"]["pixelEqual"]
     report["status"] = "pass" if report["pixelEqual"] else "fail"
     source_file.close()
-    port_file.close()
+    game_file.close()
     return report
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path)
-    parser.add_argument("port", type=Path)
+    parser.add_argument("game", type=Path)
     parser.add_argument("--color-space", choices=("raw", "source-to-srgb"), default="raw")
     parser.add_argument("--output", type=Path, help="write the complete JSON report")
     args = parser.parse_args(argv)
     try:
-        report = compare(args.source, args.port, args.color_space)
+        report = compare(args.source, args.game, args.color_space)
     except (OSError, ValueError) as error:
         parser.error(str(error))
     encoded = json.dumps(report, ensure_ascii=False, indent=2) + "\n"

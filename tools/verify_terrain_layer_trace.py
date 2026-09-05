@@ -2,7 +2,7 @@
 import json,subprocess
 from pathlib import Path
 r=Path(__file__).resolve().parents[1]; f=r/'tools/terrain_layer_trace_cases.json'
-a=json.loads(subprocess.check_output(['node',str(r/'tools/original_terrain_layer_trace_harness.js'),str(f)],text=True));b=json.loads(subprocess.check_output([str(r/'gradlew'),'-q',':core:terrainLayerTrace'],cwd=r,text=True))
+a=json.loads(subprocess.check_output(['node',str(r/'tools/terrain_layer_source_trace_harness.js'),str(f)],text=True));b=json.loads(subprocess.check_output([str(r/'gradlew'),'-q',':core:terrainLayerTrace'],cwd=r,text=True))
 assert {x['tag'] for x in a}>={'create','END:1','END:2','SCROLL:0','SCROLL:27'}
 for state in a:
     assert len(state['rows']) == 2

@@ -11,13 +11,6 @@ dependencies {
     implementation("com.badlogicgames.gdx:gdx-freetype-platform:${property("gdxVersion")}:natives-desktop")
 }
 
-tasks.register<JavaExec>("verifyAllHeadless") {
-    group = "verification"
-    description = "Runs the production LibGDX scenario verifier without requiring a desktop monitor."
-    classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("com.jojo.port.desktop.HeadlessVerifier")
-}
-
 tasks.register("printClasspath") {
     doLast {
         println(sourceSets["main"].runtimeClasspath.asPath)
@@ -27,19 +20,19 @@ tasks.register("printClasspath") {
 
 val winConditionsFixture = rootProject.file("tools/fixtures/win_conditions_layer_cases.json")
 val winConditionsTraceDir = layout.buildDirectory.dir("verification/win-conditions")
-val dumpWinConditionsPortTrace = tasks.register<JavaExec>("dumpWinConditionsPortTrace") {
+val dumpWinConditionsGameTrace = tasks.register<JavaExec>("dumpWinConditionsGameTrace") {
     group = "verification"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("com.jojo.port.desktop.LayerTraceDump")
-    args(winConditionsFixture.absolutePath, winConditionsTraceDir.get().file("port.json").asFile.absolutePath)
+    mainClass.set("com.jojo.game.desktop.LayerTraceDump")
+    args(winConditionsFixture.absolutePath, winConditionsTraceDir.get().file("game.json").asFile.absolutePath)
 }
 tasks.register<Exec>("verifyWinConditionsPairwise") {
     group = "verification"
-    dependsOn(dumpWinConditionsPortTrace)
+    dependsOn(dumpWinConditionsGameTrace)
     inputs.file(winConditionsFixture)
     inputs.file(rootProject.file("tools/win_conditions_source_trace_harness.js"))
     inputs.file(rootProject.file("tools/verify_win_conditions_pairwise.mjs"))
-    commandLine("node", rootProject.file("tools/verify_win_conditions_pairwise.mjs").absolutePath, winConditionsFixture.absolutePath, winConditionsTraceDir.get().file("source.json").asFile.absolutePath, winConditionsTraceDir.get().file("port.json").asFile.absolutePath)
+    commandLine("node", rootProject.file("tools/verify_win_conditions_pairwise.mjs").absolutePath, winConditionsFixture.absolutePath, winConditionsTraceDir.get().file("source.json").asFile.absolutePath, winConditionsTraceDir.get().file("game.json").asFile.absolutePath)
 }
 
 /**
@@ -50,7 +43,7 @@ tasks.register<Exec>("verifyWinConditionsPairwise") {
 fun scenarioBranchFixture(name: String, vararg arguments: String) = tasks.register<JavaExec>(name) {
     group = "verification"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("com.jojo.port.desktop.DesktopLauncher")
+    mainClass.set("com.jojo.game.desktop.DesktopLauncher")
     jvmArgs("-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED")
     val trace = layout.buildDirectory.file("reports/scenario-choice-traces/$name.json")
     args(arguments.toList() + "--choice-trace=${trace.get().asFile.absolutePath}")
@@ -61,7 +54,7 @@ fun scenarioBranchFixture(name: String, vararg arguments: String) = tasks.regist
 fun scenarioRandomFixture(name: String, expectedLine: Int, expectedValue: Int, vararg arguments: String, stopAfterRandomTraceCount: Int = 1) = tasks.register<JavaExec>(name) {
     group = "verification"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("com.jojo.port.desktop.DesktopLauncher")
+    mainClass.set("com.jojo.game.desktop.DesktopLauncher")
     jvmArgs("-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED")
     val trace = layout.buildDirectory.file("reports/scenario-random-traces/$name.json")
     args(arguments.toList() + "--verify-stop-after-random-count=$stopAfterRandomTraceCount" + "--random-trace=${trace.get().asFile.absolutePath}")
@@ -417,14 +410,14 @@ tasks.register<Exec>("verifyScenarioChoiceCoverage") {
     )
 }
 
-/** Runs the recovered Electron battle through the same three dialogue inputs as the port. */
+/** Runs the recovered Electron battle through the same three dialogue inputs as the game. */
 val verifyYingchuanActorState = tasks.register<Exec>("verifyYingchuanActorState") {
     group = "verification"
     description = "Compares original Cocos and LibGDX Yingchuan dialogue actors, text, and fixture geometry."
     inputs.file(rootProject.file("tools/verify_yingchuan_actor_state.mjs"))
     inputs.file(rootProject.file("tools/verify_yingchuan_dialogue_fixture.py"))
     inputs.file(rootProject.file("tools/export_map_assets.py"))
-    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/port/BattleLayer.kt"))
+    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/BattleScreen.kt"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/electron/main.cjs"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/build/python-source-battle-verification-dialogue3.png"))
     inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/recovered-js/modules"))
@@ -469,13 +462,13 @@ val verifyRenderParityScope = tasks.register<Exec>("verifyRenderParityScope") {
     )
 }
 
-/** Compares the real source Control._process range/cursor overlay to the port framebuffer state. */
+/** Compares the real source Control._process range/cursor overlay to the game framebuffer state. */
 val verifyYingchuanSelectionRender = tasks.register<Exec>("verifyYingchuanSelectionRender") {
     group = "verification"
     description = "Compares original Cocos and LibGDX Yingchuan selection ranges, attack boxes, and cursor."
     inputs.file(rootProject.file("tools/verify_yingchuan_selection_render.mjs"))
     inputs.file(rootProject.file("tools/export_map_assets.py"))
-    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/port/BattleLayer.kt"))
+    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/BattleScreen.kt"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/electron/main.cjs"))
     inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/recovered-js/modules"))
     outputs.file(rootProject.layout.buildDirectory.file("yingchuan-selection-render.json"))
@@ -487,7 +480,7 @@ val verifyYingchuanModalCaptures = tasks.register<Exec>("verifyYingchuanModalCap
     group = "verification"
     description = "Checks original modal/SayLayer stacks and LibGDX modal capture states."
     inputs.file(rootProject.file("tools/verify_yingchuan_modal_captures.mjs"))
-    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/port/BattleLayer.kt"))
+    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/BattleScreen.kt"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/electron/main.cjs"))
     inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/build"))
     outputs.file(rootProject.layout.buildDirectory.file("yingchuan-modal-captures.json"))
@@ -495,18 +488,18 @@ val verifyYingchuanModalCaptures = tasks.register<Exec>("verifyYingchuanModalCap
 }
 
 /**
- * Runs the production BattleLayer continuously and validates movement,
+ * Runs the production BattleScreen continuously and validates movement,
  * attack-hit-reaction timing, camera bounds and the terminal outcome. This is
  * intentionally separate from capture-state fixtures: its input is the live
- * frame trace emitted by the production S_00 BattleLayer after its explicit,
+ * frame trace emitted by the production S_00 BattleScreen after its explicit,
  * deterministic full-battle roster bootstrap.
  */
 val yingchuanBattleRegressionTrace = layout.buildDirectory.file("reports/yingchuan-battle-regression-trace.json")
 val captureYingchuanBattleRegressionTrace = tasks.register<JavaExec>("captureYingchuanBattleRegressionTrace") {
     group = "verification"
-    description = "Runs the production S_00 BattleLayer and records its complete frame trace."
+    description = "Runs the production S_00 BattleScreen and records its complete frame trace."
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("com.jojo.port.desktop.DesktopLauncher")
+    mainClass.set("com.jojo.game.desktop.DesktopLauncher")
     jvmArgs("-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED")
     args(
         "--battle",
@@ -555,7 +548,7 @@ val captureCampaignScreenE2e = tasks.register<JavaExec>("captureCampaignScreenE2
     group = "verification"
     description = "Runs original Title -> R_00 -> S_00 -> save prompt -> R_01 through production screens and input."
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("com.jojo.port.desktop.DesktopLauncher")
+    mainClass.set("com.jojo.game.desktop.DesktopLauncher")
     jvmArgs("-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED")
     args(
         "--campaign-e2e-trace=${campaignScreenE2eTrace.get().asFile.absolutePath}",
@@ -588,10 +581,8 @@ val verifyCampaignScreenE2e = tasks.register<Exec>("verifyCampaignScreenE2e") {
 // A desktop verification run is not valid unless this recovered-JS ↔ Kotlin
 // lifecycle contract has also been compared.
 tasks.named("check") { dependsOn("verifyWinConditionsPairwise", "verifyScenarioChoiceCoverage", "verifyScenarioRandomCoverage", verifyRenderParityScope, verifyYingchuanSelectionRender, verifyYingchuanModalCaptures, verifyYingchuanBattleRegression, verifyCampaignScreenE2e) }
-tasks.named("verifyAllHeadless") { dependsOn("verifyWinConditionsPairwise") }
-
 application {
-    mainClass.set("com.jojo.port.desktop.DesktopLauncher")
+    mainClass.set("com.jojo.game.desktop.DesktopLauncher")
     applicationDefaultJvmArgs = listOf(
         "-XstartOnFirstThread",
         "--enable-native-access=ALL-UNNAMED"

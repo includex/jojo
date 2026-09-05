@@ -1,14 +1,14 @@
 # Render log comparator
 
 `compare_render_logs.py` compares semantic render logs without reading or
-capturing images. It accepts original Cocos fixture snapshots, current port
+capturing images. It accepts reference Cocos fixture snapshots, current game
 composition traces, a canonical draw log, and the line-delimited JSON event
 stream emitted by `--render-event-log` in both runtimes.
 
 ```sh
 python3 tools/compare_render_logs.py \
   ../jojo_mobile/sgccz-desktop/build/python-source-hall-buy-fixture.json \
-  desktop/.port-isolated/nonbattle/current/port-hall-buy-agent.json \
+  desktop/.verification-work/nonbattle/current/game-hall-buy-agent.json \
   --json-out build/render-log-diff.json \
   --text-out build/render-log-diff.txt
 ```

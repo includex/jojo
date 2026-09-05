@@ -3,8 +3,8 @@ import ast
 import unittest
 
 from audit_battle_stage_api_surface import (
-    CallVisitor, audit, expanded_source_body, port_has_battle_barrier,
-    port_battle_barrier_evidence, runtime_handlers, source_has_barrier,
+    CallVisitor, audit, expanded_source_body, game_has_battle_barrier,
+    game_battle_barrier_evidence, runtime_handlers, source_has_barrier,
     source_methods, source_signals,
 )
 
@@ -27,15 +27,15 @@ class BattleStageApiAuditTest(unittest.TestCase):
         self.assertTrue(source_has_barrier(signals))
 
     def test_r_only_suspend_is_not_a_battle_barrier(self):
-        self.assertFalse(port_has_battle_barrier('if (moduleName.startsWith("R_")) suspendForInfo(text)'))
-        self.assertTrue(port_has_battle_barrier('suspendFor(Float.MAX_VALUE)'))
+        self.assertFalse(game_has_battle_barrier('if (moduleName.startsWith("R_")) suspendForInfo(text)'))
+        self.assertTrue(game_has_battle_barrier('suspendFor(Float.MAX_VALUE)'))
 
     def test_dedicated_battle_resource_barrier_is_structurally_recognized(self):
-        evidence = port_battle_barrier_evidence(
+        evidence = game_battle_barrier_evidence(
             'if (externalBattlePresentation) suspendForBattleBackgroundLoad(mapIndex)'
         )
         self.assertEqual("suspendForBattleBackgroundLoad(", evidence[0]["expression"])
-        self.assertTrue(port_has_battle_barrier("suspendForBattleBackgroundLoad(0)"))
+        self.assertTrue(game_has_battle_barrier("suspendForBattleBackgroundLoad(0)"))
 
     def test_set_unit_attr_condition_uses_fresh_ast_draw_proof(self):
         import tempfile
@@ -129,7 +129,7 @@ class BattleStageApiAuditTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         report = audit(
             root.parent / "jojo_mobile/sgccz-desktop/decompiled-python",
-            root / "core/src/main/kotlin/com/jojo/port/PythonAstRuntime.kt",
+            root / "core/src/main/kotlin/com/jojo/game/ScenarioInterpreter.kt",
             root.parent / "jojo_mobile/sgccz-desktop/recovered-js/modules",
             root / "tools/battle_stage_api_lifecycle_call_sites.json",
         )

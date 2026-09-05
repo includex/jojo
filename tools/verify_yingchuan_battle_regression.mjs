@@ -8,9 +8,9 @@
  *   - the opening street actors must not acquire a backwards movement action;
  *   - the battle must not terminate as an enemy victory during round one.
  *
- * The command currently fails against a port that reproduces the reported
+ * The command currently fails against a game that reproduces the reported
  * early game-over.  Keeping the failure explicit makes this a useful guard
- * while BattleLayer/turn setup is repaired.
+ * while BattleScreen/turn setup is repaired.
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
@@ -43,16 +43,16 @@ if (!suppliedTrace) {
     maxBuffer: 32 * 1024 * 1024,
   });
   if (run.status !== 0) {
-    throw new Error(`port battle runner failed (${run.status})\n${run.stdout}\n${run.stderr}`);
+    throw new Error(`game battle runner failed (${run.status})\n${run.stdout}\n${run.stderr}`);
   }
 }
-assert.ok(existsSync(trace), `port did not write trace: ${trace}`);
+assert.ok(existsSync(trace), `game did not write trace: ${trace}`);
 const data = JSON.parse(readFileSync(trace, "utf8"));
 assert.equal(data.format, "jojo-yingchuan-full-battle-trace/v1");
-assert.equal(data.engine, "libgdx-port", "trace must be emitted by the production LibGDX runtime");
+assert.equal(data.engine, "jojo-game", "trace must be emitted by the production LibGDX runtime");
 assert.equal(data.config?.driver, "production-input",
   "standalone battle must be driven through the installed production InputProcessor");
-assert.ok(data.frames.length > 0, "port trace contains no frames");
+assert.ok(data.frames.length > 0, "game trace contains no frames");
 
 const firstEnd = data.frames.find(frame => frame.end);
 const prematureEnemyLoss = firstEnd && data.summary?.outcome === "ENEMY_VICTORY" && firstEnd.round <= 8;
@@ -180,11 +180,11 @@ assert.ok(enemyAiFrames.some(frame => {
 }), "enemy attack/strategy animation was not visible during ACTION");
 
 // S_00's first two cinematic attacks are especially sensitive to callback
-// ordering. Source BattleLayer.playAtkAnime starts the target reaction at the
+// ordering. Source BattleScreen.playAtkAnime starts the target reaction at the
 // attack clip's `hit` event, then resumes Python when that reaction finishes:
 //   474 -> 235: anime21 hit 22 + anime32 14 = 36 ticks
 //   477 -> 334: anime25 hit 11 + anime32 14 = 25 ticks
-// A previous port displayed anime32 immediately and waited 44/29 ticks.
+// A previous game displayed anime32 immediately and waited 44/29 ticks.
 const unitAt = (frame, characterId) => frame.units.find(unit => unit[1] === characterId);
 const transition = (characterId, predicate, afterFrame = -1) => data.frames.find(frame => {
   const unit = unitAt(frame, characterId);
@@ -216,7 +216,7 @@ const cinematicTimings = [
 ];
 
 // The live trace records the original ScrollView.content.position rather
-// than the port renderer's internal delta.
+// than the game renderer's internal delta.
 // Source dump: viewport=1488.372093x800, content=1920x1920 and initial
 // content.position=(-104.1860465,464), yielding these asymmetric limits.
 for (const frame of data.frames) {

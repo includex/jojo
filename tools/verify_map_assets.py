@@ -37,8 +37,8 @@ def digest(path: Path) -> str:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        raise SystemExit("usage: verify_map_assets.py <cocos-assets> <port-assets>")
-    assets, port = map(Path, sys.argv[1:])
+        raise SystemExit("usage: verify_map_assets.py <cocos-assets> <game-assets>")
+    assets, game = map(Path, sys.argv[1:])
     config = json.loads((assets / "Game/config.54cec.json").read_text())
     native_versions = dict(zip(config["versions"]["native"][::2], config["versions"]["native"][1::2]))
     mmaps = battles = metadata_only = 0
@@ -61,7 +61,7 @@ def main() -> None:
             raise AssertionError(f"cannot resolve source map: {entry[0]}")
         source = candidates[0]
         kind, map_id = match.groups()
-        target = port / (f"{map_id}{source.suffix.lower()}" if kind.startswith("Mmap") else f"battle-maps/{map_id}{source.suffix.lower()}")
+        target = game / (f"{map_id}{source.suffix.lower()}" if kind.startswith("Mmap") else f"battle-maps/{map_id}{source.suffix.lower()}")
         if not target.exists() or digest(source) != digest(target):
             raise AssertionError(f"map bytes differ: {entry[0]} → {target}")
         if kind.startswith("Mmap"):
@@ -71,12 +71,12 @@ def main() -> None:
     # HM_1 additionally has a source-WebGL PNG export.  This is the map
     # texture rendered for direct Cocos/LibGDX screenshot comparison.
     source_png = assets.parent / "build/battle-map-source.png"
-    target_png = port / "battle-maps/1.png"
+    target_png = game / "battle-maps/1.png"
     if not source_png.exists() or not target_png.exists():
         raise AssertionError("HM_1 source framebuffer fixture is missing")
     source_image, target_image = Image.open(source_png).convert("RGBA"), Image.open(target_png).convert("RGBA")
     if source_image.size != target_image.size or ImageChops.difference(source_image, target_image).getbbox():
-        raise AssertionError("HM_1 Cocos framebuffer texture differs from port map texture")
+        raise AssertionError("HM_1 Cocos framebuffer texture differs from game map texture")
     print(f"MAP_ASSETS_OK mmaps={mmaps} battleMaps={battles} metadataOnly={metadata_only} hm1FramebufferPixels=exact")
 
 

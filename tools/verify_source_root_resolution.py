@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Resolve the original sibling checkout without assuming a fixed nesting.
 
-The port can be checked out directly beside ``jojo_mobile`` or be located in
-an isolated subdirectory.  Source-vs-port gates must use the real sibling
+The game can be checked out directly beside ``jojo_mobile`` or be located in
+an isolated subdirectory.  Source-vs-game gates must use the real sibling
 checkout in either layout instead of silently reusing old build outputs.
 """
 from pathlib import Path

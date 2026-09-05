@@ -34,14 +34,14 @@ TARGET_APIS = (
 
 # The Python API name is shared by the scenario families, but the original
 # object receiving it is not.  Keep this table explicit so a future audit
-# cannot accidentally compare HallLayer calls with BattleLayer contracts.
+# cannot accidentally compare HallLayer calls with BattleScreen contracts.
 ROUTES: dict[str, dict[str, dict[str, Any]]] = {
     "stage.loadBg": {
-        "S": {"owner": "BattleLayer", "file": "battle/BattleLayer.js", "method": "loadBg", "arity": [1]},
+        "S": {"owner": "BattleScreen", "file": "battle/BattleLayer.js", "method": "loadBg", "arity": [1]},
         "R": {"owner": "HallLayer", "file": "ui/HallLayer.js", "method": "loadBg", "arity": [2]},
     },
     "stage.setUnitAttr": {
-        "S": {"owner": "BattleLayer", "file": "battle/BattleLayer.js", "method": "setUnitAttr", "arity": [3]},
+        "S": {"owner": "BattleScreen", "file": "battle/BattleLayer.js", "method": "setUnitAttr", "arity": [3]},
         "R": {"owner": "StageLayer", "file": "ui/StageLayer.js", "method": "setUnitAttr", "arity": [3]},
     },
     "stage.unit().setPosts": {
@@ -49,7 +49,7 @@ ROUTES: dict[str, dict[str, dict[str, Any]]] = {
         "R": None,
     },
     "stage.resumeCtrl": {
-        "S": {"owner": "BattleLayer", "file": "battle/BattleLayer.js", "method": "resumeCtrl", "arity": [0]},
+        "S": {"owner": "BattleScreen", "file": "battle/BattleLayer.js", "method": "resumeCtrl", "arity": [0]},
         "R": None,
     },
 }
@@ -488,7 +488,7 @@ def callback_assessment(call: dict[str, Any], contract: dict[str, Any] | None) -
         return {
             "possible": False,
             "requirement": "none",
-            "reason": "original_BattleLayer_resumeCtrl_has_no_callback_or_pause",
+            "reason": "original_BattleScreen_resumeCtrl_has_no_callback_or_pause",
             "sourceContract": False,
         }
     if api == "stage.loadBg":
@@ -791,7 +791,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-root", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/recovered-js/modules")
     parser.add_argument("--contracts", type=Path, default=root / "tools/battle_stage_api_lifecycle_contracts.json")
     parser.add_argument("--api-audit", type=Path, default=root / "tools/battle_stage_api_audit.json")
-    parser.add_argument("--usage", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/recovered-js/porting/python-api-usage.json")
+    parser.add_argument("--usage", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/recovered-js/reference-analysis/python-api-usage.json")
     parser.add_argument("--json", type=Path, default=root / "tools/battle_stage_api_lifecycle_call_sites.json")
     parser.add_argument("--markdown", type=Path, default=root / "tools/battle_stage_api_lifecycle_call_sites.md")
     args = parser.parse_args(argv)

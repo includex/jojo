@@ -161,7 +161,7 @@ def main() -> None:
         result_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(lose_logo, result_dir / "logo8.jpg")
 
-    # SectionLayer shown while BattleLayer.reward is still attached.  This is
+    # SectionLayer shown while BattleScreen.reward is still attached.  This is
     # the authored Logo_5-1 JPEG, not a framebuffer/reference capture.
     section_logo = assets / "resources" / "native" / "59" / "5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg"
     if section_logo.exists():
@@ -178,7 +178,7 @@ def main() -> None:
         ui_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(hall_speech_bubble, ui_dir / "street-speech-bubble.png")
 
-    # HallMenuLayer is not an invented port menu: it is the source's complete
+    # HallMenuLayer is not an invented game menu: it is the source's complete
     # 1280x146 command strip and also the transient UI shown by addAmbition().
     # Copy every referenced SpriteFrame texture from the serialized prefab so
     # both modes can use the original art without a framebuffer dependency.
@@ -232,7 +232,7 @@ def main() -> None:
     # Global108 MagicLayer's actual UnitInfo child-route fixture selects
     # 회오리 (Magic/3-1, Hitarea/14-1, Effarea/1-1). These are the authored
     # source textures resolved by the corresponding SpriteFrames, not atlas
-    # screenshots or port approximations.
+    # screenshots or game approximations.
     magic_layer_sources = {
         "magic-3": assets / "resources" / "native" / "c8" / "c8b19744-c75d-4867-892a-a1ac2c48eeeb.ef39b.png",
         "hitarea-14": assets / "Game" / "native" / "5d" / "5df79add-0f9a-4405-a0c4-61374bc311af.1b47e.png",
@@ -286,7 +286,7 @@ def main() -> None:
             ui_dir.mkdir(parents=True, exist_ok=True)
             # The live ChooseLayer fixture resolves U_select_10-1 at
             # [589,2,344,84].  783 was from an older atlas packing and cut
-            # through the following portrait, which made the port stretch a
+            # through the following portrait, which made the game stretch a
             # fragment of the face across the choice panel.
             crop_cocos_frame(atlas, x=589, y=2, width=344, height=84).save(ui_dir / "choice-panel.png")
             crop_cocos_frame(atlas, x=1323, y=2, width=20, height=20).save(ui_dir / "choice-row.png")
@@ -378,7 +378,7 @@ def main() -> None:
             with Image.open(source) as texture:
                 crop_cocos_frame(texture, x=x, y=y, width=width, height=height).save(settlement_dir / f"{name}.png")
 
-    # Hall/scene/StartBattleLayer, captured from the live fixture.  This
+    # Hall/scene/StartBattleScreen, captured from the live fixture.  This
     # screen shares several generic box frames but its two large blue panels
     # and deployment-slot frames are unique to the prefab.
     start_battle_atlas = assets.parent / "build" / "start-battle-atlas.png"
@@ -539,7 +539,7 @@ def main() -> None:
         # this order: Unit_atk, Unit_mov and Unit_spc.  Keeping only the
         # movement strip made it impossible for the LibGDX renderer to ever
         # reproduce the original attack/special-action layers.
-        # BattleLayer.safeResPath prefers the optional *2 resource family
+        # BattleScreen.safeResPath prefers the optional *2 resource family
         # (Unit_mov2/atk2/spc2) and falls back to the base family only when
         # that file is absent.  Preserve both families verbatim.
         unit_match = re.fullmatch(r"Unit_(atk|mov|spc)(2?)/(\d+)", entry[0])
@@ -560,7 +560,7 @@ def main() -> None:
         # Logo_1-1 and Logo_6-1 by the source URL expression.
         fight_logo_match = re.fullmatch(r"Logo/Logo_(1|6)-1", entry[0])
         meff_match = re.fullmatch(r"Meff/Meff_(\d+)-1", entry[0])
-        # BattleLayer's five move/hit-area frames are also U_select assets;
+        # BattleScreen's five move/hit-area frames are also U_select assets;
         # retain the whole family instead of only the object-animation #20.
         select_match = re.fullmatch(r"U_select/(U_select(?:_?\d+)?)(?:-1)?", entry[0])
         mark_match = re.fullmatch(r"Mark/Mark_(\d+)(?:-1)?", entry[0])
@@ -628,14 +628,14 @@ def main() -> None:
             key = f"fight-bg/{fight_logo_match.group(1)}"
             destination = copied_data
         elif meff_match:
-            # BattleLayer.meff(effectId) loads Meff_(effectId + 1)-1.
+            # BattleScreen.meff(effectId) loads Meff_(effectId + 1)-1.
             # Preserve the source 1-based asset name; the renderer applies
             # the same +1 conversion from the GAME_CFG MEFF id.
             target = output / "effects" / f"{meff_match.group(1)}{source.suffix.lower()}"
             key = f"effect/{meff_match.group(1)}"
             destination = copied_data
         elif select_match:
-            # BattleLayer._setObject uses this 48px strip for fire and
+            # BattleScreen._setObject uses this 48px strip for fire and
             # scripted terrain-object animations.
             select_name = select_match.group(1).removeprefix("U_select").lstrip("_") or "0"
             target = output / "select" / f"{select_name}{source.suffix.lower()}"
@@ -674,7 +674,7 @@ def main() -> None:
         ui_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(fight_speech_left, ui_dir / "fight-speech-left.png")
 
-    # BattleLayer receives this 24px Mark_10 SpriteFrame as `qipao`.  Its
+    # BattleScreen receives this 24px Mark_10 SpriteFrame as `qipao`.  Its
     # SHOW_SAY listener places it above the speaking tactical unit, so it is
     # a battle-map layer rather than part of DialogueLayer's large panel.
     battle_say_marker = assets / "resources" / "native" / "6e" / "6e23f416-6258-4c79-9ac4-e89fc8b8df4f.9eb8d.png"
@@ -841,7 +841,7 @@ def main() -> None:
                 raise RuntimeError(f"Battle state_texture[{index}] expected 16x16, got {texture.size}")
         shutil.copy2(source, state_dir / f"state_{index}.png")
 
-    # BattleLayer.statusImgs, used by the six prefab children
+    # BattleScreen.statusImgs, used by the six prefab children
     # status/unit_status_0..5. Source selects index 0 for DOWN and index 1
     # for every other non-normal lift. The prefab frames are untrimmed 12x12.
     attribute_status_sources = {
@@ -860,7 +860,7 @@ def main() -> None:
     # BattleUnit/info/bar2 uses these resource SpriteFrames (not Game/Mark
     # assets) and stretches them to the current HP width.
     mark_sources = {
-        # BattleLayer.hpbars[4], selected for Unit.isFamous() enemies.
+        # BattleScreen.hpbars[4], selected for Unit.isFamous() enemies.
         "2": assets / "resources" / "native" / "cd" / "cdfcafe2-e041-4797-ab47-60c1f21ef181.dcf73.png",
         "68": assets / "resources" / "native" / "ea" / "ea63f073-ef41-4a54-ad8a-a99419819c97.f87d1.png",
         "3": assets / "resources" / "native" / "4a" / "4a83fc94-8f1c-49f6-85dd-cbd77d6b602f.4a668.png",
@@ -895,9 +895,9 @@ def main() -> None:
 
     # The Battle.fire prefab owns these frames directly, rather than loading
     # them through a `Game/U_select` path.  The live source inventory records
-    # their exact order in BattleLayer.areas: RED=move2, GREEN=move0,
+    # their exact order in BattleScreen.areas: RED=move2, GREEN=move0,
     # BLUE=move1, RED_BOX=Mark_12-1, GREEN_BOX=Mark_13-1.  Keep their source
-    # bytes under explicit port names so the renderer never substitutes the
+    # bytes under explicit game names so the renderer never substitutes the
     # unrelated U_select textures with similarly numbered filenames.
     battle_selection_sources = {
         "cursor": assets / "resources" / "native" / "1c" / "1c7024e3-5858-4465-b00b-1722c8905a4c.391ef.png",
@@ -927,7 +927,7 @@ def main() -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
 
-    # BattleLayer loads Hexzmap_<id> as a Cocos JsonAsset.  Preserve its
+    # BattleScreen loads Hexzmap_<id> as a Cocos JsonAsset.  Preserve its
     # semantic JSON payload (width, height, terrain rows) in a plain file so
     # LibGDX can consume exactly the same terrain grid without Cocos metadata.
     for path_index, entry in config["paths"].items():

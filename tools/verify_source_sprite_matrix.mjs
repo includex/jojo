@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Exhaustive source-Cocos ↔ ported-LibGDX SpriteFrame conformance runner.
+ * Exhaustive legacy-Cocos ↔ current-LibGDX SpriteFrame conformance runner.
  *
  * It derives every authored clip from the exported original `animeBR` data,
  * adds each source-generated `_1` mirror clip, samples every 24fps interval
@@ -67,12 +67,12 @@ const matrixArg = cases.map(item => {
   const ticks = frames.map(frame => Math.floor(frame.stateTime * 24 + 1e-6));
   return `${item.action}:${item.direction}:${ticks.join(",")}`;
 }).join(";");
-const portOutput = run("./gradlew", [":desktop:dumpSpriteMatrix", "--no-daemon", `--args=--cases=${matrixArg}`], root);
-const portByCase = new Map(cases.map(item => [`${item.action}:${item.direction}`, []]));
-for (const match of portOutput.matchAll(/PORT_SPRITE_FRAME action=(\d+) direction=(\d+) f(\d+) tick=(\d+) source=(\w+) x=(\d+) y=(\d+) width=(\d+) height=(\d+) flipX=(\w+)/g)) {
+const gameOutput = run("./gradlew", [":desktop:dumpSpriteMatrix", "--no-daemon", `--args=--cases=${matrixArg}`], root);
+const gameByCase = new Map(cases.map(item => [`${item.action}:${item.direction}`, []]));
+for (const match of gameOutput.matchAll(/GAME_SPRITE_FRAME action=(\d+) direction=(\d+) f(\d+) tick=(\d+) source=(\w+) x=(\d+) y=(\d+) width=(\d+) height=(\d+) flipX=(\w+)/g)) {
   const [, action, direction, index, tick, source, x, y, width, height, flipX] = match;
-  const frames = portByCase.get(`${action}:${direction}`);
-  assert.ok(frames, `port emitted an unknown action case ${action}:${direction}`);
+  const frames = gameByCase.get(`${action}:${direction}`);
+  assert.ok(frames, `game emitted an unknown action case ${action}:${direction}`);
   frames[Number(index)] = { tick: Number(tick), source, x: Number(x), y: Number(y), width: Number(width), height: Number(height), flipX: flipX === "true" };
 }
 
@@ -80,11 +80,11 @@ let verifiedFrames = 0;
 for (const item of cases) {
   const key = `${item.action}:${item.direction}`;
   const sourceFrames = framesByCase.get(key);
-  const portFrames = portByCase.get(key);
-  assert.equal(portFrames.length, sourceFrames.length, `port did not emit every sample for ${key}`);
+  const gameFrames = gameByCase.get(key);
+  assert.equal(gameFrames.length, sourceFrames.length, `game did not emit every sample for ${key}`);
   for (let index = 0; index < sourceFrames.length; index++) {
     const source = sourceFrames[index];
-    const port = portFrames[index];
+    const game = gameFrames[index];
     const tick = Math.floor(source.stateTime * 24 + 1e-6);
     const encoded = Number(source.frameName);
     const spriteIndex = Number.isFinite(encoded) ? ((encoded >>> 24) & 255) : null;
@@ -94,9 +94,9 @@ for (const item of cases) {
       width: source.rect.width,
       height: source.rect.height,
     };
-    assert.deepEqual(port, {
+    assert.deepEqual(game, {
       tick,
-      source: port.source,
+      source: game.source,
       x: expected.x,
       y: expected.y,
       width: expected.width,

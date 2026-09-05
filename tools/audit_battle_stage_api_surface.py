@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Audit every S_*.py stage API against the port and recovered source.
+"""Audit every S_*.py stage API against the game and recovered source.
 
 The command writes machine-readable JSON plus a review-friendly Markdown
 report.  It exits non-zero when an authored call has no runtime handler, its
 source implementation cannot be resolved, or a source pause/callback contract
-has no battle suspension in the port handler.  ``--allow-findings`` is only
+has no battle suspension in the game handler.  ``--allow-findings`` is only
 for refreshing the reports while known findings are being implemented.
 """
 from __future__ import annotations
@@ -262,7 +262,7 @@ def source_has_barrier(signals: list[str]) -> bool:
     return "pause" in values and bool(values & {"resume", "callback", "action", "move", "runAction", "tween", "layer", "assetLoad", "schedule"})
 
 
-def port_battle_barrier_evidence(body: str) -> list[dict[str, Any]]:
+def game_battle_barrier_evidence(body: str) -> list[dict[str, Any]]:
     """Find battle suspension edges, including dedicated resource barriers.
 
     A handler may use the generic ``suspendFor`` or a purpose-specific helper
@@ -288,9 +288,9 @@ def port_battle_barrier_evidence(body: str) -> list[dict[str, Any]]:
     return evidence
 
 
-def port_has_battle_barrier(body: str) -> bool:
+def game_has_battle_barrier(body: str) -> bool:
     """Compatibility wrapper used by callers and existing tests."""
-    return bool(port_battle_barrier_evidence(body))
+    return bool(game_battle_barrier_evidence(body))
 
 
 def _call_lifecycle_evidence(call: dict[str, Any]) -> dict[str, Any]:
@@ -332,14 +332,14 @@ def _source_barrier_call_assessment(
         possible = True
     result: dict[str, Any] = {
         "possibleFromSourceCondition": bool(possible),
-        "requiredForPortBarrier": bool(possible),
+        "requiredForGameBarrier": bool(possible),
         "reason": callback.get("reason", "lifecycle_call_site_evidence_unavailable"),
         "drawPhase": evidence.get("drawPhase"),
         "drawProof": evidence.get("drawProof"),
         "liveUnitGuardInSource": _source_requires_live_unit(source_body),
     }
     if not possible:
-        result["requiredForPortBarrier"] = False
+        result["requiredForGameBarrier"] = False
         result["classification"] = "source_condition_not_reachable_from_static_arguments"
         return result
     # This is a proof from the call-site lifecycle, not a blanket S API
@@ -351,14 +351,14 @@ def _source_barrier_call_assessment(
         and evidence.get("drawPhase") == "before"
         and evidence.get("drawProof") == "following_draw_on_same_control_path"
     ):
-        result["requiredForPortBarrier"] = False
+        result["requiredForGameBarrier"] = False
         result["classification"] = "live_unit_absent_before_first_stage_draw"
     elif possible:
         result["classification"] = "conditional_source_barrier_may_be_reached"
     return result
 
 
-def port_mutates(body: str) -> bool:
+def game_mutates(body: str) -> bool:
     return bool(re.search(r"\bstage\.(?!request)[A-Za-z_$][\w$]*\s*\(", body))
 
 
@@ -387,7 +387,7 @@ def audit(
         if "unit()." in api:
             owner, methods = "BattleUnit", unit_methods
         else:
-            owner = "BattleLayer" if method_name in battle_methods else "StageLayer"
+            owner = "BattleScreen" if method_name in battle_methods else "StageLayer"
             methods = battle_methods if method_name in battle_methods else stage_methods
         source_body = expanded_source_body(method_name, methods)
         source_noop = source_body is not None and not re.sub(r"\s+", "", source_body)
@@ -406,11 +406,11 @@ def audit(
         )
         required_site_assessments = [
             assessment for assessment in site_assessments
-            if assessment["requiredForPortBarrier"]
+            if assessment["requiredForGameBarrier"]
         ]
         if missing_lifecycle_evidence and barrier:
             required_site_assessments.extend(
-                {"classification": "missing_lifecycle_call_site_evidence", "requiredForPortBarrier": True}
+                {"classification": "missing_lifecycle_call_site_evidence", "requiredForGameBarrier": True}
                 for _ in range(missing_lifecycle_evidence)
             )
         findings = []
@@ -423,8 +423,8 @@ def audit(
         if source_body is None:
             findings.append("original-implementation-not-found")
             blocking_findings.append("original-implementation-not-found")
-        eager_mutation = bool(runtime_body and port_mutates(runtime_body))
-        runtime_barrier_evidence = port_battle_barrier_evidence(runtime_body or "")
+        eager_mutation = bool(runtime_body and game_mutates(runtime_body))
+        runtime_barrier_evidence = game_battle_barrier_evidence(runtime_body or "")
         if barrier and runtime_body is not None and not runtime_barrier_evidence and required_site_assessments:
             finding = (
                 "eager-mutation-without-source-callback-barrier"
@@ -483,7 +483,7 @@ def markdown(report: dict[str, Any]) -> str:
         f"Scanned {report['scripts']} S_*.py scripts, {report['callSites']} call sites, and {summary['apiCount']} APIs.", "",
         f"Findings: **{summary['findingApis']} APIs** ({json.dumps(summary['findings'], sort_keys=True)}).", "",
         f"Blocking gate findings: **{summary['blockingFindingApis']} APIs** ({json.dumps(summary['blockingFindings'], sort_keys=True)}).", "",
-        "| API | Calls | Runtime | Original | Source barrier | Port battle barrier | Eager mutation | Findings |", "|---|---:|---|---|---|---|---|---|",
+        "| API | Calls | Runtime | Original | Source barrier | Game battle barrier | Eager mutation | Findings |", "|---|---:|---|---|---|---|---|---|",
     ]
     for row in report["apis"]:
         lines.append(
@@ -503,7 +503,7 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/decompiled-python")
-    parser.add_argument("--runtime", type=Path, default=root / "core/src/main/kotlin/com/jojo/port/PythonAstRuntime.kt")
+    parser.add_argument("--runtime", type=Path, default=root / "core/src/main/kotlin/com/jojo/game/ScenarioInterpreter.kt")
     parser.add_argument("--source-root", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/recovered-js/modules")
     parser.add_argument(
         "--lifecycle", type=Path,

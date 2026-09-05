@@ -28,7 +28,7 @@ class RenderLogComparatorTest(unittest.TestCase):
 
     def test_semantic_and_order_differences_are_actionable(self):
         left = self.canonical([{"path": "a", "drawType": "sprite", "text": "원본"}, {"path": "b", "visible": True}])
-        right = self.canonical([{"path": "b", "visible": False}, {"path": "a", "drawType": "nine-patch", "text": "포트"}])
+        right = self.canonical([{"path": "b", "visible": False}, {"path": "a", "drawType": "nine-patch", "text": "게임"}])
         _, a = MODULE.adapt(left); _, b = MODULE.adapt(right)
         diffs = MODULE.compare(a, b, 1e-5)
         self.assertIn("draw-order", {d["kind"] for d in diffs})

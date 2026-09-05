@@ -31,9 +31,9 @@ function run(command, args, cwd = root) {
   }
 }
 function clean(...paths) { for (const path of paths) rmSync(path, { force: true }); }
-function port(args) {
+function game(args) {
   run("java", ["-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp", classpath,
-    "com.jojo.port.desktop.DesktopLauncher", ...args]);
+    "com.jojo.game.desktop.DesktopLauncher", ...args]);
 }
 function compareLogs(expected, actual, report) {
   run("python3", [resolve(root, "tools/compare_render_logs.py"), expected, actual,
@@ -45,13 +45,13 @@ function compareFrames(expected, actual, report, extraArgs = []) {
   [expected, actual, report].forEach(path => artifacts.add(path));
 }
 
-// This existing verifier now compares all three source/port dialogue PNGs.
+// This existing verifier now compares all three source/game dialogue PNGs.
 const actorReport = resolve(root, "build/yingchuan-actor-state.json");
-clean(actorReport, ...[1, 2, 3].map(step => resolve(root, `build/yingchuan-dialogue-${step}-port.png`)));
+clean(actorReport, ...[1, 2, 3].map(step => resolve(root, `build/yingchuan-dialogue-${step}-game.png`)));
 run("node", [resolve(root, "tools/verify_yingchuan_actor_state.mjs")]);
 artifacts.add(actorReport);
 for (const step of [1, 2, 3]) {
-  artifacts.add(resolve(root, `build/yingchuan-dialogue-${step}-port.png`));
+  artifacts.add(resolve(root, `build/yingchuan-dialogue-${step}-game.png`));
   artifacts.add(resolve(sourceRoot, `build/python-source-battle-verification-dialogue${step}.png`));
   artifacts.add(resolve(sourceRoot, `build/python-source-battle-verification-dialogue${step}.json`));
 }
@@ -60,35 +60,35 @@ const routes = ["hp-camps-partial", "outline-highlight", "hit-impact", "cleanup"
 for (const route of routes) {
   const phase = `battle-character-${route}`;
   const sourceLog = resolve(sourceRoot, `build/render-events/original-${phase}.jsonl`);
-  const portLog = resolve(root, `build/render-events/port-${phase}.jsonl`);
+  const gameLog = resolve(root, `build/render-events/game-${phase}.jsonl`);
   const report = resolve(root, `build/reports/render-events/${phase}.json`);
   const sourcePng = resolve(frameDir, `source-${phase}.png`);
-  const portPng = resolve(frameDir, `port-${phase}.png`);
+  const gamePng = resolve(frameDir, `game-${phase}.png`);
   const pixelReport = resolve(frameDir, `${phase}.json`);
-  clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), portLog, report, sourcePng, portPng, pixelReport);
+  clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), gameLog, report, sourcePng, gamePng, pixelReport);
   run(electron, [".", `--render-battle-character-route=${route}`, `--render-event-log=${sourceLog}`,
     `--render-frame-png=${sourcePng}`, `--verification-run-id=${runId}-${route}`], sourceRoot);
-  port(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--render-event-log=${portLog}`]);
-  port(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--capture=${portPng}`]);
-  compareLogs(sourceLog, portLog, report);
-  compareFrames(sourcePng, portPng, pixelReport);
+  game(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--render-event-log=${gameLog}`]);
+  game(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--capture=${gamePng}`]);
+  compareLogs(sourceLog, gameLog, report);
+  compareFrames(sourcePng, gamePng, pixelReport);
 }
 
 {
   const phase = "battle-dialogue-blending";
   const sourceLog = resolve(root, `build/render-events/original-${phase}.jsonl`);
-  const portLog = resolve(root, `build/render-events/port-${phase}.jsonl`);
+  const gameLog = resolve(root, `build/render-events/game-${phase}.jsonl`);
   const report = resolve(root, `build/render-events/${phase}-diff.json`);
   const sourcePng = resolve(frameDir, `source-${phase}.png`);
-  const portPng = resolve(frameDir, `port-${phase}.png`);
+  const gamePng = resolve(frameDir, `game-${phase}.png`);
   const pixelReport = resolve(frameDir, `${phase}.json`);
-  clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), portLog, report, sourcePng, portPng, pixelReport);
+  clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), gameLog, report, sourcePng, gamePng, pixelReport);
   run(electron, [".", "--render-battle-dialogue-blending", `--render-event-log=${sourceLog}`,
     `--render-frame-png=${sourcePng}`, `--verification-run-id=${runId}-dialogue-blending`], sourceRoot);
-  port(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--render-event-log=${portLog}`]);
-  port(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--capture=${portPng}`]);
-  compareLogs(sourceLog, portLog, report);
-  compareFrames(sourcePng, portPng, pixelReport, ["--max-structural-mae=1.3", "--max-structural-changed-ratio=0.015"]);
+  game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--render-event-log=${gameLog}`]);
+  game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--capture=${gamePng}`]);
+  compareLogs(sourceLog, gameLog, report);
+  compareFrames(sourcePng, gamePng, pixelReport, ["--max-structural-mae=1.3", "--max-structural-changed-ratio=0.015"]);
 }
 
 for (const artifact of artifacts) assert.ok(existsSync(artifact), `fresh render artifact missing: ${artifact}`);

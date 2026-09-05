@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify every exported BattleUnit atlas against Cocos source assets.
 
-This is intentionally a source-to-port resource verifier, not a visual
+This is intentionally a source-to-game resource verifier, not a visual
 approximation: paths are decoded from Cocos config, bytes are compared, then
 every authored animeBR SpriteFrame index is checked against each atlas using
 the exact CreateAnime overflow rule.
@@ -63,13 +63,13 @@ def main() -> None:
         kind, variant, identifier = match.groups()
         source_atlases.append((candidates[0], exported / "units" / f"{kind}{variant}" / f"{identifier}{candidates[0].suffix.lower()}"))
 
-    missing = [str(port) for _, port in source_atlases if not port.is_file()]
-    changed = [(str(source), str(port)) for source, port in source_atlases if port.is_file() and sha1(source) != sha1(port)]
+    missing = [str(game) for _, game in source_atlases if not game.is_file()]
+    changed = [(str(source), str(game)) for source, game in source_atlases if game.is_file() and sha1(source) != sha1(game)]
     if missing or changed:
         raise AssertionError(f"atlas export mismatch: missing={len(missing)} changed={len(changed)}")
 
     # Battle.fire serializes these independently of the Unit_* atlases.
-    # Verify the cursor plus every BattleLayer.areas entry as byte-exact
+    # Verify the cursor plus every BattleScreen.areas entry as byte-exact
     # source assets, since the rendering path depends on their index order.
     selection_sources = {
         "cursor": assets / "resources" / "native" / "1c" / "1c7024e3-5858-4465-b00b-1722c8905a4c.391ef.png",
@@ -97,10 +97,10 @@ def main() -> None:
 
     overflow = 0
     checked = 0
-    for source, port in source_atlases:
-        kind = port.parent.name.removesuffix("2")
+    for source, game in source_atlases:
+        kind = game.parent.name.removesuffix("2")
         _, cell_height = next(value for value in ATLAS.values() if value[0] == kind)
-        with Image.open(port) as image:
+        with Image.open(game) as image:
             checked += 1
             for index in references[kind]:
                 row = index * (cell_height + 2) + 1

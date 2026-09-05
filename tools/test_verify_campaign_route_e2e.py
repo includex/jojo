@@ -13,8 +13,8 @@ SPEC.loader.exec_module(MODULE)
 def input_records(inputs):
     records = []
     for event in inputs:
-        before = "screen=BattleLayer"
-        after = "screen=BattleLayer"
+        before = "screen=BattleScreen"
+        after = "screen=BattleScreen"
         if event == "S_00:auto-battle-confirm":
             before += ";autoBattleOverlay=PROMPT;collocation=false"
             after += ";autoBattleOverlay=TUOGUAN;collocation=true"
@@ -31,20 +31,20 @@ def input_records(inputs):
 def valid_trace():
     route = [
         "TitleScreen",
-        "ScenarioPreviewScreen:R_00", "ScenarioPreviewScreen:R_00:scene0",
-        "ScenarioPreviewScreen:R_00:scene1", "ScenarioPreviewScreen:R_00:scene2",
-        "ScenarioPreviewScreen:R_00:scene3",
-        "BattleLayer:S_00", "BattleLayer:S_00:scene1",
-        "BattleLayer:S_00:result-scene1", "BattleLayer:S_00:scene2",
-        "BattleLayer:S_00:save-prompt",
-        "ScenarioPreviewScreen:R_01", "ScenarioPreviewScreen:R_01:scene0",
-        "ScenarioPreviewScreen:R_01:hall-battle-button", "ScenarioPreviewScreen:R_01:scene8",
+        "ScenarioScreen:R_00", "ScenarioScreen:R_00:scene0",
+        "ScenarioScreen:R_00:scene1", "ScenarioScreen:R_00:scene2",
+        "ScenarioScreen:R_00:scene3",
+        "BattleScreen:S_00", "BattleScreen:S_00:scene1",
+        "BattleScreen:S_00:result-scene1", "BattleScreen:S_00:scene2",
+        "BattleScreen:S_00:save-prompt",
+        "ScenarioScreen:R_01", "ScenarioScreen:R_01:scene0",
+        "ScenarioScreen:R_01:hall-battle-button", "ScenarioScreen:R_01:scene8",
         "BattlePreparationScreen:R_01->S_01",
-        "BattleLayer:S_01", "BattleLayer:S_01:scene1",
-        "BattleLayer:S_01:result-scene1", "BattleLayer:S_01:scene2",
-        "BattleLayer:S_01:save-prompt",
-        "ScenarioPreviewScreen:R_02", "ScenarioPreviewScreen:R_02:scene0",
-        "ScenarioPreviewScreen:R_02:scene1",
+        "BattleScreen:S_01", "BattleScreen:S_01:scene1",
+        "BattleScreen:S_01:result-scene1", "BattleScreen:S_01:scene2",
+        "BattleScreen:S_01:save-prompt",
+        "ScenarioScreen:R_02", "ScenarioScreen:R_02:scene0",
+        "ScenarioScreen:R_02:scene1",
     ]
     inputs = [
         "S_00:auto-battle-confirm", "S_00:save-prompt-no",
@@ -74,29 +74,29 @@ def r32_to_r46_trace(stop="R_46", completion="checkpoint"):
     for number in range(32):
         scenario = f"R_{number:02d}"
         battle = f"S_{number:02d}"
-        route += [f"ScenarioPreviewScreen:{scenario}", f"ScenarioPreviewScreen:{scenario}:scene0"]
+        route += [f"ScenarioScreen:{scenario}", f"ScenarioScreen:{scenario}:scene0"]
         stages.append(number * 2)
         if number == 1:
             route += [
-                "ScenarioPreviewScreen:R_01:hall-battle-button",
-                "ScenarioPreviewScreen:R_01:scene8",
+                "ScenarioScreen:R_01:hall-battle-button",
+                "ScenarioScreen:R_01:scene8",
                 "BattlePreparationScreen:R_01->S_01",
             ]
             inputs += ["R_01:hall-battle-button", "S_01:preparation-start"]
         route += [
-            f"BattleLayer:{battle}", f"BattleLayer:{battle}:scene1",
-            f"BattleLayer:{battle}:result-scene1", f"BattleLayer:{battle}:scene2",
-            f"BattleLayer:{battle}:save-prompt",
+            f"BattleScreen:{battle}", f"BattleScreen:{battle}:scene1",
+            f"BattleScreen:{battle}:result-scene1", f"BattleScreen:{battle}:scene2",
+            f"BattleScreen:{battle}:save-prompt",
         ]
         inputs += [f"{battle}:auto-battle-confirm", f"{battle}:save-prompt-no"]
         stages.append(number * 2 + 1)
     route += [
-        "ScenarioPreviewScreen:R_32", "ScenarioPreviewScreen:R_32:scene0",
-        "ScenarioPreviewScreen:R_46", "ScenarioPreviewScreen:R_46:scene0",
+        "ScenarioScreen:R_32", "ScenarioScreen:R_32:scene0",
+        "ScenarioScreen:R_46", "ScenarioScreen:R_46:scene0",
     ]
     actual_scene = 0
     if completion == "checkpoint":
-        route += ["ScenarioPreviewScreen:R_46:scene1"]
+        route += ["ScenarioScreen:R_46:scene1"]
         actual_scene = 1
     stages += [64, 92]
     return {
@@ -126,9 +126,9 @@ class CampaignRouteVerifierTest(unittest.TestCase):
             "completion": "checkpoint",
             "route": [
                 "TitleScreen",
-                "ScenarioPreviewScreen:R_00",
-                "ScenarioPreviewScreen:R_00:scene0",
-                "ScenarioPreviewScreen:R_00:scene1",
+                "ScenarioScreen:R_00",
+                "ScenarioScreen:R_00:scene0",
+                "ScenarioScreen:R_00:scene1",
             ],
             "inputs": ["TitleScreen:new-game-click", "R_00:dialogue"],
             "inputRecords": input_records(["TitleScreen:new-game-click", "R_00:dialogue"]),
@@ -155,7 +155,7 @@ class CampaignRouteVerifierTest(unittest.TestCase):
     def test_rejects_s00_accepted_label_without_the_visible_transition(self):
         trace = valid_trace()
         next(record for record in trace["inputRecords"] if record["event"] == "S_00:save-prompt-no")["after"] = (
-            "screen=BattleLayer;savePromptOpen=true"
+            "screen=BattleScreen;savePromptOpen=true"
         )
         with self.assertRaises(AssertionError):
             MODULE.validate(trace, "R_02", 1)
@@ -169,16 +169,16 @@ class CampaignRouteVerifierTest(unittest.TestCase):
 
     def test_rejects_missing_result_scene_even_if_battle_routes_forward(self):
         trace = valid_trace()
-        trace["route"].remove("BattleLayer:S_01:result-scene1")
+        trace["route"].remove("BattleScreen:S_01:result-scene1")
         with self.assertRaises((AssertionError, ValueError)):
             MODULE.validate(trace, "R_02", 1)
 
     def test_rejects_arbitrary_battle_forward_jump(self):
         trace = valid_trace()
         trace["route"][-3:] = [
-            "ScenarioPreviewScreen:R_46",
-            "ScenarioPreviewScreen:R_46:scene0",
-            "ScenarioPreviewScreen:R_46:scene1",
+            "ScenarioScreen:R_46",
+            "ScenarioScreen:R_46:scene0",
+            "ScenarioScreen:R_46:scene1",
         ]
         trace["stopPoint"] = {"module": "R_46", "sceneIndex": 1}
         trace["actualStopPoint"] = {"module": "R_46", "sceneIndex": 1}
@@ -195,9 +195,9 @@ class CampaignRouteVerifierTest(unittest.TestCase):
             "actualStopPoint": {"module": "R_00", "sceneIndex": 8},
             "completion": "checkpoint",
             "route": [
-                "TitleScreen", "ScenarioPreviewScreen:R_00",
-                "ScenarioPreviewScreen:R_00:scene0",
-                "ScenarioPreviewScreen:R_00:scene8",
+                "TitleScreen", "ScenarioScreen:R_00",
+                "ScenarioScreen:R_00:scene0",
+                "ScenarioScreen:R_00:scene8",
             ],
             "inputs": [],
             "campaignStages": [0],
@@ -220,8 +220,8 @@ class CampaignRouteVerifierTest(unittest.TestCase):
         self.assertEqual("R_46", coverage["numberedModules"][-1])
 
         trace["route"][-3:] = [
-            "ScenarioPreviewScreen:R_47", "ScenarioPreviewScreen:R_47:scene0",
-            "ScenarioPreviewScreen:R_47:scene1",
+            "ScenarioScreen:R_47", "ScenarioScreen:R_47:scene0",
+            "ScenarioScreen:R_47:scene1",
         ]
         trace["campaignStages"][-1] = 94
         trace["stopPoint"] = {"module": "R_47", "sceneIndex": 1}

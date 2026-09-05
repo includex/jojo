@@ -6,7 +6,7 @@ not arguments.
 
 ## `stage.center(x, y)`
 
-`BattleLayer.center` is synchronous. It computes the absolute ScrollView
+`BattleScreen.center` is synchronous. It computes the absolute ScrollView
 content position, assigns it immediately, then synchronously dispatches
 `MAP_SCROLLING`. It does not call `pause`, schedule an action, accept a
 callback, or resume the Python script.
@@ -41,12 +41,12 @@ the full-trace viewport `1488.372093x800`, the synchronous camera log is
 `MAP_SCROLLING`, even when the assigned position equals the current position.
 
 Every center returns immediately. The following authored `delay` owns the
-pause: `5s`, then `5s`, six alternating `1s` delays, then `5s`. A port must not
+pause: `5s`, then `5s`, six alternating `1s` delays, then `5s`. The game must not
 invent a camera tween, callback barrier, or an implicit delay for `center`.
 
 ## `stage.setMaxRound(value)`
 
-`BattleLayer.setMaxRound` is also synchronous and camera-neutral. It adds four
+`BattleScreen.setMaxRound` is also synchronous and camera-neutral. It adds four
 when `eFlag & ENABLED_FEATURE.ZJHH(8)` is set, then calls `setProperty`. The
 property proxy is updated immediately; `setProperty` suppresses the write if
 the effective value is unchanged. There is no event, pause, callback, or

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare original/port full-battle traces without comparing wall-clock time.
+"""Compare original/game full-battle traces without comparing wall-clock time.
 
 The two engines need not make the same tactical decisions when their random
 streams have diverged.  This verifier consequently has two deliberately
@@ -118,7 +118,7 @@ def unit_view(row: list[Any]) -> UnitView | None:
     if not isinstance(row, list) or len(row) < 17 or not isinstance(row[1], int):
         return None
     metadata = row[17] if len(row) > 17 and isinstance(row[17], dict) else {}
-    # Port stores the rendered action in slot 8. The original v1 recorder used
+    # Game stores the rendered action in slot 8. The original v1 recorder used
     # unit.unit().action() there (an action-point value), but its playing clip
     # name in slot 14 is authoritative whenever present.
     action = row[8]
@@ -186,7 +186,7 @@ def capabilities(trace: dict[str, Any]) -> dict[str, bool]:
             tile_transitions |= before.tile != after.tile
             health_transitions |= before.hp != after.hp or before.mp != after.mp
             # Slot 10 is source BattleUnit.isExist() (often false immediately
-            # at HP zero), while port v1 writes a roster-presence constant.
+            # at HP zero), while game v1 writes a roster-presence constant.
             # Only visible/removal is a shared hide callback observation.
             visibility_transitions |= before.visible != after.visible
         visibility_transitions |= bool(previous.keys() - current.keys())
@@ -517,8 +517,8 @@ def movement_summary(actor: int, frames: list[dict[str, Any]]) -> dict[str, Any]
     }
 
 
-def sequence_diff(source: list[Any], port: list[Any]) -> dict[str, Any] | None:
-    if source == port:
+def sequence_diff(source: list[Any], game: list[Any]) -> dict[str, Any] | None:
+    if source == game:
         return None
 
     def frozen(value: Any) -> Any:
@@ -528,45 +528,45 @@ def sequence_diff(source: list[Any], port: list[Any]) -> dict[str, Any] | None:
             return tuple(frozen(item) for item in value)
         return value
 
-    matcher = SequenceMatcher(a=[frozen(item) for item in source], b=[frozen(item) for item in port], autojunk=False)
+    matcher = SequenceMatcher(a=[frozen(item) for item in source], b=[frozen(item) for item in game], autojunk=False)
     blocks = []
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag != "equal":
-            blocks.append({"operation": tag, "source": source[i1:i2], "port": port[j1:j2]})
-    return {"source": source, "port": port, "differences": blocks}
+            blocks.append({"operation": tag, "source": source[i1:i2], "game": game[j1:j2]})
+    return {"source": source, "game": game, "differences": blocks}
 
 
-def compare_episodes(source: list[Episode], port: list[Episode]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
+def compare_episodes(source: list[Episode], game: list[Episode]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
     source_keys = [episode.decision for episode in source]
-    port_keys = [episode.decision for episode in port]
-    matcher = SequenceMatcher(a=source_keys, b=port_keys, autojunk=False)
+    game_keys = [episode.decision for episode in game]
+    matcher = SequenceMatcher(a=source_keys, b=game_keys, autojunk=False)
     divergences: list[dict[str, Any]] = []
     mismatches: list[dict[str, Any]] = []
     common = 0
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == "equal":
-            for source_episode, port_episode in zip(source[i1:i2], port[j1:j2]):
+            for source_episode, game_episode in zip(source[i1:i2], game[j1:j2]):
                 common += 1
-                source_buckets, port_buckets = source_episode.buckets, port_episode.buckets
-                if source_episode.camera is None or port_episode.camera is None:
+                source_buckets, game_buckets = source_episode.buckets, game_episode.buckets
+                if source_episode.camera is None or game_episode.camera is None:
                     source_buckets = [tuple(marker for marker in bucket if not marker.startswith("camera:")) for bucket in source_buckets]
-                    port_buckets = [tuple(marker for marker in bucket if not marker.startswith("camera:")) for bucket in port_buckets]
+                    game_buckets = [tuple(marker for marker in bucket if not marker.startswith("camera:")) for bucket in game_buckets]
                     source_buckets = [bucket for bucket in source_buckets if bucket]
-                    port_buckets = [bucket for bucket in port_buckets if bucket]
-                callback_diff = sequence_diff(source_buckets, port_buckets)
+                    game_buckets = [bucket for bucket in game_buckets if bucket]
+                callback_diff = sequence_diff(source_buckets, game_buckets)
                 movement_diff = None
                 if source_episode.action == MOVE_ACTION:
                     movement_diff = sequence_diff(
-                        [source_episode.movement], [port_episode.movement]
+                        [source_episode.movement], [game_episode.movement]
                     )
                 camera_diff = None
-                if source_episode.camera is not None and port_episode.camera is not None:
-                    camera_diff = sequence_diff([source_episode.camera], [port_episode.camera])
+                if source_episode.camera is not None and game_episode.camera is not None:
+                    camera_diff = sequence_diff([source_episode.camera], [game_episode.camera])
                 if callback_diff or movement_diff or camera_diff:
                     mismatches.append({
                         "decision": list(source_episode.decision),
                         "sourceFrameRange": [source_episode.start, source_episode.end],
-                        "portFrameRange": [port_episode.start, port_episode.end],
+                        "gameFrameRange": [game_episode.start, game_episode.end],
                         "callbackOrder": callback_diff,
                         "movementContract": movement_diff,
                         "cameraContract": camera_diff,
@@ -575,7 +575,7 @@ def compare_episodes(source: list[Episode], port: list[Episode]) -> tuple[list[d
             divergences.append({
                 "operation": tag,
                 "source": [episode.summary() for episode in source[i1:i2]],
-                "port": [episode.summary() for episode in port[j1:j2]],
+                "game": [episode.summary() for episode in game[j1:j2]],
             })
     return divergences, mismatches, common
 
@@ -691,67 +691,67 @@ def control_sequence(trace: dict[str, Any], include_dialogue: bool = True) -> li
     return result
 
 
-def build_report(source: dict[str, Any], port: dict[str, Any]) -> dict[str, Any]:
+def build_report(source: dict[str, Any], game: dict[str, Any]) -> dict[str, Any]:
     source_errors = validate_trace(source, "source")
-    port_errors = validate_trace(port, "port")
-    if source_errors or port_errors:
-        return {"schemaErrors": source_errors + port_errors, "passed": False}
-    source_caps, port_caps = capabilities(source), capabilities(port)
-    source_episodes, port_episodes = extract_episodes(source), extract_episodes(port)
-    if source_caps["authoredActionEpisodes"] and port_caps["authoredActionEpisodes"]:
-        divergences, mismatches, common = compare_episodes(source_episodes, port_episodes)
+    game_errors = validate_trace(game, "game")
+    if source_errors or game_errors:
+        return {"schemaErrors": source_errors + game_errors, "passed": False}
+    source_caps, game_caps = capabilities(source), capabilities(game)
+    source_episodes, game_episodes = extract_episodes(source), extract_episodes(game)
+    if source_caps["authoredActionEpisodes"] and game_caps["authoredActionEpisodes"]:
+        divergences, mismatches, common = compare_episodes(source_episodes, game_episodes)
         action_comparison_blocked = None
     else:
         divergences, mismatches, common = [], [], 0
         action_comparison_blocked = {
             "reason": "authored action clips are not observable in both traces",
             "sourceObservable": source_caps["authoredActionEpisodes"],
-            "portObservable": port_caps["authoredActionEpisodes"],
+            "gameObservable": game_caps["authoredActionEpisodes"],
             "sourceSchemaNote": "Original v1 slot 8 may be unit.unit().action() rather than the playing BattleUnit action; slot 14 must contain the playing anime clip.",
         }
-    camp_diff = sequence_diff(compact_boundary_sequence(source), compact_boundary_sequence(port))
-    comparable_dialogue_identity = source_caps["dialogueIdentity"] == port_caps["dialogueIdentity"]
-    dialogue_diff = sequence_diff(dialogue_sequence(source), dialogue_sequence(port)) if comparable_dialogue_identity else None
-    comparable_dialogue_content = source_caps["dialogueContent"] and port_caps["dialogueContent"]
+    camp_diff = sequence_diff(compact_boundary_sequence(source), compact_boundary_sequence(game))
+    comparable_dialogue_identity = source_caps["dialogueIdentity"] == game_caps["dialogueIdentity"]
+    dialogue_diff = sequence_diff(dialogue_sequence(source), dialogue_sequence(game)) if comparable_dialogue_identity else None
+    comparable_dialogue_content = source_caps["dialogueContent"] and game_caps["dialogueContent"]
     dialogue_content_diff = sequence_diff(
-        dialogue_content_sequence(source), dialogue_content_sequence(port)
+        dialogue_content_sequence(source), dialogue_content_sequence(game)
     ) if comparable_dialogue_content else None
     control_diff = sequence_diff(
         control_sequence(source, include_dialogue=comparable_dialogue_identity),
-        control_sequence(port, include_dialogue=comparable_dialogue_identity),
+        control_sequence(game, include_dialogue=comparable_dialogue_identity),
     )
     source_contract = contract_violations(source)
-    port_contract = contract_violations(port)
+    game_contract = contract_violations(game)
     capability_gaps = [
-        {"observation": name, "source": source_caps[name], "port": port_caps[name]}
-        for name in source_caps if source_caps[name] != port_caps[name]
+        {"observation": name, "source": source_caps[name], "game": game_caps[name]}
+        for name in source_caps if source_caps[name] != game_caps[name]
     ]
     # These observations are inputs to comparisons that otherwise silently
     # disappear when a recorder omits their fields.  Treat absence as a
     # blocked verification, even when both traces share the same omission.
     required_observations = ("camera", "dialogueIdentity", "dialogueContent")
     comparison_blockers = [
-        {"observation": name, "source": source_caps[name], "port": port_caps[name]}
+        {"observation": name, "source": source_caps[name], "game": game_caps[name]}
         for name in required_observations
-        if not source_caps[name] or not port_caps[name]
+        if not source_caps[name] or not game_caps[name]
     ]
     # Tactical divergence is evidence, not a callback-order failure. However,
     # having no common episode makes a parity conclusion impossible.
     insufficient = common == 0
-    incomplete = bool(source.get("_partial") or port.get("_partial"))
+    incomplete = bool(source.get("_partial") or game.get("_partial"))
     source_terminal = bool(source.get("summary", {}).get("end")) or bool(source["frames"][-1].get("end"))
-    port_terminal = bool(port.get("summary", {}).get("end")) or bool(port["frames"][-1].get("end"))
-    terminal_mismatch = None if source_terminal and port_terminal else {
+    game_terminal = bool(game.get("summary", {}).get("end")) or bool(game["frames"][-1].get("end"))
+    terminal_mismatch = None if source_terminal and game_terminal else {
         "reason": "both traces must reach an observed battle terminal state",
         "sourceTerminal": source_terminal,
-        "portTerminal": port_terminal,
+        "gameTerminal": game_terminal,
     }
     config_mismatch = None
-    source_config, port_config = source.get("config", {}), port.get("config", {})
-    shared_seed_fields = [name for name in ("toolSeed", "mathSeed") if name in source_config and name in port_config]
+    source_config, game_config = source.get("config", {}), game.get("config", {})
+    shared_seed_fields = [name for name in ("toolSeed", "mathSeed") if name in source_config and name in game_config]
     changed_seeds = {
-        name: [source_config[name], port_config[name]]
-        for name in shared_seed_fields if source_config[name] != port_config[name]
+        name: [source_config[name], game_config[name]]
+        for name in shared_seed_fields if source_config[name] != game_config[name]
     }
     if changed_seeds:
         config_mismatch = {"seedDifferences": changed_seeds}
@@ -760,7 +760,7 @@ def build_report(source: dict[str, Any], port: dict[str, Any]) -> dict[str, Any]
     # not informational-only: accepting either would let a visibly different
     # play-through pass this verifier.
     passed = not (
-        source_contract or port_contract or divergences or mismatches or
+        source_contract or game_contract or divergences or mismatches or
         camp_diff or dialogue_diff or dialogue_content_diff or control_diff or
         comparison_blockers or terminal_mismatch or config_mismatch or
         insufficient or incomplete
@@ -775,12 +775,12 @@ def build_report(source: dict[str, Any], port: dict[str, Any]) -> dict[str, Any]
             "onlyCommonDecisionEpisodesCompared": True,
         },
         "source": {"engine": source.get("engine"), "frames": len(source["frames"]), "capabilities": source_caps},
-        "port": {"engine": port.get("engine"), "frames": len(port["frames"]), "capabilities": port_caps},
+        "game": {"engine": game.get("engine"), "frames": len(game["frames"]), "capabilities": game_caps},
         "capabilityGaps": capability_gaps,
         "comparisonBlockers": comparison_blockers,
         "commonDecisionEpisodes": common,
         "sourceEpisodeCount": len(source_episodes),
-        "portEpisodeCount": len(port_episodes),
+        "gameEpisodeCount": len(game_episodes),
         "decisionDivergences": divergences,
         "actionComparisonBlocked": action_comparison_blocked,
         "orderMismatches": mismatches,
@@ -790,19 +790,19 @@ def build_report(source: dict[str, Any], port: dict[str, Any]) -> dict[str, Any]
         "dialogueComparisonBlocked": None if comparable_dialogue_identity else {
             "reason": "dialogue close+open identity is not observable in both traces",
             "sourceObservable": source_caps["dialogueIdentity"],
-            "portObservable": port_caps["dialogueIdentity"],
+            "gameObservable": game_caps["dialogueIdentity"],
         },
         "controlSequenceMismatch": control_diff,
         "sourceContractViolations": source_contract,
-        "portContractViolations": port_contract,
+        "gameContractViolations": game_contract,
         "insufficientCommonCoverage": insufficient,
         "incompleteTrace": {
-            "source": source.get("_partial"), "port": port.get("_partial"),
+            "source": source.get("_partial"), "game": game.get("_partial"),
         } if incomplete else None,
         "terminalMismatch": terminal_mismatch,
         "configMismatch": config_mismatch,
         "terminalDiagnostics": {
-            "source": terminal_diagnostics(source), "port": terminal_diagnostics(port),
+            "source": terminal_diagnostics(source), "game": terminal_diagnostics(game),
         },
         "passed": passed,
     }
@@ -882,17 +882,17 @@ def load_trace(path: Path) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, nargs="?", default=Path("/tmp/jojo-source-yingchuan-full.json"))
-    parser.add_argument("port", type=Path, nargs="?", default=Path("build/reports/yingchuan-battle-regression-trace.json"))
+    parser.add_argument("game", type=Path, nargs="?", default=Path("build/reports/yingchuan-battle-regression-trace.json"))
     parser.add_argument("--output", type=Path)
     parser.add_argument("--allow-order-mismatch", action="store_true", help="write diagnostics but exit zero")
     args = parser.parse_args(argv)
-    missing = [str(path) for path in (args.source, args.port) if not path.is_file()]
+    missing = [str(path) for path in (args.source, args.game) if not path.is_file()]
     if missing:
         print(json.dumps({"passed": False, "missingTraces": missing}, indent=2), file=sys.stderr)
         return 2
     source = load_trace(args.source)
-    port = load_trace(args.port)
-    report = build_report(source, port)
+    game = load_trace(args.game)
+    report = build_report(source, game)
     encoded = json.dumps(report, ensure_ascii=False, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

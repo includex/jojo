@@ -54,7 +54,7 @@ def scene0():
             source_root,
             root / "tools/battle_stage_api_lifecycle_contracts.json",
             root / "tools/battle_stage_api_audit.json",
-            root.parent / "jojo_mobile/sgccz-desktop/recovered-js/porting/python-api-usage.json",
+            root.parent / "jojo_mobile/sgccz-desktop/recovered-js/reference-analysis/python-api-usage.json",
         )
         self.assertEqual({"S": 58, "R": 59}, report["scriptsByFamily"])
         self.assertEqual(
@@ -86,7 +86,7 @@ def scene0():
         rows = {row["api"]: row for row in report["apis"]}
         load_bg = rows["stage.loadBg"]
         self.assertEqual({"S": 58, "R": 358}, load_bg["callCountByFamily"])
-        self.assertEqual("BattleLayer", load_bg["routeByFamily"]["S"]["owner"])
+        self.assertEqual("BattleScreen", load_bg["routeByFamily"]["S"]["owner"])
         self.assertEqual("HallLayer", load_bg["routeByFamily"]["R"]["owner"])
         self.assertIn("R_route_uses_HallLayer_not_battle_lifecycle_contract", load_bg["findings"])
         self.assertEqual(416, load_bg["callCountsByCallbackRequirement"]["required_for_script_continuation"])
