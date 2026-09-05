@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.command.*
 
 /** Injectable implementation of recovered-js/modules/battle/ControlManager.js. */
 class ControlManager(

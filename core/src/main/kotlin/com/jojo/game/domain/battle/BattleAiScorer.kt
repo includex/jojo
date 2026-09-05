@@ -1,9 +1,9 @@
 package com.jojo.game.domain.battle
+import com.jojo.game.domain.battle.command.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
 import com.jojo.game.BattleUnit
 import com.jojo.game.BasePhysicalDamageContext
-import com.jojo.game.ControlScoring
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.MagicDamageCalculator
 import com.jojo.game.PhysicalAttackAreaResolver
@@ -116,7 +116,7 @@ internal object BattleAiScorer {
         attacker: BattleUnit,
         target: BattleUnit,
         env: BattleAiScoringEnvironment,
-    ): Int = ControlScoring.attackValue(
+    ): Int = ControlActionScoring.attackValue(
         AiScoringUnit(attacker, env),
         AiScoringUnit(target, env),
         counter = true,
@@ -128,7 +128,7 @@ internal object BattleAiScorer {
         magic: GameDataCatalog.MagicProfile,
         cache: MutableMap<String, Int>,
         env: BattleAiScoringEnvironment,
-    ): Int = ControlScoring.magicValue(
+    ): Int = ControlActionScoring.magicValue(
         AiMagic(magic),
         AiScoringUnit(attacker, env),
         AiScoringUnit(target, env),

@@ -12,6 +12,7 @@ import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 import com.jojo.game.domain.campaign.CampaignEquippedItem
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.scenario.hall.*
+import com.jojo.game.presentation.scenario.hall.render.*
 import com.jojo.game.presentation.scenario.ScenarioPlaybackController
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.evidence.*
@@ -1051,291 +1052,43 @@ class ScenarioScreen(
 
     /** Original Hall/scene/HallMenuLayer addAmbition presentation. */
     private fun drawHallMenu(interactive: Boolean = false) {
-        /**
-         * 공개 메서드 `texture`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun texture(name: String): Texture? = hallMenuTextures[name] ?: Gdx.files
-            .internal("maps/ui/hall-menu/$name.png")
-            .takeIf { it.exists() }
-            ?.let(::Texture)
-            ?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[name] = it
-            }
-
-        /**
-         * 공개 메서드 `patch`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `left` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `right` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `top` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `bottom` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `NinePatch?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun patch(name: String, left: Int, right: Int, top: Int, bottom: Int): NinePatch? =
-            texture(name)?.let { NinePatch(it, left, right, top, bottom) }
-
-        // Canvas SHOW_ALL scales every authored HallMenu coordinate by .86.
-        texture("panel")?.let { batch.draw(it, 0f, 0f, 1280f, 125.56f) }
-        patch("inner", 3, 3, 3, 3)?.draw(batch, 0f, 0f, 1280f, 125.56f)
-
-        val buttonCenters =
-            floatArrayOf(55.107f, 143.365f, 231.846f, 320.74f, 423.317f, 511.575f, 600.056f, 690.441f, 789.44f)
-        val icons = listOf("tool1", "tool2", "tool3", "tool4", "tool5", "tool6", "tool7", "tool8", "help")
-        val commandButton = patch("button", 7, 8, 7, 7)
-
-        patch("label-box", 3, 3, 3, 3)?.draw(batch, 99.72f, 4.25f, 261.44f, 37.84f)
-        patch("label-mark", 1, 1, 3, 3)?.draw(batch, 101.44f, 5.97f, 258f, 34.4f)
-        val showMenuLabels = !(interactive && hallOverlayFixture == "menu")
-        if (showMenuLabels) {
-            bodyFont.color = Color.WHITE
-            glyphLayout.setText(bodyFont, playback.stage.eventName)
-            bodyFont.draw(batch, glyphLayout, 230.44f - glyphLayout.width / 2f, 23.17f + glyphLayout.height / 2f)
-        }
-        patch("label-box", 3, 3, 3, 3)?.draw(batch, 366.95f, 4.23f, 278.64f, 37.84f)
-        patch("label-mark", 1, 1, 3, 3)?.draw(batch, 368.67f, 5.95f, 275.2f, 34.4f)
-        if (showMenuLabels) {
-            glyphLayout.setText(bodyFont, playback.stage.stageName)
-            bodyFont.draw(batch, glyphLayout, 505.67f - glyphLayout.width / 2f, 23.13f + glyphLayout.height / 2f)
-        }
-
-        val to = (if (interactive) playback.stage.ambition else playback.ambitionTo).coerceIn(0, 100)
-        val from = (if (interactive) playback.stage.ambition else playback.ambitionFrom).coerceIn(0, 100)
-        val (rootName, valueName) = if (interactive) "bar-blue" to "bar-red" else when {
-            to < 16 -> "bar-red" to "bar-yellow"
-            to > 84 -> "bar-yellow" to "bar-blue"
-            else -> "bar-blue" to "bar-red"
-        }
-        patch(rootName, 1, 1, 1, 1)?.draw(batch, 717.4f, 16.70f, 258f, 12.9f)
-        val tween = ((playback.ambitionElapsedSeconds - 1.2f) / 1f).coerceIn(0f, 1f)
-        val value = if (hallOverlayFixture == "ambition") to.toFloat() else from + (to - from) * tween
-        patch(valueName, 1, 1, 1, 1)?.draw(batch, 717.4f, 16.70f, 258f * value / 100f, 12.9f)
-
-        // Three .2s hide/show cycles precede the one-second bar tween.
-        val flagVisible = playback.ambitionElapsedSeconds >= 1.2f ||
-                ((playback.ambitionElapsedSeconds / 0.2f).toInt() and 1) == 1
-        if (!interactive && hallOverlayFixture != "ambition" && playback.ambitionIndicatorEnabled && flagVisible) {
-            val decreasing = to < from
-            texture(if (decreasing) "flag-right" else "flag-left")?.let { flag ->
-                val centerX = if (decreasing) 1003.48f else 690.81f
-                batch.draw(flag, centerX - 6.88f, 16.70f, 13.76f, 12.9f)
-            }
-        } else if (interactive) {
-            texture("flag-left")?.let { batch.draw(it, 787.27f * .86f, 11.917f * .86f, 27.52f, 25.8f) }
-            texture("flag-right")?.let { batch.draw(it, 1150.837f * .86f, 11.917f * .86f, 27.52f, 25.8f) }
-        }
-        buttonCenters.zip(icons).forEachIndexed { index, (sourceX, icon) ->
-            val centerX = sourceX * 0.86f
-            commandButton?.draw(batch, centerX - 37.84f, 52.137f * .86f, 75.68f, 75.68f)
-            val iconY = if (index == icons.lastIndex) 60.137f else 60.419f
-            texture(icon)?.let { batch.draw(it, centerX - 30.96f, iconY * .86f, 61.92f, 61.92f) }
-        }
-        batch.color = Color.WHITE
-    }
-
-    /** Source HallCommandLayer shown after the R script releases control. */
-    private fun drawHallCommand() {
-        HallRenderer.drawMainCommands(
-            batch, HallViewState(
-                menuTexture = hallCommandTexture("menu"),
-                battleTexture = hallCommandTexture("battle"),
-                equipTexture = hallCommandTexture("equip"),
-                buyTexture = hallCommandTexture("buy"),
-                sellTexture = hallCommandTexture("sell"),
-            )
+        HallMenuRenderer.draw(
+            sceneAssets,
+            batch,
+            HallMenuRenderView(
+                eventName = playback.stage.eventName,
+                stageName = playback.stage.stageName,
+                ambitionFrom = if (interactive) playback.stage.ambition else playback.ambitionFrom,
+                ambitionTo = if (interactive) playback.stage.ambition else playback.ambitionTo,
+                ambitionElapsedSeconds = playback.ambitionElapsedSeconds,
+                indicatorEnabled = playback.ambitionIndicatorEnabled,
+                interactive = interactive,
+                fixture = hallOverlayFixture,
+            ),
         )
     }
 
-    private fun hallCommandTexture(name: String): Texture? {
-        val path = "maps/ui/hall-command/$name.png"
-        return hallMenuTextures[path] ?: Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also {
-            it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-            hallMenuTextures[path] = it
-        }
+    private fun drawHallCommand() {
+        fun texture(name: String) = sceneAssets.hallTexture("maps/ui/hall-command/$name.png")
+        HallCommandRenderer.draw(
+            batch,
+            HallCommandRenderView(texture("menu"), texture("battle"), texture("equip"), texture("buy"), texture("sell")),
+        )
     }
 
-    /** Global SaveLayer opened from the Hall menu, transformed by SHOW_ALL. */
     private fun drawHallSave() {
-        /**
-         * 공개 메서드 `texture`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun texture(path: String): Texture? = hallMenuTextures[path] ?: Gdx.files.internal(path)
-            .takeIf { it.exists() }
-            ?.let(::Texture)
-            ?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[path] = it
-            }
-
-        /**
-         * 공개 메서드 `start`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun start(name: String) = texture("maps/ui/start-battle/$name.png")
-
-        /**
-         * 공개 메서드 `patch`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `inset` (`Int = 3`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun patch(name: String, inset: Int = 3) = start(name)?.let { NinePatch(it, inset, inset, inset, inset) }
-
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `centered` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(value: String, x: Float, y: Float, w: Float, centered: Boolean = false) {
-            bodyFont.color = Color.BLACK
-            bodyFont.draw(
-                batch, value, x * .86f, y * .86f + 35f, w * .86f,
-                if (centered) Align.center else Align.left, false
-            )
-        }
-
-        /**
-         * 공개 메서드 `tiled`
-         *
-         * ### 파라미터
-        - `tex` (`Texture`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun tiled(tex: Texture, x: Float, y: Float, w: Float, h: Float) {
-            val px = x * .86f
-            val py = y * .86f
-            val width = w * .86f
-            val height = h * .86f
-            val tw = tex.width * .86f
-            val th = tex.height * .86f
-            var dy = 0f
-            while (dy < height - .01f) {
-                var dx = 0f
-                while (dx < width - .01f) {
-                    val dw = minOf(tw, width - dx)
-                    val dh = minOf(th, height - dy)
-                    batch.draw(
-                        tex, px + dx, py + dy, dw, dh, 0, 0,
-                        (dw / .86f).toInt().coerceAtLeast(1), (dh / .86f).toInt().coerceAtLeast(1), false, false
-                    )
-                    dx += tw
-                }
-                dy += th
-            }
-        }
-
-        batch.color = Color.WHITE
-        start("logo9")?.let { tiled(it, 278.186f, 83f, 932f, 634f) }
-        patch("button", 8)?.draw(batch, 278.186f * .86f, 83f * .86f, 932f * .86f, 634f * .86f)
-        start("title")?.let { batch.draw(it, 278.186f * .86f, 667f * .86f, 932f * .86f, 43f) }
-        label("진행 상황 유지", 288.186f, 666.8f, 229.83f)
-        label("어떤 진행 상황을 저장할지 선택해 주세요.", 286.785f, 612.805f, 654.88f)
-        patch("box2")?.draw(batch, 287.186f * .86f, 172.534f * .86f, 912f * .86f, 428f * .86f)
-        val rowTexture = choiceRowTexture
-        hallSaveLayer.view().rows.take(8).forEachIndexed { index, row ->
-            val y = 547.534f - index * 52f
-            rowTexture?.let { batch.draw(it, 289.186f * .86f, y * .86f, 908f * .86f, 43f) }
-            label(row.number, 295.448f, y - .2f, 117.85f)
-            label(row.stage, 434.615f, y - .2f, 124.49f)
-            label(row.name, 577.886f, y, 616.3f)
-        }
-        texture("maps/ui/title/load/vline.png")?.let { line ->
-            listOf(422.057f, 566.695f).forEach { x ->
-                batch.draw(
-                    line,
-                    x * .86f,
-                    174.634f * .86f,
-                    6f * .86f,
-                    423.8f * .86f
-                )
-            }
-        }
-        label("따뜻한 알림: 오래된 저장 파일일수록 앞에 표시됩니다.", 131.555f, 105.399f, 850.11f)
-        patch("button", 8)?.draw(batch, 1045.855f * .86f, 100.162f * .86f, 147.6f * .86f, 56f * .86f)
-        label("취소", 1069.655f, 108.162f, 100f, centered = true)
-
-        hallSaveLayer.pendingSlot()?.let { slot ->
-            start("logo9")?.let { tiled(it, 426.686f, 252f, 635f, 296f) }
-            patch("button", 8)?.draw(batch, 426.686f * .86f, 252f * .86f, 635f * .86f, 296f * .86f)
-            texture("maps/ui/title/load/eagle.png")?.let {
-                batch.draw(
-                    it,
-                    453.005f * .86f,
-                    373.951f * .86f,
-                    106f * .86f,
-                    124f * .86f
-                )
-            }
-            label(hallSaveLayer.pendingPrompt().orEmpty(), 573.686f, 335f, 463f)
-            listOf(Triple(554.186f, "됐어", 557.336f), Triple(754.186f, "저장", 757.586f)).forEach { (x, value, tx) ->
-                patch("button", 8)?.draw(batch, x * .86f, 271.285f * .86f, 180f * .86f, 43f)
-                label(value, tx, 279.085f, if (value == "됐어") 168.1f else 169.4f, centered = true)
-            }
-        }
-        if (hallSaveLayer.completionTipOpen()) {
-            start("logo9")?.let { tiled(it, 426.686f, 252f, 635f, 296f) }
-            patch("button", 8)?.draw(batch, 426.686f * .86f, 252f * .86f, 635f * .86f, 296f * .86f)
-            label("저장 완료.", 573.686f, 385f, 463f, centered = true)
-            patch("button", 8)?.draw(batch, 654.186f * .86f, 271.285f * .86f, 180f * .86f, 43f)
-            label("확인", 657.586f, 279.085f, 169.4f, centered = true)
-        }
-        batch.color = Color.WHITE
+        val save = hallSaveLayer.view()
+        HallSaveRenderer.draw(
+            sceneAssets,
+            batch,
+            HallSaveRenderView(
+                rows = save.rows.take(8).map { HallSaveRowRenderView(it.number, it.stage, it.name) },
+                pendingPrompt = hallSaveLayer.pendingSlot()?.let { hallSaveLayer.pendingPrompt().orEmpty() },
+                completionTipOpen = hallSaveLayer.completionTipOpen(),
+            ),
+        )
     }
 
-    /** Global126 opened by EquipLayer.button14. */
     private fun drawExclusiveLayer(layer: ExclusiveLayer) {
         val scale = .86f
 
@@ -1677,7 +1430,11 @@ class ScenarioScreen(
     /** EquipLayer / BuyLayer / SellLayer shown by HallCommandLayer buttons 1..3. */
     private fun drawHallManagement(kind: HallManagement) {
         if (kind == HallManagement.SELL) {
-            HallSellRenderer.draw(sceneAssets, batch, hallViews.sell(hallSellTab, hallManagementNotice))
+            HallManagementRenderer.draw(
+                sceneAssets,
+                batch,
+                HallManagementRenderView.Sell(hallViews.sell(hallSellTab, hallManagementNotice)),
+            )
             return
         }
         /**

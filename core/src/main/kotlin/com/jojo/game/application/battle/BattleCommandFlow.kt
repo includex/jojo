@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.application.battle
 
 import com.jojo.game.domain.scenario.*
 
@@ -27,13 +27,6 @@ class BattleCommandFlow {
         const val SIEGE_BIT = 1 shl 4
     }
 
-    /**
-     * enum class  `Command`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Command(val tag: Int) {
         ATTACK(0), MAGICK(1), PROPERTY(2), SWAP(3), SIEGE(4), WAIT(5), CANCEL(6);
@@ -54,33 +47,12 @@ class BattleCommandFlow {
         }
     }
 
-    /**
-     * enum class  `Phase`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Phase { IDLE, MOVING, COMMAND, CHILD_ACTION, COMMITTED, ROLLED_BACK }
 
-    /**
-     * data class  `UnitPose`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class UnitPose(val x: Int, val y: Int, val direction: Int)
 
-    /**
-     * data class  `Move`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Move(
         val unitId: String,
@@ -89,13 +61,6 @@ class BattleCommandFlow {
         val enabledMask: Int,
     )
 
-    /**
-     * data class  `Button`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Button(
         val command: Command,
@@ -166,16 +131,6 @@ class BattleCommandFlow {
         phase = Phase.IDLE
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Button>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view(): List<Button> {
         val mask = move?.enabledMask ?: 0
@@ -211,16 +166,6 @@ class BattleCommandFlow {
         phase = Phase.COMMAND
     }
 
-    /**
-     * 공개 메서드 `childCompleted`
-     *
-     * ### 파라미터
-    - `consumesAction` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Result`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun childCompleted(consumesAction: Boolean): Result {
         check(phase == Phase.CHILD_ACTION) { "childCompleted requires CHILD_ACTION" }
@@ -240,17 +185,6 @@ class BattleCommandFlow {
 
 /** Source ctrl_mine checks isEnd immediately after its move callback script. */
 internal object BattleMoveScriptContinuation {
-    /**
-     * 공개 메서드 `shouldOpenCommand`
-     *
-     * ### 파라미터
-    - `scriptState` (`PlaybackState`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `battleEndedByScript` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun shouldOpenCommand(scriptState: PlaybackState, battleEndedByScript: Boolean): Boolean =
         scriptState == PlaybackState.COMPLETE && !battleEndedByScript
@@ -262,13 +196,6 @@ object BattleCommandRenderModel {
     const val DISMISS_DIM_OPACITY = 10f / 255f
     const val DISABLED_COMPONENT = 160f / 255f
 
-    /**
-     * data class  `Node`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Node(
         val path: String,
@@ -278,16 +205,6 @@ object BattleCommandRenderModel {
         val listenerPriority: Int,
     )
 
-    /**
-     * 공개 메서드 `nodes`
-     *
-     * ### 파라미터
-    - `buttons` (`List<BattleCommandFlow.Button>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Node>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun nodes(buttons: List<BattleCommandFlow.Button>): List<Node> = buildList {
         add(Node("Canvas/Layer/bg", true, false, false, 0))
@@ -311,23 +228,9 @@ object BattleCommandRenderModel {
      * copies of the same SpriteFrame (img0 and img1); command3 and command5
      * retain their source-trimmed 15x15 and 16x14 pixel extents.
      */
-    /**
-     * data class  `Icon`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Icon(val asset: String, val x: Float, val y: Float, val width: Float, val height: Float)
 
-    /**
-     * data class  `ButtonVisual`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class ButtonVisual(
         val x: Float,

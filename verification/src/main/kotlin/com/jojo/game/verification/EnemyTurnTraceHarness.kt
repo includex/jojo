@@ -1,4 +1,5 @@
 package com.jojo.game.verification
+import com.jojo.game.domain.battle.command.*
 
 import com.jojo.game.*
 

@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.domain.battle.command
+
+import com.jojo.game.Control
 
 /**
  * Injectable, side-effect-free control policies for the ten subclasses created in
@@ -6,13 +8,6 @@ package com.jojo.game
  * in `_controls`; a ControlManager changes the current instance and retries
  * when a controller returns 1.  This file deliberately represents that
  * protocol as values, so every branch can be compared without a Cocos scene.
- */
-/**
- * object  `ControlAi`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
  */
 
 object ControlAi {
@@ -28,43 +23,15 @@ object ControlAi {
     const val MOVE_ATTACK_UNIT = 9 // CtrlYDDZDDGJ
 }
 
-/**
- * data class  `ControlTarget`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class ControlTarget(val index: Int, val point: Control.Point, val mine: Boolean, val distance: Int)
 
-/**
- * data class  `ControlData`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class ControlData(val targetIndex: Int = -1, val target: Control.Point = Control.Point(-1, -1))
 
-/**
- * data class  `ControlTransition`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class ControlTransition(val ai: Int, val data: ControlData = ControlData())
 
-/**
- * data class  `ControllerStep`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class ControllerStep(
     /** Source selectMovePoint result: 0 complete, 1 re-enter manager, 2 stop. */

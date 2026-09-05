@@ -1,4 +1,5 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.domain.battle.command.*
 import com.jojo.game.application.battle.*
 import com.jojo.game.domain.battle.turn.*
 import com.jojo.game.presentation.battle.edit.*
@@ -52,7 +53,9 @@ import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 import com.jojo.game.presentation.battle.evidence.*
 import com.jojo.game.presentation.battle.fight.*
 import com.jojo.game.presentation.battle.overlay.BattleHelperOverlayController
+import com.jojo.game.presentation.battle.overlay.BattleInformationOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleSaveLoadOverlayController
+import com.jojo.game.presentation.battle.overlay.BattleTreasureOverlayView
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 import com.badlogic.gdx.Gdx
@@ -585,6 +588,15 @@ void main() {
     }
 
     private val dynamicTextures = BattleDynamicTextureRepository()
+    private val informationOverlay by lazy {
+        BattleInformationOverlayController(
+            propertyLayer = propertyLayer,
+            terrainLayer = terrainLayer,
+            treasureLayer = treasureLayer,
+            itemIcon = dynamicTextures::itemIcon,
+            terrainIcon = dynamicTextures::terrainIcon,
+        )
+    }
     private val hudAssets = BattleHudAssets()
     private val battleMapRenderer by lazy {
         BattleMapRenderer(
@@ -803,15 +815,6 @@ void main() {
     private var autoBattleTogglePressed = false
     private var autoBattlePanelPressed = false
 
-    /** TerrainLayer owns input above both map and MenuLayer until button2/ESC. */
-    private var terrainLayerOpen = false
-    private var propertyLayerOpen = false
-    private var treasureLayerOpen = false
-
-    /** TreasureLayer ScrollView state and the source clickItem → ItemLayer payload. */
-    private var treasureScrollRow = 0
-    private var treasureSelectedId: Int? = null
-
     /** MenuLayer.CD/DD source lifecycle and their mutually-exclusive presentation state. */
     private val saveLoadOverlay = BattleSaveLoadOverlayController(
         saveRepository = object : SaveLayer.Repository {
@@ -876,12 +879,6 @@ void main() {
             "battle-use-property-select-fixture", "battle-use-property-cancel-fixture",
         )
     }
-    private var propertyScrollRow = 0
-    private var propertySelectedId: Int? = null
-
-    /** ScrollView content offset expressed as source TerrainLayer row index. */
-    private var terrainScrollRow = 0
-
     /** Global/scene/HelperLayer, opened by MenuLayer.HELP. */
     private val helperOverlay = BattleHelperOverlayController()
 
@@ -1330,24 +1327,17 @@ void main() {
         }
         if (game.requestedCaptureState() == "yingchuan-helper") openHelperLayer()
         if (game.requestedCaptureState() == "yingchuan-terrain") {
-            terrainLayer.select(TerrainLayer.Tab.RISE)
-            terrainScrollRow = 0
-            terrainLayerOpen = true
+            informationOverlay.openTerrain()
         }
         if (battleTerrainRoute) {
             openBattleMenu()
             handleBattleMenuTap(6)
         }
         if (game.requestedCaptureState() == "yingchuan-property") {
-            propertyLayer.select(PropertyLayer.Tab.WEAPON)
-            propertyScrollRow = 0
-            propertySelectedId = null
-            propertyLayerOpen = true
+            informationOverlay.openProperty()
         }
         if (game.requestedCaptureState() == "yingchuan-treasure") {
-            treasureScrollRow = 0
-            treasureSelectedId = null
-            treasureLayerOpen = true
+            informationOverlay.openTreasure()
         }
         if (game.requestedCaptureState() == "yingchuan-setting") {
             settingLayer.onCreate()
@@ -1481,9 +1471,9 @@ void main() {
                 setting = settingLayerOpen,
                 save = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null,
                 load = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null,
-                treasure = treasureLayerOpen,
-                property = propertyLayerOpen,
-                terrain = terrainLayerOpen,
+                treasure = informationOverlay.treasureView() != null,
+                property = informationOverlay.propertyView() != null,
+                terrain = informationOverlay.terrainView() != null,
                 winCondition = winConditionOpen,
                 autoPrompt = autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.PROMPT,
                 autoTuoGuan = autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.TUOGUAN,
@@ -1550,31 +1540,31 @@ void main() {
                 }
                 if (keyboardIntent.capture == BattleInputCapture.TREASURE) {
                     when (keycode) {
-                        Input.Keys.ESCAPE -> treasureLayerOpen = false
-                        Input.Keys.UP -> treasureScrollRow = (treasureScrollRow - 1).coerceAtLeast(0)
-                        Input.Keys.DOWN -> treasureScrollRow++
+                        Input.Keys.ESCAPE -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
+                        Input.Keys.UP -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(-1))
+                        Input.Keys.DOWN -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(1))
                     }
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.PROPERTY) {
                     when (keycode) {
-                        Input.Keys.ESCAPE -> propertyLayerOpen = false
-                        Input.Keys.NUM_1 -> propertyLayer.select(PropertyLayer.Tab.WEAPON)
-                        Input.Keys.NUM_2 -> propertyLayer.select(PropertyLayer.Tab.ARMOR)
-                        Input.Keys.NUM_3 -> propertyLayer.select(PropertyLayer.Tab.AUXILIARY)
-                        Input.Keys.NUM_4, Input.Keys.TAB -> propertyLayer.select(PropertyLayer.Tab.PROPERTY)
-                        Input.Keys.UP -> propertyScrollRow = (propertyScrollRow - 1).coerceAtLeast(0)
-                        Input.Keys.DOWN -> propertyScrollRow++
+                        Input.Keys.ESCAPE -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
+                        Input.Keys.NUM_1 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.WEAPON))
+                        Input.Keys.NUM_2 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.ARMOR))
+                        Input.Keys.NUM_3 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.AUXILIARY))
+                        Input.Keys.NUM_4, Input.Keys.TAB -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.PROPERTY))
+                        Input.Keys.UP -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(-1))
+                        Input.Keys.DOWN -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(1))
                     }
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.TERRAIN) {
                     when (keycode) {
-                        Input.Keys.ESCAPE -> terrainLayerOpen = false
-                        Input.Keys.NUM_1 -> terrainLayer.select(TerrainLayer.Tab.RISE)
-                        Input.Keys.NUM_2, Input.Keys.TAB -> terrainLayer.select(TerrainLayer.Tab.EXPEND)
-                        Input.Keys.UP -> terrainScrollRow = (terrainScrollRow - 1).coerceAtLeast(0)
-                        Input.Keys.DOWN -> terrainScrollRow++
+                        Input.Keys.ESCAPE -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
+                        Input.Keys.NUM_1 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectTerrainTab(TerrainLayer.Tab.RISE))
+                        Input.Keys.NUM_2, Input.Keys.TAB -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectTerrainTab(TerrainLayer.Tab.EXPEND))
+                        Input.Keys.UP -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(-1))
+                        Input.Keys.DOWN -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(1))
                     }
                     return true
                 }
@@ -1696,16 +1686,7 @@ void main() {
                     settingPress = world.x to world.y; return true
                 }
                 if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
-                if (treasureLayerOpen) {
-                    handleTreasureLayerTap(world.x, world.y); return true
-                }
-                if (propertyLayerOpen) {
-                    handlePropertyLayerTap(world.x, world.y); return true
-                }
-                if (terrainLayerOpen) {
-                    handleTerrainLayerTap(world.x, world.y)
-                    return true
-                }
+                if (informationOverlay.dispatch(BattleInformationOverlayController.Intent.Tap(world.x, world.y)).consumed) return true
                 if (winConditionOpen) {
                     // WinConBoxLayer only installs a TOUCH_END handler on its
                     // confirmation button; a tap elsewhere is swallowed by the
@@ -1988,16 +1969,8 @@ void main() {
             }
 
             override fun scrolled(amountX: Float, amountY: Float): Boolean {
-                if (treasureLayerOpen) {
-                    treasureScrollRow = (treasureScrollRow + amountY.toInt()).coerceAtLeast(0); return true
-                }
                 if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Scroll(amountY.toInt())).consumed) return true
-                if (propertyLayerOpen) {
-                    propertyScrollRow = (propertyScrollRow + amountY.toInt()).coerceAtLeast(0); return true
-                }
-                if (!terrainLayerOpen) return false
-                terrainScrollRow = (terrainScrollRow + amountY.toInt()).coerceAtLeast(0)
-                return true
+                return informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(amountY.toInt())).consumed
             }
         }
     }
@@ -2501,7 +2474,7 @@ void main() {
         }
         if (battleTerrainRoute) {
             batch.projectionMatrix = viewport.camera.combined
-            battleTerrainOverlayRenderer.draw(battleTerrainOverlayView())
+            informationOverlay.terrainView()?.let(battleTerrainOverlayRenderer::draw)
             if (elapsed > .25f) game.writeRenderEventLogIfRequested()
             return
         }
@@ -2553,15 +2526,15 @@ void main() {
                 batch.projectionMatrix = viewport.camera.combined
                 battleHelperOverlayRenderer.draw(view)
             }
-            if (terrainLayerOpen) {
+            informationOverlay.terrainView()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
-                battleTerrainOverlayRenderer.draw(battleTerrainOverlayView())
+                battleTerrainOverlayRenderer.draw(view)
             }
-            battlePropertyOverlayView()?.let { view ->
+            informationOverlay.propertyView()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battlePropertyOverlayRenderer.draw(view)
             }
-            if (treasureLayerOpen) drawTreasureLayer()
+            informationOverlay.treasureView()?.let(::drawTreasureLayer)
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE)?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battleSaveLoadOverlayRenderer.draw(view)
@@ -8655,30 +8628,7 @@ void main() {
         batch.end()
     }
 
-    private fun handlePropertyLayerTap(px: Float, py: Float) {
-        val x = 247f
-        val y = 48f
-        if (px !in x..x + 994 || py !in y..y + 706) return
-        if (py in y + 10..y + 64) {
-            if (px in x + 820f..x + 976f) {
-                propertyLayerOpen = false; return
-            }
-            when (((px - (x + 12f)) / 146f).toInt()) {
-                0 -> propertyLayer.select(PropertyLayer.Tab.WEAPON)
-                1 -> propertyLayer.select(PropertyLayer.Tab.ARMOR)
-                2 -> propertyLayer.select(PropertyLayer.Tab.AUXILIARY)
-                3 -> propertyLayer.select(PropertyLayer.Tab.PROPERTY)
-            }
-            propertyScrollRow = 0
-            return
-        }
-        if (py in y + 72..y + 602) {
-            val row = ((y + 566 - py) / 72f).toInt() + propertyScrollRow; propertyLayer.rows().getOrNull(row)
-                ?.let { propertySelectedId = it.item.id }
-        }
-    }
-
-    private fun drawTreasureLayer() {
+    private fun drawTreasureLayer(view: BattleTreasureOverlayView) {
         // TreasureLayer/bg1: centre=(744.186,400), size=970×632.
         val x = 259f
         val y = 84f
@@ -8687,8 +8637,6 @@ void main() {
         // TreasureLayer's title, card labels, footer and button use 40px
         // Cocos system labels in the captured prefab.
         val sourceLabelScale = 40f / 26f
-        val rows = treasureLayer.rows
-        val first = treasureScrollRow.coerceIn(0, (rows.size - 4).coerceAtLeast(0)); treasureScrollRow = first
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.color = Color.WHITE
@@ -8707,7 +8655,7 @@ void main() {
         font.color = Color.BLACK
         font.data.setScale(sourceLabelScale)
         font.draw(batch, "보물 도감", x + 7f, y + 618f)
-        rows.drop(first).take(4).forEachIndexed { index, row ->
+        view.rows.drop(view.firstRow).take(4).forEachIndexed { index, row ->
             val column = index % 2
             val line = index / 2
             // Source pooled item prefab: box3 471×190, centres at
@@ -8718,10 +8666,10 @@ void main() {
             // The source item0 prefab keeps the icon slot visible before a
             // treasure is discovered; it is not an absent node.
             overlayAssets.terrainLayerPanelPatch?.draw(batch, cardX + 12f, cardY - 112f, 90f, 90f)
-            font.color = if (row.item.id == treasureSelectedId) Color(0.05f, 0.35f, 0.95f, 1f) else Color.BLACK
+            font.color = if (row.selected) Color(0.05f, 0.35f, 0.95f, 1f) else Color.BLACK
             if (row.discovered) {
-                dynamicTextures.itemIcon(row.item.icon)?.let { batch.draw(it, cardX + 12f, cardY - 112f, 90f, 90f) }
-                font.draw(batch, row.item.name, cardX + 134f, cardY - 25f)
+                row.icon?.let { batch.draw(it, cardX + 12f, cardY - 112f, 90f, 90f) }
+                font.draw(batch, row.name, cardX + 134f, cardY - 25f)
             } else {
                 font.draw(batch, "발견되지 않음", cardX + 134f, cardY - 25f)
             }
@@ -8730,7 +8678,7 @@ void main() {
         font.color = Color.BLACK
         font.draw(
             batch,
-            "지금까지 발견한 보물 ${rows.count { it.discovered }.toString().padStart(2, '0')} / ${rows.size}",
+            view.title,
             x + 7f,
             141f
         )
@@ -8778,36 +8726,6 @@ void main() {
         settingLayer.close(SettingLayer.TOUCH_END); settingLayerOpen = false
     }
 
-    /** TreasureLayer Panel_cancel/button7 close and discovered-row clickItem routing. */
-    private fun handleTreasureLayerTap(px: Float, py: Float) {
-        // Keep hit testing tied to the pooled-card geometry in
-        // drawTreasureLayer (bg1 970×632; cards 471×190 at 270/747).
-        if (px !in 259f..1229f || py !in 84f..716f || (px in 1071f..1222f && py in 91f..143f)) {
-            treasureLayerOpen = false
-            return
-        }
-        // Two visible source rows: [481,671] and [288,478].  The thin
-        // separator between them is deliberately non-selectable.
-        if (py !in 288f..671f) return
-        val column = if (px < 744f) 0 else 1
-        val line = if (py >= 481f) 0 else 1
-        val rowIndex = line * 2 + column + treasureScrollRow
-        val row = treasureLayer.rows.getOrNull(rowIndex) ?: return
-        // JS clickItem creates ItemLayer only for a discovered row; retain the
-        // exact item ID as the Kotlin overlay's ItemLayer hand-off payload.
-        treasureLayer.select(row.item.id)?.let { treasureSelectedId = it.id }
-    }
-
-    /** TerrainLayer's three prefab button hit regions. */
-    private fun handleTerrainLayerTap(x: Float, y: Float) {
-        when (TerrainLayerInput.tap(x, y)) {
-            TerrainLayerInput.Action.Rise -> terrainLayer.select(TerrainLayer.Tab.RISE)
-            TerrainLayerInput.Action.Expend -> terrainLayer.select(TerrainLayer.Tab.EXPEND)
-            TerrainLayerInput.Action.Close -> terrainLayerOpen = false
-            else -> Unit
-        }
-    }
-
     private fun menuIndexAt(x: Float, y: Float): Int? {
         if (y !in 116.29f..204.29f || x !in 15.13372f..1159.1337f) return null
         val visualSlot = ((x - 15.13372f) / 88f).toInt()
@@ -8847,22 +8765,15 @@ void main() {
             } // XTSZ → SettingLayer
             4 -> openForcesListLayer() // WJYL: SHOW_CHARACTER_LIST → ForcesListLayer
             5 -> { // DJYL: PropertyLayer
-                propertyLayer.select(PropertyLayer.Tab.WEAPON) // PropertyLayer.onCreate → _currentSel(0)
-                propertyScrollRow = 0
-                propertySelectedId = null
-                propertyLayerOpen = true
+                informationOverlay.openProperty()
             }
 
             6 -> { // DX: TerrainLayer
-                terrainLayer.select(TerrainLayer.Tab.RISE) // TerrainLayer.onCreate → sel(0)
-                terrainScrollRow = 0
-                terrainLayerOpen = true
+                informationOverlay.openTerrain()
             }
 
             7 -> { // BW → TreasureLayer; onCreate always starts at ScrollView top.
-                treasureScrollRow = 0
-                treasureSelectedId = null
-                treasureLayerOpen = true
+                informationOverlay.openTreasure()
             }
 
             8 -> if (battle.outcome() == null) autoBattleFlow.openEndRoundPrompt() // HHJS: END_ROUND -> MsgBox4
@@ -8888,24 +8799,6 @@ void main() {
             AutoBattleFlow.Overlay.TUOGUAN -> BattleAutoOverlayKind.TUOGUAN
         }
         return BattleAutoOverlayView(overlay = overlay, checked = state.checked)
-    }
-
-    private fun battleTerrainOverlayView(): BattleTerrainOverlayView {
-        val panel = terrainLayer.select(terrainLayer.selected ?: TerrainLayer.Tab.RISE)
-        val visibleRows = 6
-        val first = terrainScrollRow.coerceIn(0, (panel.rows.size - visibleRows).coerceAtLeast(0))
-        terrainScrollRow = first
-        return BattleTerrainOverlayView(
-            armNames = panel.rows.firstOrNull()?.values.orEmpty().map { it.armName.take(2) },
-            rows = panel.rows.drop(first).take(visibleRows).map { row ->
-                BattleTerrainRowView(
-                    terrainName = row.terrainName,
-                    icon = dynamicTextures.terrainIcon(row.iconIndex),
-                    enabledSkills = row.enabledSkills.toList(),
-                    values = row.values.map { BattleTerrainValueView(it.text, it.grade) },
-                )
-            },
-        )
     }
 
     private fun battleSettingsOverlayView(): BattleSettingsOverlayView {
@@ -8962,24 +8855,6 @@ void main() {
                         unit.critical.toString(),
                         unit.morale.toString(),
                     ),
-                )
-            },
-        )
-    }
-
-    private fun battlePropertyOverlayView(): BattlePropertyOverlayView? {
-        if (!propertyLayerOpen) return null
-        val rows = propertyLayer.rows()
-        val first = propertyScrollRow.coerceIn(0, (rows.size - 7).coerceAtLeast(0))
-        propertyScrollRow = first
-        return BattlePropertyOverlayView(
-            selectedTab = propertyLayer.selected.ordinal,
-            firstRow = first,
-            rows = rows.map { row ->
-                BattlePropertyRowView(
-                    icon = dynamicTextures.itemIcon(row.item.icon),
-                    label = row.labels.joinToString("     "),
-                    selected = row.item.id == propertySelectedId,
                 )
             },
         )
