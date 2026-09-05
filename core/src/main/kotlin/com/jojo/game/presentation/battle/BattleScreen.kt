@@ -55,6 +55,7 @@ import com.jojo.game.presentation.battle.fight.*
 import com.jojo.game.presentation.battle.overlay.BattleHelperOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleInformationOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleSaveLoadOverlayController
+import com.jojo.game.presentation.battle.overlay.BattleSettingsOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleTreasureOverlayView
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
@@ -842,8 +843,7 @@ void main() {
             }
         }, featureEnvironment = { game.settingFeatureEnvironment("Battle") })
     }
-    private var settingLayerOpen = false
-    private var settingPress: Pair<Float, Float>? = null
+    private val settingsOverlay by lazy { BattleSettingsOverlayController(settingLayer) }
 
     /** MenuLayer.WJYL → ForcesListLayer. */
     private var forcesLayer: ForcesListLayer? = null
@@ -1340,8 +1340,7 @@ void main() {
             informationOverlay.openTreasure()
         }
         if (game.requestedCaptureState() == "yingchuan-setting") {
-            settingLayer.onCreate()
-            settingLayerOpen = true
+            settingsOverlay.open()
         }
         if (game.requestedCaptureState() == "yingchuan-save") {
             saveLoadOverlay.openSave()
@@ -1468,7 +1467,7 @@ void main() {
                 unitInfo = unitInfoLayer != null,
                 forces = forcesLayer != null,
                 helper = helperOverlay.view() != null,
-                setting = settingLayerOpen,
+                setting = settingsOverlay.view() != null,
                 save = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null,
                 load = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null,
                 treasure = informationOverlay.treasureView() != null,
@@ -1519,7 +1518,8 @@ void main() {
                 // map input, while only button0's TOUCH_END can remove it.
                 if (keyboardIntent.capture == BattleInputCapture.HELPER) return true
                 if (keyboardIntent.capture == BattleInputCapture.SETTING) {
-                    if (keycode == Input.Keys.ESCAPE) closeSettingLayer(); return true
+                    if (keycode == Input.Keys.ESCAPE) settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.Close)
+                    return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.SAVE) {
                     if (keycode == Input.Keys.ESCAPE) handleSaveLoadEffect(saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Cancel).effect)
@@ -1682,9 +1682,7 @@ void main() {
                     return true
                 }
                 if (helperOverlay.dispatch(BattleHelperOverlayController.Intent.PointerDown(world.x, world.y))) return true
-                if (settingLayerOpen) {
-                    settingPress = world.x to world.y; return true
-                }
+                if (settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
                 if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
                 if (informationOverlay.dispatch(BattleInformationOverlayController.Intent.Tap(world.x, world.y)).consumed) return true
                 if (winConditionOpen) {
@@ -1724,15 +1722,6 @@ void main() {
                 }
                 if (pointerIntent.capture == BattleInputCapture.BATTLE_MENU) {
                     battleMenuPressedIndex = menuIndexAt(world.x, world.y)
-                    return true
-                }
-                if (settingLayerOpen) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    val pressed = settingPress; settingPress = null
-                    if (pressed != null && kotlin.math.abs(pressed.first - world.x) < 20f && kotlin.math.abs(pressed.second - world.y) < 20f) handleSettingTap(
-                        world.x,
-                        world.y
-                    )
                     return true
                 }
                 // Canvas/Layer/menu_button is the lower-right circular icon;
@@ -1891,6 +1880,8 @@ void main() {
                     }
                     forcesPressedRow = null; forcesPressedTab = null; forcesClosePressed = false; return true
                 }
+                val settingsResult = settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerUp(world.x, world.y))
+                if (settingsResult.consumed) return true
                 val saveLoadResult = saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerUp(world.x, world.y))
                 if (saveLoadResult.consumed) {
                     handleSaveLoadEffect(saveLoadResult.effect)
@@ -2539,9 +2530,9 @@ void main() {
                 batch.projectionMatrix = viewport.camera.combined
                 battleSaveLoadOverlayRenderer.draw(view)
             }
-            if (settingLayerOpen) {
+            settingsOverlay.view()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
-                battleSettingsOverlayRenderer.draw(battleSettingsOverlayView())
+                battleSettingsOverlayRenderer.draw(view)
             }
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD)?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
@@ -8693,39 +8684,6 @@ void main() {
         if (postBattleSaveLayer) finishVictoryRoute()
     }
 
-    /** Input regions follow the source-prefab positions used by drawSettingLayer. */
-    private fun handleSettingTap(x: Float, y: Float) {
-        val panelX = 196f
-        val panelY = 41f
-        if (x !in panelX..panelX + 1097f || y !in panelY..panelY + 718f) return
-        // button0 / 확인
-        if (x in 1130f..1286f && y in 47f..103f) {
-            closeSettingLayer(); return
-        }
-        // Five checkboxes at x=225, baselines 643, 578, 513, 448, 383.
-        if (x in panelX + 18f..panelX + 530f && y in 360f..665f) {
-            val row = ((663f - y) / 65f).toInt().coerceIn(0, 4)
-            val bit = listOf(0, 1, 2, 3, 4)[row]
-            val v = settingLayer.view()
-            settingLayer.check(bit, v.flags and (1 shl bit) == 0); return
-        }
-        // The two three-way groups retain their painted radio positions.
-        if (x in 793f..1273f && y in 535f..605f) {
-            settingLayer.check2(0, ((x - 816f) / 145f).toInt().coerceIn(0, 2)); return
-        }
-        if (x in 793f..1273f && y in 271f..341f) {
-            settingLayer.check2(2, ((x - 816f) / 145f).toInt().coerceIn(0, 2)); return
-        }
-        if (y in 81f..170f && x in 793f..1273f) {
-            settingLayer.selectBackground(((x - 816f) / 105f).toInt().coerceIn(0, 3)); return
-        }
-        if (y in 120f..165f && x in 230f..570f) settingLayer.onSlider((x - 230f) / 340f)
-    }
-
-    private fun closeSettingLayer() {
-        settingLayer.close(SettingLayer.TOUCH_END); settingLayerOpen = false
-    }
-
     private fun menuIndexAt(x: Float, y: Float): Int? {
         if (y !in 116.29f..204.29f || x !in 15.13372f..1159.1337f) return null
         val visualSlot = ((x - 15.13372f) / 88f).toInt()
@@ -8761,7 +8719,7 @@ void main() {
             }
 
             3 -> {
-                settingLayer.onCreate(); settingLayerOpen = true
+                settingsOverlay.open()
             } // XTSZ → SettingLayer
             4 -> openForcesListLayer() // WJYL: SHOW_CHARACTER_LIST → ForcesListLayer
             5 -> { // DJYL: PropertyLayer
@@ -8799,16 +8757,6 @@ void main() {
             AutoBattleFlow.Overlay.TUOGUAN -> BattleAutoOverlayKind.TUOGUAN
         }
         return BattleAutoOverlayView(overlay = overlay, checked = state.checked)
-    }
-
-    private fun battleSettingsOverlayView(): BattleSettingsOverlayView {
-        val state = settingLayer.view()
-        return BattleSettingsOverlayView(
-            flags = state.flags,
-            msgSpeed = state.msgSpeed,
-            notifyLevel = state.notifyLevel,
-            background = state.background,
-        )
     }
 
     private fun battleUnitInfoOverlayView(): BattleUnitInfoOverlayView? {

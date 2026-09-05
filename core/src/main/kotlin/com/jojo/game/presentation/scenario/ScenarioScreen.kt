@@ -1437,6 +1437,19 @@ class ScenarioScreen(
             )
             return
         }
+        if (kind == HallManagement.BUY) {
+            HallBuyManagementRenderer.draw(
+                sceneAssets,
+                batch,
+                HallBuyManagementRenderView(
+                    catalog = hallViews.buyCatalog(hallBuyTab),
+                    summary = hallViews.buyUnitSummary(campaign.joinedUnits.firstOrNull() ?: 0),
+                    money = campaign.money.toString(),
+                    notice = hallManagementNotice,
+                ),
+            )
+            return
+        }
         /**
          * 공개 메서드 `texture`
          *
@@ -1892,33 +1905,33 @@ class ScenarioScreen(
 
     private fun drawHallInfo(kind: HallInfo) {
         if (kind == HallInfo.FORCES) {
-            HallForcesRenderer.draw(sceneAssets, batch, hallViews.forces())
+            HallInfoRenderer.draw(sceneAssets, batch, HallInfoRenderView.Forces(hallViews.forces()))
             return
         }
         if (kind == HallInfo.TERRAIN) {
-            HallTerrainRenderer.draw(
+            HallInfoRenderer.draw(
                 sceneAssets,
                 batch,
-                HallTerrainView.from(
+                HallInfoRenderView.Terrain(HallTerrainView.from(
                     hallTerrainTab,
                     gameDataCatalog.terrainLayer().select(hallTerrainTab).rows,
-                ),
+                )),
             )
             return
         }
         if (kind == HallInfo.TREASURE) {
             val treasures = gameDataCatalog.treasureProfiles()
             val discovered = campaign.inventory.discoveredTreasures
-            HallTreasureRenderer.draw(
+            HallInfoRenderer.draw(
                 sceneAssets,
                 batch,
-                HallTreasureView(
+                HallInfoRenderView.Treasure(HallTreasureView(
                     entries = treasures.take(6).map { item ->
                         HallTreasureEntryView(item.name, item.icon, item.id in discovered)
                     },
                     discoveredCount = discovered.size,
                     totalCount = treasures.size,
-                ),
+                )),
             )
             return
         }

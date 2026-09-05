@@ -31,6 +31,19 @@ internal sealed interface HallManagementRenderView {
     data class Sell(val catalog: com.jojo.game.presentation.scenario.hall.HallSellView) : HallManagementRenderView
 }
 
+internal data class HallBuyManagementRenderView(
+    val catalog: com.jojo.game.presentation.scenario.hall.HallBuyCatalogView,
+    val summary: com.jojo.game.presentation.scenario.hall.HallBuyUnitSummaryView,
+    val money: String,
+    val notice: String?,
+)
+
+internal sealed interface HallInfoRenderView {
+    data class Forces(val view: com.jojo.game.presentation.scenario.hall.HallForcesView) : HallInfoRenderView
+    data class Terrain(val view: com.jojo.game.presentation.scenario.hall.HallTerrainView) : HallInfoRenderView
+    data class Treasure(val view: com.jojo.game.presentation.scenario.hall.HallTreasureView) : HallInfoRenderView
+}
+
 /** Source-authored geometry retained independently of mutable Hall controllers. */
 internal object HallRenderGeometry {
     val menuButtonCenters = floatArrayOf(55.107f, 143.365f, 231.846f, 320.74f, 423.317f, 511.575f, 600.056f, 690.441f, 789.44f)
