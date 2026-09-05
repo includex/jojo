@@ -1,4 +1,5 @@
 package com.jojo.game.verification.campaign
+import com.jojo.game.domain.battle.turn.BattleTurnPhase
 import com.jojo.game.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.scenario.*
@@ -37,28 +38,28 @@ class BattleInteractiveInputTest {
     @Test fun `dialogue and choice keep ownership of battle input`() {
         assertEquals(
             BattleInteractiveInput.Route.DIALOGUE,
-            BattleInteractiveInput.route(PlaybackState.DIALOGUE, BattleTurnController.Phase.PLAYER_INPUT),
+            BattleInteractiveInput.route(PlaybackState.DIALOGUE, BattleTurnPhase.PLAYER_INPUT),
         )
         assertEquals(
             BattleInteractiveInput.Route.CHOICE,
-            BattleInteractiveInput.route(PlaybackState.CHOICE, BattleTurnController.Phase.PLAYER_INPUT),
+            BattleInteractiveInput.route(PlaybackState.CHOICE, BattleTurnPhase.PLAYER_INPUT),
         )
         assertEquals(
             BattleInteractiveInput.Route.DIALOGUE,
-            BattleInteractiveInput.route(PlaybackState.DIALOGUE, BattleTurnController.Phase.FINISHED),
+            BattleInteractiveInput.route(PlaybackState.DIALOGUE, BattleTurnPhase.FINISHED),
         )
     }
 
     @Test fun `delay modal and non-player phases cannot leak into tactical input`() {
-        assertEquals(BattleInteractiveInput.Route.SCRIPT_PAUSED, BattleInteractiveInput.route(PlaybackState.DELAY, BattleTurnController.Phase.PLAYER_INPUT))
-        assertEquals(BattleInteractiveInput.Route.SCRIPT_PAUSED, BattleInteractiveInput.route(PlaybackState.MODAL, BattleTurnController.Phase.PLAYER_INPUT))
-        assertEquals(BattleInteractiveInput.Route.TURN_PAUSED, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnController.Phase.BOOTSTRAP))
-        assertEquals(BattleInteractiveInput.Route.TURN_PAUSED, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnController.Phase.CAMP_SCRIPT))
-        assertEquals(BattleInteractiveInput.Route.TURN_PAUSED, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnController.Phase.AI))
+        assertEquals(BattleInteractiveInput.Route.SCRIPT_PAUSED, BattleInteractiveInput.route(PlaybackState.DELAY, BattleTurnPhase.PLAYER_INPUT))
+        assertEquals(BattleInteractiveInput.Route.SCRIPT_PAUSED, BattleInteractiveInput.route(PlaybackState.MODAL, BattleTurnPhase.PLAYER_INPUT))
+        assertEquals(BattleInteractiveInput.Route.TURN_PAUSED, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnPhase.BOOTSTRAP))
+        assertEquals(BattleInteractiveInput.Route.TURN_PAUSED, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnPhase.CAMP_SCRIPT))
+        assertEquals(BattleInteractiveInput.Route.TURN_PAUSED, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnPhase.AI))
     }
 
     @Test fun `completed script at player phase reaches tactical input`() {
-        assertEquals(BattleInteractiveInput.Route.PLAYER_INPUT, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnController.Phase.PLAYER_INPUT))
+        assertEquals(BattleInteractiveInput.Route.PLAYER_INPUT, BattleInteractiveInput.route(PlaybackState.COMPLETE, BattleTurnPhase.PLAYER_INPUT))
         val trace = BattleInteractiveInput.trace()
         println(trace)
         assertTrue(trace.contains("\"script\":\"DIALOGUE\""))
@@ -121,10 +122,10 @@ class BattleInteractiveInputTest {
     }
 
     @Test fun `production trace driver waits for initial startOper completion`() {
-        assertFalse(productionTacticalInputReady(false, PlaybackState.COMPLETE, BattleTurnController.Phase.PLAYER_INPUT))
-        assertFalse(productionTacticalInputReady(true, PlaybackState.DIALOGUE, BattleTurnController.Phase.BOOTSTRAP))
-        assertFalse(productionTacticalInputReady(true, PlaybackState.COMPLETE, BattleTurnController.Phase.BOOTSTRAP))
-        assertTrue(productionTacticalInputReady(true, PlaybackState.COMPLETE, BattleTurnController.Phase.PLAYER_INPUT))
+        assertFalse(productionTacticalInputReady(false, PlaybackState.COMPLETE, BattleTurnPhase.PLAYER_INPUT))
+        assertFalse(productionTacticalInputReady(true, PlaybackState.DIALOGUE, BattleTurnPhase.BOOTSTRAP))
+        assertFalse(productionTacticalInputReady(true, PlaybackState.COMPLETE, BattleTurnPhase.BOOTSTRAP))
+        assertTrue(productionTacticalInputReady(true, PlaybackState.COMPLETE, BattleTurnPhase.PLAYER_INPUT))
     }
 
     @Test fun `guided authored route confirms end round prompt without entrusted control`() {

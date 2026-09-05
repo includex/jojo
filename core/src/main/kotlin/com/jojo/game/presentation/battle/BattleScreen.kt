@@ -1,4 +1,6 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.application.battle.*
+import com.jojo.game.domain.battle.turn.*
 import com.jojo.game.presentation.battle.edit.*
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
@@ -50,6 +52,7 @@ import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 import com.jojo.game.presentation.battle.evidence.*
 import com.jojo.game.presentation.battle.fight.*
 import com.jojo.game.presentation.battle.overlay.BattleHelperOverlayController
+import com.jojo.game.presentation.battle.overlay.BattleSaveLoadOverlayController
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 import com.badlogic.gdx.Gdx
@@ -809,19 +812,24 @@ void main() {
     private var treasureScrollRow = 0
     private var treasureSelectedId: Int? = null
 
-    /** MenuLayer.CD → SaveLayer; repository maps directly to numbered Manager slots. */
-    private val saveLayer by lazy {
-        SaveLayer(object : SaveLayer.Repository {
+    /** MenuLayer.CD/DD source lifecycle and their mutually-exclusive presentation state. */
+    private val saveLoadOverlay = BattleSaveLoadOverlayController(
+        saveRepository = object : SaveLayer.Repository {
             override fun load(index: Int): String? = game.savedCampaignSlot(index)
             override fun save(index: Int) {
                 game.saveCampaign(index)
             }
-        })
-    }
-    private var saveLayerOpen = false
-    private var saveScrollRow = 0
-    private var savePressedSlot: Int? = null
-    private var saveConfirmPressed: Int? = null
+        },
+        loadRepository = object : LoadGameLayer.Repository {
+            override fun load(index: Int) = game.loadCampaignSlot(index)
+            override fun savedPage() = game.savedLoadPage()
+            override fun savePage(page: Int) = game.saveLoadPage(page)
+            override fun featureEnabled(name: String) = name == "ZDBHSW"
+            override fun versionCode() = 1
+            override fun restore(index: Int, raw: String, route: LoadGameLayer.RestoreRoute) =
+                game.restoreCampaignSlot(index, raw, route)
+        },
+    )
     private val settingLayer by lazy {
         SettingLayer(object : SettingLayer.Store {
             private val p = settingsPreferences
@@ -833,23 +841,6 @@ void main() {
     }
     private var settingLayerOpen = false
     private var settingPress: Pair<Float, Float>? = null
-
-    /** MenuLayer.DD → LoadGameLayer; separate state so SaveLayer is untouched. */
-    private val loadGameLayer by lazy {
-        LoadGameLayer(object : LoadGameLayer.Repository {
-            override fun load(index: Int) = game.loadCampaignSlot(index)
-            override fun savedPage() = game.savedLoadPage()
-            override fun savePage(page: Int) = game.saveLoadPage(page)
-            override fun featureEnabled(name: String) = name == "ZDBHSW"
-            override fun versionCode() = 1
-            override fun restore(index: Int, raw: String, route: LoadGameLayer.RestoreRoute) =
-                game.restoreCampaignSlot(index, raw, route)
-        })
-    }
-    private var loadGameLayerOpen = false
-    private var loadScrollRow = 0
-    private var loadPressedSlot: Int? = null
-    private var loadConfirmPressed: Int? = null
 
     /** MenuLayer.WJYL → ForcesListLayer. */
     private var forcesLayer: ForcesListLayer? = null
@@ -1139,9 +1130,9 @@ void main() {
             },
             onCampEvents = { turn -> showTurnResult(turn, "") },
             initialPhase = if (bootstrapPhase == BattleBootstrapPhase.COMPLETE) {
-                BattleTurnController.Phase.PLAYER_INPUT
+                BattleTurnPhase.PLAYER_INPUT
             } else {
-                BattleTurnController.Phase.BOOTSTRAP
+                BattleTurnPhase.BOOTSTRAP
             },
         )
     }
@@ -1363,14 +1354,10 @@ void main() {
             settingLayerOpen = true
         }
         if (game.requestedCaptureState() == "yingchuan-save") {
-            saveLayer.onCreate()
-            saveScrollRow = 0
-            saveLayerOpen = true
+            saveLoadOverlay.openSave()
         }
         if (game.requestedCaptureState() == "yingchuan-load") {
-            loadGameLayer.onCreate()
-            loadScrollRow = 0
-            loadGameLayerOpen = true
+            saveLoadOverlay.openLoad()
         }
         if (game.requestedCaptureState() == "yingchuan-forces") openForcesListLayer()
         // Mirrors the source Electron WinConBoxLayer fixture without a
@@ -1471,7 +1458,7 @@ void main() {
         }
         Gdx.input.inputProcessor = object : InputAdapter() {
             private fun inputSurface(): BattleInputSurface = BattleInputSurface(
-                dialogue = BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) ==
+                dialogue = BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) ==
                         BattleInteractiveInput.Route.DIALOGUE,
                 settlementInfo = settlementInfo2Overlay != null,
                 roundLayer = activeRoundLayer != null,
@@ -1492,8 +1479,8 @@ void main() {
                 forces = forcesLayer != null,
                 helper = helperOverlay.view() != null,
                 setting = settingLayerOpen,
-                save = saveLayerOpen,
-                load = loadGameLayerOpen,
+                save = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null,
+                load = saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null,
                 treasure = treasureLayerOpen,
                 property = propertyLayerOpen,
                 terrain = terrainLayerOpen,
@@ -1504,7 +1491,7 @@ void main() {
                 battleMenu = battleMenuOpen,
                 miniMap = !battleMenuOpen,
                 menuHud = true,
-                interactiveRoute = BattleInteractiveInput.route(scriptRuntime.state, turnController.phase),
+                interactiveRoute = BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase),
                 hitRegions = listOf(
                     BattleInputHitRegion(BattleInputTarget.MENU_HUD, 1353.9535f, 8f, 1413.9535f, 68f),
                     BattleInputHitRegion(
@@ -1545,11 +1532,14 @@ void main() {
                     if (keycode == Input.Keys.ESCAPE) closeSettingLayer(); return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.SAVE) {
-                    if (keycode == Input.Keys.ESCAPE) closeSaveLayer(); return true
+                    if (keycode == Input.Keys.ESCAPE) handleSaveLoadEffect(saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Cancel).effect)
+                    return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.FORCES) return true
                 if (keyboardIntent.capture == BattleInputCapture.UNIT_INFO) return true
-                if (keyboardIntent.capture == BattleInputCapture.LOAD) return true // LoadGameLayer has only TOUCH_END handlers.
+                if (keyboardIntent.capture == BattleInputCapture.LOAD) {
+                    return true
+                }
                 if (keyboardIntent.capture == BattleInputCapture.REWARD) {
                     if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) advanceRewardFlow()
                     return true
@@ -1705,16 +1695,7 @@ void main() {
                 if (settingLayerOpen) {
                     settingPress = world.x to world.y; return true
                 }
-                if (saveLayerOpen) {
-                    saveConfirmPressed = saveConfirmAt(world.x, world.y)
-                    savePressedSlot = if (saveConfirmPressed == null) saveSlotAt(world.x, world.y) else null
-                    return true
-                }
-                if (loadGameLayerOpen) {
-                    loadConfirmPressed = loadConfirmAt(world.x, world.y)
-                    loadPressedSlot = if (loadConfirmPressed == null) loadSlotAt(world.x, world.y) else null
-                    return true
-                }
+                if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
                 if (treasureLayerOpen) {
                     handleTreasureLayerTap(world.x, world.y); return true
                 }
@@ -1754,7 +1735,7 @@ void main() {
                 // DELAY/MODAL and non-player camp phases retain the map's
                 // visual input listener in Cocos, but BattleScreen is paused;
                 // they consume the event without selecting/moving a unit.
-                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) !=
+                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) !=
                     BattleInteractiveInput.Route.PLAYER_INPUT
                 ) return true
                 if (pointerIntent.capture == BattleInputCapture.MINI_MAP) {
@@ -1771,33 +1752,6 @@ void main() {
                         world.x,
                         world.y
                     )
-                    return true
-                }
-                if (saveLayerOpen) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    val confirm = saveConfirmAt(world.x, world.y)
-                    if (saveConfirmPressed != null && saveConfirmPressed == confirm) {
-                        if (saveLayer.completionTipOpen()) saveLayer.onCompletionTip(SaveLayer.TOUCH_END)
-                        else saveLayer.onConfirm(confirm ?: 1)
-                        saveConfirmPressed = null
-                        if (!saveLayer.view().attached) {
-                            saveLayerOpen = false
-                            eventMessage = "진행 상황을 저장했습니다."
-                            if (postBattleSaveLayer) finishVictoryRoute()
-                        }
-                        return true
-                    }
-                    val slot = saveSlotAt(world.x, world.y)
-                    val pressed = savePressedSlot
-                    savePressedSlot = null
-                    if (pressed != null && pressed == slot && saveLayer.onRowTouch(pressed, SaveLayer.TOUCH_END)) {
-                        // SaveLayer._temp's MsgBox is represented by its pendingSlot;
-                        // the next tap on the explicit confirmation buttons resolves it.
-                    } else if (pressed == null && (
-                                world.x !in 278f..1210f ||
-                                        (world.x in 1046f..1194f && world.y in 100f..156f)
-                                )
-                    ) closeSaveLayer()
                     return true
                 }
                 // Canvas/Layer/menu_button is the lower-right circular icon;
@@ -1956,19 +1910,9 @@ void main() {
                     }
                     forcesPressedRow = null; forcesPressedTab = null; forcesClosePressed = false; return true
                 }
-                if (loadGameLayerOpen) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    val confirm = loadConfirmAt(world.x, world.y)
-                    if (loadConfirmPressed != null && loadConfirmPressed == confirm) {
-                        loadGameLayer.onConfirm(confirm ?: 1)
-                        loadConfirmPressed = null
-                        if (!loadGameLayer.view().attached) loadGameLayerOpen = false
-                        return true
-                    }
-                    val slot = loadSlotAt(world.x, world.y)
-                    val pressed = loadPressedSlot; loadPressedSlot = null
-                    if (pressed != null && pressed == slot) loadGameLayer.onRowTouch(pressed, LoadGameLayer.TOUCH_END)
-                    else if (pressed == null && (world.x !in 278f..1210f || (world.x in 1051f..1199f && world.y in 110f..170f))) closeLoadGameLayer()
+                val saveLoadResult = saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerUp(world.x, world.y))
+                if (saveLoadResult.consumed) {
+                    handleSaveLoadEffect(saveLoadResult.effect)
                     return true
                 }
                 viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).let { world ->
@@ -2019,7 +1963,7 @@ void main() {
                     return true
                 }
                 if (mapTouchPending && !mapTouchMoved &&
-                    BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) ==
+                    BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) ==
                     BattleInteractiveInput.Route.PLAYER_INPUT
                 ) {
                     // Original BattleScreen dispatches SELECT_UNIT_POINT on
@@ -2047,9 +1991,7 @@ void main() {
                 if (treasureLayerOpen) {
                     treasureScrollRow = (treasureScrollRow + amountY.toInt()).coerceAtLeast(0); return true
                 }
-                if (saveLayerOpen) {
-                    saveScrollRow = (saveScrollRow + amountY.toInt()).coerceAtLeast(0); return true
-                }
+                if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Scroll(amountY.toInt())).consumed) return true
                 if (propertyLayerOpen) {
                     propertyScrollRow = (propertyScrollRow + amountY.toInt()).coerceAtLeast(0); return true
                 }
@@ -2204,7 +2146,7 @@ void main() {
             battleInfoPanelPressed = false
         }
         scriptedMovementCampTransitionFrameBarrier.observe(
-            inCampScript = turnController.phase == BattleTurnController.Phase.CAMP_SCRIPT,
+            inCampScript = turnController.snapshot.phase == BattleTurnPhase.CAMP_SCRIPT,
             scriptWasPending = scriptStateBeforeUpdate != PlaybackState.COMPLETE,
             scriptCompleted = scriptRuntime.state == PlaybackState.COMPLETE,
             movementWasActive = scriptedMovementActiveBeforeUpdate,
@@ -2234,7 +2176,7 @@ void main() {
         // From then on Mine uses the ordinary visible _ai2 lifecycle; trace
         // recorders merely observe it and never inject tactical progress.
         if (bootstrapPhase == BattleBootstrapPhase.COMPLETE &&
-            autoBattleFlow.view().collocation && turnController.phase == BattleTurnController.Phase.PLAYER_INPUT &&
+            autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT &&
             scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && activeAiCamp == null
         ) turnController.runCollocatedPlayerTurn()
         // StageLayer.pause() suspends only the Python control script. Cocos
@@ -2620,7 +2562,7 @@ void main() {
                 battlePropertyOverlayRenderer.draw(view)
             }
             if (treasureLayerOpen) drawTreasureLayer()
-            battleSaveLoadOverlayView(BattleSaveLoadOverlayKind.SAVE)?.let { view ->
+            saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE)?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battleSaveLoadOverlayRenderer.draw(view)
             }
@@ -2628,7 +2570,7 @@ void main() {
                 batch.projectionMatrix = viewport.camera.combined
                 battleSettingsOverlayRenderer.draw(battleSettingsOverlayView())
             }
-            battleSaveLoadOverlayView(BattleSaveLoadOverlayKind.LOAD)?.let { view ->
+            saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD)?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battleSaveLoadOverlayRenderer.draw(view)
             }
@@ -2660,7 +2602,7 @@ void main() {
             // SaveLayer body, which is a layer-stack mismatch rather than a
             // text-rasterization difference. Terrain/property keep the source
             // dialogue stack; Save and Menu replace it.
-            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && !saveLayerOpen && helperOverlay.view() == null && forcesLayer == null && unitInfoLayer == null && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
+            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) == null && helperOverlay.view() == null && forcesLayer == null && unitInfoLayer == null && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
                 drawScriptDialogue()
                 drawScriptChoice()
                 drawScriptInfoLayer()
@@ -3035,7 +2977,7 @@ void main() {
                     dialogueIdentity = dialogueIdentity,
                     dialogueSpeakerId = dialogueSpeakerId,
                     dialogueText = dialogueText,
-                    phase = turnController.phase.toString(),
+                    phase = turnController.snapshot.phase.toString(),
                     script = scriptRuntime.state.toString(),
                     bootstrapBusy = bootstrapBusy,
                     cameraX = battleCamera.contentX,
@@ -3227,7 +3169,7 @@ void main() {
             loseTitleScreenY = loseTitle.second,
             playerMoveCommitted = playerMoveCommitted,
             campaignStage = game.campaignStage(),
-            turnPhase = turnController.phase.name,
+            turnPhase = turnController.snapshot.phase.name,
             battleMenuOpen = battleMenuOpen,
             battleCommandOpen = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
             battleTargetSelectionOpen = battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION,
@@ -4927,9 +4869,9 @@ void main() {
 
     private fun completeTurnScriptIfReady() {
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
-        when (turnController.phase) {
-            BattleTurnController.Phase.CAMP_SCRIPT -> turnController.completeCampScript()
-            BattleTurnController.Phase.ROUND_SCRIPT -> turnController.completeRoundScript()
+        when (turnController.snapshot.phase) {
+            BattleTurnPhase.CAMP_SCRIPT -> turnController.completeCampScript()
+            BattleTurnPhase.ROUND_SCRIPT -> turnController.completeRoundScript()
             else -> Unit
         }
     }
@@ -5825,8 +5767,7 @@ void main() {
         resultFlow = ResultFlow.NONE
         if (answer == 0) {
             postBattleSaveLayer = true
-            saveLayer.onCreate()
-            saveLayerOpen = true
+            saveLoadOverlay.openSave()
         } else finishVictoryRoute()
     }
 
@@ -8798,22 +8739,9 @@ void main() {
         font.color = Color.WHITE; font.data.setScale(1f); batch.end()
     }
 
-    private fun saveSlotAt(px: Float, py: Float): Int? {
-        if (px !in 289f..1197f || py !in 182f..600f || saveLayer.pendingSlot() != null || saveLayer.completionTipOpen()) return null
-        val row = ((608f - py) / 52f).toInt() + saveScrollRow
-        return saveLayer.view().rows.getOrNull(row)?.index
-    }
-
-    /** 0 is MsgBox's OK (`저장`), 1 is cancel (`됐어`). */
-    private fun saveConfirmAt(px: Float, py: Float): Int? = when {
-        px in 570f..720f && py in 305f..353f -> 0
-        px in 770f..920f && py in 305f..353f -> 1
-        else -> null
-    }
-
-    private fun closeSaveLayer() {
-        saveLayer.onCancel(SaveLayer.TOUCH_END)
-        saveLayerOpen = false; savePressedSlot = null; saveConfirmPressed = null
+    private fun handleSaveLoadEffect(effect: BattleSaveLoadOverlayController.Effect) {
+        if (effect !is BattleSaveLoadOverlayController.Effect.Closed || effect.mode != BattleSaveLoadOverlayController.Mode.SAVE) return
+        if (effect.saved) eventMessage = "진행 상황을 저장했습니다."
         if (postBattleSaveLayer) finishVictoryRoute()
     }
 
@@ -8848,21 +8776,6 @@ void main() {
 
     private fun closeSettingLayer() {
         settingLayer.close(SettingLayer.TOUCH_END); settingLayerOpen = false
-    }
-
-    private fun loadSlotAt(px: Float, py: Float): Int? {
-        if (px !in 289f..1197f || py !in 184f..600f || loadGameLayer.pendingSlot() != null) return null
-        val row = ((600f - py) / 52f).toInt() + loadScrollRow
-        return loadGameLayer.view().rows.getOrNull(row)?.index
-    }
-
-    private fun loadConfirmAt(px: Float, py: Float): Int? = when {
-        px in 570f..720f && py in 305f..353f -> 0; px in 770f..920f && py in 305f..353f -> 1; else -> null
-    }
-
-    private fun closeLoadGameLayer() {
-        loadGameLayer.onCancel(LoadGameLayer.TOUCH_END); loadGameLayerOpen = false; loadPressedSlot =
-            null; loadConfirmPressed = null
     }
 
     /** TreasureLayer Panel_cancel/button7 close and discovered-row clickItem routing. */
@@ -8922,15 +8835,11 @@ void main() {
         when (index) {
             0 -> game.showTitleScreen() // JSYX: confirmed return route
             1 -> { // CD: SaveLayer; SAVE_GAME is dispatched only after MsgBox OK.
-                saveScrollRow = 0
-                saveLayer.onCreate(savedPage = 0)
-                saveLayerOpen = true
+                saveLoadOverlay.openSave(savedPage = 0)
             }
 
             2 -> { // DD: LoadGameLayer.onCreate → SAVE_PAGE → _refPage
-                loadScrollRow = 0
-                loadGameLayer.onCreate()
-                loadGameLayerOpen = true
+                saveLoadOverlay.openLoad()
             }
 
             3 -> {
@@ -9031,35 +8940,6 @@ void main() {
             buttons = state.buttons.toList(),
             magicRows = state.magicRows.toList(),
         )
-    }
-
-    private fun battleSaveLoadOverlayView(kind: BattleSaveLoadOverlayKind): BattleSaveLoadOverlayView? {
-        if (kind == BattleSaveLoadOverlayKind.SAVE && saveLayerOpen) {
-            val state = saveLayer.view()
-            val first = saveScrollRow.coerceIn(0, (state.rows.size - 8).coerceAtLeast(0))
-            saveScrollRow = first
-            return BattleSaveLoadOverlayView(
-                kind = BattleSaveLoadOverlayKind.SAVE,
-                rows = state.rows.map { BattleSaveLoadRowView(it.number, it.stage, it.name) },
-                firstRow = first,
-                pendingSave = saveLayer.pendingSlot() != null,
-                saveConfirmation = saveLayer.pendingPrompt(),
-                saveCompletionTip = saveLayer.completionTipOpen(),
-            )
-        }
-        if (kind == BattleSaveLoadOverlayKind.LOAD && loadGameLayerOpen) {
-            val state = loadGameLayer.view()
-            val first = loadScrollRow.coerceIn(0, (state.rows.size - 8).coerceAtLeast(0))
-            loadScrollRow = first
-            return BattleSaveLoadOverlayView(
-                kind = BattleSaveLoadOverlayKind.LOAD,
-                rows = state.rows.map { BattleSaveLoadRowView(it.number, it.stage, it.name) },
-                firstRow = first,
-                loadConfirmation = state.confirmation?.message,
-                loadNotice = state.notice,
-            )
-        }
-        return null
     }
 
     private fun battleForcesOverlayView(): BattleForcesOverlayView? {
@@ -11676,9 +11556,9 @@ void main() {
     }
 }
 
-private fun BattleTurnController.DeathCheckpoint.toDeathTimelineCheckpoint(): BattleDeathPresentationTimeline.Checkpoint =
+private fun BattleDeathCheckpoint.toDeathTimelineCheckpoint(): BattleDeathPresentationTimeline.Checkpoint =
     when (this) {
-        BattleTurnController.DeathCheckpoint.CAMP_START -> BattleDeathPresentationTimeline.Checkpoint.CAMP_START
-        BattleTurnController.DeathCheckpoint.CAMP_RESTORE -> BattleDeathPresentationTimeline.Checkpoint.CAMP_RESTORE
-        BattleTurnController.DeathCheckpoint.ROUND_START -> BattleDeathPresentationTimeline.Checkpoint.ROUND_START
+        BattleDeathCheckpoint.CAMP_START -> BattleDeathPresentationTimeline.Checkpoint.CAMP_START
+        BattleDeathCheckpoint.CAMP_RESTORE -> BattleDeathPresentationTimeline.Checkpoint.CAMP_RESTORE
+        BattleDeathCheckpoint.ROUND_START -> BattleDeathPresentationTimeline.Checkpoint.ROUND_START
     }

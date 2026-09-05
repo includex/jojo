@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.application.battle.*
+import com.jojo.game.domain.battle.turn.*
 import com.jojo.game.presentation.battle.BattleScreenHitReactionDirectionScheduler
 import com.jojo.game.presentation.battle.timeline.*
 import com.jojo.game.domain.battle.*

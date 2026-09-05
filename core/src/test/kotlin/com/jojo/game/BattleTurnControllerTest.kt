@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.application.battle.*
+import com.jojo.game.domain.battle.turn.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.scenario.*
@@ -89,12 +91,12 @@ class BattleTurnControllerTest {
         controller.endPlayerTurn()
         controller.completeCampCard()
 
-        assertEquals(BattleTurnController.Phase.ROUND_SCRIPT, controller.phase)
+        assertEquals(BattleTurnPhase.ROUND_SCRIPT, controller.snapshot.phase)
         assertEquals(2, state.round)
         assertEquals(Faction.REINFORCEMENTS, state.activeFaction)
 
         controller.completeRoundScript()
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
     }
 
@@ -116,10 +118,10 @@ class BattleTurnControllerTest {
             showCamp = { calls += "card" },
             runCampScript = { calls += "script"; true },
             runAi = { calls += "ai"; AiTurnResult(0, 0, 0) },
-            initialPhase = BattleTurnController.Phase.BOOTSTRAP,
+            initialPhase = BattleTurnPhase.BOOTSTRAP,
         )
 
-        assertEquals(BattleTurnController.Phase.BOOTSTRAP, controller.phase)
+        assertEquals(BattleTurnPhase.BOOTSTRAP, controller.snapshot.phase)
         assertFalse(controller.endPlayerTurn())
         assertFalse(controller.runCollocatedPlayerTurn())
         assertEquals(emptyList(), calls)
@@ -127,7 +129,7 @@ class BattleTurnControllerTest {
 
         controller.completeBootstrap()
 
-        assertEquals(BattleTurnController.Phase.PLAYER_INPUT, controller.phase)
+        assertEquals(BattleTurnPhase.PLAYER_INPUT, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
         assertEquals(emptyList(), calls, "initial ctrl_mine(true) skips ordinary camp-start callbacks")
     }
@@ -144,12 +146,12 @@ class BattleTurnControllerTest {
         )
 
         assertTrue(controller.endPlayerTurn())
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(listOf("script:FRIEND", "ai:FRIEND", "card:ENEMY:false"), calls)
         assertFalse(controller.endPlayerTurn())
 
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(
             listOf(
                 "script:FRIEND", "ai:FRIEND", "card:ENEMY:false",
@@ -160,7 +162,7 @@ class BattleTurnControllerTest {
         )
 
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.PLAYER_INPUT, controller.phase)
+        assertEquals(BattleTurnPhase.PLAYER_INPUT, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
         assertEquals(2, state.round)
         assertEquals("script:PLAYER", calls.last())
@@ -178,13 +180,13 @@ class BattleTurnControllerTest {
         )
 
         assertTrue(controller.endPlayerTurn())
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(listOf("script:FRIEND", "ai:FRIEND", "card:ENEMY:false"), calls)
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.CAMP_SCRIPT, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_SCRIPT, controller.snapshot.phase)
         assertEquals(listOf("script:FRIEND", "ai:FRIEND", "card:ENEMY:false", "script:ENEMY"), calls)
         controller.completeCampScript()
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(
             listOf(
                 "script:FRIEND", "ai:FRIEND", "card:ENEMY:false", "script:ENEMY",
@@ -209,15 +211,15 @@ class BattleTurnControllerTest {
 
         controller.endPlayerTurn()
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.AI, controller.phase)
+        assertEquals(BattleTurnPhase.AI, controller.snapshot.phase)
         assertEquals(Faction.ENEMY, state.activeFaction)
         assertEquals(listOf("ai:FRIEND", "card:ENEMY", "ai:ENEMY"), calls)
 
         presenting = false
         controller.completeAiPresentation(AiTurnResult(1, 1, 0))
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
-        assertEquals(AiTurnResult(1, 1, 0), controller.lastAiResult)
+        assertEquals(AiTurnResult(1, 1, 0), controller.snapshot.lastAiResult)
         assertEquals(listOf("ai:FRIEND", "card:ENEMY", "ai:ENEMY", "ai:REINFORCEMENTS", "card:PLAYER"), calls)
     }
 
@@ -245,7 +247,7 @@ class BattleTurnControllerTest {
         // and stage.lose, publishing this scripted outcome.
         assertTrue(controller.endPlayerTurn())
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.AI, controller.phase)
+        assertEquals(BattleTurnPhase.AI, controller.snapshot.phase)
         assertEquals(Faction.ENEMY, state.activeFaction)
         assertEquals(1, state.round)
         val callbacksBeforeScriptEnd = callbacks.toList()
@@ -253,7 +255,7 @@ class BattleTurnControllerTest {
         state.setScriptedOutcome(BattleOutcome.ENEMY_VICTORY)
 
         controller.finishScriptEndedBattle()
-        assertEquals(BattleTurnController.Phase.FINISHED, controller.phase)
+        assertEquals(BattleTurnPhase.FINISHED, controller.snapshot.phase)
         assertEquals(Faction.ENEMY, state.activeFaction)
         assertEquals(1, state.round)
         assertEquals(
@@ -317,12 +319,12 @@ class BattleTurnControllerTest {
         )
 
         assertTrue(controller.runCollocatedPlayerTurn())
-        assertEquals(BattleTurnController.Phase.AI, controller.phase)
+        assertEquals(BattleTurnPhase.AI, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
         presenting = false
         controller.completeAiPresentation()
         assertEquals(Faction.ENEMY, state.activeFaction)
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
     }
 
     @Test
@@ -355,23 +357,23 @@ class BattleTurnControllerTest {
         )
 
         assertTrue(controller.endPlayerTurn())
-        assertEquals(BattleTurnController.Phase.CAMP_RESTORE, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_RESTORE, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
         assertEquals(50, enemy.hitPoints)
         assertEquals(listOf("restore:PLAYER"), calls)
 
         controller.completeCampRestorePresentation()
-        assertEquals(BattleTurnController.Phase.CAMP_RESTORE_DEATHS, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_RESTORE_DEATHS, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
 
         controller.completeCampRestoreDeathPresentation()
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(Faction.ENEMY, state.activeFaction)
         assertEquals(50, enemy.hitPoints)
         assertEquals(emptyList(), eventCalls, "camp script must not execute behind RoundLayer")
 
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.CAMP_STATE, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_STATE, controller.snapshot.phase)
         assertEquals(60, enemy.hitPoints)
         assertEquals(1, enemy.statuses[BattleStatus.PARALYSIS])
         assertEquals(emptyList(), eventCalls, "script waits for state presentation completion")
@@ -385,15 +387,15 @@ class BattleTurnControllerTest {
         )
 
         controller.completeCampStatePresentation()
-        assertEquals(BattleTurnController.Phase.CAMP_SCRIPT, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_SCRIPT, controller.snapshot.phase)
         assertEquals(listOf("enemy-script"), eventCalls)
-        assertEquals(listOf("enemy-script"), controller.lastTurn?.firedEvents)
+        assertEquals(listOf("enemy-script"), controller.snapshot.lastTurn?.firedEvents)
         assertEquals("script:ENEMY", calls.last())
         controller.completeCampScript()
-        assertEquals(BattleTurnController.Phase.CAMP_DEATHS, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_DEATHS, controller.snapshot.phase)
         assertEquals("deaths:CAMP_START", calls.last())
         controller.completeCampDeathPresentation()
-        assertEquals(BattleTurnController.Phase.AI, controller.phase)
+        assertEquals(BattleTurnPhase.AI, controller.snapshot.phase)
         assertEquals("ai:ENEMY", calls.last())
     }
 
@@ -416,19 +418,19 @@ class BattleTurnControllerTest {
             runCampScript = { true },
             runAi = { AiTurnResult(0, 0, 1) },
             presentCampRestore = { calls += "restore"; true },
-            presentDeaths = { calls += "deaths:$it"; it != BattleTurnController.DeathCheckpoint.ROUND_START },
+            presentDeaths = { calls += "deaths:$it"; it != BattleDeathCheckpoint.ROUND_START },
             runRoundScript = { calls += "round:${it.completedRound}->${it.round}"; false },
             presentWeather = { calls += "weather:${it.previous}->${it.current}"; false },
         )
 
         controller.endPlayerTurn()
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals("card:r1:ENEMY", calls.last())
 
         // Card -> state -> camp script -> deaths -> AI -> restore -> deaths ->
         // addRound. The explicit round-script barrier must stop before weather.
         controller.completeCampCard()
-        assertEquals(BattleTurnController.Phase.ROUND_SCRIPT, controller.phase)
+        assertEquals(BattleTurnPhase.ROUND_SCRIPT, controller.snapshot.phase)
         assertEquals(2, state.round)
         assertEquals(Faction.REINFORCEMENTS, state.activeFaction)
         assertEquals(BattleWeather.CLEAR, state.weather)
@@ -437,19 +439,19 @@ class BattleTurnControllerTest {
         assertTrue(calls.none { it.startsWith("weather:") })
 
         controller.completeRoundScript()
-        assertEquals(BattleTurnController.Phase.ROUND_DEATHS, controller.phase)
+        assertEquals(BattleTurnPhase.ROUND_DEATHS, controller.snapshot.phase)
         assertEquals(BattleWeather.CLEAR, state.weather)
         assertEquals("deaths:ROUND_START", calls.last())
 
         controller.completeRoundDeathPresentation()
-        assertEquals(BattleTurnController.Phase.WEATHER, controller.phase)
+        assertEquals(BattleTurnPhase.WEATHER, controller.snapshot.phase)
         assertEquals(BattleWeather.WINDY, state.weather)
         assertEquals(0, state.skillTemp("mine", 900))
         assertEquals(Faction.REINFORCEMENTS, state.activeFaction)
         assertEquals("weather:CLEAR->WINDY", calls.last())
 
         controller.completeWeatherPresentation()
-        assertEquals(BattleTurnController.Phase.CAMP_CARD, controller.phase)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
         assertEquals("card:r2:PLAYER", calls.last())
     }

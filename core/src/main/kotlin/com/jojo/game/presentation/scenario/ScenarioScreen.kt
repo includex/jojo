@@ -15,6 +15,7 @@ import com.jojo.game.presentation.scenario.hall.*
 import com.jojo.game.presentation.scenario.ScenarioPlaybackController
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.evidence.*
+import com.jojo.game.presentation.scenario.render.*
 import com.jojo.game.presentation.scenario.story.*
 
 import com.badlogic.gdx.Gdx
@@ -81,13 +82,6 @@ class ScenarioScreen(
         val actionLabel: String,
         val itemId: Int? = null,
         val unequipSlot: CampaignEquipmentSlot? = null,
-    )
-
-    private data class HallDrawEntry(
-        val zIndex: Float,
-        val siblingOrder: Int,
-        val head: ScenarioHead? = null,
-        val unit: TacticalUnit? = null,
     )
 
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
@@ -630,11 +624,34 @@ class ScenarioScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         viewport.apply()
         if (streetCaptureStage != null) {
-            drawStreetDialogueIsolation(streetCaptureStage)
+            val stageIndex = ScenarioStreetDialogueStages.indexOf(streetCaptureStage)
+            if (stageIndex >= 0) {
+                if (stageIndex >= ScenarioStreetDialogueStages.backgroundIndex()) {
+                    drawBattlefield(
+                        drawCharacters = stageIndex >= ScenarioStreetDialogueStages.charactersIndex(),
+                        drawUnits = false,
+                    )
+                }
+                batch.projectionMatrix = viewport.camera.combined
+                batch.begin()
+                ScenarioStoryRenderer.drawStreetDialogue(sceneAssets, batch, streetDialogueView(), stageIndex)
+                batch.end()
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+            }
             if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return
             if (elapsed > 1f && game.captureFrameIfRequested()) return
         } else {
-            if (hallPalaceFixture) drawPalaceFixture() else {
+            if (hallPalaceFixture) {
+                drawBattlefield(drawCharacters = true, drawUnits = true)
+                playback.currentDialogue?.let { dialogue ->
+                    batch.projectionMatrix = viewport.camera.combined
+                    ScenarioStoryRenderer.drawPalaceFixture(
+                        sceneAssets,
+                        batch,
+                        ScenarioPalaceFixtureView(dialogue.text, dialoguePortraitId(0), "조조"),
+                    )
+                }
+            } else {
                 val isolatedHallOverlay = hallOverlayFixture in setOf(
                     "info",
                     "get-item-equipment",
@@ -902,432 +919,107 @@ class ScenarioScreen(
     }
 
     private fun drawBattlefield(drawCharacters: Boolean = true, drawUnits: Boolean = drawCharacters) {
-        val background = backgroundTexture(playback.stage.backgroundId)
-        val palette = when (playback.stage.backgroundId) {
-            2 -> Color(0.49f, 0.39f, 0.24f, 1f)
-            else -> Color(0.25f, 0.33f, 0.28f, 1f)
-        }
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        background?.let {
-            batch.color = Color.WHITE
-            batch.draw(it, 0f, 0f, 1280f, 688f)
-        }
-        batch.end()
-        shapes.projectionMatrix = viewport.camera.combined
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        if (background == null) {
-            shapes.color = palette
-            shapes.rect(0f, 0f, 1280f, 688f)
-        }
-        // Source scene backgrounds are complete images.  Do not put the
-        // migration-era checkerboard on top of them; it obscures original art.
-        if (drawUnits) playback.stage.units.values.filter { unit ->
+        ScenarioBattlefieldRenderer.draw(
+            sceneAssets,
+            batch,
+            shapes,
+            viewport.camera,
+            battlefieldView(drawCharacters, drawUnits),
+        )
+    }
+
+    private fun battlefieldView(drawCharacters: Boolean, drawUnits: Boolean): ScenarioBattlefieldRenderView {
+        val speakerId = playback.currentDialogue?.speakerId?.toIntOrNull()
+        val units = playback.stage.units.values.mapIndexed { index, unit ->
             val avatar = gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id
             val animationTime = if (unit.action == 20) unit.animationElapsed else elapsed
-            unit.visible && unitTexture(
-                HallUnitRender.frame(
-                    avatar,
-                    unit.action,
-                    unit.direction,
-                    animationTime
-                ).textureAssetId
-            ) == null
-        }.forEach(::drawUnit)
-        shapes.end()
-        Gdx.gl.glDisable(GL20.GL_BLEND)
-
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        bodyFont.color = Color.WHITE
-        val drawEntries = mutableListOf<HallDrawEntry>()
-        if (drawCharacters) {
-            if (drawUnits) playback.stage.units.values.filter { it.visible }.forEachIndexed { index, unit ->
-                // HallUnit zIndex = -turnPos(...).y. With the default
-                // 1280x800 Hall root, local Y is 424 - 4*(x+y).
-                drawEntries += HallDrawEntry(unit.moveZIndex, index, unit = unit)
-            }
-            val headOrder = if (drawUnits) playback.stage.units.size else 0
-            playback.stage.heads.values.filter { it.opacity > 0f }.forEachIndexed { index, head ->
-                // Head.move assigns zIndex from the destination Y before
-                // starting its tween, exactly as the source component does.
-                drawEntries += HallDrawEntry(-head.y.toFloat(), headOrder + index, head = head)
-            }
-        }
-        drawEntries.sortedWith(compareBy<HallDrawEntry> { it.zIndex }.thenBy { it.siblingOrder }).forEach { entry ->
-            entry.head?.let { head ->
-                dialoguePortrait(head.characterId)?.let { texture ->
-                    // Head.setPos uses HallLayer.convertPos inside the 640x400
-                    // map node. That node is scaled 2x and centred in Cocos'
-                    // 1488.372x800 SHOW_ALL canvas; the game's 1280x688 viewport
-                    // is the same transform at 0.86. Head then fits the original
-                    // 192x240 face to an 80px minimum side, yielding 160x200
-                    // source-canvas pixels (137.6x172 here).
-                    // Hall root is stretched to the 1488.372-wide SHOW_ALL
-                    // canvas. convertPos uses that live width, then map scale=2;
-                    // after the game's .86 projection the X centre is exactly
-                    // twice the script coordinate (not the old 640-wide guess).
-                    // Head/face is authored at local (32,-40) below its parent.
-                    // The map's 2x scale and .86 viewport transform make that a
-                    // (+55.04,-68.8) offset in game coordinates.
-                    val centerX = head.visualX * 2f + 55.04f
-                    val centerY = 688f - head.visualY * 1.72f - 68.8f
-                    batch.color = Color(1f, 1f, 1f, head.opacity)
-                    // Head.prefab clips its 80x100 face child through the parent
-                    // node's 64x80 Mask.  Drawing the complete child made every
-                    // script-positioned scene portrait 25% too large.
-                    val clipBounds = Rectangle(centerX - 55.04f, centerY - 68.8f, 110.08f, 137.6f)
-                    val scissors = Rectangle()
-                    ScissorStack.calculateScissors(viewport.camera, batch.transformMatrix, clipBounds, scissors)
-                    batch.flush()
-                    if (ScissorStack.pushScissors(scissors)) {
-                        batch.draw(texture, centerX - 68.8f, centerY - 86f, 137.6f, 172f)
-                        batch.flush()
-                        ScissorStack.popScissors()
-                    }
-                }
-            }
-            entry.unit?.let { unit ->
-                val x = mapX(unit.visualX, unit.visualY)
-                val y = mapY(unit.visualX, unit.visualY)
-                val profile = gameDataCatalog.unitProfile(unit.id)
-                val animationTime = if (unit.action == 20) unit.animationElapsed else elapsed
-                val spriteFrame =
-                    HallUnitRender.frame(profile?.mapAvatar ?: unit.id, unit.action, unit.direction, animationTime)
-                unitTexture(spriteFrame.textureAssetId)?.let { texture ->
-                    batch.color = Color.WHITE
-                    val sourceY = spriteFrame.row * 64
-                    // HallLayer's map node has scale=(2,2). After the 688/800
-                    // viewport transform, a 48x64 HallUnit is 82.56x110.08.
-                    batch.draw(
-                        texture, x - 41.28f, y - 55.04f, 82.56f, 110.08f,
-                        0, sourceY, 48, 64, spriteFrame.flipX, false,
-                    )
-                    if (playback.state == PlaybackState.DIALOGUE && playback.currentDialogue?.speakerId?.toIntOrNull() == unit.id) {
-                        // pmapobj/img0 local=(24,32), size=24x24 under map scale 2.
-                        streetSpeechBubbleTexture?.let { bubble ->
-                            batch.draw(bubble, x + 20.64f, y + 34.4f, 41.28f, 41.28f)
-                        }
-                    }
-                }
-            }
-        }
-        batch.color = Color.WHITE
-        batch.end()
-    }
-
-    private fun drawUnit(unit: TacticalUnit) {
-        val x = mapX(unit.visualX, unit.visualY)
-        val y = mapY(unit.visualX, unit.visualY)
-        val color = when (unit.id) {
-            0 -> Color(0.23f, 0.45f, 0.20f, 1f)
-            157 -> Color(0.32f, 0.24f, 0.60f, 1f)
-            else -> Color(0.72f, 0.12f, 0.10f, 1f)
-        }
-        shapes.color = Color(0.05f, 0.05f, 0.06f, 0.38f)
-        shapes.circle(x + 30f, y - 4f, 26f)
-        shapes.color = color
-        shapes.circle(x + 30f, y + 30f, 25f)
-        shapes.rect(x + 8f, y, 44f, 38f)
-    }
-
-    private fun drawOverlay() {
-        shapes.projectionMatrix = viewport.camera.combined
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        if (hallFeatsLayer != null || hallMagicLayer != null || hallExclusiveLayer != null || hallManagement != null || hallSaveOpen || hallItemLayer != null) {
-            // Equip/Buy/Sell share the source Layer's full-screen
-            // Panel_cancel (opacity 100/255) behind their authored panel.
-            shapes.color = Color(0f, 0f, 0f, 100f / 255f)
-            shapes.rect(0f, 0f, 1280f, 688f)
-        } else if (hallMenuOpen) {
-            shapes.color = Color(0f, 0f, 0f, 30f / 255f)
-            shapes.rect(0f, 0f, 1280f, 688f)
-        } else if (playback.state == PlaybackState.CHOICE) {
-            // ChooseLayer and MsgBox2 both leave their serialized full-canvas
-            // blocker at opacity zero in the stable fixture frame.
-        } else if (playback.state == PlaybackState.DIALOGUE) {
-            // DialogueLayer is composed from its source sprites below.
-        } else if (playback.state == PlaybackState.MODAL && playback.currentModalText != null &&
-            playback.currentModalKind in setOf(ScenarioModalKind.EVENT, ScenarioModalKind.INFO)
-        ) {
-            val text = sanitizeInfoText(scenarioViewState.modalVisibleText.ifEmpty {
-                playback.currentModalText.orEmpty().take(1)
-            })
-            glyphLayout.setText(titleFont, text)
-            // InfoLayer grows bg from the Cocos RichText measurement. The
-            // source font's horizontal advance is eight logical pixels wider
-            // for this seven-glyph fixture than FreeType's otherwise matching
-            // raster, while the authored padding remains constant.
-            val width = when (hallOverlayFixture) {
-                // Exact Cocos RichText advances measured by the deterministic
-                // HallLayer.getItem source fixtures, plus 40 source pixels of
-                // serialized InfoLayer padding.
-                "get-item-equipment" -> (259.72f + 40f) * .86f
-                "get-item-property" -> (324.47f + 40f) * .86f
-                else -> (glyphLayout.width + 42.4f).coerceIn(64.2f, 1120f)
-            }
-            val height = if (hallOverlayFixture in setOf("get-item-equipment", "get-item-property")) {
-                83f * .86f
-            } else {
-                (glyphLayout.height + 34.4f).coerceAtLeast(71.38f)
-            }
-            val x = (1280f - width) / 2f
-            // Source bg anchor=(.5,.28), not the usual centred sprite anchor.
-            // With its node at canvas centre this raises the lower edge by
-            // (.5-.28)*height ~= 15.7 logical pixels.
-            val y = (688f - height) / 2f + height * 0.22f
-            shapes.end()
-            batch.projectionMatrix = viewport.camera.combined
-            batch.begin()
-            batch.color = Color.WHITE
-            infoPanelPatch?.draw(batch, x, y, width, height)
-                ?: dialoguePanelTexture?.let { batch.draw(it, x, y, width, height) }
-            batch.end()
-            shapes.begin(ShapeRenderer.ShapeType.Filled)
-        } else if (playback.state == PlaybackState.MODAL && playback.currentModalText != null) {
-            if (playback.currentModalKind == ScenarioModalKind.MAP_INFO) {
-                // Direct MapInfoLayer prefab render: bg1's Widget stretches
-                // across the visible canvas and its node opacity is 127.
-                shapes.color = Color(0f, 0f, 0f, 127f / 255f)
-                shapes.rect(0f, 0f, 1280f, 138.46f)
-            } else if (playback.currentModalKind == ScenarioModalKind.SECTION) {
-                // Direct source prefab render: SectionLayer is an opaque
-                // black intertitle, not a stretched InfoLayer frame.
-                shapes.color = Color.BLACK
-                shapes.rect(0f, 0f, 1280f, 688f)
-            } else if (playback.currentModalKind == ScenarioModalKind.AMBITION) {
-                // HallMenuLayer's full-canvas Panel_cancel is black at
-                // opacity 30 while the 146px command strip remains live.
-                shapes.color = Color(0f, 0f, 0f, 30f / 255f)
-                shapes.rect(0f, 0f, 1280f, 688f)
-            } else {
-                shapes.color = Color(0.035f, 0.045f, 0.055f, 0.94f)
-                shapes.rect(0f, 0f, 1280f, 688f)
-            }
-        }
-        shapes.end()
-        Gdx.gl.glDisable(GL20.GL_BLEND)
-
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        when (playback.state) {
-            PlaybackState.DIALOGUE -> drawDialogue()
-            PlaybackState.CHOICE -> {
-                if (playback.isAskChoice) drawAskBox() else {
-                    drawChoicePanel()
-                    drawChoice()
-                }
-            }
-
-            PlaybackState.DELAY -> Unit
-            PlaybackState.MODAL -> playback.currentModalText?.let { text ->
-                when (playback.currentModalKind) {
-                    ScenarioModalKind.SECTION -> {
-                        glyphLayout.setText(sectionFont, text)
-                        val x = (1280f - glyphLayout.width) / 2f
-                        val y = (688f + glyphLayout.height) / 2f
-                        // Source Label is white with LabelShadow #949494 at
-                        // offset (2,-2), transformed by the .86 viewport.
-                        sectionFont.color = Color(0.58f, 0.58f, 0.58f, 1f)
-                        sectionFont.draw(batch, glyphLayout, x + 1.72f, y - 1.72f)
-                        sectionFont.color = Color.WHITE
-                        sectionFont.draw(batch, glyphLayout, x, y)
-                    }
-
-                    ScenarioModalKind.INFO -> {
-                        val visible = sanitizeInfoText(scenarioViewState.modalVisibleText.ifEmpty { text.take(1) })
-                        glyphLayout.setText(titleFont, visible)
-                        titleFont.color = Color.BLACK
-                        // InfoLayer bg/richtext is authored at local y=18.5
-                        // on the 800-high Cocos canvas: 18.5 * .86 = 15.91.
-                        titleFont.draw(
-                            batch,
-                            glyphLayout,
-                            (1280f - glyphLayout.width) / 2f,
-                            (688f + glyphLayout.height) / 2f + 15.91f
-                        )
-                    }
-
-                    ScenarioModalKind.MAP_INFO -> {
-                        streetDialogueFont.color = Color.WHITE
-                        val visible =
-                            playback.currentModalFixedText + scenarioViewState.modalVisibleText.ifEmpty { text.take(1) }
-                        // Source RichText's left widget inset is about 30
-                        // logical pixels; baseline is 73px above the panel
-                        // centre, mapping to this 688px viewport.
-                        // Source richtext is 25 physical pixels closer to the
-                        // panel's top edge than the old inferred baseline.
-                        streetDialogueFont.draw(batch, sanitizeInfoText(visible), 26f, 119f)
-                    }
-
-                    ScenarioModalKind.AMBITION -> drawHallMenu()
-                    else -> {
-                        val visible = scenarioViewState.modalVisibleText.ifEmpty { text.take(1) }
-                        glyphLayout.setText(titleFont, visible)
-                        titleFont.color = Color.BLACK
-                        titleFont.draw(
-                            batch,
-                            glyphLayout,
-                            (1280f - glyphLayout.width) / 2f,
-                            (688f + glyphLayout.height) / 2f + 15.91f
-                        )
-                    }
-                }
-            }
-
-            PlaybackState.COMPLETE -> if (playback.stage.menuVisible) {
-                if (hallFeatsLayer != null) {
-                    drawFeatsLayer(requireNotNull(hallFeatsLayer))
-                } else if (hallMagicLayer != null) {
-                    drawMagicLayer(requireNotNull(hallMagicLayer))
-                } else if (hallExclusiveLayer != null) {
-                    // Global126 is pushed over (not instead of) EquipLayer.
-                    // The isolated fixture deliberately has no parent layer.
-                    hallManagement?.let(::drawHallManagement)
-                    drawExclusiveLayer(requireNotNull(hallExclusiveLayer))
-                } else {
-                    hallItemDetail?.let(::drawHallItem)
-                        ?: hallInfo?.let(::drawHallInfo)
-                        ?: hallManagement?.let(::drawHallManagement)
-                        ?: hallEquipConfirmation?.let { drawEquipConfirmation(it) }
-                        ?: if (hallSaveOpen) {
-                            drawHallSave()
-                        } else run {
-                            drawHallCommand()
-                            if (hallMenuOpen) drawHallMenu(interactive = true)
-                        }
-                }
-            } else drawCompletion()
-        }
-        batch.end()
-    }
-
-    /** Exact source frames from ChooseLayer's Cocos dynamic atlas. */
-    private fun drawChoicePanel() {
-        batch.color = Color.WHITE
-        // Canvas SHOW_ALL -> game viewport is an exact .86 transform.
-        // Source scrollview: centre=(866.186,400), size=(747,183.7).
-        choicePanelTexture?.let { batch.draw(it, 423.71f, 265.01f, 642.42f, 157.98f) }
-        choiceRowTexture?.let { texture ->
-            batch.color = Color.WHITE
-            // The recovered corpus has at most three rows; this is also the
-            // source ScrollView's complete visible area.  A fourth row would
-            // extend below the authored backing panel.
-            val visibleCount = playback.currentChoice?.options?.take(3)?.size ?: 0
-            // Source items: centre=(884.186,461-49*i), size=(690.6,45).
-            repeat(visibleCount) { index -> batch.draw(texture, 463.44f, 377.11f - index * 42.14f, 593.92f, 38.7f) }
-        }
-        batch.color = Color.WHITE
-    }
-
-    /** Source Global/scene/MsgBox2, transformed from 1280x800 by .86. */
-    private fun drawAskBox() {
-        /**
-         * 공개 메서드 `sourceTexture`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun sourceTexture(path: String): Texture? = hallMenuTextures[path] ?: Gdx.files.internal(path)
-            .takeIf { it.exists() }
-            ?.let(::Texture)
-            ?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[path] = it
-            }
-
-        val logo = sourceTexture("maps/ui/start-battle/logo9.png")
-        val panel = sourceTexture("maps/ui/hall-menu/inner.png")?.let { NinePatch(it, 3, 3, 3, 3) }
-        val title = sourceTexture("maps/ui/hall-menu/panel.png")
-        val button = sourceTexture("maps/ui/hall-menu/button.png")?.let { NinePatch(it, 9, 9, 7, 11) }
-
-        batch.color = Color.WHITE
-        logo?.let { batch.draw(it, 464.13f, 276.92f, 351.74f, 134.16f) }
-        title?.let { batch.draw(it, 464.13f, 368.08f, 351.74f, 43f) }
-        titleFont.color = Color.BLACK
-        glyphLayout.setText(titleFont, "확인")
-        titleFont.draw(batch, glyphLayout, 498.19f - glyphLayout.width / 2f, 389.58f + glyphLayout.height / 2f)
-        panel?.draw(batch, 464.13f, 276.92f, 351.74f, 134.16f)
-        button?.draw(batch, 482.84f, 306.16f, 145.34f, 43f)
-        listOf(555.51f to "예", 718.94f to "비").forEach { (x, text) ->
-            if (text == "비") button?.draw(batch, 646.27f, 306.16f, 145.34f, 43f)
-            glyphLayout.setText(titleFont, text)
-            titleFont.draw(batch, glyphLayout, x - glyphLayout.width / 2f, 328.39f + glyphLayout.height / 2f)
-        }
-    }
-
-    private fun drawDialogue() {
-        ScenarioStoryRenderer.drawStreetDialogue(sceneAssets, batch, streetDialogueView(), 3)
-    }
-
-    /** Stable Palace Hall frame: background plus the source's upper bg0 dialogue. */
-    private fun drawPalaceFixture() {
-        // The live Palace Hall keeps its three map units underneath the
-        // upper dialogue layer.  The retained-tree event fixture only lists
-        // the static HallLayer children, but the framebuffer still contains
-        // these Pmapobj2 draws; omitting them made event parity hide a visible
-        // composition error.
-        drawBattlefield(drawCharacters = true, drawUnits = true)
-        val dialogue = playback.currentDialogue ?: return
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        batch.setBlendFunctionSeparate(
-            GL20.GL_SRC_ALPHA,
-            GL20.GL_ONE_MINUS_SRC_ALPHA,
-            GL20.GL_ONE,
-            GL20.GL_ONE_MINUS_SRC_ALPHA
-        )
-        batch.color = Color.WHITE
-        dialoguePortrait(0)?.let { batch.draw(it, 98.628f * .86f, 496f * .86f, 192f * .86f, 240f * .86f) }
-        dialoguePanelTexture?.let { texture ->
-            batch.draw(
-                texture,
-                319.233f * .86f,
-                498.5f * .86f,
-                798f * .86f,
-                191f * .86f,
-                0,
-                0,
-                texture.width,
-                texture.height,
-                true,
-                false
+            val frame = HallUnitRender.frame(avatar, unit.action, unit.direction, animationTime)
+            ScenarioBattlefieldUnitView(
+                id = unit.id,
+                visualX = unit.visualX,
+                visualY = unit.visualY,
+                visible = unit.visible,
+                zIndex = unit.moveZIndex,
+                siblingOrder = index,
+                textureAssetId = frame.textureAssetId,
+                frameRow = frame.row,
+                flipX = frame.flipX,
+                showSpeechBubble = playback.state == PlaybackState.DIALOGUE && speakerId == unit.id,
             )
         }
-        streetDialogueFont.color = Color.BLACK
-        streetDialogueFont.draw(batch, dialogue.text, 382.487f * .86f, (587.814f + 52.92f) * .86f)
-        streetSpeakerFont.color = Color.WHITE
-        streetSpeakerFont.draw(batch, "조조", 403.896f * .86f, (633.52f + 54.4f) * .86f)
-        batch.end()
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        val headOrder = if (drawUnits) units.size else 0
+        val heads = playback.stage.heads.values.mapIndexed { index, head ->
+            ScenarioBattlefieldHeadView(
+                portraitId = dialoguePortraitId(head.characterId),
+                visualX = head.visualX,
+                visualY = head.visualY,
+                opacity = head.opacity,
+                zIndex = -head.y.toFloat(),
+                siblingOrder = headOrder + index,
+            )
+        }
+        return ScenarioBattlefieldRenderView(playback.stage.backgroundId, drawCharacters, drawUnits, units, heads)
     }
 
-    /**
-     * R_00.scene1 street-dialogue composition oracle. Source Cocos uses a
-     * 1488.372×800 visible canvas; this game viewport is 1280×688, an exact
-     * 0.86 transform on both axes. No source framebuffer is reused here.
-     */
-    private fun drawStreetDialogueIsolation(stage: String) {
-        val index = ScenarioStreetDialogueStages.indexOf(stage)
-        if (index < 0) return
-        if (index >= ScenarioStreetDialogueStages.backgroundIndex()) {
-            // The source staged oracle adds the two Hall Head nodes at the
-            // final step, not the underlying animated HallUnit nodes.
-            drawBattlefield(drawCharacters = index >= ScenarioStreetDialogueStages.charactersIndex(), drawUnits = false)
+
+    private fun drawOverlay() {
+        scenarioOverlayView()?.let { view ->
+            ScenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view)
+            if (view.modal?.kind == ScenarioOverlayModalKind.AMBITION) {
+                batch.projectionMatrix = viewport.camera.combined
+                batch.begin(); drawHallMenu(); batch.end()
+            }
+        } ?: drawHallCompletionOverlay()
+    }
+
+    private fun scenarioOverlayView(): ScenarioOverlayRenderView? {
+        val state = when (playback.state) {
+            PlaybackState.DIALOGUE -> ScenarioOverlayState.DIALOGUE
+            PlaybackState.CHOICE -> ScenarioOverlayState.CHOICE
+            PlaybackState.DELAY -> ScenarioOverlayState.DELAY
+            PlaybackState.MODAL -> ScenarioOverlayState.MODAL
+            PlaybackState.COMPLETE -> return null
         }
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        ScenarioStoryRenderer.drawStreetDialogue(sceneAssets, batch, streetDialogueView(), index)
+        val modal = playback.currentModalText?.let { text ->
+            val kind = when (playback.currentModalKind) {
+                ScenarioModalKind.EVENT -> ScenarioOverlayModalKind.EVENT
+                ScenarioModalKind.INFO -> ScenarioOverlayModalKind.INFO
+                ScenarioModalKind.MAP_INFO -> ScenarioOverlayModalKind.MAP_INFO
+                ScenarioModalKind.SECTION -> ScenarioOverlayModalKind.SECTION
+                ScenarioModalKind.AMBITION -> ScenarioOverlayModalKind.AMBITION
+                else -> ScenarioOverlayModalKind.OTHER
+            }
+            ScenarioModalRenderView(kind, text, scenarioViewState.modalVisibleText, playback.currentModalFixedText, hallOverlayFixture)
+        }
+        val choice = playback.currentChoice?.let {
+            ScenarioChoiceRenderView(playback.isAskChoice, it.faceId?.let(::dialoguePortraitId), it.options)
+        }
+        return ScenarioOverlayRenderView(state, streetDialogueView(), choice, modal)
+    }
+
+    private fun drawHallCompletionOverlay() {
+        shapes.projectionMatrix = viewport.camera.combined
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        if (hallFeatsLayer != null || hallMagicLayer != null || hallExclusiveLayer != null || hallManagement != null || hallSaveOpen || hallItemLayer != null) {
+            shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(0f, 0f, 1280f, 688f)
+        } else if (hallMenuOpen) {
+            shapes.color = Color(0f, 0f, 0f, 30f / 255f); shapes.rect(0f, 0f, 1280f, 688f)
+        }
+        shapes.end(); Gdx.gl.glDisable(GL20.GL_BLEND)
+        batch.projectionMatrix = viewport.camera.combined; batch.begin()
+        if (playback.stage.menuVisible) {
+            if (hallFeatsLayer != null) drawFeatsLayer(requireNotNull(hallFeatsLayer))
+            else if (hallMagicLayer != null) drawMagicLayer(requireNotNull(hallMagicLayer))
+            else if (hallExclusiveLayer != null) { hallManagement?.let(::drawHallManagement); drawExclusiveLayer(requireNotNull(hallExclusiveLayer)) }
+            else hallItemDetail?.let(::drawHallItem) ?: hallInfo?.let(::drawHallInfo) ?: hallManagement?.let(::drawHallManagement)
+                ?: hallEquipConfirmation?.let { drawEquipConfirmation(it) } ?: if (hallSaveOpen) drawHallSave() else {
+                    drawHallCommand()
+                    if (hallMenuOpen) drawHallMenu(interactive = true)
+                    Unit
+                }
+        } else drawCompletion()
         batch.end()
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
     }
 
     private fun streetDialogueView(): ScenarioStreetDialogueView {

@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.turn.BattleTurnPhase
 
 import com.jojo.game.domain.scenario.*
 
@@ -17,11 +18,11 @@ object NaturalBattleTransition {
     fun shouldStartInitialScene1(
         presentationReady: Boolean,
         outcome: BattleOutcome?,
-        phase: BattleTurnController.Phase,
+        phase: BattleTurnPhase,
         scriptState: PlaybackState,
         alreadyStarted: Boolean,
     ): Boolean = !alreadyStarted && presentationReady && outcome == null &&
-            phase == BattleTurnController.Phase.PLAYER_INPUT && scriptState == PlaybackState.COMPLETE
+            phase == BattleTurnPhase.PLAYER_INPUT && scriptState == PlaybackState.COMPLETE
 
     fun completionAction(
         outcome: BattleOutcome?,
