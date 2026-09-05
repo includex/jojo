@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /** Input-driven view state for the source RewardLayer coroutine. */
 class BattleRewardFlow(val reward: ResolvedBattleReward) {
     /**

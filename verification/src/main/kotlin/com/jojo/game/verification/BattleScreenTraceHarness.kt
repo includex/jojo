@@ -1,7 +1,7 @@
 package com.jojo.game.verification
 
-import com.jojo.game.BattleScreenIsolatedContract
-import com.jojo.game.BattleScreenIsolatedUnit
+import com.jojo.game.presentation.battle.BattleScreenIsolatedContract
+import com.jojo.game.presentation.battle.BattleScreenIsolatedUnit
 
 /** Game half of tools/battle_layer_source_trace_harness.js. */
 object BattleScreenTraceHarness {

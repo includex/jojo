@@ -3,7 +3,7 @@ package com.jojo.game.verification
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.jojo.game.EncryptedGameDataCodec
-import com.jojo.game.PlaybackState
+import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.ScenarioCatalog
 import com.jojo.game.ScenarioInterpreter
 

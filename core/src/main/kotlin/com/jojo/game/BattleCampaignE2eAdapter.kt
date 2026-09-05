@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /**
  * SRPG Battle Campaign E2E State Adapter.
  *

@@ -6,11 +6,11 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
-import com.jojo.game.PlaybackState
+import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.ScenarioCatalog
 import com.jojo.game.ScenarioInterpreter
-import com.jojo.game.ScenarioUnitFaction
-import com.jojo.game.battleId
+import com.jojo.game.domain.scenario.ScenarioUnitFaction
+import com.jojo.game.domain.scenario.battleId
 
 internal data class BattleCatalogVerificationResult(
     val marker: String,

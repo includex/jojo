@@ -1,6 +1,6 @@
 package com.jojo.game.verification
 
-import com.jojo.game.PlaybackState
+import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.ScenarioInterpreter
 
 internal object ScenarioRuntimeDrain {

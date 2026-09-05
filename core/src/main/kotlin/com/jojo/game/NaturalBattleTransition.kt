@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /** Decisions shared by the normal BattleScreen route and its end-to-end transition test. */
 object NaturalBattleTransition {
     /**

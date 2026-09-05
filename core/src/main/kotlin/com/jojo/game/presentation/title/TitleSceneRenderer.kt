@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import com.jojo.game.LoginOptionalOverlayRoute
 import com.jojo.game.presentation.title.assets.TitleSceneAssets
 
 /** Draws immutable title snapshots without mutating title flows or navigating the game. */

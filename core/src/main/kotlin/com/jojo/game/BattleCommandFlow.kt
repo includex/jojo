@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /**
  * Production state contract for the recovered Battle CommandLayer.
  *

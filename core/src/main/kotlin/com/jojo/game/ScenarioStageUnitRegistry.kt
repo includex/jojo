@@ -1,4 +1,7 @@
 package com.jojo.game
+
+import com.jojo.game.domain.scenario.*
+import com.jojo.game.presentation.scenario.TacticalUnit
 import com.jojo.game.domain.campaign.*
 
 /** Owns live tactical-unit identity and battle-instance lookup indexes. */

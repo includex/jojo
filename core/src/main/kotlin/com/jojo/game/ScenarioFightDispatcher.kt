@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /**
  * Dispatches authored FightLayer scripting commands to ScenarioStage and coordinates
  * presentation suspension for live Fight animations.

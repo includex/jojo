@@ -1,8 +1,10 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle
+
+import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.battle.timeline.*
-import com.jojo.game.domain.battle.*
 
 /** Headless companion to BattleScreen's recovered showWinCondition/action methods. */
 data class BattleScreenIsolatedUnit(val control: Boolean, val exist: Boolean, val acted: Boolean)

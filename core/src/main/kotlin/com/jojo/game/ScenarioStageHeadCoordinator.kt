@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.ScenarioHead
+
 /** Owns the independent lifecycle and fade/move state of scenario head nodes. */
 internal class ScenarioStageHeadCoordinator {
     val heads = linkedMapOf<Int, ScenarioHead>()

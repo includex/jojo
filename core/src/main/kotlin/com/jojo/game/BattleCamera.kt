@@ -1,4 +1,7 @@
 package com.jojo.game
+
+import com.jojo.game.domain.scenario.BattleSlotLayout
+import com.jojo.game.domain.scenario.ScenarioUnitFaction
 import com.jojo.game.domain.battle.*
 
 /**
@@ -213,82 +216,25 @@ class BattleCamera(
     private fun initialContentY(): Float = initialMapCenterY - viewportHeight / 2f
 }
 
-/** Fixed camp slot ranges used by scenario battle instances. */
-internal object BattleSlotLayout {
-    const val mineCount = 20
-    const val friendEnd = 40
-    const val enemyStart = mineCount + friendEnd
-    const val enemyBlockLength = 80
-    const val enemyBlockCount = 3
-    const val enemyEnd = enemyBlockCount * enemyBlockLength
-
-    /** Maps a camp-local instance to its stable slot while preserving the sparse friend range. */
-    fun slotFor(faction: ScenarioUnitFaction, instanceId: Int, enemyBlockStart: Int = enemyStart): Int =
-        when (faction) {
-            ScenarioUnitFaction.MINE -> instanceId
-            ScenarioUnitFaction.FRIEND -> friendEnd + instanceId
-            ScenarioUnitFaction.ENEMY -> enemyBlockStart + instanceId
-        }
-
-    /** Game IDs use a camp-local offset while retaining every stable battle slot. */
-    fun battleId(faction: ScenarioUnitFaction, battleSlot: Int): String = when (faction) {
-        ScenarioUnitFaction.MINE -> "mine-$battleSlot"
-        ScenarioUnitFaction.FRIEND -> "friend-${battleSlot - friendEnd}"
-        ScenarioUnitFaction.ENEMY -> "enemy-${battleSlot - enemyStart}"
-    }
-
-    /**
-     * 공개 메서드 `stageKey`
-     *
-     * ### 파라미터
-    - `faction` (`ScenarioUnitFaction`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `battleSlot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun stageKey(faction: ScenarioUnitFaction, battleSlot: Int): String =
-        "${faction.name}:${battleId(faction, battleSlot).substringAfter('-')}"
-
-    /** IDs are the stable game key: mine-N/friend-N/enemy-N. */
-    fun indexFor(unit: BattleUnit): Int? {
-        unit.battleSlot?.let { return it }
-        val local = unit.id.substringAfterLast('-').toIntOrNull() ?: return null
-        return when (unit.baseFaction) {
-            Faction.PLAYER -> local
-            Faction.FRIEND -> friendEnd + local
-            Faction.ENEMY, Faction.REINFORCEMENTS -> enemyStart + local
-        }
-    }
-
-    /**
-     * 공개 메서드 `rangeFor`
-     *
-     * ### 파라미터
-    - `camp` (`Faction`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `IntRange`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun rangeFor(camp: Faction): IntRange = when (camp) {
-        Faction.PLAYER -> 0 until mineCount
-        Faction.FRIEND -> mineCount until friendEnd
-        Faction.ENEMY, Faction.REINFORCEMENTS -> enemyStart until enemyEnd
-    }
-}
-
 /** `_firstUnit` probes `_unitSet[i]`; it does not test visible/HP/effective faction. */
 internal fun firstCampCameraUnit(units: Iterable<BattleUnit>, camp: Faction): BattleUnit? {
     val range = BattleSlotLayout.rangeFor(camp)
     return units.asSequence()
-        .mapNotNull { unit -> BattleSlotLayout.indexFor(unit)?.let { it to unit } }
+        .mapNotNull { unit -> battleSlotIndexFor(unit)?.let { it to unit } }
         .filter { (index, _) -> index in range }
         .minByOrNull { (index, _) -> index }
         ?.second
+}
+
+/** Converts the presentation BattleUnit identity into its authored scenario slot. */
+internal fun battleSlotIndexFor(unit: BattleUnit): Int? {
+    unit.battleSlot?.let { return it }
+    val local = unit.id.substringAfterLast('-').toIntOrNull() ?: return null
+    return when (unit.baseFaction) {
+        Faction.PLAYER -> local
+        Faction.FRIEND -> BattleSlotLayout.friendEnd + local
+        Faction.ENEMY, Faction.REINFORCEMENTS -> BattleSlotLayout.enemyStart + local
+    }
 }
 
 /**

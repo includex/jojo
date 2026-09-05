@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.FightActionPose
+import com.jojo.game.presentation.battle.UnitSpriteSource
 import com.jojo.game.presentation.battle.timeline.*
 
 import com.badlogic.gdx.Gdx

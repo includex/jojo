@@ -52,4 +52,19 @@ class TitleRenderEventRecorderTest {
         assertTrue(log.contains("panel0/toggleContainer/toggle2/checkmark"))
         assertTrue(log.contains("panel3/item3/box6"))
     }
+
+    @Test fun `optional overlays retain authored route-specific event order`() {
+        val signIn = recorder.record(TitleViewState(TitleMode.LOGIN, LoginOptionalOverlayRoute.SIGNIN_OPEN))
+            .lineSequence().filter(String::isNotBlank).toList()
+        val version = recorder.record(TitleViewState(TitleMode.LOGIN, LoginOptionalOverlayRoute.VERSION_OPEN))
+            .lineSequence().filter(String::isNotBlank).toList()
+
+        assertEquals(73, signIn.size)
+        assertEquals(17, version.size)
+        assertTrue(signIn[5].contains("SignInLayer"))
+        assertTrue(signIn[5].contains("Canvas/Layer/Panel_cancel"))
+        assertTrue(signIn[6].contains("Canvas/Layer/Logo_12-1"))
+        assertTrue(version[5].contains("VersionInfoLayer"))
+        assertTrue(version.last().contains("button0/Background/Label"))
+    }
 }

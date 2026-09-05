@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /**
  * Installs deterministic visual fixtures for Hall, Palace, Section, and Hall overlay layers
  * matching Python source fixtures and tests.

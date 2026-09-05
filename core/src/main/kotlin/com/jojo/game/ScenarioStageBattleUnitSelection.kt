@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /** Encodes source camp selectors used by rectangle AI and hide operations. */
 internal object ScenarioStageBattleUnitSelection {
     fun matchesAiCamp(unit: ScenarioBattleUnit, camp: Int): Boolean = when (camp) {

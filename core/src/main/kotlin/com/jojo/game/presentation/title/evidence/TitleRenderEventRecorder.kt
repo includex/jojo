@@ -1,6 +1,5 @@
 package com.jojo.game.presentation.title.evidence
 
-import com.jojo.game.LoginOptionalOverlayRenderEvents
 import com.jojo.game.RenderEventLog
 import com.jojo.game.StartItemRenderEvents
 import com.jojo.game.presentation.title.TitleMode

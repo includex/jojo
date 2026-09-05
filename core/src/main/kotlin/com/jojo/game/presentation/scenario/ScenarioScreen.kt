@@ -5,6 +5,7 @@ import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 import com.jojo.game.domain.campaign.CampaignEquippedItem
+import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.scenario.hall.*
 import com.jojo.game.presentation.scenario.ScenarioPlaybackController
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets

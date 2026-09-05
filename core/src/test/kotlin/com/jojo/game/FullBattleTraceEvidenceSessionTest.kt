@@ -1,5 +1,6 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.battle.evidence.FullBattleTraceDriveSnapshot
 import com.jojo.game.presentation.battle.evidence.FullBattleTraceEvidenceSession
 import com.jojo.game.presentation.battle.evidence.FullBattleTraceFightEvidence

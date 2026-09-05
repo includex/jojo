@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 import com.jojo.game.domain.scenario.ScenarioFire
 import com.jojo.game.domain.scenario.ScenarioMapObject
 

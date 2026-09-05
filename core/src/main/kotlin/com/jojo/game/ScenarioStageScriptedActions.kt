@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+import com.jojo.game.presentation.scenario.TacticalUnit
+
 /** Owns script-issued unit action records and their mutable render queues. */
 internal class ScenarioStageScriptedActions {
     val attacks = mutableListOf<ScriptedAttackAction>()

@@ -8,7 +8,7 @@ import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.ScenarioInterpreter
-import com.jojo.game.ScenarioJoinBattleLimit
+import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.domain.battle.isEnemySide
 
 /** Exercises the real R_00 → S_00 campaign and scripted victory route. */

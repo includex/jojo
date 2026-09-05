@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.TacticalUnit
+
 /** Applies movement plans and advances their Hall/Battle visual timelines. */
 internal class ScenarioStageUnitMovementAnimator {
     fun begin(

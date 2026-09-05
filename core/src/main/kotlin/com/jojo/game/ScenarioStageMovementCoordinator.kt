@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.ScenarioHead
+import com.jojo.game.presentation.scenario.TacticalUnit
+
 internal class ScenarioStageMovementCoordinator {
     private val planner = ScenarioStageMovementPlanner()
     private val unitAnimator = ScenarioStageUnitMovementAnimator()

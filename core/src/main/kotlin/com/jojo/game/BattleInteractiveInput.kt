@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.*
+
 /**
  * Single source of truth for BattleScreen's map-input pause gate.
  *

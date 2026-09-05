@@ -5,7 +5,7 @@ import com.jojo.game.FullBattleTraceConfig
 import com.jojo.game.FullBattleTraceDeadline
 import com.jojo.game.FullBattleTraceRecorder
 import com.jojo.game.NaturalBattleTransition
-import com.jojo.game.PlaybackState
+import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.domain.scenario.ScenarioMapObject
 import com.jojo.game.presentation.battle.BattleEvidenceRecorder
 import com.jojo.game.presentation.battle.BattleEvidenceView

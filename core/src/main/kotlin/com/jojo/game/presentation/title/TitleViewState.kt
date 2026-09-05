@@ -1,6 +1,5 @@
 package com.jojo.game.presentation.title
 
-import com.jojo.game.LoginOptionalOverlayRoute
 
 /** Immutable scene snapshot shared by title drawing and render-event verification. */
 internal data class TitleViewState(

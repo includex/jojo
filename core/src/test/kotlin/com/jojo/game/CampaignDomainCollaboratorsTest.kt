@@ -6,6 +6,7 @@ import com.jojo.game.domain.campaign.CampaignRoster
 import com.jojo.game.domain.campaign.CampaignEquipmentProgression
 import com.jojo.game.domain.campaign.CampaignEquipmentRepository
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
+import com.jojo.game.domain.scenario.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

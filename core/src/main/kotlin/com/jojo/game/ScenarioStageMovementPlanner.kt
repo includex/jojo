@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.TacticalUnit
+
 internal data class PlannedScenarioMovement(
     val request: ScenarioCommand.MoveUnit,
     val unit: TacticalUnit,

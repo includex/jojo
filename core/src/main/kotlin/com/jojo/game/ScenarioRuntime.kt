@@ -1,4 +1,8 @@
 package com.jojo.game
+
+import com.jojo.game.domain.scenario.*
+import com.jojo.game.presentation.scenario.ScenarioHead
+import com.jojo.game.presentation.scenario.TacticalUnit
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.campaign.*
 

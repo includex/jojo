@@ -1,5 +1,7 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle
 
+import com.jojo.game.domain.scenario.ScenarioFightCommand
+import com.jojo.game.FightSpriteTimeline
 import kotlin.math.max
 
 /** Logical side used by FightLayer after its `_mineIdx`/`_enemyIdx` lookup. */

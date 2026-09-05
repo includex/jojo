@@ -45,10 +45,10 @@ class BattleCameraTest {
     }
 
     @Test fun `source authored slot offsets come from Config battle partitions`() {
-        assertEquals(0, BattleSlotLayout.indexFor(BattleUnit("mine-0", "mine", Faction.PLAYER, 0, 0)))
-        assertEquals(40, BattleSlotLayout.indexFor(BattleUnit("friend-0", "friend", Faction.FRIEND, 0, 0)))
-        assertEquals(60, BattleSlotLayout.indexFor(BattleUnit("enemy-0", "enemy", Faction.ENEMY, 0, 0)))
-        assertEquals(60, BattleSlotLayout.indexFor(BattleUnit("enemy-0", "reinforcement", Faction.REINFORCEMENTS, 0, 0)))
+        assertEquals(0, battleSlotIndexFor(BattleUnit("mine-0", "mine", Faction.PLAYER, 0, 0)))
+        assertEquals(40, battleSlotIndexFor(BattleUnit("friend-0", "friend", Faction.FRIEND, 0, 0)))
+        assertEquals(60, battleSlotIndexFor(BattleUnit("enemy-0", "enemy", Faction.ENEMY, 0, 0)))
+        assertEquals(60, battleSlotIndexFor(BattleUnit("enemy-0", "reinforcement", Faction.REINFORCEMENTS, 0, 0)))
     }
 
     @Test fun `first friend probe preserves source disjoint range bug`() {

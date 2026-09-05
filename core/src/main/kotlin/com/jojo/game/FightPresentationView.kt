@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.battle.*
+
 /** Immutable copy of one mutable FightUnit presentation node. */
 internal data class FightFighterSnapshot(
     val characterId: Int?,
