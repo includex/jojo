@@ -1,52 +1,23 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.campaign.*
 
 /** Minimal LibGDX-side replacement for the scenario-visible Stage state. */
-class ScenarioStage(private val campaign: CampaignState = CampaignState()) {
+class ScenarioStage private constructor(
+    private val campaign: CampaignState,
+    private val battleSetup: ScenarioStageBattleSetup,
+    private val worldState: ScenarioStageWorldState,
+) : ScenarioStageBattleAccess by battleSetup, ScenarioStageWorldAccess by worldState {
+    constructor(campaign: CampaignState = CampaignState()) : this(
+        campaign,
+        ScenarioStageBattleSetup(campaign),
+        ScenarioStageWorldState(),
+    )
+
     private val unitRegistry = ScenarioStageUnitRegistry()
     private val movementCoordinator = ScenarioStageMovementCoordinator()
     private val presentationCoordinator = ScenarioStagePresentationCoordinator()
     private val fightCoordinator = ScenarioStageFightCoordinator()
-    private val battleSetup = ScenarioStageBattleSetup(campaign)
-    private val worldState = ScenarioStageWorldState()
-
-    // --- Battle setup delegated properties ---
-    var battleMapIndex: Int
-        get() = battleSetup.battleMapIndex
-        set(value) {
-            battleSetup.battleMapIndex = value
-        }
-    val battleMaxRounds: Int get() = battleSetup.battleMaxRounds
-    val battleMaxRoundsIncludesFeature: Boolean get() = battleSetup.battleMaxRoundsIncludesFeature
-    val battleLevelOffset: Int get() = battleSetup.battleLevelOffset
-    val enemyMasterInstanceId: Int get() = battleSetup.enemyMasterInstanceId
-    val mineMasterInstanceId: Int get() = battleSetup.mineMasterInstanceId
-    val battleWeatherType: Int get() = battleSetup.battleWeatherType
-    val battleWeatherOffset: Int get() = battleSetup.battleWeatherOffset
-    val battleOperationStarted: Boolean get() = battleSetup.battleOperationStarted
-    val battleDrawRequested: Boolean get() = battleSetup.battleDrawRequested
-    val joinBattleLimit: ScenarioJoinBattleLimit? get() = battleSetup.joinBattleLimit
-    val battlePositions: List<Pair<Int, Int>> get() = battleSetup.battlePositions
-    val scriptedBattleOutcome: BattleOutcome? get() = battleSetup.scriptedBattleOutcome
-    val battleEndedByScript: Boolean get() = battleSetup.battleEndedByScript
-    val winCondition: String get() = battleSetup.winCondition
-    val showWinConditionRequested: String? get() = battleSetup.showWinConditionRequested
-    val winConditionVs: List<Int>? get() = battleSetup.winConditionVs
-    val winConditionTalk: List<Int>? get() = battleSetup.winConditionTalk
-    val rewardRequest: ScenarioRewardRequest? get() = battleSetup.rewardRequest
-    val nearEvents: MutableList<List<Int>> get() = battleSetup.nearEvents
-    val enemyEquipment: MutableMap<Int, List<Int>> get() = battleSetup.enemyEquipment
-
-    // --- World state delegated properties ---
-    val mapObjects get() = worldState.mapObjects
-    val mapObjectsCalls get() = worldState.mapObjectsCalls
-    val fires get() = worldState.fires
-    val itemVariables get() = worldState.itemVariables
-    val acquiredItems get() = worldState.acquiredItems
-    val unitStatuses get() = worldState.unitStatuses
-    val infoTransfers get() = worldState.infoTransfers
-    val controlledInfos get() = worldState.controlledInfos
-
     // --- Scenario-local properties ---
     var backgroundId: Int = 0; private set
     var backgroundVariant: Int = 0; private set
@@ -104,40 +75,7 @@ class ScenarioStage(private val campaign: CampaignState = CampaignState()) {
         section = number to name
     }
 
-    // --- Battle setup delegated methods ---
-    fun setWinCondition(text: String) = battleSetup.setWinCondition(text)
-    fun showWinCondition(text: String) = battleSetup.showWinCondition(text)
-    fun consumeShowWinCondition(): String? = battleSetup.consumeShowWinCondition()
-    fun selectBattleMap(index: Int) = battleSetup.selectBattleMap(index)
-    fun setBattleGlobalData(
-        maxRounds: Int,
-        levelOffset: Int,
-        enemyMaster: Int = -1,
-        mineMaster: Int = 0,
-        weatherType: Int = 6,
-        weatherOffset: Int = 0
-    ) = battleSetup.setBattleGlobalData(maxRounds, levelOffset, enemyMaster, mineMaster, weatherType, weatherOffset)
-
-    fun battleWeatherSchedule(): List<BattleWeather> = battleSetup.battleWeatherSchedule()
-    fun initialBattleWeather(): BattleWeather = battleSetup.initialBattleWeather()
-    fun startOperation() = battleSetup.startOperation()
-    fun setMaxRound(maxRounds: Int, enabledFeatures: Int = 0): Boolean =
-        battleSetup.setMaxRound(maxRounds, enabledFeatures)
-
-    fun drawBattle() = battleSetup.drawBattle()
-    fun setJoinBattle(minimum: Int, maximum: Int, required: List<Any?>, excluded: List<Any?>) =
-        battleSetup.setJoinBattle(minimum, maximum, required, excluded)
-
-    fun setBattlePositions(positions: List<Any?>) = battleSetup.setBattlePositions(positions)
-    fun reward(bonusMoney: Int = 0, items: List<Any?> = emptyList(), end: Boolean = false) =
-        battleSetup.reward(bonusMoney, items, end)
-
-    fun consumeRewardRequest(): ScenarioRewardRequest? = battleSetup.consumeRewardRequest()
-    fun lose() = battleSetup.lose()
-    fun endBattle() = battleSetup.endBattle()
-    fun addNearEvent(values: List<Any?>, flag: Int = 0) = battleSetup.addNearEvent(values, flag)
-    fun setEnemyEquipment(unitId: Int, values: List<Any?>) = battleSetup.setEnemyEquipment(unitId, values)
-    fun joinUnit(unitId: Int) = battleSetup.joinUnit(unitId)
+    // --- Battle setup adapters whose public Stage shape includes other state ---
     fun getItem(itemId: Int, suppliedCountOrLevel: Int = 0, addToInventory: Boolean = true): String =
         battleSetup.getItem(itemId, suppliedCountOrLevel, addToInventory, acquiredItems)
 
@@ -151,26 +89,6 @@ class ScenarioStage(private val campaign: CampaignState = CampaignState()) {
 
     fun jumpScene(target: Int) = battleSetup.jumpScene(target, { sceneJumpTarget = it }, { sceneJumpStage = it })
     fun resetLocalVariables() = Unit
-    fun unitAttribute(unitId: Int, attribute: Int, default: Int = 0): Int =
-        battleSetup.unitAttribute(unitId, attribute, default)
-
-    fun setUnitAttribute(unitId: Int, attribute: Int, value: Int) =
-        battleSetup.setUnitAttribute(unitId, attribute, value)
-
-    fun changeUnitAttribute(unitId: Int, attribute: Int, operation: Int, value: Int) =
-        battleSetup.changeUnitAttribute(unitId, attribute, operation, value)
-
-    // --- World state delegated methods ---
-    fun setFire(enabled: Boolean, x: Int, y: Int) = worldState.setFire(enabled, x, y)
-    fun setFires(enabled: Boolean, positions: List<Any?>) = worldState.setFires(enabled, positions)
-    fun setMapObjects(enabled: Boolean, terrainId: Int, positions: List<Any?>) =
-        worldState.setMapObjects(enabled, terrainId, positions)
-
-    fun setUnitStatuses(values: List<Any?>): List<Map<String, Any?>> = worldState.setUnitStatuses(values)
-    fun consumeUnitStatuses(): List<Map<String, Any?>> = worldState.consumeUnitStatuses()
-    fun addItemVariables(items: List<Any?>, locations: List<Any?>) = worldState.addItemVariables(items, locations)
-    fun controlledInfo(type: Int, text: String) = worldState.controlledInfo(type, text)
-
     // --- Presentation coordinator delegated methods ---
     fun requestUnitHide(unitId: Int, hideType: Int) = presentationCoordinator.requestUnitHide(unitId, hideType)
     fun consumeUnitHideRequest(): ScenarioUnitHideRequest? = presentationCoordinator.consumeUnitHideRequest()

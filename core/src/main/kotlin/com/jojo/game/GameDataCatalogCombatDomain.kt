@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 /** Parses tactical magic, terrain, status and effect-area data. */
 internal class GameDataCatalogCombatDomain(tables: GameDataTableBundle) : GameDataCatalogTableDomain(tables) {

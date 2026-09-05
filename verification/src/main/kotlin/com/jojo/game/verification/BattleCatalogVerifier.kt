@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.jojo.game.BattleScenarioFactory
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
-import com.jojo.game.Faction
+import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.PlaybackState
 import com.jojo.game.ScenarioCatalog
@@ -184,9 +184,9 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
             }
 
             for (ignored in 0 until 3) {
-                val turn = tacticalState.endTurn()
+                val turn = tacticalState.roundLifecycle.endTurn()
                 if (turn.activeFaction == Faction.PLAYER) break
-                tacticalState.resolveAiTurn()
+                tacticalState.ai.resolveTurn()
                 automatedCampResolutions++
             }
             val mapId = runtime.stage.battleMapIndex + 1

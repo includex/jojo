@@ -15,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "core/src/main/kotlin"
+VERIFICATION_MAIN = ROOT / "verification/src/main/kotlin"
 BUILD = ROOT / "core/build.gradle.kts"
 ROOT_BUILD = ROOT / "build.gradle.kts"
 DESKTOP_BUILD = ROOT / "desktop/build.gradle.kts"
@@ -145,7 +146,7 @@ def main() -> int:
 
     # Direct expected-JSON branches are allowed only in explicitly isolated
     # gates above.  This check prevents silently promoting them to core:test.
-    harness_files = [MAIN / f"com/jojo/game/{name}.kt" for name in (
+    harness_files = [VERIFICATION_MAIN / f"com/jojo/game/verification/{name}.kt" for name in (
         "HeadTraceHarness", "BattleBootstrapTraceHarness", "ProgressionLayerTraceHarness",
         "EditMutationTraceHarness", "UnitListInfoLayerTraceHarness",
     )]

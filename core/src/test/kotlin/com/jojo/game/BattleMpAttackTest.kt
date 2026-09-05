@@ -34,10 +34,10 @@ class BattleMpAttackTest {
             ), events = emptyList(),
         )
         val normal = battle(mapOf(4 to 0))
-        assertIs<TacticalActionResult.Attack>(normal.attack("a", "t"))
+        assertIs<TacticalActionResult.Attack>(normal.combat.attack("a", "t"))
         assertEquals(1, normal.units.getValue("a").magicPoints)
         val mrsp = battle(mapOf(4 to 0, 156 to 0))
-        assertIs<TacticalActionResult.Attack>(mrsp.attack("a", "t"))
+        assertIs<TacticalActionResult.Attack>(mrsp.combat.attack("a", "t"))
         assertEquals(2, mrsp.units.getValue("a").magicPoints)
     }
 
@@ -49,7 +49,7 @@ class BattleMpAttackTest {
                 BattleUnit("t", "t", Faction.ENEMY, 1, 0, critical = 100, morale = 100),
             ), events = emptyList(),
         )
-        assertIs<TacticalActionResult.Attack>(battle.forcedAttack("a", "t"))
+        assertIs<TacticalActionResult.Attack>(battle.combat.forcedAttack("a", "t"))
         assertEquals(1, battle.units.getValue("a").magicPoints)
     }
 }

@@ -1,5 +1,6 @@
 package com.jojo.game
 
+import com.jojo.game.domain.scenario.ScenarioRandomSequence
 import java.util.*
 import kotlin.random.Random
 
@@ -81,15 +82,8 @@ internal class ScenarioRandomGenerator(
     fun nextModelRandom(): Int {
         randomDrawCount++
         if (injectedRandomValues.isNotEmpty()) return injectedRandomValues.removeFirst()
-        val (nextSeed, value) = toolRandomFromSeed(toolRandomSeed)
+        val (nextSeed, value) = ScenarioRandomSequence.nextFromSeed(toolRandomSeed)
         toolRandomSeed = nextSeed
         return value
-    }
-
-    companion object {
-        internal fun toolRandomFromSeed(seed: Double): Pair<Double, Int> {
-            val nextSeed = (9301.0 * seed + 49297.0) % 233280.0
-            return nextSeed to ((nextSeed / 233280.0 * 201.0).toInt() % 101)
-        }
     }
 }

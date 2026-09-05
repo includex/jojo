@@ -1,8 +1,6 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.BattleAttribute
 import com.jojo.game.BattleUnit
-import com.jojo.game.BattleWeather
 
 /** Pure battle ability, movement, and physical-resistance rules. */
 internal object BattleAttributeCalculator {

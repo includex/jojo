@@ -22,7 +22,7 @@ class BattleKnockbackTest {
                 BattleUnit("t", "대상", Faction.ENEMY, 1, 0, defense = 20, hitPoints = 500, maxHitPoints = 500, attackOffsets = emptySet()),
             ), events = emptyList(),
         )
-        assertIs<TacticalActionResult.Attack>(battle.attack("a", "t"))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t"))
         assertEquals(2 to 0, battle.units.getValue("t").let { it.tileX to it.tileY })
     }
 
@@ -47,8 +47,8 @@ class BattleKnockbackTest {
         )
         val open = battle(false)
         val blocked = battle(true)
-        val openResult = assertIs<TacticalActionResult.Attack>(open.attack("a", "t"))
-        val blockedResult = assertIs<TacticalActionResult.Attack>(blocked.attack("a", "t"))
+        val openResult = assertIs<TacticalActionResult.Attack>(open.combat.attack("a", "t"))
+        val blockedResult = assertIs<TacticalActionResult.Attack>(blocked.combat.attack("a", "t"))
         // These are _countAttackHarmRate percentage points, not fixed harm:
         // blocked = +5(TPGJ)-5(YI_BU), open = -10(YI_BU).
         assertEquals(6, blockedResult.damage - openResult.damage)

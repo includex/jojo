@@ -1,5 +1,7 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleUnitMemento
+import com.jojo.game.presentation.battle.BattleUnitPresentationStore
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -48,7 +50,6 @@ class BattleUnitMementoTest {
         ).also {
             it.actionStatusRound = 3
             it.rateAccumulators.putAll(linkedMapOf(0 to 11, 7 to 88))
-            it.presentation.refreshStatus(it.statuses, it.attributeLifts)
         }
         val memento = BattleUnitMemento.capture(unit)
 
@@ -81,9 +82,9 @@ class BattleUnitMementoTest {
         unit.attributeLiftRounds[BattleAttribute.DEFENSE] = 1
         unit.rateAccumulators.clear()
         unit.rateAccumulators[3] = 99
-        unit.presentation.refreshStatus(unit.statuses, unit.attributeLifts)
 
         val restored = memento.restore()
+        val presentation = BattleUnitPresentationStore().stateFor(unit)
 
         assertSame(unit, restored)
         assertEquals(3 to 4, unit.tileX to unit.tileY)
@@ -110,10 +111,10 @@ class BattleUnitMementoTest {
         assertEquals(mapOf(BattleAttribute.ATTACK to -1), unit.attributeLifts)
         assertEquals(mapOf(BattleAttribute.ATTACK to 3), unit.attributeLiftRounds)
         assertEquals(mapOf(0 to 11, 7 to 88), unit.rateAccumulators)
-        assertEquals(.75f, unit.presentation.hpBarProgress)
-        assertEquals(listOf(0, 0), unit.presentation.stateAnimation.current()?.textureIndices)
-        assertTrue(unit.presentation.attributeStatusIcons.getValue(BattleAttribute.ATTACK).down)
-        assertFalse(unit.presentation.attributeStatusIcons.getValue(BattleAttribute.DEFENSE).active)
+        assertEquals(.75f, presentation.hpBarProgress)
+        assertEquals(listOf(0, 0), presentation.stateAnimation.current()?.textureIndices)
+        assertTrue(presentation.attributeStatusIcons.getValue(BattleAttribute.ATTACK).down)
+        assertFalse(presentation.attributeStatusIcons.getValue(BattleAttribute.DEFENSE).active)
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.*
+import com.jojo.game.BattleUnit
 
 /**
  * Captures the mutable unit state needed to calculate an action transaction

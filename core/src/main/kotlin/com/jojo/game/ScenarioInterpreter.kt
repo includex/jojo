@@ -635,8 +635,6 @@ class ScenarioInterpreter internal constructor(
     companion object {
         private const val HALL_BATTLE_COMMAND_ID = Int.MIN_VALUE
 
-        internal fun toolRandomFromSeed(seed: Double): Pair<Double, Int> =
-            ScenarioRandomGenerator.toolRandomFromSeed(seed)
 
         internal fun modalMayAutoClose(kind: ModalKind?, text: String?, settingEnabled: Boolean): Boolean =
             when (kind) {

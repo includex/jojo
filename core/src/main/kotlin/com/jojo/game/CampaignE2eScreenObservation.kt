@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.presentation.title.TitleScreen
+
 import com.badlogic.gdx.Screen
 
 /** Stable, read-only screen markers used before and after driver input. */

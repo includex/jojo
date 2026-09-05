@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.timeline.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader

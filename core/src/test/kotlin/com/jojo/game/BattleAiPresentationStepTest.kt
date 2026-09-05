@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.timeline.*
 import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
@@ -81,7 +82,7 @@ class BattleAiPresentationStepTest {
             events = emptyList(),
         )
 
-        val attack = assertIs<TacticalActionResult.Attack>(battle.attackForPresentation("attacker", "defender"))
+        val attack = assertIs<TacticalActionResult.Attack>(battle.presentation.attack("attacker", "defender"))
         val moves = attack.physicalPasses.map { assertNotNull(it.targets.single().backMove) }
         val callbackMoves = attack.toPhysicalCallbackInvocations().map { invocation ->
             assertNotNull(invocation.targets.single().backMove)
@@ -114,7 +115,7 @@ class BattleAiPresentationStepTest {
             events = emptyList(),
         )
 
-        val attack = assertIs<TacticalActionResult.Attack>(battle.attackForPresentation("attacker", "defender"))
+        val attack = assertIs<TacticalActionResult.Attack>(battle.presentation.attack("attacker", "defender"))
         val hit = attack.physicalPasses.single().targets.single()
         val local = hit.localStatusSettlement.entries.single()
 
@@ -148,7 +149,7 @@ class BattleAiPresentationStepTest {
             initialEnemyMoney = 100,
         )
 
-        val attack = assertIs<TacticalActionResult.Attack>(battle.attackForPresentation("attacker", "defender"))
+        val attack = assertIs<TacticalActionResult.Attack>(battle.presentation.attack("attacker", "defender"))
         val hit = attack.physicalPasses.single().targets.single()
         val deferred = assertNotNull(battle.pendingActionTransaction)
         val attackerAtHit = 10 + hit.lifeStealHealing + hit.qxlHealing
@@ -288,8 +289,8 @@ class BattleAiPresentationStepTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
-        battle.resolveAiTurn(maxUnits = 1, deferMutations = true)
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn(maxUnits = 1, deferMutations = true)
         val actor = battle.units.getValue("enemy")
         val deferred = assertNotNull(battle.pendingActionTransaction)
 
@@ -312,7 +313,7 @@ class BattleAiPresentationStepTest {
             ),
             events = emptyList(),
         )
-        assertIs<TacticalActionResult.Attack>(battle.attackForPresentation("attacker", "target"))
+        assertIs<TacticalActionResult.Attack>(battle.presentation.attack("attacker", "target"))
         val actor = battle.units.getValue("attacker")
         val target = battle.units.getValue("target")
         // BattleScreen.sourceActionAnimation/countDir publishes these while
@@ -323,7 +324,7 @@ class BattleAiPresentationStepTest {
         assertNotNull(battle.pendingActionTransaction).commitAll()
 
         assertEquals(1, battle.units.getValue("attacker").direction)
-        assertEquals(3, battle.presentationUnit("target")?.direction)
+        assertEquals(3, battle.presentation.presentationUnit("target")?.direction)
     }
 
     @Test
@@ -335,8 +336,8 @@ class BattleAiPresentationStepTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
-        battle.resolveAiTurn(maxUnits = 1, deferMutations = true)
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn(maxUnits = 1, deferMutations = true)
         val resolution = assertNotNull(battle.lastAiUnitResolution)
         assertEquals(null, resolution.result)
         val actor = battle.units.getValue("enemy")
@@ -360,7 +361,7 @@ class BattleAiPresentationStepTest {
             events = emptyList(),
         )
 
-        val deferredMove = battle.moveUnitForPresentation("player", 2, 0)
+        val deferredMove = battle.presentation.moveUnit("player", 2, 0)
         assertEquals(TacticalActionResult.Success, deferredMove.result)
         assertTrue(deferredMove.path.size >= 2)
         assertEquals(0 to 0, battle.units.getValue("player").tileX to battle.units.getValue("player").tileY)
@@ -385,7 +386,7 @@ class BattleAiPresentationStepTest {
             onUnitDefeated = { _, _ -> defeatedCallbacks++ },
         )
 
-        val attack = assertIs<TacticalActionResult.Attack>(battle.attackForPresentation("player", "enemy"))
+        val attack = assertIs<TacticalActionResult.Attack>(battle.presentation.attack("player", "enemy"))
         assertTrue(attack.hit)
         assertEquals(1, battle.units.getValue("enemy").hitPoints)
         assertEquals(0, damageCallbacks)
@@ -417,7 +418,7 @@ class BattleAiPresentationStepTest {
             consumeProperty = { inventoryConsumptions++; true },
         )
 
-        assertIs<TacticalActionResult.Item>(battle.usePropertyForPresentation("player", "ally", 7))
+        assertIs<TacticalActionResult.Item>(battle.presentation.useProperty("player", "ally", 7))
         assertEquals(40, battle.units.getValue("ally").hitPoints)
         assertFalse(battle.units.getValue("player").hasActed)
         assertEquals(0, battle.units.getValue("player").actionStatusRound)
@@ -439,9 +440,9 @@ class BattleAiPresentationStepTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        battle.resolveAiTurn(maxUnits = 1, deferMutations = true)
+        battle.ai.resolveTurn(maxUnits = 1, deferMutations = true)
         val resolution = assertNotNull(battle.lastAiUnitResolution)
         val attack = assertIs<TacticalActionResult.Attack>(resolution.result)
         val deferred = assertNotNull(battle.pendingActionTransaction)
@@ -484,9 +485,9 @@ class BattleAiPresentationStepTest {
             },
             onUnitDefeated = { _, _ -> defeatedCallbacks++ },
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        battle.resolveAiTurn(maxUnits = 1, deferMutations = true)
+        battle.ai.resolveTurn(maxUnits = 1, deferMutations = true)
         val deferred = assertNotNull(battle.pendingActionTransaction)
         assertTrue("player" in battle.units)
         assertEquals(1, battle.units.getValue("player").hitPoints)
@@ -517,9 +518,9 @@ class BattleAiPresentationStepTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        val first = battle.resolveAiTurn(maxUnits = 1)
+        val first = battle.ai.resolveTurn(maxUnits = 1)
         val presentation = assertNotNull(battle.lastAiUnitResolution)
 
         assertEquals(1, first.moves)
@@ -535,11 +536,11 @@ class BattleAiPresentationStepTest {
         assertEquals(500, presentation.healthBeforeAction.getValue("player"))
         assertTrue(battle.units.getValue("enemy-a").hasActed)
         assertFalse(battle.units.getValue("enemy-b").hasActed)
-        assertTrue(battle.hasPendingAiUnits())
+        assertTrue(battle.presentation.hasPendingAiUnits())
 
-        battle.resolveAiTurn(maxUnits = 1)
+        battle.ai.resolveTurn(maxUnits = 1)
         assertEquals("enemy-b", assertNotNull(battle.lastAiUnitResolution).actorId)
-        assertFalse(battle.hasPendingAiUnits())
+        assertFalse(battle.presentation.hasPendingAiUnits())
     }
 }
 

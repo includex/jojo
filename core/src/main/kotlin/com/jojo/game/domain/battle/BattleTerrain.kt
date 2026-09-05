@@ -1,7 +1,7 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.ScenarioFire
-import com.jojo.game.ScenarioMapObject
+import com.jojo.game.domain.scenario.ScenarioFire
+import com.jojo.game.domain.scenario.ScenarioMapObject
 
 
 /** Original Hexzmap terrain grid used by BattleScreen.getBattleTerrain(x, y). */

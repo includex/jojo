@@ -39,8 +39,8 @@ class BattleCriticalRateTest {
                 BattleUnit("t", "반격", Faction.ENEMY, 1, 0, attack = 80, defense = 20, critical = 1, morale = 1, hitPoints = 500, maxHitPoints = 500, skills = counterSkills),
             ), events = emptyList(), random = ValuesRandom(0, 99, 99, 0, 99, 99),
         )
-        val normal = assertIs<TacticalActionResult.Attack>(battle(emptyMap()).attack("a", "t"))
-        val qhfj = assertIs<TacticalActionResult.Attack>(battle(mapOf(181 to 0)).attack("a", "t"))
+        val normal = assertIs<TacticalActionResult.Attack>(battle(emptyMap()).combat.attack("a", "t"))
+        val qhfj = assertIs<TacticalActionResult.Attack>(battle(mapOf(181 to 0)).combat.attack("a", "t"))
         // Counter base is 56; original default is floor(56 * 75 / 100).
         assertEquals(42, normal.counterDamage)
         assertEquals(56, qhfj.counterDamage)
@@ -65,8 +65,8 @@ class BattleCriticalRateTest {
                 BattleUnit("t", "대상", Faction.ENEMY, 1, 0, defense = 20, critical = 1, morale = 1, hitPoints = 500, maxHitPoints = 500, attackOffsets = emptySet()),
             ), events = emptyList(),
         )
-        val ordinary = assertIs<TacticalActionResult.Attack>(battle(mapOf(270 to 0)).attack("a", "t"))
-        val amplified = assertIs<TacticalActionResult.Attack>(battle(mapOf(270 to 0, 271 to 0)).attack("a", "t"))
+        val ordinary = assertIs<TacticalActionResult.Attack>(battle(mapOf(270 to 0)).combat.attack("a", "t"))
+        val amplified = assertIs<TacticalActionResult.Attack>(battle(mapOf(270 to 0, 271 to 0)).combat.attack("a", "t"))
         assertEquals(-16, amplified.damage - ordinary.damage)
     }
 
@@ -85,7 +85,7 @@ class BattleCriticalRateTest {
         // 75 + trunc((80 / 50 * .18 - .16) * 100) = 87, while the
         // opponent's source gauge becomes 88: no critical.  A rounded 13
         // would reverse this countRate boundary.
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("a", "t"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t"))
         assertEquals(false, result.critical)
     }
 }

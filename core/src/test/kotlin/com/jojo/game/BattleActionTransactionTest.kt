@@ -3,6 +3,7 @@ import com.jojo.game.domain.battle.BattleUnitMemento
 import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.domain.battle.BattleActionSnapshot
 import com.jojo.game.domain.battle.*
+import com.jojo.game.presentation.battle.BattleUnitPresentationStore
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -75,7 +76,10 @@ class BattleActionTransactionTest {
         assertEquals(mapOf(BattleStatus.PARALYSIS to 2), target.statuses)
         assertEquals(mapOf(BattleAttribute.DEFENSE to -1), target.attributeLifts)
         assertEquals(mapOf(BattleAttribute.DEFENSE to 3), target.attributeLiftRounds)
-        assertEquals(listOf(0, 0), target.presentation.stateAnimation.current()?.textureIndices)
+        assertEquals(
+            listOf(0, 0),
+            BattleUnitPresentationStore().stateFor(target).stateAnimation.current()?.textureIndices,
+        )
 
         transaction.commitStatuses(MagicLocalSettlementEntry(
             targetId = target.id,

@@ -1,6 +1,6 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.*
+import com.jojo.game.BattleUnit
 
 /**
  * The small, callback-owned `h` settlement assembled by `_magicProcess`.
@@ -181,6 +181,13 @@ data class PhysicalTarget(val targetId: String, val damage: Int, val hitRate: In
 /** Direct physical attack passes; surround and siege actions use separate resolution flows. */
 enum class PhysicalAttackPassKind { ACTIVE, ACTIVE_FOLLOW_UP, COUNTER, COUNTER_FOLLOW_UP }
 
+enum class PhysicalBlockRetaliationKind { MENG_JI_CONFUSION, NI_FAN_PARALYSIS }
+
+data class PhysicalBlockRetaliation(
+    val kind: PhysicalBlockRetaliationKind,
+    val damage: Int,
+)
+
 /** One resolved physical target, retaining effects that aggregate fields cannot order. */
 data class PhysicalAttackTargetResult(
     val targetId: String,
@@ -193,7 +200,7 @@ data class PhysicalAttackTargetResult(
     val lifeStealHealing: Int = 0,
     val qxlHealing: Int = 0,
     val recoilDamage: Int = 0,
-    val blockRetaliations: List<BattlePhysicalCallbackPlan.BlockRetaliation> = emptyList(),
+    val blockRetaliations: List<PhysicalBlockRetaliation> = emptyList(),
     val playerMoneyDelta: Int = 0,
     val enemyMoneyDelta: Int = 0,
     val automaticPropertyId: Int? = null,

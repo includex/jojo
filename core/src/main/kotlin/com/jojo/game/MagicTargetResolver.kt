@@ -71,7 +71,6 @@ internal object MagicTargetResolver {
             val healing = victim.maxHitPoints - victim.hitPoints
             victim.setCurHp(victim.maxHitPoints)
             victim.statuses.clear()
-            victim.presentation.refreshStatus(victim.statuses, victim.attributeLifts)
             return wrap(
                 MagicTarget(
                     victim.id,
@@ -151,7 +150,6 @@ internal object MagicTargetResolver {
             val hit = env.probabilityResolver.magicHit(attacker, victim, hitRate)
             if (hit) {
                 victim.statuses[status] = env.statusDuration(status, victim)
-                victim.presentation.refreshStatus(victim.statuses, victim.attributeLifts)
                 appliedStatus = status
             }
             if (magic.harmType == 4) {
@@ -171,7 +169,6 @@ internal object MagicTargetResolver {
         if (magic.type == 21) { // JUEXING
             val hadStatus = victim.statuses.isNotEmpty()
             victim.statuses.clear()
-            victim.presentation.refreshStatus(victim.statuses, victim.attributeLifts)
             return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = hadStatus, defeated = false))
         }
         if (magic.type == 7 || magic.type == 11) { // NLXJ / TSNL

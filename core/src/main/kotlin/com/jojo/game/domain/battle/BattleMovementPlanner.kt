@@ -1,7 +1,5 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.*
-
 /**
  * Pure tactical movement algorithms. Mutable battle state is observed only
  * through the collaborators supplied at construction time.

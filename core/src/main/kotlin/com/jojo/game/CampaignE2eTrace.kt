@@ -1,5 +1,10 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.presentation.battle.BattleScreen
+import com.jojo.game.domain.battle.*
+import com.jojo.game.presentation.title.TitleScreen
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.Screen
@@ -358,6 +363,7 @@ internal fun campaignBattlePreparationAction(
  */
 internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private val route = mutableListOf<String>()
+    private val stopEvaluator = CampaignE2eStopEvaluator(config.stopAt)
 
     // Kept for backwards compatibility.  It now includes only accepted
     // attempts, while inputRecords retains every dispatch for audit.
@@ -504,20 +510,12 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
             }
             sawR01DepartureDialogue = true
         }
-        val requestedStage = config.stopAt.module.removePrefix("R_").toIntOrNull()?.times(2)
-        if (state.module == config.stopAt.module && state.sceneIndex >= config.stopAt.sceneIndex) {
-            finish(state.module, state.sceneIndex, forwardOvershoot = false)
-            return
-        }
-        // An authored StageLayer.jumpScene can skip the requested numbered
-        // checkpoint entirely (for example R_32 -> R_46).  Stop at the first
-        // real production R screen beyond it and preserve that actual landing
-        // point in the trace.  The verifier, rather than this observer, owns
-        // the closed source-derived allow-list and must classify an arbitrary
-        // forward transition as a failure.
-        if (requestedStage != null && state.campaignStage > requestedStage) {
-            finish(state.module, state.sceneIndex, forwardOvershoot = true)
-            return
+        when (stopEvaluator.evaluate(state.module, state.sceneIndex, state.campaignStage)) {
+            CampaignE2eStopEvaluator.Decision.REACHED ->
+                return finish(state.module, state.sceneIndex, forwardOvershoot = false)
+            CampaignE2eStopEvaluator.Decision.FORWARD_OVERSHOOT ->
+                return finish(state.module, state.sceneIndex, forwardOvershoot = true)
+            CampaignE2eStopEvaluator.Decision.CONTINUE -> Unit
         }
         if (elapsed < nextInputAt) return
         when (state.playback) {
@@ -535,7 +533,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                             state.battleButtonScreenY in 0 until Gdx.graphics.height
                 ) { "${state.module} projected Hall battle command is outside the viewport" }
                 route += "ScenarioScreen:${state.module}:hall-battle-button"
-                pointerOnce(
+                pointer(
                     state.battleButtonScreenX,
                     state.battleButtonScreenY,
                     "${state.module}:hall-battle-button",
@@ -632,15 +630,6 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     }
 
     private fun pointer(x: Int, y: Int, context: String) {
-        val input = checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }
-        val before = screenObservation()
-        val accepted = input.touchDown(x, y, 0, Input.Buttons.LEFT)
-        input.touchUp(x, y, 0, Input.Buttons.LEFT)
-        recordInput(context, accepted, before, screenObservation())
-    }
-
-    /** Hall commands are ordinary one-shot taps; Title's legacy double-down is not applicable. */
-    private fun pointerOnce(x: Int, y: Int, context: String) {
         val input = checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }
         val before = screenObservation()
         val accepted = input.touchDown(x, y, 0, Input.Buttons.LEFT)

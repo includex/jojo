@@ -11,7 +11,7 @@ import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = resolve(import.meta.dirname, "..");
-const battleLayer = resolve(root, "core/src/main/kotlin/com/jojo/game/BattleScreen.kt");
+const battleLayer = resolve(root, "core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt");
 const trace = resolve(root, "build/yingchuan-input-progress-trace.json");
 try { unlinkSync(trace); } catch { /* ignore stale trace */ }
 const source = readFileSync(battleLayer, "utf8");

@@ -36,7 +36,7 @@ class BattleExperienceParityTest {
         )
         battle.units.getValue(mine.battleId).skills += mapOf(92 to 0, 226 to 0)
 
-        assertIs<TacticalActionResult.Attack>(battle.attack(mine.battleId, enemy.battleId, damage = 1))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack(mine.battleId, enemy.battleId, damage = 1))
 
         assertEquals(5, campaign.unitAttribute(0, 18))
         assertEquals(14, campaign.unitAttribute(0, 19))
@@ -64,7 +64,7 @@ class BattleExperienceParityTest {
         val victim = BattleUnit("victim", "적", Faction.ENEMY, 1, 0, level = 1)
         val battle = Battle(listOf(caster, victim), emptyList())
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic(caster.id, victim.id, weaken.id))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic(caster.id, victim.id, weaken.id))
 
         assertEquals(6, caster.experience)
     }
@@ -81,7 +81,7 @@ class BattleExperienceParityTest {
         )
         val battle = Battle(listOf(attacker, target), emptyList())
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack(attacker.id, target.id))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack(attacker.id, target.id))
 
         assertEquals(false, result.hit)
         assertEquals(0, result.physicalPasses.single().targets.single().resolvedHarm)
@@ -107,7 +107,7 @@ class BattleExperienceParityTest {
         )
         val battle = Battle(listOf(caster, victim), emptyList())
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic(caster.id, victim.id, fire.id))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic(caster.id, victim.id, fire.id))
 
         assertEquals(false, result.targets.single().hit)
         assertEquals(2, caster.level)
@@ -151,20 +151,20 @@ class BattleExperienceParityTest {
             val target = battle.units.getValue(scriptedTarget.battleId)
             target.skills = target.skills + (92 to 0)
             if (index == 1) target.setHpcur(1)
-            assertIs<TacticalActionResult.Attack>(battle.attack(actor.id, target.id, damage = 1))
+            assertIs<TacticalActionResult.Attack>(battle.combat.attack(actor.id, target.id, damage = 1))
             actor.hasActed = false
         }
 
         // Normal 12, defeated 48, normal 12, normal 12.
         assertEquals(84, actor.experience)
         assertEquals(1, actor.level)
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
         assertEquals(Faction.ENEMY, battle.activeFaction)
 
         levelThreeTargets.slice(4..5).forEachIndexed { index, scriptedAttacker ->
             val attacker = battle.units.getValue(scriptedAttacker.battleId)
             attacker.skills = attacker.skills + (92 to 0)
-            val result = assertIs<TacticalActionResult.Attack>(battle.attack(attacker.id, actor.id, damage = 1))
+            val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack(attacker.id, actor.id, damage = 1))
             assertEquals(true, result.counterDamage > 0)
             assertEquals(6, attacker.experience)
             assertEquals(if (index == 0) 96 else 8, actor.experience)
@@ -202,12 +202,12 @@ class BattleExperienceParityTest {
             listOf(aiActor, aiTarget), emptyList(),
             terrain = BattleTerrainGrid(2, 1, listOf(intArrayOf(0, 0))),
         )
-        assertEquals(10, aiBattle.previewAiAttackValue(aiActor.id, aiTarget.id))
+        assertEquals(10, aiBattle.ai.previewAttackValue(aiActor.id, aiTarget.id))
 
         // The mismatch frame is 217's next active attack. A counter applies
         // the source counter multiplier and is therefore not the same harm.
         val finalResult = assertIs<TacticalActionResult.Attack>(
-            aiBattle.forcedAttack(aiActor.id, aiTarget.id),
+            aiBattle.combat.forcedAttack(aiActor.id, aiTarget.id),
         )
         assertEquals(10, finalResult.damage)
     }
@@ -232,7 +232,7 @@ class BattleExperienceParityTest {
         attacker.skills = attacker.skills + mapOf(92 to 0, 226 to 0)
         target.setHpcur(1)
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack(attacker.id, target.id, damage = 1))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack(attacker.id, target.id, damage = 1))
 
         assertEquals(true, result.defeated)
         assertEquals(2, attacker.level)

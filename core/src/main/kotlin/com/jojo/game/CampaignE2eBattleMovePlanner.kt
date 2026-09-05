@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 internal data class CampaignE2eMovePlan(
     val manualMove: CampaignE2eMoveInput?,
@@ -54,7 +55,7 @@ internal class CampaignE2eBattleMovePlanner {
                     current = mineMaster.tileX to mineMaster.tileY,
                     reachableLegalTiles = executableProductionMoveTiles(
                         mineMaster.tileX to mineMaster.tileY,
-                        battle.reachableTiles(mineMaster.id).keys,
+                        battle.movement.reachableTiles(mineMaster.id).keys,
                         occupiedTiles,
                     ),
                     focusTile = focus.tileX to focus.tileY,
@@ -66,7 +67,7 @@ internal class CampaignE2eBattleMovePlanner {
         val s57CriticalFinisherActive = s57FirstRoomCriticalFinisherActive(
             s57FirstRoomFocus?.hitPoints,
             s57MineMaster?.let { mineMaster ->
-                s57FirstRoomFocusUnit?.let { focus -> battle.previewPhysicalDamage(mineMaster.id, focus.id) }
+                s57FirstRoomFocusUnit?.let { focus -> battle.combat.physicalDamagePreview(mineMaster.id, focus.id) }
             } ?: 0,
             s57CriticalFinisherMoveDestination != null,
         )
@@ -89,7 +90,7 @@ internal class CampaignE2eBattleMovePlanner {
             protectS57MineMaster && locatedCandidates.any { unit ->
                 unit.characterId != 0 && executableProductionMoveTiles(
                     unit.tileX to unit.tileY,
-                    battle.reachableTiles(unit.id).keys,
+                    battle.movement.reachableTiles(unit.id).keys,
                     occupiedTiles,
                 ).any { tile -> canAttack(unit, tile, focus) }
             }
@@ -99,7 +100,7 @@ internal class CampaignE2eBattleMovePlanner {
             val currentMagicPlan = s57MagicPlanFor(unit)
             val reachable = executableProductionMoveTiles(
                 current,
-                battle.reachableTiles(unit.id).keys,
+                battle.movement.reachableTiles(unit.id).keys,
                 occupiedTiles,
             )
             val escortFocus = s57FirstRoomFocusUnit?.takeIf {
@@ -127,7 +128,7 @@ internal class CampaignE2eBattleMovePlanner {
                     val attackFrom = s57EscortAttackFrom(
                         current, reachable, guard.tile, unit.attackAllScreen, unit.attackOffsets,
                     )
-                    val opensRoute = attackFrom != null && battle.canEnterTilesIgnoringEnemyWithinMoves(
+                    val opensRoute = attackFrom != null && battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
                         unit.id, guard.unitId, attackFrom, stagingTiles,
                     )
                     guard.unitId to if (opensRoute) stagingTiles else emptySet()

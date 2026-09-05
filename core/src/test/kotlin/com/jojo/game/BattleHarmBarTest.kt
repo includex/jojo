@@ -1,4 +1,7 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.presentation.battle.BattleUnitPresentationStore
+import com.jojo.game.presentation.battle.unit.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,7 +42,8 @@ class BattleHarmBarTest {
     @Test
     fun `BattleUnit retains source preview until next target-info update`() {
         val unit = BattleUnit("u", "u", Faction.PLAYER, 0, 0, hitPoints = 40, maxHitPoints = 100)
-        unit.presentation.showHarmBar(
+        val state = BattleUnitPresentationStore().stateFor(unit)
+        state.showHarmBar(
             BattleUnitPresentationState.HarmBarInput(
                 hitPoints = unit.hitPoints,
                 maxHitPoints = unit.maxHitPoints,
@@ -49,6 +53,6 @@ class BattleHarmBarTest {
             hpAdd = -15,
             hitRate = 88,
         )
-        assertEquals(BattleHarmBar.View(bar0 = .40f, bar2 = .25f, amountText = "15", hitRateText = "88%"), unit.presentation.harmBarPreview)
+        assertEquals(BattleHarmBar.View(bar0 = .40f, bar2 = .25f, amountText = "15", hitRateText = "88%"), state.harmBarPreview)
     }
 }

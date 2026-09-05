@@ -32,7 +32,7 @@ class BattleReinforcementFactionTest {
         )
 
         assertNull(battle.outcome(), "enemy reinforcements prevent premature player victory")
-        assertTrue(battle.attack("mine", "reinforcement") !is TacticalActionResult.Rejected)
+        assertTrue(battle.combat.attack("mine", "reinforcement") !is TacticalActionResult.Rejected)
 
         val friendTurn = Battle(
             units = listOf(
@@ -42,8 +42,8 @@ class BattleReinforcementFactionTest {
             ),
             events = emptyList(),
         )
-        friendTurn.advanceToNextCamp()
-        assertTrue(friendTurn.attack("friend", "reinforcement") !is TacticalActionResult.Rejected)
+        friendTurn.roundLifecycle.advanceToNextCamp()
+        assertTrue(friendTurn.combat.attack("friend", "reinforcement") !is TacticalActionResult.Rejected)
     }
 
     @Test
@@ -73,16 +73,16 @@ class BattleReinforcementFactionTest {
             events = emptyList(),
         )
 
-        assertEquals(Faction.FRIEND, battle.advanceToNextCamp().activeFaction)
-        assertEquals(Faction.ENEMY, battle.advanceToNextCamp().activeFaction)
-        assertEquals(Faction.REINFORCEMENTS, battle.advanceToNextCamp().activeFaction)
-        battle.prepareActiveCampOperation()
-        battle.resolveAiTurn()
+        assertEquals(Faction.FRIEND, battle.roundLifecycle.advanceToNextCamp().activeFaction)
+        assertEquals(Faction.ENEMY, battle.roundLifecycle.advanceToNextCamp().activeFaction)
+        assertEquals(Faction.REINFORCEMENTS, battle.roundLifecycle.advanceToNextCamp().activeFaction)
+        battle.roundLifecycle.prepareActiveCampOperation()
+        battle.ai.resolveTurn()
 
         assertFalse(enemy.hasActed, "ordinary enemies belong only to the preceding ENEMY pass")
         assertTrue(reinforcement.hasActed)
-        battle.settleActiveCampEnd()
-        assertEquals(Faction.PLAYER, battle.advanceToNextCamp().activeFaction)
+        battle.roundLifecycle.settleActiveCampEnd()
+        assertEquals(Faction.PLAYER, battle.roundLifecycle.advanceToNextCamp().activeFaction)
         assertFalse(enemy.hasActed, "reinforcement completion clears XD for the full enemy side before crossing")
         assertFalse(reinforcement.hasActed)
     }
@@ -96,11 +96,11 @@ class BattleReinforcementFactionTest {
             events = emptyList(),
         )
 
-        battle.advanceToNextCamp() // PLAYER -> FRIEND: same side, no clear.
+        battle.roundLifecycle.advanceToNextCamp() // PLAYER -> FRIEND: same side, no clear.
         assertTrue(mine.hasActed)
         assertTrue(friend.hasActed)
-        battle.settleActiveCampEnd() // source ctrl_mine f() clears the allied side before restore.
-        battle.advanceToNextCamp() // FRIEND -> ENEMY: `_setOper` only changes camp.
+        battle.roundLifecycle.settleActiveCampEnd() // source ctrl_mine f() clears the allied side before restore.
+        battle.roundLifecycle.advanceToNextCamp() // FRIEND -> ENEMY: `_setOper` only changes camp.
 
         assertFalse(mine.hasActed)
         assertFalse(friend.hasActed)

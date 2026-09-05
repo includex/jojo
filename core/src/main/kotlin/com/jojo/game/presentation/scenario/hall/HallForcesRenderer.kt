@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.jojo.game.ScenarioSceneAssets
+import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
 /** Stateless renderer for an immutable ForcesListLayer snapshot. */
 internal object HallForcesRenderer {

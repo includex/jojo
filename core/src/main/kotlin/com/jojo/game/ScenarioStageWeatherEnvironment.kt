@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 /**
  * Authored battle weather configuration and its round-one resolution.

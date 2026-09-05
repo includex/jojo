@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-LAYER = (ROOT / "core/src/main/kotlin/com/jojo/game/BattleScreen.kt").read_text()
+LAYER = (ROOT / "core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt").read_text()
 TURN = (ROOT / "core/src/main/kotlin/com/jojo/game/BattleTurnController.kt").read_text()
 
 checks = {

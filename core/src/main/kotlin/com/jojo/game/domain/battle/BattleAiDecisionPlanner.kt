@@ -1,6 +1,11 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.*
+import com.jojo.game.BattleUnit
+import com.jojo.game.ControlScoring
+import com.jojo.game.ControlAi
+import com.jojo.game.GameDataCatalog
+import com.jojo.game.MagicDamageCalculator
+import com.jojo.game.PhysicalDamageCalculator
 import com.jojo.game.domain.battle.BattleAiScorer
 
 internal data class BattleAiDecisionEnvironment(

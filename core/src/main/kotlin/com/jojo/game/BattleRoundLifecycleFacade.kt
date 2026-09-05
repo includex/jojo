@@ -2,7 +2,7 @@ package com.jojo.game
 import com.jojo.game.domain.battle.Battlefield
 
 /** Owns camp settlement, round advancement, weather, and event lifecycle rules. */
-internal class BattleRoundLifecycleFacade(
+class BattleRoundLifecycleFacade internal constructor(
     private val configuration: BattleConfiguration,
     private val journal: BattleStateJournal,
     battlefield: Battlefield,

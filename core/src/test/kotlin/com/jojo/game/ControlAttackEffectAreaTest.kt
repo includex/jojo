@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,8 +38,8 @@ class ControlAttackEffectAreaTest {
             events = emptyList(),
         )
 
-        val single = battle(emptySet()).previewAiAttackValue("attacker", "primary")
-        val area = battle(setOf(0 to 1)).previewAiAttackValue("attacker", "primary")
+        val single = battle(emptySet()).ai.previewAttackValue("attacker", "primary")
+        val area = battle(setOf(0 to 1)).ai.previewAttackValue("attacker", "primary")
 
         // countAtkHarm2 deducts floor(25% * raw harm), rather than flooring
         // a 75%-multiplied score.  With matching HP/hit-rate this is

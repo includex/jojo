@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 /**
  * Pure Kotlin area-of-effect calculations for physical combat:

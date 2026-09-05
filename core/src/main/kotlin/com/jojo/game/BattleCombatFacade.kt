@@ -3,11 +3,11 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.*
 
 /** Owns the tactical combat entry points and the combat context they share. */
-internal class BattleCombatFacade(private val battle: Battle) {
+class BattleCombatFacade internal constructor(private val battle: Battle) {
     private val tacticalEnvironment by lazy { BattleCombatEnvironmentAssembler.tactical(battle) }
     private val physicalContext by lazy { BattleCombatEnvironmentAssembler.physicalContext(battle) }
 
-    fun attack(attackerId: String, targetId: String, damage: Int?): TacticalActionResult =
+    fun attack(attackerId: String, targetId: String, damage: Int? = null): TacticalActionResult =
         BattleTacticalActionExecutor.attack(attackerId, targetId, damage, tacticalEnvironment)
 
     fun useProperty(userId: String, targetId: String, itemId: Int): TacticalActionResult =
@@ -28,8 +28,8 @@ internal class BattleCombatFacade(private val battle: Battle) {
         attackerId: String,
         targetId: String,
         magicId: Int,
-        reaction: Boolean,
-        bypassCondition: Boolean,
+        reaction: Boolean = false,
+        bypassCondition: Boolean = false,
     ): TacticalActionResult = BattleTacticalActionExecutor.castMagic(
         attackerId, targetId, magicId, reaction, bypassCondition, tacticalEnvironment,
     )
@@ -49,5 +49,5 @@ internal class BattleCombatFacade(private val battle: Battle) {
         )
     }
 
-    fun physicalContext(): BattlePhysicalContextEnvironment = physicalContext
+    internal fun physicalContext(): BattlePhysicalContextEnvironment = physicalContext
 }

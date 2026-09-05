@@ -1,9 +1,7 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.BattleAttribute
-import com.jojo.game.BattleStatus
 import com.jojo.game.BattleUnit
-import com.jojo.game.label
+import com.jojo.game.domain.battle.label
 
 /**
  * Pure Kotlin resolution for battle consumables and property item effects.

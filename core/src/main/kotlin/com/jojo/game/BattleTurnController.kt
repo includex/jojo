@@ -416,7 +416,7 @@ class BattleTurnController(
 
     fun completeBootstrap() {
         check(phase == Phase.BOOTSTRAP) { "bootstrap completion outside bootstrap phase" }
-        battle.prepareActiveCampOperation()
+        battle.roundLifecycle.prepareActiveCampOperation()
         phase = Phase.PLAYER_INPUT
     }
 
@@ -455,7 +455,7 @@ class BattleTurnController(
 
     fun completeCampStatePresentation() {
         check(phase == Phase.CAMP_STATE) { "state completion outside camp-state phase" }
-        val fired = battle.runActiveCampEvents()
+        val fired = battle.roundLifecycle.runActiveCampEvents()
         lastTurn = lastTurn?.copy(firedEvents = fired)
         lastTurn?.let(onCampEvents)
         beginCampScript()
@@ -482,7 +482,7 @@ class BattleTurnController(
     fun completeCampDeathPresentation() {
         check(phase == Phase.CAMP_DEATHS) { "death completion outside camp-death phase" }
         if (finishIfBattleEnded()) return
-        battle.prepareActiveCampOperation()
+        battle.roundLifecycle.prepareActiveCampOperation()
         val camp = battle.activeFaction
         if (camp == Faction.PLAYER) {
             phase = Phase.PLAYER_INPUT
@@ -587,8 +587,8 @@ class BattleTurnController(
     fun completeRoundDeathPresentation() {
         check(phase == Phase.ROUND_DEATHS) { "death completion outside round-death phase" }
         if (finishIfBattleEnded()) return
-        battle.resetCompletedRoundSkillTemps(requireNotNull(lastRoundAdvance).completedRound)
-        val transition = battle.applyScheduledWeather()
+        battle.roundLifecycle.resetCompletedRoundSkillTemps(requireNotNull(lastRoundAdvance).completedRound)
+        val transition = battle.roundLifecycle.applyScheduledWeather()
         lastWeatherTransition = transition
         phase = Phase.WEATHER
         if (presentWeather(transition)) completeWeatherPresentation()
@@ -613,14 +613,14 @@ class BattleTurnController(
     private fun beginCampRestore() {
         // The source never lets isEnd bypass restore/unitDeath.  A lethal
         // poison/recoil/state tick must remain visible before FINISHED.
-        val settlement = battle.settleActiveCampEnd()
+        val settlement = battle.roundLifecycle.settleActiveCampEnd()
         lastCampSettlement = settlement
         phase = Phase.CAMP_RESTORE
         if (presentCampRestore(settlement)) completeCampRestorePresentation()
     }
 
     private fun beginRoundBoundary() {
-        val advance = battle.advanceRound()
+        val advance = battle.roundLifecycle.advanceRound()
         lastRoundAdvance = advance
         phase = Phase.ROUND_SCRIPT
         val completedSynchronously = runRoundScript(advance)
@@ -630,7 +630,7 @@ class BattleTurnController(
     private fun enterNextCamp() {
         if (finishIfBattleEnded()) return
         val previous = battle.activeFaction
-        lastTurn = battle.advanceToNextCamp()
+        lastTurn = battle.roundLifecycle.advanceToNextCamp()
         val current = battle.activeFaction
         // BattleScreen._setOper only creates RoundLayer when crossing between
         // MINE/FRIEND and ENEMY. MINE -> FRIEND continues without a card.
@@ -643,7 +643,7 @@ class BattleTurnController(
     }
 
     private fun beginCampState() {
-        val settlement = battle.settleActiveCampStart()
+        val settlement = battle.roundLifecycle.settleActiveCampStart()
         lastCampSettlement = settlement
         phase = Phase.CAMP_STATE
         if (presentCampState(settlement)) completeCampStatePresentation()

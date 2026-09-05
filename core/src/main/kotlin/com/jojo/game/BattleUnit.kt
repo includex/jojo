@@ -1,67 +1,5 @@
 package com.jojo.game
-
-/** Original BATTLE_CAMP: Mine, Friend, Enemy, Reinforcements. */
-enum class Faction { PLAYER, FRIEND, ENEMY, REINFORCEMENTS }
-
-fun Faction.isEnemySide(): Boolean = this == Faction.ENEMY || this == Faction.REINFORCEMENTS
-fun Faction.isPlayerSide(): Boolean = !isEnemySide()
-
-/** Original BATTLE_UNIT_STATUS2 persistent abnormal states. */
-enum class BattleStatus {
-    PARALYSIS, SILENCE, CONFUSION, POISON, LOST;
-
-    companion object {
-        /**
-         * 공개 메서드 `fromSourceIndex`
-         *
-         * ### 파라미터
-        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleStatus?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun fromSourceIndex(index: Int): BattleStatus? = when (index) {
-            7 -> PARALYSIS
-            8 -> SILENCE
-            9 -> CONFUSION
-            10 -> POISON
-            13 -> LOST
-            else -> null
-        }
-    }
-}
-
-/** Original BATTLE_UNIT_STATUS2 0..5: temporary ability lift/down states. */
-enum class BattleAttribute { ATTACK, DEFENSE, SPIRIT, CRITICAL, MORALE, MOVEMENT }
-
-/**
- * enum class  `BattleWeather`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
-enum class BattleWeather { CLEAR, CLOUDY, WINDY, HEAVY_RAIN, SNOW }
-
-fun BattleStatus.label(): String = when (this) {
-    BattleStatus.PARALYSIS -> "마비"
-    BattleStatus.SILENCE -> "금주"
-    BattleStatus.CONFUSION -> "혼란"
-    BattleStatus.POISON -> "중독"
-    BattleStatus.LOST -> "길 잃음"
-}
-
-fun BattleAttribute.label(): String = when (this) {
-    BattleAttribute.ATTACK -> "공격력"
-    BattleAttribute.DEFENSE -> "방어력"
-    BattleAttribute.SPIRIT -> "정신력"
-    BattleAttribute.CRITICAL -> "폭발력"
-    BattleAttribute.MORALE -> "사기"
-    BattleAttribute.MOVEMENT -> "이동력"
-}
+import com.jojo.game.domain.battle.*
 
 /**
  * data class  `BattleUnit`
@@ -293,22 +231,16 @@ data class BattleUnit(
     /** Source `BattleUnit.isMine(baseCamp)` without losing authored camp. */
     fun isPlayerSide(useBaseFaction: Boolean = false): Boolean = effectiveFaction(useBaseFaction).isPlayerSide()
 
-    val presentation = BattleUnitPresentationState(hitPoints, maxHitPoints).also {
-        it.refreshStatus(statuses, attributeLifts)
-    }
-
-    /** Removes one abnormal state and keeps the unit's presentation projection synchronized. */
+    /** Removes one abnormal state from this battle-domain unit. */
     fun cureStatus(status: BattleStatus): Boolean {
         if (statuses.remove(status) == null) return false
-        presentation.refreshStatus(statuses, attributeLifts)
         return true
     }
 
-    /** Clears every abnormal state and keeps the unit's presentation projection synchronized. */
+    /** Clears every abnormal state from this battle-domain unit. */
     fun cureAllStatuses(): Boolean {
         if (statuses.isEmpty()) return false
         statuses.clear()
-        presentation.refreshStatus(statuses, attributeLifts)
         return true
     }
 
@@ -320,7 +252,6 @@ data class BattleUnit(
         attributeLifts.clear()
         attributeLiftRounds.clear()
         hasMoved = false
-        presentation.refreshStatus(statuses, attributeLifts)
     }
 
     /** Replaces status and attribute-lift state as one memento restoration command. */
@@ -335,7 +266,6 @@ data class BattleUnit(
         attributeLifts.putAll(restoredAttributeLifts)
         attributeLiftRounds.clear()
         attributeLiftRounds.putAll(restoredAttributeLiftRounds)
-        presentation.refreshStatus(statuses, attributeLifts)
     }
 
     /** Direct Kotlin implementation of BattleUnit.addHpcur(t, e=0). */
@@ -351,10 +281,9 @@ data class BattleUnit(
     /** Direct Kotlin implementation of BattleUnit.setMpcur(t) → setCurMp(t). */
     fun setMpcur(value: Int) = setCurMp(value)
 
-    /** BattleUnit.setCurHp clamps to [0, hp] and immediately refreshes bar2. */
+    /** BattleUnit.setCurHp clamps to [0, hp]. */
     fun setCurHp(value: Int) {
         hitPoints = value.coerceIn(0, maxHitPoints)
-        presentation.refreshHpBar(hitPoints, maxHitPoints)
     }
 
     /** BattleUnit.setCurMp clamps to [0, mp]. */

@@ -1,4 +1,7 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.presentation.battle.BattleUnitPresentationStore
+import com.jojo.game.presentation.battle.unit.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +19,7 @@ class BattleUnitDefaultActionTest {
         BattleUnit("u", "u", Faction.PLAYER, 0, 0, hitPoints = hp, maxHitPoints = 100, famous = famous, hasActed = acted,
             statuses = states.associateWithTo(linkedMapOf()) { 1 })
 
-    private fun BattleUnit.presentationAction() = presentation.defaultAction(
+    private fun BattleUnit.presentationAction() = BattleUnitPresentationStore().stateFor(this).defaultAction(
         BattleUnitPresentationState.DefaultActionInput(
             visible = visible,
             hitPoints = hitPoints,

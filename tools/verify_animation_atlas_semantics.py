@@ -50,7 +50,7 @@ def main() -> None:
     require(ui_frame, "C * (w + 2 * i) + i", "CreateAnime padded row stride")
     require(ui_frame, "R += 1 / 24 * H", "CreateAnime authored tick duration")
 
-    battle_layer = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleScreen.kt").read_text()
+    battle_layer = (args.repo / "core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt").read_text()
     object_timeline = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleObjectAnimationTimeline.kt").read_text()
     battle_timeline = (args.repo / "core/src/main/kotlin/com/jojo/game/BattleSpriteTimeline.kt").read_text()
     hall_timeline = (args.repo / "core/src/main/kotlin/com/jojo/game/HallUnitRender.kt").read_text()

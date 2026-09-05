@@ -16,7 +16,7 @@ import kotlin.test.assertIs
 class BattleRawDamageInputTest {
     private fun attackDamage(attacker: BattleUnit, target: BattleUnit): Int {
         val battle = Battle(listOf(attacker, target), events = emptyList())
-        return assertIs<TacticalActionResult.Attack>(battle.attack(attacker.id, target.id)).damage
+        return assertIs<TacticalActionResult.Attack>(battle.combat.attack(attacker.id, target.id)).damage
     }
 
     @Test

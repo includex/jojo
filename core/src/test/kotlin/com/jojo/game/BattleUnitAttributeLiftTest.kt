@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,13 +25,13 @@ class BattleUnitAttributeLiftTest {
             emptyList(),
         )
 
-        battle.endTurn() // FRIEND
-        battle.endTurn() // ENEMY: active DOWN expires through setStateRound(remove)
+        battle.roundLifecycle.endTurn() // FRIEND
+        battle.roundLifecycle.endTurn() // ENEMY: active DOWN expires through setStateRound(remove)
 
         assertNull(enemy.attributeLifts[BattleAttribute.MORALE])
         assertEquals(3, enemy.attributeLiftRounds[BattleAttribute.MORALE])
 
-        repeat(4) { battle.endTurn() } // reach the next ENEMY start
+        repeat(4) { battle.roundLifecycle.endTurn() } // reach the next ENEMY start
         assertNull(enemy.attributeLifts[BattleAttribute.MORALE])
         assertEquals(3, enemy.attributeLiftRounds[BattleAttribute.MORALE])
     }

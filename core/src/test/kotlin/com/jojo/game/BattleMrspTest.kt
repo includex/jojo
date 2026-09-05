@@ -46,7 +46,7 @@ class BattleMrspTest {
             },
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "target"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "target"))
         // Every `_attack2` pass calls count_attackHarm. MRSP replaces both
         // the initial strike and the continuous strike with its five-step
         // max-HP roll.
@@ -64,7 +64,7 @@ class BattleMrspTest {
             ), events = emptyList(), random = Random(0),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.forcedAttack("attacker", "target"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.forcedAttack("attacker", "target"))
         assertEquals(20, result.damage)
     }
 }

@@ -417,7 +417,7 @@ val verifyYingchuanActorState = tasks.register<Exec>("verifyYingchuanActorState"
     inputs.file(rootProject.file("tools/verify_yingchuan_actor_state.mjs"))
     inputs.file(rootProject.file("tools/verify_yingchuan_dialogue_fixture.py"))
     inputs.file(rootProject.file("tools/export_map_assets.py"))
-    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/BattleScreen.kt"))
+    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/electron/main.cjs"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/build/python-source-battle-verification-dialogue3.png"))
     inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/recovered-js/modules"))
@@ -468,7 +468,7 @@ val verifyYingchuanSelectionRender = tasks.register<Exec>("verifyYingchuanSelect
     description = "Compares original Cocos and LibGDX Yingchuan selection ranges, attack boxes, and cursor."
     inputs.file(rootProject.file("tools/verify_yingchuan_selection_render.mjs"))
     inputs.file(rootProject.file("tools/export_map_assets.py"))
-    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/BattleScreen.kt"))
+    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/electron/main.cjs"))
     inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/recovered-js/modules"))
     outputs.file(rootProject.layout.buildDirectory.file("yingchuan-selection-render.json"))
@@ -480,7 +480,7 @@ val verifyYingchuanModalCaptures = tasks.register<Exec>("verifyYingchuanModalCap
     group = "verification"
     description = "Checks original modal/SayLayer stacks and LibGDX modal capture states."
     inputs.file(rootProject.file("tools/verify_yingchuan_modal_captures.mjs"))
-    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/BattleScreen.kt"))
+    inputs.file(rootProject.file("core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt"))
     inputs.file(rootProject.file("../jojo_mobile/sgccz-desktop/electron/main.cjs"))
     inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/build"))
     outputs.file(rootProject.layout.buildDirectory.file("yingchuan-modal-captures.json"))

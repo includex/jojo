@@ -27,9 +27,9 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        val result = battle.resolveAiTurn()
+        val result = battle.ai.resolveTurn()
 
         assertEquals(BattleOutcome.ENEMY_VICTORY, battle.outcome())
         assertEquals(1, result.attacks)
@@ -54,9 +54,9 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), battle.resolveAiTurn())
+        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), battle.ai.resolveTurn())
         assertEquals(1, battle.units.getValue("enemy").magicPoints)
         assertEquals(null, battle.units.getValue("player").statuses[BattleStatus.PARALYSIS])
     }
@@ -87,9 +87,9 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        val result = battle.resolveAiTurn(maxUnits = 1)
+        val result = battle.ai.resolveTurn(maxUnits = 1)
         assertEquals(1, result.attacks, "result=$result actor=${battle.lastAiUnitResolution?.actorId} trace=${battle.traceActions}")
         assertEquals(47, battle.units.getValue("caster").magicPoints)
         assertTrue(battle.traceActions.any { it.contains("magic=33") })
@@ -117,13 +117,13 @@ class BattleControlIntegrationTest {
         )
 
         val cautious = battle(emptyMap())
-        cautious.endTurn()
-        assertEquals(0, cautious.resolveAiTurn().attacks)
+        cautious.roundLifecycle.endTurn()
+        assertEquals(0, cautious.ai.resolveTurn().attacks)
         assertEquals(100, cautious.units.getValue("player").hitPoints)
 
         val wfJgj = battle(mapOf(226 to 1))
-        wfJgj.endTurn()
-        assertEquals(1, wfJgj.resolveAiTurn().attacks)
+        wfJgj.roundLifecycle.endTurn()
+        assertEquals(1, wfJgj.ai.resolveTurn().attacks)
         assertTrue(wfJgj.units.getValue("player").hitPoints < 100)
     }
 
@@ -143,8 +143,8 @@ class BattleControlIntegrationTest {
             events = emptyList(),
         )
 
-        battle.endTurn()
-        val result = battle.castMagic("friend", "enemy", 1)
+        battle.roundLifecycle.endTurn()
+        val result = battle.combat.castMagic("friend", "enemy", 1)
 
         assertEquals(1, (result as TacticalActionResult.Magic).targets.single().damage)
     }
@@ -168,8 +168,8 @@ class BattleControlIntegrationTest {
             initialWeather = BattleWeather.HEAVY_RAIN,
         )
 
-        battle.endTurn()
-        val result = battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        val result = battle.ai.resolveTurn()
 
         assertEquals(1, result.attacks)
         assertEquals(3, battle.units.getValue("enemy").magicPoints)
@@ -186,8 +186,8 @@ class BattleControlIntegrationTest {
             events = emptyList(),
         )
 
-        battle.endTurn()
-        assertEquals(1, battle.resolveAiTurn().moves)
+        battle.roundLifecycle.endTurn()
+        assertEquals(1, battle.ai.resolveTurn().moves)
         assertEquals(1, battle.units.getValue("enemy").ai)
         assertEquals(3, battle.units.getValue("enemy").tileX)
     }
@@ -203,8 +203,8 @@ class BattleControlIntegrationTest {
             events = emptyList(),
         )
 
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
         assertEquals(0, battle.units.getValue("follower").ai)
         assertEquals(0, battle.units.getValue("follower").tileX)
     }
@@ -217,9 +217,9 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn() // PLAYER → ENEMY
+        battle.roundLifecycle.endTurn() // PLAYER → ENEMY
 
-        val result = battle.resolveAiTurn()
+        val result = battle.ai.resolveTurn()
 
         assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), result)
         assertEquals(100, battle.units.getValue("player").hitPoints)
@@ -238,9 +238,9 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), battle.resolveAiTurn())
+        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), battle.ai.resolveTurn())
         assertEquals(ControlAi.PASSIVE, battle.units.getValue("enemy").ai)
         assertTrue(battle.units.getValue("enemy").hasActed)
     }
@@ -254,9 +254,9 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
-        val result = battle.resolveAiTurn()
+        val result = battle.ai.resolveTurn()
 
         assertTrue(result.attacks == 1 || result.moves == 1)
     }
@@ -272,8 +272,8 @@ class BattleControlIntegrationTest {
             events = emptyList(),
         )
 
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
 
         assertEquals(500, battle.units.getValue("first").hitPoints)
         assertTrue(battle.units.getValue("designated").hitPoints < 500)
@@ -291,12 +291,12 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         // Control._process1 changes ControlManager's live controller to
         // CtrlJSYD.  It does not persist AI=HOLD on the unit, and CtrlJSYD
         // still evaluates attacks from its current point.
-        assertEquals(AiTurnResult(0, 1, 0), battle.resolveAiTurn())
+        assertEquals(AiTurnResult(0, 1, 0), battle.ai.resolveTurn())
         assertEquals(ControlAi.PASSIVE, battle.units.getValue("enemy").ai)
     }
 
@@ -309,8 +309,8 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(),
         )
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
         assertEquals(6, battle.units.getValue("enemy").ai)
     }
 
@@ -337,7 +337,7 @@ class BattleControlIntegrationTest {
         )
         battle.selectVerificationFaction(Faction.FRIEND)
 
-        assertEquals(AiTurnResult(1, 1, 0), battle.resolveAiTurn())
+        assertEquals(AiTurnResult(1, 1, 0), battle.ai.resolveTurn())
         assertEquals(1 to 0, battle.units.getValue("friend").tileX to battle.units.getValue("friend").tileY)
         assertTrue(battle.units.getValue("blocker").hitPoints < 500)
         assertEquals(ControlAi.RETREAT_TO, battle.units.getValue("friend").ai)
@@ -367,8 +367,8 @@ class BattleControlIntegrationTest {
         )
         battle.selectVerificationFaction(Faction.FRIEND)
 
-        assertTrue(battle.previewAiAttackValue("friend", "blocker") < 1)
-        assertEquals(AiTurnResult(0, 0, 1), battle.resolveAiTurn())
+        assertTrue(battle.ai.previewAttackValue("friend", "blocker") < 1)
+        assertEquals(AiTurnResult(0, 0, 1), battle.ai.resolveTurn())
         assertEquals(0 to 0, battle.units.getValue("friend").tileX to battle.units.getValue("friend").tileY)
         assertEquals(119, battle.units.getValue("blocker").hitPoints)
         assertEquals(ControlAi.ATTACK_UNIT, battle.units.getValue("friend").ai)
@@ -391,8 +391,8 @@ class BattleControlIntegrationTest {
             blockedTiles = setOf(3 to 0, 3 to 1, 3 to 2, 3 to 3),
         )
 
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
 
         // Control._zdmdd rejects remote (0,2), then _ganlu/AStar(flags=9)
         // follows the only opening below the wall. Manhattan minimization
@@ -425,8 +425,8 @@ class BattleControlIntegrationTest {
             blockedTiles = setOf(3 to 0, 3 to 1, 3 to 2, 3 to 3),
         )
 
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
 
         assertEquals(5 to 3, battle.units.getValue("enemy").tileX to battle.units.getValue("enemy").tileY)
     }
@@ -443,8 +443,8 @@ class BattleControlIntegrationTest {
             terrain = terrain,
             terrainResumeRates = mapOf(18 to 50),
         )
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
         val enemy = battle.units.getValue("enemy")
         assertEquals(1, enemy.tileX)
         // `_cxpl` replaces only ControlManager's live controller; the
@@ -463,8 +463,8 @@ class BattleControlIntegrationTest {
             ),
             events = emptyList(), terrain = terrain, enemyMasterUnitId = "master",
         )
-        battle.endTurn()
-        battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        battle.ai.resolveTurn()
         assertEquals(ControlAi.PASSIVE, battle.units.getValue("enemy").ai)
         // CtrlTZZDD._ganlu chooses the final unoccupied reachable tile on
         // the A* route to the master at x=3: x=2, not the first step x=1.

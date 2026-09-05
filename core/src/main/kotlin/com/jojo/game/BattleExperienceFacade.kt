@@ -9,7 +9,7 @@ import com.jojo.game.domain.battle.*
  * battle.  Its journal-backed queues therefore remain the single source of
  * truth while callers retain the legacy Battle entry points.
  */
-internal class BattleExperienceFacade(
+class BattleExperienceFacade internal constructor(
     configuration: BattleConfiguration,
     private val journal: BattleStateJournal,
     units: () -> Map<String, BattleUnit>,

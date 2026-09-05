@@ -1,5 +1,9 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.presentation.title.TitleScreen
+import com.jojo.game.presentation.battle.BattleScreen
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.GL20

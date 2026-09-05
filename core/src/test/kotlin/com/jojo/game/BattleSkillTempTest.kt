@@ -62,8 +62,8 @@ class BattleSkillTempTest {
 
         val ordinary = battle(0)
         val charged = battle(2)
-        val ordinaryResult = assertIs<TacticalActionResult.Attack>(ordinary.attack("a", "t"))
-        val chargedResult = assertIs<TacticalActionResult.Attack>(charged.attack("a", "t"))
+        val ordinaryResult = assertIs<TacticalActionResult.Attack>(ordinary.combat.attack("a", "t"))
+        val chargedResult = assertIs<TacticalActionResult.Attack>(charged.combat.attack("a", "t"))
         assertEquals(10, chargedResult.damage - ordinaryResult.damage)
         assertEquals(1, charged.skillTemp("t", 26))
     }
@@ -90,8 +90,8 @@ class BattleSkillTempTest {
 
         val ordinary = battle(0)
         val charged = battle(3)
-        val ordinaryResult = assertIs<TacticalActionResult.Attack>(ordinary.attack("a", "t"))
-        val chargedResult = assertIs<TacticalActionResult.Attack>(charged.attack("a", "t"))
+        val ordinaryResult = assertIs<TacticalActionResult.Attack>(ordinary.combat.attack("a", "t"))
+        val chargedResult = assertIs<TacticalActionResult.Attack>(charged.combat.attack("a", "t"))
         assertEquals(21, chargedResult.damage - ordinaryResult.damage)
         assertEquals(0, charged.skillTemp("a", 243))
     }
@@ -105,7 +105,7 @@ class BattleSkillTempTest {
                 BattleUnit("s", "범위 대상", Faction.ENEMY, 2, 0, hitPoints = 500, maxHitPoints = 500, defense = 20, critical = 1, morale = 1, skills = mapOf(26 to 3)),
             ), events = emptyList(),
         )
-        assertIs<TacticalActionResult.Attack>(battle.attack("a", "t"))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t"))
         assertEquals(1, battle.skillTemp("s", 26))
     }
 
@@ -131,9 +131,9 @@ class BattleSkillTempTest {
         )
         val unmoved = battle(0, 1)
         val moved = battle(0, 2)
-        assertIs<TacticalActionResult.Success>(moved.moveUnit("a", 1, 0))
-        val normal = assertIs<TacticalActionResult.Attack>(unmoved.attack("a", "t"))
-        val charged = assertIs<TacticalActionResult.Attack>(moved.attack("a", "t"))
+        assertIs<TacticalActionResult.Success>(moved.movement.moveUnit("a", 1, 0))
+        val normal = assertIs<TacticalActionResult.Attack>(unmoved.combat.attack("a", "t"))
+        val charged = assertIs<TacticalActionResult.Attack>(moved.combat.attack("a", "t"))
         assertEquals(7, charged.damage - normal.damage)
     }
 
@@ -159,8 +159,8 @@ class BattleSkillTempTest {
         )
         val plain = battle(emptyMap(), emptyMap())
         val modified = battle(mapOf(234 to 5, 184 to 0, 114 to 9), mapOf(6 to 4, 118 to 3, 245 to 0, 247 to 2, 275 to 8))
-        val base = assertIs<TacticalActionResult.Attack>(plain.attack("a", "t"))
-        val result = assertIs<TacticalActionResult.Attack>(modified.attack("a", "t"))
+        val base = assertIs<TacticalActionResult.Attack>(plain.combat.attack("a", "t"))
+        val result = assertIs<TacticalActionResult.Attack>(modified.combat.attack("a", "t"))
         // These are source rate points: +5(WU_BIAN) +55(QJTJ) +9(JQGJ)
         // -4(BA_HAI) -3(JQWLSH) -20(XZDD) +6(XLGJ) -2(ZHONG_ZHUANG).
         assertEquals(25, result.damage - base.damage)
@@ -187,8 +187,8 @@ class BattleSkillTempTest {
         )
         val plain = battle(emptyMap())
         val guarded = battle(mapOf(121 to 7, 132 to 11))
-        val base = assertIs<TacticalActionResult.Attack>(plain.attack("a", "t"))
-        val result = assertIs<TacticalActionResult.Attack>(guarded.attack("a", "t"))
+        val base = assertIs<TacticalActionResult.Attack>(plain.combat.attack("a", "t"))
+        val result = assertIs<TacticalActionResult.Attack>(guarded.combat.attack("a", "t"))
         assertEquals(-11, result.damage - base.damage)
     }
 
@@ -215,8 +215,8 @@ class BattleSkillTempTest {
         )
         val plain = battle(emptyMap())
         val boosted = battle(mapOf(292 to 0))
-        val base = assertIs<TacticalActionResult.Attack>(plain.attack("a", "t"))
-        val result = assertIs<TacticalActionResult.Attack>(boosted.attack("a", "t"))
+        val base = assertIs<TacticalActionResult.Attack>(plain.combat.attack("a", "t"))
+        val result = assertIs<TacticalActionResult.Attack>(boosted.combat.attack("a", "t"))
         // Base 56; source roll 10 + 2 makes it floor(56 * 112 / 100) = 62.
         assertEquals(6, result.damage - base.damage)
     }
@@ -253,8 +253,8 @@ class BattleSkillTempTest {
             events = emptyList(),
             random = ValuesRandom(2),
         )
-        val base = assertIs<TacticalActionResult.Magic>(battle(emptyMap()).castMagic("a", "t", 0))
-        val boosted = assertIs<TacticalActionResult.Magic>(battle(mapOf(292 to 0)).castMagic("a", "t", 0))
+        val base = assertIs<TacticalActionResult.Magic>(battle(emptyMap()).combat.castMagic("a", "t", 0))
+        val boosted = assertIs<TacticalActionResult.Magic>(battle(mapOf(292 to 0)).combat.castMagic("a", "t", 0))
 
         // Base 59; source roll 10 + 2 makes floor(59 * 112 / 100) = 66.
         assertEquals(7, boosted.targets.single().damage - base.targets.single().damage)
@@ -282,8 +282,8 @@ class BattleSkillTempTest {
         )
         val plain = battle(emptyMap())
         val linked = battle(mapOf(109 to 4))
-        val base = assertIs<TacticalActionResult.Attack>(plain.attack("a", "t"))
-        val result = assertIs<TacticalActionResult.Attack>(linked.attack("a", "t"))
+        val base = assertIs<TacticalActionResult.Attack>(plain.combat.attack("a", "t"))
+        val result = assertIs<TacticalActionResult.Attack>(linked.combat.attack("a", "t"))
         assertEquals(8, result.damage - base.damage)
     }
 
@@ -312,9 +312,9 @@ class BattleSkillTempTest {
         val windy = battle(BattleWeather.WINDY, emptyMap(), paralyzed = false)
         val rainBypass = battle(BattleWeather.HEAVY_RAIN, mapOf(268 to 0), paralyzed = false)
         val paralyzed = battle(BattleWeather.WINDY, emptyMap(), paralyzed = true)
-        val windyDamage = assertIs<TacticalActionResult.Attack>(windy.attack("a", "t")).damage
-        val bypassDamage = assertIs<TacticalActionResult.Attack>(rainBypass.attack("a", "t")).damage
-        val paralysisDamage = assertIs<TacticalActionResult.Attack>(paralyzed.attack("a", "t")).damage
+        val windyDamage = assertIs<TacticalActionResult.Attack>(windy.combat.attack("a", "t")).damage
+        val bypassDamage = assertIs<TacticalActionResult.Attack>(rainBypass.combat.attack("a", "t")).damage
+        val paralysisDamage = assertIs<TacticalActionResult.Attack>(paralyzed.combat.attack("a", "t")).damage
         // Rate is applied to base damage before fixed additions and truncates.
         assertEquals(5, windyDamage - bypassDamage)
         assertEquals(14, paralysisDamage - windyDamage)
@@ -344,7 +344,7 @@ class BattleSkillTempTest {
                     BattleUnit("t", "대상", Faction.ENEMY, targetX, targetY, hitPoints = 500, maxHitPoints = 500, defense = 20, critical = 1, morale = 1, attackOffsets = emptySet()),
                 ), events = emptyList(),
             )
-            return assertIs<TacticalActionResult.Attack>(battle.attack("a", "t")).damage
+            return assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t")).damage
         }
         // Incoming down(2): attacker faces down -> 1/3; faces right -> 1/2; faces up -> full.
         assertEquals(1, damage(2, 1, 2, true) - damage(2, 1, 2, false))
@@ -372,8 +372,8 @@ class BattleSkillTempTest {
                 if (withAreaTarget) add(BattleUnit("s", "범위 대상", Faction.ENEMY, 2, 0, hitPoints = 500, maxHitPoints = 500, defense = 20, attackOffsets = emptySet()))
             }, events = emptyList(),
         )
-        val noCt = assertIs<TacticalActionResult.Attack>(battle(false).attack("a", "t"))
-        val withCt = assertIs<TacticalActionResult.Attack>(battle(true).attack("a", "t"))
+        val noCt = assertIs<TacticalActionResult.Attack>(battle(false).combat.attack("a", "t"))
+        val withCt = assertIs<TacticalActionResult.Attack>(battle(true).combat.attack("a", "t"))
         assertEquals(7, noCt.damage - withCt.damage)
     }
 }

@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.timeline.*
+import com.jojo.game.presentation.battle.BattleUnitPresentationStore
 import com.jojo.game.infrastructure.data.CampaignSaveCodec
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
@@ -643,8 +645,8 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `recovered Tool random LCG preserves inclusive model random range`() {
-        val (seedOne, valueOne) = ScenarioInterpreter.toolRandomFromSeed(0.0)
-        val (seedTwo, valueTwo) = ScenarioInterpreter.toolRandomFromSeed(seedOne)
+        val (seedOne, valueOne) = com.jojo.game.domain.scenario.ScenarioRandomSequence.nextFromSeed(0.0)
+        val (seedTwo, valueTwo) = com.jojo.game.domain.scenario.ScenarioRandomSequence.nextFromSeed(seedOne)
 
         assertEquals(49297.0, seedOne)
         assertEquals(42, valueOne)
@@ -821,11 +823,11 @@ class ScenarioRuntimeTest {
             } },
         )
 
-        assertEquals(TacticalActionResult.Item("회복약", "target", "HP 35 회복"), state.useProperty("user", "target", 150))
+        assertEquals(TacticalActionResult.Item("회복약", "target", "HP 35 회복"), state.combat.useProperty("user", "target", 150))
         assertEquals(75, state.units.getValue("target").hitPoints)
-        // BattleUnit.setCurHp is the only mutation route: its bar must be
-        // synchronized after a BattleScreen._usePro2-style recovery too.
-        assertEquals(.75f, state.units.getValue("target").presentation.hpBarProgress)
+        // The screen-owned projection synchronizes the recovered HP before
+        // this unit is rendered.
+        assertEquals(.75f, BattleUnitPresentationStore().stateFor(state.units.getValue("target")).hpBarProgress)
         assertEquals(null, inventory[150])
     }
 
@@ -841,7 +843,7 @@ class ScenarioRuntimeTest {
             blockedTiles = setOf(2 to 3),
         )
 
-        val area = state.reachableTiles("unit")
+        val area = state.movement.reachableTiles("unit")
 
         assertEquals(1, area[2 to 1])
         assertEquals(2, area[1 to 1])
@@ -850,7 +852,7 @@ class ScenarioRuntimeTest {
         // the occupied point.
         assertEquals(true, 3 to 2 in area)
         assertEquals(false, 2 to 3 in area)
-        assertIs<TacticalActionResult.Success>(state.moveUnit("unit", 1, 1))
+        assertIs<TacticalActionResult.Success>(state.movement.moveUnit("unit", 1, 1))
     }
 
     @Test
@@ -863,7 +865,7 @@ class ScenarioRuntimeTest {
             events = emptyList(),
         )
 
-        assertEquals(true, (state.attack("attacker", "target") as TacticalActionResult.Attack).critical)
+        assertEquals(true, (state.combat.attack("attacker", "target") as TacticalActionResult.Attack).critical)
     }
 
     @Test
@@ -874,7 +876,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, hitPoints = 500, maxHitPoints = 500, skills = mapOf(118 to 50)),
             ), events = emptyList(),
         )
-        assertEquals(50, (physical.attack("attacker", "target", damage = 100) as TacticalActionResult.Attack).damage)
+        assertEquals(50, (physical.combat.attack("attacker", "target", damage = 100) as TacticalActionResult.Attack).damage)
     }
 
     @Test
@@ -885,7 +887,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, defense = 1, hitPoints = 500, maxHitPoints = 500, skills = mapOf(242 to 30)),
             ), events = emptyList(),
         )
-        val result = state.attack("attacker", "target") as TacticalActionResult.Attack
+        val result = state.combat.attack("attacker", "target") as TacticalActionResult.Attack
         assertEquals(54, result.damage)
         assertEquals(true, result.critical)
     }
@@ -899,7 +901,7 @@ class ScenarioRuntimeTest {
             ), events = emptyList(),
         )
         // 100 + BIAO_HAN 10 + LRHY 10 + FZZS_ATT 10 + GDZS(+15/-15).
-        assertEquals(130, (state.attack("attacker", "target", damage = 100) as TacticalActionResult.Attack).damage)
+        assertEquals(130, (state.combat.attack("attacker", "target", damage = 100) as TacticalActionResult.Attack).damage)
     }
 
     @Test
@@ -910,7 +912,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, defense = 100, hitPoints = 500, maxHitPoints = 500, skills = mapOf(118 to 50)),
             ), events = emptyList(),
         )
-        val result = state.forcedAttack("attacker", "target") as TacticalActionResult.Attack
+        val result = state.combat.forcedAttack("attacker", "target") as TacticalActionResult.Attack
         assertEquals(150, result.damage)
         assertEquals(50, result.lifeStealHealing)
     }
@@ -929,7 +931,7 @@ class ScenarioRuntimeTest {
             onUnitDefeated = { _, _ -> defeats++ },
         )
 
-        state.forcedAttack("attacker", "target")
+        state.combat.forcedAttack("attacker", "target")
 
         assertEquals(true, physicalDamage > 0)
         assertEquals(1, defeats)
@@ -943,7 +945,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, defense = 1, hitPoints = 500, maxHitPoints = 500),
             ), events = emptyList(),
         )
-        val result = state.attack("attacker", "target") as TacticalActionResult.Attack
+        val result = state.combat.attack("attacker", "target") as TacticalActionResult.Attack
         assertEquals(75, result.damage)
         assertEquals(56, result.followUpDamage)
         assertEquals(369, state.units.getValue("target").hitPoints)
@@ -957,7 +959,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "반격자", Faction.ENEMY, 1, 0, attack = 100, defense = 25, critical = 100, morale = 1, hitPoints = 500, maxHitPoints = 500, skills = mapOf(43 to 0)),
             ), events = emptyList(),
         )
-        val result = state.attack("attacker", "target") as TacticalActionResult.Attack
+        val result = state.combat.attack("attacker", "target") as TacticalActionResult.Attack
         // BattleScreen._attack6 starts with FAN_JI (75%); its FJBDSJ
         // follow-up adds LIANJI as well, for another -25% (50%).
         assertEquals(56, result.counterDamage)
@@ -986,11 +988,11 @@ class ScenarioRuntimeTest {
                 BattleUnit("caster", "책사", Faction.PLAYER, 0, 0, magic = listOf(rain, clearOnly, special), skills = skills),
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0),
             ), events = emptyList(),
-        ).also { it.castMagic("caster", "target", 58); it.units.getValue("caster").hasActed = false }
-        assertIs<TacticalActionResult.Rejected>(battle(emptyMap()).castMagic("caster", "target", 1))
-        assertIs<TacticalActionResult.Magic>(battle(mapOf(20 to 0)).castMagic("caster", "target", 1))
-        assertIs<TacticalActionResult.Rejected>(battle(emptyMap()).castMagic("caster", "target", 2))
-        assertIs<TacticalActionResult.Magic>(battle(mapOf(136 to 0)).castMagic("caster", "target", 2))
+        ).also { it.combat.castMagic("caster", "target", 58); it.units.getValue("caster").hasActed = false }
+        assertIs<TacticalActionResult.Rejected>(battle(emptyMap()).combat.castMagic("caster", "target", 1))
+        assertIs<TacticalActionResult.Magic>(battle(mapOf(20 to 0)).combat.castMagic("caster", "target", 1))
+        assertIs<TacticalActionResult.Rejected>(battle(emptyMap()).combat.castMagic("caster", "target", 2))
+        assertIs<TacticalActionResult.Magic>(battle(mapOf(136 to 0)).combat.castMagic("caster", "target", 2))
     }
 
     @Test
@@ -1014,7 +1016,7 @@ class ScenarioRuntimeTest {
                     BattleUnit("target", "대상", Faction.ENEMY, 1, 0, armId = 9, hitPoints = 500, maxHitPoints = 500, defense = 1, skills = targetSkills),
                 ), events = emptyList(),
             )
-            return (state.attack("attacker", "target") as TacticalActionResult.Attack).damage
+            return (state.combat.attack("attacker", "target") as TacticalActionResult.Attack).damage
         }
 
         assertEquals(1.3, damage(mapOf(316 to 0), emptyMap()).toDouble() / damage(emptyMap(), emptyMap()), 0.02)
@@ -1209,10 +1211,10 @@ class ScenarioRuntimeTest {
             events = emptyList(),
             blockedTiles = setOf(1 to 0),
         )
-        assertIs<TacticalActionResult.Rejected>(state.moveUnit("player", 1, 0))
+        assertIs<TacticalActionResult.Rejected>(state.movement.moveUnit("player", 1, 0))
 
         state.setBlockedTiles(emptySet())
-        assertEquals(TacticalActionResult.Success, state.moveUnit("player", 1, 0))
+        assertEquals(TacticalActionResult.Success, state.movement.moveUnit("player", 1, 0))
     }
 
     @Test
@@ -1466,15 +1468,15 @@ class ScenarioRuntimeTest {
     fun `turn event fires once and advances past repeated end turns`() {
         val battle = BattleScenarioFactory.tutorialBattle()
 
-        assertEquals(TurnResult(1, Faction.ENEMY, emptyList()), battle.endTurn())
-        val arrival = battle.endTurn()
+        assertEquals(TurnResult(1, Faction.ENEMY, emptyList()), battle.roundLifecycle.endTurn())
+        val arrival = battle.roundLifecycle.endTurn()
         assertEquals(2, arrival.round)
         assertEquals(Faction.PLAYER, arrival.activeFaction)
         assertEquals(listOf("reinforcement-arrival"), arrival.firedEvents)
         assertEquals("증원군", battle.units["reinforcement"]?.name)
 
-        battle.endTurn()
-        val nextPlayerTurn = battle.endTurn()
+        battle.roundLifecycle.endTurn()
+        val nextPlayerTurn = battle.roundLifecycle.endTurn()
         assertEquals(3, nextPlayerTurn.round)
         assertEquals(emptyList(), nextPlayerTurn.firedEvents)
         assertEquals(setOf("reinforcement-arrival"), battle.firedEventIds)
@@ -1491,10 +1493,10 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        assertEquals(Faction.FRIEND, battle.endTurn().activeFaction)
-        assertEquals(Faction.ENEMY, battle.endTurn().activeFaction)
-        assertEquals(TurnResult(2, Faction.PLAYER, emptyList()), battle.endTurn())
-        assertEquals("아군을 공격할 수 없습니다.", (battle.attack("mine", "friend") as TacticalActionResult.Rejected).reason)
+        assertEquals(Faction.FRIEND, battle.roundLifecycle.endTurn().activeFaction)
+        assertEquals(Faction.ENEMY, battle.roundLifecycle.endTurn().activeFaction)
+        assertEquals(TurnResult(2, Faction.PLAYER, emptyList()), battle.roundLifecycle.endTurn())
+        assertEquals("아군을 공격할 수 없습니다.", (battle.combat.attack("mine", "friend") as TacticalActionResult.Rejected).reason)
     }
 
     @Test
@@ -1507,7 +1509,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.forcedAttack("mine", "enemy"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.forcedAttack("mine", "enemy"))
 
         assertEquals(true, result.hit)
         assertEquals(true, battle.units.getValue("enemy").hitPoints < 100)
@@ -1521,8 +1523,8 @@ class ScenarioRuntimeTest {
         )
         battle.setMaxRounds(2)
 
-        battle.endTurn()
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         assertEquals(BattleOutcome.ENEMY_VICTORY, battle.outcome())
     }
@@ -1563,9 +1565,9 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        assertIs<TacticalActionResult.Success>(battle.moveUnit("player", 1, 0))
-        assertIs<TacticalActionResult.Rejected>(battle.moveUnit("player", 0, 0))
-        assertIs<TacticalActionResult.Attack>(battle.attack("player", "enemy"))
+        assertIs<TacticalActionResult.Success>(battle.movement.moveUnit("player", 1, 0))
+        assertIs<TacticalActionResult.Rejected>(battle.movement.moveUnit("player", 0, 0))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack("player", "enemy"))
         assertEquals(null, battle.units["enemy"])
         assertEquals(BattleOutcome.PLAYER_VICTORY, battle.outcome())
     }
@@ -1580,7 +1582,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "target"))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "target"))
         val target = battle.units.getValue("target")
         assertEquals(2, target.statuses[BattleStatus.PARALYSIS]) // Source enemy duration is two turns.
         assertEquals(-1, target.attributeLifts[BattleAttribute.ATTACK])
@@ -1596,7 +1598,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "target"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "target"))
         assertEquals(150, result.damage) // JQWLSH 후 PJGJ: target max HP 500의 30%를 최저 피해로 보정.
         assertEquals(60, result.lifeStealHealing)
         assertEquals(0, result.counterDamage)
@@ -1614,7 +1616,7 @@ class ScenarioRuntimeTest {
             blockedTiles = setOf(1 to 0),
         )
 
-        val result = battle.moveUnit("player", 1, 0)
+        val result = battle.movement.moveUnit("player", 1, 0)
         assertEquals("장애물이 있는 칸입니다.", (result as TacticalActionResult.Rejected).reason)
     }
 
@@ -1629,7 +1631,7 @@ class ScenarioRuntimeTest {
             blockedTiles = setOf(1 to 0),
         )
 
-        val result = battle.moveUnit("player", 2, 0)
+        val result = battle.movement.moveUnit("player", 2, 0)
 
         assertEquals("이동 범위를 벗어났습니다.", (result as TacticalActionResult.Rejected).reason)
     }
@@ -1645,7 +1647,7 @@ class ScenarioRuntimeTest {
             movementOffsets = setOf(1 to 1, -1 to -1),
         )
 
-        assertIs<TacticalActionResult.Success>(battle.moveUnit("player", 1, 1))
+        assertIs<TacticalActionResult.Success>(battle.movement.moveUnit("player", 1, 1))
     }
 
     @Test
@@ -1657,7 +1659,7 @@ class ScenarioRuntimeTest {
             terrain = terrain,
         )
 
-        assertIs<TacticalActionResult.Rejected>(battle.moveUnit("player", 2, 0))
+        assertIs<TacticalActionResult.Rejected>(battle.movement.moveUnit("player", 2, 0))
     }
 
     @Test
@@ -1670,7 +1672,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("player", "enemy"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("player", "enemy"))
 
         assertEquals(true, result.counterDamage > 0)
         assertEquals(100 - result.counterDamage, battle.units.getValue("player").hitPoints)
@@ -1699,7 +1701,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "enemy", 0))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "enemy", 0))
 
         assertEquals("작열", result.name)
         assertEquals(4, battle.units.getValue("strategist").magicPoints)
@@ -1723,7 +1725,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "ally", 7))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "ally", 7))
 
         assertEquals(setOf("ally", "enemy"), result.targets.map { it.targetId }.toSet())
     }
@@ -1743,7 +1745,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 58))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 58))
 
         assertEquals("호우", result.name)
         assertEquals(BattleWeather.HEAVY_RAIN, battle.weather)
@@ -1759,8 +1761,8 @@ class ScenarioRuntimeTest {
             weatherOffset = 0,
         )
 
-        battle.endTurn()
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         assertEquals(2, battle.round)
         assertEquals(BattleWeather.CLEAR, battle.weather)
@@ -1777,7 +1779,7 @@ class ScenarioRuntimeTest {
             terrain = BattleTerrainGrid(2, 1, listOf(intArrayOf(0, 0))), terrainMagicFlags = mapOf(0 to 0),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 1))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 1))
 
         assertEquals(75, result.targets.single().damage)
     }
@@ -1805,7 +1807,7 @@ class ScenarioRuntimeTest {
             terrainMagicFlags = mapOf(0 to 0, 7 to 1),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "target", wind.id))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "target", wind.id))
 
         // trunc((61 - 32) / 3 + 25 + 5) * 50% = 19. The caster tile
         // is unsuitable (85%), so reading it incorrectly would return 16.
@@ -1832,10 +1834,10 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 58))
-        battle.endTurn()
-        battle.endTurn()
-        assertIs<TacticalActionResult.Rejected>(battle.castMagic("caster", "enemy", 1))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 58))
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
+        assertIs<TacticalActionResult.Rejected>(battle.combat.castMagic("caster", "enemy", 1))
     }
 
     @Test
@@ -1866,8 +1868,8 @@ class ScenarioRuntimeTest {
             terrainMagicFlags = mapOf(7 to flag),
         )
 
-        assertIs<TacticalActionResult.Magic>(state(0).castMagic("caster", "enemy", 0))
-        assertIs<TacticalActionResult.Magic>(state(1).castMagic("caster", "enemy", 0))
+        assertIs<TacticalActionResult.Magic>(state(0).combat.castMagic("caster", "enemy", 0))
+        assertIs<TacticalActionResult.Magic>(state(1).combat.castMagic("caster", "enemy", 0))
     }
 
     @Test
@@ -1887,11 +1889,11 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "ally", 19))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "ally", 19))
         assertEquals(1, battle.units.getValue("ally").attributeLifts.getValue(BattleAttribute.ATTACK))
-        battle.endTurn()
-        battle.endTurn()
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "ally", 20))
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "ally", 20))
         assertEquals(1, battle.units.getValue("ally").attributeLifts.getValue(BattleAttribute.DEFENSE))
     }
 
@@ -1912,12 +1914,12 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val raise = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "ally", 26)).targets.single()
+        val raise = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "ally", 26)).targets.single()
         assertEquals(5, raise.attributes.size)
         assertEquals(1, battle.units.getValue("ally").attributeLifts.getValue(BattleAttribute.ATTACK))
-        battle.endTurn()
-        battle.endTurn()
-        val lower = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 28)).targets.single()
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
+        val lower = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 28)).targets.single()
         assertEquals(-1, lower.attributes.getValue(BattleAttribute.DEFENSE))
         assertEquals(-1, battle.units.getValue("enemy").attributeLifts.getValue(BattleAttribute.MORALE))
     }
@@ -1938,13 +1940,13 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val mpResult = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 6)).targets.single()
+        val mpResult = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 6)).targets.single()
         assertEquals(true, mpResult.magicDrain > 0)
         assertEquals(mpResult.magicDrain, mpResult.magicRecovery)
         assertEquals(15 - mpResult.magicDrain, battle.units.getValue("enemy").magicPoints)
-        battle.endTurn()
-        battle.endTurn()
-        val hpResult = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 5)).targets.single()
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
+        val hpResult = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 5)).targets.single()
         assertEquals(true, hpResult.damage > 0)
         assertEquals(60, hpResult.casterHealing)
         assertEquals(100, battle.units.getValue("caster").hitPoints)
@@ -1965,7 +1967,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 64))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 64))
 
         assertEquals(5, result.targets.size)
         assertEquals(setOf("enemy"), result.targets.map { it.targetId }.toSet())
@@ -1988,7 +1990,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy-one", 2))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy-one", 2))
 
         assertEquals(setOf("enemy-one", "enemy-two"), result.targets.map { it.targetId }.toSet())
     }
@@ -2017,7 +2019,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "ally", 39))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "ally", 39))
 
         assertEquals(1, result.targets.size)
         assertEquals(34, result.targets.single().healing)
@@ -2035,7 +2037,7 @@ class ScenarioRuntimeTest {
             ), emptyList(),
         )
         // floor(50 * 28 / 100) + floor(60 / 10)
-        val result = battle.castMagic("caster", "ally", 39)
+        val result = battle.combat.castMagic("caster", "ally", 39)
         assertIs<TacticalActionResult.Magic>(result, result.toString())
         assertEquals(20, result.targets.single().healing)
     }
@@ -2050,7 +2052,7 @@ class ScenarioRuntimeTest {
             ), emptyList(),
         )
         // base 59 + LRHY 20 + HXCLZS 5, then (100 + 10 + 5 - 10)% = 95%.
-        assertEquals(132, (battle.castMagic("caster", "enemy", 0) as TacticalActionResult.Magic).targets.single().damage)
+        assertEquals(132, (battle.combat.castMagic("caster", "enemy", 0) as TacticalActionResult.Magic).targets.single().damage)
     }
 
     @Test
@@ -2064,7 +2066,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("enemy", "적", Faction.ENEMY, 1, 0, spirit = 1, morale = 1, hitPoints = 500, maxHitPoints = 500),
             ), emptyList(),
         )
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "enemy", 0))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "enemy", 0))
         assertEquals(listOf(88), result.passes[0].map(MagicTarget::damage))
         assertEquals(listOf(79), result.passes[1].map(MagicTarget::damage))
         assertEquals(true, result.critical)
@@ -2089,7 +2091,7 @@ class ScenarioRuntimeTest {
             BattleUnit("second", "둘", Faction.ENEMY, 2, 0, hitPoints = 500, maxHitPoints = 500),
         ), emptyList())
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "first", 0))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "first", 0))
         assertEquals(listOf("first", "second"), result.localSettlements.single().entries.map(MagicLocalSettlementEntry::targetId))
         assertTrue(result.localSettlements.single().entries.all { it.hasStatesPayload })
     }
@@ -2102,7 +2104,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, critical = 1, morale = 1, hitPoints = 500, maxHitPoints = 500, skills = mapOf(49 to 0)),
             ), emptyList(),
         )
-        val result = state.attack("attacker", "target") as TacticalActionResult.Attack
+        val result = state.combat.attack("attacker", "target") as TacticalActionResult.Attack
         assertEquals(100, result.hitRate)
         assertEquals(false, result.critical)
         // The critical gauge succeeded, so source `_attack2` still selects
@@ -2130,8 +2132,8 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, spirit = 1, morale = 1, hitPoints = 500, maxHitPoints = 500, skills = targetSkills),
             ), emptyList(),
         )
-        assertEquals(50, (battle(emptyMap()).castMagic("caster", "target", 0) as TacticalActionResult.Magic).targets.single().hitRate)
-        val evaded = (battle(mapOf(17 to 0)).castMagic("caster", "target", 0) as TacticalActionResult.Magic).targets.single()
+        assertEquals(50, (battle(emptyMap()).combat.castMagic("caster", "target", 0) as TacticalActionResult.Magic).targets.single().hitRate)
+        val evaded = (battle(mapOf(17 to 0)).combat.castMagic("caster", "target", 0) as TacticalActionResult.Magic).targets.single()
         // CLMY is checked after count_magic_hitRate's displayed limit.
         assertEquals(50, evaded.hitRate)
         assertEquals(false, evaded.hit)
@@ -2151,7 +2153,7 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = battle.castMagic("caster", "target", 1) as TacticalActionResult.Magic
+        val result = battle.combat.castMagic("caster", "target", 1) as TacticalActionResult.Magic
 
         assertEquals(94, result.targets.single().hitRate)
     }
@@ -2195,7 +2197,7 @@ class ScenarioRuntimeTest {
         )
 
         for (limit in 3..4) {
-            val target = assertIs<TacticalActionResult.Magic>(battle(limit).castMagic("caster", "target", 0)).targets.single()
+            val target = assertIs<TacticalActionResult.Magic>(battle(limit).combat.castMagic("caster", "target", 0)).targets.single()
             // The source cap is 0, then its common range(i, 25, 100)
             // exposes 25. CLJDMZ is deliberately skipped for this branch.
             assertEquals(25, target.hitRate)
@@ -2225,13 +2227,13 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "enemy", 1))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "enemy", 1))
         assertEquals(BattleStatus.PARALYSIS, result.targets.single().status)
         assertEquals(2, battle.units.getValue("enemy").statuses.getValue(BattleStatus.PARALYSIS))
 
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
         assertEquals(1, battle.units.getValue("enemy").statuses.getValue(BattleStatus.PARALYSIS))
-        assertEquals("행동할 수 없는 상태입니다.", (battle.attack("enemy", "strategist") as TacticalActionResult.Rejected).reason)
+        assertEquals("행동할 수 없는 상태입니다.", (battle.combat.attack("enemy", "strategist") as TacticalActionResult.Rejected).reason)
     }
 
     @Test
@@ -2257,9 +2259,9 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "enemy", 2))
-        battle.endTurn()
-        battle.endTurn()
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "enemy", 2))
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         assertEquals(90, battle.units.getValue("enemy").hitPoints)
         assertEquals(2, battle.units.getValue("enemy").statuses.getValue(BattleStatus.POISON))
@@ -2276,11 +2278,11 @@ class ScenarioRuntimeTest {
             ), emptyList(),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "strategist", 60))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "strategist", 60))
         battle.units.getValue("strategist").hasActed = false
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "enemy", 2))
-        battle.endTurn()
-        battle.endTurn()
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "enemy", 2))
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         assertEquals(85, battle.units.getValue("enemy").hitPoints)
     }
@@ -2297,7 +2299,7 @@ class ScenarioRuntimeTest {
             ), emptyList(),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "ally", 46))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "ally", 46))
 
         assertEquals(emptyMap(), ally.statuses)
         assertEquals(1, ally.attributeLifts[BattleAttribute.ATTACK])
@@ -2313,9 +2315,9 @@ class ScenarioRuntimeTest {
             listOf(BattleUnit("strategist", "책사", Faction.PLAYER, 0, 0, magicPoints = 5, maxMagicPoints = 5, magic = listOf(weaken)), civil, martial), emptyList(),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "civil", 7))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "civil", 7))
         battle.units.getValue("strategist").hasActed = false
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "martial", 7))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "martial", 7))
 
         assertEquals(-1, civil.attributeLifts[BattleAttribute.SPIRIT])
         assertEquals(null, civil.attributeLifts[BattleAttribute.ATTACK])
@@ -2339,18 +2341,18 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("strategist", "enemy", 3))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("strategist", "enemy", 3))
         assertEquals(BattleAttribute.DEFENSE, result.targets.single().attribute)
         assertEquals(-1, battle.units.getValue("enemy").attributeLifts.getValue(BattleAttribute.DEFENSE))
 
-        battle.endTurn()
-        battle.endTurn()
-        val attack = battle.attack("fighter", "enemy") as TacticalActionResult.Attack
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
+        val attack = battle.combat.attack("fighter", "enemy") as TacticalActionResult.Attack
         assertEquals(true, attack.critical)
         assertEquals(108, attack.damage)
-        battle.endTurn()
-        battle.endTurn()
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
+        battle.roundLifecycle.endTurn()
         assertEquals(null, battle.units.getValue("enemy").attributeLifts[BattleAttribute.DEFENSE])
     }
 
@@ -2360,32 +2362,32 @@ class ScenarioRuntimeTest {
             listOf(BattleUnit("enemy", "적", Faction.ENEMY, 0, 0, ai = 0), BattleUnit("player", "아군", Faction.PLAYER, 8, 0)),
             emptyList(),
         )
-        passive.endTurn()
-        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), passive.resolveAiTurn())
+        passive.roundLifecycle.endTurn()
+        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), passive.ai.resolveTurn())
         assertEquals(0, passive.units.getValue("enemy").tileX)
 
         val active = Battle(
             listOf(BattleUnit("enemy", "적", Faction.ENEMY, 0, 0, ai = 1), BattleUnit("player", "아군", Faction.PLAYER, 8, 0)),
             emptyList(),
         )
-        active.endTurn()
-        assertEquals(1, active.resolveAiTurn().moves)
+        active.roundLifecycle.endTurn()
+        assertEquals(1, active.ai.resolveTurn().moves)
         assertEquals(3, active.units.getValue("enemy").tileX)
 
         val destination = Battle(
             listOf(BattleUnit("enemy", "적", Faction.ENEMY, 0, 0, ai = 4, aiTargetX = 2, aiTargetY = 0), BattleUnit("player", "아군", Faction.PLAYER, 8, 0)),
             emptyList(),
         )
-        destination.endTurn()
-        assertEquals(1, destination.resolveAiTurn().moves)
+        destination.roundLifecycle.endTurn()
+        assertEquals(1, destination.ai.resolveTurn().moves)
         assertEquals(2, destination.units.getValue("enemy").tileX)
         // CtrlDZDD only persists BEI_DONG_CHU_JI when the controller is
         // entered while already standing on its destination.  Completing
         // the move this turn therefore retains AI 4 until the next camp.
         assertEquals(4, destination.units.getValue("enemy").ai)
-        destination.endTurn()
-        destination.endTurn()
-        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), destination.resolveAiTurn())
+        destination.roundLifecycle.endTurn()
+        destination.roundLifecycle.endTurn()
+        assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), destination.ai.resolveTurn())
         assertEquals(0, destination.units.getValue("enemy").ai)
     }
 
@@ -2401,8 +2403,8 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        battle.endTurn()
-        assertEquals(AiTurnResult(moves = 1, attacks = 1, holds = 0), battle.resolveAiTurn())
+        battle.roundLifecycle.endTurn()
+        assertEquals(AiTurnResult(moves = 1, attacks = 1, holds = 0), battle.ai.resolveTurn())
         assertEquals(3, battle.units.getValue("enemy").tileX)
         assertEquals(true, battle.units.getValue("player").hitPoints < 100)
     }
@@ -2417,8 +2419,8 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        battle.endTurn()
-        val result = battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        val result = battle.ai.resolveTurn()
 
         assertEquals(1, result.moves)
         assertEquals(1, result.attacks)
@@ -2440,8 +2442,8 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        battle.endTurn()
-        val result = battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        val result = battle.ai.resolveTurn()
 
         assertEquals(1, result.attacks)
         // harmType=4 is MAGIC_HARM_TYPE.NO. Original _countMagicValue
@@ -2466,8 +2468,8 @@ class ScenarioRuntimeTest {
             emptyList(),
         )
 
-        battle.endTurn()
-        val result = battle.resolveAiTurn()
+        battle.roundLifecycle.endTurn()
+        val result = battle.ai.resolveTurn()
 
         assertEquals(1, result.moves)
         assertEquals(1, result.attacks)

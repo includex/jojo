@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
@@ -134,7 +135,6 @@ object BattleTurnSettlementService {
             val side = faction.isPlayerSide()
             env.units().filter { it.effectiveFaction().isPlayerSide() == side }.forEach {
                 it.hasActed = false
-                it.presentation.refreshStatus(it.statuses, it.attributeLifts)
             }
         }
         processEndOfTurn(faction, subflows, env)
@@ -161,7 +161,6 @@ object BattleTurnSettlementService {
             unit.statuses.entries.toList().forEach { (status, rounds) ->
                 if (rounds <= 1) unit.statuses.remove(status) else unit.statuses[status] = rounds - 1
             }
-            unit.presentation.refreshStatus(unit.statuses, unit.attributeLifts)
             unit.attributeLifts.keys.toList().forEach { attribute ->
                 val rounds = unit.attributeLiftRounds[attribute] ?: 0
                 if (rounds <= 1) {
@@ -169,7 +168,6 @@ object BattleTurnSettlementService {
                     unit.attributeLiftRounds[attribute] = env.attributeStatusRoundFor(attribute)
                 } else unit.attributeLiftRounds[attribute] = rounds - 1
             }
-            unit.presentation.refreshAttributeStatusIcons(unit.attributeLifts)
             val terrainId = env.terrain?.terrainAt(unit.tileX, unit.tileY)
             if (unit.hitPoints < unit.maxHitPoints) {
                 val resumeHp = env.terrainResumeRates[terrainId] ?: 0

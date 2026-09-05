@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 internal data class BattlePreparationViewState(
     val backgroundId: Int,

@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 /** Exact static-data branch of Model.fAvatarGroup, shared by game and fixtures. */
 object BattleAvatarResolver {

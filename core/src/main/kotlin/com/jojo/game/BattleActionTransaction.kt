@@ -138,7 +138,6 @@ class BattleActionTransaction internal constructor(
         unit.attributeLifts.putAll(attributeLifts)
         unit.attributeLiftRounds.clear()
         unit.attributeLiftRounds.putAll(attributeLiftRounds)
-        unit.presentation.refreshStatus(unit.statuses, unit.attributeLifts)
     }
 
     /**

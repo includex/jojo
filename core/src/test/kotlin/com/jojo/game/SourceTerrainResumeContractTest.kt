@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
 import kotlin.test.Test
@@ -42,7 +43,7 @@ class SourceTerrainResumeContractTest {
             terrainResumeMp = mapOf(18 to 10),
         )
 
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         assertEquals(Faction.ENEMY, battle.activeFaction)
         assertEquals(70, battle.units.getValue("enemy").hitPoints)

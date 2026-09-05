@@ -101,13 +101,30 @@ class Battle(
 
     /** Live read-only view of tactically active units in insertion order. */
     val units: Map<String, BattleUnit> = battlefield.activeMap
-    private val experienceFacade by lazy { BattleExperienceFacade(configuration, journal) { this.units } }
-    private val presentationTransactions by lazy {
-        BattlePresentationTransactionFacade(battlefield, { this.units }, skillTemps, journal)
+    val experience by lazy { BattleExperienceFacade(configuration, journal) { this.units } }
+    val presentation by lazy {
+        BattlePresentationTransactionFacade(
+            battlefield = battlefield,
+            units = { this.units },
+            skillTemps = skillTemps,
+            journal = journal,
+            moveUnitOperation = { id, x, y -> movement.moveUnit(id, x, y, null) },
+            lastMovePath = ::lastMovePath,
+            attackOperation = { attackerId, targetId -> combat.attack(attackerId, targetId, null) },
+            castMagicOperation = { attackerId, targetId, magicId ->
+                combat.castMagic(attackerId, targetId, magicId, false, false)
+            },
+            usePropertyOperation = { userId, targetId, itemId ->
+                combat.useProperty(userId, targetId, itemId)
+            },
+            isBattleEnded = { outcome() != null },
+            activeFaction = { activeFaction },
+            onUnitRetreat = configuration.onUnitRetreat,
+        )
     }
-    private val combatFacade by lazy { BattleCombatFacade(this) }
-    private val aiFacade by lazy { BattleAiFacade(this) }
-    internal val movementQueries by lazy {
+    val combat by lazy { BattleCombatFacade(this) }
+    val ai by lazy { BattleAiFacade(this) }
+    val movement by lazy {
         BattleMovementQueryFacade(
             configuration = configuration,
             journal = journal,
@@ -119,7 +136,7 @@ class Battle(
             areAllied = ::areAllied,
         )
     }
-    private val roundLifecycle by lazy {
+    val roundLifecycle by lazy {
         BattleRoundLifecycleFacade(
             configuration,
             journal,
@@ -127,7 +144,7 @@ class Battle(
             { this.units.values },
             skillTemps,
             this,
-            ::aiSortValue
+            { unit -> BattleAiScorer.aiSortValue(unit, configuration.terrain, configuration.terrainResumeRates) }
         )
     }
 
@@ -162,119 +179,6 @@ class Battle(
         private set(value) {
             journal.setEnemyMoney(value)
         }
-
-    fun consumeEquipmentUpgrade(): CampaignEquipmentExperienceResult? =
-        experienceFacade.consumeEquipmentUpgrade()
-
-    /** BattleScreen._addWeaponExp entry used by settlement and deterministic route tests. */
-    fun addEquipmentExperience(attackerId: String, targetId: String, damage: Int) =
-        experienceFacade.addEquipmentExperience(attackerId, targetId, damage)
-
-    internal fun notifyPhysicalDamage(attacker: BattleUnit, target: BattleUnit, damage: Int) =
-        experienceFacade.notifyPhysicalDamage(attacker, target, damage)
-
-    internal fun notifyEquipmentExperienceAward(
-        recipient: BattleUnit,
-        opponent: BattleUnit,
-        amount: Int,
-        kind: BattleEquipmentExperienceKind,
-    ) = experienceFacade.notifyEquipmentExperienceAward(recipient, opponent, amount, kind)
-
-    /** Calculates the per-hit equipment experience before recipient-level max merging. */
-    internal fun equipmentExperienceAmount(
-        recipient: BattleUnit,
-        opponent: BattleUnit,
-        resolvedHarm: Int,
-        kind: BattleEquipmentExperienceKind,
-    ): Int = experienceFacade.equipmentExperienceAmount(recipient, opponent, resolvedHarm, kind)
-
-    internal fun notifyUnitDefeated(winner: BattleUnit, defeated: BattleUnit) =
-        experienceFacade.notifyUnitDefeated(winner, defeated)
-
-    internal fun notifyBattleExperience(unit: BattleUnit, amount: Int) =
-        experienceFacade.notifyBattleExperience(unit, amount)
-
-    /** BattleScreen.count_exp, before g_charinfo's per-attacker EXP_ADD max merge. */
-    internal fun battleExperience(attacker: BattleUnit, target: BattleUnit, defeated: Boolean): Int =
-        experienceFacade.battleExperience(attacker, target, defeated)
-
-    internal fun notifyConsumeAutomaticProperty(itemId: Int) {
-        experienceFacade.notifyConsumeAutomaticProperty(itemId, configuration.consumeAutomaticProperty)
-    }
-
-    internal fun notifyPermanentProperty(item: BattlePropertyItem, target: BattleUnit) {
-        experienceFacade.notifyPermanentProperty(item, target, configuration.onPermanentProperty)
-    }
-
-    internal fun consumeSelectedProperty(itemId: Int): Boolean {
-        return experienceFacade.consumeSelectedProperty(itemId, configuration.consumeProperty)
-    }
-
-    fun presentationUnit(id: String): BattleUnit? = battlefield.presentationUnit(id)
-    fun pendingPresentationUnits(): Collection<BattleUnit> = battlefield.pendingPresentationUnits()
-
-    /**
-     * Source traces keep a defeated BattleUnit node through anime23/24 and
-     * its final hidden callback. Tactical queries must still use [units],
-     * while render/trace observers need both collections in stable order.
-     */
-    fun presentationUnits(): List<BattleUnit> = battlefield.allPresentationUnits()
-    fun clearPresentationUnit(id: String) {
-        battlefield.clearRetained(id)
-    }
-
-    fun completeScriptedUnitHide(id: String) {
-        battlefield.hideForPresentation(id)
-    }
-
-    /** BattleUnit.show makes a retained defeated unit participate in combat again. */
-    fun restorePresentationUnit(id: String): BattleUnit? = battlefield.restore(id)
-    fun incrementUnitRetreat(unit: BattleUnit) {
-        unit.retreatCount++
-        configuration.onUnitRetreat(unit)
-    }
-
-    data class DeferredMoveResult(
-        val result: TacticalActionResult,
-        val path: List<Pair<Int, Int>>,
-    )
-
-    internal fun runtimeSnapshot(): BattleActionSnapshot =
-        presentationTransactions.runtimeSnapshot()
-
-    internal fun restoreRuntime(snapshot: BattleActionSnapshot) =
-        presentationTransactions.restoreRuntime(snapshot)
-
-    internal fun createActionTransaction(
-        actorId: String,
-        before: BattleActionSnapshot,
-        after: BattleActionSnapshot,
-        hitSideEffects: List<() -> Unit>,
-        completionSideEffects: List<() -> Unit>,
-    ): BattleActionTransaction = presentationTransactions.createActionTransaction(
-        actorId, before, after, hitSideEffects, completionSideEffects,
-    )
-
-    fun moveUnitForPresentation(id: String, targetX: Int, targetY: Int): DeferredMoveResult {
-        val (res, path) = presentationTransactions.moveUnit(
-            id, targetX, targetY,
-            moveUnit = { uId, x, y -> moveUnit(uId, x, y) },
-            lastMovePath = ::lastMovePath,
-        )
-        return DeferredMoveResult(res, path)
-    }
-
-    fun attackForPresentation(attackerId: String, targetId: String): TacticalActionResult =
-        presentationTransactions.attack(attackerId, targetId, ::attack)
-
-    fun castMagicForPresentation(attackerId: String, targetId: String, magicId: Int): TacticalActionResult =
-        presentationTransactions.castMagic(attackerId, targetId, magicId, ::castMagic)
-
-    fun usePropertyForPresentation(userId: String, targetId: String, itemId: Int): TacticalActionResult =
-        presentationTransactions.useProperty(userId, targetId, itemId, ::useProperty)
-
-    fun hasPendingAiUnits(): Boolean =
-        presentationTransactions.hasPendingAiUnits(outcome() != null, activeFaction, units.values)
 
     val firedEventIds: LinkedHashSet<String> get() = journal.mutableFiredEventIds()
     var round: Int
@@ -320,56 +224,6 @@ class Battle(
         enemyMoney = value
     }
 
-    /**
-     * Compatibility wrapper for model-only callers.  Production turn flow
-     * uses the individual lifecycle methods below so every source coroutine
-     * barrier can be presented before the following mutation is applied.
-     */
-    fun endTurn(): TurnResult = roundLifecycle.endTurn()
-
-    /** BattleScreen.restore, before its nested unitDeath callback. */
-    fun settleActiveCampEnd(): CampSettlement =
-        roundLifecycle.settleActiveCampEnd()
-
-    /**
-     * `_setOper` changes curCamp before RoundLayer and before `_stateProcess`.
-     * This method deliberately does not apply state, reset actors, or weather.
-     */
-    fun advanceToNextCamp(): TurnResult {
-        return roundLifecycle.advanceToNextCamp()
-    }
-
-    /** First run_script inside unitDeath, after `_stateProcess` presentation. */
-    fun runActiveCampEvents(): List<String> =
-        roundLifecycle.runActiveCampEvents()
-
-    /** BattleScreen._stateProcess; mutations occur only after RoundLayer closes. */
-    fun settleActiveCampStart(): CampSettlement =
-        roundLifecycle.settleActiveCampStart()
-
-    /**
-     * Source `_ai2` captures its actor order after state settlement/death.
-     * Resetting and sorting here prevents a future camp from being observable
-     * while the preceding card or state animation is still on screen.
-     */
-    fun prepareActiveCampOperation() {
-        roundLifecycle.prepareActiveCampOperation()
-    }
-
-    /** `addRound`, before the new-round battle script. */
-    fun advanceRound(): RoundAdvance {
-        return roundLifecycle.advanceRound()
-    }
-
-    /** `resetSkillTemp(T)`, after new-round script/unitDeath and before weather. */
-    fun resetCompletedRoundSkillTemps(completedRound: Int) =
-        roundLifecycle.resetCompletedRoundSkillTemps(completedRound)
-
-    /** `_countCurrentWeather`/`_switchWeather`, after new-round script/death. */
-    fun applyScheduledWeather(): WeatherTransition {
-        return roundLifecycle.applyScheduledWeather()
-    }
-
     fun unitAt(tileX: Int, tileY: Int): BattleUnit? = battlefield.unitAt(tileX, tileY)
 
     fun outcome(): BattleOutcome? = outcomeCoordinator.outcome()
@@ -402,31 +256,6 @@ class Battle(
         journal.addBlockedTiles(values)
     }
 
-    /**
-     * The same weighted flood-fill used by BattleScreen._showMoveArea.  This
-     * is exposed to the renderer so the desktop client can show the original
-     * selectable movement area instead of accepting invisible movement.
-     */
-    fun reachableTiles(id: String): Map<Pair<Int, Int>, Int> =
-        movementQueries.reachableTiles(id)
-
-    /**
-     * Read-only S57 route probe after an attackable guard is removed. The
-     * guard attack itself consumes the current action; source0/escort policy
-     * may therefore use the following or the next real movement turn to enter
-     * a leader's physical attack-staging tile. This deliberately projects no
-     * more than those two turns and never mutates a BattleUnit.
-     */
-    fun canEnterTilesIgnoringEnemyWithinMoves(
-        id: String,
-        ignoredEnemyId: String,
-        start: Pair<Int, Int>,
-        targetTiles: Set<Pair<Int, Int>>,
-        moves: Int = 2,
-    ): Boolean = movementQueries.canEnterTilesIgnoringEnemyWithinMoves(
-        id, ignoredEnemyId, start, targetTiles, moves,
-    )
-
     /** Scenario scripts can end a battle through reward()/lose() without eliminating every enemy. */
     fun setScriptedOutcome(value: BattleOutcome) = outcomeCoordinator.setScriptedOutcome(value)
 
@@ -436,54 +265,6 @@ class Battle(
      * publish this after the initial BattleScreen script invocation.
      */
     fun syncScriptedOutcome(value: BattleOutcome?) = outcomeCoordinator.syncScriptedOutcome(value)
-
-    fun moveUnit(id: String, targetX: Int, targetY: Int, maxDistance: Int? = null): TacticalActionResult =
-        movementQueries.moveUnit(id, targetX, targetY, maxDistance)
-
-    fun attack(attackerId: String, targetId: String, damage: Int? = null): TacticalActionResult =
-        combatFacade.attack(attackerId, targetId, damage)
-
-
-    /**
-     * BattleScreen.showUseProperty + _usePro2 for the portable combat
-     * consumables.  The original permits selecting an allied target in the
-     * infantry hit area; this tactical context uses the same adjacent area.
-     */
-    fun useProperty(userId: String, targetId: String, itemId: Int): TacticalActionResult =
-        combatFacade.useProperty(userId, targetId, itemId)
-
-    /**
-     * BattleScreen._usePro2's state mutation, shared by the player-selected
-     * path and `_attack3` ZDSY.  The caller owns inventory mutation because
-     * ZDSY uses ItemStore.pushProperty directly before entering _usePro2.
-     */
-    internal fun applyProperty(
-        item: BattlePropertyItem,
-        target: BattleUnit,
-        consume: () -> Boolean,
-    ): TacticalActionResult.Item? =
-        combatFacade.applyProperty(item, target, consume, ::notifyPermanentProperty)
-
-    /** BattleScreen.attackAction: scripted/cinematic attack outside normal turn input. */
-    fun forcedAttack(attackerId: String, targetId: String): TacticalActionResult =
-        combatFacade.forcedAttack(attackerId, targetId)
-
-    /**
-     * Original offensive-strategy baseline: range/MP/area, magic hit rate,
-     * spirit formula and defender arm magic resistance. Status/weather/skill
-     * modifiers are resolved by the higher-level script layer.
-     */
-    fun castMagic(
-        attackerId: String,
-        targetId: String,
-        magicId: Int,
-        reaction: Boolean = false,
-        bypassCondition: Boolean = false,
-    ): TacticalActionResult = combatFacade.castMagic(attackerId, targetId, magicId, reaction, bypassCondition)
-
-    /** Coordinate-target special magic.  SHUN_YI moves its caster to a vacant tile. */
-    fun castMagicAt(attackerId: String, targetX: Int, targetY: Int, magicId: Int): TacticalActionResult =
-        combatFacade.castMagicAt(attackerId, targetX, targetY, magicId)
 
     fun addUnit(unit: BattleUnit) {
         battlefield.add(unit)
@@ -499,39 +280,6 @@ class Battle(
     /** BattleUnit.setStateRound when an event explicitly supplies a status. */
     fun rollStatusDuration(): Int = probabilityResolver.rollStatusDuration()
 
-    /** Exact numeric key built by BattleScreen.s_AISortUnit. */
-    private fun aiSortValue(unit: BattleUnit): Double =
-        BattleAiScorer.aiSortValue(unit, configuration.terrain, configuration.terrainResumeRates)
-
-    /**
-     * Cocos BattleConfg.AI 0..9 dispatch, without presentation delays.  The
-     * scripted target id/coordinates are retained from BattleUnit.setAI.
-     */
-    @JvmOverloads
-    fun resolveAiTurn(maxUnits: Int = Int.MAX_VALUE, deferMutations: Boolean = false): AiTurnResult =
-        aiFacade.resolveTurn(maxUnits, deferMutations)
-
-    /**
-     * Captures the actual AI scorer for one source character without running
-     * a turn, moving a unit, or injecting an expected choice.
-     */
-    fun traceAiPlannerAtCurrentPoint(characterId: Int, aiFlags: Int = 1): AiPlannerTrace? =
-        aiFacade.tracePlanner(characterId, aiFlags)
-
-    /** Injectable `Control._countAttackValue` preview for one primary target. */
-    fun previewAiAttackValue(attackerId: String, targetId: String): Int =
-        aiFacade.previewAttackValue(attackerId, targetId)
-
-    /**
-     * Read-only ordinary physical-harm preview for input planning.  This is
-     * the source `countBaseHarm` value before hit, critical, and the
-     * move-dependent attack effects are rolled, so asking for it cannot
-     * consume a skill temp or advance either unit's combat state.
-     */
-    fun previewPhysicalDamage(attackerId: String, targetId: String): Int {
-        return combatFacade.physicalDamagePreview(attackerId, targetId)
-    }
-
     internal fun canAttack(attacker: BattleUnit, target: BattleUnit): Boolean =
         BattleAiScorer.canAttack(attacker, target)
 
@@ -541,38 +289,5 @@ class Battle(
     internal fun areAllied(left: BattleUnit, right: BattleUnit): Boolean =
         areAllied(left.effectiveFaction(), right.effectiveFaction())
 
-
-    internal fun findMovementPath(
-        unit: BattleUnit,
-        targetX: Int,
-        targetY: Int,
-        avoidEnemies: Boolean = false,
-        penalizeEnemyTiles: Boolean = false,
-        allowEnemyOnTarget: Boolean = false,
-    ): List<Pair<Int, Int>>? = movementQueries.findMovementPath(
-        unit, targetX, targetY, avoidEnemies, penalizeEnemyTiles, allowEnemyOnTarget,
-    )
-
-    fun scriptedMovePath(characterId: Int, targetX: Int, targetY: Int): List<Pair<Int, Int>>? =
-        movementQueries.scriptedMovePath(characterId, targetX, targetY)
-
-    internal fun findReachableEmptyPosition(
-        unit: BattleUnit,
-        seed: Pair<Int, Int>,
-        reachable: Set<Pair<Int, Int>>,
-    ): Pair<Int, Int>? = movementQueries.findReachableEmptyPosition(unit, seed, reachable)
-
-    internal fun backPosition(defender: BattleUnit, attacker: BattleUnit): Pair<Int, Int>? =
-        movementQueries.backPosition(defender, attacker, ::unitAt)
-
-    internal fun facingDirection(fromX: Int, fromY: Int, toX: Int, toY: Int): Int =
-        movementQueries.facingDirection(fromX, fromY, toX, toY)
-
-    internal fun movePoints(
-        unit: BattleUnit,
-        movement: Int,
-        ignoredEnemyId: String? = null,
-        startOverride: Pair<Int, Int>? = null,
-    ) = movementQueries.movePoints(unit, movement, ignoredEnemyId, startOverride)
 
 }

@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.battle.timeline.BattlePhysicalPresentationTimeline
+
 import com.badlogic.gdx.utils.JsonValue
 
 internal data class ScenarioTacticalEnvironment(

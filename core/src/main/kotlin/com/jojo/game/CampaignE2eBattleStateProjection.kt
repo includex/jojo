@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 internal class CampaignE2eBattleStateProjection {
     fun project(
@@ -57,7 +58,7 @@ internal class CampaignE2eBattleStateProjection {
             autoBattleConfirmScreenY = autoBattleConfirmButton.second,
             manualMoveDebug = battle.units.values.joinToString(";") {
                 "${it.id}/${it.faction}/v=${it.visible}/a=${it.hasActed}/${it.tileX},${it.tileY}/r=${
-                    battle.reachableTiles(
+                    battle.movement.reachableTiles(
                         it.id
                     ).size
                 }"

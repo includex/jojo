@@ -22,7 +22,7 @@ class BattleMoveSoundRateTest {
             ),
             events = emptyList(),
         )
-        return assertIs<TacticalActionResult.Attack>(battle.attack("a", "t")).damage
+        return assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t")).damage
     }
 
     @Test

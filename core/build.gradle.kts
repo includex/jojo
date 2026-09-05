@@ -2,6 +2,16 @@ plugins {
     kotlin("jvm")
 }
 
+// Trace harnesses are verification programs, not production entry points. The
+// core-owned comparison tasks retain their public names, but execute the
+// verification module's classes with that module's complete runtime classpath.
+evaluationDependsOn(":verification")
+val verificationMainRuntimeClasspath = project(":verification")
+    .extensions
+    .getByType<org.gradle.api.tasks.SourceSetContainer>()
+    .getByName("main")
+    .runtimeClasspath
+
 dependencies {
     api("com.badlogicgames.gdx:gdx:${property("gdxVersion")}")
     api("com.badlogicgames.gdx:gdx-freetype:${property("gdxVersion")}")
@@ -1101,5 +1111,65 @@ tasks.register<Test>("titleInteractionContractTest") {
         includeTestsMatching("com.jojo.game.TitleInteractionTest")
         includeTestsMatching("com.jojo.game.SettingLayerTest")
         includeTestsMatching("com.jojo.game.ProgressLoadingLayerTest")
+    }
+}
+
+private val relocatedTraceHarnesses = setOf(
+    "AutoBattleTraceHarness",
+    "BattleBootstrapTraceHarness",
+    "BattleScreenTraceHarness",
+    "BattleViewTraceHarness",
+    "CharacterAbilityTraceHarness",
+    "ChoiceCommandTraceHarness",
+    "CmdLayerTraceHarness",
+    "ConfigFullTraceHarness",
+    "EditMutationTraceHarness",
+    "EndFlowTraceHarness",
+    "EnemyTurnTraceHarness",
+    "FightPresentationTraceHarness",
+    "ForcesListLayerTraceHarness",
+    "FoundationTraceHarness",
+    "FrameworkServiceTraceHarness",
+    "GameDataTraceHarness",
+    "HallPrepTraceHarness",
+    "HallUiTraceHarness",
+    "HeadTraceHarness",
+    "HelperLayerTraceHarness",
+    "ItemEquipTraceHarness",
+    "LoadGameTraceHarness",
+    "LoadLayerTraceHarness",
+    "MagicTraceHarness",
+    "MapInfoLayerTraceHarness",
+    "MenuLayerTraceHarness",
+    "MiniMapLayerTraceHarness",
+    "MiscUiTraceHarness",
+    "ModelRandomTraceHarness",
+    "ModelTraceHarness",
+    "PlatformTraceHarness",
+    "Progress2TraceHarness",
+    "ProgressionLayerTraceHarness",
+    "PropertyLayerTraceHarness",
+    "RoundLayerTraceHarness",
+    "SaveLayerTraceHarness",
+    "ScenarioRuntimeTraceHarness",
+    "SectionLayerTraceHarness",
+    "SendGiftsTraceHarness",
+    "SettingLayerTraceHarness",
+    "ShopRewardTraceHarness",
+    "SystemUiTraceHarness",
+    "TerrainLayerTraceHarness",
+    "TreasureLayerTraceHarness",
+    "UnitInfoTraceHarness",
+    "UnitListInfoLayerTraceHarness",
+    "UpgradeSkillTraceHarness",
+    "WelcomeTraceHarness",
+)
+
+tasks.withType<JavaExec>().configureEach {
+    val harnessName = mainClass.orNull?.substringAfterLast('.')
+    if (harnessName in relocatedTraceHarnesses) {
+        dependsOn(":verification:classes")
+        classpath = verificationMainRuntimeClasspath
+        mainClass.set("com.jojo.game.verification.$harnessName")
     }
 }

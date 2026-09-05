@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.campaign.*
 
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
@@ -32,7 +33,7 @@ class BattleAuthoredSettlementSubflowTest {
         )
         val battle = Battle(listOf(caster, target), emptyList())
 
-        val settlement = battle.settleActiveCampStart()
+        val settlement = battle.roundLifecycle.settleActiveCampStart()
         assertTrue(settlement.subflowsCaptured)
         assertTrue(settlement.changes.none { it.unitId == target.id && BattleStatus.PARALYSIS in it.statusesAfter },
             "caster-local cleanse runs before the iterator reaches the following target")
@@ -91,7 +92,7 @@ class BattleAuthoredSettlementSubflowTest {
             },
         )
 
-        val settlement = battle.settleActiveCampEnd()
+        val settlement = battle.roundLifecycle.settleActiveCampEnd()
         val growth = settlement.subflows.single() as SettlementSubflow.Growth
         assertEquals(listOf(SettlementGrowthKind.UNIT_EXP, SettlementGrowthKind.WEAPON_EXP, SettlementGrowthKind.ARMOR_EXP),
             growth.grants.map { it.kind })

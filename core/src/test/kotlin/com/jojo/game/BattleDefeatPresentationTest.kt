@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.timeline.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.*
 
@@ -29,16 +30,16 @@ class BattleDefeatPresentationTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "target", damage = 10) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "target", damage = 10) as TacticalActionResult.Attack
 
         assertEquals(true, result.defeated)
         assertFalse("target" in battle.units)
-        assertEquals(10, assertNotNull(battle.presentationUnit("target")).maxHitPoints)
-        assertEquals(0, battle.presentationUnit("target")!!.hitPoints)
+        assertEquals(10, assertNotNull(battle.presentation.presentationUnit("target")).maxHitPoints)
+        assertEquals(0, battle.presentation.presentationUnit("target")!!.hitPoints)
         // unitDeath removes this retained node only after its authored
         // SHOU_GONG_JI3/death animation completes.
-        battle.clearPresentationUnit("target")
-        assertNull(battle.presentationUnit("target"))
+        battle.presentation.clearPresentationUnit("target")
+        assertNull(battle.presentation.presentationUnit("target"))
     }
 
     @Test
@@ -51,12 +52,12 @@ class BattleDefeatPresentationTest {
             events = emptyList(),
         )
 
-        battle.attack("attacker", "target", damage = 10)
+        battle.combat.attack("attacker", "target", damage = 10)
 
         assertFalse("target" in battle.units)
-        assertTrue(battle.presentationUnits().any { it.id == "target" && it.hitPoints == 0 })
-        battle.completeScriptedUnitHide("target")
-        assertTrue(battle.presentationUnits().any { it.id == "target" && !it.visible })
+        assertTrue(battle.presentation.presentationUnits().any { it.id == "target" && it.hitPoints == 0 })
+        battle.presentation.completeScriptedUnitHide("target")
+        assertTrue(battle.presentation.presentationUnits().any { it.id == "target" && !it.visible })
     }
 
     @Test
@@ -68,13 +69,13 @@ class BattleDefeatPresentationTest {
         )
         val battle = Battle(listOf(victim), emptyList(), enabledFeatures = 32)
 
-        val settlement = battle.settleActiveCampEnd()
+        val settlement = battle.roundLifecycle.settleActiveCampEnd()
 
         assertEquals(9, settlement.changes.single { it.unitId == "victim" }.hitPointsBefore)
         assertEquals(0, settlement.changes.single { it.unitId == "victim" }.hitPointsAfter)
         assertFalse("victim" in battle.units)
-        assertSame(victim, battle.pendingPresentationUnits().single { it.id == "victim" })
-        assertEquals(listOf(victim), UnitDeathPresentation.sortedDying(battle.presentationUnits()))
+        assertSame(victim, battle.presentation.pendingPresentationUnits().single { it.id == "victim" })
+        assertEquals(listOf(victim), UnitDeathPresentation.sortedDying(battle.presentation.presentationUnits()))
     }
 
     @Test
@@ -86,7 +87,7 @@ class BattleDefeatPresentationTest {
         )
         val battle = Battle(listOf(victim), emptyList(), enabledFeatures = 0)
 
-        battle.settleActiveCampEnd()
+        battle.roundLifecycle.settleActiveCampEnd()
 
         assertEquals(1, victim.hitPoints)
         assertSame(victim, battle.units["victim"])
@@ -97,10 +98,10 @@ class BattleDefeatPresentationTest {
         val unit = BattleUnit("mine-0", "조조", Faction.PLAYER, 1, 2)
         val battle = Battle(listOf(unit), emptyList())
 
-        battle.completeScriptedUnitHide(unit.id)
+        battle.presentation.completeScriptedUnitHide(unit.id)
 
-        assertNotNull(battle.presentationUnit(unit.id))
-        assertFalse(battle.presentationUnit(unit.id)!!.visible)
+        assertNotNull(battle.presentation.presentationUnit(unit.id))
+        assertFalse(battle.presentation.presentationUnit(unit.id)!!.visible)
     }
 
     @Test
@@ -141,13 +142,13 @@ class BattleDefeatPresentationTest {
             listOf(BattleUnit("attacker", "공격자", Faction.PLAYER, 0, 0), target),
             emptyList(),
         )
-        battle.attack("attacker", "target", 10)
+        battle.combat.attack("attacker", "target", 10)
 
-        val restored = battle.restorePresentationUnit("target")
+        val restored = battle.presentation.restorePresentationUnit("target")
 
         assertSame(target, restored)
         assertSame(target, battle.units["target"])
-        assertTrue(battle.pendingPresentationUnits().none { it.id == "target" })
+        assertTrue(battle.presentation.pendingPresentationUnits().none { it.id == "target" })
         assertEquals(10, target.hitPoints)
         assertEquals(5, target.magicPoints)
         assertFalse(target.retreatFlag)
@@ -165,7 +166,7 @@ class BattleDefeatPresentationTest {
         )
         val unit = battle.units.getValue("mine-0")
 
-        battle.incrementUnitRetreat(unit)
+        battle.presentation.incrementUnitRetreat(unit)
 
         assertEquals(5, unit.retreatCount)
         assertEquals(5, campaign.unitAttribute(0, 15))

@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.application.navigation.CampaignRestoreDestination
+import com.jojo.game.application.navigation.campaignRestoreDestination
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -1,7 +1,5 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.BattleAttribute
-import com.jojo.game.BattleStatus
 import com.jojo.game.BattleUnit
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.SourceRandomStreams

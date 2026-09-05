@@ -21,7 +21,7 @@ class BattleQiLingTest {
         )
         if (withTargetCampNeighbor) units += BattleUnit("near", "near", Faction.ENEMY, 2, 0)
         val battle = Battle(units, events = emptyList())
-        return assertIs<TacticalActionResult.Attack>(battle.attack("a", "t")).damage
+        return assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t")).damage
     }
 
     @Test

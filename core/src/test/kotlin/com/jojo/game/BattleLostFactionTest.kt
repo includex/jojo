@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -57,11 +58,11 @@ class BattleLostFactionTest {
             events = emptyList(),
         )
 
-        battle.settleActiveCampStart()
+        battle.roundLifecycle.settleActiveCampStart()
         assertEquals(1, lost.statuses[BattleStatus.LOST], "MINE pass must not consume an effectively hostile MS unit")
-        battle.advanceToNextCamp() // FRIEND
-        battle.advanceToNextCamp() // ENEMY
-        val settlement = battle.settleActiveCampStart()
+        battle.roundLifecycle.advanceToNextCamp() // FRIEND
+        battle.roundLifecycle.advanceToNextCamp() // ENEMY
+        val settlement = battle.roundLifecycle.settleActiveCampStart()
 
         assertFalse(BattleStatus.LOST in lost.statuses)
         assertEquals(Faction.PLAYER, lost.effectiveFaction())
@@ -83,12 +84,12 @@ class BattleLostFactionTest {
             ),
             events = emptyList(),
         )
-        repeat(3) { battle.advanceToNextCamp() }
+        repeat(3) { battle.roundLifecycle.advanceToNextCamp() }
         assertEquals(Faction.REINFORCEMENTS, battle.activeFaction)
-        battle.prepareActiveCampOperation()
+        battle.roundLifecycle.prepareActiveCampOperation()
 
-        assertTrue(battle.hasPendingAiUnits())
-        battle.resolveAiTurn(maxUnits = 1)
+        assertTrue(battle.presentation.hasPendingAiUnits())
+        battle.ai.resolveTurn(maxUnits = 1)
         assertTrue(lost.hasActed)
     }
 }

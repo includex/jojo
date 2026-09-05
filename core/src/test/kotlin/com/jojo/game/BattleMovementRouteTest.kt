@@ -25,7 +25,7 @@ class BattleMovementRouteTest {
         )
         val battle = Battle(listOf(actor), emptyList(), terrain = terrain)
 
-        assertEquals(listOf(0 to 0, 0 to 1, 0 to 2, 1 to 2, 2 to 2), battle.scriptedMovePath(0, 2, 2))
+        assertEquals(listOf(0 to 0, 0 to 1, 0 to 2, 1 to 2, 2 to 2), battle.movement.scriptedMovePath(0, 2, 2))
         assertEquals(0 to 0, actor.tileX to actor.tileY)
     }
 
@@ -40,7 +40,7 @@ class BattleMovementRouteTest {
         val battle = Battle(listOf(actor, occupied), emptyList(), terrain = terrain)
 
         // Source QUN_XIONG order checks below the occupied seed first.
-        assertEquals(2 to 3, battle.scriptedMovePath(0, 2, 2)?.last())
+        assertEquals(2 to 3, battle.movement.scriptedMovePath(0, 2, 2)?.last())
         assertEquals(0 to 0, actor.tileX to actor.tileY)
     }
 
@@ -59,7 +59,7 @@ class BattleMovementRouteTest {
             movementOffsets = hashSetOf(1 to 0, 0 to -1, -1 to 0, 0 to 1),
         )
 
-        assertIs<TacticalActionResult.Success>(battle.moveUnit("u", 2, 2))
+        assertIs<TacticalActionResult.Success>(battle.movement.moveUnit("u", 2, 2))
         assertEquals(listOf(0 to 0, 0 to 1, 0 to 2, 1 to 2, 2 to 2), battle.lastMovePath("u"))
         assertEquals(2, battle.units.getValue("u").direction)
     }
@@ -75,9 +75,9 @@ class BattleMovementRouteTest {
             events = emptyList(), terrain = terrain, initialWeather = BattleWeather.WINDY,
         )
 
-        assertTrue(1 to 0 in battle.reachableTiles("u"))
-        assertTrue(2 to 0 !in battle.reachableTiles("u"))
-        assertIs<TacticalActionResult.Rejected>(battle.moveUnit("u", 2, 0))
+        assertTrue(1 to 0 in battle.movement.reachableTiles("u"))
+        assertTrue(2 to 0 !in battle.movement.reachableTiles("u"))
+        assertIs<TacticalActionResult.Rejected>(battle.movement.moveUnit("u", 2, 0))
     }
 
     @Test
@@ -95,8 +95,8 @@ class BattleMovementRouteTest {
         // BattleScreen.canMovePoints keeps the friendly x=1 node in psHash,
         // allowing its child x=2.  The public selection area omits x=1 but
         // the legal destination x=2 retains that exact parent route.
-        assertTrue(2 to 0 in battle.reachableTiles("u"))
-        assertIs<TacticalActionResult.Success>(battle.moveUnit("u", 2, 0))
+        assertTrue(2 to 0 in battle.movement.reachableTiles("u"))
+        assertIs<TacticalActionResult.Success>(battle.movement.moveUnit("u", 2, 0))
         assertEquals(listOf(0 to 0, 1 to 0, 2 to 0), battle.lastMovePath("u"))
     }
 
@@ -115,10 +115,10 @@ class BattleMovementRouteTest {
         // removes it, staging (4,0) is not reachable in one move but is
         // reachable on the following movement turn. The probe mutates none
         // of the actor/guard state while proving that bounded route.
-        assertTrue(!battle.canEnterTilesIgnoringEnemyWithinMoves(
+        assertTrue(!battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
             "escort", "guard", 0 to 0, setOf(4 to 0), moves = 1,
         ))
-        assertTrue(battle.canEnterTilesIgnoringEnemyWithinMoves(
+        assertTrue(battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
             "escort", "guard", 0 to 0, setOf(4 to 0), moves = 2,
         ))
         assertEquals(0 to 0, battle.units.getValue("escort").tileX to battle.units.getValue("escort").tileY)
@@ -153,9 +153,9 @@ class BattleMovementRouteTest {
             events = emptyList(), terrain = terrain,
         )
 
-        assertTrue(1 to 0 in blocked.reachableTiles("u"))
-        assertTrue(2 to 0 !in blocked.reachableTiles("u"))
-        assertTrue(2 to 0 in bypass.reachableTiles("u"))
+        assertTrue(1 to 0 in blocked.movement.reachableTiles("u"))
+        assertTrue(2 to 0 !in blocked.movement.reachableTiles("u"))
+        assertTrue(2 to 0 in bypass.movement.reachableTiles("u"))
     }
 
     @Test
@@ -170,8 +170,8 @@ class BattleMovementRouteTest {
             events = emptyList(), terrain = terrain,
         )
 
-        assertTrue(1 to 0 !in normal.reachableTiles("u"))
-        assertTrue(2 to 0 in ignoresTerrain.reachableTiles("u"))
+        assertTrue(1 to 0 !in normal.movement.reachableTiles("u"))
+        assertTrue(2 to 0 in ignoresTerrain.movement.reachableTiles("u"))
     }
 
     @Test
@@ -181,7 +181,7 @@ class BattleMovementRouteTest {
             events = emptyList(),
         )
 
-        assertTrue(battle.reachableTiles("u").isEmpty())
+        assertTrue(battle.movement.reachableTiles("u").isEmpty())
     }
 
     @Test
@@ -199,7 +199,7 @@ class BattleMovementRouteTest {
             terrain = terrain,
         )
 
-        assertIs<TacticalActionResult.Success>(battle.moveUnit("u", 2, 0))
+        assertIs<TacticalActionResult.Success>(battle.movement.moveUnit("u", 2, 0))
         // Source canMovePoints processes offsets FIFO: down first, then
         // right.  The more economical direct route is retained as the parent
         // chain supplied to BattleScreen.unitMove/BattleUnit.move2.

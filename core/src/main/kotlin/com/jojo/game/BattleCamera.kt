@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 /**
  * Source map geometry after BattleScreen._loadBg has assigned the JSON map

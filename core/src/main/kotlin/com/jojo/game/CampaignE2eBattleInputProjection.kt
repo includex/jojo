@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 internal data class CampaignE2eActionInputs(
     val manualAttack: CampaignE2eAttackInput?,
@@ -33,7 +34,7 @@ internal class CampaignE2eBattleInputProjection {
                 val current = unit.tileX to unit.tileY
                 val reachable = executableProductionMoveTiles(
                     current,
-                    battle.reachableTiles(unit.id).keys,
+                    battle.movement.reachableTiles(unit.id).keys,
                     occupiedTiles,
                 )
                 val escortGuards = visibleEnemies.asSequence()
@@ -54,7 +55,7 @@ internal class CampaignE2eBattleInputProjection {
                     val attackFrom = s57EscortAttackFrom(
                         current, reachable, guard.tile, unit.attackAllScreen, unit.attackOffsets,
                     )
-                    val opensRoute = attackFrom != null && battle.canEnterTilesIgnoringEnemyWithinMoves(
+                    val opensRoute = attackFrom != null && battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
                         unit.id, guard.unitId, attackFrom, stagingTiles,
                     )
                     guard.unitId to if (opensRoute) stagingTiles else emptySet()

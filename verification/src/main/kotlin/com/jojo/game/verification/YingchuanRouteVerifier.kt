@@ -5,11 +5,11 @@ import com.jojo.game.BattleScenarioFactory
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
-import com.jojo.game.Faction
+import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.ScenarioInterpreter
 import com.jojo.game.ScenarioJoinBattleLimit
-import com.jojo.game.isEnemySide
+import com.jojo.game.domain.battle.isEnemySide
 
 /** Exercises the real R_00 → S_00 campaign and scripted victory route. */
 internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
@@ -63,9 +63,9 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
 
         var aiActions = 0
         for (ignored in 0 until 3) {
-            val turn = battle.endTurn()
+            val turn = battle.roundLifecycle.endTurn()
             if (turn.activeFaction == Faction.PLAYER) break
-            val ai = battle.resolveAiTurn()
+            val ai = battle.ai.resolveTurn(Int.MAX_VALUE, false)
             aiActions += ai.moves + ai.attacks + ai.holds
         }
         check(
@@ -80,7 +80,7 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
         bossIds.forEach { bossId ->
             repeat(256) {
                 val boss = battle.units.values.firstOrNull { it.characterId == bossId } ?: return@repeat
-                battle.forcedAttack(attacker.id, boss.id)
+                battle.combat.forcedAttack(attacker.id, boss.id)
             }
             check(battle.units.values.none { it.characterId == bossId }) {
                 val boss = battle.units.values.first { it.characterId == bossId }

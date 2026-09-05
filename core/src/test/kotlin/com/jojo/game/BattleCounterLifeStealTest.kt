@@ -23,7 +23,7 @@ class BattleCounterLifeStealTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("a", "d", damage = 10) as TacticalActionResult.Attack
+        val result = battle.combat.attack("a", "d", damage = 10) as TacticalActionResult.Attack
 
         assertEquals(40 - result.damage + result.counterLifeStealHealing, battle.units.getValue("d").hitPoints)
         assertEquals(true, result.counterLifeStealHealing >= 0)

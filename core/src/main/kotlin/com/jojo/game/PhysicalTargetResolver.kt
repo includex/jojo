@@ -97,7 +97,6 @@ internal object PhysicalTargetResolver {
                 target.applyAttributeLift(attribute, -1, 3)
             }
         }
-        target.presentation.refreshStatus(target.statuses, target.attributeLifts)
     }
 
     /** Resolves one physical target, including every target-local secondary effect. */
@@ -115,7 +114,7 @@ internal object PhysicalTargetResolver {
         val liftsBefore = target.attributeLifts.toMap()
         val liftRoundsBefore = target.attributeLiftRounds.toMap()
         var n = resolvedHarm.coerceAtLeast(0)
-        val blockRetaliations = mutableListOf<BattlePhysicalCallbackPlan.BlockRetaliation>()
+        val blockRetaliations = mutableListOf<PhysicalBlockRetaliation>()
         var mpShieldDamage = 0
         var moneyShieldSpent = 0
         var hpDamage = 0
@@ -129,8 +128,8 @@ internal object PhysicalTargetResolver {
                 val harm = attacker.maxHitPoints * rate / 100
                 attacker.addHpcur(-harm)
                 attacker.statuses[BattleStatus.CONFUSION] = env.statusDuration(BattleStatus.CONFUSION, attacker)
-                blockRetaliations += BattlePhysicalCallbackPlan.BlockRetaliation(
-                    BattlePhysicalCallbackPlan.BlockRetaliationKind.MENG_JI_CONFUSION,
+                blockRetaliations += PhysicalBlockRetaliation(
+                    PhysicalBlockRetaliationKind.MENG_JI_CONFUSION,
                     harm,
                 )
             }
@@ -138,12 +137,11 @@ internal object PhysicalTargetResolver {
                 val harm = attacker.maxHitPoints * rate / 100
                 attacker.addHpcur(-harm)
                 attacker.statuses[BattleStatus.PARALYSIS] = env.statusDuration(BattleStatus.PARALYSIS, attacker)
-                blockRetaliations += BattlePhysicalCallbackPlan.BlockRetaliation(
-                    BattlePhysicalCallbackPlan.BlockRetaliationKind.NI_FAN_PARALYSIS,
+                blockRetaliations += PhysicalBlockRetaliation(
+                    PhysicalBlockRetaliationKind.NI_FAN_PARALYSIS,
                     harm,
                 )
             }
-            attacker.presentation.refreshStatus(attacker.statuses, attacker.attributeLifts)
         } else {
             applyIncomingAttackStatuses(statuses, target, env.statusDuration)
             if (target.skills[2]?.and(255)?.let { it != 255 } == true && target.magicPoints > 0) {

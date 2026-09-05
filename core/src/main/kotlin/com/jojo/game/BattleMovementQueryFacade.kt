@@ -5,7 +5,7 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleMovementPlanner
 
 /** Owns movement planning dependencies and all movement queries for a battle. */
-internal class BattleMovementQueryFacade(
+class BattleMovementQueryFacade internal constructor(
     private val configuration: BattleConfiguration,
     private val journal: BattleStateJournal,
     private val battlefield: Battlefield,
@@ -21,7 +21,7 @@ internal class BattleMovementQueryFacade(
         configuration.movementOffsets.filterTo(this) { it !in sourceOrder }
     }
 
-    val planner: BattleMovementPlanner<BattleUnit> by lazy {
+    internal val planner: BattleMovementPlanner<BattleUnit> by lazy {
         BattleMovementPlanner<BattleUnit>(
             isInside = { (x, y) ->
                 x >= 0 && y >= 0 && configuration.terrain?.let { x < it.width && y < it.height } != false
@@ -64,12 +64,12 @@ internal class BattleMovementQueryFacade(
         ignoredEnemyId: String,
         start: Pair<Int, Int>,
         targetTiles: Set<Pair<Int, Int>>,
-        moves: Int,
+        moves: Int = 2,
     ): Boolean = BattleMovementCoordinator.canEnterTilesIgnoringEnemyWithinMoves(
         id, ignoredEnemyId, start, targetTiles, moves, environment,
     )
 
-    fun moveUnit(id: String, targetX: Int, targetY: Int, maxDistance: Int?): TacticalActionResult =
+    fun moveUnit(id: String, targetX: Int, targetY: Int, maxDistance: Int? = null): TacticalActionResult =
         BattleMovementCoordinator.moveUnit(id, targetX, targetY, maxDistance, environment)
 
     fun findMovementPath(
@@ -104,7 +104,7 @@ internal class BattleMovementQueryFacade(
     fun facingDirection(fromX: Int, fromY: Int, toX: Int, toY: Int): Int =
         BattleMovementCoordinator.facingDirection(fromX, fromY, toX, toY)
 
-    fun movePoints(
+    internal fun movePoints(
         unit: BattleUnit,
         movement: Int,
         ignoredEnemyId: String?,

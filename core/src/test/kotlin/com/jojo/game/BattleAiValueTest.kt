@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,7 +22,7 @@ class BattleAiValueTest {
         // Player -> enemy.  BattleScreen's turn init clears the camp that is
         // about to act; the inactive unit's AIValue remains available until
         // its own next turn entry.
-        battle.endTurn()
+        battle.roundLifecycle.endTurn()
 
         assertEquals(99, player.aiValue)
         assertEquals(0, enemy.aiValue)
@@ -46,8 +47,8 @@ class BattleAiValueTest {
                 listOf(BattleUnit("player-$ai", "아군", Faction.PLAYER, 1, 0), enemy),
                 emptyList(),
             )
-            battle.endTurn()
-            battle.resolveAiTurn(maxUnits = 1)
+            battle.roundLifecycle.endTurn()
+            battle.ai.resolveTurn(maxUnits = 1)
             return enemy
         }
 

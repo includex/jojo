@@ -3,7 +3,7 @@ package com.jojo.game.presentation.scenario.hall
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.jojo.game.ScenarioSceneAssets
+import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
 /** Stateless renderer for BuyLayer's right-side unit summary snapshot. */
 internal object HallBuyUnitSummaryRenderer {

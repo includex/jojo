@@ -15,8 +15,12 @@ internal object BattleCombatEnvironmentAssembler {
         areAllied = battle::areAllied,
         movementOffsets = battle.configuration.movementOffsets,
         propertyItems = battle.configuration.propertyItems,
-        consumeSelectedProperty = battle::consumeSelectedProperty,
-        notifyPermanentProperty = battle::notifyPermanentProperty,
+            consumeSelectedProperty = { itemId ->
+                battle.experience.consumeSelectedProperty(itemId, battle.configuration.consumeProperty)
+            },
+            notifyPermanentProperty = { item, target ->
+                battle.experience.notifyPermanentProperty(item, target, battle.configuration.onPermanentProperty)
+            },
         physicalCombatEnvironment = { physical(battle) },
         magicEnvironment = { magic(battle) },
     )
@@ -31,8 +35,8 @@ internal object BattleCombatEnvironmentAssembler {
         setSkillTemp = battle::setSkillTemp,
         incSkillTemp = battle::incSkillTemp,
         moveLength = battle.journal::currentMoveLength,
-        backPosition = battle::backPosition,
-        facingDirection = battle::facingDirection,
+        backPosition = { defender, attacker -> battle.movement.backPosition(defender, attacker, battle::unitAt) },
+        facingDirection = battle.movement::facingDirection,
         hasPhysicalEffectTargets = { attacker, target ->
             PhysicalAttackAreaResolver.hasPhysicalEffectTargets(attacker, target, battle::unitAt, battle::areAllied)
         },
@@ -52,25 +56,40 @@ internal object BattleCombatEnvironmentAssembler {
         isBattleEnded = { battle.outcome() != null },
         statusRoundFor = battle.configuration.statusRoundFor,
         probabilityResolver = battle.probabilityResolver,
-        battleExperience = battle::battleExperience,
-        equipmentExperienceAmount = battle::equipmentExperienceAmount,
-        notifyBattleExperience = battle::notifyBattleExperience,
-        notifyEquipmentExperienceAward = battle::notifyEquipmentExperienceAward,
-        notifyPhysicalDamage = battle::notifyPhysicalDamage,
-        notifyUnitDefeated = battle::notifyUnitDefeated,
+        battleExperience = battle.experience::battleExperience,
+        equipmentExperienceAmount = battle.experience::equipmentExperienceAmount,
+        notifyBattleExperience = battle.experience::notifyBattleExperience,
+        notifyEquipmentExperienceAward = battle.experience::notifyEquipmentExperienceAward,
+        notifyPhysicalDamage = battle.experience::notifyPhysicalDamage,
+        notifyUnitDefeated = battle.experience::notifyUnitDefeated,
         onDefeat = battle.battlefield::defeat,
         canAttack = battle::canAttack,
-        backPosition = battle::backPosition,
-        facingDirection = battle::facingDirection,
+        backPosition = { defender, attacker -> battle.movement.backPosition(defender, attacker, battle::unitAt) },
+        facingDirection = battle.movement::facingDirection,
         getPlayerMoney = { battle.playerMoney },
         setPlayerMoney = battle::setPlayerMoneyFromEnvironment,
         getEnemyMoney = { battle.enemyMoney },
         setEnemyMoney = battle::setEnemyMoneyFromEnvironment,
         propertyItem = battle.configuration.propertyItems::get,
         zdsyGlobalValue = battle.configuration.zdsyGlobalValue,
-        notifyConsumeAutomaticProperty = battle::notifyConsumeAutomaticProperty,
+        notifyConsumeAutomaticProperty = { itemId ->
+            battle.experience.notifyConsumeAutomaticProperty(itemId, battle.configuration.consumeAutomaticProperty)
+        },
         incSkillTemp = { id, skill -> battle.incSkillTemp(id, skill) },
-        applyProperty = battle::applyProperty,
+        applyProperty = { item, target, consume ->
+            battle.combat.applyProperty(
+                item,
+                target,
+                consume,
+                { property, unit ->
+                    battle.experience.notifyPermanentProperty(
+                        property,
+                        unit,
+                        battle.configuration.onPermanentProperty,
+                    )
+                },
+            )
+        },
         visibleFamousPlayerCount = { BattlePhysicalContextBuilder.visibleFamousPlayerCount(physicalContext(battle)) },
         basePhysicalDamageContext = { attacker, target, splash, rule ->
             BattlePhysicalContextBuilder.basePhysicalDamageContext(
@@ -99,7 +118,8 @@ internal object BattleCombatEnvironmentAssembler {
             BattlePhysicalContextBuilder.flatPhysicalDamageContext(attacker, activeAttack, physicalContext(battle))
         },
         castReactionMagic = { caster, target, magicId ->
-            battle.castMagic(caster.id, target.id, magicId, reaction = true) as? TacticalActionResult.Magic
+            battle.combat.castMagic(caster.id, target.id, magicId, reaction = true, bypassCondition = false)
+                as? TacticalActionResult.Magic
         },
         consumeXuShiDamage = { attacker ->
             BattlePhysicalContextBuilder.consumeXuShiDamage(

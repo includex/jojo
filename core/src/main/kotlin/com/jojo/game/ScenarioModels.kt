@@ -98,9 +98,6 @@ val ScenarioBattleUnit.battleId: String
 val ScenarioBattleUnit.stageKey: String
     get() = BattleSlotLayout.stageKey(faction, battleSlot)
 
-/** BattleScreen gate/object type plus the terrain ID it overlays. */
-data class ScenarioMapObject(val x: Int, val y: Int, val objectId: Int, val terrainId: Int, val enabled: Boolean)
-
 /** One authored Stage.setObjects/setObject invocation, before presentation filtering. */
 data class ScenarioMapObjectsCall(
     val enabled: Boolean,
@@ -258,9 +255,6 @@ data class ScenarioHead(val characterId: Int, var x: Int = 0, var y: Int = 0, va
     var fadeElapsed: Float = 0f
     var fadeDuration: Float = 0f
 }
-
-/** Battlefield tile state preserved from stage.setFire/setFires. */
-data class ScenarioFire(val x: Int, val y: Int, val enabled: Boolean)
 
 /**
  * data class  `ScenarioSoundEffect`

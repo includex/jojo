@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.timeline.*
 import com.jojo.game.domain.battle.*
 
 import java.util.Random
@@ -39,7 +40,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "defender"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "defender"))
         val targets = result.physicalPasses.single().targets
 
         assertEquals(listOf("defender", "recipient"), targets.map { it.targetId })
@@ -76,7 +77,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(100, 0, 100),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(30, result.damage)
         assertEquals("HP 30 회복", result.automaticProperty?.effect)
@@ -96,7 +97,7 @@ class BattleAttackSequenceTest {
             consumeProperty = { true },
         )
 
-        battle.useProperty("user", "user", 701)
+        battle.combat.useProperty("user", "user", 701)
 
         val unit = battle.units.getValue("user")
         assertEquals(1, unit.attributeLifts[BattleAttribute.SPIRIT])
@@ -115,7 +116,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(0, 50),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(0, result.damage)
         assertEquals(30, result.mpShieldDamage)
@@ -133,7 +134,7 @@ class BattleAttackSequenceTest {
             ), events = emptyList(), random = random,
         )
 
-        battle.attack("attacker", "defender", damage = 10)
+        battle.combat.attack("attacker", "defender", damage = 10)
 
         // countRate owns continuous/hit gauges; only the one MBGJ status
         // roll consumes Model.random, and the second attack reuses it.
@@ -156,7 +157,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals(true, result.critical)
         assertEquals(true, result.followUpDamage > 0)
@@ -175,7 +176,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals("필살 대사", result.physicalPasses[0].criticalSpeech)
         assertNull(result.physicalPasses[1].criticalSpeech)
@@ -197,7 +198,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(2),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals("셋째", result.physicalPasses.single().criticalSpeech)
     }
@@ -219,9 +220,9 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val physical = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val physical = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
         battle.units.getValue("attacker").hasActed = false
-        val strategy = battle.castMagic("attacker", "defender", 10) as TacticalActionResult.Magic
+        val strategy = battle.combat.castMagic("attacker", "defender", 10) as TacticalActionResult.Magic
 
         assertEquals("공용 필살", physical.physicalPasses.single().criticalSpeech)
         assertEquals(listOf(null), strategy.criticalSpeeches)
@@ -241,7 +242,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals(0, result.damage)
         assertEquals(0, result.followUpDamage)
@@ -264,7 +265,7 @@ class BattleAttackSequenceTest {
             initialEnemyMoney = 10_000,
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals(1, result.damage)
         assertEquals(1, result.followUpDamage)
@@ -285,7 +286,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals(true, result.followUpDamage > 0)
         assertEquals(result.damage + result.followUpDamage, result.qxlHealing)
@@ -305,7 +306,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         val transferred = result.damage + result.followUpDamage
         assertEquals(transferred, result.playerMoneyDelta)
@@ -326,7 +327,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals(true, result.followUpDamage > 0)
         assertEquals(3, battle.units.getValue("defender").tileX)
@@ -345,7 +346,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        battle.attack("attacker", "defender")
+        battle.combat.attack("attacker", "defender")
 
         assertEquals(2, battle.skillTemp("defender", 26))
     }
@@ -365,7 +366,7 @@ class BattleAttackSequenceTest {
             consumeAutomaticProperty = { uses++ },
         )
 
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
 
         assertEquals(true, result.followUpDamage > 0)
         assertEquals(1_000, battle.units.getValue("defender").hitPoints)
@@ -385,7 +386,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         assertEquals(true, result.counterCritical)
         assertEquals(true, result.counterFollowUpDamage > 0)
@@ -403,7 +404,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         assertEquals(10, result.counterMpShieldDamage)
         assertEquals(0, result.counterDamage)
@@ -422,7 +423,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         // The counterattacker took the primary 1-point hit first, so QXL
         // is capped by its one missing HP before FTSH reflects full n.
@@ -441,7 +442,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         assertEquals(-result.counterDamage, result.playerMoneyDelta)
         assertEquals(result.counterDamage, result.enemyMoneyDelta)
@@ -463,7 +464,7 @@ class BattleAttackSequenceTest {
             consumeAutomaticProperty = { uses++ },
         )
 
-        battle.attack("attacker", "defender", damage = 1)
+        battle.combat.attack("attacker", "defender", damage = 1)
 
         assertEquals(1, uses)
         assertEquals(1_000, battle.units.getValue("attacker").hitPoints)
@@ -479,7 +480,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        battle.attack("attacker", "defender", damage = 1)
+        battle.combat.attack("attacker", "defender", damage = 1)
 
         assertEquals(0, battle.units.getValue("attacker").tileX)
         assertEquals(0, battle.units.getValue("attacker").tileY)
@@ -495,7 +496,7 @@ class BattleAttackSequenceTest {
             events = emptyList(), random = FixedRandom(100),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(true, result.hit)
         assertEquals(30, result.damage)
@@ -511,7 +512,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         assertEquals(96, result.hitRate)
     }
@@ -527,7 +528,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         // BattleUnit._pkdx picks 20 (defense), not the target's 100 CRI.
         assertEquals(100, result.hitRate)
@@ -547,7 +548,7 @@ class BattleAttackSequenceTest {
 
         // 75 + 12 loses to the opposing 88 gauge.  Rounding to 13 would
         // incorrectly produce the second _attack2 pass at this boundary.
-        val result = battle.attack("attacker", "defender") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
         assertEquals(0, result.followUpDamage)
     }
 
@@ -563,7 +564,7 @@ class BattleAttackSequenceTest {
 
         val results = buildList {
             repeat(4) {
-                add(battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack)
+                add(battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack)
                 battle.units.getValue("attacker").hasActed = false
             }
         }
@@ -585,7 +586,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         assertEquals(false, result.hit)
         // countAtkHarm calls countRate before FYYJGJ forces the miss.
@@ -622,7 +623,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(0),
         )
 
-        battle.attack("attacker", "defender", damage = 30)
+        battle.combat.attack("attacker", "defender", damage = 30)
 
         val statuses = battle.units.getValue("defender").statuses
         assertEquals(2, statuses[BattleStatus.PARALYSIS]) // non-mine MB special case
@@ -643,7 +644,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(0, 71, 0, 71),
         )
 
-        battle.attack("attacker", "defender", damage = 30)
+        battle.combat.attack("attacker", "defender", damage = 30)
 
         val states = battle.units.getValue("defender").statuses
         assertEquals(2, states[BattleStatus.PARALYSIS])
@@ -664,7 +665,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(61, 65, 71, 75, 81, 86),
         )
 
-        battle.attack("attacker", "defender", damage = 30)
+        battle.combat.attack("attacker", "defender", damage = 30)
 
         val lifts = battle.units.getValue("defender").attributeLifts
         assertEquals(-1, lifts[BattleAttribute.ATTACK])
@@ -686,7 +687,7 @@ class BattleAttackSequenceTest {
             events = emptyList(), random = random,
         )
 
-        battle.attack("attacker", "defender", damage = 30)
+        battle.combat.attack("attacker", "defender", damage = 30)
 
         // The six SJSXGJ rolls are the only random operations; rate gauges
         // handle continuous and hit decisions.
@@ -709,7 +710,7 @@ class BattleAttackSequenceTest {
             events = emptyList(), random = FixedRandom(0),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals("반격 책략", result.counterMagic?.name)
         assertEquals(99, result.counterMagicId)
@@ -721,7 +722,7 @@ class BattleAttackSequenceTest {
             },
         )
         assertEquals(false, battle.units.getValue("defender").hasActed)
-        assertEquals(true, battle.presentationUnit("attacker")!!.hitPoints < 100)
+        assertEquals(true, battle.presentation.presentationUnit("attacker")!!.hitPoints < 100)
     }
 
     @Test
@@ -748,7 +749,7 @@ class BattleAttackSequenceTest {
             random = FixedRandom(0),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(false, result.hit)
         assertEquals("defender", result.physicalPasses.single().primaryTargetId)
@@ -770,7 +771,7 @@ class BattleAttackSequenceTest {
             initialEnemyMoney = 100,
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(1, result.damage)
         assertEquals(90, result.moneyShieldSpent)
@@ -788,10 +789,10 @@ class BattleAttackSequenceTest {
             ),
             events = emptyList(), initialPlayerMoney = 100, initialEnemyMoney = 100,
         )
-        battle.endTurn() // FRIEND
-        battle.endTurn() // ENEMY
+        battle.roundLifecycle.endTurn() // FRIEND
+        battle.roundLifecycle.endTurn() // ENEMY
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(1, result.damage)
         assertEquals(10, battle.playerMoney)
@@ -810,7 +811,7 @@ class BattleAttackSequenceTest {
             initialEnemyMoney = 40,
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(60, result.playerMoneyDelta)
         assertEquals(-60, result.enemyMoneyDelta)
@@ -828,9 +829,9 @@ class BattleAttackSequenceTest {
             ),
             events = emptyList(), initialPlayerMoney = 10, initialEnemyMoney = 40,
         )
-        battle.endTurn() // FRIEND
+        battle.roundLifecycle.endTurn() // FRIEND
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(60, result.playerMoneyDelta)
         assertEquals(-60, result.enemyMoneyDelta)
@@ -848,7 +849,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        battle.attack("attacker", "defender", damage = 30)
+        battle.combat.attack("attacker", "defender", damage = 30)
 
         assertEquals(null, battle.units.getValue("defender").statuses[BattleStatus.PARALYSIS])
     }
@@ -863,7 +864,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(30, result.damage)
         assertEquals(null, battle.units.getValue("defender").attributeLifts[BattleAttribute.ATTACK])
@@ -879,7 +880,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(0, result.damage)
         assertEquals(10, result.mpShieldDamage)
@@ -897,7 +898,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(0, result.qxlHealing)
         assertEquals(50, battle.units.getValue("attacker").hitPoints)
@@ -913,7 +914,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "defender", damage = 30) as TacticalActionResult.Attack
 
         assertEquals(30, result.recoilDamage)
         assertEquals(1, battle.units.getValue("attacker").hitPoints)
@@ -929,8 +930,8 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "defender", damage = 0) as TacticalActionResult.Attack
-        val attacker = battle.presentationUnit("attacker")!!
+        val result = battle.combat.attack("attacker", "defender", damage = 0) as TacticalActionResult.Attack
+        val attacker = battle.presentation.presentationUnit("attacker")!!
 
         assertEquals(50, result.blockRetaliationDamage)
         assertEquals(50, attacker.hitPoints)
@@ -962,7 +963,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        val result = battle.attack("attacker", "primary") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "primary") as TacticalActionResult.Attack
 
         assertEquals(
             listOf(PhysicalAttackPassKind.ACTIVE, PhysicalAttackPassKind.ACTIVE_FOLLOW_UP),
@@ -1006,7 +1007,7 @@ class BattleAttackSequenceTest {
             propertyItems = mapOf(200 to BattlePropertyItem(200, "자동회복약", 26, 1_000)),
         )
 
-        val result = battle.attack("attacker", "primary") as TacticalActionResult.Attack
+        val result = battle.combat.attack("attacker", "primary") as TacticalActionResult.Attack
         val primary = result.physicalPasses.single().targets[0]
         val splash = result.physicalPasses.single().targets[1]
 

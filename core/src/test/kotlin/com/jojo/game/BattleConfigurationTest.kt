@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -19,7 +20,7 @@ class BattleConfigurationTest {
         assertEquals(BattleWeather.CLOUDY, battle.weather)
         assertEquals(1, battle.round)
         assertEquals(Faction.PLAYER, battle.activeFaction)
-        assertEquals(BattleWeather.WINDY, battle.applyScheduledWeather().current)
+        assertEquals(BattleWeather.WINDY, battle.roundLifecycle.applyScheduledWeather().current)
     }
 
     @Test

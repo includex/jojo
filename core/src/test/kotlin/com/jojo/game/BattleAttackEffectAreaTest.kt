@@ -26,7 +26,7 @@ class BattleAttackEffectAreaTest {
             events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "primary"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
 
         val splash = result.splashTargets.single()
         assertEquals("splash", splash.targetId)
@@ -48,7 +48,7 @@ class BattleAttackEffectAreaTest {
             ), events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "primary"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
         assertEquals(true, result.critical)
         // Missing ZMYJZS returns 255, which is truthy in source JavaScript:
         // 180 - 20 = 160, so floor(75 * 160 / 100) = 120.
@@ -70,7 +70,7 @@ class BattleAttackEffectAreaTest {
             ), events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "primary"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
         assertEquals(listOf("behind"), result.splashTargets.map(PhysicalTarget::targetId))
     }
 
@@ -86,7 +86,7 @@ class BattleAttackEffectAreaTest {
             ), events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "primary"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
         assertEquals(listOf("from-attacker"), result.splashTargets.map(PhysicalTarget::targetId))
     }
 
@@ -102,7 +102,7 @@ class BattleAttackEffectAreaTest {
             ), events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "primary"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
         assertEquals(listOf("side"), result.splashTargets.map(PhysicalTarget::targetId))
     }
 
@@ -117,7 +117,7 @@ class BattleAttackEffectAreaTest {
             ), events = emptyList(),
         )
 
-        val result = assertIs<TacticalActionResult.Attack>(battle.attack("attacker", "primary"))
+        val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
         assertEquals(emptyList(), result.splashTargets)
     }
 }

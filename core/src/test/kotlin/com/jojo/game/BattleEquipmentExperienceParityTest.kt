@@ -48,7 +48,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(awards),
         )
 
-        assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "victim", weaken.id))
+        assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "victim", weaken.id))
 
         assertEquals(
             listOf(Award("caster", "victim", 1, BattleEquipmentExperienceKind.WEAPON)),
@@ -68,7 +68,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(missedAwards),
         )
 
-        assertEquals(false, assertIs<TacticalActionResult.Attack>(miss.attack("a", "t")).hit)
+        assertEquals(false, assertIs<TacticalActionResult.Attack>(miss.combat.attack("a", "t")).hit)
         assertEquals(
             setOf(
                 Award("a", "t", 1, BattleEquipmentExperienceKind.WEAPON),
@@ -87,7 +87,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(guardedAwards),
         )
 
-        assertIs<TacticalActionResult.Attack>(guard.attack("a", "t", damage = 0))
+        assertIs<TacticalActionResult.Attack>(guard.combat.attack("a", "t", damage = 0))
         assertEquals(
             setOf(
                 Award("a", "t", 1, BattleEquipmentExperienceKind.WEAPON),
@@ -114,7 +114,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(awards),
         )
 
-        assertIs<TacticalActionResult.Attack>(battle.attack("a", "high"))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "high"))
 
         assertEquals(1, awards.count { it.recipient == "a" && it.kind == BattleEquipmentExperienceKind.WEAPON })
         val weapon = awards.single { it.recipient == "a" && it.kind == BattleEquipmentExperienceKind.WEAPON }
@@ -142,7 +142,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(awards),
         )
 
-        assertIs<TacticalActionResult.Attack>(battle.attack("civil", "target", damage = 1))
+        assertIs<TacticalActionResult.Attack>(battle.combat.attack("civil", "target", damage = 1))
         assertEquals(listOf(Award("target", "civil", 4, BattleEquipmentExperienceKind.ARMOR)), awards)
     }
 
@@ -167,7 +167,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(awards),
         )
 
-        val result = assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "victim", fire.id))
+        val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "victim", fire.id))
 
         assertEquals(true, result.targets.single().defeated)
         assertEquals(9, caster.experience) // pre-damage count_exp: 8 + max(1, 0)
@@ -195,7 +195,7 @@ class BattleEquipmentExperienceParityTest {
             onEquipmentExperienceAward = awardSink(awards),
         )
 
-        assertEquals(false, assertIs<TacticalActionResult.Magic>(battle.castMagic("caster", "victim", fire.id)).targets.single().hit)
+        assertEquals(false, assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "victim", fire.id)).targets.single().hit)
         assertEquals(
             setOf(
                 Award("caster", "victim", 1, BattleEquipmentExperienceKind.WEAPON),
