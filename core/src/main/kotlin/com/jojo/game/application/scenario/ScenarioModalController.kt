@@ -17,7 +17,7 @@ internal class ScenarioModalController(
 ) {
     var currentModalText: String? = null
         internal set
-    var currentModalKind: ScenarioInterpreter.ModalKind? = null
+    var currentModalKind: ScenarioModalKind? = null
         internal set
     var currentModalFixedText: String = ""
         internal set
@@ -74,7 +74,7 @@ internal class ScenarioModalController(
      */
 
     fun update(delta: Float, autoCloseUi: Boolean) {
-        if (currentModalKind == ScenarioInterpreter.ModalKind.AMBITION) {
+        if (currentModalKind == ScenarioModalKind.AMBITION) {
             ambitionElapsedSeconds += delta.coerceAtLeast(0f)
         }
         if (modalRemainingSeconds > 0f && ScenarioInterpreter.modalMayAutoClose(
@@ -123,10 +123,10 @@ internal class ScenarioModalController(
 
     fun suspendForInfo(
         text: String,
-        kind: ScenarioInterpreter.ModalKind = ScenarioInterpreter.ModalKind.EVENT,
+        kind: ScenarioModalKind = ScenarioModalKind.EVENT,
         postTypingDelaySeconds: Float = 1f,
     ) {
-        val pages = if (kind == ScenarioInterpreter.ModalKind.INFO) splitInfoPages(text) else listOf(text)
+        val pages = if (kind == ScenarioModalKind.INFO) splitInfoPages(text) else listOf(text)
         currentModalText = pages.firstOrNull().orEmpty()
         pages.drop(1).forEach(modalQueuedTexts::addLast)
         currentModalKind = kind
@@ -144,7 +144,7 @@ internal class ScenarioModalController(
         currentModalFixedText = mapInfoContent
         val appended = separator + text
         currentModalText = appended
-        currentModalKind = ScenarioInterpreter.ModalKind.MAP_INFO
+        currentModalKind = ScenarioModalKind.MAP_INFO
         // Source types one rich-text token every .04 s, then waits 1 s (5 s
         // when `wait` is set) before AUTO_CLOSE advances the script.
         modalPostTypingDelaySeconds = if (wait) 5f else 1f
@@ -176,7 +176,7 @@ internal class ScenarioModalController(
         }
         if (index > 0) chapter = "제$chapter"
         currentModalText = chapter
-        currentModalKind = ScenarioInterpreter.ModalKind.SECTION
+        currentModalKind = ScenarioModalKind.SECTION
         modalNextText = name
         modalRemainingSeconds = 3f
         onStateChange(PlaybackState.MODAL)
@@ -190,7 +190,7 @@ internal class ScenarioModalController(
         ambitionElapsedSeconds = 0f
         ambitionIndicatorEnabled = true
         currentModalText = "ambition"
-        currentModalKind = ScenarioInterpreter.ModalKind.AMBITION
+        currentModalKind = ScenarioModalKind.AMBITION
         currentModalFixedText = ""
         modalNextText = null
         modalRemainingSeconds = 2.5f
@@ -226,7 +226,7 @@ internal class ScenarioModalController(
 
     fun setSectionFixture(chapter: String, nextText: String, remainingSeconds: Float) {
         currentModalText = chapter
-        currentModalKind = ScenarioInterpreter.ModalKind.SECTION
+        currentModalKind = ScenarioModalKind.SECTION
         currentModalFixedText = ""
         modalNextText = nextText
         modalRemainingSeconds = remainingSeconds
@@ -238,7 +238,7 @@ internal class ScenarioModalController(
      *
      * ### 파라미터
     - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `kind` (`ScenarioInterpreter.ModalKind`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `kind` (`ScenarioModalKind`): 구현 기준으로 역할 및 허용 값 정의 필요
     - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
      *
      * ### 응답 스펙
@@ -246,7 +246,7 @@ internal class ScenarioModalController(
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun setModalFixture(text: String, kind: ScenarioInterpreter.ModalKind, remainingSeconds: Float) {
+    fun setModalFixture(text: String, kind: ScenarioModalKind, remainingSeconds: Float) {
         currentModalText = text
         currentModalKind = kind
         currentModalFixedText = ""

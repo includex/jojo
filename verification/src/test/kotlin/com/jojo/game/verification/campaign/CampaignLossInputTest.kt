@@ -1,4 +1,5 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
+import com.jojo.game.BattleOutcome
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.scenario.*
 
@@ -29,7 +30,7 @@ class CampaignLossInputTest {
         rewardOpen = false, winConditionsOpen = false, savePromptOpen = false,
         losePromptOpen = promptOpen, loseTitleScreenX = 844, loseTitleScreenY = 296,
         playerMoveCommitted = true, campaignStage = 2, round = 4, activeFaction = Faction.ENEMY,
-        turnPhase = BattleTurnController.Phase.FINISHED, battleMenuOpen = false,
+        turnPhase = "FINISHED", battleMenuOpen = false,
         battleCommandOpen = false, battleTargetSelectionOpen = false, selectedUnit = false,
         manualMoveInput = null, manualAttackInput = null, magickListOpen = false,
         magicTargetSelection = false, manualMagicInput = null,
@@ -37,7 +38,7 @@ class CampaignLossInputTest {
         menuEndRoundScreenY = 0, battleMenuButtonScreenX = 0, battleMenuButtonScreenY = 0,
         autoBattleToggleScreenX = 0, autoBattleToggleScreenY = 0,
         autoBattleConfirmScreenX = 0, autoBattleConfirmScreenY = 0,
-        manualMoveDebug = "", autoBattleOverlay = AutoBattleFlow.Overlay.NONE,
+        manualMoveDebug = "", autoBattleOverlay = "NONE",
         autoBattleChecked = false, collocation = false, committedPlayerMove = null,
         selectedChoice = 0, guidedAuthoredRoute = false,
     )

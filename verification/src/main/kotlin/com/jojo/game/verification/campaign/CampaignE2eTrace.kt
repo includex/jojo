@@ -1,17 +1,12 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
 
-import com.jojo.game.domain.scenario.*
-
-import com.jojo.game.presentation.scenario.ScenarioScreen
-import com.jojo.game.presentation.battle.BattleScreen
-import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
-import com.jojo.game.presentation.battle.preparation.CampaignE2eBattlePreparationState
+import com.jojo.game.*
+import com.jojo.game.application.runtime.*
 import com.jojo.game.domain.battle.*
-import com.jojo.game.presentation.title.TitleScreen
+import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.Screen
 
 /**
  * data class  `CampaignE2eTraceConfig`
@@ -40,21 +35,6 @@ data class CampaignE2eTraceConfig(
  */
 
 data class CampaignE2eStopPoint(val module: String = "R_01", val sceneIndex: Int = 1)
-
-internal data class CampaignE2eScenarioState(
-    val module: String,
-    val playback: PlaybackState,
-    val options: List<String>,
-    val selectedChoice: Int,
-    val sceneIndex: Int,
-    val startedScenes: List<Int>,
-    val campaignStage: Int,
-    val menuVisible: Boolean,
-    val dialogueText: String?,
-    val hallBattleScenePending: Boolean,
-    val battleButtonScreenX: Int,
-    val battleButtonScreenY: Int,
-)
 
 internal data class CampaignE2eMoveInput(
     val sourceScreenX: Int,
@@ -174,7 +154,7 @@ internal data class CampaignE2eBattleState(
     val campaignStage: Int,
     val round: Int,
     val activeFaction: Faction,
-    val turnPhase: BattleTurnController.Phase,
+    val turnPhase: String,
     val battleMenuOpen: Boolean,
     val battleCommandOpen: Boolean,
     val battleTargetSelectionOpen: Boolean,
@@ -198,7 +178,7 @@ internal data class CampaignE2eBattleState(
     val autoBattleConfirmScreenX: Int,
     val autoBattleConfirmScreenY: Int,
     val manualMoveDebug: String,
-    val autoBattleOverlay: AutoBattleFlow.Overlay,
+    val autoBattleOverlay: String,
     val autoBattleChecked: Boolean,
     val collocation: Boolean,
     val committedPlayerMove: String?,
@@ -272,12 +252,21 @@ internal fun s57AuthoredRouteSignal(
 internal fun productionTacticalInputReady(
     initialScene1Started: Boolean,
     playback: PlaybackState,
-    phase: BattleTurnController.Phase,
+    phase: String,
 ): Boolean = initialScene1Started && playback == PlaybackState.COMPLETE &&
-        phase == BattleTurnController.Phase.PLAYER_INPUT
+        phase == "PLAYER_INPUT"
+
+internal fun productionTacticalInputReady(
+    initialScene1Started: Boolean,
+    playback: PlaybackState,
+    phase: Any,
+): Boolean = productionTacticalInputReady(initialScene1Started, playback, phase.toString())
+
+internal fun productionManualUnitEligible(statuses: Collection<BattleStatus>): Boolean =
+    BattleStatus.PARALYSIS !in statuses && BattleStatus.CONFUSION !in statuses
 
 internal fun productionManualUnitEligible(statuses: Map<BattleStatus, Int>): Boolean =
-    BattleStatus.PARALYSIS !in statuses && BattleStatus.CONFUSION !in statuses
+    productionManualUnitEligible(statuses.keys)
 
 /** S01 may open the real end-round menu only after all actionable Mine slots acted. */
 internal fun productionEndRoundAllowed(scenario: String, s01EligibleMineActionRemaining: Boolean): Boolean =
@@ -375,7 +364,8 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private val inputRecords = mutableListOf<CampaignE2eInputRecord>()
     private var elapsed = 0f
     private var nextInputAt = .25f
-    private var lastScreen: Screen? = null
+    private var lastScreenName: String? = null
+    private var lastScreen: RuntimeScreenProbe = OtherRuntimeProbe("null")
     private var titleClicked = false
     private var sawInitialScene1 = false
     private var sawResultScene1 = false
@@ -401,6 +391,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private val battlePreparations = mutableListOf<String>()
     private val campaignStages = mutableListOf<Int>()
     private val hallBattleCommands = mutableSetOf<String>()
+    private val authoredMechanicRoutes = mutableMapOf<String, AuthoredMechanicRouteTracker>()
     private var sawR01DepartureDialogue = false
 
     private fun observeStage(stage: Int) {
@@ -435,39 +426,39 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun update(delta: Float, current: Screen?) {
+    fun update(delta: Float, current: RuntimeScreenProbe) {
         if (finished) return
         elapsed += delta
         check(elapsed <= config.maxSeconds) { "campaign E2E timed out: ${route.joinToString(" -> ")}" }
-        if (current !== lastScreen && lastScreen is ScenarioScreen) drainScenarioStarts()
-        if (current !== lastScreen) {
+        if (current.screenName != lastScreenName && lastScreen is ScenarioRuntimeProbe) drainScenarioStarts()
+        if (current.screenName != lastScreenName) {
             lastScreen = current
+            lastScreenName = current.screenName
             when (current) {
-                is TitleScreen -> route += "TitleScreen"
-                is ScenarioScreen -> route += "ScenarioScreen:${current.campaignE2eState().module}"
-                is BattlePreparationScreen -> current.campaignE2eState().let { state ->
+                is TitleRuntimeProbe -> route += "TitleScreen"
+                is ScenarioRuntimeProbe -> route += "ScenarioScreen:${current.module}"
+                is BattlePreparationRuntimeProbe -> current.let { state ->
                     route += "BattlePreparationScreen:${state.returnScenario}->${state.sourceScenario}"
                 }
-
-                is BattleScreen -> route += "BattleScreen:${current.campaignE2eState().scenario}"
-                null -> route += "null"
-                else -> route += current.javaClass.simpleName
+                is BattleRuntimeScreenProbe -> route += "BattleScreen:${current.scenario}"
+                is OtherRuntimeProbe -> route += current.screenName
             }
             nextInputAt = elapsed + .2f
             Gdx.app.log("JojoGame", "CAMPAIGN_E2E_SCREEN: ${route.last()}")
         }
-        if (current is ScenarioScreen) drainScenarioStarts()
+        if (current is ScenarioRuntimeProbe) drainScenarioStarts()
 
         when (current) {
-            is TitleScreen -> if (!titleClicked && elapsed >= nextInputAt) {
+            is TitleRuntimeProbe -> if (!titleClicked && elapsed >= nextInputAt) {
                 // Centre of TitleInteraction.NEW_GAME in logical window coordinates.
                 pointer(1097, 688 - 500, "TitleScreen:new-game-click")
                 titleClicked = true
             }
 
-            is ScenarioScreen -> driveScenario(current.campaignE2eState())
-            is BattlePreparationScreen -> driveBattlePreparation(current.campaignE2eState())
-            is BattleScreen -> driveBattle(delta, current)
+            is ScenarioRuntimeProbe -> driveScenario(current)
+            is BattlePreparationRuntimeProbe -> driveBattlePreparation(current)
+            is BattleRuntimeScreenProbe -> driveBattle(delta, current)
+            is OtherRuntimeProbe -> Unit
         }
     }
 
@@ -482,7 +473,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         pendingScenarioStarts.clear()
     }
 
-    private fun driveScenario(state: CampaignE2eScenarioState) {
+    private fun driveScenario(state: ScenarioRuntimeProbe) {
         val scene = "${state.module}:scene${state.sceneIndex}"
         // A source scene can start, complete synchronously, and route to the
         // next screen inside one render. Consume the production screen's
@@ -549,7 +540,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         nextInputAt = elapsed + config.inputIntervalSeconds
     }
 
-    private fun driveBattlePreparation(state: CampaignE2eBattlePreparationState) {
+    private fun driveBattlePreparation(state: BattlePreparationRuntimeProbe) {
         if (state.returnScenario == "R_01" && state.sourceScenario == "S_01") {
             check(sawR01DepartureDialogue) {
                 "S_01 preparation was reached without the authored R_01 scene8 departure dialogue"
@@ -586,8 +577,9 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         nextInputAt = elapsed + config.inputIntervalSeconds
     }
 
-    private fun driveBattle(delta: Float, screen: BattleScreen) {
-        val state = screen.campaignE2eState()
+    private fun driveBattle(delta: Float, screen: BattleRuntimeScreenProbe) {
+        val tracker = authoredMechanicRoutes.getOrPut(screen.scenario) { AuthoredMechanicRouteTracker(screen.scenario) }
+        val state = CampaignE2eBattleVerificationProjection().computeState(CampaignE2eProjectionContext(screen, tracker))
         val expectedStage = state.scenario.removePrefix("S_").toIntOrNull()?.let { it * 2 + 1 }
         check(expectedStage == null || state.campaignStage == expectedStage) {
             "${state.scenario} raw campaign stage=${state.campaignStage}"
@@ -622,7 +614,9 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
             sawSavePrompt = true
             route += "BattleScreen:${state.scenario}:save-prompt"
         }
-        battleInputDriver.update(delta, state, screen::campaignE2eState)
+        battleInputDriver.update(delta, state) {
+            CampaignE2eBattleVerificationProjection().computeState(CampaignE2eProjectionContext(screen, tracker))
+        }
     }
 
     private fun key(code: Int, context: String) {
@@ -829,7 +823,7 @@ internal class ProductionBattleInputDriver(
                 }
             }
 
-            tacticalInputReady && !state.collocation && state.autoBattleOverlay == AutoBattleFlow.Overlay.PROMPT ->
+            tacticalInputReady && !state.collocation && state.autoBattleOverlay == "PROMPT" ->
                 when (productionAutoBattlePromptActionForScenario(
                     state.scenario, state.guidedAuthoredRoute, state.autoBattleChecked,
                 )) {

@@ -197,14 +197,14 @@ internal object ScenarioFixtureInstaller {
         stage.finishAnimations()
         modalController.reset()
         when (kind) {
-            "info" -> modalController.setModalFixture("재능의 첫 징후", ScenarioInterpreter.ModalKind.INFO, 5f)
+            "info" -> modalController.setModalFixture("재능의 첫 징후", ScenarioModalKind.INFO, 5f)
             "get-item-equipment" -> {
                 stage.getItem(3, 2)
-                modalController.setModalFixture("얻었다 단창 Lv0", ScenarioInterpreter.ModalKind.INFO, 5f)
+                modalController.setModalFixture("얻었다 단창 Lv0", ScenarioModalKind.INFO, 5f)
             }
 
             "get-item-property" -> {
-                modalController.setModalFixture(stage.getItem(150, 2), ScenarioInterpreter.ModalKind.INFO, 5f)
+                modalController.setModalFixture(stage.getItem(150, 2), ScenarioModalKind.INFO, 5f)
             }
 
             "choice" -> setChoice(Choice(listOf("바로 이게 제가 바라는 거예요", "이건 너무 이른 것 같아"), 0), 0, false)
@@ -218,7 +218,7 @@ internal object ScenarioFixtureInstaller {
 
             "map-info" -> modalController.setModalFixture(
                 "조조가 수저우 도겸과 전투를 벌였을 때,",
-                ScenarioInterpreter.ModalKind.MAP_INFO,
+                ScenarioModalKind.MAP_INFO,
                 5f
             )
 

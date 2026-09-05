@@ -195,7 +195,7 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
                 } && terrain.width > 0 && terrain.height > 0
             ) mappedBattles++
             if ("scene1" in runtime.functionNames) {
-                runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 1, camp = 1))
+                runtime.setBattleContext(ScenarioBattleScriptContext(round = 1, camp = 1))
                 runtime.start("scene1")
                 if (runtime.state == PlaybackState.DIALOGUE || runtime.state == PlaybackState.CHOICE) {
                     liveBattleEvents++

@@ -37,7 +37,7 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
 
         val runtime = ScenarioInterpreter.load("S_00", campaign).apply { start("scene0") }
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 이벤트 대사가 종료되지 않았습니다.")
-        runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 1, camp = -1))
+        runtime.setBattleContext(ScenarioBattleScriptContext(round = 1, camp = -1))
         runtime.start("scene1")
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 첫 턴 이벤트가 종료되지 않았습니다.")
         verifyBattleOperationStart(campaign)
@@ -94,7 +94,7 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
             val hp = battle.units.values.firstOrNull { it.characterId == bossId }?.hitPoints ?: 0
             mapOf(7 to hp)
         }
-        val victoryContext = ScenarioInterpreter.BattleScriptContext(
+        val victoryContext = ScenarioBattleScriptContext(
             round = 2,
             camp = 2,
             attributes = defeatedBossAttributes,
@@ -138,13 +138,13 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
     private fun verifyBattleOperationStart(campaign: CampaignState) {
         val runtime = ScenarioInterpreter.load("S_00", campaign).apply { start("scene0") }
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 입력 개방 검증 초기화가 종료되지 않았습니다.")
-        runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 1, camp = -1))
+        runtime.setBattleContext(ScenarioBattleScriptContext(round = 1, camp = -1))
         runtime.start("scene1")
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 입력 개방 검증 첫 턴이 종료되지 않았습니다.")
-        runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 1, camp = 2))
+        runtime.setBattleContext(ScenarioBattleScriptContext(round = 1, camp = 2))
         runtime.start("scene1")
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 증원 진입 이벤트가 종료되지 않았습니다.")
-        runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 2, camp = 2))
+        runtime.setBattleContext(ScenarioBattleScriptContext(round = 2, camp = 2))
         runtime.start("scene1")
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 전투 도입 대사가 종료되지 않았습니다.")
         check(runtime.stage.battleOperationStarted) { "S_00 startOper 이전에 전술 입력이 열렸습니다." }

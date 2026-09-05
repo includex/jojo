@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
 
 import com.badlogic.gdx.Gdx
 import java.nio.file.Files

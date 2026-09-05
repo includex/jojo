@@ -9,11 +9,11 @@ import com.badlogic.gdx.utils.JsonValue
 
 internal data class ScenarioTacticalEnvironment(
     val stage: ScenarioStage,
-    val battleContext: ScenarioInterpreter.BattleScriptContext,
+    val battleContext: ScenarioBattleScriptContext,
     val externalBattlePresentation: Boolean,
     val suspendFor: (Float) -> Unit,
-    val resolveStageUnitReference: (Int, Int) -> ScenarioInterpreter.UnitReference?,
-    val unitReference: (JsonValue, Frame) -> ScenarioInterpreter.UnitReference?,
+    val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
+    val unitReference: (JsonValue, Frame) -> ScenarioUnitReference?,
     val headReference: (JsonValue, Frame) -> HeadReference?,
 )
 
@@ -257,7 +257,7 @@ internal object ScenarioTacticalActionDispatcher {
             "stage.unitsMove" -> {
                 val requests = args.firstOrNull().asList().mapNotNull { values ->
                     val entry = values.asList()
-                    val unit = entry.firstOrNull() as? ScenarioInterpreter.UnitReference ?: return@mapNotNull null
+                    val unit = entry.firstOrNull() as? ScenarioUnitReference ?: return@mapNotNull null
                     if (entry.size >= 3) {
                         ScenarioCommand.MoveUnit(
                             unit.id,

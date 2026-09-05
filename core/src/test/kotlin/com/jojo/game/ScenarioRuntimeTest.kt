@@ -343,7 +343,7 @@ class ScenarioRuntimeTest {
         runtime.enableExternalBattlePresentation()
         runtime.setScriptVariables((0..100).associateWith { 1 } + (20 to 0))
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 2,
                 camp = 0,
                 positionsByCamp = mapOf(0 to listOf(13 to 12)),
@@ -404,7 +404,7 @@ class ScenarioRuntimeTest {
             runtime.stage.consumeScriptPresentationRequest(),
         )
         assertEquals(listOf(234, 235, 334), request.values.map {
-            (it["unit"] as ScenarioInterpreter.UnitReference).id
+            (it["unit"] as ScenarioUnitReference).id
         })
         assertEquals(PlaybackState.DELAY, runtime.state)
         runtime.resumeExternalDelay()
@@ -423,7 +423,7 @@ class ScenarioRuntimeTest {
             (0..100).associateWith { 1 } + mapOf(35 to 0, 56 to 0),
         )
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 attributes = mapOf(33 to mapOf(7 to 0)),
@@ -457,13 +457,13 @@ class ScenarioRuntimeTest {
         val runtime = ScenarioInterpreter.load("S_00")
         runtime.setScriptVariables((0..100).associateWith { 1 } + (1 to 0))
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(round = 2, camp = 0, playerDefeated = true),
+            ScenarioBattleScriptContext(round = 2, camp = 0, playerDefeated = true),
         )
 
         runtime.start("scene1")
 
         assertEquals(PlaybackState.MODAL, runtime.state)
-        assertEquals(ScenarioInterpreter.ModalKind.INFO, runtime.currentModalKind)
+        assertEquals(ScenarioModalKind.INFO, runtime.currentModalKind)
         assertEquals("조조 황번군에게 패배했다.", runtime.currentModalText)
         assertNull(runtime.stage.scriptedBattleOutcome)
         assertFalse(runtime.stage.battleEndedByScript)
@@ -482,7 +482,7 @@ class ScenarioRuntimeTest {
         val runtime = ScenarioInterpreter.load("S_00", campaign)
         runtime.setScriptVariables((0..100).associateWith { 1 } + (1 to 0))
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(round = 2, camp = 0, playerDefeated = true),
+            ScenarioBattleScriptContext(round = 2, camp = 0, playerDefeated = true),
         )
 
         runtime.start("scene1")
@@ -512,12 +512,12 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `live modal timers honor source auto close setting`() {
-        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioInterpreter.ModalKind.SECTION, "서막", false))
-        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioInterpreter.ModalKind.MAP_INFO, "긴 지도 정보", false))
-        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioInterpreter.ModalKind.INFO, "열 글자가 넘는 안내 문장", false))
-        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioInterpreter.ModalKind.INFO, "영천", false))
-        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioInterpreter.ModalKind.SECTION, "서막", true))
-        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioInterpreter.ModalKind.AMBITION, null, false))
+        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.SECTION, "서막", false))
+        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.MAP_INFO, "긴 지도 정보", false))
+        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.INFO, "열 글자가 넘는 안내 문장", false))
+        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.INFO, "영천", false))
+        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.SECTION, "서막", true))
+        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.AMBITION, null, false))
     }
 
     @Test
@@ -1368,7 +1368,7 @@ class ScenarioRuntimeTest {
     fun `battle context seeds lazy stage unit at its live tactical tile`() {
         val runtime = ScenarioInterpreter.load("S_00", CampaignState())
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 1,
                 positions = mapOf(210 to (10 to 16)),
@@ -1401,9 +1401,9 @@ class ScenarioRuntimeTest {
             listOf(mapOf("idx" to 0, "i" to 0), mapOf("idx" to 1, "i" to 1)),
         )
 
-        assertEquals(ScenarioInterpreter.UnitReference(57), runtime.resolveStageUnitReference(0, 1))
-        assertEquals(ScenarioInterpreter.UnitReference(139), runtime.resolveStageUnitReference(1, 1))
-        assertEquals(ScenarioInterpreter.UnitReference(1), runtime.resolveStageUnitReference(1, 0))
+        assertEquals(ScenarioUnitReference(57), runtime.resolveStageUnitReference(0, 1))
+        assertEquals(ScenarioUnitReference(139), runtime.resolveStageUnitReference(1, 1))
+        assertEquals(ScenarioUnitReference(1), runtime.resolveStageUnitReference(1, 0))
         assertNull(runtime.resolveStageUnitReference(14, 1), "missing _unitSet slots are source undefined")
     }
 
@@ -1412,7 +1412,7 @@ class ScenarioRuntimeTest {
         val runtime = ScenarioInterpreter.load("S_35")
         runtime.setScriptVariables((0..100).associateWith { 1 } + mapOf(21 to 0, 54 to 0))
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 positions = mapOf(62 to (6 to 4)),
@@ -1445,7 +1445,7 @@ class ScenarioRuntimeTest {
         fun runtimeAtGate(occupied: Boolean): ScenarioInterpreter = ScenarioInterpreter.load("S_52").also { runtime ->
             runtime.setScriptVariables((0..100).associateWith { 1 } + (20 to 0))
             runtime.setBattleContext(
-                ScenarioInterpreter.BattleScriptContext(
+                ScenarioBattleScriptContext(
                     round = 1,
                     camp = 0,
                     positions = if (occupied) mapOf(438 to (7 to 15)) else emptyMap(),
@@ -2545,11 +2545,11 @@ class ScenarioRuntimeTest {
     @Test
     fun `scripted unit status payload is retained once for BattleScreen application`() {
         val stage = ScenarioStage()
-        stage.setUnitStatuses(listOf(mapOf("unit" to ScenarioInterpreter.UnitReference(234), "hp" to -80, "hStatus" to listOf(9))))
+        stage.setUnitStatuses(listOf(mapOf("unit" to ScenarioUnitReference(234), "hp" to -80, "hStatus" to listOf(9))))
 
         val statuses = stage.consumeUnitStatuses()
         assertEquals(-80, statuses.single().getValue("hp"))
-        assertEquals(ScenarioInterpreter.UnitReference(234), statuses.single().getValue("unit"))
+        assertEquals(ScenarioUnitReference(234), statuses.single().getValue("unit"))
         assertEquals(emptyList(), stage.consumeUnitStatuses())
     }
 
@@ -2565,7 +2565,7 @@ class ScenarioRuntimeTest {
     fun `multi speaker pages retain one source SayLayer lifecycle revision`() {
         val runtime = ScenarioInterpreter.load("S_00")
         runtime.setScriptVariables(mapOf(14 to 1))
-        runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 1, camp = 2))
+        runtime.setBattleContext(ScenarioBattleScriptContext(round = 1, camp = 2))
 
         runtime.start("scene1")
         assertEquals("32", runtime.currentDialogue?.speakerId)
@@ -2598,7 +2598,7 @@ class ScenarioRuntimeTest {
         val runtime = ScenarioInterpreter.load("S_00")
         runtime.setScriptVariables(mapOf(11 to 1, 14 to 1))
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 2,
                 camp = 3,
                 activeCharacterIds = setOf(3, 32, 33, 157),
@@ -2630,7 +2630,7 @@ class ScenarioRuntimeTest {
         val runtime = ScenarioInterpreter.load("S_00")
         runtime.setScriptVariables((13..40).associateWith { 1 })
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 7,
                 camp = 0,
                 positions = mapOf(0 to (9 to 12), 147 to (10 to 11)),
@@ -2786,7 +2786,7 @@ class ScenarioRuntimeTest {
             mapOf(11 to 1, 12 to 1, 20 to 1, 21 to 1, 30 to 1, 31 to 1, 40 to 0, 41 to 1),
         )
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 positions = mapOf(3 to (5 to 5), 134 to (6 to 5)),
@@ -2831,7 +2831,7 @@ class ScenarioRuntimeTest {
             mapOf(11 to 1, 12 to 1, 20 to 1, 21 to 1, 30 to 1, 31 to 1, 40 to 0, 41 to 1),
         )
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 positions = mapOf(3 to (5 to 5), 134 to (6 to 5)),
@@ -2878,7 +2878,7 @@ class ScenarioRuntimeTest {
             (listOf(12, 20, 21, 30, 31, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57, 58, 0, 1))
                 .associateWith { 1 },
         )
-        runtime.setBattleContext(ScenarioInterpreter.BattleScriptContext(round = 1, camp = 0))
+        runtime.setBattleContext(ScenarioBattleScriptContext(round = 1, camp = 0))
 
         runtime.start("scene1")
         var dialogueCount = 0

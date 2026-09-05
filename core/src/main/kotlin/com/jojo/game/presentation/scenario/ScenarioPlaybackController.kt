@@ -1,5 +1,6 @@
 package com.jojo.game.presentation.scenario
 import com.jojo.game.application.scenario.ScenarioInterpreter
+import com.jojo.game.application.scenario.ScenarioModalKind
 
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.SayLayerAutoClose
@@ -77,10 +78,10 @@ internal class ScenarioPlaybackController(
             PlaybackState.CHOICE -> onConfirmChoice()
             PlaybackState.DELAY -> Unit
             PlaybackState.MODAL -> {
-                if (playback.currentModalKind == ScenarioInterpreter.ModalKind.AMBITION) return
+                if (playback.currentModalKind == ScenarioModalKind.AMBITION) return
                 if (playback.currentModalKind in setOf(
-                        ScenarioInterpreter.ModalKind.INFO,
-                        ScenarioInterpreter.ModalKind.MAP_INFO
+                        ScenarioModalKind.INFO,
+                        ScenarioModalKind.MAP_INFO
                     ) &&
                     modalReveal.revealAllIfPending()
                 ) {

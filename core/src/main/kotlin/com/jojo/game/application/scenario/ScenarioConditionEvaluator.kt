@@ -1,11 +1,10 @@
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
-
 internal data class ScenarioConditionEnvironment(
     val gvars: MutableMap<Int, Any?>,
     val pvars: MutableMap<Int, Any?>,
-    val battleContext: ScenarioInterpreter.BattleScriptContext,
+    val battleContext: ScenarioBattleScriptContext,
     val stageUnitAttribute: (Int, Int) -> Int,
 )
 
@@ -22,8 +21,8 @@ internal fun sourceUnitTypeMatches(camp: Int, selector: Int): Boolean = when (se
  * spatial adjacency (isNear), positional containment, and unit attribute tests.
  */
 internal object ScenarioConditionEvaluator {
-    const val ADDRESS_INTVAR_START = 5_251_072
-    const val ADDRESS_INTVAR_END = 5_255_168
+    const val ADDRESS_INTVAR_START = ScenarioConditionOperandResolver.ADDRESS_INTVAR_START
+    const val ADDRESS_INTVAR_END = ScenarioConditionOperandResolver.ADDRESS_INTVAR_END
     val DEFAULT_CARDINAL_NEAR_OFFSETS = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
     val DEFAULT_INFANTRY_NEAR_OFFSETS = DEFAULT_CARDINAL_NEAR_OFFSETS + setOf(1 to 1, -1 to 1, 1 to -1, -1 to -1)
 
@@ -40,14 +39,8 @@ internal object ScenarioConditionEvaluator {
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun stageVariableValue(kind: Int, value: Int, env: ScenarioConditionEnvironment): Int = when (kind) {
-        0 -> value
-        1 -> readStageAddress(env.pvars[value].asInt(), env)
-        2 -> env.pvars[value].asInt()
-        4 -> env.gvars[value].asInt()
-        5 -> ADDRESS_INTVAR_START + 4 * value
-        else -> 0
-    }
+    fun stageVariableValue(kind: Int, value: Int, env: ScenarioConditionEnvironment): Int =
+        ScenarioConditionOperandResolver.value(kind, value, env)
 
     /**
      * 공개 메서드 `readStageAddress`
@@ -62,9 +55,7 @@ internal object ScenarioConditionEvaluator {
      */
 
     fun readStageAddress(address: Int, env: ScenarioConditionEnvironment): Int =
-        if (address in ADDRESS_INTVAR_START until ADDRESS_INTVAR_END) {
-            env.gvars[(address - ADDRESS_INTVAR_START) / 4].asInt()
-        } else 0
+        ScenarioConditionOperandResolver.read(address, env)
 
     /**
      * 공개 메서드 `writeStageAddress`
@@ -79,11 +70,8 @@ internal object ScenarioConditionEvaluator {
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun writeStageAddress(address: Int, value: Int, env: ScenarioConditionEnvironment) {
-        if (address in ADDRESS_INTVAR_START until ADDRESS_INTVAR_END) {
-            env.gvars[(address - ADDRESS_INTVAR_START) / 4] = value
-        }
-    }
+    fun writeStageAddress(address: Int, value: Int, env: ScenarioConditionEnvironment) =
+        ScenarioConditionOperandResolver.write(address, value, env)
 
     /**
      * 공개 메서드 `applyStageVarOperation`
@@ -307,19 +295,6 @@ internal object ScenarioConditionEvaluator {
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun unitStateTest(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean {
-        val unitId = args.intAt(0)
-        val attribute = args.intAt(1)
-        val compared = args.intAt(2)
-        val mode = args.intAt(3)
-        val value = env.battleContext.attributes[unitId]?.get(attribute)
-            ?: env.stageUnitAttribute(unitId, attribute)
-        return when (mode) {
-            0 -> value >= compared
-            1 -> value < compared
-            2 -> value == compared
-            3 -> value != compared
-            else -> false
-        }
-    }
+    fun unitStateTest(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean =
+        ScenarioUnitConditionRules.stateMatches(args, env)
 }

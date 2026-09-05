@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
 
 /** Verification-only façade; collaborators only observe the live battle board. */
 internal class CampaignE2eBattleVerificationProjection {
@@ -6,7 +6,7 @@ internal class CampaignE2eBattleVerificationProjection {
     private val inputProjection = CampaignE2eBattleInputProjection()
     private val stateProjection = CampaignE2eBattleStateProjection()
 
-    fun computeState(ctx: BattleCampaignE2eAdapter.ProjectionContext): CampaignE2eBattleState {
+    fun computeState(ctx: CampaignE2eProjectionContext): CampaignE2eBattleState {
         val board = CampaignE2eBattlePlanningBoard(ctx)
         val movePlan = movePlanner.plan(board)
         val actionInputs = inputProjection.project(board, movePlan)

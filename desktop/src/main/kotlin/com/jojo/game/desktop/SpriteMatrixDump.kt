@@ -4,8 +4,8 @@ import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
-import com.jojo.game.BattleSpriteTimeline
 import com.jojo.game.GameDataCatalog
+import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 /** One-process counterpart to the source Cocos AnimationState frame dump. */
 object SpriteMatrixDump {

@@ -1,7 +1,16 @@
 package com.jojo.game.presentation.battle
 import com.jojo.game.application.scenario.ScenarioInterpreter
+import com.jojo.game.application.scenario.ScenarioBattleScriptContext
+import com.jojo.game.application.scenario.ScenarioModalKind
+import com.jojo.game.application.scenario.ScenarioUnitReference
 import com.jojo.game.application.battle.BattleRewardFlow
 import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
+import com.jojo.game.application.runtime.BattleRuntimeProbe
+import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
+import com.jojo.game.application.runtime.BattleRuntimeSnapshot
+import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
+import com.jojo.game.application.runtime.RuntimeGridPoint
+import com.jojo.game.application.runtime.RuntimeMagicSnapshot
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattlePropertyItem
@@ -1077,9 +1086,8 @@ void main() {
     private var pendingAiPlayerMoveScriptStarted = false
     private var pendingAiUnitDeathScriptPass = 0
     private var pendingAiActionCommitted = false
-    private var campaignE2ePlayerMoveCommitted = false
-    private var campaignE2eCommittedPlayerMove: String? = null
-    private val authoredMechanicRoute = AuthoredMechanicRouteTracker(sourceScenario)
+    private var playerMoveCommitted = false
+    private var committedPlayerMove: String? = null
 
     private enum class AiPresentationStage { FOCUS_DELAY, MOVING, ACTION_DELAY, ACTION, COMPLETE }
 
@@ -1468,7 +1476,7 @@ void main() {
                 roundLayer = activeRoundLayer != null,
                 resultPrompt = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
                 modalInfo = scriptRuntime.state == PlaybackState.MODAL &&
-                        scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO,
+                        scriptRuntime.currentModalKind == ScenarioModalKind.INFO,
                 loseScene = loseSceneFlow != null,
                 command = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
                 usePropertyDetail = usePropertyDetail != null,
@@ -1642,7 +1650,7 @@ void main() {
                     return true
                 }
                 if (scriptRuntime.state == PlaybackState.MODAL &&
-                    scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO
+                    scriptRuntime.currentModalKind == ScenarioModalKind.INFO
                 ) {
                     battleInfoPanelPressed = true
                     return true
@@ -1819,7 +1827,7 @@ void main() {
                 if (battleInfoPanelPressed) {
                     battleInfoPanelPressed = false
                     if (scriptRuntime.state == PlaybackState.MODAL &&
-                        scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO
+                        scriptRuntime.currentModalKind == ScenarioModalKind.INFO
                     ) {
                         // InfoLayer's first TOUCH_END while typing only fills
                         // the RichText; the following TOUCH_END removes the
@@ -2196,7 +2204,7 @@ void main() {
         // running after ScenarioStage had already ended it.
         battle.syncScriptedOutcome(scriptRuntime.stage.scriptedBattleOutcome)
         if (scriptRuntime.state == PlaybackState.MODAL &&
-            scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO
+            scriptRuntime.currentModalKind == ScenarioModalKind.INFO
         ) {
             scriptRuntime.currentModalText?.let { battleInfoReveal.update(it, delta) }
         } else {
@@ -3096,8 +3104,8 @@ void main() {
         fullTraceEvidence?.recordInput(context)
     }
 
-    /** Read-only observation for the desktop campaign E2E driver. */
-    internal fun campaignE2eState(): CampaignE2eBattleState {
+    /** Read-only application probe. External diagnostics may observe it, never mutate the battle. */
+    internal fun runtimeProbe(): BattleRuntimeScreenProbe {
         /**
          * 공개 메서드 `screenPoint`
          *
@@ -3137,45 +3145,119 @@ void main() {
             return projected.x.toInt() to (Gdx.graphics.height - projected.y).toInt()
         }
 
-        val autoView = autoBattleFlow.view()
-        return BattleCampaignE2eAdapter.computeState(
-            BattleCampaignE2eAdapter.ProjectionContext(
-                scenario = sourceScenario,
-                battle = battle,
-                selectedUnitId = selectedUnitId,
-                authoredMechanicRoute = authoredMechanicRoute,
-                scriptState = scriptRuntime.state,
-                selectedChoice = scriptRuntime.selectedChoice,
-                bootstrapPhase = bootstrapPhase,
-                initialPlayerCampScriptStarted = initialPlayerCampScriptStarted,
-                resultScene1Observed = resultScene1Observed,
-                naturalOutcomeScriptStarted = naturalOutcomeScriptStarted,
-                postBattleSceneStarted = postBattleSceneStarted,
-                rewardOpen = rewardFlow != null,
-                winConditionsOpen = scriptWinConditions != null,
-                savePromptOpen = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
-                losePromptOpen = loseSceneFlow?.state == LoseSceneFlow.State.PROMPT,
-                loseTitleScreenPoint = projectWorldPoint(844.186f, 296.285f),
-                playerMoveCommitted = campaignE2ePlayerMoveCommitted,
-                campaignStage = game.campaignStage(),
-                turnPhase = turnController.phase,
-                battleMenuOpen = battleMenuOpen,
-                battleCommandOpen = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
-                battleTargetSelectionOpen = battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION,
-                magickListOpen = magickListLayer != null,
-                magicMode = magicMode,
-                waitCommandScreenPoint = projectWorldPoint(1060.6f, 225.42f),
-                endRoundCommandScreenPoint = projectWorldPoint(15.13372f + 8f * 88f + 44f, 160.29f),
-                battleMenuButtonScreenPoint = projectWorldPoint(1383.9535f, 38f),
-                autoBattleToggleScreenPoint = projectWorldPoint(579.4365f, 295.197f),
-                autoBattleConfirmScreenPoint = projectWorldPoint(919.536f, 295.197f),
-                autoBattleOverlay = autoView.overlay,
-                autoBattleChecked = autoView.checked,
-                collocation = autoView.collocation,
-                committedPlayerMove = campaignE2eCommittedPlayerMove,
-                screenPoint = ::screenPoint,
-                projectWorldPoint = ::projectWorldPoint,
+        val runtimeSnapshot = BattleRuntimeSnapshot(
+            round = battle.round,
+            activeFaction = battle.activeFaction,
+            units = battle.units.values.map { unit ->
+                RuntimeBattleUnitSnapshot(
+                    id = unit.id,
+                    faction = unit.faction,
+                    effectiveFaction = unit.effectiveFaction(),
+                    characterId = unit.characterId,
+                    x = unit.tileX,
+                    y = unit.tileY,
+                    hitPoints = unit.hitPoints,
+                    magicPoints = unit.magicPoints,
+                    level = unit.level,
+                    attack = unit.attack,
+                    defense = unit.defense,
+                    visible = unit.visible,
+                    hasActed = unit.hasActed,
+                    statuses = unit.statuses.keys.toSet(),
+                    attackOffsets = unit.attackOffsets.mapTo(linkedSetOf()) { RuntimeGridPoint(it.first, it.second) },
+                    attackAllScreen = unit.attackAllScreen,
+                    magic = unit.magic.map { magic ->
+                        RuntimeMagicSnapshot(
+                            id = magic.id,
+                            target = magic.target,
+                            cost = magic.expendMp,
+                            power = magic.power,
+                            category = magic.category,
+                            allScreen = magic.hitArea.allScreen,
+                            offsets = magic.hitArea.offsets.mapTo(linkedSetOf()) { RuntimeGridPoint(it.first, it.second) },
+                        )
+                    },
+                    retreatCount = unit.retreatCount,
+                    hasAuthoredX = unit.hasAuthoredTileX,
+                    hasAuthoredY = unit.hasAuthoredTileY,
+                )
+            },
+        )
+        val probe = object : BattleRuntimeProbe {
+            override val snapshot: BattleRuntimeSnapshot = runtimeSnapshot
+
+            override fun reachableTiles(unitId: String): Set<RuntimeGridPoint> =
+                battle.movement.reachableTiles(unitId).keys.mapTo(linkedSetOf()) { RuntimeGridPoint(it.first, it.second) }
+
+            override fun canEnterTilesIgnoringEnemyWithinMoves(
+                unitId: String,
+                ignoredEnemyId: String,
+                start: RuntimeGridPoint,
+                targetTiles: Set<RuntimeGridPoint>,
+                moves: Int,
+            ): Boolean = battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
+                unitId,
+                ignoredEnemyId,
+                start.x to start.y,
+                targetTiles.mapTo(linkedSetOf()) { it.x to it.y },
+                moves,
             )
+
+            override fun physicalDamagePreview(attackerId: String, targetId: String): Int =
+                battle.combat.physicalDamagePreview(attackerId, targetId)
+
+            override fun screenPoint(tile: RuntimeGridPoint): RuntimeGridPoint =
+                screenPoint(tile.x, tile.y).let { RuntimeGridPoint(it.first, it.second) }
+
+            override fun projectWorldPoint(x: Float, y: Float): RuntimeGridPoint =
+                projectWorldPoint(x, y).let { RuntimeGridPoint(it.first, it.second) }
+        }
+        val autoView = autoBattleFlow.view()
+        val loseTitle = projectWorldPoint(844.186f, 296.285f)
+        val waitCommand = projectWorldPoint(1060.6f, 225.42f)
+        val endRoundCommand = projectWorldPoint(15.13372f + 8f * 88f + 44f, 160.29f)
+        val battleMenuButton = projectWorldPoint(1383.9535f, 38f)
+        val autoBattleToggle = projectWorldPoint(579.4365f, 295.197f)
+        val autoBattleConfirm = projectWorldPoint(919.536f, 295.197f)
+        return BattleRuntimeScreenProbe(
+            scenario = sourceScenario,
+            playback = scriptRuntime.state,
+            outcome = battle.outcome(),
+            bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE,
+            initialScene1Started = initialPlayerCampScriptStarted,
+            resultScene1Started = resultScene1Observed || naturalOutcomeScriptStarted,
+            scene2Started = postBattleSceneStarted,
+            rewardOpen = rewardFlow != null,
+            winConditionsOpen = scriptWinConditions != null,
+            savePromptOpen = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
+            losePromptOpen = loseSceneFlow?.state == LoseSceneFlow.State.PROMPT,
+            loseTitleScreenX = loseTitle.first,
+            loseTitleScreenY = loseTitle.second,
+            playerMoveCommitted = playerMoveCommitted,
+            campaignStage = game.campaignStage(),
+            turnPhase = turnController.phase.name,
+            battleMenuOpen = battleMenuOpen,
+            battleCommandOpen = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
+            battleTargetSelectionOpen = battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION,
+            magickListOpen = magickListLayer != null,
+            magicTargetSelection = magicMode,
+            commandWaitScreenX = waitCommand.first,
+            commandWaitScreenY = waitCommand.second,
+            menuEndRoundScreenX = endRoundCommand.first,
+            menuEndRoundScreenY = endRoundCommand.second,
+            battleMenuButtonScreenX = battleMenuButton.first,
+            battleMenuButtonScreenY = battleMenuButton.second,
+            autoBattleToggleScreenX = autoBattleToggle.first,
+            autoBattleToggleScreenY = autoBattleToggle.second,
+            autoBattleConfirmScreenX = autoBattleConfirm.first,
+            autoBattleConfirmScreenY = autoBattleConfirm.second,
+            autoBattleOverlay = autoView.overlay.name,
+            autoBattleChecked = autoView.checked,
+            collocation = autoView.collocation,
+            committedPlayerMove = committedPlayerMove,
+            selectedChoice = scriptRuntime.selectedChoice,
+            selectedUnitId = selectedUnitId,
+            battle = probe,
         )
     }
 
@@ -4749,7 +4831,7 @@ void main() {
 
             is ScenarioScriptPresentationRequest.UnitStatusSettlement -> {
                 val characterId = request.values.asSequence()
-                    .mapNotNull { (it["unit"] as? ScenarioInterpreter.UnitReference)?.id }
+                    .mapNotNull { (it["unit"] as? ScenarioUnitReference)?.id }
                     .firstOrNull()
                 val unit = characterId?.let(::scriptBattleUnit)
                 unit?.let(::focusCameraOn)
@@ -4983,7 +5065,7 @@ void main() {
     private fun combatPresentationBusy(): Boolean {
         val now = animationClock()
         return (scriptRuntime.state == PlaybackState.MODAL &&
-                scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO) ||
+                scriptRuntime.currentModalKind == ScenarioModalKind.INFO) ||
                 movementAnimation?.let { now < it.endsAt } == true ||
                 actionAnimation?.let { now < it.endsAt } == true ||
                 hitReactionAnimations.values.any { now < it.endsAt } ||
@@ -5108,9 +5190,9 @@ void main() {
                     if (camp == Faction.PLAYER && resolution.path.size >= 2 &&
                         (resolution.fromX != resolution.toX || resolution.fromY != resolution.toY)
                     ) {
-                        campaignE2ePlayerMoveCommitted = true
+                        playerMoveCommitted = true
                         val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
-                        campaignE2eCommittedPlayerMove =
+                        committedPlayerMove =
                             "$actor:${resolution.fromX},${resolution.fromY}->${resolution.toX},${resolution.toY}"
                     }
                     val needsMoveCallbackScript = camp == Faction.PLAYER
@@ -5451,8 +5533,8 @@ void main() {
         commitDeferredBattleAction()
         finalDirection?.let { direction -> battle.presentation.presentationUnit(unitId)?.direction = direction }
         pendingBattleCommandMoveProvenance?.let { provenance ->
-            campaignE2ePlayerMoveCommitted = true
-            campaignE2eCommittedPlayerMove = provenance
+            playerMoveCommitted = true
+            committedPlayerMove = provenance
             pendingBattleCommandMoveProvenance = null
         }
         battle.units[unitId]?.let { unit ->
@@ -10682,7 +10764,7 @@ void main() {
      */
     private fun drawScriptInfoLayer() {
         if (scriptRuntime.state != PlaybackState.MODAL ||
-            scriptRuntime.currentModalKind != ScenarioInterpreter.ModalKind.INFO
+            scriptRuntime.currentModalKind != ScenarioModalKind.INFO
         ) return
         val text = battleInfoReveal.visibleText
         val sourceCanvasWidth = 1488.3721f
@@ -10740,7 +10822,7 @@ void main() {
         val mineMasterBattleId = scriptRuntime.stage
             .battleUnitForCharacterId(scriptRuntime.stage.mineMasterInstanceId)?.battleId
         scriptRuntime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = battle.round,
                 camp = contextCampOverride ?: battle.activeFaction.scriptCamp(),
                 maxRound = scenarioMaxRound(),
@@ -11069,7 +11151,7 @@ void main() {
     /** Applies the original BattleScreen.setUnitStatus payload emitted by event scripts. */
     private fun applyScriptedStatuses() {
         scriptRuntime.stage.consumeUnitStatuses().forEach { change ->
-            val unitReference = change["unit"] as? ScenarioInterpreter.UnitReference
+            val unitReference = change["unit"] as? ScenarioUnitReference
             val camp = (change["camp"] as? Number)?.toInt()
             val x1 = (change["x1"] as? Number)?.toInt()
             val y1 = (change["y1"] as? Number)?.toInt()

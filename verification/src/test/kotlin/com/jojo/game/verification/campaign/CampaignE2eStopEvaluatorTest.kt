@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

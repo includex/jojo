@@ -2,6 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.application.navigation.GameScreenNavigator
+import com.jojo.game.application.runtime.runtimeProbe
 import com.jojo.game.infrastructure.data.CampaignStore
 import com.jojo.game.presentation.battle.BattleScreen
 
@@ -50,31 +51,15 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     private val screenshotState get() = capture.state
     private val fullBattleTraceConfig get() = configuration.fullBattleTrace
     private val yingchuanEntryFlowTracePath get() = configuration.yingchuanEntryFlowTracePath
-    private val campaignE2eTraceConfig get() = configuration.campaignE2eTrace
     private val automatedRun get() = configuration.automatedRun
     private val preferenceProvider = GamePreferenceProvider(automatedRun) { name -> Gdx.app.getPreferences(name) }
     private val campaign by lazy { CampaignStore(preferenceProvider.campaign()) }
     private val screenNavigator by lazy { GameScreenNavigator(this, configuration, campaign, ::replaceScreen) }
-    private val campaignE2eDriver by lazy { campaignE2eTraceConfig?.let(::CampaignE2eDriver) }
-    private val standaloneBattleInputDriver by lazy {
-        fullBattleTraceConfig?.takeIf { campaignE2eTraceConfig == null }
-            ?.let { config ->
-                ProductionBattleInputDriver(
-                    inputIntervalSeconds = config.driverIntervalSeconds,
-                    onInput = { context -> (screen as? BattleScreen)?.recordFullBattleInput(context) },
-                    // The original standalone full-battle harness enters
-                    // entrusted control through END_ROUND/MsgBox4 without
-                    // committing a player move first.  Campaign E2E keeps
-                    // its separate manual-move proof, while S52/S57 ignore
-                    // this limit because they require authored room input.
-                    manualMoveAttemptLimit = 0,
-                )
-            }
-    }
     private val renderArtifacts by lazy { RenderArtifactService(capture) }
 
-    internal fun campaignE2eScenarioStarted(module: String, index: Int) {
-        campaignE2eDriver?.scenarioStarted(module, index)
+    /** Internal presentation notification forwarded to an optional external observer. */
+    internal fun scenarioStarted(module: String, index: Int) {
+        configuration.runtimeScreenObserver?.scenarioStarted(module, index)
     }
 
     internal fun preferences(name: String) = preferenceProvider.get(name)
@@ -104,12 +89,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
 
     override fun render() {
         super.render()
-        campaignE2eDriver?.update(Gdx.graphics.deltaTime, screen)
-        if (campaignE2eDriver == null) {
-            (screen as? BattleScreen)?.let { battle ->
-                standaloneBattleInputDriver?.update(Gdx.graphics.deltaTime, battle.campaignE2eState())
-            }
-        }
+        configuration.runtimeScreenObserver?.update(Gdx.graphics.deltaTime, screen.runtimeProbe())
     }
 
     fun showTitleScreen() = screenNavigator.showTitleScreen()

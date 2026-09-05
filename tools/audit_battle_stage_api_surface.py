@@ -19,6 +19,7 @@ from typing import Any
 
 
 FORMAT = "jojo-battle-stage-api-audit/v1"
+CANONICAL_RUNTIME_RELATIVE_PATH = Path("core/src/main/kotlin/com/jojo/game/application/scenario/ScenarioInterpreter.kt")
 
 
 def expression_path(node: ast.AST) -> str | None:
@@ -378,18 +379,19 @@ def audit(
     )
     _attach_lifecycle_evidence(calls, lifecycle_by_site)
     if runtime_path.name == "ScenarioInterpreter.kt" and runtime_path.is_file():
+        game_source_dir = runtime_path.parents[2]
         dispatch_files = [
-            "ScenarioCallCoordinator.kt",
-            "ScenarioStageCallDispatcher.kt",
-            "ScenarioTacticalActionDispatcher.kt",
-            "ScenarioUnitActionDispatcher.kt",
-            "ScenarioFightDispatcher.kt",
-            "ScenarioInterpreter.kt",
+            runtime_path.parent / "ScenarioCallCoordinator.kt",
+            game_source_dir / "ScenarioStageCallDispatcher.kt",
+            game_source_dir / "ScenarioTacticalActionDispatcher.kt",
+            game_source_dir / "ScenarioUnitActionDispatcher.kt",
+            game_source_dir / "ScenarioFightDispatcher.kt",
+            runtime_path,
         ]
         combined_text = "\n".join(
-            (runtime_path.parent / name).read_text(encoding="utf-8")
-            for name in dispatch_files
-            if (runtime_path.parent / name).exists()
+            path.read_text(encoding="utf-8")
+            for path in dispatch_files
+            if path.exists()
         )
         handlers = runtime_handlers(combined_text)
     else:
@@ -523,7 +525,7 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/decompiled-python")
-    parser.add_argument("--runtime", type=Path, default=root / "core/src/main/kotlin/com/jojo/game/ScenarioInterpreter.kt")
+    parser.add_argument("--runtime", type=Path, default=root / CANONICAL_RUNTIME_RELATIVE_PATH)
     parser.add_argument("--source-root", type=Path, default=root.parent / "jojo_mobile/sgccz-desktop/recovered-js/modules")
     parser.add_argument(
         "--lifecycle", type=Path,

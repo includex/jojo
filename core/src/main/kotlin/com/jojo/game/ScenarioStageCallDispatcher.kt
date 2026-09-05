@@ -10,17 +10,17 @@ internal data class ScenarioStageCallEnvironment(
     val moduleName: String,
     val stage: ScenarioStage,
     val campaign: CampaignState,
-    val battleContext: ScenarioInterpreter.BattleScriptContext,
+    val battleContext: ScenarioBattleScriptContext,
     val gvars: MutableMap<Int, Any?>,
     val pvars: MutableMap<Int, Any?>,
-    val randomTrace: MutableList<ScenarioInterpreter.RandomTrace>,
+    val randomTrace: MutableList<ScenarioRandomTrace>,
     val stopAfterRandomTraceCount: Int?,
     val stagePresentationSkipped: Boolean,
     val externalBattlePresentation: Boolean,
     val pendingAskResult: Int?,
     val suspendFor: (Float) -> Unit,
     val suspendForBattleBackgroundLoad: (Int) -> Unit,
-    val suspendForInfo: (String, ScenarioInterpreter.ModalKind, Float) -> Unit,
+    val suspendForInfo: (String, ScenarioModalKind, Float) -> Unit,
     val suspendForAmbition: (Int) -> Unit,
     val suspendForMapInfo: (String, Boolean, Boolean, Boolean) -> Unit,
     val suspendForSection: (Int, String) -> Unit,
@@ -79,7 +79,7 @@ internal object ScenarioStageCallDispatcher {
                 stage.apply(ScenarioCommand.SetEventName(text))
                 if (!env.stagePresentationSkipped && stage.battleDrawRequested) env.suspendForInfo(
                     text,
-                    ScenarioInterpreter.ModalKind.EVENT,
+                    ScenarioModalKind.EVENT,
                     1f
                 )
                 0
@@ -90,7 +90,7 @@ internal object ScenarioStageCallDispatcher {
                 stage.setStageName(text)
                 if (!env.stagePresentationSkipped && stage.battleDrawRequested) env.suspendForInfo(
                     text,
-                    ScenarioInterpreter.ModalKind.EVENT,
+                    ScenarioModalKind.EVENT,
                     1f
                 )
                 0
@@ -131,7 +131,7 @@ internal object ScenarioStageCallDispatcher {
             }
 
             "model.random" -> env.nextModelRandom().also { rnd ->
-                env.randomTrace += ScenarioInterpreter.RandomTrace(
+                env.randomTrace += ScenarioRandomTrace(
                     module = moduleName,
                     function = frame.sourceFunction,
                     line = node.get("location")?.getInt("line", -1)?.takeIf { it > 0 }
@@ -231,7 +231,7 @@ internal object ScenarioStageCallDispatcher {
                 val infoControl = gvars.remove(INFO_CTRL_GLOBAL).asInt()
                 if (env.stagePresentationSkipped) Unit
                 else if (infoControl != 0) stage.controlledInfo(infoControl, text)
-                else env.suspendForInfo(text, ScenarioInterpreter.ModalKind.INFO, delay)
+                else env.suspendForInfo(text, ScenarioModalKind.INFO, delay)
                 0
             }
 
@@ -302,7 +302,7 @@ internal object ScenarioStageCallDispatcher {
                 val unitSelector = args.getOrNull(3)?.asInt() ?: 0
                 val action = args.getOrNull(4)?.asInt() ?: 5
                 stage.getItem(itemId, supplied, addToInventory).let { message ->
-                    if (moduleName.startsWith("R_")) env.suspendForInfo(message, ScenarioInterpreter.ModalKind.INFO, 1f)
+                    if (moduleName.startsWith("R_")) env.suspendForInfo(message, ScenarioModalKind.INFO, 1f)
                 }
                 if (moduleName.startsWith("S_") && env.externalBattlePresentation && action > 0 && unitSelector >= 0) {
                     stage.requestScriptPresentation(

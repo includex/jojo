@@ -21,7 +21,7 @@ internal class ScenarioChoiceCoordinator(
         private set
     private var currentChoiceFunction: String? = null
     private var currentChoiceLine: Int? = null
-    val choiceTrace = mutableListOf<ScenarioInterpreter.ChoiceTrace>()
+    val choiceTrace = mutableListOf<ScenarioChoiceTrace>()
 
     var pendingChoiceTarget: JsonValue? = null
         private set
@@ -180,7 +180,7 @@ internal class ScenarioChoiceCoordinator(
     ) {
         check(currentState == PlaybackState.CHOICE) { "대기 중인 선택지가 없습니다." }
         val choice = requireNotNull(currentChoice)
-        choiceTrace += ScenarioInterpreter.ChoiceTrace(
+        choiceTrace += ScenarioChoiceTrace(
             module = moduleName,
             function = requireNotNull(currentChoiceFunction) { "choice source function is missing" },
             line = requireNotNull(currentChoiceLine) { "choice source line is missing" },

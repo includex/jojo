@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
+
+import com.jojo.game.application.runtime.RuntimeGridPoint
 
 /**
  * Monotonic S_52 puzzle route recovered from its five isInRect(1025, ...)

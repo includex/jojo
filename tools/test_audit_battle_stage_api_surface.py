@@ -129,7 +129,7 @@ class BattleStageApiAuditTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         report = audit(
             root.parent / "jojo_mobile/sgccz-desktop/decompiled-python",
-            root / "core/src/main/kotlin/com/jojo/game/ScenarioInterpreter.kt",
+            root / "core/src/main/kotlin/com/jojo/game/application/scenario/ScenarioInterpreter.kt",
             root.parent / "jojo_mobile/sgccz-desktop/recovered-js/modules",
             root / "tools/battle_stage_api_lifecycle_call_sites.json",
         )

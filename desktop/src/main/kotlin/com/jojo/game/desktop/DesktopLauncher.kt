@@ -54,16 +54,6 @@ object DesktopLauncher {
         val screenshotState = args.firstOrNull { it.startsWith("--capture-state=") }?.substringAfter('=')
         val fullBattleTracePath = args.firstOrNull { it.startsWith("--full-battle-trace=") }?.substringAfter('=')
         val yingchuanEntryFlowTracePath = args.firstOrNull { it.startsWith("--yingchuan-entry-flow-trace=") }?.substringAfter('=')
-        val campaignE2eTracePath = args.firstOrNull { it.startsWith("--campaign-e2e-trace=") }?.substringAfter('=')
-        val campaignE2eStopPoint = args.firstOrNull { it.startsWith("--campaign-e2e-stop=") }
-            ?.substringAfter('=')
-            ?.split(':', limit = 2)
-            ?.let { fields ->
-                require(fields.size == 2 && fields[0].matches(Regex("R_[0-9]{2}"))) {
-                    "--campaign-e2e-stop uses R_NN:sceneIndex"
-                }
-                com.jojo.game.CampaignE2eStopPoint(fields[0], fields[1].toInt())
-            }
         val fullBattleTraceConfig = fullBattleTracePath?.let { output ->
             com.jojo.game.FullBattleTraceConfig(
                 outputPath = output,
@@ -72,7 +62,7 @@ object DesktopLauncher {
                 mathSeed = args.firstOrNull { it.startsWith("--full-battle-math-seed=") }?.substringAfter('=')?.toLong() ?: 0x12345678L,
                 timeScale = args.firstOrNull { it.startsWith("--full-battle-time-scale=") }?.substringAfter('=')?.toFloat() ?: 8f,
                 maxSimulationSeconds = args.firstOrNull { it.startsWith("--full-battle-max-sim-seconds=") }?.substringAfter('=')?.toFloat() ?: 1800f,
-                exitOnFinish = campaignE2eTracePath == null,
+                exitOnFinish = true,
             )
         }
         val choiceScript = args.firstOrNull { it.startsWith("--verify-choice-script=") }
@@ -153,7 +143,6 @@ object DesktopLauncher {
                 argument.startsWith("--render-event-log=") ||
                 argument.startsWith("--composition-trace=") ||
                 argument.startsWith("--full-battle-trace=") ||
-                argument.startsWith("--campaign-e2e-trace=") ||
                 argument.startsWith("--yingchuan-entry-flow-trace=") ||
                 argument.startsWith("--choice-trace=") ||
                 argument.startsWith("--random-trace=")
@@ -177,7 +166,7 @@ object DesktopLauncher {
             // before the simulation deadline.  Preserve a deterministic
             // 60-frame cadence for both foreground and occluded trace windows;
             // visual capture routes keep compositor-synchronised VSync.
-            val logicTraceRun = fullBattleTracePath != null || campaignE2eTracePath != null
+            val logicTraceRun = fullBattleTracePath != null
             useVsync(!logicTraceRun)
             if (logicTraceRun) setIdleFPS(60)
             setForegroundFPS(60)
@@ -185,8 +174,8 @@ object DesktopLauncher {
             Lwjgl3Application(
                 JojoGame(GameLaunchConfiguration(
                     entryPoint = when {
-                        args.contains("--battle") || (fullBattleTraceConfig != null && campaignE2eTracePath == null) -> GameEntryPoint.BATTLE
-                        campaignE2eTracePath != null || (screenshotState == null && yingchuanEntryFlowTracePath == null && !args.contains("--verify") && !hasExplicitScenario && choiceScript.isEmpty() && globals.isEmpty() && variables.isEmpty() && randomSequence.isEmpty() && startScene == "scene1") -> GameEntryPoint.TITLE
+                        args.contains("--battle") || fullBattleTraceConfig != null -> GameEntryPoint.BATTLE
+                        screenshotState == null && yingchuanEntryFlowTracePath == null && !args.contains("--verify") && !hasExplicitScenario && choiceScript.isEmpty() && globals.isEmpty() && variables.isEmpty() && randomSequence.isEmpty() && startScene == "scene1" -> GameEntryPoint.TITLE
                         else -> GameEntryPoint.SCENARIO
                     },
                     initialScenario = scenario,
@@ -235,15 +224,6 @@ object DesktopLauncher {
                     ),
                     fullBattleTrace = fullBattleTraceConfig,
                     yingchuanEntryFlowTracePath = yingchuanEntryFlowTracePath,
-                    campaignE2eTrace = campaignE2eTracePath?.let {
-                        val stopPoint = campaignE2eStopPoint ?: com.jojo.game.CampaignE2eStopPoint()
-                        com.jojo.game.CampaignE2eTraceConfig(
-                            outputPath = it,
-                            maxSeconds = if (campaignE2eStopPoint == null) 900f else 3600f,
-                            stopAt = stopPoint,
-                            requireYingchuanBootstrapContract = campaignE2eStopPoint == null,
-                        )
-                    },
                     automatedRun = automatedRun,
                 )),
                 configuration

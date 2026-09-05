@@ -23,14 +23,14 @@ internal class ScenarioCallCoordinator(
     private val gvars: MutableMap<Int, Any?>,
     private val pvars: MutableMap<Int, Any?>,
     private val globalVariables: MutableMap<String, Any?>,
-    private val randomTrace: MutableList<ScenarioInterpreter.RandomTrace>,
+    private val randomTrace: MutableList<ScenarioRandomTrace>,
     private val unhandledCalls: MutableMap<String, Int>,
-    private val getBattleContext: () -> ScenarioInterpreter.BattleScriptContext,
+    private val getBattleContext: () -> ScenarioBattleScriptContext,
     private val isExternalBattlePresentation: () -> Boolean,
     private val isStagePresentationSkipped: () -> Boolean,
     private val onEnd: () -> Unit,
     private val onSetState: (PlaybackState) -> Unit,
-    private val resolveStageUnitReference: (Int, Int) -> ScenarioInterpreter.UnitReference?,
+    private val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
 ) {
     val expressionEnvironment: ScenarioExpressionEnvironment = ScenarioExpressionEnvironment(
         vars = vars,
@@ -129,10 +129,10 @@ internal class ScenarioCallCoordinator(
 
     fun jumpToLabel(label: String) = callStack.jumpToLabel(label, functions)
 
-    private fun unitReference(node: JsonValue, frame: Frame): ScenarioInterpreter.UnitReference? {
+    private fun unitReference(node: JsonValue, frame: Frame): ScenarioUnitReference? {
         val function = node.field("func")
         if (function.typeName() != "Attribute") return null
-        return eval(function.field("value"), frame) as? ScenarioInterpreter.UnitReference
+        return eval(function.field("value"), frame) as? ScenarioUnitReference
     }
 
     private fun headReference(node: JsonValue, frame: Frame): HeadReference? {
@@ -218,7 +218,7 @@ internal class ScenarioCallCoordinator(
                 val sourceText = args.firstOrNull().asText()
                 if (!sourceText.startsWith("&")) {
                     dialogueCoordinator.reset()
-                    modalController.suspendForInfo(sourceText, ScenarioInterpreter.ModalKind.INFO)
+                    modalController.suspendForInfo(sourceText, ScenarioModalKind.INFO)
                     return null
                 }
                 dialogueCoordinator.startSay(sourceText)

@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.application.runtime.RuntimeScreenObserver
+
 /** The first application route selected before LibGDX creates a screen. */
 enum class GameEntryPoint {
     TITLE,
@@ -79,6 +81,7 @@ data class GameLaunchConfiguration(
     val capture: RenderCaptureConfiguration = RenderCaptureConfiguration(),
     val fullBattleTrace: FullBattleTraceConfig? = null,
     val yingchuanEntryFlowTracePath: String? = null,
-    val campaignE2eTrace: CampaignE2eTraceConfig? = null,
+    /** Optional external read-only observer; production never depends on its implementation. */
+    val runtimeScreenObserver: RuntimeScreenObserver? = null,
     val automatedRun: Boolean = false,
 )

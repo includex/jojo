@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.verification.campaign
 
 /** Pure policy for deciding when a campaign trace has reached its requested checkpoint. */
 internal class CampaignE2eStopEvaluator(stopAt: CampaignE2eStopPoint) {

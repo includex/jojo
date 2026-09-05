@@ -1,5 +1,8 @@
 package com.jojo.game.presentation.scenario
 import com.jojo.game.application.scenario.ScenarioInterpreter
+import com.jojo.game.application.scenario.ScenarioBattleScriptContext
+import com.jojo.game.application.scenario.ScenarioModalKind
+import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.domain.scenario.ScenarioCompletionRoute
 
 import com.jojo.game.*
@@ -90,7 +93,7 @@ class ScenarioScreen(
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val shapes = ShapeRenderer()
     private val batch = SpriteBatch()
-    private val campaignE2eStartedScenes = mutableListOf<Int>()
+    private val startedSceneHistory = mutableListOf<Int>()
     private val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
         // `campaign.enter()` prepares a fresh module state. Apply explicit
         // verification globals afterwards so a CLI fixture never silently
@@ -113,7 +116,7 @@ class ScenarioScreen(
         }
         setScriptVariables(scriptedVariables)
         setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = scriptedBattleRound,
                 camp = scriptedBattleCamp,
                 attributes = scriptedBattleAttributes,
@@ -122,9 +125,9 @@ class ScenarioScreen(
                 enemyDefeated = scriptedBattleEnemyDefeated,
             ),
         )
-        game.campaignE2eScenarioStarted(moduleName, scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0)
+        game.scenarioStarted(moduleName, scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0)
         start(scriptedStartScene, scriptedStartLabel)
-        campaignE2eStartedScenes += scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0
+        startedSceneHistory += scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0
     }
     private val gameDataCatalog = GameDataCatalog.load()
     private val equipConfirmationFlow = EquipConfirmationFlow(campaign, gameDataCatalog)
@@ -538,9 +541,9 @@ class ScenarioScreen(
             val next = "scene${naturalSceneIndex + 1}"
             if (next in playback.functionNames) {
                 naturalSceneIndex++
-                game.campaignE2eScenarioStarted(moduleName, naturalSceneIndex)
+                game.scenarioStarted(moduleName, naturalSceneIndex)
                 playback.start(next)
-                campaignE2eStartedScenes += naturalSceneIndex
+                startedSceneHistory += naturalSceneIndex
             }
         }
         // Deterministic driver for the real R_00 screen route.  Every action
@@ -578,7 +581,7 @@ class ScenarioScreen(
         if (game.requestedCaptureState() == "map-info") {
             var guard = 0
             while (!(playback.state == PlaybackState.MODAL &&
-                        playback.currentModalKind == ScenarioInterpreter.ModalKind.MAP_INFO) &&
+                        playback.currentModalKind == ScenarioModalKind.MAP_INFO) &&
                 playback.state != PlaybackState.COMPLETE && guard++ < 1000
             ) {
                 when (playback.state) {
@@ -760,16 +763,16 @@ class ScenarioScreen(
         )
     }
 
-    /** Read-only observation; all E2E mutations still enter through the installed InputProcessor. */
-    internal fun campaignE2eState(): CampaignE2eScenarioState {
+    /** Read-only presentation snapshot; mutations still enter through the installed InputProcessor. */
+    internal fun runtimeProbe(): ScenarioRuntimeProbe {
         val battleButton = viewport.project(com.badlogic.gdx.math.Vector3(936.86f, 43f, 0f))
-        return CampaignE2eScenarioState(
+        return ScenarioRuntimeProbe(
             module = moduleName,
             playback = playback.state,
             options = playback.currentChoice?.options.orEmpty(),
             selectedChoice = playback.selectedChoice,
             sceneIndex = naturalSceneIndex,
-            startedScenes = campaignE2eStartedScenes.toList(),
+            startedScenes = startedSceneHistory.toList(),
             campaignStage = game.campaignStage(),
             menuVisible = playback.stage.menuVisible,
             dialogueText = playback.currentDialogue?.text,
@@ -796,8 +799,8 @@ class ScenarioScreen(
         playback.selectHallBattleCommand()
         naturalSceneIndex = nextIndex
         hallBattleScenePending = true
-        game.campaignE2eScenarioStarted(moduleName, nextIndex)
-        campaignE2eStartedScenes += nextIndex
+        game.scenarioStarted(moduleName, nextIndex)
+        startedSceneHistory += nextIndex
         playback.start(nextScene)
         return true
     }
@@ -1045,7 +1048,7 @@ class ScenarioScreen(
         } else if (playback.state == PlaybackState.DIALOGUE) {
             // DialogueLayer is composed from its source sprites below.
         } else if (playback.state == PlaybackState.MODAL && playback.currentModalText != null &&
-            playback.currentModalKind in setOf(ScenarioInterpreter.ModalKind.EVENT, ScenarioInterpreter.ModalKind.INFO)
+            playback.currentModalKind in setOf(ScenarioModalKind.EVENT, ScenarioModalKind.INFO)
         ) {
             val text = sanitizeInfoText(scenarioViewState.modalVisibleText.ifEmpty {
                 playback.currentModalText.orEmpty().take(1)
@@ -1082,17 +1085,17 @@ class ScenarioScreen(
             batch.end()
             shapes.begin(ShapeRenderer.ShapeType.Filled)
         } else if (playback.state == PlaybackState.MODAL && playback.currentModalText != null) {
-            if (playback.currentModalKind == ScenarioInterpreter.ModalKind.MAP_INFO) {
+            if (playback.currentModalKind == ScenarioModalKind.MAP_INFO) {
                 // Direct MapInfoLayer prefab render: bg1's Widget stretches
                 // across the visible canvas and its node opacity is 127.
                 shapes.color = Color(0f, 0f, 0f, 127f / 255f)
                 shapes.rect(0f, 0f, 1280f, 138.46f)
-            } else if (playback.currentModalKind == ScenarioInterpreter.ModalKind.SECTION) {
+            } else if (playback.currentModalKind == ScenarioModalKind.SECTION) {
                 // Direct source prefab render: SectionLayer is an opaque
                 // black intertitle, not a stretched InfoLayer frame.
                 shapes.color = Color.BLACK
                 shapes.rect(0f, 0f, 1280f, 688f)
-            } else if (playback.currentModalKind == ScenarioInterpreter.ModalKind.AMBITION) {
+            } else if (playback.currentModalKind == ScenarioModalKind.AMBITION) {
                 // HallMenuLayer's full-canvas Panel_cancel is black at
                 // opacity 30 while the 146px command strip remains live.
                 shapes.color = Color(0f, 0f, 0f, 30f / 255f)
@@ -1119,7 +1122,7 @@ class ScenarioScreen(
             PlaybackState.DELAY -> Unit
             PlaybackState.MODAL -> playback.currentModalText?.let { text ->
                 when (playback.currentModalKind) {
-                    ScenarioInterpreter.ModalKind.SECTION -> {
+                    ScenarioModalKind.SECTION -> {
                         glyphLayout.setText(sectionFont, text)
                         val x = (1280f - glyphLayout.width) / 2f
                         val y = (688f + glyphLayout.height) / 2f
@@ -1131,7 +1134,7 @@ class ScenarioScreen(
                         sectionFont.draw(batch, glyphLayout, x, y)
                     }
 
-                    ScenarioInterpreter.ModalKind.INFO -> {
+                    ScenarioModalKind.INFO -> {
                         val visible = sanitizeInfoText(scenarioViewState.modalVisibleText.ifEmpty { text.take(1) })
                         glyphLayout.setText(titleFont, visible)
                         titleFont.color = Color.BLACK
@@ -1145,7 +1148,7 @@ class ScenarioScreen(
                         )
                     }
 
-                    ScenarioInterpreter.ModalKind.MAP_INFO -> {
+                    ScenarioModalKind.MAP_INFO -> {
                         streetDialogueFont.color = Color.WHITE
                         val visible =
                             playback.currentModalFixedText + scenarioViewState.modalVisibleText.ifEmpty { text.take(1) }
@@ -1157,7 +1160,7 @@ class ScenarioScreen(
                         streetDialogueFont.draw(batch, sanitizeInfoText(visible), 26f, 119f)
                     }
 
-                    ScenarioInterpreter.ModalKind.AMBITION -> drawHallMenu()
+                    ScenarioModalKind.AMBITION -> drawHallMenu()
                     else -> {
                         val visible = scenarioViewState.modalVisibleText.ifEmpty { text.take(1) }
                         glyphLayout.setText(titleFont, visible)
@@ -7291,7 +7294,7 @@ class ScenarioScreen(
 
     private fun hallEvidenceMenu(): ScenarioEvidenceHallMenu? {
         val isAmbitionModal = playback.state == PlaybackState.MODAL &&
-                playback.currentModalKind == ScenarioInterpreter.ModalKind.AMBITION
+                playback.currentModalKind == ScenarioModalKind.AMBITION
         if (!hallMenuOpen && !isAmbitionModal) return null
         val tween = ((playback.ambitionElapsedSeconds - 1.2f) / 1f).coerceIn(0f, 1f)
         val value = if (hallMenuOpen) playback.stage.ambition.toFloat()

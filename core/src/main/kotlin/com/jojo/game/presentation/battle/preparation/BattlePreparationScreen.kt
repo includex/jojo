@@ -7,19 +7,9 @@ import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.StartBattleSortRoute
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.presentation.battle.preparation.evidence.BattlePreparationTraceRecorder
+import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
 
 import com.badlogic.gdx.*
-
-internal data class CampaignE2eBattlePreparationState(
-    val returnScenario: String,
-    val sourceScenario: String,
-    val campaignStage: Int,
-    val selectedCount: Int,
-    val minimum: Int,
-    val maximum: Int,
-    val cursorSelected: Boolean,
-    val canStart: Boolean,
-)
 
 /** Preparation lifecycle, input connection, navigation, and capture facade. */
 class BattlePreparationScreen(
@@ -176,8 +166,8 @@ class BattlePreparationScreen(
         battleViewMarkerCount = battleView.markers().size,
     )
 
-    /** Read-only state for production E2E; changes still enter through the InputProcessor. */
-    internal fun campaignE2eState() = CampaignE2eBattlePreparationState(
+    /** Read-only state; changes still enter through the installed InputProcessor. */
+    internal fun runtimeProbe() = BattlePreparationRuntimeProbe(
         returnScenario = returnScenario,
         sourceScenario = sourceScenario,
         campaignStage = game.campaignStage(),

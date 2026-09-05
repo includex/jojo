@@ -13,10 +13,10 @@ internal object ScenarioFightDispatcher {
         stage: ScenarioStage,
         args: List<Any?>,
         suspendExternal: () -> Unit,
-    ): ScenarioInterpreter.FightReference {
+    ): ScenarioFightReference {
         val fightId = stage.startFight(args.intAt(0), args.intAt(1), args.intAt(2))
         suspendExternal()
-        return ScenarioInterpreter.FightReference(fightId)
+        return ScenarioFightReference(fightId)
     }
 
     fun dispatchFightCall(

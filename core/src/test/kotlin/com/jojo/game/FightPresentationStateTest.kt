@@ -246,7 +246,7 @@ class FightPresentationStateTest {
         runtime.enableExternalFightPresentation()
         runtime.setScriptVariables((0..100).associateWith { if (it == 47) 0 else 1 })
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 positions = mapOf(15 to (10 to 10), 7 to (11 to 10)),
@@ -293,7 +293,7 @@ class FightPresentationStateTest {
             mapOf(11 to 1, 12 to 1, 20 to 1, 21 to 1, 30 to 1, 31 to 1, 40 to 0, 41 to 1),
         )
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 positions = mapOf(3 to (5 to 5), 134 to (6 to 5)),
@@ -376,7 +376,7 @@ class FightPresentationStateTest {
             mapOf(11 to 1, 12 to 1, 20 to 1, 21 to 1, 30 to 1, 31 to 1, 40 to 0, 41 to 1),
         )
         runtime.setBattleContext(
-            ScenarioInterpreter.BattleScriptContext(
+            ScenarioBattleScriptContext(
                 round = 1,
                 camp = 0,
                 positions = mapOf(3 to (5 to 5), 134 to (6 to 5)),
