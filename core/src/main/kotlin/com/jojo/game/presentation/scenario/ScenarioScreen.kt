@@ -4,7 +4,6 @@ import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
-import com.jojo.game.domain.scenario.ScenarioCompletionRoute
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
@@ -405,8 +404,11 @@ class ScenarioScreen(
     override fun render(delta: Float) {
         elapsed += delta
         if (!hallFixtureInstalled &&
-            (game.requestedCaptureState() in setOf("hall-fixture", "hall-palace-fixture", "hall-section-fixture") ||
-                    streetCaptureStage != null || hallOverlayFixture != null)
+            ScenarioRenderPolicy.shouldInstallHallFixture(
+                game.requestedCaptureState(),
+                streetCaptureStage,
+                hallOverlayFixture,
+            )
         ) {
             hallFixtureInstalled = true
             when (game.requestedCaptureState()) {
@@ -508,6 +510,13 @@ class ScenarioScreen(
                 else -> playback.installHallFixture()
             }
         }
+        if (updateScenarioFrame(delta) == ScenarioRenderPhaseResult.ROUTED) return
+        if (renderScenarioFrame() == ScenarioRenderPhaseResult.CAPTURED) return
+        runVerificationChecks()
+    }
+
+    /** Applies script, route, and presentation updates before any draw calls. */
+    private fun updateScenarioFrame(delta: Float): ScenarioRenderPhaseResult {
         // Component-isolation fixtures begin at the first SayLayer. The live
         // title route still presents the preceding source InfoLayer, while
         // this staged oracle intentionally excludes it.
@@ -533,14 +542,19 @@ class ScenarioScreen(
         // it does not wait for another keyboard event before opening battle.
         if (hallBattleScenePending && playback.state == PlaybackState.COMPLETE && !playback.stage.menuVisible) {
             routeAfterScenario()
-            return
+            return ScenarioRenderPhaseResult.ROUTED
         }
         // RControlScript.__dispatch__ continues sceneN -> sceneN+1 until a
         // source menu boundary or the first missing function.
-        if (!isVerificationRun() && !game.hasFrameCaptureRequest() &&
-            playback.state == PlaybackState.COMPLETE && (naturalSceneIndex == 0 || !playback.stage.menuVisible) &&
-            !playback.stage.battleEndedByScript && playback.stage.sceneJumpTarget == null
-        ) {
+        if (ScenarioRenderPolicy.shouldContinueNaturally(
+                isVerificationRun = isVerificationRun(),
+                hasFrameCaptureRequest = game.hasFrameCaptureRequest(),
+                playbackState = playback.state,
+                naturalSceneIndex = naturalSceneIndex,
+                menuVisible = playback.stage.menuVisible,
+                battleEndedByScript = playback.stage.battleEndedByScript,
+                sceneJumpTarget = playback.stage.sceneJumpTarget,
+            )) {
             val next = "scene${naturalSceneIndex + 1}"
             if (next in playback.functionNames) {
                 naturalSceneIndex++
@@ -569,7 +583,7 @@ class ScenarioScreen(
         }
         // routeAfterScenario replaces and disposes this screen.  Do not
         // submit another frame through its released SpriteBatch.
-        if (routedAfterCompletion) return
+        if (routedAfterCompletion) return ScenarioRenderPhaseResult.ROUTED
         if (game.requestedCaptureState() == "scenario-dialogue") {
             var guard = 0
             while (playback.state != PlaybackState.DIALOGUE && playback.state != PlaybackState.COMPLETE && guard++ < 1000) {
@@ -599,32 +613,41 @@ class ScenarioScreen(
         // HallLayer._scriptOver transitions immediately after stage.end().
         // Keep deterministic capture/verifier screens stationary, but never
         // expose the migration-era completion placeholder in normal play.
-        if (!routedAfterCompletion && !isVerificationRun() && !game.hasFrameCaptureRequest() &&
-            ScenarioCompletionRoute.shouldRoute(
-                playback.state,
-                playback.stage.menuVisible,
-                playback.stage.battleEndedByScript,
-                playback.stage.sceneJumpTarget,
-            )
-        ) {
+        if (!routedAfterCompletion && ScenarioRenderPolicy.shouldRouteAfterCompletion(
+                isVerificationRun = isVerificationRun(),
+                hasFrameCaptureRequest = game.hasFrameCaptureRequest(),
+                playbackState = playback.state,
+                menuVisible = playback.stage.menuVisible,
+                battleEndedByScript = playback.stage.battleEndedByScript,
+                sceneJumpTarget = playback.stage.sceneJumpTarget,
+            )) {
             routeAfterScenario()
-            return
+            return ScenarioRenderPhaseResult.ROUTED
         }
         if (elapsed > 0.15f && game.requestedCaptureState() == "choice") {
             advanceSourceUntilChoice()
             playbackController.resetDialogueReveal()
         }
-        val autoCloseEnabled = !isVerificationRun() && !game.hasFrameCaptureRequest() &&
-                !game.hasRenderEventLogRequest() && settingsPreferences.getInteger(
-            SettingLayer.GAME_SETTING,
-            SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-        ) and SettingLayer.AUTO_CLOSE != 0
+        val autoCloseEnabled = ScenarioRenderPolicy.autoCloseEnabled(
+            isVerificationRun = isVerificationRun(),
+            hasFrameCaptureRequest = game.hasFrameCaptureRequest(),
+            hasRenderEventLogRequest = game.hasRenderEventLogRequest(),
+            autoCloseSettingEnabled = settingsPreferences.getInteger(
+                SettingLayer.GAME_SETTING,
+                SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+            ) and SettingLayer.AUTO_CLOSE != 0,
+        )
         playbackController.updatePresentation(
             delta = delta,
             autoCloseEnabled = autoCloseEnabled,
             revealDialogueForCapture = streetCaptureStage != null && game.hasRenderEventLogRequest(),
             onAdvance = ::advance,
         )
+        return ScenarioRenderPhaseResult.CONTINUE
+    }
+
+    /** Draws the post-update scene and reports capture completion to its caller. */
+    private fun renderScenarioFrame(): ScenarioRenderPhaseResult {
         if (streetCaptureStage != null) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         else Gdx.gl.glClearColor(0.08f, 0.11f, 0.15f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -644,8 +667,8 @@ class ScenarioScreen(
                 batch.end()
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             }
-            if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return
-            if (elapsed > 1f && game.captureFrameIfRequested()) return
+            if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
+            if (elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         } else {
             if (hallPalaceFixture) {
                 drawBattlefield(drawCharacters = true, drawUnits = true)
@@ -658,29 +681,18 @@ class ScenarioScreen(
                     )
                 }
             } else {
-                val isolatedHallOverlay = hallOverlayFixture in setOf(
-                    "info",
-                    "get-item-equipment",
-                    "get-item-property",
-                    "item-equipment",
-                    "item-property",
-                    "item-discard-confirm",
-                    "map-info",
-                    "choice",
-                    "ambition",
-                    "ask",
-                    "command",
-                    "menu",
-                    "save",
-                    "save-confirm"
-                )
+                val isolatedHallOverlay = ScenarioRenderPolicy.isIsolatedHallOverlay(hallOverlayFixture)
                 drawBattlefield(drawCharacters = !isolatedHallOverlay, drawUnits = !isolatedHallOverlay)
                 drawOverlay()
             }
-            if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return
-            if (elapsed > 1f && game.captureFrameIfRequested()) return
+            if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
+            if (elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         }
 
+        return ScenarioRenderPhaseResult.CONTINUE
+    }
+
+    private fun runVerificationChecks() {
         if (verifyMode && elapsed > 0.8f) {
             val scenarioCount = ScenarioCatalog.verifyEmbeddedSources()
             check(scenarioCount == 119) { "Expected 119 restored scenarios, got $scenarioCount" }

@@ -65,6 +65,11 @@ import com.jojo.game.presentation.battle.overlay.BattleTreasureOverlayView
 import com.jojo.game.presentation.battle.overlay.BattleForcesOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayController
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
+import com.jojo.game.presentation.battle.render.BattleGridMapSurface
+import com.jojo.game.presentation.battle.render.BattleGridMapSurfaceRenderer
+import com.jojo.game.presentation.battle.render.BattleGridRenderView
+import com.jojo.game.presentation.battle.render.BattleGridMiniMapMarker
+import com.jojo.game.presentation.battle.render.BattleGridMiniMapView
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -616,6 +621,7 @@ void main() {
             ),
         )
     }
+    private val battleGridMapSurfaceRenderer by lazy { BattleGridMapSurfaceRenderer(batch) }
     private val captureReferenceAssets = BattleCaptureReferenceAssets()
     private val fightRenderer by lazy {
         BattleFightRenderer(
@@ -7380,21 +7386,6 @@ void main() {
         boardMaxX = (terrainGrid.width - 1).coerceAtLeast(1)
         boardMaxY = (terrainGrid.height - 1).coerceAtLeast(1)
         boardTile = 96f
-        // The source's raw framebuffer identifies Cocos WebGL as quantizing
-        // bilinear weights to 8-bit steps. Scope this shader strictly to the
-        // map quad; every other battle sprite retains SpriteBatch defaults.
-        val useCocos8Sampler = game.requestedCocos8MapSampler()
-        // Both the isolated-map oracle and the live S_00 SayLayer oracle
-        // resolve Cocos UVs at physical framebuffer pixel centres.  The
-        // latter also covers ScrollView/camera composition, so the same rule
-        // is now the source-faithful default for every Cocos8 map draw.
-        val useFragmentCoordinates = useCocos8Sampler && game.requestedFragmentCoordinateMapSampler()
-        val samplerTexture = if (useCocos8Sampler) mapTexture else null
-        val priorSamplerFilter = samplerTexture?.let { it.minFilter to it.magFilter }
-        if (useCocos8Sampler) {
-            samplerTexture?.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-            batch.shader = cocos8MapSampler.value
-        }
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         // Cocos' RenderTexture uses ordinary source-over factors for alpha
@@ -7403,86 +7394,7 @@ void main() {
         // Keep the same equation for RGB and alpha instead of forcing the
         // alpha source factor to ONE.
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-        mapTexture?.let { texture ->
-            batch.color = Color.WHITE
-            // Cocos' Texture2D sprite coordinates keep the JPEG's top edge
-            // at the map's top; LibGDX's raw texture V origin is opposite.
-            // The map-only raw fixture deliberately resets ScrollView/content
-            // to y=0, producing its isolated [-320,-560] quad. In the live
-            // Battle SayLayer, source CDP observes content.y=464 and map
-            // world centre=(640,864), so the full-scene quad is
-            // [-320,-96]..[1600,1824]. Do not leak the isolation mutation
-            // into ordinary battle rendering.
-            // Reward is entered through the source battle's unscrolled
-            // content transform, the same transform used by the isolated
-            // tactical map.  Keep this a live-route state, not a logger-only
-            // coordinate substitution.
-            val cameraX = if (mapOnlyCapture || rewardRouteState != null) 0f else battleCamera.x
-            val cameraY = if (mapOnlyCapture || rewardRouteState != null) 0f else battleCamera.y
-            val mapBottom = if (mapOnlyCapture || rewardRouteState != null) -560f + cameraY else
-                SourceBattleMapGeometry.mapBottom(terrainGrid.height, cameraY)
-            val mapWidth = terrainGrid.width * boardTile
-            val mapHeight = terrainGrid.height * boardTile
-            val mapLeft = if (mapOnlyCapture || rewardRouteState != null) -320f + cameraX else
-                SourceBattleMapGeometry.boardLeft(terrainGrid.width, cameraX)
-            val (sampleOffsetX, sampleOffsetY) = game.requestedMapSampleOffset()
-            if (useCocos8Sampler) {
-                cocos8MapSampler.value.setUniformf("u_texSize", texture.width.toFloat(), texture.height.toFloat())
-                cocos8MapSampler.value.setUniformi("u_fragmentCoordinates", if (useFragmentCoordinates) 1 else 0)
-                if (useFragmentCoordinates) {
-                    cocos8MapSampler.value.setUniformf(
-                        "u_framebufferSize",
-                        Gdx.graphics.backBufferWidth.toFloat(),
-                        Gdx.graphics.backBufferHeight.toFloat()
-                    )
-                    // Cocos's map-only camera projects framebuffer origin to
-                    // world (0,0); ExtendViewport's widened logical bounds
-                    // must not be mistaken for that source screen origin.
-                    cocos8MapSampler.value.setUniformf("u_worldOrigin", 0f, 0f)
-                    // The source Cocos visible width is derived from its WebGL
-                    // drawing buffer.  Desktop logical-window dimensions can
-                    // differ fractionally on HiDPI, so use the same physical
-                    // framebuffer ratio for this pixel-centre diagnostic.
-                    val framebufferWorldWidth =
-                        viewport.worldHeight * Gdx.graphics.backBufferWidth.toFloat() / Gdx.graphics.backBufferHeight.toFloat()
-                    cocos8MapSampler.value.setUniformf("u_worldSize", framebufferWorldWidth, viewport.worldHeight)
-                    cocos8MapSampler.value.setUniformf("u_mapOrigin", mapLeft, mapBottom)
-                    cocos8MapSampler.value.setUniformf("u_mapSize", mapWidth, mapHeight)
-                }
-            }
-            batch.draw(texture, mapLeft + sampleOffsetX, mapBottom + sampleOffsetY, mapWidth, mapHeight)
-        }
-        if (useCocos8Sampler) {
-            // SpriteBatch must flush before changing shaders/filter state, or
-            // its following units/HUD would be submitted through map shader.
-            batch.flush()
-            batch.shader = null
-            priorSamplerFilter?.let { (min, mag) -> samplerTexture?.setFilter(min, mag) }
-        }
-        if (!mapOnlyCapture && dialogueComponentStage == null) {
-            // MiniMapLayer id24 is persistent. Its authored button slides the
-            // complete 244px panel between these two stable endpoints.
-            val miniOffset = if (miniMapLayer.shown) 0f else 244f
-            if (miniMapLayer.shown) hudAssets.menuFramePatch?.draw(batch, 1244.3721f, 556f, 244f, 244f)
-            hudAssets.naturalMiniMapTexture?.let { texture ->
-                batch.color = Color(1f, 1f, 1f, 168f / 255f)
-                batch.draw(texture, 1246.3721f + miniOffset, 558f, 240f, 240f)
-                batch.color = Color.WHITE
-                // Source SpriteFrames crop [1,1,10,10] from each 12px image
-                // and the parent scale produces a 16px submitted quad.
-                MiniMapRenderEvents.yingchuanMarkers.forEach { item ->
-                    hudAssets.naturalMiniMapMarkerTextures[item.asset]?.let { marker ->
-                        batch.draw(marker, item.x + miniOffset, item.y, 16f, 16f, 1, 1, 10, 10, false, false)
-                    }
-                }
-            }
-            hudAssets.naturalWeatherTexture?.let { texture ->
-                batch.color = Color(1f, 1f, 1f, 127f / 255f)
-                batch.draw(texture, 1248.3721f + miniOffset, 560f, 57.6f, 57.6f)
-            }
-            batch.color = Color.WHITE
-            if (miniMapLayer.shown) hudAssets.menuBoxPatch?.draw(batch, 1286.3721f, 570f, 186.047f, 100f)
-        }
+        battleGridMapSurfaceRenderer.draw(battleGridMapSurfaceView())
         if (mapOnlyCapture || dialogueComponentStage == "background") {
             batch.end()
             return
@@ -7492,6 +7404,59 @@ void main() {
             batch.end()
             return
         }
+        drawBattleGridActorLayer()
+        batch.end()
+        batch.begin()
+        drawMagicEffect()
+        batch.end()
+    }
+
+    /** Projects mutable route/camera state before the renderer touches GPU state. */
+    private fun battleGridMapSurfaceView(): BattleGridRenderView {
+        val useCocos8Sampler = game.requestedCocos8MapSampler()
+        val useFragmentCoordinates = useCocos8Sampler && game.requestedFragmentCoordinateMapSampler()
+        val cameraX = if (mapOnlyCapture || rewardRouteState != null) 0f else battleCamera.x
+        val cameraY = if (mapOnlyCapture || rewardRouteState != null) 0f else battleCamera.y
+        val mapLeft = if (mapOnlyCapture || rewardRouteState != null) -320f + cameraX else
+            SourceBattleMapGeometry.boardLeft(terrainGrid.width, cameraX)
+        val mapBottom = if (mapOnlyCapture || rewardRouteState != null) -560f + cameraY else
+            SourceBattleMapGeometry.mapBottom(terrainGrid.height, cameraY)
+        val mapWidth = terrainGrid.width * boardTile
+        val mapHeight = terrainGrid.height * boardTile
+        val (sampleOffsetX, sampleOffsetY) = game.requestedMapSampleOffset()
+        val map = mapTexture?.let { texture ->
+            BattleGridMapSurface(
+                texture = texture,
+                left = mapLeft,
+                bottom = mapBottom,
+                width = mapWidth,
+                height = mapHeight,
+                sampleOffsetX = sampleOffsetX,
+                sampleOffsetY = sampleOffsetY,
+                cocos8Sampler = if (useCocos8Sampler) cocos8MapSampler.value else null,
+                fragmentCoordinates = useFragmentCoordinates,
+                framebufferWorldWidth = viewport.worldHeight * Gdx.graphics.backBufferWidth.toFloat() /
+                    Gdx.graphics.backBufferHeight.toFloat(),
+                framebufferWorldHeight = viewport.worldHeight,
+            )
+        }
+        val miniMap = if (mapOnlyCapture || dialogueComponentStage != null) null else BattleGridMiniMapView(
+            shown = miniMapLayer.shown,
+            framePatch = hudAssets.menuFramePatch,
+            boxPatch = hudAssets.menuBoxPatch,
+            mapTexture = hudAssets.naturalMiniMapTexture,
+            weatherTexture = hudAssets.naturalWeatherTexture,
+            markers = MiniMapRenderEvents.yingchuanMarkers.mapNotNull { item ->
+                hudAssets.naturalMiniMapMarkerTextures[item.asset]?.let { marker ->
+                    BattleGridMiniMapMarker(marker, item.x, item.y)
+                }
+            },
+        )
+        return BattleGridRenderView(map, miniMap)
+    }
+
+    /** Actor, object-animation, and map-attached effect pass; batch is already active. */
+    private fun drawBattleGridActorLayer() {
         scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId > 3 }.forEach { gate ->
             dynamicTextures.gate(gate.objectId)?.let { texture ->
                 // BattleScreen._setObject uses a 3×3 tile Gate sprite centred
@@ -7710,10 +7675,6 @@ void main() {
                 }
             }
         }
-        batch.end()
-        batch.begin()
-        drawMagicEffect()
-        batch.end()
     }
 
     /**
