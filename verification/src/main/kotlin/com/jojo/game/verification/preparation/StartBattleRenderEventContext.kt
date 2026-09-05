@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 import com.jojo.game.RenderEventLog
 

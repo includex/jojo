@@ -38,7 +38,7 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         assets.background?.let { batch.draw(it, 0f, 0f, 1280f, 688f) }
         batch.color = Color(1f, 1f, 1f, 30f / 255f)
         batch.draw(assets.dim, 0f, 0f, 1280f, 688f)
-        if (state.fixture == BattlePreparationFixture.BattleView) {
+        if (state.mapVisible) {
             drawBattleView(state.battleViewMarkerCount)
             batch.end()
             return
@@ -56,7 +56,7 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         drawButton(954.76f, 49.88f, "결정", state.canStart)
         drawButton(1049.36f, 49.88f, "취소", true)
         if (state.sortOpen) drawBattleSortMenu()
-        if (state.fixture == BattlePreparationFixture.UnitInfo) drawUnitInfoFixture(state)
+        if (state.detailsVisible) drawUnitInfoOverlay(state)
         batch.end()
     }
 
@@ -204,7 +204,7 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         assets.outerPatch?.draw(batch, 1008.372f * SCALE, 320f * SCALE, 480f * SCALE, 480f * SCALE)
     }
 
-    private fun drawUnitInfoFixture(state: BattlePreparationViewState) {
+    private fun drawUnitInfoOverlay(state: BattlePreparationViewState) {
         batch.color = Color(1f, 1f, 1f, 100f / 255f)
         batch.draw(assets.dim, 0f, 0f, 1280f, 688f)
         batch.color = Color.WHITE

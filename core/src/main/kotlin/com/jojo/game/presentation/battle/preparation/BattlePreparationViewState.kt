@@ -4,7 +4,7 @@ import com.jojo.game.GameDataCatalog
 import com.jojo.game.BattleAvatarResolver
 import com.jojo.game.domain.battle.*
 
-internal data class BattlePreparationViewState(
+data class BattlePreparationViewState(
     val backgroundId: Int,
     val availableIds: List<Int>,
     val units: List<BattlePreparationUnitView>,
@@ -15,12 +15,13 @@ internal data class BattlePreparationViewState(
     val maximum: Int,
     val cursorId: Int?,
     val canStart: Boolean,
-    val fixture: BattlePreparationFixture = BattlePreparationFixture.Standard,
+    val detailsVisible: Boolean = false,
+    val mapVisible: Boolean = false,
     val sortOpen: Boolean = false,
     val battleViewMarkerCount: Int = 0,
 )
 
-internal data class BattlePreparationUnitView(
+data class BattlePreparationUnitView(
     val id: Int,
     val name: String,
     val armName: String,
@@ -32,22 +33,6 @@ internal data class BattlePreparationUnitView(
     val avatarId: Int?,
     val headId: Int,
 )
-
-internal sealed interface BattlePreparationFixture {
-    data object Standard : BattlePreparationFixture
-    data object UnitInfo : BattlePreparationFixture
-    data object BattleView : BattlePreparationFixture
-
-    /**
-     * data class  `BattleSort`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
-    data class BattleSort(val route: String) : BattlePreparationFixture
-}
 
 /** Maps game data into a detached, immutable rendering model. */
 internal class BattlePreparationViewStateFactory(

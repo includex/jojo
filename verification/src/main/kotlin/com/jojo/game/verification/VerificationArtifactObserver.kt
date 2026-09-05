@@ -10,10 +10,11 @@ import com.jojo.game.application.runtime.RuntimeArtifactEvent
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
 import com.jojo.game.application.runtime.RuntimeScreenProbe
+import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
 import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.battle.BattleScreen
-import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
 import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.verification.preparation.BattlePreparationTraceRecorder
 import com.jojo.game.verification.title.evidence.TitleRenderEventRecorder
 
 /** Verification-owned filesystem sink for renderer observations. */
@@ -21,6 +22,7 @@ internal class VerificationArtifactObserver(
     private val output: RenderCaptureConfiguration,
 ) : RuntimeArtifactObserver, RuntimeScreenObserver {
     private val titleEvents = TitleRenderEventRecorder()
+    private val preparationEvents = BattlePreparationTraceRecorder()
 
     override val wantsFrame get() = output.screenshotPath != null || output.rawCapturePath != null
     override val wantsEventLog get() = output.renderEventLogPath != null
@@ -34,9 +36,16 @@ internal class VerificationArtifactObserver(
         }
     }
 
-    /** Title capture policy belongs to the verification runtime, after the frame is rendered. */
+    /** Per-screen artifact policy belongs to the verification runtime, after rendering. */
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
-        val title = screen as? TitleRuntimeProbe ?: return
+        when (screen) {
+            is TitleRuntimeProbe -> emitTitleArtifact(screen)
+            is BattlePreparationRuntimeProbe -> emitPreparationArtifact(screen)
+            else -> Unit
+        }
+    }
+
+    private fun emitTitleArtifact(title: TitleRuntimeProbe) {
         if (title.view.elapsedSeconds <= TITLE_ARTIFACT_DELAY_SECONDS) return
         output.renderEventLogPath?.let { path ->
             writeText(path, titleEvents.record(title.view, startItemFixture = output.state == START_ITEM_ROUTE))
@@ -45,7 +54,15 @@ internal class VerificationArtifactObserver(
         if (wantsFrame) writeFrame(null)
     }
 
-    private fun writeFrame(screen: Screen?) {
+    private fun emitPreparationArtifact(preparation: BattlePreparationRuntimeProbe) {
+        output.renderEventLogPath?.let { path ->
+            writeText(path, preparationEvents.renderEvents(preparation.view, output.state))
+            return
+        }
+        if (wantsFrame) writeFrame(null, preparationEvents.composition(preparation.view))
+    }
+
+    private fun writeFrame(screen: Screen?, composition: String? = null) {
         val target = output.screenshotPath ?: return
         val raw = ScreenUtils.getFrameBufferPixmap(0, 0, Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
         output.rawCapturePath?.let { path ->
@@ -53,7 +70,7 @@ internal class VerificationArtifactObserver(
             raw.pixels.rewind(); raw.pixels.get(bytes); raw.pixels.rewind()
             Gdx.files.absolute(path).also { it.parent().mkdirs() }.writeBytes(bytes, false)
         }
-        output.compositionTracePath?.let { writeText(it, screen.compositionTrace()) }
+        output.compositionTracePath?.let { persistText(it, composition ?: screen.compositionTrace()) }
         val topDown = Pixmap(raw.width, raw.height, raw.format)
         for (y in 0 until raw.height) for (x in 0 until raw.width) topDown.drawPixel(x, raw.height - 1 - y, raw.getPixel(x, y))
         raw.dispose(); Gdx.files.absolute(target).also { it.parent().mkdirs() }.let { PixmapIO.writePNG(it, topDown) }; topDown.dispose()
@@ -73,8 +90,12 @@ internal class VerificationArtifactObserver(
     }
 
     private fun writeText(path: String, text: String) {
-        Gdx.files.absolute(path).also { it.parent().mkdirs() }.writeString(text, false)
+        persistText(path, text)
         Gdx.app.exit()
+    }
+
+    private fun persistText(path: String, text: String) {
+        Gdx.files.absolute(path).also { it.parent().mkdirs() }.writeString(text, false)
     }
 
     private companion object {
@@ -86,13 +107,11 @@ internal class VerificationArtifactObserver(
 private fun Screen?.eventLog(): String = when (this) {
     is ScenarioScreen -> renderEventLog()
     is BattleScreen -> renderEventLog()
-    is BattlePreparationScreen -> renderEventLog()
     else -> "{\"state\":\"unavailable\"}\n"
 }
 
 private fun Screen?.compositionTrace(): String = when (this) {
     is ScenarioScreen -> compositionTrace()
     is BattleScreen -> compositionTrace()
-    is BattlePreparationScreen -> compositionTrace()
     else -> "{\"state\":\"unavailable\",\"records\":[]}"
 }

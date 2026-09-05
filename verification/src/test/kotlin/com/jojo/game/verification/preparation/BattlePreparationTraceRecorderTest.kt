@@ -1,6 +1,5 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
-import com.jojo.game.presentation.battle.preparation.BattlePreparationFixture
 import com.jojo.game.presentation.battle.preparation.BattlePreparationUnitView
 import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 
@@ -40,7 +39,7 @@ class BattlePreparationTraceRecorderTest {
     }
 
     @Test fun `battle view fixture retains four ordered marker triples`() {
-        val lines = recorder.renderEvents(state(fixture = BattlePreparationFixture.BattleView))
+        val lines = recorder.renderEvents(state(), "battle-view-fixture")
             .lineSequence().filter(String::isNotBlank).toList()
 
         assertEquals(16, lines.size)
@@ -50,13 +49,13 @@ class BattlePreparationTraceRecorderTest {
     }
 
     @Test fun `open sort fixture appends menu after preparation events`() {
-        val log = recorder.renderEvents(state(fixture = BattlePreparationFixture.BattleSort("start-battle-sort-open")))
+        val log = recorder.renderEvents(state(), "start-battle-sort-open-fixture")
 
         assertTrue(log.indexOf("BattleSortLayer") < log.indexOf("Canvas/Layer/menu"))
         assertTrue(log.contains("button1_4/Background/Label"))
     }
 
-    private fun state(fixture: BattlePreparationFixture = BattlePreparationFixture.Standard) =
+    private fun state() =
         BattlePreparationViewState(
             backgroundId = 71,
             availableIds = listOf(7),
@@ -68,7 +67,6 @@ class BattlePreparationTraceRecorderTest {
             maximum = 2,
             cursorId = 7,
             canStart = true,
-            fixture = fixture,
             battleViewMarkerCount = 4,
         )
 }

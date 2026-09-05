@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 internal fun writeUnitInfoChromeEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0.0f * scale, 0.0f * scale, 1488.372f * scale, 800.0f * scale, "default_sprite_splash", 0.392f, listOf(770, 771), true, "")

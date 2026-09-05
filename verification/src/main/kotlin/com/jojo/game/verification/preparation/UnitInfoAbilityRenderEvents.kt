@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 internal fun writeUnitInfoAbilityEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("UnitInfoLayer", "Canvas/Layer/bg1/panel0/scrollview/view/content/bg2", "sliced-sprite", 831.486f * scale, 431.2f * scale, 438.0f * scale, 197.0f * scale, "box1", 1.0f, listOf(770, 771), true, "")

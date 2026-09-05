@@ -1,7 +1,6 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 import com.jojo.game.RenderEventLog
-import com.jojo.game.presentation.battle.preparation.BattlePreparationFixture
 import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 import java.util.*
 
@@ -18,11 +17,12 @@ internal class BattlePreparationTraceRecorder {
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun renderEvents(state: BattlePreparationViewState): String = when (val fixture = state.fixture) {
-        BattlePreparationFixture.BattleView -> battleViewEvents()
-        is BattlePreparationFixture.BattleSort -> battleSortEvents(fixture.route)
+    fun renderEvents(state: BattlePreparationViewState, route: String?): String = when {
+        route == "battle-view-fixture" -> battleViewEvents()
+        route?.removeSuffix("-fixture")?.startsWith("start-battle-sort-") == true ->
+            battleSortEvents(route.removeSuffix("-fixture"))
         else -> RenderEventLog().also {
-            appendStartBattleRenderEvents(it, fixture == BattlePreparationFixture.UnitInfo)
+            appendStartBattleRenderEvents(it, route == "start-battle-unit-info-fixture")
         }.jsonl()
     }
 

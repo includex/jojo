@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 internal fun writeStartBattleRosterEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw(startBattleScreen, "Canvas/Layer/bg/scrollview/view/content/node/testet", "sprite", 176.086f * scale, 624.602f * scale, 115.2f * scale, 115.2f * scale, if (spiritSorted) "assets/Game/native/ab/abd7ecf9-86cb-40a9-93b3-d5f6749a6c0e.c8ba0.png#<unnamed-frame>" else "assets/Game/native/1c/1c30efbe-adcc-4d44-872d-4afaeba84443.b7fcb.png#<unnamed-frame>", 1.0f, listOf(770, 771), true, "")

@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 internal fun writeStartBattleDetailEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("StartBattleScreen", "Canvas/Layer/bg/box1/scrollview/view/content/box1/label", "label", 1155.369f * scale, 335.95f * scale, 69.2f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "운기")

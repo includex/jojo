@@ -4,6 +4,8 @@ import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
+import com.jojo.game.application.runtime.RuntimeScenarioCommand
+import com.jojo.game.application.runtime.RuntimeScenarioFrame
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
@@ -313,6 +315,7 @@ class ScenarioScreen(
     }
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
+        applyRuntimeScenarioCommands()
         if (!hallFixtureInstalled &&
             ScenarioRenderPolicy.shouldInstallHallFixture(
                 game.requestedCaptureState(),
@@ -524,6 +527,24 @@ class ScenarioScreen(
     }
 
     private fun isVerificationRun(): Boolean = game.externalScenarioDriverKeepsScreenOpen()
+
+    private fun applyRuntimeScenarioCommands() {
+        val frame = RuntimeScenarioFrame(
+            module = moduleName,
+            elapsedSeconds = playbackFrame.elapsed,
+            playback = playback.state,
+            choiceAvailable = playback.currentChoice != null,
+        )
+        game.runtimeScenarioDriver()?.commands(frame).orEmpty().forEach { command ->
+            when (command) {
+                RuntimeScenarioCommand.AdvanceDialogue -> if (playback.state == PlaybackState.DIALOGUE) playback.advanceDialogue()
+                RuntimeScenarioCommand.ResumeModal -> if (playback.state == PlaybackState.MODAL) playback.resumeModal()
+                RuntimeScenarioCommand.SkipDelay -> if (playback.state == PlaybackState.DELAY) playback.skipDelay()
+                RuntimeScenarioCommand.ConfirmChoice -> if (playback.state == PlaybackState.CHOICE) confirmChoice()
+                RuntimeScenarioCommand.RevealDialogue -> playbackController.resetDialogueReveal()
+            }
+        }
+    }
 
     private fun advanceSourceUntilChoice() {
         var guard = 0

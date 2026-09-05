@@ -2,6 +2,8 @@ package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
 import com.jojo.game.application.runtime.RuntimeBattleDriver
+import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
+import com.jojo.game.application.runtime.RuntimeScenarioDriver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
 
 /** The first application route selected before LibGDX creates a screen. */
@@ -82,5 +84,9 @@ data class GameLaunchConfiguration(
     val runtimeArtifactObserver: RuntimeArtifactObserver? = null,
     /** Optional neutral battle input driver supplied by an external runtime. */
     val runtimeBattleDriver: RuntimeBattleDriver? = null,
+    /** Optional neutral preparation presentation request supplied by an external runtime. */
+    val runtimeBattlePreparationDriver: RuntimeBattlePreparationDriver? = null,
+    /** Optional neutral scenario input driver supplied by an external runtime. */
+    val runtimeScenarioDriver: RuntimeScenarioDriver? = null,
     val automatedRun: Boolean = false,
 )

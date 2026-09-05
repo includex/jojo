@@ -6,6 +6,7 @@ import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.application.scenario.ScenarioChoiceTrace
 import com.jojo.game.application.scenario.ScenarioRandomTrace
 import com.jojo.game.presentation.title.TitleViewState
+import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 
 /**
  * Read-only application boundary for external diagnostics that need to drive
@@ -66,6 +67,7 @@ data class BattlePreparationRuntimeProbe(
     val maximum: Int,
     val cursorSelected: Boolean,
     val canStart: Boolean,
+    val view: BattlePreparationViewState,
 ) : RuntimeScreenProbe {
     override val screenName: String = "BattlePreparationScreen"
 }

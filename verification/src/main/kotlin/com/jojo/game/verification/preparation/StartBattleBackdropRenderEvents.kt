@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.battle.preparation.evidence
+package com.jojo.game.verification.preparation
 
 internal fun writeStartBattleBackdropEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("HallLayer", "Canvas/Layer/map", "sprite", 0.0f * scale, 0.0f * scale, 1488.372f * scale, 800.0f * scale, "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>", 1.0f, listOf(770, 771), true, "")

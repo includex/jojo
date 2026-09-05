@@ -6,12 +6,12 @@ import com.jojo.game.JojoGame
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.StartBattleSortRoute
 import com.jojo.game.domain.campaign.*
-import com.jojo.game.presentation.battle.preparation.evidence.BattlePreparationTraceRecorder
 import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
+import com.jojo.game.application.runtime.BattlePreparationPresentation
 
 import com.badlogic.gdx.*
 
-/** Preparation lifecycle, input connection, navigation, and capture facade. */
+/** Preparation lifecycle, input connection, navigation, and immutable runtime probe. */
 class BattlePreparationScreen(
     private val game: JojoGame,
     private val returnScenario: String,
@@ -30,18 +30,10 @@ class BattlePreparationScreen(
     )
     private val stateFactory = BattlePreparationViewStateFactory(data, campaign::unitAttribute)
     private val units = stateFactory.units(availableIds)
-    private val captureState = game.requestedCaptureState()
-    private val fixture: BattlePreparationFixture = when {
-        captureState == "start-battle-unit-info-fixture" -> BattlePreparationFixture.UnitInfo
-        captureState == "battle-view-fixture" -> BattlePreparationFixture.BattleView
-        captureState?.removeSuffix("-fixture")?.startsWith("start-battle-sort-") == true ->
-            BattlePreparationFixture.BattleSort(captureState.removeSuffix("-fixture"))
-
-        else -> BattlePreparationFixture.Standard
-    }
+    private val presentation = game.runtimeBattlePreparationDriver()?.presentation() ?: BattlePreparationPresentation()
     private val battleSort = StartBattleSortRoute()
     private val battleView = BattleViewLayer().also {
-        if (fixture == BattlePreparationFixture.BattleView) {
+        if (presentation.mapVisible) {
             it.onCreate(0, listOf(4 to 4, 5 to 4, 6 to 4, 7 to 4))
         }
     }
@@ -50,16 +42,20 @@ class BattlePreparationScreen(
         units.joinToString("") { it.name + it.armName },
     )
     private val renderer = BattlePreparationRenderer(assets)
-    private val traceRecorder = BattlePreparationTraceRecorder()
     private val inputProcessor: InputProcessor = createInputProcessor()
 
     init {
-        (fixture as? BattlePreparationFixture.BattleSort)?.route?.let { route ->
-            battleSort.openFromButton(865.186f, 321f, 50f, true)
-            when (route) {
-                "start-battle-sort-select" -> battleSort.select(2, true)
-                "start-battle-sort-cancel" -> battleSort.cancel(true)
+        when (presentation.sortMenu) {
+            BattlePreparationPresentation.SortMenuState.OPEN -> battleSort.openFromButton(865.186f, 321f, 50f, true)
+            BattlePreparationPresentation.SortMenuState.SELECT_THIRD -> {
+                battleSort.openFromButton(865.186f, 321f, 50f, true)
+                battleSort.select(2, true)
             }
+            BattlePreparationPresentation.SortMenuState.CANCELED -> {
+                battleSort.openFromButton(865.186f, 321f, 50f, true)
+                battleSort.cancel(true)
+            }
+            BattlePreparationPresentation.SortMenuState.CLOSED -> Unit
         }
     }
 
@@ -67,39 +63,7 @@ class BattlePreparationScreen(
 
     override fun render(delta: Float) {
         renderer.render(viewState())
-        if (fixture == BattlePreparationFixture.BattleView) {
-            game.writeRenderEventLogIfRequested()
-            return
-        }
-        if (game.writeRenderEventLogIfRequested()) return
-        game.captureFrameIfRequested()
     }
-
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun renderEventLog(): String = traceRecorder.renderEvents(viewState())
-
-    /**
-     * 공개 메서드 `compositionTrace`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun compositionTrace(): String = traceRecorder.composition(viewState())
 
     override fun resize(width: Int, height: Int) = renderer.resize(width, height)
 
@@ -161,7 +125,8 @@ class BattlePreparationScreen(
         maximum = controller.maximum,
         cursorId = controller.cursorId,
         canStart = controller.canStart,
-        fixture = fixture,
+        detailsVisible = presentation.detailsVisible,
+        mapVisible = presentation.mapVisible,
         sortOpen = battleSort.open,
         battleViewMarkerCount = battleView.markers().size,
     )
@@ -176,6 +141,7 @@ class BattlePreparationScreen(
         maximum = controller.maximum,
         cursorSelected = controller.cursorId in controller.selection,
         canStart = controller.canStart,
+        view = viewState(),
     )
 }
 

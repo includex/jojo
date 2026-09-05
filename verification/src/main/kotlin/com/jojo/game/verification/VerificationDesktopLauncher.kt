@@ -9,6 +9,7 @@ import com.jojo.game.JojoGame
 import com.jojo.game.RenderCaptureConfiguration
 import com.jojo.game.ScenarioRunConfiguration
 import com.jojo.game.VerificationConfiguration
+import com.jojo.game.verification.preparation.VerificationBattlePreparationDriver
 
 /** Verification-owned desktop entry point for capture, trace and scripted-run flags. */
 object VerificationDesktopLauncher {
@@ -55,6 +56,9 @@ internal data class VerificationDesktopLaunchOptions(
             capture = capture,
             runtimeArtifactObserver = artifactObserver,
             runtimeScreenObserver = artifactObserver,
+            runtimeBattleDriver = VerificationBattleDriver(capture.state),
+            runtimeBattlePreparationDriver = VerificationBattlePreparationDriver(capture.state),
+            runtimeScenarioDriver = VerificationScenarioDriver(capture.state),
             fullBattleTrace = fullBattleTrace,
             yingchuanEntryFlowTracePath = yingchuanEntryFlowTracePath,
             automatedRun = true,
