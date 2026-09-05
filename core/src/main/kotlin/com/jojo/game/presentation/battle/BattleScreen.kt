@@ -51,6 +51,7 @@ import com.jojo.game.presentation.battle.timeline.hitCallbackEconomyDelta
 import com.jojo.game.presentation.battle.settlement.BattleSettlementPresentationController
 import com.jojo.game.presentation.battle.settlement.SettlementInfoView
 import com.jojo.game.presentation.battle.settlement.SettlementInfo2View
+import com.jojo.game.presentation.battle.script.ScriptPresentationTimeline
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
@@ -1025,7 +1026,7 @@ void main() {
     /** BattleUnit._avatar remains old until loadAvatar's async completion. */
     private val loadedBattleAvatarIds = mutableMapOf<String, Int>()
     private var activeMapPresentation: ActiveMapPresentation? = null
-    private var activeScriptPresentation: ActiveScriptPresentation? = null
+    private val scriptPresentationTimeline = ScriptPresentationTimeline()
     private var activeScriptedUnitAction: ActiveScriptedUnitAction? = null
 
     /** Harm-number animation values visible from the attack `hit` event onward. */
@@ -4434,50 +4435,27 @@ void main() {
      */
     private fun driveScriptPresentation() {
         val now = animationClock()
-        activeScriptPresentation?.let { active ->
-            when (active.phase) {
-                ScriptPresentationPhase.ITEM_MODAL -> {
-                    if (scriptRuntime.state == PlaybackState.MODAL) return
-                    activeScriptPresentation = null
+        val advance = scriptPresentationTimeline.advance(now, scriptRuntime.state == PlaybackState.MODAL)
+        advance.effects.forEach { effect ->
+            when (effect) {
+                is ScriptPresentationTimeline.Effect.FinishUnitAction -> {
+                    scriptedUnitVisuals.remove(effect.battleUnitId)
+                    battle.presentation.presentationUnit(effect.battleUnitId)?.let(::defaultPresentationAction)
                 }
-
-                ScriptPresentationPhase.ITEM_ACTION -> {
-                    if (now < active.endsAt) return
-                    active.battleUnitId?.let {
-                        scriptedUnitVisuals.remove(it)
-                        battle.presentation.presentationUnit(it)?.let(::defaultPresentationAction)
-                    }
-                    audio.playBattleEffect(14) // SOUND_INDEX.GET_ITEM
-                    active.phase = ScriptPresentationPhase.ITEM_ICON
-                    active.startedAt = now
-                    active.endsAt = now + .8f
-                    return
-                }
-
-                ScriptPresentationPhase.ITEM_ICON -> {
-                    if (now < active.endsAt) return
-                    val request = active.request as ScenarioScriptPresentationRequest.GetItem
-                    active.phase = ScriptPresentationPhase.ITEM_MODAL
-                    scriptRuntime.presentExternalBattleInfo(request.completionMessage)
-                    return
-                }
-
-                ScriptPresentationPhase.TIMED -> {
-                    if (now < active.endsAt) return
-                    if (active.request is ScenarioScriptPresentationRequest.UnitHighlight) unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
-                    activeScriptPresentation = null
-                    scriptRuntime.resumeExternalDelay()
-                    return
-                }
+                ScriptPresentationTimeline.Effect.PlayGetItemSound -> audio.playBattleEffect(14)
+                is ScriptPresentationTimeline.Effect.PresentItemMessage ->
+                    scriptRuntime.presentExternalBattleInfo(effect.message)
+                ScriptPresentationTimeline.Effect.DismissUnitInfo ->
+                    unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
+                ScriptPresentationTimeline.Effect.ResumeScript -> scriptRuntime.resumeExternalDelay()
             }
         }
+        if (!advance.acceptsNewRequest) return
         val request = scriptRuntime.stage.consumeScriptPresentationRequest() ?: return
         when (request) {
             is ScenarioScriptPresentationRequest.RectangleHighlight -> {
                 focusCameraOnTile((request.x1 + request.x2) / 2f, (request.y1 + request.y2) / 2f, forceCenter = true)
-                activeScriptPresentation = ActiveScriptPresentation(
-                    request, ScriptPresentationPhase.TIMED, now, now + request.durationSeconds,
-                )
+                scriptPresentationTimeline.startTimed(request, now, request.durationSeconds)
             }
 
             is ScenarioScriptPresentationRequest.UnitHighlight -> {
@@ -4488,17 +4466,13 @@ void main() {
                 }
                 focusCameraOn(unit)
                 if (request.opensUnitInfo) openUnitInfoLayer(request.unitId)
-                activeScriptPresentation = ActiveScriptPresentation(
-                    request, ScriptPresentationPhase.TIMED, now, now + request.durationSeconds, unit.id,
-                )
+                scriptPresentationTimeline.startTimed(request, now, request.durationSeconds, unit.id)
             }
 
             is ScenarioScriptPresentationRequest.MapObjects -> {
                 request.objects.lastOrNull()
                     ?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
-                activeScriptPresentation = ActiveScriptPresentation(
-                    request, ScriptPresentationPhase.TIMED, now, now + request.durationSeconds,
-                )
+                scriptPresentationTimeline.startTimed(request, now, request.durationSeconds)
             }
 
             is ScenarioScriptPresentationRequest.GetItem -> {
@@ -4510,9 +4484,7 @@ void main() {
                 focusCameraOn(unit)
                 scriptedUnitVisuals[unit.id] = ScriptedUnitVisual(request.action, now)
                 val duration = requireSourceActionDuration(request.action, unit.direction)
-                activeScriptPresentation = ActiveScriptPresentation(
-                    request, ScriptPresentationPhase.ITEM_ACTION, now, now + duration, unit.id,
-                )
+                scriptPresentationTimeline.startItem(request, now, duration, unit.id)
             }
 
             is ScenarioScriptPresentationRequest.UnitStatusSettlement -> {
@@ -4527,9 +4499,7 @@ void main() {
                     minOf(maxOf(hp, mp), 5) * .2f +
                             if (change.containsKey("status") || change.containsKey("hStatus")) .6f else 0f
                 }?.coerceAtLeast(request.minimumDurationSeconds) ?: request.minimumDurationSeconds
-                activeScriptPresentation = ActiveScriptPresentation(
-                    request, ScriptPresentationPhase.TIMED, now, now + duration, unit?.id,
-                )
+                scriptPresentationTimeline.startTimed(request, now, duration, unit?.id)
             }
         }
     }
@@ -4758,7 +4728,7 @@ void main() {
                 deathAnimations.values.any { now < it.endsAt } ||
                 deathTimeline.isBusy() ||
                 activeScriptedHide != null || scriptedHideAwaitingDialogue != null || activeScriptedShow != null ||
-                activeScriptPresentation != null || activeScriptedUnitAction != null ||
+                scriptPresentationTimeline.isActive() || activeScriptedUnitAction != null ||
                 magicEffectAnimations.any { now < it.endsAt } ||
                 queuedMagicPresentation != null ||
                 activeCounterMagicPresentation?.let { now < it.endsAt } == true ||
@@ -5742,7 +5712,7 @@ void main() {
     }
 
     private fun drawScriptPresentationOverlay() {
-        val active = activeScriptPresentation ?: return
+        val active = scriptPresentationTimeline.snapshot() ?: return
         val elapsed = (animationClock() - active.startedAt).coerceAtLeast(0f)
         when (val request = active.request) {
             is ScenarioScriptPresentationRequest.RectangleHighlight -> {
@@ -5775,7 +5745,7 @@ void main() {
             }
 
             is ScenarioScriptPresentationRequest.GetItem -> {
-                if (active.phase != ScriptPresentationPhase.ITEM_ICON) return
+                if (active.phase != ScriptPresentationTimeline.Phase.ITEM_ICON) return
                 val unit = active.battleUnitId?.let(battle.presentation::presentationUnit) ?: return
                 val rise = (elapsed / .3f).coerceIn(0f, 1f) * (boardTile / 2f)
                 val iconIndex = gameDataCatalog.equipmentProfile(request.itemId)?.icon ?: return

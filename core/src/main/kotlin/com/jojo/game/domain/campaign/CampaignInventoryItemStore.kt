@@ -1,9 +1,9 @@
 package com.jojo.game.domain.campaign
-import com.jojo.game.domain.campaign.CampaignInventory
-
 import com.jojo.game.*
 
 import java.util.*
+
+internal data class CampaignInventoryEquipment(val level: Int = 1, val experience: Int = 0)
 
 internal class CampaignInventoryItemStore {
     private val itemStacks = linkedMapOf<Int, Int>()

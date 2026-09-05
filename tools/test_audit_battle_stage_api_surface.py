@@ -138,6 +138,35 @@ class BattleStageApiAuditTest(unittest.TestCase):
         self.assertTrue(rows["stage.loadBg"]["runtimeBattleBarrier"])
         self.assertEqual(0, rows["stage.setUnitAttr"]["sourceBarrierCallSiteAssessment"]["requiredCallSites"])
 
+    def test_split_stage_dispatchers_are_loaded_with_interpreter(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "scripts"
+            modules = root / "modules"
+            runtime = root / "core/src/main/kotlin/com/jojo/game/application/scenario/ScenarioInterpreter.kt"
+            router = runtime.parent / "ScenarioStageCallPresentationDispatcher.kt"
+            scripts.mkdir(parents=True)
+            (modules / "battle").mkdir(parents=True)
+            (modules / "ui").mkdir()
+            runtime.parent.mkdir(parents=True)
+            (scripts / "S_00.py").write_text("stage.info('ok')\n", encoding="utf-8")
+            (modules / "battle/BattleLayer.js").write_text("", encoding="utf-8")
+            (modules / "battle/BattleUnit.js").write_text("", encoding="utf-8")
+            (modules / "ui/StageLayer.js").write_text(
+                "x.prototype.info=function(){this.pause();this.resume();};\n", encoding="utf-8"
+            )
+            runtime.write_text("class ScenarioInterpreter", encoding="utf-8")
+            router.write_text(
+                'fun dispatch() = when (path) {\n    "stage.info" -> stage.requestInfo()\n    else -> null\n}',
+                encoding="utf-8",
+            )
+
+            row = audit(scripts, runtime, modules)["apis"][0]
+            self.assertTrue(row["runtimeHandler"])
+
 
 if __name__ == "__main__":
     unittest.main()

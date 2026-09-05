@@ -383,6 +383,11 @@ def audit(
         dispatch_files = [
             runtime_path.parent / "ScenarioCallCoordinator.kt",
             game_source_dir / "ScenarioStageCallDispatcher.kt",
+            *sorted(
+                (game_source_dir / "application/scenario").glob(
+                    "ScenarioStageCall*Dispatcher.kt"
+                )
+            ),
             game_source_dir / "ScenarioTacticalActionDispatcher.kt",
             game_source_dir / "ScenarioUnitActionDispatcher.kt",
             game_source_dir / "ScenarioFightDispatcher.kt",

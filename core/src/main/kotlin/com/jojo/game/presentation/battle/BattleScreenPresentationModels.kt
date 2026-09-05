@@ -471,16 +471,6 @@ internal data class ActiveScriptedUnitPosts(
 
 internal data class ActiveMapPresentation(val request: ScenarioMapPresentationRequest, val endsAt: Float)
 
-internal enum class ScriptPresentationPhase { TIMED, ITEM_ACTION, ITEM_ICON, ITEM_MODAL }
-
-internal data class ActiveScriptPresentation(
-    val request: ScenarioScriptPresentationRequest,
-    var phase: ScriptPresentationPhase,
-    var startedAt: Float,
-    var endsAt: Float,
-    val battleUnitId: String? = null,
-)
-
 internal data class ActiveScriptedUnitAction(
     val request: ScriptedUnitAction,
     val battleUnitId: String,
