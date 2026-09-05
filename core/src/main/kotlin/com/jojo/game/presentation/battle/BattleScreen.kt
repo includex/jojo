@@ -58,6 +58,9 @@ import com.jojo.game.presentation.battle.script.ScriptedUnitTimedCoordinator
 import com.jojo.game.presentation.battle.script.ScriptedUnitActionCoordinator
 import com.jojo.game.presentation.battle.script.ScriptedPresentationCoordinator
 import com.jojo.game.presentation.battle.script.ScriptedUnitTargetSelector
+import com.jojo.game.presentation.battle.ai.AiPresentationCoordinator
+import com.jojo.game.presentation.battle.ai.AiPresentationState
+import com.jojo.game.presentation.battle.ai.AiPresentationStage
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
@@ -403,7 +406,7 @@ void main() {
 }""",
         ).also { check(it.isCompiled) { "Cocos gray shader failed: ${it.log}" } }
     }
-    private val scriptRuntime = ScenarioInterpreter.load(sourceScenario, campaign).apply {
+    internal val scriptRuntime = ScenarioInterpreter.load(sourceScenario, campaign).apply {
         enableExternalBattlePresentation()
         // FightLayer methods pause the source script until their own visual
         // callback fires.  Keep that contract in production; otherwise an
@@ -460,7 +463,7 @@ void main() {
         grid.applyObjectOverlays(scriptRuntime.stage.mapObjects.values)
         grid.applyFires(scriptRuntime.stage.fires.values)
     }
-    private val battle = (if (verifyMode) {
+    internal val battle = (if (verifyMode) {
         BattleScenarioFactory.tutorialBattle()
     } else {
         BattleScenarioFactory.fromScriptedUnits(
@@ -805,7 +808,7 @@ void main() {
             ),
         )
     }
-    private var eventMessage = "턴 종료로 라운드와 이벤트를 확인하세요"
+    internal var eventMessage = "턴 종료로 라운드와 이벤트를 확인하세요"
 
     /** Source MenuLayer, opened through Canvas/Layer/menu_button. */
     private var battleMenuOpen = false
@@ -939,7 +942,7 @@ void main() {
     private var scriptedAttackCallbackEndsAt = Float.NEGATIVE_INFINITY
 
     /** BattleUnit.move2's currently running start-inclusive route. */
-    private var movementAnimation: UnitMoveAnimation? = null
+    internal var movementAnimation: UnitMoveAnimation? = null
 
     /** TPGJ owns a separate .08s victim move while the hurt clip is running. */
     private val backMoveAnimations = mutableMapOf<String, BackMoveAnimation>()
@@ -955,7 +958,7 @@ void main() {
 
     /** Source unitHide(DEATH) starts only after SHOU_GONG_JI3 completes. */
     private val deathAnimations = mutableMapOf<String, UnitActionAnimation>()
-    private val deathTimeline = BattleDeathPresentationTimeline(object : BattleDeathPresentationTimeline.Port {
+    internal val deathTimeline = BattleDeathPresentationTimeline(object : BattleDeathPresentationTimeline.Port {
         override val now: Float get() = animationClock()
         override val scriptComplete: Boolean get() = scriptRuntime.state == PlaybackState.COMPLETE
         override val dialogueActive: Boolean get() = scriptRuntime.currentDialogue != null
@@ -1314,28 +1317,15 @@ void main() {
     private var pendingBattleCommandMoveProvenance: String? = null
 
     /** Source `_ai2` awaits one actor's move/action callbacks before sorting the next. */
-    private var activeAiCamp: Faction? = null
-    private val emptyAiCampFrameBarrier = EmptyAiCampFrameBarrier()
-    private val committedPlayerMoveFrameBarrier = CommittedPlayerMoveFrameBarrier()
-    private val actionStatusFrameBarrier = ActionStatusFrameBarrier()
-    private val counterattackSettlementFrameBarrier = CounterattackSettlementFrameBarrier()
+    internal val emptyAiCampFrameBarrier = EmptyAiCampFrameBarrier()
+    internal val committedPlayerMoveFrameBarrier = CommittedPlayerMoveFrameBarrier()
+    internal val actionStatusFrameBarrier = ActionStatusFrameBarrier()
+    internal val counterattackSettlementFrameBarrier = CounterattackSettlementFrameBarrier()
     private val scriptedMovementCampTransitionFrameBarrier = ScriptedMovementCampTransitionFrameBarrier()
-    private val consecutiveNoResultFrameGate = ConsecutiveNoResultFrameGate()
-    private var pendingAiResolution: AiUnitResolution? = null
-    private var pendingAiActionStarted = false
-    private var pendingAiPlayerMoveScriptStarted = false
-    private var pendingAiUnitDeathScriptPass = 0
-    private var pendingAiActionCommitted = false
-    private var playerMoveCommitted = false
-    private var committedPlayerMove: String? = null
+    internal val consecutiveNoResultFrameGate = ConsecutiveNoResultFrameGate()
+    internal var playerMoveCommitted = false
+    internal var committedPlayerMove: String? = null
 
-    private enum class AiPresentationStage { FOCUS_DELAY, MOVING, ACTION_DELAY, ACTION, COMPLETE }
-
-    private var aiPresentationStage = AiPresentationStage.COMPLETE
-    private var aiPresentationStageStartedAt = 0f
-    private var aiTurnMoves = 0
-    private var aiTurnAttacks = 0
-    private var aiTurnHolds = 0
     private var magicMode = false
     private var selectedMagicIndex = 0
     private var propertyMode = false
@@ -1344,7 +1334,7 @@ void main() {
     /** Source RoundLayer lives only while BattleTurnController awaits its callback. */
     private var activeRoundLayer: RoundLayer? = null
     private var activeRoundLayerElapsed = 0f
-    private val turnController: BattleTurnController by lazy {
+    internal val turnController: BattleTurnController by lazy {
         BattleTurnController(
             battle = battle,
             showCamp = { card ->
@@ -1357,9 +1347,9 @@ void main() {
                 scriptRuntime.state == PlaybackState.COMPLETE
             },
             runAi = { camp ->
-                beginVisibleAiTurn(camp)
+                aiPresentation.beginCamp(camp)
             },
-            hasPendingAiPresentation = { activeAiCamp != null },
+            hasPendingAiPresentation = { aiPresentation.hasActiveCamp },
             presentCampState = { settlement -> presentTurnSettlement(settlement) },
             presentDeaths = { checkpoint -> deathTimeline.begin(checkpoint.toDeathTimelineCheckpoint()) },
             presentCampRestore = { settlement -> presentTurnSettlement(settlement) },
@@ -1384,6 +1374,9 @@ void main() {
             },
         )
     }
+    private val aiPresentation = AiPresentationCoordinator(
+        { coordinator -> BattleAiPresentationPort(this, coordinator) },
+    )
 
     /** Opening scene commands have completed before the first capture frame. */
     private var presentationReady = false
@@ -1451,7 +1444,7 @@ void main() {
     private var boardMaxY = 1
 
     /** Action regression captures deliberately drive an isolated BRAnime while SayLayer is open. */
-    private fun animationClock(): Float = when {
+    internal fun animationClock(): Float = when {
         // The source actual-route harness stops every live idle clip at time
         // zero before its draw inventory. Apply the identical renderer state
         // to the game's real draw pass, not merely to event serialization.
@@ -2361,7 +2354,7 @@ void main() {
         // recorders merely observe it and never inject tactical progress.
         if (bootstrapPhase == BattleBootstrapPhase.COMPLETE &&
             autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT &&
-            scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && activeAiCamp == null
+            scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp
         ) turnController.runCollocatedPlayerTurn()
         // StageLayer.pause() suspends only the Python control script. Cocos
         // cc.Animation keeps advancing behind SayLayer/ChooseLayer, which is
@@ -2389,7 +2382,7 @@ void main() {
         startQueuedCounterFollowUpPresentation()
         startQueuedMagicPassPresentation()
         resumeCriticalSpeechAction()
-        driveVisibleAiTurn()
+        aiPresentation.drive()
         // The addressed dialogue readback freezes the source while SayLayer
         // owns input.  Its fixture has no player-camp roster, so evaluating
         // tactical defeat during that hold replaces the requested frame with
@@ -3081,18 +3074,18 @@ void main() {
                 ),
                 observation, scriptRuntime.stage.battleEndedByScript, scriptRuntime.stage.scriptedBattleOutcome?.name,
                 outcomePresentation.resultFlow.toString(), scriptRuntime.currentModalKind?.name,
-                pendingBattleScriptPassesAfterAction, pendingAiUnitDeathScriptPass, deathTimeline.startedPostActionDeaths(),
-                pendingAiResolution != null, activeAiCamp?.toString(), activeRoundLayer != null,
+                pendingBattleScriptPassesAfterAction, aiPresentation.unitDeathScriptPass, deathTimeline.startedPostActionDeaths(),
+                aiPresentation.resolution != null, aiPresentation.activeCamp?.toString(), activeRoundLayer != null,
                 settlementPresentation.isActive(), combatPresentationBusy(),
             )
         ))
     }
 
-    private fun fullTraceAiPresentation(): FullBattleTraceAiPresentationInput? = pendingAiResolution?.let { resolution ->
+    private fun fullTraceAiPresentation(): FullBattleTraceAiPresentationInput? = aiPresentation.resolution?.let { resolution ->
         val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
         val target = resolution.targetId?.let(battle.presentation::presentationUnit)
         FullBattleTraceAiPresentationInput(
-            aiPresentationStage.toString(), actor, resolution.fromX, resolution.fromY, resolution.toX, resolution.toY,
+            aiPresentation.stage.toString(), actor, resolution.fromX, resolution.fromY, resolution.toX, resolution.toY,
             target?.characterId ?: -1, resolution.targetId?.let(resolution.healthBeforeAction::get) ?: -1,
             battle.pendingActionTransaction != null, resolution.result != null,
         )
@@ -4150,7 +4143,7 @@ void main() {
         }
     }
 
-    private fun commitDeferredBattleAction(settlementActorId: String? = null) {
+    internal fun commitDeferredBattleAction(settlementActorId: String? = null) {
         // `_jiesuan(g_charinfo)` calls centerUnit for every settlement row
         // before it publishes STATES/XD.  Omitting this actor focus leaves the
         // camera at the previous attacker/target and the offset then leaks
@@ -4171,7 +4164,7 @@ void main() {
     }
 
     /** Builds the immutable batch consumed by the callback-owned death timeline. */
-    private fun collectDyingPresentationUnits(): List<BattleDeathPresentationTimeline.DeathUnit> {
+    internal fun collectDyingPresentationUnits(): List<BattleDeathPresentationTimeline.DeathUnit> {
         syncScriptedUnits()
         val dying = UnitDeathPresentation.sortedDying(battle.units.values + battle.presentation.pendingPresentationUnits())
         var hideType = 1
@@ -4638,69 +4631,7 @@ void main() {
         }
     }
 
-    private fun beginVisibleAiTurn(camp: Faction): AiTurnResult {
-        activeAiCamp = camp
-        pendingAiResolution = null
-        pendingAiActionStarted = false
-        pendingAiPlayerMoveScriptStarted = false
-        pendingAiUnitDeathScriptPass = 0
-        pendingAiActionCommitted = false
-        deathTimeline.finishPostActionCallbacks()
-        aiPresentationStage = AiPresentationStage.COMPLETE
-        aiTurnMoves = 0
-        aiTurnAttacks = 0
-        aiTurnHolds = 0
-        // `ctrl_mine` case 9 performs nextNotOperUnit -> _firstUnit ->
-        // centerUnit *before* case 13 chooses manual control or `_ai2`.
-        // Consequently collocated Mine, Enemy and Reinforcements all retain
-        // this camp-entry focus as well. `_firstUnit(FRIEND)` still preserves
-        // the source's sparse [20,40) probe and normally finds no friend.
-        if (battle.presentation.hasPendingAiUnits()) focusFirstCampCameraUnit(camp)
-        return resolveNextVisibleAiUnit().also {
-            emptyAiCampFrameBarrier.begin(hasActor = pendingAiResolution != null)
-        }
-    }
-
-    /** Resolve only one actor; all later actors wait for its visible callbacks. */
-    private fun resolveNextVisibleAiUnit(): AiTurnResult {
-        val camp = activeAiCamp ?: return AiTurnResult(0, 0, 0)
-        val result = battle.ai.resolveTurn(maxUnits = 1, deferMutations = true)
-        aiTurnMoves += result.moves
-        aiTurnAttacks += result.attacks
-        aiTurnHolds += result.holds
-        pendingAiResolution = battle.lastAiUnitResolution
-        pendingAiActionStarted = false
-        pendingAiPlayerMoveScriptStarted = false
-        pendingAiUnitDeathScriptPass = 0
-        pendingAiActionCommitted = false
-        deathTimeline.finishPostActionCallbacks()
-        committedPlayerMoveFrameBarrier.beginActor()
-        actionStatusFrameBarrier.beginActor()
-        val resolution = pendingAiResolution
-        counterattackSettlementFrameBarrier.beginActor(
-            hasPhysicalCounter = resolution?.result.hasPhysicalCounterPass(),
-        )
-        if (resolution != null) {
-            movementAnimation = null
-            // `_ai2` schedules .3s only when Control selected a visible move
-            // or command.  A confused/paralysed/no-result actor jumps
-            // directly to `_shifudu -> _jiesuan`, so its XD callback may be
-            // observed in the same frame as the preceding actor's move2
-            // completion.  Delaying every resolution here split that source
-            // callback chain across unrelated LibGDX renders.
-            aiPresentationStage = if (resolution.path.size < 2 && resolution.result == null) {
-                AiPresentationStage.COMPLETE
-            } else {
-                AiPresentationStage.FOCUS_DELAY
-            }
-            aiPresentationStageStartedAt = animationClock()
-            eventMessage =
-                "${camp.label()}: ${battle.presentation.presentationUnit(resolution.actorId)?.name ?: resolution.actorId} 행동"
-        }
-        return result
-    }
-
-    private fun combatPresentationBusy(): Boolean {
+    internal fun combatPresentationBusy(): Boolean {
         val now = animationClock()
         return (scriptRuntime.state == PlaybackState.MODAL &&
                 scriptRuntime.currentModalKind == ScenarioModalKind.INFO) ||
@@ -4731,259 +4662,15 @@ void main() {
      */
     private fun outcomeCallbacksPending(): Boolean =
         pendingBattleScriptPassesAfterAction > 0 ||
-                pendingAiUnitDeathScriptPass > 0 ||
+                aiPresentation.unitDeathScriptPass > 0 ||
                 deathTimeline.startedPostActionDeaths() ||
-                pendingAiResolution != null ||
-                activeAiCamp != null ||
+                aiPresentation.resolution != null ||
+                aiPresentation.hasActiveCamp ||
                 // The round card owns a scheduled continuation callback. Starting
                 // another result script before it closes can put a SayLayer behind
                 // the card, leaving the dialogue unable to receive its input.
                 activeRoundLayer != null ||
                 settlementPresentation.isActive()
-
-    /** Drive the same move -> action -> next `_ai2` callback chain as Cocos. */
-    private fun driveVisibleAiTurn() {
-        if (scriptRuntime.state != PlaybackState.COMPLETE) return
-        val camp = activeAiCamp ?: return
-        // `_ai2` completion is a callback after curCamp has already changed.
-        // If there is no actor, preserve that entry for one rendered frame
-        // instead of consuming camp state, restore and addRound immediately.
-        if (pendingAiResolution == null && emptyAiCampFrameBarrier.yieldEntryFrame()) return
-        // A generator `yield` exists only for an actual scheduled callback.
-        // Keep consuming synchronous continuations in this render: move2 can
-        // finish, both empty run_script calls can return, and the following
-        // no-result actor can publish XD before the next draw.
-        consecutiveNoResultFrameGate.beginRender()
-        while (true) {
-            val resolution = pendingAiResolution
-            if (resolution == null) {
-                if (battle.presentation.hasPendingAiUnits()) {
-                    resolveNextVisibleAiUnit()
-                    // A no-result `_ai2` still publishes its XD settlement
-                    // through a distinct engine update.  The callback tail
-                    // may immediately start the following *visible* move or
-                    // command, but it does not collapse two consecutive
-                    // confused/paralysed/hold settlements into one draw.
-                    // Doing so attached every skipped actor's XD transition
-                    // to the next move episode in accelerated traces.
-                    val next = pendingAiResolution
-                    if (consecutiveNoResultFrameGate.shouldYieldBefore(
-                            nextIsNoResult = next != null && next.path.size < 2 && next.result == null,
-                        )
-                    ) return
-                    continue
-                }
-                val total = AiTurnResult(aiTurnMoves, aiTurnAttacks, aiTurnHolds)
-                eventMessage = "${camp.label()}: 이동 ${total.moves} · 공격 ${total.attacks} · 대기 ${total.holds}"
-                // `_ai2` keeps its unitDeath script-pass counter inside the
-                // actor coroutine.  Once the camp has no actor left, that
-                // local continuation is gone as well.  Retaining our mirror
-                // at pass 2 makes outcomeCallbacksPending() permanently busy
-                // after a later restore/death result script (S_00 victory),
-                // so the source-equivalent save prompt can never start.
-                pendingAiUnitDeathScriptPass = 0
-                activeAiCamp = null
-                turnController.completeAiPresentation(total)
-                return
-            }
-            when (aiPresentationStage) {
-                AiPresentationStage.FOCUS_DELAY -> {
-                    if (animationClock() - aiPresentationStageStartedAt < .3f) return
-                    // The helper records the original center(x,y) call using
-                    // the same observation vocabulary as the source trace.
-                    focusCameraOnTile(resolution.fromX.toFloat(), resolution.fromY.toFloat())
-                    movementAnimation = resolution.path.takeIf { it.size >= 2 }?.let { path ->
-                        val actor = battle.presentation.presentationUnit(resolution.actorId)
-                        UnitMoveAnimation(
-                            resolution.actorId,
-                            path,
-                            BattleUnitMoveTimeline.schedule(path, actor?.fastMove ?: true),
-                            animationClock(),
-                        )
-                    }
-                    if (movementAnimation == null) battle.pendingActionTransaction?.commitMovement(
-                        commitActionState = resolution.result == null,
-                    )
-                    aiPresentationStage = if (movementAnimation != null) AiPresentationStage.MOVING
-                    else if (resolution.result is TacticalActionResult.Attack) AiPresentationStage.ACTION_DELAY
-                    else if (resolution.result != null) AiPresentationStage.ACTION
-                    else AiPresentationStage.COMPLETE
-                    aiPresentationStageStartedAt = animationClock()
-                    continue
-                }
-
-                AiPresentationStage.MOVING -> {
-                    if (movementAnimation?.let { animationClock() < it.endsAt } == true) return
-                    val finalDirection = movementAnimation?.timeline?.segments?.lastOrNull()?.direction
-                    // move2 owns the actor direction only until its final
-                    // callback.  Keeping this completed object alive made
-                    // driveMovementTicks reapply the route's last direction
-                    // on every later frame, overwriting scene1 setDir calls
-                    // (S_22 unit 115 is the first production example).
-                    movementAnimation = null
-                    battle.pendingActionTransaction?.commitMovement(commitActionState = resolution.result == null)
-                    finalDirection?.let { direction ->
-                        battle.presentation.presentationUnit(resolution.actorId)?.direction = direction
-                    }
-                    if (camp == Faction.PLAYER && resolution.path.size >= 2 &&
-                        (resolution.fromX != resolution.toX || resolution.fromY != resolution.toY)
-                    ) {
-                        playerMoveCommitted = true
-                        val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
-                        committedPlayerMove =
-                            "$actor:${resolution.fromX},${resolution.fromY}->${resolution.toX},${resolution.toY}"
-                    }
-                    val needsMoveCallbackScript = camp == Faction.PLAYER
-                    if (needsMoveCallbackScript && !pendingAiPlayerMoveScriptStarted) {
-                        pendingAiPlayerMoveScriptStarted = true
-                        runBattleScript()
-                        if (scriptRuntime.state != PlaybackState.COMPLETE) return
-                    }
-                    // ctrl_mine's collocated PLAYER `_ai2` resumes from the
-                    // move callback directly into its action/post-script
-                    // tail.  The source checks isEnd at that boundary.  Stop
-                    // only for end()+reward/lose(): stage.end() alone does
-                    // not publish a tactical result and remains a normal
-                    // continuation.  Keeping this in the PLAYER move path
-                    // deliberately leaves the ordinary enemy/S22 AI path
-                    // untouched.
-                    if (CollocatedPlayerMoveScriptEnd.finishesAiTurn(
-                            camp = camp,
-                            moveCallbackStarted = pendingAiPlayerMoveScriptStarted,
-                            scriptState = scriptRuntime.state,
-                            battleEndedByScript = scriptRuntime.stage.battleEndedByScript,
-                            scriptedOutcome = scriptRuntime.stage.scriptedBattleOutcome,
-                            observedOutcome = battle.outcome(),
-                        )
-                    ) {
-                        finishScriptEndedAiTurn()
-                        return
-                    }
-                    aiPresentationStage =
-                        if (resolution.result is TacticalActionResult.Attack) AiPresentationStage.ACTION_DELAY
-                        else if (resolution.result != null) AiPresentationStage.ACTION
-                        else AiPresentationStage.COMPLETE
-                    aiPresentationStageStartedAt = animationClock()
-                    continue
-                }
-
-                AiPresentationStage.ACTION_DELAY -> {
-                    if (camp == Faction.PLAYER && !pendingAiPlayerMoveScriptStarted) {
-                        pendingAiPlayerMoveScriptStarted = true
-                    }
-                    // Physical `_ai2` keeps the attack-range nodes visible for
-                    // another .3s before calling `_attack_3`.
-                    if (animationClock() - aiPresentationStageStartedAt < .3f) return
-                    aiPresentationStage = AiPresentationStage.ACTION
-                    continue
-                }
-
-                AiPresentationStage.ACTION -> {
-                    if (!pendingAiActionStarted) {
-                        pendingAiActionStarted = true
-                        applyAction(
-                            result = requireNotNull(resolution.result),
-                            unitName = battle.presentation.presentationUnit(resolution.actorId)?.name ?: resolution.actorId,
-                            actorId = resolution.actorId,
-                            magicId = resolution.magicId,
-                            targetId = resolution.targetId,
-                            healthBeforeAction = resolution.healthBeforeAction,
-                            continueBattleScript = false,
-                        )
-                        return
-                    }
-                    if (combatPresentationBusy()) return
-                    // `_attack_2/_attack_3` returns into `_ai2`, whose following
-                    // `_shifudu -> _jiesuan(g_charinfo)` continuation publishes
-                    // XD after the action clip has closed. Preserve that
-                    // source frame boundary; target hit/local magic settlement
-                    // callbacks have already committed independently.
-                    if (!pendingAiActionCommitted) {
-                        // `_attack6` owns a separate callback chain. After its
-                        // final clip closes, expose the source idle row before
-                        // resuming the original actor's global settlement.
-                        if (counterattackSettlementFrameBarrier.yieldIdleBeforeCommit()) return
-                        commitDeferredBattleAction(resolution.actorId)
-                        pendingAiActionCommitted = true
-                        aiPresentationStage = AiPresentationStage.COMPLETE
-                        // `_jiesuan(g_charinfo)` has now published XD, but
-                        // source has not selected the following `_ai2` actor
-                        // yet. Expose that settled row under this action's
-                        // episode before continuing the synchronous loop.
-                        if (actionStatusFrameBarrier.yieldAfterCommit(hasAction = resolution.result != null)) return
-                    }
-                    aiPresentationStage = AiPresentationStage.COMPLETE
-                    continue
-                }
-
-                AiPresentationStage.COMPLETE -> {
-                    val completedNoResult = resolution.path.size < 2 && resolution.result == null
-                    if (camp == Faction.PLAYER && !pendingAiPlayerMoveScriptStarted) {
-                        pendingAiPlayerMoveScriptStarted = true
-                    }
-                    if (!pendingAiActionCommitted) {
-                        commitDeferredBattleAction(resolution.actorId)
-                        pendingAiActionCommitted = true
-                    }
-                    if (committedPlayerMoveFrameBarrier.yieldCompletionFrame(
-                            isPlayer = camp == Faction.PLAYER,
-                            moved = resolution.path.size >= 2 &&
-                                    (resolution.fromX != resolution.toX || resolution.fromY != resolution.toY),
-                        )
-                    ) return
-                    if (scriptRuntime.state != PlaybackState.COMPLETE) return
-                    if (pendingAiUnitDeathScriptPass == 0) {
-                        pendingAiUnitDeathScriptPass = 1
-                        runBattleScript()
-                        if (scriptRuntime.state != PlaybackState.COMPLETE) return
-                    }
-                    // Source `_ai2` yields to unitDeath's first run_script
-                    // before it discovers/hides dying units.  An authored
-                    // stage.end() terminates that callback chain immediately:
-                    // `_ai2` observes isEnd and never reaches unitHide or camp
-                    // restore.  S_22's mine master death exercises this path.
-                    if (pendingAiUnitDeathScriptPass == 1 && scriptRuntime.stage.battleEndedByScript) {
-                        finishScriptEndedAiTurn()
-                        return
-                    }
-                    if (pendingAiUnitDeathScriptPass == 1 && !deathTimeline.startedPostActionDeaths()) {
-                        if (deathTimeline.queuePostAction(collectDyingPresentationUnits())) {
-                            // `unitDeath` starts after `_ai2` yields back from
-                            // the attacker's `_jiesuan` callback. Queue it now,
-                            // then let the next render's death driver publish
-                            // the target action in a distinct observation.
-                            return
-                        }
-                        pendingAiUnitDeathScriptPass = 2
-                    }
-                    if (pendingAiUnitDeathScriptPass == 1 && combatPresentationBusy()) return
-                    if (pendingAiUnitDeathScriptPass == 1) {
-                        pendingAiUnitDeathScriptPass = 2
-                        runBattleScript()
-                        if (scriptRuntime.state != PlaybackState.COMPLETE) return
-                    }
-                    pendingAiResolution = null
-                    pendingAiActionStarted = false
-                    pendingAiActionCommitted = false
-                    deathTimeline.finishPostActionCallbacks()
-                    if (completedNoResult) consecutiveNoResultFrameGate.markCompleted()
-                    continue
-                }
-            }
-        }
-    }
-
-    /** Drop only the continuation owned by an explicit stage.end callback. */
-    private fun finishScriptEndedAiTurn() {
-        pendingAiResolution = null
-        pendingAiActionStarted = false
-        pendingAiPlayerMoveScriptStarted = false
-        pendingAiActionCommitted = false
-        pendingAiUnitDeathScriptPass = 0
-        deathTimeline.finishPostActionCallbacks()
-        activeAiCamp = null
-        turnController.finishScriptEndedBattle()
-    }
 
     private fun handleTileClick(x: Int, y: Int) {
         // BattleScreen.unitMove pauses the layer until move2's final callback
@@ -5242,7 +4929,7 @@ void main() {
         }
     }
 
-    private fun applyAction(
+    internal fun applyAction(
         result: TacticalActionResult,
         unitName: String,
         actorId: String? = null,
@@ -7521,8 +7208,8 @@ void main() {
 
     /** Builds the source BattleScreen move/hit-area sprite layer. */
     private fun selectableAreaTiles(): List<SelectAreaTile> {
-        pendingAiResolution?.let { resolution ->
-            when (aiPresentationStage) {
+        aiPresentation.resolution?.let { resolution ->
+            when (aiPresentation.stage) {
                 AiPresentationStage.FOCUS_DELAY -> return resolution.moveArea
                     .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.GREEN) }
@@ -9226,7 +8913,7 @@ void main() {
         eventMessage = "미행동 부대: ${unit.name}"
     }
 
-    private fun focusFirstCampCameraUnit(camp: Faction) {
+    internal fun focusFirstCampCameraUnit(camp: Faction) {
         firstCampCameraUnit(battle.units.values, camp)?.let(::focusCameraOn)
     }
 
@@ -9252,7 +8939,7 @@ void main() {
         return battleCamera.ensureVisible(screenX, screenY)
     }
 
-    private fun focusCameraOnTile(tileX: Float, tileY: Float, forceCenter: Boolean = false): Boolean {
+    internal fun focusCameraOnTile(tileX: Float, tileY: Float, forceCenter: Boolean = false): Boolean {
         configureSourceCameraViewport()
         val beforeX = battleCamera.contentX
         val beforeY = battleCamera.contentY
@@ -9549,7 +9236,7 @@ void main() {
         batch.end()
     }
 
-    private fun runBattleScript(clickedCharacterId: Int? = null, contextCampOverride: Int? = null) {
+    internal fun runBattleScript(clickedCharacterId: Int? = null, contextCampOverride: Int? = null) {
         if (verifyMode || scriptedBattleVerifyMode || scriptRuntime.state != PlaybackState.COMPLETE) return
         // A normal `_ai2 -> unitDeath -> run_script` callback can own the
         // victory scene1 before driveNaturalBattleCompletion's fallback is

@@ -15,12 +15,11 @@ import com.jojo.game.presentation.scenario.hall.render.*
 import com.jojo.game.presentation.scenario.ScenarioPlaybackController
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.evidence.*
+import com.jojo.game.presentation.scenario.input.*
 import com.jojo.game.presentation.scenario.render.*
 import com.jojo.game.presentation.scenario.story.*
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -44,8 +43,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport
  */
 
 class ScenarioScreen(
-    private val game: JojoGame,
-    private val moduleName: String,
+    internal val game: JojoGame,
+    internal val moduleName: String,
     private val scriptedRandomValues: List<Int>,
     private val scriptedInfoTransferRandomValues: List<Int>,
     private val scriptedGlobals: Map<Int, Int>,
@@ -62,13 +61,13 @@ class ScenarioScreen(
     private val scriptedStartLabel: String?,
     private val stopAfterRandomTrace: Boolean,
     private val stopAfterRandomTraceCount: Int?,
-    private val campaign: CampaignState,
-) : ScreenAdapter() {
+    internal val campaign: CampaignState,
+) : ScreenAdapter(), ScenarioInputPort, ScenarioHallInteractionPort {
 
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val shapes = ShapeRenderer()
     private val batch = SpriteBatch()
-    private val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
+    internal val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
         // `campaign.enter()` prepares a fresh module state. Apply explicit
         // verification globals afterwards so a CLI fixture never silently
         // loses its recovered source guard inputs at scene entry.
@@ -102,7 +101,7 @@ class ScenarioScreen(
         game.scenarioStarted(moduleName, scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0)
         start(scriptedStartScene, scriptedStartLabel)
     }
-    private val gameDataCatalog = GameDataCatalog.load()
+    internal val gameDataCatalog = GameDataCatalog.load()
     private val hallManagementCommands = HallManagementCommandAdapter(campaign, gameDataCatalog)
     private val sceneAssets = ScenarioSceneAssets {
         buildString {
@@ -124,11 +123,11 @@ class ScenarioScreen(
     private val choiceRowTexture get() = sceneAssets.choiceRowTexture
     private val dialoguePanelTexture get() = sceneAssets.dialoguePanelTexture
     private val streetSpeechBubbleTexture get() = sceneAssets.streetSpeechBubbleTexture
-    private val streetCaptureStage = game.requestedCaptureState()
+    internal val streetCaptureStage = game.requestedCaptureState()
         ?.removePrefix("street-")
         ?.takeIf { game.requestedCaptureState()?.startsWith("street-") == true }
-    private val hallPalaceFixture = game.requestedCaptureState() == "hall-palace-fixture"
-    private val hallSectionFixture = game.requestedCaptureState() == "hall-section-fixture"
+    internal val hallPalaceFixture = game.requestedCaptureState() == "hall-palace-fixture"
+    internal val hallSectionFixture = game.requestedCaptureState() == "hall-section-fixture"
     private val infoPanelPatch get() = sceneAssets.infoPanelPatch
     private val audio = GameAudioPlayer()
     private val playbackController = ScenarioPlaybackController(playback, audio::sync, audio::dispose)
@@ -154,7 +153,7 @@ class ScenarioScreen(
         },
         onAdvance = ::advance,
     )
-    private val scenarioViewState get() = playbackController.viewState
+    internal val scenarioViewState get() = playbackController.viewState
     private val storyEvidenceRecorder = ScenarioStoryEvidenceRecorder()
     private val equipConfirmationEvidenceRecorder = ScenarioEquipConfirmationEvidenceRecorder()
     private val propertyEvidenceRecorder = ScenarioPropertyEvidenceRecorder()
@@ -166,7 +165,7 @@ class ScenarioScreen(
     private var hallFixtureInstalled = false
     private val hallInteraction = HallInteractionController()
     private val hallInteractionView get() = hallInteraction.view
-    private val hallMenuOpen get() = hallInteractionView.menuOpen
+    internal val hallMenuOpen get() = hallInteractionView.menuOpen
     private val hallManagementFlow by lazy {
         HallManagementCoordinator(
             campaign,
@@ -186,8 +185,8 @@ class ScenarioScreen(
         )
     }
     private val hallOverlayInteraction = HallOverlayInteractionController()
-    private val hallViews get() = hallManagementFlow.views
-    private var hallManagement: HallManagement?
+    internal val hallViews get() = hallManagementFlow.views
+    internal var hallManagement: HallManagement?
         get() = hallManagementFlow.management
         set(value) { hallManagementFlow.management = value }
     private var hallManagementNotice: String?
@@ -215,31 +214,31 @@ class ScenarioScreen(
     private var hallEquipUnequipConfirmation: Boolean
         get() = hallManagementFlow.unequipConfirmationOpen
         set(value) { hallManagementFlow.unequipConfirmationOpen = value }
-    private var hallUnitListLayer: HallUnitListLayer?
+    internal var hallUnitListLayer: HallUnitListLayer?
         get() = hallManagementFlow.unitListLayer
         set(value) { hallManagementFlow.unitListLayer = value }
-    private var hallEquipConfirmation: HallEquipConfirmation?
+    internal var hallEquipConfirmation: HallEquipConfirmation?
         get() = hallManagementFlow.equipConfirmation
         set(value) { hallManagementFlow.equipConfirmation = value }
     private var hallExclusiveLayer: ExclusiveLayer?
         get() = hallManagementFlow.exclusiveLayer
         set(value) { hallManagementFlow.exclusiveLayer = value }
-    private var hallMagicLayer: MagicInfoLayer?
+    internal var hallMagicLayer: MagicInfoLayer?
         get() = hallInformationFlow.magicLayer
         set(value) { hallInformationFlow.magicLayer = value }
     private var hallUnitInfoLayer: UnitInfoLayer?
         get() = hallInformationFlow.unitInfoLayer
         set(value) { hallInformationFlow.unitInfoLayer = value }
-    private var hallFeatsLayer: FeatsLayer?
+    internal var hallFeatsLayer: FeatsLayer?
         get() = hallInformationFlow.featsLayer
         set(value) { hallInformationFlow.featsLayer = value }
     private var hallFeatsHelpOpen: Boolean
         get() = hallInformationFlow.featsHelpOpen
         set(value) { hallInformationFlow.featsHelpOpen = value }
-    private var hallInfo: HallInfo?
+    internal var hallInfo: HallInfo?
         get() = hallInformationFlow.info
         set(value) { hallInformationFlow.info = value }
-    private var hallPropertyTab: HallPropertyTab
+    internal var hallPropertyTab: HallPropertyTab
         get() = hallInformationFlow.propertyTab
         set(value) { hallInformationFlow.propertyTab = value }
     private var hallTerrainTab: TerrainLayer.Tab
@@ -250,9 +249,9 @@ class ScenarioScreen(
     private fun prepareHallManagementDefaultEquipment(kind: HallManagement) = hallManagementFlow.prepareDefaultEquipment(kind)
     private fun prepareHallForcesDefaultEquipment() = hallManagementFlow.prepareForcesDefaultEquipment()
     private fun hallEquipUnitIds(): List<Int> = hallManagementFlow.equipUnitIds()
-    private fun hallEquipUnitId(): Int = hallManagementFlow.equipUnitId()
+    internal fun hallEquipUnitId(): Int = hallManagementFlow.equipUnitId()
 
-    private val hallOverlayFixture = game.requestedCaptureState()
+    internal val hallOverlayFixture = game.requestedCaptureState()
         ?.removePrefix("hall-")
         ?.removeSuffix("-fixture")
         ?.takeIf {
@@ -293,7 +292,7 @@ class ScenarioScreen(
             )
         }
     private val hallSkipDispatches = mutableListOf<String>()
-    private val hallSkipLayer: StorySkipFlow? = if (hallOverlayFixture == "skip-open") {
+    internal val hallSkipLayer: StorySkipFlow? = if (hallOverlayFixture == "skip-open") {
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
         check("SkipLayer" in hall.layers)
         StorySkipFlow(object : StorySkipFlow.Sink {
@@ -307,117 +306,11 @@ class ScenarioScreen(
     } else null
 
     init {
-        Gdx.input.inputProcessor = object : InputAdapter() {
-            override fun keyDown(keycode: Int): Boolean {
-                if (keycode == Input.Keys.ESCAPE && (hallFeatsLayer != null || hallUnitInfoLayer != null || hallMagicLayer != null || hallExclusiveLayer != null || hallInfo != null || hallManagement != null)) {
-                    if (hallFeatsLayer != null) {
-                        hallFeatsLayer = null; hallFeatsHelpOpen = false
-                    }
-                    if (hallMagicLayer != null) hallMagicLayer = null
-                    else if (hallExclusiveLayer != null) hallExclusiveLayer = null
-                    else {
-                        hallInfo = null; hallManagement = null
-                    }
-                    return true
-                }
-                when (keycode) {
-                    Input.Keys.UP -> playback.selectPrevious()
-                    Input.Keys.DOWN -> playback.selectNext()
-                    Input.Keys.ENTER, Input.Keys.SPACE -> advance()
-                }
-                return true
-            }
-
-            override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                val world = viewport.unproject(com.badlogic.gdx.math.Vector3(screenX.toFloat(), screenY.toFloat(), 0f))
-                if (playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible) {
-                    hallFeatsLayer?.let {
-                        handleHallFeatsTap(it, world.x, world.y)
-                        return true
-                    }
-                    hallUnitInfoLayer?.let {
-                        handleHallUnitInfoTap(it, world.x, world.y)
-                        return true
-                    }
-                    hallMagicLayer?.let {
-                        handleMagicTap(it, world.x, world.y)
-                        return true
-                    }
-                    hallItemLayer?.let {
-                        handleHallItemTap(world.x, world.y)
-                        return true
-                    }
-                    if (hallSaveOpen) {
-                        handleHallSaveTap(world.x, world.y)
-                        return true
-                    }
-                    if (hallInfo != null) {
-                        handleHallInfoTap(requireNotNull(hallInfo), world.x, world.y)
-                        return true
-                    }
-                    hallExclusiveLayer?.let {
-                        handleExclusiveTap(it, world.x, world.y)
-                        return true
-                    }
-                    hallManagement?.let { management ->
-                        // UnitListLayer owns a full-canvas cancel target while
-                        // visible, so underlying Equip buttons must not fire.
-                        if (management == HallManagement.EQUIP && hallUnitListLayer != null) {
-                            handleHallManagementTap(management, world.x, world.y)
-                            return true
-                        }
-                        val closes = when (management) {
-                            HallManagement.EQUIP -> world.x in 642f..730f && world.y in 35f..84f
-                            HallManagement.BUY -> world.x in 529f..653f && world.y in 35f..86f
-                            HallManagement.SELL -> world.x in 869f..1000f && world.y in 75f..130f
-                        }
-                        if (closes) {
-                            hallManagementFlow.close()
-                        } else {
-                            handleHallManagementTap(management, world.x, world.y)
-                        }
-                        return true
-                    }
-                    executeHallInteraction(hallInteraction.mainTap(world.x, world.y))
-                    return true
-                }
-                if (playback.state == PlaybackState.CHOICE && world.x in 463f..1059f) {
-                    if (playback.isAskChoice) {
-                        val askButton = when {
-                            world.x in 482.84f..628.18f && world.y in 306.16f..349.16f -> 0
-                            world.x in 646.27f..791.61f && world.y in 306.16f..349.16f -> 1
-                            else -> -1
-                        }
-                        if (askButton >= 0) {
-                            playback.selectChoice(askButton)
-                            confirmChoice()
-                        }
-                        return true
-                    }
-                    // ChooseLayer's VerticalLayout uses 44-unit rows.  Its
-                    // source Button callback both chooses the row and closes
-                    // the layer, so a mouse click must not always commit row 0.
-                    val row = ((401f - world.y) / 44f).toInt()
-                    val visible = playback.currentChoice?.options?.take(3).orEmpty()
-                    if (row in visible.indices) {
-                        playback.selectChoice(row)
-                        confirmChoice()
-                    }
-                } else advance()
-                return true
-            }
-
-            override fun scrolled(amountX: Float, amountY: Float): Boolean {
-                if (playback.state == PlaybackState.CHOICE) {
-                    if (amountY > 0f) playback.selectNext() else if (amountY < 0f) playback.selectPrevious()
-                    return true
-                }
-                return false
-            }
+        Gdx.input.inputProcessor = ScenarioGdxInputAdapter(ScenarioInputController(this)) { screenX, screenY ->
+            viewport.unproject(com.badlogic.gdx.math.Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
         }
         Gdx.app.log("JojoGame", "Loaded $moduleName Python AST runtime")
     }
-
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
         if (!hallFixtureInstalled &&
@@ -591,7 +484,7 @@ class ScenarioScreen(
         shapes.dispose()
     }
 
-    private fun advance() {
+    override fun advance() {
         playbackController.advance(
             onConfirmChoice = ::confirmChoice,
             closeHallMenu = hallInteraction::closeMenu,
@@ -981,92 +874,82 @@ class ScenarioScreen(
         }
     }
 
-    private fun handleHallInfoTap(kind: HallInfo, x: Float, y: Float) = hallInformationFlow.handleInfoTap(kind, x, y)
-
     private fun openHallItem(itemId: Int, level: String, experience: Int, canDrop: Boolean) =
         hallInformationFlow.openItem(itemId, level, experience, canDrop)
+    private fun openHallUnitInfo(selectedUnitId: Int) = hallInformationFlow.openUnitInfo(selectedUnitId)
+    private fun openHallFeatsFromUnitInfo() = hallInformationFlow.openFeatsFromUnitInfo()
+    private fun openHallFeatsHelp() = hallInformationFlow.openFeatsHelp()
 
-    private fun handleHallItemTap(x: Float, y: Float) = hallInformationFlow.handleItemTap(x, y)
+    override fun hallState() = ScenarioInputRouter.HallState(
+        playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
+        hallFeatsLayer != null, hallUnitInfoLayer != null, hallMagicLayer != null, hallItemLayer != null,
+        hallSaveOpen, hallInfo != null, hallExclusiveLayer != null,
+        hallManagement?.let { ScenarioInputRouter.Management.valueOf(it.name) }, hallUnitListLayer != null,
+    )
+    override fun playbackState(): PlaybackState = playback.state
+    override fun isAskChoice(): Boolean = playback.isAskChoice
+    override fun choiceCount(): Int = playback.currentChoice?.options?.size ?: 0
+    override fun selectPrevious() = playback.selectPrevious()
+    override fun selectNext() = playback.selectNext()
+    override fun selectAndConfirm(index: Int) { playback.selectChoice(index); confirmChoice() }
 
-    private fun handleExclusiveTap(layer: ExclusiveLayer, x: Float, y: Float) {
-        when (hallOverlayInteraction.exclusiveTap(x, y)) {
-            HallLayerTapIntent.PRIMARY -> layer.onButton(0, ExclusiveLayer.TOUCH_END)
-            HallLayerTapIntent.SECONDARY -> layer.onButton(1, ExclusiveLayer.TOUCH_END)
-            HallLayerTapIntent.CLOSE -> layer.onCancel(ExclusiveLayer.TOUCH_END)
-            HallLayerTapIntent.CANCEL -> layer.onCancel(ExclusiveLayer.TOUCH_END)
-            HallLayerTapIntent.NONE -> Unit
+    override fun dismissHallOverlay(): Boolean {
+        if (hallFeatsLayer == null && hallUnitInfoLayer == null && hallMagicLayer == null && hallExclusiveLayer == null && hallInfo == null && hallManagement == null) return false
+        if (hallFeatsLayer != null) { hallFeatsLayer = null; hallFeatsHelpOpen = false }
+        if (hallMagicLayer != null) hallMagicLayer = null
+        else if (hallExclusiveLayer != null) hallExclusiveLayer = null
+        else { hallInfo = null; hallManagement = null }
+        return true
+    }
+
+    override fun routeHallTouch(route: ScenarioInputRouter.Touch.Hall, x: Float, y: Float) {
+        when (route.layer) {
+            ScenarioInputRouter.HallLayer.FEATS -> hallFeatsLayer?.let { hallInformationFlow.handleFeatsTap(x, y) }
+            ScenarioInputRouter.HallLayer.UNIT_INFO -> hallUnitInfoLayer?.let { hallInformationFlow.handleUnitInfoTap(x, y) }
+            ScenarioInputRouter.HallLayer.MAGIC -> hallMagicLayer?.let { hallInformationFlow.handleMagicTap(x, y) }
+            ScenarioInputRouter.HallLayer.ITEM -> hallInformationFlow.handleItemTap(x, y)
+            ScenarioInputRouter.HallLayer.INFO -> hallInfo?.let { hallInformationFlow.handleInfoTap(it, x, y) }
+            ScenarioInputRouter.HallLayer.SAVE -> applySaveInput(ScenarioHallSaveInputRouter.route(x, y, hallSaveLayer.completionTipOpen(), hallSaveLayer.pendingSlot() != null, hallSaveLayer.view().rows.size))
+            ScenarioInputRouter.HallLayer.EXCLUSIVE -> applyExclusiveInput(ScenarioExclusiveInputRouter.route(hallOverlayInteraction.exclusiveTap(x, y)))
+            ScenarioInputRouter.HallLayer.MANAGEMENT -> hallManagement?.let { if (route.closesManagement) hallManagementFlow.close() else hallManagementFlow.handleTap(it, x, y) }
+            ScenarioInputRouter.HallLayer.MAIN -> ScenarioHallInteractionExecutor.execute(hallInteraction.mainTap(x, y), this)
+        }
+    }
+
+    private fun applySaveInput(command: ScenarioHallSaveInputRouter.Command) = when (command) {
+        ScenarioHallSaveInputRouter.Command.CompletionTip -> hallSaveLayer.onCompletionTip(SaveLayer.TOUCH_END)
+        is ScenarioHallSaveInputRouter.Command.Confirm -> hallSaveLayer.onConfirm(if (command.accepted) 1 else 0)
+        ScenarioHallSaveInputRouter.Command.Cancel -> { hallSaveLayer.onCancel(SaveLayer.TOUCH_END); hallSaveOpen = false }
+        is ScenarioHallSaveInputRouter.Command.SelectRow -> hallSaveLayer.view().rows.getOrNull(command.index)?.let { hallSaveLayer.onRowTouch(it.index, SaveLayer.TOUCH_END) }
+        ScenarioHallSaveInputRouter.Command.None -> Unit
+    }
+
+    private fun applyExclusiveInput(command: ScenarioExclusiveInputRouter.Command) {
+        val layer = hallExclusiveLayer ?: return
+        when (command) {
+            ScenarioExclusiveInputRouter.Command.SET_LIST -> layer.onButton(0, ExclusiveLayer.TOUCH_END)
+            ScenarioExclusiveInputRouter.Command.EXCLUSIVE_LIST -> layer.onButton(1, ExclusiveLayer.TOUCH_END)
+            ScenarioExclusiveInputRouter.Command.CLOSE -> layer.onCancel(ExclusiveLayer.TOUCH_END)
+            ScenarioExclusiveInputRouter.Command.NONE -> Unit
         }
         if (!layer.attached) hallExclusiveLayer = null
     }
 
-    private fun handleMagicTap(layer: MagicInfoLayer, x: Float, y: Float) = hallInformationFlow.handleMagicTap(x, y)
-    private fun openHallUnitInfo(selectedUnitId: Int) = hallInformationFlow.openUnitInfo(selectedUnitId)
-    private fun openHallFeatsFromUnitInfo() = hallInformationFlow.openFeatsFromUnitInfo()
-    private fun openHallFeatsHelp() = hallInformationFlow.openFeatsHelp()
-    private fun handleHallUnitInfoTap(layer: UnitInfoLayer, x: Float, y: Float) = hallInformationFlow.handleUnitInfoTap(x, y)
-    private fun handleHallFeatsTap(layer: FeatsLayer, x: Float, y: Float) = hallInformationFlow.handleFeatsTap(x, y)
-    private fun handleHallManagementTap(kind: HallManagement, x: Float, y: Float) = hallManagementFlow.handleTap(kind, x, y)
-
-    private fun executeHallInteraction(intent: HallInteractionIntent) {
-        when (intent) {
-            HallInteractionIntent.None,
-            HallInteractionIntent.MenuClosed,
-            HallInteractionIntent.OpenMenu -> Unit
-
-            HallInteractionIntent.StartBattle -> if (!scenarioNavigation.beginHallBattleScene()) scenarioNavigation.routeAfterScenario()
-            is HallInteractionIntent.OpenManagement -> hallManagementFlow.open(HallManagement.valueOf(intent.kind.name))
-            is HallInteractionIntent.MenuSelection -> when (intent.index) {
-                0 -> game.showTitleScreen()
-                1 -> {
-                    hallSaveLayer.onCreate(onComplete = { hallSaveOpen = false }, savedPage = 0)
-                    hallSaveOpen = true
-                }
-
-                2 -> game.showTitleLoadScreen()
-                3 -> game.showTitleSettingScreen(moduleName)
-                4 -> {
-                    prepareHallForcesDefaultEquipment()
-                    hallInfo = HallInfo.FORCES
-                }
-                5 -> hallInfo = HallInfo.PROPERTY
-                6 -> hallInfo = HallInfo.TERRAIN
-                7 -> hallInfo = HallInfo.TREASURE
-                // The source hides EditLayer4 unless its paid feature flag is
-                // enabled, so the ninth visible icon is HelperLayer (tag 9).
-                8 -> hallInfo = HallInfo.HELPER
-                else -> Unit
-            }
+    override fun startBattle() { if (!scenarioNavigation.beginHallBattleScene()) scenarioNavigation.routeAfterScenario() }
+    override fun openManagement(kindName: String) { hallManagementFlow.open(HallManagement.valueOf(kindName)) }
+    override fun selectHallMenu(index: Int) {
+        when (index) {
+            0 -> game.showTitleScreen()
+            1 -> { hallSaveLayer.onCreate(onComplete = { hallSaveOpen = false }, savedPage = 0); hallSaveOpen = true }
+            2 -> game.showTitleLoadScreen()
+            3 -> game.showTitleSettingScreen(moduleName)
+            4 -> { prepareHallForcesDefaultEquipment(); hallInfo = HallInfo.FORCES }
+            5 -> hallInfo = HallInfo.PROPERTY
+            6 -> hallInfo = HallInfo.TERRAIN
+            7 -> hallInfo = HallInfo.TREASURE
+            8 -> hallInfo = HallInfo.HELPER
+            else -> Unit
         }
-    }
-
-    private fun handleHallSaveTap(x: Float, y: Float) {
-        val sourceX = x / .86f
-        val sourceY = y / .86f
-        if (hallSaveLayer.completionTipOpen()) {
-            if (sourceX in 654.186f..834.186f && sourceY in 271.285f..321.285f) {
-                hallSaveLayer.onCompletionTip(SaveLayer.TOUCH_END)
-            }
-            return
-        }
-        if (hallSaveLayer.pendingSlot() != null) {
-            when {
-                sourceX in 554.186f..734.186f && sourceY in 271.285f..321.285f -> hallSaveLayer.onConfirm(1)
-                sourceX in 754.186f..934.186f && sourceY in 271.285f..321.285f -> hallSaveLayer.onConfirm(0)
-            }
-            return
-        }
-        if (sourceX in 1045.855f..1193.455f && sourceY in 100.162f..156.162f) {
-            hallSaveLayer.onCancel(SaveLayer.TOUCH_END)
-            hallSaveOpen = false
-            return
-        }
-        if (sourceX !in 289.186f..1197.186f) return
-        val row = hallSaveLayer.view().rows.take(8).indexOfFirst { visibleRow ->
-            val index = hallSaveLayer.view().rows.indexOf(visibleRow)
-            val rowY = 547.534f - index * 52f
-            sourceY in rowY..(rowY + 50f)
-        }
-        hallSaveLayer.view().rows.getOrNull(row)?.let { hallSaveLayer.onRowTouch(it.index, SaveLayer.TOUCH_END) }
     }
 
     private fun drawCompletion() {
@@ -1083,145 +966,9 @@ class ScenarioScreen(
         propertyEvidenceRecorder,
         terrainEvidenceRecorder,
         treasureEvidenceRecorder,
-    ).record(renderEvidenceSnapshot())
+    ).record(ScenarioScreenEvidenceProjector.renderInput(this))
 
-    private fun renderEvidenceSnapshot(): ScenarioFrameEvidenceInput {
-        val dialogue = playback.currentDialogue
-        if (hallOverlayFixture == "skip-open") {
-            check(requireNotNull(hallSkipLayer).button && !hallSkipLayer.panel && hallSkipLayer.zIndex == 999)
-        }
-        val overlayFixtures = setOf(
-            "info", "get-item-equipment", "get-item-property", "item-equipment", "item-property",
-            "item-discard-confirm", "map-info", "choice", "ambition", "ask", "command", "menu",
-            "save", "save-confirm", "exclusive", "exclusive-tab1", "magic", "feats", "feats-help",
-        )
-        val unitList = hallUnitListLayer?.rows?.take(6)?.map { id ->
-            val unit = gameDataCatalog.unitProfile(id)
-            ScenarioHallUnitListEvidenceRow(
-                campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장",
-                gameDataCatalog.postsName(campaign.unitAttribute(id, 17, unit?.posts ?: 0)),
-            )
-        }
-        return ScenarioFrameEvidenceInput(
-            fixture = game.requestedCaptureState()?.removeSuffix("-fixture"),
-            palace = hallPalaceFixture,
-            section = hallSectionFixture,
-            street = streetCaptureStage?.let { stage -> ScenarioStoryEvidenceView.StreetDialogue(
-                stage, dialogue != null, scenarioViewState.dialogueVisibleText,
-                dialogue?.speakerId?.toIntOrNull()?.let(::unitName).orEmpty(),
-            ) },
-            overlay = hallOverlayFixture?.takeIf(overlayFixtures::contains)?.let(::hallOverlayEvidenceInput),
-            hallInfo = hallInfo?.let { ScenarioFrameHallInfo.valueOf(it.name) },
-            background = ScenarioFrameBackgroundEvidence(
-                playback.stage.backgroundId,
-                hallManagement == HallManagement.EQUIP || hallEquipConfirmation != null,
-            ),
-            units = playback.stage.units.values.filter { it.visible }.map { unit ->
-                ScenarioFrameUnitEvidence(
-                    unit.id, unit.visualX, unit.visualY, unit.direction,
-                    gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id,
-                )
-            },
-            management = hallManagement?.takeIf { it != HallManagement.EQUIP }?.let(::hallManagementEvidenceInput),
-            equip = hallManagement?.takeIf { it == HallManagement.EQUIP }?.let { hallEquipEvidenceInput() },
-            unitList = unitList,
-            confirmation = hallEquipConfirmation?.let { confirmation ->
-                ScenarioEquipConfirmationEvidenceView(hallOverlayFixture, confirmation.values, confirmation.actionLabel)
-            },
-            commandVisible = hallInfo == null && hallManagement == null && hallEquipConfirmation == null &&
-                playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
-        )
-    }
-
-    private fun hallOverlayEvidenceInput(fixture: String): ScenarioHallOverlayEvidenceInput =
-        ScenarioHallOverlayEvidenceInput(
-            fixture = fixture,
-            featsRows = hallFeatsLayer?.view()?.rows.orEmpty().map {
-                ScenarioHallFeatEvidenceRow(it.title, it.ability, it.phaseLabel, it.progressRatio, it.progressLabel)
-            },
-            featsHelpText = FeatsLayer.HELP_TEXT,
-            magic = hallMagicLayer?.magic?.let {
-                ScenarioHallMagicEvidence(it.name, it.power ?: 0, it.cost, it.intro, it.icon, it.hit, it.eff)
-            },
-            modalText = sanitizeInfoText(playback.currentModalText.orEmpty()),
-            items = listOf(0, 4, 150).mapNotNull { id -> gameDataCatalog.equipmentProfile(id)?.let { item ->
-                id to ScenarioHallOverlayItemEvidence(item.name, item.icon, gameDataCatalog.equipmentTypeName(item.itemType), gameDataCatalog.purchasePrice(item), item.intro)
-            } }.toMap(),
-            postsNames = (0..80).map(gameDataCatalog::postsName),
-        )
-
-    private fun hallEquipEvidenceInput(): ScenarioHallEquipEvidenceInput {
-        val unitId = hallEquipUnitId()
-        val unit = gameDataCatalog.unitProfile(unitId) ?: gameDataCatalog.unitProfile(0)
-        campaign.inventory.ensureDefaultEquipment(unitId, gameDataCatalog)
-        val level = campaign.unitAttribute(unitId, 18, unit?.level ?: 1)
-        val posts = campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)
-        val profile = unit?.let { gameDataCatalog.battleProfile(it.id, (level - 1).coerceAtLeast(0), posts) }
-        val bonus = campaign.inventory.equipment[unitId]?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) } ?: GameDataCatalog.EquipmentBonus()
-        val equipped = campaign.inventory.equippedItems().filter { it.unitId == unitId }
-        fun slot(type: (Int) -> Boolean): ScenarioHallEquipEvidenceSlot {
-            val item = equipped.firstOrNull { equipment -> gameDataCatalog.equipmentProfile(equipment.itemId)?.itemType?.let(type) == true }
-            val itemProfile = item?.let { gameDataCatalog.equipmentProfile(it.itemId) }
-            return ScenarioHallEquipEvidenceSlot(itemProfile?.name ?: "없음", item?.level ?: 1, item?.experience ?: 0, itemProfile?.icon)
-        }
-        val face = when (unitId) { 0 -> if ((unit?.face ?: 0) <= 3) (unit?.face ?: 0) + 1 else unit?.face ?: unitId; 157 -> 214; else -> unit?.face ?: unitId }
-        return ScenarioHallEquipEvidenceInput(
-            hallOverlayFixture, campaign.unitNames[unitId] ?: unit?.name ?: "조조",
-            if (unitId == 0) "군웅" else gameDataCatalog.armProfile(profile?.arm?.id ?: posts)?.name ?: "군웅",
-            face, profile?.level ?: 1,
-            listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, (profile?.spirit ?: 0) + bonus.spirit, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0),
-            listOf(slot { it < 20 }, slot { it in 20..25 }, ScenarioHallEquipEvidenceSlot("없음", 1, 0, null)),
-        )
-    }
-
-    private fun hallManagementEvidenceInput(kind: HallManagement): ScenarioHallManagementEvidenceInput {
-        val unitId = hallEquipUnitId(); val unit = gameDataCatalog.unitProfile(unitId)
-        val level = campaign.unitAttribute(unitId, 18, unit?.level ?: 1)
-        val profile = unit?.let { gameDataCatalog.battleProfile(unitId, (level - 1).coerceAtLeast(0), campaign.unitAttribute(unitId, 17, it.posts)) }
-        campaign.inventory.ensureDefaultEquipment(unitId, gameDataCatalog)
-        val bonus = campaign.inventory.equipment[unitId]?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) } ?: GameDataCatalog.EquipmentBonus()
-        val weapon = campaign.inventory.equippedItems().firstOrNull { it.unitId == unitId }?.let { equipped -> gameDataCatalog.equipmentProfile(equipped.itemId)?.let { ScenarioHallManagementEquipment(it.name, equipped.level) } }
-        return ScenarioHallManagementEvidenceInput(
-            ScenarioHallManagementEvidenceKind.valueOf(kind.name), campaign.money,
-            hallViews.buyCandidates().take(3).map { item -> ScenarioHallManagementBuyRow(item.name, gameDataCatalog.equipmentTypeName(item.itemType), campaign.inventory.items[item.id] ?: 0, gameDataCatalog.purchasePrice(item)) },
-            ScenarioHallManagementUnitEvidence(unit?.name ?: "조조", gameDataCatalog.postsName(campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { "군웅" }, level, listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, profile?.spirit ?: 0, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0), weapon),
-        )
-    }
-
-    fun compositionTrace(): String = ScenarioCompositionEvidenceRecorder().record(
-        ScenarioEvidenceView(
-            moduleName, playback.state.toString(), playback.stage.backgroundId,
-            playback.stage.units.values.filter { it.visible }.map { unit -> ScenarioEvidenceUnit(unit.id, unit.visualX, unit.visualY, unit.direction, unit.action, gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id) },
-            playback.stage.heads.values.filter { it.opacity > 0f }.map { ScenarioEvidenceHead(it.characterId, it.visualX, it.visualY, it.opacity) },
-            playback.currentDialogue?.let { ScenarioEvidenceDialogue(playback.currentDialogueSide, playback.currentDialogueAtTop, it.speakerId?.toIntOrNull(), scenarioViewState.dialogueVisibleText) },
-            if (playback.state == PlaybackState.MODAL && playback.currentModalKind != null) ScenarioEvidenceModal(playback.currentModalKind.toString(), playback.currentModalText.orEmpty()) else null,
-            hallEvidenceMenu(), playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
-            hallManagement?.let { ScenarioEvidenceHallManagement.valueOf(it.name) }, hallEvidenceInfo(),
-        ),
-    )
-
-    private fun hallEvidenceMenu(): ScenarioEvidenceHallMenu? {
-        val ambition = playback.state == PlaybackState.MODAL && playback.currentModalKind == ScenarioModalKind.AMBITION
-        if (!hallMenuOpen && !ambition) return null
-        val tween = ((playback.ambitionElapsedSeconds - 1.2f) / 1f).coerceIn(0f, 1f)
-        return ScenarioEvidenceHallMenu(playback.ambitionFrom, playback.ambitionTo, if (hallMenuOpen) playback.stage.ambition.toFloat() else playback.ambitionFrom + (playback.ambitionTo - playback.ambitionFrom) * tween)
-    }
-
-    private fun hallEvidenceInfo(): ScenarioEvidenceHallInfo? = hallInfo?.let { kind ->
-        val rows = when (kind) {
-            HallInfo.FORCES -> campaign.joinedUnits.take(7).indices.map { ScenarioEvidenceRect(147.49f, 469.63f - it * 49f, 985.02f, 49f) }
-            HallInfo.PROPERTY -> propertyEvidenceRows()
-            HallInfo.TERRAIN -> (0 until 6).map { ScenarioEvidenceRect(249f, 453.56f - it * 64.5f, 854.07f, 64.5f) }
-            HallInfo.TREASURE -> (0 until 6).map { ScenarioEvidenceRect(232.10f + it % 2 * 410.22f, 413.23f - it / 2 * 165.98f, 405.06f, 163.40f) }
-            HallInfo.HELPER -> listOf(ScenarioEvidenceRect(139f, 103.07f, 1001.98f, 494.86f))
-        }; ScenarioEvidenceHallInfo(kind.name.lowercase(), rows)
-    }
-
-    private fun propertyEvidenceRows(): List<ScenarioEvidenceRect> {
-        fun accepts(id: Int): Boolean = gameDataCatalog.equipmentProfile(id)?.itemType?.let { type -> when (hallPropertyTab) { HallPropertyTab.WEAPON -> type < 20; HallPropertyTab.ARMOR -> type in 20..25; HallPropertyTab.AUXILIARY -> type > 45 && id < 150; HallPropertyTab.PROPERTY -> id >= 150 || type in 26..45 } } ?: false
-        val equipped = if (hallPropertyTab == HallPropertyTab.PROPERTY) 0 else campaign.inventory.equippedItems().count { accepts(it.itemId) }
-        return (0 until (equipped + campaign.inventory.items.count { accepts(it.key) }).coerceAtMost(7)).map { ScenarioEvidenceRect(217.42f, 481.58f - it * 67.08f, 846.56f, 65.36f) }
-    }
+    fun compositionTrace(): String = ScenarioCompositionEvidenceProjector.compositionTrace(this)
 
     /** HallLayer.turnPos: source's 100×100 isometric Hall coordinate transform. */
     private fun mapX(x: Int, y: Int): Float = (x - y + 42) * 16f
@@ -1230,11 +977,6 @@ class ScenarioScreen(
     private fun mapY(x: Float, y: Float): Float = 1073.28f - (x + y) * 6.88f
     private fun unitName(id: Int): String =
         gameDataCatalog.unitProfile(id)?.name?.takeIf(String::isNotBlank) ?: "유닛 $id"
-
-    private fun sanitizeInfoText(text: String): String = text
-        .replace(Regex("\\[C[0-9A-Fa-f]+"), "")
-        .replace('☆', '★')
-
     private fun nextModule(): String = offsetModule(1)
     private fun previousModule(): String = offsetModule(-1)
     private fun offsetModule(delta: Int): String {
