@@ -2,13 +2,13 @@ package com.jojo.game.verification
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.jojo.game.FullBattleTraceConfig
 import com.jojo.game.GameEntryPoint
 import com.jojo.game.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 import com.jojo.game.RenderCaptureConfiguration
 import com.jojo.game.ScenarioRunConfiguration
 import com.jojo.game.VerificationConfiguration
+import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 import com.jojo.game.verification.preparation.VerificationBattlePreparationDriver
 import com.jojo.game.verification.title.VerificationTitleStartupDriver
 
@@ -38,7 +38,8 @@ internal data class VerificationDesktopLaunchOptions(
     val scenarioRun: ScenarioRunConfiguration,
     val verification: VerificationConfiguration,
     val capture: RenderCaptureConfiguration,
-    val fullBattleTrace: FullBattleTraceConfig?,
+    val fullBattleTrace: BattleTraceRuntimeConfig?,
+    val fullBattleTraceOutputPath: String?,
     val yingchuanEntryFlowTracePath: String?,
 ) {
     fun toGameConfiguration(): GameLaunchConfiguration {
@@ -63,7 +64,8 @@ internal data class VerificationDesktopLaunchOptions(
             runtimeBattlePreparationDriver = VerificationBattlePreparationDriver(capture.state),
             runtimeScenarioDriver = VerificationScenarioDriver(capture.state),
             runtimeTitleStartupDriver = VerificationTitleStartupDriver(capture.state),
-            fullBattleTrace = fullBattleTrace,
+            runtimeBattleObserver = fullBattleTrace?.let { VerificationBattleObserver(requireNotNull(fullBattleTraceOutputPath), it) },
+            battleTraceRuntime = fullBattleTrace,
             yingchuanEntryFlowTracePath = yingchuanEntryFlowTracePath,
             automatedRun = true,
         )
@@ -96,8 +98,7 @@ internal data class VerificationDesktopLaunchOptions(
             require(random.all { it in 0..100 }) { "--verify-random values must be 0..100" }
             val tracePath = value("--full-battle-trace=")
             val fullBattleTrace = tracePath?.let { output ->
-                FullBattleTraceConfig(
-                    outputPath = output,
+                BattleTraceRuntimeConfig(
                     scenario = scenario.replaceFirst("R_", "S_"),
                     toolSeed = value("--full-battle-seed=")?.toInt() ?: 1000,
                     mathSeed = value("--full-battle-math-seed=")?.toLong() ?: 0x12345678L,
@@ -146,6 +147,7 @@ internal data class VerificationDesktopLaunchOptions(
                     state = value("--capture-state="),
                 ),
                 fullBattleTrace = fullBattleTrace,
+                fullBattleTraceOutputPath = tracePath,
                 yingchuanEntryFlowTracePath = value("--yingchuan-entry-flow-trace="),
             )
         }

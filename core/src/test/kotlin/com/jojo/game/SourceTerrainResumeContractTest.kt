@@ -1,5 +1,9 @@
 package com.jojo.game
+
+import com.jojo.game.application.battle.Battle
+
 import com.jojo.game.domain.battle.*
+
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
 import kotlin.test.Test

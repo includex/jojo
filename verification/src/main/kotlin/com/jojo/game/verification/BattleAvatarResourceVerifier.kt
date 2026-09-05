@@ -1,7 +1,7 @@
 package com.jojo.game.verification
 
 import com.badlogic.gdx.Gdx
-import com.jojo.game.BattleAvatarResolver
+import com.jojo.game.presentation.battle.BattleAvatarResolver
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
 

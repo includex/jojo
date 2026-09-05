@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 import com.jojo.game.presentation.battle.evidence.BattleCompositionAction
 import com.jojo.game.presentation.battle.evidence.BattleCompositionEvidenceRecorder
 import com.jojo.game.presentation.battle.evidence.BattleCompositionEvidenceView

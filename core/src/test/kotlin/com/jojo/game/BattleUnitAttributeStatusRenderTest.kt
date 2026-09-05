@@ -1,5 +1,6 @@
 package com.jojo.game
-import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.presentation.battle.unit.*
 
 import kotlin.test.Test

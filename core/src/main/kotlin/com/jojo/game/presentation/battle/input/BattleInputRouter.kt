@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.battle.input
 
+import com.jojo.game.domain.battle.*
+
 /**
  * Value-only description of the input surfaces currently mounted by BattleScreen.
  *

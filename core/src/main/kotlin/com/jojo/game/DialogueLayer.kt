@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /** Behavioral implementation of Global1 `ui/DialogueLayer.js` (not Battle SayLayer). */
 class DialogueLayer(
     text: String,

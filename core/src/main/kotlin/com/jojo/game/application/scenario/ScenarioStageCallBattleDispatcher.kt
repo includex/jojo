@@ -1,7 +1,6 @@
 package com.jojo.game.application.scenario
 
 import com.badlogic.gdx.utils.JsonValue
-import com.jojo.game.ScenarioFightDispatcher
 import com.jojo.game.ScenarioStageCallDispatcher
 import com.jojo.game.ScenarioStageCallEnvironment
 import com.jojo.game.asInt

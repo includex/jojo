@@ -1,7 +1,8 @@
 package com.jojo.game.presentation.battle.unit
-import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
+import com.jojo.game.domain.battle.BattleAttribute
+import com.jojo.game.domain.battle.BattleStatus
 /** Renderer-independent visual state derived from one tactical unit. */
 class BattleUnitPresentationState(
     initialHitPoints: Int,

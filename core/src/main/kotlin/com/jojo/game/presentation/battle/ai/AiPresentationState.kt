@@ -1,7 +1,9 @@
 package com.jojo.game.presentation.battle.ai
 
-import com.jojo.game.AiTurnResult
-import com.jojo.game.AiUnitResolution
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.AiTurnResult
+import com.jojo.game.domain.battle.AiUnitResolution
 import com.jojo.game.domain.battle.Faction
 
 /** Visible callback stages for one actor in the source `_ai2` coroutine. */

@@ -43,7 +43,8 @@ data class RuntimeBattleFrameSnapshot(
     val frame: Long,
     val elapsed: Float,
     val delta: Float,
-    val payload: String,
+    val payload: String = "",
+    val traceView: RuntimeBattleTraceView? = null,
 )
 
 data class RuntimeBattleCompletion(

@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.battle.timeline
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.*
 import java.util.*
 

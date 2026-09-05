@@ -1,5 +1,9 @@
 package com.jojo.game
+
+import com.jojo.game.application.battle.Battle
+
 import com.jojo.game.domain.battle.*
+
 
 import java.util.Random
 import kotlin.test.Test

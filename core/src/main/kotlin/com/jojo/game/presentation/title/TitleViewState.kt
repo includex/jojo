@@ -1,6 +1,5 @@
 package com.jojo.game.presentation.title
 
-
 /** Immutable title presentation snapshot exposed through the runtime observer port. */
 data class TitleViewState(
     val mode: TitleMode,

@@ -10,6 +10,7 @@ import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattleObserver
 import com.jojo.game.application.runtime.RuntimeBattleReferenceAssets
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
+import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 import com.jojo.game.infrastructure.data.CampaignStore
 import com.jojo.game.presentation.battle.BattleScreen
 
@@ -49,7 +50,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     private val initialScenario get() = configuration.initialScenario
     private val battleReturnScenario get() = configuration.battleReturnScenario
     private val screenshotState get() = capture.state
-    private val fullBattleTraceConfig get() = configuration.fullBattleTrace
+    private val battleTraceRuntime get() = configuration.battleTraceRuntime
     private val yingchuanEntryFlowTracePath get() = configuration.yingchuanEntryFlowTracePath
     private val automatedRun get() = configuration.automatedRun
     private val preferenceProvider = GamePreferenceProvider(automatedRun) { name -> Gdx.app.getPreferences(name) }
@@ -164,7 +165,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun requestedCaptureState(): String? = screenshotState
     fun hasFrameCaptureRequest(): Boolean = configuration.runtimeArtifactObserver?.wantsFrame == true
     fun hasRenderEventLogRequest(): Boolean = configuration.runtimeArtifactObserver?.wantsEventLog == true
-    fun requestedFullBattleTrace(): FullBattleTraceConfig? = fullBattleTraceConfig
+    fun requestedBattleTraceRuntime(): BattleTraceRuntimeConfig? = battleTraceRuntime
     fun requestedYingchuanEntryFlowTracePath(): String? = yingchuanEntryFlowTracePath
     fun runtimeBattleDriver(): RuntimeBattleDriver? = configuration.runtimeBattleDriver
     fun runtimeTitleStartupDriver(): RuntimeTitleStartupDriver? = configuration.runtimeTitleStartupDriver

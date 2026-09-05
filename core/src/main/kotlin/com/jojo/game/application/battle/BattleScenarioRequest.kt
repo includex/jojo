@@ -1,7 +1,7 @@
 package com.jojo.game.application.battle
 
 import com.jojo.game.GameDataCatalog
-import com.jojo.game.SourceRandomStreams
+import com.jojo.game.application.runtime.BattleTraceRandomStreams
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleWeather
 import com.jojo.game.domain.campaign.CampaignState
@@ -19,6 +19,6 @@ internal data class BattleScenarioRequest(
     val weatherOffset: Int = 0,
     val enemyEquipment: Map<Int, List<Int>> = emptyMap(),
     val campaign: CampaignState? = null,
-    val sourceRandomStreams: SourceRandomStreams? = null,
+    val sourceRandomStreams: BattleTraceRandomStreams? = null,
     val enabledFeatures: Int = 32,
 )

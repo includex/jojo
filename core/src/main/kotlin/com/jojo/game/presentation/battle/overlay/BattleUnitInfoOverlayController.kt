@@ -1,7 +1,5 @@
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.BattleUnitInfoJiqiRoute
-import com.jojo.game.JiQiLayer
 import com.jojo.game.UnitInfoLayer
 import com.jojo.game.presentation.battle.BattleUnitInfoOverlayView
 import com.jojo.game.presentation.battle.BattleUnitInfoUnitView

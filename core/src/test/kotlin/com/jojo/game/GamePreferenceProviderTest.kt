@@ -1,4 +1,5 @@
 package com.jojo.game
+
 import com.jojo.game.infrastructure.data.CampaignStore
 
 import com.badlogic.gdx.Preferences

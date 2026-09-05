@@ -1,5 +1,7 @@
 package com.jojo.game.domain.battle.command
 
+import com.jojo.game.domain.battle.*
+
 /**
  * Injectable, side-effect-free implementation of Control.js lines 325-666 and the
  * choice portion of `_AIProcess` (717-917).  Numeric enum values deliberately

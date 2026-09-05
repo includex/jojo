@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /** Production-state implementation of BattleScreen.showOtherunitInfo -> OtherUnitInfoLayer id7. */
 class OtherUnitInfoLayer {
     /**

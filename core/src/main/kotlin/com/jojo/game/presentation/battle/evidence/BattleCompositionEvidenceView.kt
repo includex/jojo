@@ -1,6 +1,8 @@
 package com.jojo.game.presentation.battle.evidence
 
-import com.jojo.game.FullBattleTraceRecorder
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.application.runtime.BattleTraceRecorder
 
 /** Immutable projection of the live battle composition used by the evidence recorder. */
 internal data class BattleCompositionEvidenceView(
@@ -224,7 +226,7 @@ internal object BattleCompositionEvidenceRecorder {
         "{\"address\":\"Battle/Canvas/Layer/bg/map/tiled#$index\",\"frame\":\"$frame\",\"asset\":\"maps/ui/battle-smlmap-$frame.png\",\"assetUuid\":\"$uuid\",\"frameRect\":[1,1,10,10],\"localPosition\":[${point.first},${point.second}],\"parentScale\":[2,2],\"opacity\":168,\"z\":0,\"material\":\"SpriteBatch/linear\"}"
     }.joinToString(",")
 
-    private fun escape(value: String): String = FullBattleTraceRecorder.escape(value)
+    private fun escape(value: String): String = BattleTraceRecorder.escape(value)
 
     private const val NATURAL_SAY = ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/New Node\",\"frame\":\"Mark_10-1\",\"asset\":\"maps/ui/battle-say.png\",\"assetUuid\":\"6e23f416-6258-4c79-9ac4-e89fc8b8df4f\",\"frameRect\":[702,2,24,24],\"localPosition\":[-96,-288],\"parentScale\":[2,2],\"opacity\":255,\"z\":1000,\"timeline\":\"SHOW_SAY(active)\",\"material\":\"SpriteBatch/linear\"}"
 }

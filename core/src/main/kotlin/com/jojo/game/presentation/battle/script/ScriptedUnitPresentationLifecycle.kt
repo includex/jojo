@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.battle.script
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.domain.scenario.ScenarioMapPresentationRequest
 import com.jojo.game.domain.scenario.ScenarioUnitHideRequest
 import com.jojo.game.domain.scenario.ScenarioUnitPostsRequest

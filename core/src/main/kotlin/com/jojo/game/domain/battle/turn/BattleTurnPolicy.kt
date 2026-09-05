@@ -1,6 +1,8 @@
 package com.jojo.game.domain.battle.turn
 
-import com.jojo.game.BattleOutcome
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.PhysicalAttackPassKind
 import com.jojo.game.domain.battle.TacticalActionResult

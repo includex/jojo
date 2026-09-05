@@ -1,9 +1,11 @@
 package com.jojo.game.domain.battle.turn
 
-import com.jojo.game.AiTurnResult
-import com.jojo.game.RoundAdvance
-import com.jojo.game.TurnResult
-import com.jojo.game.WeatherTransition
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.AiTurnResult
+import com.jojo.game.domain.battle.RoundAdvance
+import com.jojo.game.domain.battle.TurnResult
+import com.jojo.game.domain.battle.WeatherTransition
 import com.jojo.game.domain.battle.settlement.CampSettlement
 
 enum class BattleTurnPhase {

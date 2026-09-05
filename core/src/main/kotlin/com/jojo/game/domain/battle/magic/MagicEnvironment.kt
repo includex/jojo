@@ -1,7 +1,8 @@
 package com.jojo.game.domain.battle.magic
 
-import com.jojo.game.*
 import com.jojo.game.domain.battle.*
+
+import com.jojo.game.*
 
 internal data class MagicEnvironment(
     val probabilityResolver: BattleProbabilityResolver,

@@ -1,11 +1,13 @@
 package com.jojo.game.application.battle
 
-import com.jojo.game.AiTurnResult
-import com.jojo.game.Battle
-import com.jojo.game.BattleOutcome
-import com.jojo.game.RoundAdvance
-import com.jojo.game.TurnResult
-import com.jojo.game.WeatherTransition
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.AiTurnResult
+import com.jojo.game.application.battle.Battle
+import com.jojo.game.domain.battle.BattleOutcome
+import com.jojo.game.domain.battle.RoundAdvance
+import com.jojo.game.domain.battle.TurnResult
+import com.jojo.game.domain.battle.WeatherTransition
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.settlement.CampSettlement
 import com.jojo.game.domain.battle.turn.BattleCampCard

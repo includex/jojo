@@ -1,6 +1,10 @@
 package com.jojo.game
+
+import com.jojo.game.domain.battle.PhysicalAttackPass
+import com.jojo.game.domain.battle.PhysicalAttackPassKind
+import com.jojo.game.domain.battle.PhysicalAttackTargetResult
+import com.jojo.game.domain.battle.TacticalActionResult
 import com.jojo.game.presentation.battle.timeline.*
-import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

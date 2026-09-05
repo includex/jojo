@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.battle.BattleBootstrapCallbackState
+import com.jojo.game.presentation.battle.completeInitialBattleOperation
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

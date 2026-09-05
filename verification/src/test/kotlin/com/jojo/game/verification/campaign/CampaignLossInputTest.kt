@@ -1,6 +1,7 @@
 package com.jojo.game.verification.campaign
-import com.jojo.game.BattleOutcome
+
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.domain.scenario.*
 
 import kotlin.test.Test

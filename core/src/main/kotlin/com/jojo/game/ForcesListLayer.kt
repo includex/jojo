@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /** Stateful implementation of `ui/ForcesListLayer.js` (onCreate/_changeSel/_onClick). */
 class ForcesListLayer {
     /**

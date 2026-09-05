@@ -1,4 +1,5 @@
 package com.jojo.game
+
 import com.jojo.game.domain.campaign.*
 
 /** Owns unit, arm, post, battle-profile and campaign-level queries. */

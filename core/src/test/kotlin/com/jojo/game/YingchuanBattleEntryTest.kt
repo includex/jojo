@@ -1,5 +1,10 @@
 package com.jojo.game
+
+import com.jojo.game.application.battle.Battle
+
 import com.jojo.game.domain.battle.*
+import com.jojo.game.presentation.battle.BattleInitLayer
+
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.scenario.*
 

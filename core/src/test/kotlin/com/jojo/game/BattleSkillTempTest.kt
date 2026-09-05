@@ -1,6 +1,10 @@
 package com.jojo.game
-import com.jojo.game.domain.battle.BattleSkillTemp
+
+import com.jojo.game.application.battle.Battle
+
 import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleSkillTemp
 
 import java.util.Random
 import kotlin.test.Test

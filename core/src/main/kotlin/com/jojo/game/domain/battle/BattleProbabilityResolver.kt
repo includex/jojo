@@ -1,10 +1,16 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.BattleUnit
-import com.jojo.game.SourceRandomStreams
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.magic.BattleMagicProfile
 
 import java.util.*
+
+/** Domain-facing random stream used when a caller needs deterministic replay. */
+interface BattleRandomSource {
+    fun random(min: Int, max: Int, flag: Int = 0): Int
+}
 
 /** Stored probability-gauge positions retained in [BattleUnit.rateAccumulators]. */
 internal enum class BattleRateGauge(val index: Int) {
@@ -21,7 +27,7 @@ internal enum class BattleRateGauge(val index: Int) {
 /** Owns deterministic opposed gauges and both battle random channels. */
 internal class BattleProbabilityResolver(
     private val fallbackRandom: Random,
-    private val sourceRandomStreams: SourceRandomStreams?,
+    private val sourceRandomStreams: BattleRandomSource?,
 ) {
     /** Advances both opposed gauges before deciding which side crossed first. */
     fun countRate(

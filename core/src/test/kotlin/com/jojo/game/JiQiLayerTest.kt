@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.battle.overlay.BattleUnitInfoJiqiRoute
+import com.jojo.game.presentation.battle.overlay.JiQiLayer
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

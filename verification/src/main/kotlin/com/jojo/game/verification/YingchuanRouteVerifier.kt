@@ -1,8 +1,8 @@
 package com.jojo.game.verification
 import com.jojo.game.application.scenario.*
 
-import com.jojo.game.BattleOutcome
-import com.jojo.game.BattleScenarioFactory
+import com.jojo.game.domain.battle.BattleOutcome
+import com.jojo.game.application.battle.BattleScenarioFactory
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.infrastructure.data.BattleTerrainLoader

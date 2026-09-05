@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.battle
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.*
 
 import com.badlogic.gdx.graphics.Color

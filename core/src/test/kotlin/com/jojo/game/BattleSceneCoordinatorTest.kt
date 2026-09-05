@@ -1,5 +1,9 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+import com.jojo.game.application.battle.bootstrap.BattleSceneCoordinator
+
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

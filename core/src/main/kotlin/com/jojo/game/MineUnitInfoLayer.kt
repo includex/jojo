@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /** Stateful implementation of BattleScreen.showMineunitInfo -> Battle registry id6. */
 class MineUnitInfoLayer {
     /**

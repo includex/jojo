@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.application.battle.BattleScenarioFactory
+
 import com.jojo.game.application.battle.BattleScenarioAssembler
 import com.jojo.game.application.battle.BattleScenarioRequest
 import com.jojo.game.domain.battle.BattleWeather

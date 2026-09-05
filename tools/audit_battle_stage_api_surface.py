@@ -388,9 +388,9 @@ def audit(
                     "ScenarioStageCall*Dispatcher.kt"
                 )
             ),
-            game_source_dir / "ScenarioTacticalActionDispatcher.kt",
-            game_source_dir / "ScenarioUnitActionDispatcher.kt",
-            game_source_dir / "ScenarioFightDispatcher.kt",
+            game_source_dir / "application/scenario/ScenarioTacticalActionDispatcher.kt",
+            game_source_dir / "application/scenario/ScenarioUnitActionDispatcher.kt",
+            game_source_dir / "application/scenario/ScenarioFightDispatcher.kt",
             runtime_path,
         ]
         combined_text = "\n".join(

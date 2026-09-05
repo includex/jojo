@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /** Source-faithful state contract for ui/SettingLayer.js. */
 class SettingLayer(
     private val store: Store,

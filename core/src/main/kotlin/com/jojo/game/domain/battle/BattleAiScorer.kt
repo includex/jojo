@@ -1,9 +1,11 @@
 package com.jojo.game.domain.battle
+
+import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
-import com.jojo.game.BattleUnit
+import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.magic.BattleMagicProfile
 import com.jojo.game.domain.battle.magic.MagicDamageCalculator
 import com.jojo.game.domain.battle.BattleProbabilityResolver

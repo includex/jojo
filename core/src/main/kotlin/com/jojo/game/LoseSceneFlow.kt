@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /**
  * State contract of battle/Lose.js. Despite the historical fixture name
  * `lose-restart`, the source never restarts Battle: answer 0 opens Login and

@@ -1,4 +1,5 @@
 package com.jojo.game
+
 import com.jojo.game.domain.battle.command.*
 
 import kotlin.test.Test

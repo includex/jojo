@@ -1,5 +1,13 @@
 package com.jojo.game
+
 import com.jojo.game.domain.battle.*
+import com.jojo.game.application.battle.ai.*
+import com.jojo.game.application.battle.combat.*
+import com.jojo.game.application.battle.experience.*
+import com.jojo.game.application.battle.movement.*
+import com.jojo.game.application.battle.presentation.*
+import com.jojo.game.application.battle.round.*
+
 import com.jojo.game.application.battle.BattleTurnSettlementService
 
 import kotlin.test.Test

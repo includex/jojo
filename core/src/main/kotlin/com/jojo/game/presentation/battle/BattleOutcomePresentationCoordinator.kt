@@ -1,10 +1,12 @@
 package com.jojo.game.presentation.battle
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.ItemUpgradeFlow
 import com.jojo.game.LoseSceneFlow
 import com.jojo.game.application.battle.BattleRewardFlow
-import com.jojo.game.NaturalBattleTransition
-import com.jojo.game.BattleOutcome
+import com.jojo.game.application.battle.NaturalBattleTransition
+import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.domain.battle.settlement.ResolvedBattleReward
 import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
 import com.jojo.game.domain.scenario.PlaybackState

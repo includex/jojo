@@ -1,8 +1,8 @@
 package com.jojo.game.presentation.battle.timeline
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.*
-import com.jojo.game.domain.battle.*
-import com.jojo.game.domain.battle.*
 
 /**
  * Lossless bridge from [Battle]'s eager physical result to the renderer's

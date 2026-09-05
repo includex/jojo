@@ -1,7 +1,10 @@
 package com.jojo.game
+
 import com.jojo.game.domain.battle.*
+
 import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
+import com.jojo.game.application.runtime.BattleTraceRandomStreams
 
 import java.util.Random
 import kotlin.test.Test
@@ -160,7 +163,7 @@ class BattleProbabilityResolverTest {
         assertEquals(3, fallbackResolver.rollStatusDuration())
         assertEquals(3, fallback.draws)
 
-        val streams = SourceRandomStreams(toolSeed = 1_000, mathSeed = 1)
+        val streams = BattleTraceRandomStreams(toolSeed = 1_000, mathSeed = 1)
         val streamedResolver = BattleProbabilityResolver(Random(0), streams)
         assertTrue(streamedResolver.defaultRandom(2, 4) in 2..4)
         assertTrue(streamedResolver.flagRandom(5, 6) in 5..6)

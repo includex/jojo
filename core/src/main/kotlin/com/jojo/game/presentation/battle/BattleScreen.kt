@@ -1,13 +1,18 @@
 package com.jojo.game.presentation.battle
+
+import com.jojo.game.domain.battle.*
 import com.jojo.game.presentation.battle.assets.*
 import com.jojo.game.presentation.battle.input.*
 import com.jojo.game.presentation.battle.render.*
+import com.jojo.game.presentation.battle.evidence.*
+import com.jojo.game.presentation.battle.overlay.JiQiLayer
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.application.battle.*
 import com.jojo.game.domain.battle.turn.*
 import com.jojo.game.presentation.battle.edit.*
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
+import com.jojo.game.application.battle.bootstrap.BattleBootstrapPhase
 import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.scenario.ScenarioUnitReference
 import com.jojo.game.application.battle.BattleRewardFlow
@@ -26,6 +31,16 @@ import com.jojo.game.application.runtime.BattleRuntimeSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
 import com.jojo.game.application.runtime.RuntimeGridPoint
 import com.jojo.game.application.runtime.RuntimeMagicSnapshot
+import com.jojo.game.application.runtime.BattleTraceRandomStreams
+import com.jojo.game.application.runtime.BattleTraceRecorder
+import com.jojo.game.application.runtime.RuntimeBattleTraceAiPresentationInput
+import com.jojo.game.application.runtime.RuntimeBattleTraceDialogueInput
+import com.jojo.game.application.runtime.RuntimeBattleTraceDriverInput
+import com.jojo.game.application.runtime.RuntimeBattleTraceFrameInput
+import com.jojo.game.application.runtime.RuntimeBattleTraceFrameProjector
+import com.jojo.game.application.runtime.RuntimeBattleTracePoint
+import com.jojo.game.application.runtime.RuntimeBattleTraceSpriteInput
+import com.jojo.game.application.runtime.RuntimeBattleTraceUnitInput
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattlePropertyItem
@@ -75,7 +90,6 @@ import com.jojo.game.presentation.battle.ai.AiPresentationStage
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
-import com.jojo.game.presentation.battle.evidence.*
 import com.jojo.game.presentation.battle.fight.*
 import com.jojo.game.presentation.battle.overlay.BattleHelperOverlayController
 import com.jojo.game.presentation.battle.overlay.BattleInformationOverlayController
@@ -395,17 +409,13 @@ void main() {
         enableExternalFightPresentation()
         start("scene0")
     }
-    private val fullTraceConfig = game.requestedFullBattleTrace()
+    private val fullTraceConfig = game.requestedBattleTraceRuntime()
     private val yingchuanEntryFlowTracePath = game.requestedYingchuanEntryFlowTracePath()
     private var yingchuanEntryFlowSawInit = false
     private var yingchuanEntryFlowWritten = false
-    private val fullTraceRandom = fullTraceConfig?.let { SourceRandomStreams(it.toolSeed, it.mathSeed) }
-    private val fullTraceEvidence = fullTraceConfig?.let { config ->
-        FullBattleTraceEvidenceSession(
-            config,
-            FullBattleTraceRecorder(config, requireNotNull(fullTraceRandom)),
-        )
-    }
+    private val fullTraceRandom = fullTraceConfig?.let { BattleTraceRandomStreams(it.toolSeed, it.mathSeed) }
+    private val fullTraceRecorder = fullTraceConfig?.let { BattleTraceRecorder(requireNotNull(fullTraceRandom)) }
+    private var fullTraceFinished = false
 
     /** Last accepted production input, retained in each frame for deadlock diagnosis. */
     private var lastFullBattleInput: String? = null
@@ -1098,7 +1108,7 @@ void main() {
             override fun centerCamera(request: ScriptedUnitTimedCoordinator.CameraCenter) {
                 configureSourceCameraViewport()
                 battleCamera.centerTile(request.x, request.y, terrainGrid.width, terrainGrid.height)
-                recordFullBattleTraceFrame(
+                recordBattleTraceFrame(
                     0f,
                     "transition:camera:center:${request.x}:${request.y}",
                     advanceFrame = false,
@@ -1219,7 +1229,7 @@ void main() {
                 battleRouteCompleted = true
             }
             override fun showNextScenario(nextScenario: String) { game.showNextScenario(nextScenario) }
-            override fun finishTrace() { if (fullTraceConfig?.exitOnFinish == false) finishFullBattleTrace("battle-end") }
+            override fun finishTrace() { if (fullTraceConfig?.exitOnFinish == false) finishBattleTrace("battle-end") }
             override fun showVictoryPrompt() { eventMessage = "게임 저장하시겠습니까?" }
             override fun campaignEquipmentUpgrade(): BattleOutcomePresentationCoordinator.UpgradePresentation? {
                 val request = battle.experience.consumeEquipmentUpgrade() ?: return null
@@ -2068,8 +2078,8 @@ void main() {
                     val released = menuIndexAt(world.x, world.y)
                     val pressed = battleMenuPressedIndex
                     lastFullBattleMenuTap =
-                        "${pressed ?: -1}/${released ?: -1}@${FullBattleTraceRecorder.number(world.x)},${
-                            FullBattleTraceRecorder.number(world.y)
+                        "${pressed ?: -1}/${released ?: -1}@${BattleTraceRecorder.number(world.x)},${
+                            BattleTraceRecorder.number(world.y)
                         }"
                     battleMenuPressedIndex = null
                     if (pressed != null && pressed == released) handleBattleMenuTap(pressed)
@@ -2129,7 +2139,7 @@ void main() {
                 "FIGHT_FIFO_BEGIN: seq=$fightCommandSequence command=$command pending=${pendingFightCommands.size} runtime=${scriptRuntime.state}",
             )
             fightPresentation.begin(command)
-            recordFullBattleTraceFrame(0f, fullTraceFightCommandObservation(command), advanceFrame = false)
+            recordBattleTraceFrame(0f, fullTraceFightCommandObservation(command), advanceFrame = false)
             // FightLayer.end is synchronous and therefore has no external
             // script delay to acknowledge.
             if (fightPresentation.commandComplete) finishFightCommand(command)
@@ -2536,10 +2546,12 @@ void main() {
                 }
             }
         }
-        driveFullBattleTrace()
-        recordFullBattleMapObjectsCalls()
-        recordFullBattleTraceFrame(delta)
-        fullTraceEvidence?.consumeFinishAfterFrame()?.let(::finishFullBattleTrace)
+        driveBattleTrace()
+        recordBattleMapObjectsCalls()
+        recordBattleTraceFrame(delta)
+        if (!fullTraceFinished && fullTraceConfig != null && battle.outcome() != null && scriptRuntime.state == PlaybackState.COMPLETE) {
+            finishBattleTrace("battle-end")
+        }
         scriptRuntime.currentDialogue?.let {
             dialogueReveal.update(it.text, delta)
             // The source diagnostic consumes SayLayer's active typewriter
@@ -2901,29 +2913,9 @@ void main() {
         }
     }
 
-    private fun driveFullBattleTrace() {
-        val evidence = fullTraceEvidence ?: return
-        val presentationBarrier = !presentationReady ||
-                actionAnimation?.let { animationClock() < it.endsAt } == true ||
-                movementAnimation?.let { animationClock() < it.endsAt } == true ||
-                hitReactionAnimations.values.any { animationClock() < it.endsAt } ||
-                deathAnimations.values.any { animationClock() < it.endsAt }
-        evidence.drive(
-            FullBattleTraceDriveSnapshot(
-                elapsed = elapsed,
-                outcome = battle.outcome().takeIf { bootstrapPhase == BattleBootstrapPhase.COMPLETE },
-                scriptState = scriptRuntime.state,
-                traceBarrierOpen = scriptRuntime.state in setOf(
-                    PlaybackState.DIALOGUE,
-                    PlaybackState.CHOICE,
-                    PlaybackState.MODAL,
-                ) || scriptWinConditions != null || presentationBarrier,
-                lossSceneActive = outcomePresentation.loseSceneActive,
-                callbackPending = outcomeCallbacksPending(),
-                scriptEnded = scriptRuntime.stage.battleEndedByScript,
-                endProcessStarted = !outcomePresentation.resultIsNone,
-            )
-        )
+    private fun driveBattleTrace() {
+        // Trace termination is a verification concern. Core only publishes
+        // immutable frames and leaves deadline/barrier policy to the sink.
     }
 
     /**
@@ -2932,11 +2924,8 @@ void main() {
      * doors/traps; emitting the full set only when it changes keeps long
      * traces bounded while preserving every resulting state.
      */
-    private fun fullTraceMapObjectsJson(): Pair<Int, String> {
-        val snapshot = fullTraceEvidence?.mapSnapshot(scriptRuntime.stage.mapObjects.values.map {
-            FullBattleTraceMapObject(it.objectId, it.terrainId, it.x, it.y, it.enabled)
-        }) ?: return 0 to "null"
-        return snapshot.revision to snapshot.json
+    private fun battleTraceMapObjectsJson(): Pair<Int, String> {
+        return 0 to "null"
     }
 
     /**
@@ -2944,83 +2933,74 @@ void main() {
      * pre-draw map construction. Visible presentation has its own callback
      * queue, but must not emit a second copy of this mutation observation.
      */
-    private fun recordFullBattleMapObjectsCalls() {
-        val observations = fullTraceEvidence?.mapObjectCallObservations(
-            scriptRuntime.stage.mapObjectsCalls.map { call ->
-                FullBattleTraceMapObjectsCall(
-                    call.enabled,
-                    call.terrainId,
-                    call.objects.map { FullBattleTraceMapObjectCall(it.objectId, it.x, it.y) },
-                )
-            }
-        ).orEmpty()
-        observations.forEach { recordFullBattleTraceFrame(0f, it, advanceFrame = false) }
+    private fun recordBattleMapObjectsCalls() {
+        // Map mutation callbacks are represented by the next immutable frame.
     }
 
     /** Live FightLayer renderer state, in source prefab slot order (0, 1). */
-    private fun fullTraceFightJson(): String {
+    private fun battleTraceFightJson(): String {
         fun slotUnit(slot: Int): FightUnitPresentation =
             if (fightPresentation.mineIndex == slot) fightPresentation.mine else fightPresentation.enemy
-
-        fun fighter(fighter: FightUnitPresentation): FullBattleTraceFighter {
+        fun fighter(fighter: FightUnitPresentation): String {
             val action = fighter.action
             val pose = action?.let { fightSprites.pose(it, fighter.actionElapsedSeconds) } ?: FightActionPose()
-            return FullBattleTraceFighter(
-                fighter.characterId, fighter.created, action, fighter.actionElapsedSeconds,
-                fighter.parentX, fighter.parentScaleX, pose.childX, pose.childY, pose.childScaleX,
-                pose.opacity, fighter.zIndex, fighter.dead,
-            )
+            return "[${fighter.characterId ?: "null"},${fighter.created},${action ?: "null"}," +
+                    "${BattleTraceRecorder.number(fighter.actionElapsedSeconds)}," +
+                    "${BattleTraceRecorder.number(fighter.parentX)},${BattleTraceRecorder.number(fighter.parentScaleX)}," +
+                    "${BattleTraceRecorder.number(pose.childX)},${BattleTraceRecorder.number(pose.childY)}," +
+                    "${BattleTraceRecorder.number(pose.childScaleX)},${BattleTraceRecorder.number(pose.opacity)}," +
+                    "${fighter.zIndex},${fighter.dead}]"
         }
-
-        fun speech(fighter: FightUnitPresentation): FullBattleTraceSpeech {
+        fun speech(fighter: FightUnitPresentation): String {
             val side = if (fighter === fightPresentation.mine) FightSide.MINE else FightSide.ENEMY
-            return fightPresentation.speech(side).let { FullBattleTraceSpeech(it.active, it.renderedText) }
+            return fightPresentation.speech(side).let {
+                "[${it.active},\"${BattleTraceRecorder.escape(it.renderedText)}\"]"
+            }
         }
+        if (!fightOverlayActive) return "null"
         val slot0 = slotUnit(0)
         val slot1 = slotUnit(1)
-        val snapshot = fightOverlayActive.takeIf { it }?.let {
-            FullBattleTraceFightSnapshot(
-                fightPresentation.mineIndex, fightPresentation.enemyIndex,
-                fightPresentation.introBackgroundActive, fightPresentation.duelBackgroundActive,
-                fightPresentation.startCrossFade, fighter(slot0), fighter(slot1), speech(slot0), speech(slot1),
-            )
-        }
-        return FullBattleTraceFightEvidence.json(snapshot)
+        val introOpacity = if (fightPresentation.introBackgroundActive) 1f - fightPresentation.startCrossFade else 0f
+        val duelOpacity = if (fightPresentation.duelBackgroundActive) fightPresentation.startCrossFade else 0f
+        return "{\"mineIndex\":${fightPresentation.mineIndex},\"enemyIndex\":${fightPresentation.enemyIndex}," +
+                "\"backgrounds\":[[${fightPresentation.introBackgroundActive},${BattleTraceRecorder.number(introOpacity)}]," +
+                "[${fightPresentation.duelBackgroundActive},${BattleTraceRecorder.number(duelOpacity)}]]," +
+                "\"units\":[${fighter(slot0)},${fighter(slot1)}],\"speeches\":[${speech(slot0)},${speech(slot1)}]}"
     }
 
-    private fun recordFullBattleTraceFrame(
+    private fun recordBattleTraceFrame(
         delta: Float,
         observation: String? = null,
         advanceFrame: Boolean = true,
     ) {
-        val evidence = fullTraceEvidence ?: return
-        val frame = evidence.nextFrame(elapsed, advanceFrame)
+        val recorder = fullTraceRecorder ?: return
+        val frame = if (advanceFrame) recorder.nextFrame(elapsed) else recorder.upcomingFrame()
         val bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE
         val traceCamp = if (bootstrapComplete) battle.activeFaction.ordinal else -1
         val traceOutcome = battle.outcome().takeIf { bootstrapComplete }
         val dialogueSourceText = scriptRuntime.currentDialogueSourceText
         val dialogueText = dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }
             ?.joinToString("\n") { it.text }.orEmpty()
-        val (mapObjectRevision, mapObjectsJson) = fullTraceMapObjectsJson()
-        val projected = FullBattleTraceFrameProjector.project(
-            FullBattleTraceFrameInput(
+        val (mapObjectRevision, mapObjectsJson) = battleTraceMapObjectsJson()
+        val projected = RuntimeBattleTraceFrameProjector.project(
+            RuntimeBattleTraceFrameInput(
                 frame, elapsed, delta, battle.round, traceCamp, battle.maxRounds,
                 battle.units.values.count { it.type() == Faction.PLAYER },
                 battle.units.values.count { it.type() == Faction.FRIEND },
                 battle.units.values.count { it.type().isEnemySide() },
                 scriptRuntime.state != PlaybackState.COMPLETE, traceOutcome != null,
                 autoBattleFlow.view().collocation,
-                FullBattleTraceDialogueInput(
+                RuntimeBattleTraceDialogueInput(
                     scriptRuntime.state == PlaybackState.DIALOGUE, scriptRuntime.dialogueLifecycleRevision,
                     dialogueSourceText, scriptRuntime.currentDialogue?.speakerId.orEmpty(), dialogueText,
                 ),
                 turnController.snapshot.phase.toString(), scriptRuntime.state.toString(),
                 if (bootstrapComplete) emptyList() else bootstrapPresentationBusyReasons(),
-                battleCamera.contentX, battleCamera.contentY, mapObjectRevision, mapObjectsJson, fullTraceFightJson(),
-                fullTraceAiPresentation(), battle.traceActions.toList(),
+                battleCamera.contentX, battleCamera.contentY, mapObjectRevision, mapObjectsJson, battleTraceFightJson(),
+                battleTraceAiPresentation(), battle.traceActions.toList(),
                 battle.presentation.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
-                    .map(::fullTraceUnitInput),
-                FullBattleTraceDriverInput(
+                    .map(::battleTraceUnitInput),
+                RuntimeBattleTraceDriverInput(
                     selectedUnitId, battleCommandFlow.phase.toString(), lastFullBattleInput,
                     lastFullBattleMenuTap, eventMessage, autoBattleFlow.view().overlay.toString(),
                 ),
@@ -3031,17 +3011,16 @@ void main() {
                 settlementPresentation.isActive(), combatPresentationBusy(),
             )
         )
-        val payload = BattleEvidenceRecorder.frame(projected)
-        evidence.record(projected)
+        recorder.addFrame(projected.toString())
         game.runtimeBattleObserver()?.onFrame(
-            RuntimeBattleFrameSnapshot(projected.frame, projected.elapsed, projected.delta, payload)
+            RuntimeBattleFrameSnapshot(projected.frame, projected.elapsed, projected.delta, traceView = projected)
         )
     }
 
-    private fun fullTraceAiPresentation(): FullBattleTraceAiPresentationInput? = aiPresentation.resolution?.let { resolution ->
+    private fun battleTraceAiPresentation(): RuntimeBattleTraceAiPresentationInput? = aiPresentation.resolution?.let { resolution ->
         val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
         val target = resolution.targetId?.let(battle.presentation::presentationUnit)
-        FullBattleTraceAiPresentationInput(
+        RuntimeBattleTraceAiPresentationInput(
             aiPresentation.stage.toString(), actor, resolution.fromX, resolution.fromY, resolution.toX, resolution.toY,
             target?.characterId ?: -1, resolution.targetId?.let(resolution.healthBeforeAction::get) ?: -1,
             battle.pendingActionTransaction != null, resolution.result != null,
@@ -3049,7 +3028,7 @@ void main() {
     }
 
     /** Reads live animation collaborators once, then passes only values to the evidence projector. */
-    private fun fullTraceUnitInput(unit: BattleUnit): FullBattleTraceUnitInput {
+    private fun battleTraceUnitInput(unit: BattleUnit): RuntimeBattleTraceUnitInput {
         val now = animationClock()
         val move = movementAnimation?.takeIf { it.unitId == unit.id && now < it.endsAt }
         val moveSample = move?.let { BattleUnitMoveTimeline.sample(it.path, it.timeline, now - it.startedAt) }
@@ -3062,12 +3041,12 @@ void main() {
         val animationTime = (now - (move?.startedAt ?: active?.startedAt ?: scripted?.startedAt ?: battleElapsed)).coerceAtLeast(0f)
         val sprite = battleSpriteFrame(action, direction, animationTime, loop = move != null)
         val visual = visualTile(unit)
-        return FullBattleTraceUnitInput(
+        return RuntimeBattleTraceUnitInput(
             unit.id.substringAfterLast('-').toIntOrNull() ?: -1, unit.characterId ?: -1, unit.type().ordinal,
             unit.tileX, unit.tileY, unit.hitPoints, unit.magicPoints, direction, action, unit.visible, unit.hasActed,
-            unit.ai, unit.aiValue, animationTime, sprite?.let { FullBattleTraceSpriteInput(it.sourceY, it.sourceWidth, it.sourceHeight) },
+            unit.ai, unit.aiValue, animationTime, sprite?.let { RuntimeBattleTraceSpriteInput(it.sourceY, it.sourceWidth, it.sourceHeight) },
             listOf(unit.attack, unit.defense, unit.spirit, unit.critical, unit.morale), unit.level, unit.posts,
-            unit.armId, unit.experience, unit.attackOffsets.map { FullBattleTracePoint(it.first, it.second) },
+            unit.armId, unit.experience, unit.attackOffsets.map { RuntimeBattleTracePoint(it.first, it.second) },
             unit.terrainImpacts[terrainGrid.terrainAt(unit.tileX, unit.tileY)] ?: 100,
             (0..7).map { unit.rateAccumulators[it] ?: 0 }, listOf(7, 43, 197, 262, 276).map { unit.skills[it]?.and(255) ?: 255 },
             BattleAttribute.entries.take(6).map { unit.attributeLifts[it] ?: 0 },
@@ -3081,38 +3060,20 @@ void main() {
         )
     }
 
-    private fun finishFullBattleTrace(reason: String) {
-        val evidence = fullTraceEvidence ?: return
-        val bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE
-        val outcome = battle.outcome().takeIf { bootstrapComplete }
-        val camp = if (bootstrapComplete) battle.activeFaction.ordinal else -1
-        evidence.finish(
-            reason,
-            FullBattleTraceFinishSnapshot(
-                scenario = sourceScenario,
-                requestedScenario = fullTraceConfig?.scenario ?: sourceScenario,
-                round = battle.round,
-                camp = camp,
-                ended = outcome != null,
-                outcome = outcome,
-                seededUnitIds = campaign.roster.battleRoster,
-                loadedMapIndex = loadedBattleMapIndex,
-                mapName = mapFile?.path().orEmpty(),
-                mapWidth = terrainGrid.width,
-                mapHeight = terrainGrid.height,
-            )
-        )?.let { result ->
-            game.runtimeBattleObserver()?.onCompleted(
-                RuntimeBattleCompletion(reason, result.frameCount, result.outputPath, evidence.exitsOnFinish())
-            )
-            Gdx.app.log("JojoGame", "FULL_BATTLE_TRACE: ${result.outputPath}; frames=${result.frameCount}; reason=$reason")
-        }
+    private fun finishBattleTrace(reason: String) {
+        if (fullTraceFinished) return
+        val recorder = fullTraceRecorder ?: return
+        fullTraceFinished = true
+        game.runtimeBattleObserver()?.onCompleted(
+            RuntimeBattleCompletion(reason, recorder.recordedRowCount, null, fullTraceConfig?.exitOnFinish == true)
+        )
+        Gdx.app.log("JojoGame", "BATTLE_TRACE: frames=${recorder.recordedRowCount}; reason=$reason")
     }
 
     /** Input provenance is appended only after ProductionBattleInputDriver dispatches it. */
     internal fun recordFullBattleInput(context: String) {
         lastFullBattleInput = context
-        fullTraceEvidence?.recordInput(context)
+        // Input evidence is forwarded through the runtime observer when needed.
     }
 
     /** Read-only application probe. External diagnostics may observe it, never mutate the battle. */
@@ -8947,7 +8908,7 @@ void main() {
 
         fun jsNumber(value: Float): String =
             if (value.isFinite() && value == value.toInt().toFloat()) value.toInt().toString() else value.toString()
-        recordFullBattleTraceFrame(
+        recordBattleTraceFrame(
             0f,
             "transition:camera:center:${jsNumber(tileX)}:${jsNumber(tileY)}",
             advanceFrame = false,
@@ -9527,7 +9488,7 @@ void main() {
             scriptedAttackCallbackEndsAt = maxOf(scriptedAttackCallbackEndsAt, reactionEndsAt)
             scheduleHitReaction(target.id, reactionDirection, hitAt, reactionEndsAt, targetAction)
             eventMessage = "연출 공격: ${attacker.name} → ${target.name}"
-            recordFullBattleTraceFrame(
+        recordBattleTraceFrame(
                 0f,
                 "transition:attackAction:${action.attackerId}:${action.targetId}:${action.flag}",
                 advanceFrame = false,
@@ -9611,7 +9572,7 @@ void main() {
                 val authoredTarget = unitReference?.let { ref ->
                     "unit=${ref.id}"
                 } ?: "rect=$camp,$x1,$y1,$x2,$y2"
-                recordFullBattleTraceFrame(
+        recordBattleTraceFrame(
                     0f,
                     "transition:setUnitStatus:$authoredTarget:hp=$hpChange:mp=$mpChange:states=$states:resolved=$targetCharacterIds",
                     advanceFrame = false,

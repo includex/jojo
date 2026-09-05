@@ -1,4 +1,7 @@
 package com.jojo.game
+
+import com.jojo.game.presentation.battle.BattleInitLayer
+
 import kotlin.test.*
 /**
  * class  `BattleInitLayerTest`

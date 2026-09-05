@@ -1,6 +1,8 @@
 package com.jojo.game.presentation.battle
 
-import com.jojo.game.BattleOutcome
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.LoseSceneFlow
 import com.jojo.game.domain.battle.settlement.ResolvedBattleReward
 import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult

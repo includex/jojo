@@ -1,10 +1,12 @@
 package com.jojo.game.application.battle
 
-import com.jojo.game.Battle
-import com.jojo.game.BattleEvent
-import com.jojo.game.BattleUnit
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.application.battle.Battle
+import com.jojo.game.application.battle.BattleEvent
+import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.GameDataCatalog
-import com.jojo.game.TurnTrigger
+import com.jojo.game.domain.battle.TurnTrigger
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.BattleEquipmentExperienceKind
 import com.jojo.game.domain.battle.BattlePropertyItem

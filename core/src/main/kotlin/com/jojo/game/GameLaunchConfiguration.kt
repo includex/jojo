@@ -9,6 +9,7 @@ import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
 import com.jojo.game.application.runtime.RuntimeScenarioDriver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
 import com.jojo.game.application.runtime.RuntimeTitleStartupDriver
+import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 
 /** The first application route selected before LibGDX creates a screen. */
 enum class GameEntryPoint {
@@ -80,7 +81,7 @@ data class GameLaunchConfiguration(
     val scenarioRun: ScenarioRunConfiguration = ScenarioRunConfiguration(),
     val verification: VerificationConfiguration = VerificationConfiguration(),
     val capture: RenderCaptureConfiguration = RenderCaptureConfiguration(),
-    val fullBattleTrace: FullBattleTraceConfig? = null,
+    val battleTraceRuntime: BattleTraceRuntimeConfig? = null,
     val yingchuanEntryFlowTracePath: String? = null,
     /** Optional external read-only observer; production never depends on its implementation. */
     val runtimeScreenObserver: RuntimeScreenObserver? = null,

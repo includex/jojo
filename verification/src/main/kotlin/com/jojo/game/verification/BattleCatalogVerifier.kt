@@ -2,7 +2,7 @@ package com.jojo.game.verification
 import com.jojo.game.application.scenario.*
 
 import com.badlogic.gdx.Gdx
-import com.jojo.game.BattleScenarioFactory
+import com.jojo.game.application.battle.BattleScenarioFactory
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.domain.battle.Faction

@@ -1,8 +1,8 @@
 package com.jojo.game.presentation.battle.timeline
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.*
-import com.jojo.game.domain.battle.*
-import com.jojo.game.domain.battle.*
 
 /**
  * Pure projection of BattleScreen._magicProcess's `l` (target) and `o`

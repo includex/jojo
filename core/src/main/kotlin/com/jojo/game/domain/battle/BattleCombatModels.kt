@@ -1,6 +1,8 @@
 package com.jojo.game.domain.battle
 
-import com.jojo.game.BattleUnit
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleUnit
 
 /**
  * The small, callback-owned `h` settlement assembled by `_magicProcess`.

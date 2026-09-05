@@ -1,7 +1,7 @@
 package com.jojo.game.presentation.battle.timeline
 
 import com.jojo.game.*
-import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.PhysicalTarget
 
 /**
  * Pure timing implementation of BattleScreen._attack2's `for (T.targets)` loop.
@@ -87,4 +87,3 @@ object BattlePhysicalPresentationTimeline {
         else -> (11 + 14) / 24f
     }
 }
-

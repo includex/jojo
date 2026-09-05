@@ -1,6 +1,8 @@
 package com.jojo.game.application.battle
 
-import com.jojo.game.BattleUnit
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattleStatus
 import com.jojo.game.domain.battle.BattleTerrainGrid

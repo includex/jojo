@@ -1,6 +1,8 @@
 package com.jojo.game.presentation.battle.script
 
-import com.jojo.game.BattleUnit
+import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.scenario.Dialogue
 import com.jojo.game.domain.scenario.ScenarioUnitHideRequest

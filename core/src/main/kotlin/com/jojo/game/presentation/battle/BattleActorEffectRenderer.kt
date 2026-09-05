@@ -1,4 +1,6 @@
 package com.jojo.game.presentation.battle
+
+import com.jojo.game.domain.battle.*
 import com.jojo.game.presentation.battle.assets.*
 
 import com.badlogic.gdx.Gdx

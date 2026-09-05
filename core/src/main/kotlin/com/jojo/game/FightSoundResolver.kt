@@ -1,5 +1,8 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.*
+
+
 /** Result of FightUnit.__cb1 after resolving its optional `yidong` token. */
 data class FightSoundDispatch(
     val resolvedId: Int,

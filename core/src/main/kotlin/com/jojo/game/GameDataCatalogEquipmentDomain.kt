@@ -1,4 +1,5 @@
 package com.jojo.game
+
 import com.jojo.game.domain.campaign.*
 
 /** Parses item, shop, equipment-growth and script-equipment data. */

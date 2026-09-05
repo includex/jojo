@@ -1,4 +1,5 @@
 package com.jojo.game
+
 import com.jojo.game.application.scenario.*
 
 import com.jojo.game.domain.scenario.*
@@ -37,11 +38,11 @@ internal class GameStartupCoordinator(
             Regex("S_(?:[0-4][0-9]|5[0-7])").matches(directBattleScenario) &&
             configuration.capture.state != "map-only"
         ) {
-            if (configuration.fullBattleTrace != null) {
+            if (configuration.battleTraceRuntime != null) {
                 val routeIndex = directBattleScenario.removePrefix("S_").toInt()
                 val entryLimit = if (routeIndex == 0) null else
                     ScenarioMetadataReader.loadLastJoinBattleLimit("R_%02d".format(routeIndex))
-                prepareDirectFullBattleTraceCampaign(campaignState, directBattleScenario, entryLimit)
+                prepareDirectBattleCampaign(campaignState, directBattleScenario, entryLimit)
             } else {
                 prepareYingchuanBattleCampaign()
             }
@@ -101,7 +102,7 @@ internal class GameStartupCoordinator(
  * Yingchuan needs Cao Cao only. Later battles honor their authored
  * setJoinBattle maximum, required and excluded unit IDs.
  */
-internal fun prepareDirectFullBattleTraceCampaign(
+internal fun prepareDirectBattleCampaign(
     state: CampaignState,
     scenario: String,
     entryLimit: ScenarioJoinBattleLimit? = null,

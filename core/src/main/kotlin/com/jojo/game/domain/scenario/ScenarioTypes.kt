@@ -1,5 +1,7 @@
 package com.jojo.game.domain.scenario
 
+import com.jojo.game.domain.battle.*
+
 /**
  * data class  `Dialogue`
  *

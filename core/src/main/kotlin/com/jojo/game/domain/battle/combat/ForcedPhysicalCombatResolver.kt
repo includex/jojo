@@ -1,7 +1,8 @@
 package com.jojo.game.domain.battle.combat
 
-import com.jojo.game.*
 import com.jojo.game.domain.battle.*
+
+import com.jojo.game.*
 
 /** Resolves the source's forced single-pass physical attack route. */
 internal object ForcedPhysicalCombatResolver {

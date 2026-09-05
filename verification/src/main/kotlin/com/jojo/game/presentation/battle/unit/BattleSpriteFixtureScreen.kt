@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
-import com.jojo.game.BattleAvatarResolver
+import com.jojo.game.presentation.battle.BattleAvatarResolver
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.domain.battle.Faction

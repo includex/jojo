@@ -1,7 +1,8 @@
 package com.jojo.game.domain.battle.magic
 
-import com.jojo.game.BattleUnit
 import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.BattleUnit
 
 /** Pure magic damage, terrain, weather and condition policy. */
 internal object MagicDamageCalculator {

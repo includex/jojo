@@ -1,5 +1,7 @@
 package com.jojo.game
-import com.jojo.game.domain.battle.*
+
+import com.jojo.game.domain.battle.Faction
+import com.jojo.game.presentation.battle.BattleAvatarResolver
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

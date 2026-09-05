@@ -1,10 +1,11 @@
 package com.jojo.game.presentation.battle.render
-import com.jojo.game.BattleUnit
+
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.BattleUnitMoveTimeline
 
 import com.jojo.game.domain.scenario.BattleSlotLayout
 import com.jojo.game.domain.scenario.ScenarioUnitFaction
-import com.jojo.game.domain.battle.*
 
 /**
  * Source map geometry after BattleScreen._loadBg has assigned the JSON map

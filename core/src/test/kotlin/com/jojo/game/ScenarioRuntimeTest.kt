@@ -1,4 +1,11 @@
 package com.jojo.game
+
+import com.jojo.game.application.battle.Battle
+
+import com.jojo.game.application.battle.BattleScenarioFactory
+
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.application.scenario.*
 import com.jojo.game.presentation.battle.timeline.*
@@ -6,7 +13,6 @@ import com.jojo.game.presentation.battle.BattleUnitPresentationStore
 import com.jojo.game.infrastructure.data.CampaignSaveCodec
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
-import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.scenario.*
 
 import kotlin.test.Test

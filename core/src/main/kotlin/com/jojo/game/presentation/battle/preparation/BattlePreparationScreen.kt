@@ -4,7 +4,7 @@ import com.jojo.game.presentation.battle.render.*
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
-import com.jojo.game.StartBattleSortRoute
+import com.jojo.game.presentation.battle.preparation.StartBattleSortRoute
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
 import com.jojo.game.application.runtime.BattlePreparationPresentation

@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.battle.edit
 
+import com.jojo.game.domain.battle.*
+
 import com.jojo.game.*
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2ChildRenderEvents
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2RegisterRenderEvents

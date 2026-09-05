@@ -1,8 +1,8 @@
 package com.jojo.game.presentation.battle.preparation
 
 import com.jojo.game.GameDataCatalog
-import com.jojo.game.BattleAvatarResolver
-import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.Faction
+import com.jojo.game.presentation.battle.BattleAvatarResolver
 
 data class BattlePreparationViewState(
     val backgroundId: Int,
