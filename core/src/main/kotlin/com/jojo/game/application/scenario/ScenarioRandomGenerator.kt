@@ -29,9 +29,9 @@ internal class ScenarioRandomGenerator(
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun reset() {
+    fun reset(retainTraceStop: Boolean = false) {
         randomDrawCount = 0
-        stopAfterRandomTraceCount = null
+        if (!retainTraceStop) stopAfterRandomTraceCount = null
     }
 
     /**

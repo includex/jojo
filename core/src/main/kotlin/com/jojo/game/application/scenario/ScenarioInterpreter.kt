@@ -136,7 +136,10 @@ class ScenarioInterpreter internal constructor(
         delayCoordinator.reset()
         modalController.reset()
         choiceCoordinator.reset()
-        randomGenerator.reset()
+        // The launcher configures a bounded random trace before the first
+        // source statement runs. Keep that neutral execution bound while
+        // resetting the per-run draw counter.
+        randomGenerator.reset(retainTraceStop = true)
         randomTrace.clear()
         callCoordinator.pushFunction(functionName, label)
         runUntilInput()

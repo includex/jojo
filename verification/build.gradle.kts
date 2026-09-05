@@ -57,6 +57,8 @@ tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
     options.release.set(17)
 }
 
+apply(from = "trace-scenario-tasks.gradle.kts")
+
 // The repository's source/game trace gates are verification-owned.  Keeping
 // their declarations here means they execute with this project's runtime
 // classpath and retain a one-way dependency on :core.

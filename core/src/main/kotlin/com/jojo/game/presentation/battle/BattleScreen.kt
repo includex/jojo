@@ -53,6 +53,11 @@ import com.jojo.game.presentation.battle.settlement.SettlementInfoView
 import com.jojo.game.presentation.battle.settlement.SettlementInfo2View
 import com.jojo.game.presentation.battle.script.ScriptPresentationTimeline
 import com.jojo.game.presentation.battle.script.ScriptedUnitPresentationLifecycle
+import com.jojo.game.presentation.battle.script.ScriptedUnitCallbackCoordinator
+import com.jojo.game.presentation.battle.script.ScriptedUnitTimedCoordinator
+import com.jojo.game.presentation.battle.script.ScriptedUnitActionCoordinator
+import com.jojo.game.presentation.battle.script.ScriptedPresentationCoordinator
+import com.jojo.game.presentation.battle.script.ScriptedUnitTargetSelector
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
@@ -1027,10 +1032,186 @@ void main() {
     private var settlementItemUpgradeStarted = false
     /** Callback state for scripted hide/show/posts/map/action presentation. */
     private val scriptedUnitPresentation = ScriptedUnitPresentationLifecycle()
+    private val scriptedUnitCallbacks = ScriptedUnitCallbackCoordinator(
+        scriptedUnitPresentation,
+        object : ScriptedUnitCallbackCoordinator.Port {
+            override fun now() = animationClock()
+            override fun consumeHide() = scriptRuntime.stage.consumeUnitHideRequest()
+            override fun consumeShow() = scriptRuntime.stage.consumeUnitShowRequest()
+            override fun consumePosts() = scriptRuntime.stage.consumeUnitPostsRequest()
+            override fun dialogueIsActive() = scriptRuntime.currentDialogue != null
+            override fun presentDialogue(dialogue: Dialogue) = scriptRuntime.presentExternalBattleDialogue(dialogue)
+            override fun hideUnit(request: ScenarioUnitHideRequest): BattleUnit? =
+                (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { candidate ->
+                    request.battleUnitId?.let { candidate.id == it }
+                        ?: (candidate.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId)
+                }
+            override fun showUnit(request: ScenarioUnitShowRequest): BattleUnit? =
+                (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
+                    it.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId
+                }
+            override fun postsUnit(request: ScenarioUnitPostsRequest): BattleUnit? = scriptBattleUnit(request.unitId)
+            override fun isMineMaster(unitId: String) = isScriptMineMaster(unitId)
+            override fun focus(unit: BattleUnit) { focusCameraOn(unit) }
+            override fun sourceActionDuration(action: Int, direction: Int) = requireSourceActionDuration(action, direction)
+            override fun beginHideModel(unit: BattleUnit, request: ScenarioUnitHideRequest, originalHp: Int) {
+                unit.retreatFlag = true
+                unit.otherNodesVisible = false
+                unit.setHpcur(0)
+            }
+            override fun registerHideAnimation(unit: BattleUnit, sourceAction: Int, startedAt: Float, endsAt: Float) {
+                deathAnimations[unit.id] = UnitActionAnimation(
+                    unit.id, UnitAnimationKind.DEATH, unit.direction, startedAt, endsAt, sourceAction,
+                )
+            }
+            override fun removeHideAnimation(unitId: String) { deathAnimations.remove(unitId) }
+            override fun completeHideModel(unit: BattleUnit, request: ScenarioUnitHideRequest, originalHp: Int) {
+                if (request.hideType != 0) battle.presentation.incrementUnitRetreat(unit)
+                unit.setHpcur(originalHp)
+                unit.visible = false
+                battle.presentation.completeScriptedUnitHide(unit.id)
+            }
+            override fun completeUnitHide(request: ScenarioUnitHideRequest) = scriptRuntime.stage.completeUnitHide(request)
+            override fun prepareShow(unit: BattleUnit, request: ScenarioUnitShowRequest): ScriptedUnitCallbackCoordinator.ShowStart {
+                val restored = battle.presentation.restorePresentationUnit(unit.id) ?: unit
+                val requestedX = request.x.takeIf { it >= 0 } ?: restored.tileX
+                val requestedY = request.y.takeIf { it >= 0 } ?: restored.tileY
+                val target = if (battle.unitAt(requestedX, requestedY)?.let { it !== restored } == true) {
+                    listOf(
+                        requestedX to requestedY - 1,
+                        requestedX + 1 to requestedY,
+                        requestedX - 1 to requestedY,
+                        requestedX to requestedY + 1,
+                    ).firstOrNull { (x, y) ->
+                        x in 0..boardMaxX && y in 0..boardMaxY && battle.unitAt(x, y)?.let { it !== restored } != true
+                    } ?: (restored.tileX to restored.tileY)
+                } else requestedX to requestedY
+                restored.tileX = target.first
+                restored.tileY = target.second
+                restored.hasAuthoredTileX = true
+                restored.hasAuthoredTileY = true
+                request.direction.takeIf { it in 0..3 }?.let { restored.direction = it }
+                scriptRuntime.stage.unit(request.unitId).apply {
+                    x = restored.tileX
+                    y = restored.tileY
+                }
+                scriptRuntime.stage.setBattleUnitVisibility(request.unitId, true)
+                focus(restored)
+                val revive = request.flags and 1 != 0
+                restored.otherNodesVisible = !revive
+                val startedAt = animationClock()
+                val duration = if (revive) requireSourceActionDuration(46, restored.direction) else .2f
+                if (revive) scriptedUnitPresentation.setVisual(restored.id, ScriptedUnitVisual(46, startedAt))
+                return ScriptedUnitCallbackCoordinator.ShowStart(restored.id, duration)
+            }
+            override fun finishShow(unitId: String, request: ScenarioUnitShowRequest) {
+                battle.presentation.presentationUnit(unitId)?.let { unit ->
+                    unit.otherNodesVisible = true
+                    request.direction.takeIf { it in 0..3 }?.let { unit.direction = it }
+                    defaultPresentationAction(unit)
+                }
+            }
+            override fun setVisibleWhenShowUnitMissing(unitId: Int) = scriptRuntime.stage.setBattleUnitVisibility(unitId, true)
+            override fun setOldAvatar(unitId: String, avatarId: Int) { loadedBattleAvatarIds[unitId] = avatarId }
+            override fun publishLoadedAvatar(unitId: String, avatarId: Int) { loadedBattleAvatarIds[unitId] = avatarId }
+            override fun resumeScript() = scriptRuntime.resumeExternalDelay()
+        },
+    )
+    private val scriptedUnitTimed = ScriptedUnitTimedCoordinator(
+        scriptedUnitPresentation,
+        object : ScriptedUnitTimedCoordinator.Port {
+            override fun now() = animationClock()
+            override fun consumeMap() = scriptRuntime.stage.consumeMapPresentationRequest()
+            override fun focusMap(x: Int, y: Int) { focusCameraOnTile(x.toFloat(), y.toFloat(), forceCenter = true) }
+            override fun consumeCameraCenters() = scriptRuntime.stage.consumeCameraCenterRequests().map {
+                ScriptedUnitTimedCoordinator.CameraCenter(it.x, it.y)
+            }
+            override fun centerCamera(request: ScriptedUnitTimedCoordinator.CameraCenter) {
+                configureSourceCameraViewport()
+                battleCamera.centerTile(request.x, request.y, terrainGrid.width, terrainGrid.height)
+                recordFullBattleTraceFrame(
+                    0f,
+                    "transition:camera:center:${request.x}:${request.y}",
+                    advanceFrame = false,
+                )
+            }
+            override fun resumeScript() = scriptRuntime.resumeExternalDelay()
+        },
+    )
+    private val scriptedUnitActions = ScriptedUnitActionCoordinator(
+        scriptedUnitPresentation,
+        object : ScriptedUnitActionCoordinator.Port {
+            override fun now() = animationClock()
+            override fun consumeActions() = scriptRuntime.stage.consumeScriptedUnitActions()
+            override fun unit(action: ScriptedUnitAction) = liveScriptBattleUnit(action.unitId)
+            override fun applyDirection(unit: BattleUnit, direction: Int) { unit.direction = direction }
+            override fun clearVisual(unitId: String) { scriptedUnitPresentation.clearVisual(unitId) }
+            override fun setVisual(unitId: String, action: Int, startedAt: Float) {
+                scriptedUnitPresentation.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
+            }
+            override fun startSourceAction(unit: BattleUnit, action: Int) {
+                actionAnimation = sourceActionAnimation(unit.id, action, unit.direction)
+            }
+            override fun actionDuration(action: Int, direction: Int) = battleSprites.duration(action, direction)
+            override fun focus(unit: BattleUnit) { focusCameraOn(unit) }
+            override fun clearSourceAction(unitId: String) { if (actionAnimation?.unitId == unitId) actionAnimation = null }
+            override fun defaultAction(unitId: String) {
+                battle.presentation.presentationUnit(unitId)?.let(::defaultPresentationAction)
+            }
+            override fun resumeScript() = scriptRuntime.resumeExternalDelay()
+        },
+    )
 
     /** BattleUnit._avatar remains old until loadAvatar's async completion. */
     private val loadedBattleAvatarIds = mutableMapOf<String, Int>()
     private val scriptPresentationTimeline = ScriptPresentationTimeline()
+    private val scriptedUnitTargetSelector = ScriptedUnitTargetSelector(
+        visibleUnits = { (battle.units.values + battle.presentation.pendingPresentationUnits()).filter { it.visible } },
+        isMineMaster = ::isScriptMineMaster,
+        byCharacter = { liveScriptBattleUnit(it, visibleOnly = true) },
+    )
+    private val scriptedPresentation = ScriptedPresentationCoordinator(
+        scriptPresentationTimeline,
+        object : ScriptedPresentationCoordinator.Port {
+            override fun now() = animationClock()
+            override fun modalActive() = scriptRuntime.state == PlaybackState.MODAL
+            override fun consumeRequest() = scriptRuntime.stage.consumeScriptPresentationRequest()
+            override fun clearVisual(unitId: String) { scriptedUnitPresentation.clearVisual(unitId) }
+            override fun defaultAction(unitId: String) {
+                battle.presentation.presentationUnit(unitId)?.let(::defaultPresentationAction)
+            }
+            override fun playGetItemSound() { audio.playBattleEffect(14) }
+            override fun presentItemMessage(message: String) { scriptRuntime.presentExternalBattleInfo(message) }
+            override fun dismissUnitInfo() { unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss) }
+            override fun resumeScript() { scriptRuntime.resumeExternalDelay() }
+            override fun focusRectangle(x1: Int, y1: Int, x2: Int, y2: Int) {
+                focusCameraOnTile((x1 + x2) / 2f, (y1 + y2) / 2f, forceCenter = true)
+            }
+            override fun unitTarget(unitId: Int) = scriptBattleUnit(unitId)?.let {
+                ScriptedPresentationCoordinator.Target(it.id, it.direction)
+            }
+            override fun focusUnit(unitId: String) {
+                (battle.units.values + battle.presentation.pendingPresentationUnits())
+                    .firstOrNull { it.id == unitId }?.let(::focusCameraOn)
+            }
+            override fun openUnitInfo(unitId: Int) { openUnitInfoLayer(unitId) }
+            override fun itemTarget(selector: Int) = scriptedUnitTargetSelector.select(selector)?.let {
+                ScriptedPresentationCoordinator.Target(it.id, it.direction)
+            }
+            override fun setVisual(unitId: String, action: Int, startedAt: Float) {
+                scriptedUnitPresentation.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
+            }
+            override fun sourceActionDuration(action: Int, direction: Int) = requireSourceActionDuration(action, direction)
+            override fun focusMapObjects(request: ScenarioScriptPresentationRequest.MapObjects) {
+                request.objects.lastOrNull()?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
+            }
+            override fun statusTarget(values: List<Map<String, Any?>>): ScriptedPresentationCoordinator.Target? =
+                values.asSequence().mapNotNull { (it["unit"] as? ScenarioUnitReference)?.id }
+                    .firstOrNull()?.let(::scriptBattleUnit)?.let {
+                        ScriptedPresentationCoordinator.Target(it.id, it.direction)
+                    }
+        },
+    )
 
     /** Harm-number animation values visible from the attack `hit` event onward. */
     private val harmNumberAnimations = mutableMapOf<String, HarmNumberAnimation>()
@@ -2124,12 +2305,12 @@ void main() {
         driveMovementTicks()
         applyDueBattleMutations()
         driveSettlementPresentationController()
-        driveScriptedUnitHide()
-        driveScriptedUnitShow()
-        driveScriptedCameraCenters()
-        driveMapPresentation()
+        scriptedUnitCallbacks.driveHide()
+        scriptedUnitCallbacks.driveShow()
+        scriptedUnitTimed.driveCameraCenters()
+        scriptedUnitTimed.driveMap()
         driveScriptPresentation()
-        driveScriptedUnitActionCallback()
+        scriptedUnitActions.driveCallback()
         deathTimeline.tick(animationClock())
         pruneCombatPresentation()
         playPendingMagicEffectSounds()
@@ -2160,8 +2341,7 @@ void main() {
             hitReactionAnimations.values.none { animationClock() < it.endsAt } &&
             deathAnimations.values.none { animationClock() < it.endsAt } &&
             !deathTimeline.isBusy() &&
-            scriptedUnitPresentation.awaitingHideDialogue == null && scriptedUnitPresentation.activeHide == null &&
-                scriptedUnitPresentation.activeShow == null
+            !scriptedUnitCallbacks.hideBusy && !scriptedUnitCallbacks.showBusy
             && !combatPresentationBusy()
             && !outcomeCallbacksPending()
         ) enterLoseScene()
@@ -2198,7 +2378,7 @@ void main() {
         // `setPosts` writes the Unit first, then calls testAvatar/loadAvatar.
         // Starting the reload after that projection keeps the old sprite
         // visible during the async load while combat data is already fresh.
-        driveScriptedUnitPosts()
+        scriptedUnitCallbacks.drivePosts()
         syncDialogueSpeakerPresentation()
         driveNaturalBattleCompletion()
         // Project domain-derived HP/status state once the frame's mutations
@@ -4259,272 +4439,7 @@ void main() {
         deathTimeline.finishPostActionCallbacks()
     }
 
-    private fun driveScriptedUnitHide() {
-        val active = scriptedUnitPresentation.activeHide
-        if (active != null) {
-            if (animationClock() < active.endsAt) return
-            deathAnimations.remove(active.battleUnitId)
-            scriptRuntime.stage.completeUnitHide(active.request)
-            battle.presentation.presentationUnit(active.battleUnitId)?.let { unit ->
-                if (active.request.hideType != 0) battle.presentation.incrementUnitRetreat(unit)
-                unit.setHpcur(active.originalHp)
-                unit.visible = false
-            }
-            battle.presentation.completeScriptedUnitHide(active.battleUnitId)
-            scriptedUnitPresentation.finishHide()
-            if (active.request.resumesScript) scriptRuntime.resumeExternalDelay()
-            else driveScriptedUnitHide()
-            return
-        }
-        scriptedUnitPresentation.awaitingHideDialogue?.let { pending ->
-            if (scriptRuntime.currentDialogue != null) return
-            scriptedUnitPresentation.takeHideDialogue()
-            battle.presentation.presentationUnit(pending.battleUnitId)?.let { unit ->
-                startScriptedUnitHide(pending.request, unit)
-            } ?: run {
-                completeScriptedUnitHideWithoutAnimation(pending.request)
-                if (!pending.request.resumesScript) driveScriptedUnitHide()
-            }
-            return
-        }
-        val request = scriptRuntime.stage.consumeUnitHideRequest() ?: return
-        val unit = (battle.units.values + battle.presentation.pendingPresentationUnits())
-            .firstOrNull { candidate ->
-                request.battleUnitId?.let { candidate.id == it }
-                    ?: (candidate.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId)
-            }
-        if (unit == null) {
-            completeScriptedUnitHideWithoutAnimation(request)
-            if (!request.resumesScript) driveScriptedUnitHide()
-            return
-        }
-        if (!unit.visible) {
-            completeScriptedUnitHideWithoutAnimation(request)
-            if (!request.resumesScript) driveScriptedUnitHide()
-            return
-        }
-        focusCameraOn(unit)
-        val selfMaster = isScriptMineMaster(unit.id)
-        val effectiveHideType = if (request.hideType == 1 && selfMaster) 2 else request.hideType
-        val effectiveRequest = request.copy(hideType = effectiveHideType)
-        val message = unit.retireMessage.takeIf { unit.deathMessageEnabled }
-        if (request.showsRetireMessage && message != null) {
-            scriptedUnitPresentation.awaitHideDialogue(effectiveRequest, unit.id)
-            scriptRuntime.presentExternalBattleDialogue(Dialogue(unit.characterId?.toString(), message))
-            return
-        }
-        startScriptedUnitHide(effectiveRequest, unit)
-    }
-
-    private fun completeScriptedUnitHideWithoutAnimation(request: ScenarioUnitHideRequest) {
-        scriptRuntime.stage.completeUnitHide(request)
-        if (request.resumesScript) scriptRuntime.resumeExternalDelay()
-    }
-
-    private fun startScriptedUnitHide(request: ScenarioUnitHideRequest, unit: BattleUnit) {
-        focusCameraOn(unit)
-        val selfMaster = isScriptMineMaster(unit.id)
-        val effectiveHideType = request.hideType
-        val sourceAction = UnitDeathPresentation.hideAction(effectiveHideType, selfMaster)
-        val originalHp = unit.hitPoints
-        unit.retreatFlag = true
-        unit.otherNodesVisible = false
-        unit.setHpcur(0)
-        val startedAt = animationClock()
-        val endsAt = startedAt + requireSourceActionDuration(sourceAction, unit.direction)
-        deathAnimations[unit.id] = UnitActionAnimation(
-            unit.id, UnitAnimationKind.DEATH, unit.direction, startedAt, endsAt, sourceAction,
-        )
-        scriptedUnitPresentation.startHide(request, unit.id, endsAt, originalHp)
-    }
-
-    /** BattleUnit.show restores model state before awaiting its native show callback. */
-    private fun driveScriptedUnitShow() {
-        scriptedUnitPresentation.activeShow?.let { active ->
-            if (animationClock() < active.endsAt) return
-            scriptedUnitPresentation.clearVisual(active.battleUnitId)
-            battle.presentation.presentationUnit(active.battleUnitId)?.let { unit ->
-                unit.otherNodesVisible = true
-                active.request.direction.takeIf { it in 0..3 }?.let { unit.direction = it }
-                defaultPresentationAction(unit)
-            }
-            scriptedUnitPresentation.finishShow()
-            scriptRuntime.resumeExternalDelay()
-            return
-        }
-        val request = scriptRuntime.stage.consumeUnitShowRequest() ?: return
-        val existing = (battle.units.values + battle.presentation.pendingPresentationUnits())
-            .firstOrNull { it.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId }
-        if (existing == null) {
-            scriptRuntime.stage.setBattleUnitVisibility(request.unitId, true)
-            scriptRuntime.resumeExternalDelay()
-            return
-        }
-        val unit = battle.presentation.restorePresentationUnit(existing.id) ?: existing
-        val requestedX = request.x.takeIf { it >= 0 } ?: unit.tileX
-        val requestedY = request.y.takeIf { it >= 0 } ?: unit.tileY
-        val target = if (battle.unitAt(requestedX, requestedY)?.let { it !== unit } == true) {
-            listOf(
-                requestedX to requestedY - 1,
-                requestedX + 1 to requestedY,
-                requestedX - 1 to requestedY,
-                requestedX to requestedY + 1,
-            ).firstOrNull { (x, y) ->
-                x in 0..boardMaxX && y in 0..boardMaxY && battle.unitAt(x, y)?.let { it !== unit } != true
-            }
-                ?: (unit.tileX to unit.tileY)
-        } else requestedX to requestedY
-        unit.tileX = target.first
-        unit.tileY = target.second
-        // BattleUnit.show calls setPos before centerUnit; its node is now at
-        // the authored _countPos tile even when the original create record
-        // omitted one or both coordinates.
-        unit.hasAuthoredTileX = true
-        unit.hasAuthoredTileY = true
-        request.direction.takeIf { it in 0..3 }?.let { unit.direction = it }
-        scriptRuntime.stage.unit(request.unitId).apply {
-            x = unit.tileX
-            y = unit.tileY
-        }
-        scriptRuntime.stage.setBattleUnitVisibility(request.unitId, true)
-        focusCameraOn(unit)
-        val revive = request.flags and 1 != 0
-        unit.otherNodesVisible = !revive
-        val startedAt = animationClock()
-        val duration = if (revive) requireSourceActionDuration(46, unit.direction) else .2f
-        if (revive) scriptedUnitPresentation.setVisual(unit.id, ScriptedUnitVisual(46, startedAt))
-        scriptedUnitPresentation.startShow(request, unit.id, startedAt + duration)
-    }
-
-    /**
-     * BattleUnit.setPosts(…, flags) is not a generic delay: only the source
-     * `flags & 16 && testAvatar()` route pauses, loads its replacement image,
-     * and resumes from loadAvatar's completion callback.  A LibGDX texture is
-     * decoded synchronously when first drawn, but this one-render FIFO edge
-     * preserves the authored async callback boundary.
-     */
-    private fun driveScriptedUnitPosts() {
-        scriptedUnitPresentation.activePosts?.let { active ->
-            loadedBattleAvatarIds[active.battleUnitId] = active.request.newAvatarId
-            scriptedUnitPresentation.finishPosts()
-            if (active.request.pausesScript) scriptRuntime.resumeExternalDelay()
-            return
-        }
-        val request = scriptRuntime.stage.consumeUnitPostsRequest() ?: return
-        val unit = scriptBattleUnit(request.unitId)
-        if (unit == null) {
-            if (request.pausesScript) scriptRuntime.resumeExternalDelay()
-            return
-        }
-        // The old group is still what Cocos displays while loadUnitPicture is
-        // pending; only its completion publishes the new avatar and resumes.
-        loadedBattleAvatarIds[unit.id] = request.oldAvatarId
-        scriptedUnitPresentation.startPosts(request, unit.id)
-    }
-
-    /** StageLayer.setObject2/playMagicMeff use exact tile centering, not _contains. */
-    private fun driveScriptedCameraCenters() {
-        val requests = scriptRuntime.stage.consumeCameraCenterRequests()
-        if (requests.isEmpty()) return
-        configureSourceCameraViewport()
-        requests.forEach { request ->
-            battleCamera.centerTile(request.x, request.y, terrainGrid.width, terrainGrid.height)
-            recordFullBattleTraceFrame(
-                0f,
-                "transition:camera:center:${request.x}:${request.y}",
-                advanceFrame = false,
-            )
-        }
-    }
-
-    /** StageLayer.setObject2/playMagicMeff use exact tile centering, not _contains. */
-    private fun driveMapPresentation() {
-        scriptedUnitPresentation.activeMap?.let { active ->
-            if (animationClock() < active.endsAt) return
-            scriptedUnitPresentation.finishMap()
-            scriptRuntime.resumeExternalDelay()
-            return
-        }
-        val request = scriptRuntime.stage.consumeMapPresentationRequest() ?: return
-        focusCameraOnTile(request.x.toFloat(), request.y.toFloat(), forceCenter = true)
-        scriptedUnitPresentation.startMap(request, animationClock() + request.duration)
-    }
-
-    /**
-     * FIFO owner for source Stage/BattleUnit calls that pause their Python
-     * Script until a visible native callback.  Never start two requests in
-     * one render: resumeExternalDelay may synchronously emit the next one.
-     */
-    private fun driveScriptPresentation() {
-        val now = animationClock()
-        val advance = scriptPresentationTimeline.advance(now, scriptRuntime.state == PlaybackState.MODAL)
-        advance.effects.forEach { effect ->
-            when (effect) {
-                is ScriptPresentationTimeline.Effect.FinishUnitAction -> {
-                    scriptedUnitPresentation.clearVisual(effect.battleUnitId)
-                    battle.presentation.presentationUnit(effect.battleUnitId)?.let(::defaultPresentationAction)
-                }
-                ScriptPresentationTimeline.Effect.PlayGetItemSound -> audio.playBattleEffect(14)
-                is ScriptPresentationTimeline.Effect.PresentItemMessage ->
-                    scriptRuntime.presentExternalBattleInfo(effect.message)
-                ScriptPresentationTimeline.Effect.DismissUnitInfo ->
-                    unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
-                ScriptPresentationTimeline.Effect.ResumeScript -> scriptRuntime.resumeExternalDelay()
-            }
-        }
-        if (!advance.acceptsNewRequest) return
-        val request = scriptRuntime.stage.consumeScriptPresentationRequest() ?: return
-        when (request) {
-            is ScenarioScriptPresentationRequest.RectangleHighlight -> {
-                focusCameraOnTile((request.x1 + request.x2) / 2f, (request.y1 + request.y2) / 2f, forceCenter = true)
-                scriptPresentationTimeline.startTimed(request, now, request.durationSeconds)
-            }
-
-            is ScenarioScriptPresentationRequest.UnitHighlight -> {
-                val unit = scriptBattleUnit(request.unitId)
-                if (unit == null) {
-                    scriptRuntime.resumeExternalDelay()
-                    return
-                }
-                focusCameraOn(unit)
-                if (request.opensUnitInfo) openUnitInfoLayer(request.unitId)
-                scriptPresentationTimeline.startTimed(request, now, request.durationSeconds, unit.id)
-            }
-
-            is ScenarioScriptPresentationRequest.MapObjects -> {
-                request.objects.lastOrNull()
-                    ?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
-                scriptPresentationTimeline.startTimed(request, now, request.durationSeconds)
-            }
-
-            is ScenarioScriptPresentationRequest.GetItem -> {
-                val unit = scriptItemUnit(request.unitSelector)
-                if (unit == null) {
-                    scriptRuntime.resumeExternalDelay()
-                    return
-                }
-                focusCameraOn(unit)
-                scriptedUnitPresentation.setVisual(unit.id, ScriptedUnitVisual(request.action, now))
-                val duration = requireSourceActionDuration(request.action, unit.direction)
-                scriptPresentationTimeline.startItem(request, now, duration, unit.id)
-            }
-
-            is ScenarioScriptPresentationRequest.UnitStatusSettlement -> {
-                val characterId = request.values.asSequence()
-                    .mapNotNull { (it["unit"] as? ScenarioUnitReference)?.id }
-                    .firstOrNull()
-                val unit = characterId?.let(::scriptBattleUnit)
-                unit?.let(::focusCameraOn)
-                val duration = request.values.maxOfOrNull { change ->
-                    val hp = kotlin.math.abs((change["hp"] as? Number)?.toInt() ?: 0)
-                    val mp = kotlin.math.abs((change["mp"] as? Number)?.toInt() ?: 0)
-                    minOf(maxOf(hp, mp), 5) * .2f +
-                            if (change.containsKey("status") || change.containsKey("hStatus")) .6f else 0f
-                }?.coerceAtLeast(request.minimumDurationSeconds) ?: request.minimumDurationSeconds
-                scriptPresentationTimeline.startTimed(request, now, duration, unit?.id)
-            }
-        }
-    }
+    private fun driveScriptPresentation() = scriptedPresentation.drive()
 
     private fun liveScriptBattleUnit(characterId: Int, visibleOnly: Boolean = false): BattleUnit? {
         val units = battle.units.values + battle.presentation.pendingPresentationUnits()
@@ -4539,30 +4454,6 @@ void main() {
     /** BattleScreen.selfMasterId(1): `_unitIds[characterId]` selects first push. */
     private fun isScriptMineMaster(unitId: String): Boolean =
         scriptRuntime.stage.battleUnitForCharacterId(scriptRuntime.stage.mineMasterInstanceId)?.battleId == unitId
-
-    /** Exact BattleScreen._filterUnit selectors used by getItem. */
-    private fun scriptItemUnit(selector: Int): BattleUnit? {
-        val units = (battle.units.values + battle.presentation.pendingPresentationUnits()).filter { it.visible }
-        return when (selector) {
-            1024 -> units.firstOrNull()
-            1025 -> units.firstOrNull { it.isPlayerSide() }
-            1026 -> units.firstOrNull { it.type().isEnemySide() }
-            1027 -> units.firstOrNull { isScriptMineMaster(it.id) }
-                ?: units.firstOrNull { it.isPlayerSide() }
-
-            else -> liveScriptBattleUnit(selector, visibleOnly = true)
-        }
-    }
-
-    private fun driveScriptedUnitActionCallback() {
-        val active = scriptedUnitPresentation.activeAction ?: return
-        if (animationClock() < active.endsAt) return
-        if (actionAnimation?.unitId == active.battleUnitId) actionAnimation = null
-        scriptedUnitPresentation.clearVisual(active.battleUnitId)
-        battle.presentation.presentationUnit(active.battleUnitId)?.let(::defaultPresentationAction)
-        scriptedUnitPresentation.finishAction()
-        scriptRuntime.resumeExternalDelay()
-    }
 
     private fun pruneCombatPresentation() {
         val now = animationClock()
@@ -4664,8 +4555,8 @@ void main() {
         return BattleBootstrapCallbackState(
             move = scriptRuntime.stage.units.values.any { it.moveDuration > 0f },
             attackAction = now < scriptedAttackCallbackEndsAt,
-            hide = scriptedUnitPresentation.hideBusy,
-            show = scriptedUnitPresentation.showBusy,
+            hide = scriptedUnitCallbacks.hideBusy,
+            show = scriptedUnitCallbacks.showBusy,
             fight = activeFightCommand != null || pendingFightCommands.isNotEmpty(),
         ).blockingReasons()
     }
@@ -4749,8 +4640,8 @@ void main() {
                 hitReactionAnimations.values.any { now < it.endsAt } ||
                 deathAnimations.values.any { now < it.endsAt } ||
                 deathTimeline.isBusy() ||
-                scriptedUnitPresentation.hideBusy || scriptedUnitPresentation.showBusy ||
-                scriptPresentationTimeline.isActive() || scriptedUnitPresentation.actionBusy ||
+                scriptedUnitCallbacks.hideBusy || scriptedUnitCallbacks.showBusy ||
+                scriptedUnitTimed.busy || scriptPresentationTimeline.isActive() || scriptedUnitActions.busy ||
                 magicEffectAnimations.any { now < it.endsAt } ||
                 queuedMagicPresentation != null ||
                 activeCounterMagicPresentation?.let { now < it.endsAt } == true ||
@@ -10040,34 +9931,7 @@ void main() {
                 }
         }
         applyScriptedAttacks()
-        scriptRuntime.stage.consumeScriptedUnitActions().forEach { action ->
-            val unit = liveScriptBattleUnit(action.unitId)
-            if (unit == null) {
-                if (action.awaitsFinishedCallback) scriptRuntime.resumeExternalDelay()
-            } else {
-                action.direction.takeIf { it in 0..3 }?.let { unit.direction = it }
-                if (action.action == 0) {
-                    scriptedUnitPresentation.clearVisual(unit.id)
-                } else if (action.action in setOf(6, 25, 48)) {
-                    actionAnimation = sourceActionAnimation(unit.id, action.action, unit.direction)
-                } else {
-                    scriptedUnitPresentation.setVisual(unit.id, ScriptedUnitVisual(action.action, animationClock()))
-                }
-                if (action.awaitsFinishedCallback) {
-                    val duration = battleSprites.duration(action.action, unit.direction)
-                    if (duration <= 0f) {
-                        // setAction2 returns false when the BRAnime clip is
-                        // absent, therefore BattleUnit.setAction never pauses.
-                        scriptRuntime.resumeExternalDelay()
-                    } else {
-                        focusCameraOn(unit)
-                        scriptedUnitPresentation.startAction(
-                            action, unit.id, animationClock() + duration,
-                        )
-                    }
-                }
-            }
-        }
+        scriptedUnitActions.consumeStarts()
         applyScriptedStatuses()
         // This is a per-synchronization transition baseline, not a snapshot
         // for the lifetime of scene1. Leaving it at runBattleScript's entry

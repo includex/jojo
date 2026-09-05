@@ -34,8 +34,6 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
-import java.nio.file.Files
-import java.nio.file.Path
 
 /**
  * class  `ScenarioScreen`
@@ -51,8 +49,6 @@ class ScenarioScreen(
     private val verifyMode: Boolean,
     private val branchVerifyMode: Boolean,
     private val alternateBranchVerifyMode: Boolean,
-    private val scriptedChoices: List<Int>,
-    private val allowPendingChoiceAfterScript: Boolean,
     private val scriptedRandomValues: List<Int>,
     private val scriptedInfoTransferRandomValues: List<Int>,
     private val scriptedGlobals: Map<Int, Int>,
@@ -67,8 +63,6 @@ class ScenarioScreen(
     private val scriptedBattleEnemyDefeated: Boolean,
     private val scriptedStartScene: String,
     private val scriptedStartLabel: String?,
-    private val choiceTracePath: String?,
-    private val randomTracePath: String?,
     private val stopAfterRandomTrace: Boolean,
     private val stopAfterRandomTraceCount: Int?,
     private val campaign: CampaignState,
@@ -596,29 +590,6 @@ class ScenarioScreen(
             )
             Gdx.app.exit()
         }
-        if (scriptedChoices.isNotEmpty()) {
-            scriptedChoices.forEachIndexed { step, choiceIndex ->
-                advanceSourceUntilChoice()
-                val choice = requireNotNull(playback.currentChoice) { "$moduleName choice script step $step reached completion before a choice" }
-                require(choiceIndex in choice.options.indices) { "$moduleName choice script step $step selected $choiceIndex, options=${choice.options.size}" }
-                playback.selectChoice(choiceIndex)
-                confirmChoice()
-            }
-            advanceSourceUntilChoice()
-            check(playback.state == PlaybackState.COMPLETE || (allowPendingChoiceAfterScript && playback.state == PlaybackState.CHOICE)) {
-                "$moduleName choice script ended with an unconsumed choice"
-            }
-            choiceTracePath?.let(::writeChoiceTrace)
-            randomTracePath?.let(::writeRandomTrace)
-            Gdx.app.log("JojoGame", "VERIFY_CHOICE_SCRIPT_OK: $moduleName choices=${scriptedChoices.joinToString(",")} random=${scriptedRandomValues.joinToString(",")} draws=${playback.randomDrawCount} randomRemaining=${playback.remainingInjectedRandomCount} round=$scriptedBattleRound camp=$scriptedBattleCamp pendingChoice=${playback.state == PlaybackState.CHOICE}")
-            Gdx.app.exit()
-        }
-        if (scriptedChoices.isEmpty() && randomTracePath != null) {
-            advanceSourceUntilChoice()
-            writeRandomTrace(randomTracePath)
-            Gdx.app.log("JojoGame", "VERIFY_RANDOM_TRACE_OK: $moduleName draws=${playback.randomTrace.size}")
-            Gdx.app.exit()
-        }
     }
 
     /** Draws the post-update scene and reports capture completion to its caller. */
@@ -701,6 +672,10 @@ class ScenarioScreen(
             hallBattleScenePending = scenarioNavigation.hallBattleScenePending,
             battleButtonScreenX = battleButton.x.toInt(),
             battleButtonScreenY = (Gdx.graphics.height - battleButton.y).toInt(),
+            choiceTrace = playback.choiceTrace.toList(),
+            randomTrace = playback.randomTrace.toList(),
+            randomDrawCount = playback.randomDrawCount,
+            remainingInjectedRandomCount = playback.remainingInjectedRandomCount,
         )
     }
 
@@ -710,7 +685,7 @@ class ScenarioScreen(
     }
 
     private fun isVerificationRun(): Boolean = verifyMode || branchVerifyMode || alternateBranchVerifyMode ||
-        scriptedChoices.isNotEmpty() || choiceTracePath != null || randomTracePath != null
+        game.externalScenarioDriverKeepsScreenOpen()
 
     private fun advanceSourceUntilChoice() {
         var guard = 0
@@ -731,24 +706,6 @@ class ScenarioScreen(
             check(++guard <= 10_000) { "$moduleName branch delay did not settle" }
             playback.skipDelay()
         }
-    }
-
-    private fun writeChoiceTrace(rawPath: String) {
-        val entries = playback.choiceTrace.joinToString(",") { trace ->
-            "{\"module\":\"${trace.module}\",\"function\":\"${trace.function}\",\"line\":${trace.line},\"option\":${trace.option},\"optionCount\":${trace.optionCount}}"
-        }
-        val path = Path.of(rawPath)
-        path.parent?.let(Files::createDirectories)
-        Files.writeString(path, "{\"choices\":[${entries}]}\n")
-    }
-
-    private fun writeRandomTrace(rawPath: String) {
-        val entries = playback.randomTrace.joinToString(",") { trace ->
-            "{\"module\":\"${trace.module}\",\"function\":\"${trace.function}\",\"line\":${trace.line},\"value\":${trace.value}}"
-        }
-        val path = Path.of(rawPath)
-        path.parent?.let(Files::createDirectories)
-        Files.writeString(path, "{\"random\":[${entries}]}\n")
     }
 
     private fun drawBattlefield(drawCharacters: Boolean = true, drawUnits: Boolean = drawCharacters) {
@@ -922,337 +879,12 @@ class ScenarioScreen(
     }
 
     private fun drawExclusiveLayer(layer: ExclusiveLayer) {
-        val scale = .86f
-
-        /**
-         * 공개 메서드 `texture`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun texture(name: String): Texture? {
-            val path = "maps/ui/start-battle/$name.png"
-            return hallMenuTextures[path] ?: Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[path] = it
-            }
-        }
-
-        /**
-         * 공개 메서드 `patch`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `inset` (`Int = 3`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `NinePatch?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun patch(name: String, inset: Int = 3): NinePatch? =
-            texture(name)?.let { NinePatch(it, inset, inset, inset, inset) }
-
-        /**
-         * 공개 메서드 `tiled`
-         *
-         * ### 파라미터
-        - `tex` (`Texture`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun tiled(tex: Texture, x: Float, y: Float, width: Float, height: Float) {
-            val tw = tex.width * scale
-            val th = tex.height * scale
-            var dy = 0f
-            while (dy < height - .01f) {
-                val dh = minOf(th, height - dy)
-                val sh = (dh / scale).toInt().coerceIn(1, tex.height)
-                var dx = 0f
-                while (dx < width - .01f) {
-                    val dw = minOf(tw, width - dx)
-                    val sw = (dw / scale).toInt().coerceIn(1, tex.width)
-                    batch.draw(tex, x + dx, y + dy, dw, dh, 0, 0, sw, sh, false, false)
-                    dx += tw
-                }
-                dy += th
-            }
-        }
-
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(value: String, x: Float, y: Float, width: Float) {
-            bodyFont.color = Color.BLACK
-            bodyFont.draw(batch, value, x * scale, (y + 43f) * scale, width * scale, Align.center, false)
-        }
-
-        /**
-         * 공개 메서드 `header`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun header(x: Float, y: Float, width: Float, value: String) {
-            patch("box4")?.draw(batch, x * scale, y * scale, width * scale, 60f * scale)
-            label(value, x, y + 3f, width)
-        }
-
-        /**
-         * 공개 메서드 `button`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `labelWidth` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun button(x: Float, value: String, labelWidth: Float) {
-            patch("box3")?.draw(batch, x * scale, 54.533f * scale, 200f * scale, 54f * scale)
-            label(value, x + (200f - labelWidth) / 2f, 59.533f, labelWidth)
-        }
-
-        batch.color = Color.WHITE
-        texture("logo9")?.let { tiled(it, 136.186f * scale, 47f * scale, 1216f * scale, 706f * scale) }
-        patch("box1")?.draw(batch, 136.186f * scale, 47f * scale, 1216f * scale, 706f * scale)
-        texture("title")?.let { batch.draw(it, 136.186f * scale, 703f * scale, 1216f * scale, 50f * scale) }
-        label("장비 정보", 669.431f, 702.8f, 149.51f)
-        if (layer.selectedTab == ExclusiveLayer.Tab.SET_LIST) {
-            patch("box4")?.draw(batch, 138.186f * scale, 117.5f * scale, 1212f * scale, 585f * scale)
-            texture("vline")?.let { line ->
-                listOf(371.375f, 604.197f, 840.498f).forEach { x ->
-                    batch.draw(line, x * scale, 120.254f * scale, 6f * scale, 524.8f * scale)
-                }
-            }
-            header(138.586f, 642.1f, 236f, "무기")
-            header(374.586f, 642.1f, 233f, "보구")
-            header(607.636f, 642.1f, 236.5f, "보조")
-            header(844.036f, 642.1f, 506.1f, "특수 효과")
-        } else {
-            patch("box4")?.draw(batch, 140.186f * scale, 117.45f * scale, 1208f * scale, 585.7f * scale)
-            texture("vline")?.let { line ->
-                listOf(321.257f to 119.319f, 565.153f to 119.205f).forEach { (x, y) ->
-                    batch.draw(line, x * scale, y * scale, 6f * scale, 524.8f * scale)
-                }
-            }
-            header(140.85f, 643.3f, 185f, "소지자")
-            header(324.236f, 643.3f, 243.9f, "이름")
-            header(568.186f, 643.3f, 780f, "특수 효과")
-        }
-        button(354.241f, "전용 목록", 167f)
-        button(147.282f, "세트 목록", 167f)
-        button(1141.864f, "확인", 100f)
-        batch.color = Color.WHITE
+        HallExclusiveRenderer.draw(sceneAssets, batch, HallExclusiveView.from(layer))
     }
 
     /** Global127 opened from UnitInfoLayer's GVar4074-gated button8. */
     private fun drawFeatsLayer(layer: FeatsLayer) {
-        val scale = .86f
-
-        /**
-         * 공개 메서드 `texture`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun texture(name: String): Texture? {
-            val candidates = when (name) {
-                "bg1", "box3" -> listOf("maps/ui/unit-info/$name.png", "maps/ui/win-condition/$name.png")
-                "vline" -> listOf("maps/ui/terrain-layer/vline.png", "maps/ui/title/load/vline.png")
-                "logo3" -> listOf("maps/ui/win-condition/logo3.png")
-                else -> listOf("maps/ui/start-battle/$name.png")
-            }
-            return candidates.firstNotNullOfOrNull { path ->
-                hallMenuTextures[path] ?: Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also {
-                    it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                    hallMenuTextures[path] = it
-                }
-            }
-        }
-
-        /**
-         * 공개 메서드 `patch`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `inset` (`Int = 3`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `NinePatch?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun patch(name: String, inset: Int = 3): NinePatch? =
-            (texture(name) ?: when (name) {
-                "box4" -> texture("box1"); "mark5" -> texture("button"); else -> null
-            })
-                ?.let { NinePatch(it, inset, inset, inset, inset) }
-
-        /**
-         * 공개 메서드 `tiled`
-         *
-         * ### 파라미터
-        - `tex` (`Texture`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun tiled(tex: Texture, x: Float, y: Float, width: Float, height: Float) {
-            val tw = tex.width * scale
-            val th = tex.height * scale
-            var dy = 0f
-            while (dy < height - .01f) {
-                val dh = minOf(th, height - dy)
-                val sh = (dh / scale).toInt().coerceIn(1, tex.height)
-                var dx = 0f
-                while (dx < width - .01f) {
-                    val dw = minOf(tw, width - dx)
-                    val sw = (dw / scale).toInt().coerceIn(1, tex.width)
-                    batch.draw(tex, x + dx, y + dy, dw, dh, 0, 0, sw, sh, false, false)
-                    dx += tw
-                }
-                dy += th
-            }
-        }
-
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `align` (`Int = Align.center`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `wrap` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(value: String, x: Float, y: Float, width: Float, align: Int = Align.center, wrap: Boolean = false) {
-            bodyFont.color = Color.BLACK
-            bodyFont.draw(batch, value, x * scale, (y + 42f) * scale, width * scale, align, wrap)
-        }
-        batch.color = Color.WHITE
-        texture("logo9")?.let { tiled(it, 267.686f * scale, 83.5f * scale, 953f * scale, 633f * scale) }
-        patch("box4")?.draw(batch, 267.686f * scale, 83.5f * scale, 953f * scale, 633f * scale)
-        texture("bg1")?.let { batch.draw(it, 267.686f * scale, 656.5f * scale, 953f * scale, 60f * scale) }
-        patch("box3")?.draw(batch, 267.686f * scale, 656.5f * scale, 953f * scale, 60f * scale)
-        label("공훈", 669.686f, 662.3f, 71.2f)
-        texture("logo9")?.let { tiled(it, 277.686f * scale, 158.45f * scale, 933f * scale, 442.7f * scale) }
-        texture("box2")?.let { tiled(it, 277.686f * scale, 158.45f * scale, 933f * scale, 442.7f * scale) }
-        layer.view().rows.forEachIndexed { index, row ->
-            val rowY = 529.15f - index * 74f
-            patch("box2")?.draw(batch, 279.686f * scale, rowY * scale, 929f * scale, 70f * scale)
-            label(
-                row.title, if (row.title == "민첩성") 290.286f else 307.586f, rowY + 9.8f,
-                if (row.title == "민첩성") 107.8f else 73.2f
-            )
-            label(row.ability.toString(), 462.941f, rowY + 9.8f, 48.49f)
-            label(row.phaseLabel, 1086.816f, rowY + 9.8f, 70.74f)
-            patch("bg1")?.draw(batch, 572.186f * scale, (rowY + 20f) * scale, 446f * scale, 30f * scale)
-            patch("box2")?.draw(batch, 574.186f * scale, (rowY + 20f) * scale, 442f * scale, 30f * scale)
-            patch("mark5")?.draw(
-                batch,
-                574.186f * scale,
-                (rowY + 22f) * scale,
-                442f * row.progressRatio * scale,
-                26f * scale
-            )
-            label(row.progressLabel, 743.136f, rowY + 18.454f, 104.1f)
-        }
-        texture("vline")?.let { line ->
-            listOf(410.859f, 555.31f, 1027.419f).forEach { x ->
-                batch.draw(line, x * scale, 160.25f * scale, 6f * scale, 450.3f * scale)
-            }
-        }
-        /**
-         * 공개 메서드 `header`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `lx` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `lw` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun header(x: Float, y: Float, w: Float, h: Float, value: String, lx: Float, lw: Float) {
-            patch("bg1")?.draw(batch, x * scale, y * scale, w * scale, h * scale)
-            patch("box3")?.draw(batch, x * scale, y * scale, w * scale, h * scale)
-            label(value, lx, 607.081f, lw)
-        }
-        header(272.836f, 601.45f, 142.7f, 55.1f, "능력 이름", 269.431f, 149.51f)
-        header(415.436f, 601.45f, 143.5f, 55.1f, "능력치", 435.286f, 103.8f)
-        header(559.136f, 601.5f, 472.1f, 55f, "현재/업그레이드 필요 공훈", 588.216f, 413.94f)
-        header(1030.886f, 601.45f, 182.6f, 55.1f, "상위 단계로 승급하는 데 필요함", 875.061f, 494.25f)
-        patch("box3")?.draw(batch, 1059.386f * scale, 96f * scale, 147.6f * scale, 56f * scale)
-        label("확인", 1083.186f, 104f, 100f)
-        patch("box3")?.draw(batch, 904.386f * scale, 96f * scale, 147.6f * scale, 56f * scale)
-        label("설명", 928.186f, 104f, 100f)
-        if (hallFeatsHelpOpen) {
-            texture("logo9")?.let { tiled(it, 426.686f * scale, 252f * scale, 635f * scale, 296f * scale) }
-            patch("box3")?.draw(batch, 426.686f * scale, 252f * scale, 635f * scale, 296f * scale)
-            texture("logo3")?.let { batch.draw(it, 453.005f * scale, 373.951f * scale, 106f * scale, 124f * scale) }
-            label(FeatsLayer.HELP_TEXT, 573.686f, 335f, 463f, Align.left, true)
-            patch("box3")?.draw(batch, 654.186f * scale, 271.285f * scale, 180f * scale, 50f * scale)
-            label("예", 657.586f, 279.085f, 169.4f)
-        }
-        batch.color = Color.WHITE
+        HallFeatsRenderer.draw(sceneAssets, batch, HallFeatsView.from(layer, hallFeatsHelpOpen))
     }
 
     private fun drawMagicLayer(layer: MagicInfoLayer) {

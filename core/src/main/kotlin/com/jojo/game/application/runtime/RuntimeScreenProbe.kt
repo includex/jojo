@@ -3,6 +3,8 @@ package com.jojo.game.application.runtime
 import com.jojo.game.BattleOutcome
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.scenario.PlaybackState
+import com.jojo.game.application.scenario.ScenarioChoiceTrace
+import com.jojo.game.application.scenario.ScenarioRandomTrace
 
 /**
  * Read-only application boundary for external diagnostics that need to drive
@@ -13,6 +15,9 @@ fun interface RuntimeScreenObserver {
     fun update(delta: Float, screen: RuntimeScreenProbe)
 
     fun scenarioStarted(module: String, index: Int) = Unit
+
+    /** External driver explicitly requests that ScenarioScreen not auto-route. */
+    val keepsScenarioOpen: Boolean get() = false
 }
 
 sealed interface RuntimeScreenProbe {
@@ -36,6 +41,12 @@ data class ScenarioRuntimeProbe(
     val hallBattleScenePending: Boolean,
     val battleButtonScreenX: Int,
     val battleButtonScreenY: Int,
+    /** Immutable diagnostic evidence; external observers own serialization. */
+    val choiceTrace: List<ScenarioChoiceTrace> = emptyList(),
+    /** Immutable diagnostic evidence; external observers own serialization. */
+    val randomTrace: List<ScenarioRandomTrace> = emptyList(),
+    val randomDrawCount: Int = 0,
+    val remainingInjectedRandomCount: Int = 0,
 ) : RuntimeScreenProbe {
     override val screenName: String = "ScenarioScreen"
 }

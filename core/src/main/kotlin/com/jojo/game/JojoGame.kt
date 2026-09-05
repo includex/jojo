@@ -62,6 +62,9 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
         configuration.runtimeScreenObserver?.scenarioStarted(module, index)
     }
 
+    internal fun externalScenarioDriverKeepsScreenOpen(): Boolean =
+        configuration.runtimeScreenObserver?.keepsScenarioOpen == true
+
     internal fun preferences(name: String) = preferenceProvider.get(name)
     internal fun settingsPreferences() = preferenceProvider.settings()
 
