@@ -76,10 +76,10 @@ for (const fixture of expected) {
     `source dialogue ${fixture.step} unexpectedly changed: ${JSON.stringify(sourceText)}`);
   const gameImage = resolve(root, `build/yingchuan-dialogue-${fixture.step}-game.png`);
   try { unlinkSync(gameImage); } catch { /* absent is fresh */ }
-  const classpath = process.env.JOJO_DESKTOP_CLASSPATH;
+  const classpath = process.env.JOJO_VERIFICATION_CLASSPATH;
   const gameOutput = classpath
     ? run("java", ["-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp", classpath,
-      "com.jojo.game.desktop.DesktopLauncher", "--battle", "--scenario=S_00",
+      "com.jojo.game.verification.VerificationDesktopLauncher", "--battle", "--scenario=S_00",
       `--capture-state=yingchuan-dialogue-${fixture.step}`, `--capture=${gameImage}`], root)
     : run("./gradlew", [
       ":desktop:run", "--no-daemon",

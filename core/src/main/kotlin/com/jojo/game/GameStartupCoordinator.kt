@@ -11,7 +11,7 @@ import com.jojo.game.domain.campaign.*
 internal class GameStartupCoordinator(
     private val configuration: GameLaunchConfiguration,
     private val campaignState: CampaignState,
-    private val routeCaptureFixture: () -> Boolean,
+    private val routeRuntimeStartup: () -> Boolean,
     private val showBattle: () -> Unit,
     private val showTitle: () -> Unit,
     private val showScenario: (String) -> Unit,
@@ -30,7 +30,7 @@ internal class GameStartupCoordinator(
 
     fun start() {
         if (configuration.yingchuanEntryFlowTracePath != null) campaignState.reset()
-        if (routeCaptureFixture()) return
+        if (routeRuntimeStartup()) return
 
         val directBattleScenario = configuration.initialScenario.replaceFirst("R_", "S_")
         if (configuration.entryPoint == GameEntryPoint.BATTLE &&

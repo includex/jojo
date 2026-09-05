@@ -51,6 +51,7 @@ internal data class VerificationDesktopLaunchOptions(
         scenarioRun = scenarioRun,
         verification = verification,
         capture = capture,
+        runtimeArtifactObserver = VerificationArtifactObserver(capture),
         fullBattleTrace = fullBattleTrace,
         yingchuanEntryFlowTracePath = yingchuanEntryFlowTracePath,
         automatedRun = true,

@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
 /** Strict-log diagnostic entered through the real game Buy/Sell adapters. */
-class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val textures = mutableListOf<Texture>()
@@ -104,6 +104,7 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
      */
 
     fun renderEventLog(): String = MsgBox3RenderEvents.jsonl(state, model)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
     override fun dispose() {

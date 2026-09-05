@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
 /** Deterministic game rendering of the production Global130 AttributeLayer. */
-class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
+class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val background = Texture(Gdx.files.internal("maps/71.jpg"))
@@ -67,6 +67,7 @@ class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
         }
         return l.jsonl()
     }
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
     override fun dispose() {

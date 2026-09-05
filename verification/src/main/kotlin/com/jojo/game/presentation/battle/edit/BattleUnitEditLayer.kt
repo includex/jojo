@@ -455,7 +455,7 @@ object BattleUnitEditRenderEvents {
 }
 
 /** Deterministic execution of the real Hall -> Forces -> UnitInfo -> id22 route. */
-class BattleUnitEditRouteScreen(private val game: JojoGame, private val route: BattleUnitEditRoute) : ScreenAdapter() {
+class BattleUnitEditRouteScreen(private val game: JojoGame, private val route: BattleUnitEditRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val entry = HallBattleUnitEditRoute(true)
     private val edit = BattleUnitEditLayer()
@@ -496,6 +496,7 @@ class BattleUnitEditRouteScreen(private val game: JojoGame, private val route: B
      */
 
     fun renderEventLog() = BattleUnitEditRenderEvents.jsonl(route)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
     override fun dispose() {
         shapes.dispose()
     }

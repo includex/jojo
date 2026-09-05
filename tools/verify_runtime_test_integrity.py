@@ -40,7 +40,7 @@ TRACKED_TYPES = (
     "BattleAttackSequence",
     "AchievementsFlow", "DailySignInFlow", "RaffleFlow",
     "RegistrationFlow", "BattleEditLayer2",
-    "EditRosterFlow", "BattleUnitEditLayer", "HallUnitListLayer",
+    "HallUnitListLayer",
     "MineUnitInfoLayer", "OtherUnitInfoLayer", "ControlControllerFactory",
 )
 
@@ -116,13 +116,14 @@ def main() -> int:
     if any(token in production_source for token in ("--verify", "--capture", "--full-battle-trace", "--composition-trace")):
         errors.append("production desktop launcher still exposes verification or capture CLI")
 
-    # The legacy catalog remains the next relocation tranche. It still checks
-    # that the live BattleScreen gate emits fresh evidence and belongs to check.
-    capture_start = desktop_gradle.find('tasks.register<JavaExec>("captureYingchuanBattleRegressionTrace")')
-    verify_start = desktop_gradle.find('tasks.register<Exec>("verifyYingchuanBattleRegression")')
-    capture_body = desktop_gradle[capture_start:verify_start] if 0 <= capture_start < verify_start else ""
+    # The live BattleScreen gate is owned by verification and emits fresh evidence.
+    verification_desktop_tasks = ROOT / "verification/desktop-trace-tasks.gradle.kts"
+    desktop_tasks = verification_desktop_tasks.read_text() if verification_desktop_tasks.exists() else ""
+    capture_start = desktop_tasks.find('tasks.register<JavaExec>("captureYingchuanBattleRegressionTrace")')
+    verify_start = desktop_tasks.find('tasks.register<Exec>("verifyYingchuanBattleRegression")')
+    capture_body = desktop_tasks[capture_start:verify_start] if 0 <= capture_start < verify_start else ""
     required_capture = (
-        'mainClass.set("com.jojo.game.desktop.DesktopLauncher")',
+        'mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")',
         '"--scenario=S_00"',
         '"--full-battle-trace=',
         "doFirst { delete(yingchuanBattleRegressionTrace.get().asFile) }",
@@ -133,11 +134,11 @@ def main() -> int:
     for forbidden in ("--capture-state", "--verify-win", "--verify-attributes"):
         if forbidden in capture_body:
             errors.append(f"Yingchuan production capture uses fixture/forced-result option: {forbidden}")
-    if verify_start < 0 or "dependsOn(captureYingchuanBattleRegressionTrace)" not in desktop_gradle[verify_start:]:
+    if verify_start < 0 or "dependsOn(captureYingchuanBattleRegressionTrace)" not in desktop_tasks[verify_start:]:
         errors.append("Yingchuan verifier can run without the production capture task")
-    check_body = desktop_gradle.split('tasks.named("check")', 1)[-1]
+    check_body = desktop_tasks.split('tasks.named("check")', 1)[-1]
     if "verifyYingchuanBattleRegression" not in check_body:
-        errors.append("Yingchuan production regression is not wired into desktop:check")
+        errors.append("Yingchuan production regression is not wired into verification:check")
     for assertion in ('data.engine, "jojo-game"', "data.frames.length > 0", "data.summary?.outcome"):
         if assertion not in yingchuan_check:
             errors.append(f"Yingchuan verifier lacks production trace assertion: {assertion}")

@@ -6,10 +6,11 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.jojo.game.JojoGame
+import com.jojo.game.RuntimeRenderEventLogProvider
 import com.jojo.game.application.navigation.RaffleGateRoute
 import com.jojo.game.presentation.hall.evidence.RaffleGateRenderEvents
 
-class RaffleGateRouteScreen(private val game: JojoGame) : ScreenAdapter() {
+class RaffleGateRouteScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val route = RaffleGateRoute()
     private var entered = false
@@ -32,6 +33,7 @@ class RaffleGateRouteScreen(private val game: JojoGame) : ScreenAdapter() {
     }
 
     fun renderEventLog(): String = RaffleGateRenderEvents.jsonl()
+    override fun runtimeRenderEventLog(): String = renderEventLog()
     override fun dispose() {
         shapes.dispose()
     }

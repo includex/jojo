@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
 /** Deterministic RewardLayer frames reached by scenario reward callbacks. */
-class RewardFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class RewardFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val scale = .86f
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()
@@ -183,6 +183,7 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
         }
         return log.jsonl()
     }
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
     override fun dispose() {

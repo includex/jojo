@@ -28,7 +28,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
  * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
  */
 
-class DialogueFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class DialogueFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val textures = mutableListOf<Texture>()
@@ -51,7 +51,7 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
     private val dialogue = createModel(state)
 
     private fun createModel(state: String): DialogueLayer {
-        DialogueLayer.resetAlternationForTest()
+        DialogueLayer.resetAlternation()
         val names = mapOf(0 to "조조", 157 to "허자장")
         val layer = DialogueLayer(
             text = when (state) {
@@ -202,6 +202,7 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         }
         return log.jsonl()
     }
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
 

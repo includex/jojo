@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 
 /** Deterministic execution of the production HallMenu(8) -> EditLayer4 route. */
-class EditRosterRouteScreen(private val game: JojoGame, private val route: EditRosterRoute) : ScreenAdapter() {
+class EditRosterRouteScreen(private val game: JojoGame, private val route: EditRosterRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val menu = HallEditRosterRoute(editEnabled = true)
     private val roster = EditRosterFlow(
@@ -54,6 +54,7 @@ class EditRosterRouteScreen(private val game: JojoGame, private val route: EditR
      */
 
     fun renderEventLog(): String = EditRosterRenderEvents.jsonl(route)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
     override fun dispose() {
         shapes.dispose()
     }

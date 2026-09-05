@@ -6,12 +6,13 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.jojo.game.JojoGame
+import com.jojo.game.RuntimeRenderEventLogProvider
 import com.jojo.game.application.battle.LearnUnitSkillFlow
 import com.jojo.game.application.battle.LearnUnitSkillRoute
 import com.jojo.game.application.battle.EditRosterLearnRoute
 import com.jojo.game.presentation.battle.edit.evidence.LearnUnitSkillRenderEvents
 
-class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: LearnUnitSkillRoute) : ScreenAdapter() {
+class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: LearnUnitSkillRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val parent = EditRosterLearnRoute(true)
     private val flow = LearnUnitSkillFlow()
@@ -44,6 +45,7 @@ class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: L
     }
 
     fun renderEventLog() = LearnUnitSkillRenderEvents.jsonl(route)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
     override fun dispose() {
         shapes.dispose()
     }

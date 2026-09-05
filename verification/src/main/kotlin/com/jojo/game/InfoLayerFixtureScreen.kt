@@ -24,7 +24,7 @@ import java.nio.file.Path
  * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
  */
 
-class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
+class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeCompositionTraceProvider {
     private val requestedState = game.requestedCaptureState()
     private val skipped = requestedState == "info-layer-r00-skip"
 
@@ -122,6 +122,7 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
         val remainingJson = remaining?.let { "\"$it\"" } ?: "null"
         return """{"state":"R_00/Hall/InfoLayer/$state","scenarioKey":"$key","oracle":"isolated-libgdx-runtime","sourceArtifact":"$artifact","records":[{"address":"Hall/Canvas/Layer/Panel_cancel","kind":"Sprite","active":$active,"opacity":0,"size":[1488.372093,800]},{"address":"Hall/Canvas/Layer/bg","kind":"Sprite","active":$active,"frame":"bg","sourceDynamicAtlasFrame":{"rect":[2,2,19,17],"atlas":[2048,2048],"sha256":"35796a9f8ded6af912b95968fc822a42ee115af0b54b034c80954e8bad3cd569"},"size":[$bgWidth,83],"anchor":[0.5,0.28],"position":[0,0]},{"address":"Hall/Canvas/Layer/bg/richtext","kind":"RichText","active":$active,"text":"$text","fullText":"재능의 첫 징후","remainingText":$remainingJson,"fontSize":40,"lineHeight":50,"size":[$richWidth,63],"position":[0,18.5],"typewriterActive":$active,"autoClosePending":$fullAutoPending}]}"""
     }
+    override fun runtimeCompositionTrace(): String = compositionTrace()
 
     override fun dispose() {
         batch.dispose(); font.dispose(); panel.dispose()

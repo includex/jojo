@@ -155,7 +155,7 @@ class BattleScreen(
     private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
     private val sectionTitleFont: BitmapFont = KoreanFont.create(120, "영천의 전투")
     private val overlayAssets = BattleOverlayAssets()
-    private val capturePolicy = BattleCapturePolicy(game.requestedCaptureState())
+    private val presentationRoutePolicy = BattlePresentationRoutePolicy(game.requestedCaptureState())
     private var otherUnitInfoLayer: OtherUnitInfoLayer? = null
     private var mineUnitInfoLayer: MineUnitInfoLayer? = null
     private var battleEdit2: BattleEditLayer2? = null
@@ -1349,32 +1349,32 @@ void main() {
 
     /** Opening scene commands have completed before the first capture frame. */
     private var presentationReady = false
-    private val actionCapture = capturePolicy.actionCapture
-    private val rewardRouteState get() = capturePolicy.rewardRouteState
-    private val itemUpgradeRouteState get() = capturePolicy.itemUpgradeRouteState
-    private val loseRestartRoute get() = capturePolicy.loseRestartRoute
-    private val roundRouteState get() = capturePolicy.roundRouteState
-    private val winConditionRouteState get() = capturePolicy.winConditionRouteState
-    private val miniMapRouteState get() = capturePolicy.miniMapRouteState
-    private val autoBattleRouteState get() = capturePolicy.autoBattleRouteState
-    private val battleCommandRouteState get() = capturePolicy.battleCommandRouteState
-    private val battleCharacterRouteState get() = capturePolicy.battleCharacterRouteState
-    private val battleEdit2RouteState get() = capturePolicy.battleEdit2RouteState
-    private val otherUnitInfoRoute get() = capturePolicy.otherUnitInfoRoute
-    private val mineUnitInfoRoute get() = capturePolicy.mineUnitInfoRoute
-    private val actionCaptureMode get() = capturePolicy.actionCaptureMode
-    private val cutsceneAttackCapture get() = capturePolicy.cutsceneAttackCapture
-    private val cutscenePostHitCapture get() = capturePolicy.cutscenePostHitCapture
-    private val cutscene477Capture get() = capturePolicy.cutscene477Capture
-    private val battleDialogueBlendRoute get() = capturePolicy.battleDialogueBlendRoute
-    private val battleInitRoute get() = capturePolicy.battleInitRoute
-    private val battleTerrainRoute get() = capturePolicy.battleTerrainRoute
-    private val battleMenuRoute get() = capturePolicy.battleMenuRoute
-    private val dialogueStepCapture get() = capturePolicy.dialogueStepCapture
-    private val dialogueComponentStage get() = capturePolicy.dialogueComponentStage
-    private val mapOnlyCapture get() = capturePolicy.mapOnlyCapture
-    private val selectionOverlayCapture get() = capturePolicy.selectionOverlayCapture
-    private val modalRenderCapture get() = capturePolicy.modalRenderCapture
+    private val actionCapture = presentationRoutePolicy.actionSample
+    private val rewardRouteState get() = presentationRoutePolicy.rewardRouteState
+    private val itemUpgradeRouteState get() = presentationRoutePolicy.itemUpgradeRouteState
+    private val loseRestartRoute get() = presentationRoutePolicy.loseRestartRoute
+    private val roundRouteState get() = presentationRoutePolicy.roundRouteState
+    private val winConditionRouteState get() = presentationRoutePolicy.winConditionRouteState
+    private val miniMapRouteState get() = presentationRoutePolicy.miniMapRouteState
+    private val autoBattleRouteState get() = presentationRoutePolicy.autoBattleRouteState
+    private val battleCommandRouteState get() = presentationRoutePolicy.battleCommandRouteState
+    private val battleCharacterRouteState get() = presentationRoutePolicy.battleCharacterRouteState
+    private val battleEdit2RouteState get() = presentationRoutePolicy.battleEdit2RouteState
+    private val otherUnitInfoRoute get() = presentationRoutePolicy.otherUnitInfoRoute
+    private val mineUnitInfoRoute get() = presentationRoutePolicy.mineUnitInfoRoute
+    private val actionCaptureMode get() = presentationRoutePolicy.actionSampleMode
+    private val cutsceneAttackCapture get() = presentationRoutePolicy.cutsceneAttackCapture
+    private val cutscenePostHitCapture get() = presentationRoutePolicy.cutscenePostHitCapture
+    private val cutscene477Capture get() = presentationRoutePolicy.cutscene477Capture
+    private val battleDialogueBlendRoute get() = presentationRoutePolicy.battleDialogueBlendRoute
+    private val battleInitRoute get() = presentationRoutePolicy.battleInitRoute
+    private val battleTerrainRoute get() = presentationRoutePolicy.battleTerrainRoute
+    private val battleMenuRoute get() = presentationRoutePolicy.battleMenuRoute
+    private val dialogueStepCapture get() = presentationRoutePolicy.dialogueStepCapture
+    private val dialogueComponentStage get() = presentationRoutePolicy.dialogueComponentStage
+    private val mapOnlyCapture get() = presentationRoutePolicy.mapOnlyCapture
+    private val selectionOverlayCapture get() = presentationRoutePolicy.selectionOverlayCapture
+    private val modalRenderCapture get() = presentationRoutePolicy.modalRenderCapture
 
     /** Set only after S_00's own opening delay reaches its first say. */
     private var cutsceneAttackStartedAt: Float? = null
@@ -1392,7 +1392,7 @@ void main() {
     private var boardMaxY = 1
 
     /** Action regression captures deliberately drive an isolated BRAnime while SayLayer is open. */
-    internal fun animationClock(): Float = capturePolicy.animationClock(elapsed, battleElapsed)
+    internal fun animationClock(): Float = presentationRoutePolicy.animationClock(elapsed, battleElapsed)
 
     /**
      * Cocos' CreateAnime2 adds an ordinary cc.Animation component to each map
@@ -1400,14 +1400,14 @@ void main() {
      * advancing while SayLayer owns input. Keep that clock separate from the
      * combat-action clock, which intentionally pauses during dialogue.
      */
-    private fun mapObjectAnimationClock(): Float = capturePolicy.mapObjectAnimationClock(elapsed)
+    private fun mapObjectAnimationClock(): Float = presentationRoutePolicy.mapObjectAnimationClock(elapsed)
 
     /**
      * `anime_state` is an ordinary cc.Animation child. StageLayer.pause()
      * only delegates to `_script.pause()` and does not pause node animation,
      * so status effects keep advancing while SayLayer owns input.
      */
-    private fun stateEffectAnimationClock(): Float = capturePolicy.mapObjectAnimationClock(elapsed)
+    private fun stateEffectAnimationClock(): Float = presentationRoutePolicy.mapObjectAnimationClock(elapsed)
 
     /**
      * Prefer the lossless PNG read back from the original Cocos Texture2D.

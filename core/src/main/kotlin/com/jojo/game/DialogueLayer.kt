@@ -195,7 +195,7 @@ class DialogueLayer(
         private var bubbleIndex = 0
         private var lastSpeakerId = -1
 
-        internal fun resetAlternationForTest() {
+        fun resetAlternation() {
             bubbleIndex = 0
             lastSpeakerId = -1
         }

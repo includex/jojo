@@ -9,8 +9,8 @@ import { randomUUID } from "node:crypto";
 const root = resolve(import.meta.dirname, "..");
 const sourceRoot = resolve(root, "../jojo_mobile/sgccz-desktop");
 const electron = resolve(sourceRoot, "node_modules/.bin/electron");
-const classpath = process.env.JOJO_DESKTOP_CLASSPATH;
-assert.ok(classpath, "JOJO_DESKTOP_CLASSPATH must contain desktop runtimeClasspath");
+const classpath = process.env.JOJO_VERIFICATION_CLASSPATH;
+assert.ok(classpath, "JOJO_VERIFICATION_CLASSPATH must contain verification runtimeClasspath");
 
 const runId = randomUUID();
 const startedNs = Date.now() * 1_000_000;
@@ -33,7 +33,7 @@ function run(command, args, cwd = root) {
 function clean(...paths) { for (const path of paths) rmSync(path, { force: true }); }
 function game(args) {
   run("java", ["-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp", classpath,
-    "com.jojo.game.desktop.DesktopLauncher", ...args]);
+    "com.jojo.game.verification.VerificationDesktopLauncher", ...args]);
 }
 function compareLogs(expected, actual, report) {
   run("python3", [resolve(root, "tools/compare_render_logs.py"), expected, actual,

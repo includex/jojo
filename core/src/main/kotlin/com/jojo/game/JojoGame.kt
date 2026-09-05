@@ -3,6 +3,7 @@ package com.jojo.game
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.application.navigation.GameScreenNavigator
 import com.jojo.game.application.runtime.runtimeProbe
+import com.jojo.game.application.runtime.RuntimeArtifactEvent
 import com.jojo.game.infrastructure.data.CampaignStore
 import com.jojo.game.presentation.battle.BattleScreen
 
@@ -48,7 +49,9 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     private val preferenceProvider = GamePreferenceProvider(automatedRun) { name -> Gdx.app.getPreferences(name) }
     private val campaign by lazy { CampaignStore(preferenceProvider.campaign()) }
     private val screenNavigator by lazy { GameScreenNavigator(this, configuration, campaign, ::replaceScreen) }
-    private val renderArtifacts by lazy { RenderArtifactService(capture) }
+    private fun notifyArtifact(event: RuntimeArtifactEvent) {
+        configuration.runtimeArtifactObserver?.onArtifact(event)
+    }
 
     /** Internal presentation notification forwarded to an optional external observer. */
     internal fun scenarioStarted(module: String, index: Int) {
@@ -65,11 +68,11 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
         GameStartupCoordinator(
             configuration = configuration,
             campaignState = campaign.state,
-            routeCaptureFixture = {
-                CaptureFixtureStartupRouter(
+            routeRuntimeStartup = {
+                RuntimeStartupRouter(
                     game = this,
-                    captureState = screenshotState,
-                    campaignState = campaign.state,
+                    state = screenshotState,
+                    campaign = campaign.state,
                     showScreen = ::replaceScreen,
                     showBattlePreparation = { returnScenario, sourceScenario, limit, backgroundId ->
                         showBattlePreparation(returnScenario, sourceScenario, limit, backgroundId)
@@ -149,13 +152,17 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun advanceCampaignStage() = screenNavigator.advanceCampaignStage()
     fun setCampaignStage(stage: Int) = screenNavigator.setCampaignStage(stage)
     fun requestedCaptureState(): String? = screenshotState
-    fun hasFrameCaptureRequest(): Boolean = renderArtifacts.hasFrameCaptureRequest()
-    fun hasRenderEventLogRequest(): Boolean = renderArtifacts.hasRenderEventLogRequest()
+    fun hasFrameCaptureRequest(): Boolean = configuration.runtimeArtifactObserver?.wantsFrame == true
+    fun hasRenderEventLogRequest(): Boolean = configuration.runtimeArtifactObserver?.wantsEventLog == true
     fun requestedFullBattleTrace(): FullBattleTraceConfig? = fullBattleTraceConfig
     fun requestedYingchuanEntryFlowTracePath(): String? = yingchuanEntryFlowTracePath
 
     /** Writes renderer metadata without framebuffer readback or PNG creation. */
-    fun writeRenderEventLogIfRequested(): Boolean = renderArtifacts.writeRenderEventLogIfRequested(screen)
+    fun writeRenderEventLogIfRequested(): Boolean {
+        if (!hasRenderEventLogRequest()) return false
+        notifyArtifact(RuntimeArtifactEvent.EventLog(screenshotState, screen))
+        return true
+    }
 
     /**
      * 공개 메서드 `requestedMapTextureDumpPath`
@@ -168,7 +175,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun requestedMapTextureDumpPath(): String? = renderArtifacts.requestedMapTextureDumpPath()
+    fun requestedMapTextureDumpPath(): String? = null
 
     /**
      * 공개 메서드 `requestedMapDither`
@@ -181,7 +188,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun requestedMapDither(): Boolean? = renderArtifacts.requestedMapDither()
+    fun requestedMapDither(): Boolean? = null
 
     /**
      * 공개 메서드 `requestedMapFilter`
@@ -194,7 +201,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun requestedMapFilter() = renderArtifacts.requestedMapFilter()
+    fun requestedMapFilter(): com.badlogic.gdx.graphics.Texture.TextureFilter? = null
 
     /**
      * 공개 메서드 `requestedCocos8MapSampler`
@@ -207,10 +214,10 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun requestedCocos8MapSampler(): Boolean = renderArtifacts.requestedCocos8MapSampler()
+    fun requestedCocos8MapSampler(): Boolean = true
 
     /** Cocos map sampling is aligned to physical framebuffer pixel centres. */
-    fun requestedFragmentCoordinateMapSampler(): Boolean = renderArtifacts.requestedFragmentCoordinateMapSampler()
+    fun requestedFragmentCoordinateMapSampler(): Boolean = true
     /**
      * Keep the logical Cocos quad unshifted. An explicit map-only option is
      * retained solely for regression sweeps; the source-faithful default uses
@@ -227,7 +234,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun requestedMapSampleOffset(): Pair<Float, Float> = renderArtifacts.requestedMapSampleOffset()
+    fun requestedMapSampleOffset(): Pair<Float, Float> = 0f to 0f
 
     /**
      * Isolated R_00 map-quad candidate metadata.  This is emitted by the
@@ -246,10 +253,14 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun writeMapQuadCandidateSidecar() = renderArtifacts.writeMapQuadCandidateSidecar()
+    fun writeMapQuadCandidateSidecar() = notifyArtifact(RuntimeArtifactEvent.MapSidecar(screenshotState))
 
     /** Native framebuffer capture used for source-versus-game visual regression. */
-    fun captureFrameIfRequested(): Boolean = renderArtifacts.captureFrameIfRequested(screen)
+    fun captureFrameIfRequested(): Boolean {
+        if (!hasFrameCaptureRequest()) return false
+        notifyArtifact(RuntimeArtifactEvent.Frame(screenshotState, screen))
+        return true
+    }
 
     /** Sidecar observation for pixel fixtures; it never changes battle state. */
     fun writeCaptureStack(
@@ -259,7 +270,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
         choice: Boolean,
         modalCount: Int
     ) =
-        renderArtifacts.writeCaptureStack(requested, requestedPresent, dialogue, choice, modalCount)
+        notifyArtifact(RuntimeArtifactEvent.OverlayStack(screenshotState, requested, requestedPresent, dialogue, choice, modalCount))
 
     private fun replaceScreen(next: Screen) {
         screen?.dispose()

@@ -23,7 +23,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
  * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
  */
 
-class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
+class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val background = Texture(Gdx.files.internal("maps/71.jpg"))
@@ -111,6 +111,7 @@ class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
         d("Canvas/Layer/Logo_12-1/button10/Background/Label", "label", 1038.533f, 97.191f, 100f, 40f, text = "취소")
         return l.jsonl()
     }
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
     override fun dispose() {

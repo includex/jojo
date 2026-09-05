@@ -188,7 +188,7 @@ object DefineUnitRenderEvents {
  * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
  */
 
-class DefineUnitRouteScreen(private val game: JojoGame, private val route: DefineUnitRoute) : ScreenAdapter() {
+class DefineUnitRouteScreen(private val game: JojoGame, private val route: DefineUnitRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val flow = DefineUnitFlow()
     private var entered = false
@@ -230,6 +230,7 @@ class DefineUnitRouteScreen(private val game: JojoGame, private val route: Defin
      */
 
     fun renderEventLog() = DefineUnitRenderEvents.jsonl(route)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
     override fun dispose() {
         shapes.dispose()
     }

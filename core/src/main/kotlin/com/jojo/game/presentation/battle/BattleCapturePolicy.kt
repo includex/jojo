@@ -8,7 +8,7 @@ import com.jojo.game.presentation.battle.timeline.BattleCharacterStrictState
  * The policy is inert when no requested state is supplied; gameplay callers
  * can therefore use the same screen without importing verification concerns.
  */
-internal class BattleCapturePolicy(private val requestedState: String?) {
+internal class BattlePresentationRoutePolicy(private val requestedState: String?) {
     val rewardRouteState: String? = requestedState?.takeIf { it in REWARD_ROUTE_STATES }
     val itemUpgradeRouteState: String? = requestedState?.takeIf { it == ITEM_UPGRADE_ROUTE_STATE }
     val loseRestartRoute: Boolean = requestedState == LOSE_RESTART_ROUTE_STATE
@@ -22,7 +22,7 @@ internal class BattleCapturePolicy(private val requestedState: String?) {
     val otherUnitInfoRoute: Boolean = requestedState == "battle-other-unit-info-fixture"
     val mineUnitInfoRoute: Boolean = requestedState == "battle-mine-unit-info-fixture"
 
-    val actionCapture: CaptureActionSample? = when (requestedState) {
+    val actionSample: CaptureActionSample? = when (requestedState) {
         "attack6-f0" -> CaptureActionSample(6, 1f / 24f)
         "attack6-f1" -> CaptureActionSample(6, 7f / 24f)
         "attack6-f2" -> CaptureActionSample(6, 9f / 24f)
@@ -52,11 +52,11 @@ internal class BattleCapturePolicy(private val requestedState: String?) {
     val mapOnlyCapture = requestedState == "map-only"
     val selectionOverlayCapture = requestedState == "yingchuan-selection"
     val modalRenderCapture = requestedState in MODAL_RENDER_STATES
-    val actionCaptureMode get() = actionCapture != null
+    val actionSampleMode get() = actionSample != null
 
     fun animationClock(elapsed: Float, battleElapsed: Float): Float = when {
         rewardRouteState != null || winConditionRouteState != null -> 0f
-        actionCaptureMode -> elapsed
+        actionSampleMode -> elapsed
         else -> battleElapsed
     }
 

@@ -14,7 +14,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
 /** Deterministic Global131 renderer entered through StageLayer.choice2(). */
-class Choose2FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class Choose2FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private data class Geometry(val x: Float, val y: Float, val text: String, val labelX: Float, val labelY: Float)
 
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
@@ -123,6 +123,7 @@ class Choose2FixtureScreen(private val game: JojoGame, private val state: String
         }
         return log.jsonl()
     }
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     internal fun selectedRow(): Int? = selected
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)

@@ -1,15 +1,15 @@
 package com.jojo.game.verification.fixture
 
 import com.badlogic.gdx.Screen
-import com.jojo.game.CaptureFixtureStartupExtension
-import com.jojo.game.CaptureFixtureStartupRequest
+import com.jojo.game.RuntimeStartupExtension
+import com.jojo.game.RuntimeStartupRequest
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.presentation.battle.unit.BattleSpriteFixtureScreen
 
 /** Verification-owned `sprite:` fixture route installed through the core seam. */
-class SpriteCaptureFixtureStartupExtension : CaptureFixtureStartupExtension {
-    override fun route(request: CaptureFixtureStartupRequest): Boolean {
-        val fixture = parseSpriteFixtureRequest(request.captureState) ?: return false
+class SpriteCaptureFixtureStartupExtension : RuntimeStartupExtension {
+    override fun route(request: RuntimeStartupRequest): Boolean {
+        val fixture = parseSpriteFixtureRequest(request.state) ?: return false
         request.showScreen(
             BattleSpriteFixtureScreen(
                 request.game, fixture.characterId, fixture.action, fixture.direction, fixture.frameTick, fixture.faction,

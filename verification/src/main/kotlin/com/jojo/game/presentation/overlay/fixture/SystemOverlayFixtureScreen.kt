@@ -25,7 +25,7 @@ class SystemOverlayRenderer {
     data class Toast(val text: String)
 }
 
-class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
@@ -279,6 +279,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         }
         return log.jsonl()
     }
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
     override fun dispose() {

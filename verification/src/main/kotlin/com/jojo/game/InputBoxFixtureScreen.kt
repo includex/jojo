@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
 /** Diagnostic route for the shipped Global137 InputBox prefab. */
-class InputBoxFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class InputBoxFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val textures = mutableListOf<Texture>()
@@ -89,6 +89,7 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
      */
 
     fun renderEventLog(): String = InputBoxRenderEvents.jsonl(state, model.value, model.attached)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
     internal fun persistedValue(): String? = persisted
     internal fun callbackResult(): String? = callbackValue
 

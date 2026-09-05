@@ -62,7 +62,7 @@ class BattleNoticeRoute private constructor(val notice: NoticeInfoLayer) {
 }
 
 /** Log-only fixture; framebuffer capture remains intentionally disabled. */
-class NoticeInfoFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter() {
+class NoticeInfoFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val route = BattleNoticeRoute.initialize(state)
 
     override fun render(delta: Float) {
@@ -83,6 +83,7 @@ class NoticeInfoFixtureScreen(private val game: JojoGame, private val state: Str
      */
 
     fun renderEventLog(): String = NoticeInfoBattleRenderEvents.jsonl(state, route)
+    override fun runtimeRenderEventLog(): String = renderEventLog()
 }
 
 /**

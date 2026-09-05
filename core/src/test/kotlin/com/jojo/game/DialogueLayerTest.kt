@@ -17,7 +17,7 @@ class DialogueLayerTest {
     private val names = mapOf(0 to "조조", 157 to "하후돈")
 
     @Test fun `tap completes typewriter before advancing and alternates speaker bubble`() {
-        DialogueLayer.resetAlternationForTest()
+        DialogueLayer.resetAlternation()
         val layer = DialogueLayer("&0\n첫째\n둘째\n셋째\n&157\n대답", { names.getValue(it) }, { if (it == 157) -60f else 0f })
         assertEquals(0, layer.view().bubble)
         assertTrue(layer.touch(DialogueLayer.TOUCH_END))
@@ -31,7 +31,7 @@ class DialogueLayerTest {
     }
 
     @Test fun `skip closes immediately and dispatches hide say`() {
-        DialogueLayer.resetAlternationForTest()
+        DialogueLayer.resetAlternation()
         var closed = 0
         val layer = DialogueLayer("&0\n문장", { names.getValue(it) }, { 0f }, onClose = { closed++ })
         layer.skip()
@@ -41,7 +41,7 @@ class DialogueLayerTest {
     }
 
     @Test fun `auto close waits after typing completion`() {
-        DialogueLayer.resetAlternationForTest()
+        DialogueLayer.resetAlternation()
         val layer = DialogueLayer("&0\n문장", { names.getValue(it) }, { 0f }, flag = DialogueLayer.AUTO_CLOSE)
         layer.completeTyping()
         layer.advance(1.599f)
@@ -52,7 +52,7 @@ class DialogueLayerTest {
     }
 
     @Test fun `missing Hall unit retains bubble and typewriter balances color markup`() {
-        DialogueLayer.resetAlternationForTest()
+        DialogueLayer.resetAlternation()
         val first = DialogueLayer("&157\n대답", { names.getValue(it) }, { -60f })
         assertEquals(1, first.view().bubble)
 

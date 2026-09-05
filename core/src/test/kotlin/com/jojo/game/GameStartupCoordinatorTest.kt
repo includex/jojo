@@ -26,7 +26,7 @@ class GameStartupCoordinatorTest {
             yingchuanEntryFlowTracePath = "trace.json",
         )
 
-        coordinator(configuration, state, events, routeCaptureFixture = {
+        coordinator(configuration, state, events, routeRuntimeStartup = {
             assertTrue(state.joinedUnits.isEmpty())
             assertEquals(null, state.globalVariables[7])
             events += "capture"
@@ -105,7 +105,7 @@ class GameStartupCoordinatorTest {
         configuration: GameLaunchConfiguration,
         state: CampaignState,
         events: MutableList<String>,
-        routeCaptureFixture: () -> Boolean = {
+        routeRuntimeStartup: () -> Boolean = {
             events += "capture"
             false
         },
@@ -114,7 +114,7 @@ class GameStartupCoordinatorTest {
     ) = GameStartupCoordinator(
         configuration = configuration,
         campaignState = state,
-        routeCaptureFixture = routeCaptureFixture,
+        routeRuntimeStartup = routeRuntimeStartup,
         showBattle = { events += "battle" },
         showTitle = { events += "title" },
         showScenario = showScenario,
