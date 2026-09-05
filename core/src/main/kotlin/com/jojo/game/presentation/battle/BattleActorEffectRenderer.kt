@@ -1,4 +1,5 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.presentation.battle.assets.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -6,7 +7,6 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.jojo.game.BattleHudAssets
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 

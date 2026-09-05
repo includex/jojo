@@ -8,6 +8,7 @@ import com.jojo.game.application.runtime.RuntimeBattleDriver
 import com.jojo.game.application.runtime.RuntimeTitleStartupDriver
 import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattleObserver
+import com.jojo.game.application.runtime.RuntimeBattleReferenceAssets
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
 import com.jojo.game.infrastructure.data.CampaignStore
 import com.jojo.game.presentation.battle.BattleScreen
@@ -169,6 +170,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun runtimeTitleStartupDriver(): RuntimeTitleStartupDriver? = configuration.runtimeTitleStartupDriver
     fun runtimeBattlePresentation(): RuntimeBattlePresentation = configuration.runtimeBattlePresentation
     fun runtimeBattleObserver(): RuntimeBattleObserver? = configuration.runtimeBattleObserver
+    fun runtimeBattleReferenceAssets(): RuntimeBattleReferenceAssets? = configuration.runtimeBattleReferenceAssets
     fun runtimeBattlePreparationDriver(): RuntimeBattlePreparationDriver? = configuration.runtimeBattlePreparationDriver
 
     /** Writes renderer metadata without framebuffer readback or PNG creation. */

@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.scenario.render
 
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
+
 import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueView
 
 /** Immutable scene projection; renderers never inspect the interpreter or campaign. */
@@ -63,7 +65,7 @@ internal data class ScenarioModalRenderView(
     val text: String,
     val visibleText: String,
     val fixedText: String,
-    val fixture: String?,
+    val variant: RuntimeScenarioOverlay?,
 )
 
 internal data class ScenarioOverlayRenderView(

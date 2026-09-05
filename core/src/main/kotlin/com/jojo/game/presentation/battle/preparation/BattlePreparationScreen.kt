@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.battle.preparation
+import com.jojo.game.presentation.battle.render.*
 
-import com.jojo.game.BattleViewLayer
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit

@@ -36,8 +36,8 @@ internal object ScenarioOverlayRenderer {
             null -> Unit
             ScenarioOverlayModalKind.EVENT, ScenarioOverlayModalKind.INFO -> {
                 val text = sanitize(modal.visibleText.ifEmpty { modal.text.take(1) }); val layout = GlyphLayout(assets.titleFont, text)
-                val width = when (modal.fixture) { "get-item-equipment" -> (259.72f + 40f) * .86f; "get-item-property" -> (324.47f + 40f) * .86f; else -> (layout.width + 42.4f).coerceIn(64.2f, 1120f) }
-                val height = if (modal.fixture in setOf("get-item-equipment", "get-item-property")) 83f * .86f else (layout.height + 34.4f).coerceAtLeast(71.38f)
+                val width = when (modal.variant) { com.jojo.game.application.runtime.RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT -> (259.72f + 40f) * .86f; com.jojo.game.application.runtime.RuntimeScenarioOverlay.GET_ITEM_PROPERTY -> (324.47f + 40f) * .86f; else -> (layout.width + 42.4f).coerceIn(64.2f, 1120f) }
+                val height = if (modal.variant in setOf(com.jojo.game.application.runtime.RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT, com.jojo.game.application.runtime.RuntimeScenarioOverlay.GET_ITEM_PROPERTY)) 83f * .86f else (layout.height + 34.4f).coerceAtLeast(71.38f)
                 val x = (1280f - width) / 2f; val y = (688f - height) / 2f + height * .22f
                 shapes.end(); batch.projectionMatrix = projection; batch.begin(); batch.color = Color.WHITE
                 assets.infoPanelPatch?.draw(batch, x, y, width, height) ?: assets.dialoguePanelTexture?.let { batch.draw(it, x, y, width, height) }

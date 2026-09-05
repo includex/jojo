@@ -1,6 +1,7 @@
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.battle.render.*
 import com.jojo.game.presentation.battle.unit.*
 
 /** Combined implementation trace: FightLayer callbacks + BattleUnit harm UI equivalents. */

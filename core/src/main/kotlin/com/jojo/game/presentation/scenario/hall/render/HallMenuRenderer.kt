@@ -15,7 +15,7 @@ internal object HallMenuRenderer {
         patch("inner", 3, 3, 3, 3)?.draw(batch, 0f, 0f, 1280f, 125.56f)
         patch("label-box", 3, 3, 3, 3)?.draw(batch, 99.72f, 4.25f, 261.44f, 37.84f)
         patch("label-mark", 1, 1, 3, 3)?.draw(batch, 101.44f, 5.97f, 258f, 34.4f)
-        val showLabels = !(view.interactive && view.fixture == "menu")
+        val showLabels = !(view.interactive && view.variant == com.jojo.game.application.runtime.RuntimeScenarioOverlay.MENU)
         val layout = GlyphLayout(); assets.bodyFont.color = Color.WHITE
         if (showLabels) { layout.setText(assets.bodyFont, view.eventName); assets.bodyFont.draw(batch, layout, 230.44f-layout.width/2f, 23.17f+layout.height/2f) }
         patch("label-box", 3, 3, 3, 3)?.draw(batch, 366.95f, 4.23f, 278.64f, 37.84f)
@@ -24,10 +24,10 @@ internal object HallMenuRenderer {
         val to = view.ambitionTo.coerceIn(0,100); val from=view.ambitionFrom.coerceIn(0,100)
         val (root,value)=if(view.interactive) "bar-blue" to "bar-red" else when { to<16 -> "bar-red" to "bar-yellow"; to>84 -> "bar-yellow" to "bar-blue"; else -> "bar-blue" to "bar-red" }
         patch(root,1,1,1,1)?.draw(batch,717.4f,16.70f,258f,12.9f)
-        val tween=((view.ambitionElapsedSeconds-1.2f)/1f).coerceIn(0f,1f); val amount=if(view.fixture=="ambition") to.toFloat() else from+(to-from)*tween
+        val tween=((view.ambitionElapsedSeconds-1.2f)/1f).coerceIn(0f,1f); val amount=if(view.variant==com.jojo.game.application.runtime.RuntimeScenarioOverlay.AMBITION) to.toFloat() else from+(to-from)*tween
         patch(value,1,1,1,1)?.draw(batch,717.4f,16.70f,258f*amount/100f,12.9f)
         val visible=view.ambitionElapsedSeconds>=1.2f||((view.ambitionElapsedSeconds/.2f).toInt()and 1)==1
-        if(!view.interactive&&view.fixture!="ambition"&&view.indicatorEnabled&&visible) {
+        if(!view.interactive&&view.variant!=com.jojo.game.application.runtime.RuntimeScenarioOverlay.AMBITION&&view.indicatorEnabled&&visible) {
             val decreasing=to<from; texture(if(decreasing) "flag-right" else "flag-left")?.let { batch.draw(it,(if(decreasing)1003.48f else 690.81f)-6.88f,16.70f,13.76f,12.9f) }
         } else if(view.interactive) { texture("flag-left")?.let { batch.draw(it,787.27f*.86f,11.917f*.86f,27.52f,25.8f) }; texture("flag-right")?.let { batch.draw(it,1150.837f*.86f,11.917f*.86f,27.52f,25.8f) } }
         val icons=listOf("tool1","tool2","tool3","tool4","tool5","tool6","tool7","tool8","help"); val button=patch("button",7,8,7,7)

@@ -1,6 +1,7 @@
 package com.jojo.game.verification.campaign
 import com.jojo.game.domain.battle.turn.BattleTurnPhase
 import com.jojo.game.*
+import com.jojo.game.presentation.battle.input.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.scenario.*
 

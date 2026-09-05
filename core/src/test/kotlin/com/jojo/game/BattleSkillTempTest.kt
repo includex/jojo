@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleSkillTemp
 import com.jojo.game.domain.battle.*
 
 import java.util.Random

@@ -1,6 +1,7 @@
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.domain.scenario.PlaybackState
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -51,8 +52,8 @@ class ScenarioRenderPolicyTest {
     }
 
     @Test fun `only component overlays suppress battlefield actors`() {
-        assertTrue(ScenarioRenderPolicy.isStandaloneHallOverlay("save-confirm"))
-        assertFalse(ScenarioRenderPolicy.isStandaloneHallOverlay("equip"))
+        assertTrue(ScenarioRenderPolicy.isStandaloneHallOverlay(RuntimeScenarioOverlay.SAVE_CONFIRM))
+        assertFalse(ScenarioRenderPolicy.isStandaloneHallOverlay(RuntimeScenarioOverlay.EQUIP))
         assertFalse(ScenarioRenderPolicy.isStandaloneHallOverlay(null))
     }
 }

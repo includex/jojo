@@ -1,0 +1,176 @@
+package com.jojo.game.verification.scenario.evidence
+
+import com.jojo.game.presentation.scenario.*
+
+internal fun appendHelperPart0(writer: ScenarioHelperEventWriter) = with(writer) {
+        draw("Canvas/Layer/Logo_12-1", "tiled-sprite", 147.686f, 24.5f, 1193.0f, 751.0f, "Logo_9-1", "", true)
+        draw("Canvas/Layer/Logo_12-1/box4", "sliced-sprite", 147.686f, 24.5f, 1193.0f, 751.0f, "box4", "", true)
+        draw("Canvas/Layer/Logo_12-1/bg1", "sprite", 147.686f, 715.5f, 1193.0f, 60.0f, "bg1", "", true)
+        draw("Canvas/Layer/Logo_12-1/bg1/box3", "sliced-sprite", 147.686f, 715.5f, 1193.0f, 60.0f, "box3", "", true)
+        draw("Canvas/Layer/Logo_12-1/bg1/label", "label", 155.139f, 721.3f, 151.51f, 52.4f, null, "역사 정보", true)
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview",
+            "tiled-sprite",
+            163.686f,
+            99.0f,
+            1161.0f,
+            616.0f,
+            "Logo_12-1",
+            "",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/box2",
+            "tiled-sprite",
+            163.686f,
+            99.0f,
+            1161.0f,
+            616.0f,
+            "box2",
+            "",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext",
+            "rich-text",
+            165.686f,
+            -500.0f,
+            1157.0f,
+            1213.0f,
+            null,
+            "<color=#000000>6<color=#0000ab> [단축키 설명</color>]<br/><color=#0000ab>☆</color>의 일부 단축키 기능은 <color=#c30000> 메뉴 — 설정</color>을 통해 직접 설정할 수 있습니다.<br/><color=#0000ab>☆</color> 번호 <color=#c30000>0-4</color>: 단계 속도 변화; <color=#0000ab>0</color>가 원래 속도이며, <color=#0000ab>1-4</color>가 가속, <color=#0000ab>1</color>이 가장 빠릅니다.<br/><color=#0000ab>☆</color> 번호 <color=#c30000>5</color>: 진영에 따라 다른 색상의 체력 바를 표시합니다.<br/><color=#0000ab>☆</color> 번호 <color=#c30000>6</color>: 문자 <color=#0000ab>BUFF</color>와 <color=#c30000>DEBUFF</color>를 표시합니다.<br/><color=#0000ab>☆</color> 번호 <color=#c30000>7</color>: 왼쪽 하단에 캐릭터 능력과 장비를 표시합니다.<br/><color=#0000ab>☆</color> 숫자 <color=#c30000>8</color>: 더블 히트의 치명타 확률과 카운터 관계를 표시합니다.<br/><color=#0000ab>☆</color> 번호 <color=#c30000>9</color>: 지형 적응 및 이동 비용을 표시합니다.<br/><color=#0000ab>☆</color> 문자 <color=#c30000>A</color>: 턴 시작 시 자동으로 저장되며, 저장 시퀀스 881-900.<br/><color=#0000ab>☆</color> 문자 <color=#c30000>B</color>: 속성 인터페이스는 모든 가능한 전략과 학습 수준을 표시합니다.<br/><color=#0000ab>☆</color> 글자 <color=#c30000>C</color>: 공격자의 스트로크를 표시한다.<br/><color=#0000ab>☆</color> 문자 <color=#c30000>D</color>: 자동 장착 시 강제 배치 불가의 장비를 제거하지 않습니다.<br/><color=#0000ab>☆</color> 문자 <color=#c30000>E</color>: 아군 클릭 후 제어 불가능한 유닛 행동 명령이 표시됩니다.<br/><color=#0000ab>☆</color> 편지 <color=#c30000>F</color>: 통제 불가능한 유닛을 클릭하면 다른 유닛에 대한 증오 수치를 표시한다.<br/><color=#0000ab>☆</color> 글자 <color=#c30000>G</color>: 아군을 클릭한 후 빨간색으로 표시하고 적군 수 있습니다.<br/><color=#0000ab>☆</color> 문자 <color=#c30000>H</color>: 업그레이드 정보를 표시합니다.<br/><color=#0000ab>☆</color> 문자 <color=#c30000>Z</color>: 초가속, 그리고 Z 버튼을 눌러서 취소.<br/><color=#0000ab>☆</color> <color=#c30000>Shift</color>: 스토리 대사를 전속력으로 건너뛰고, 숫자 0을 초기화하세요.<br/><color=#0000ab>☆</color> <color=#c30000> 화살표 키</color>: S가 전장에 있을 때 창 화면 크기를 변경합니다.<br/><color=#0000ab>☆</color> <color=#c30000> 왼쪽 키보드 + - 키</color>: BGM 볼륨 조절.</color><br/>",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            165.686f,
+            650.0f,
+            22.25f,
+            63.0f,
+            null,
+            "6",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            187.936f,
+            650.0f,
+            206.34f,
+            63.0f,
+            null,
+            " [단축키 설명",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            394.276f,
+            650.0f,
+            11.11f,
+            63.0f,
+            null,
+            "]",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            165.686f,
+            600.0f,
+            34.6f,
+            63.0f,
+            null,
+            "☆",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            200.286f,
+            600.0f,
+            355.85f,
+            63.0f,
+            null,
+            "의 일부 단축키 기능은 ",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            556.136f,
+            600.0f,
+            211.74f,
+            63.0f,
+            null,
+            " 메뉴 — 설정",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            767.876f,
+            600.0f,
+            516.48f,
+            63.0f,
+            null,
+            "을 통해 직접 설정할 수 있습니다.",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            165.686f,
+            550.0f,
+            34.6f,
+            63.0f,
+            null,
+            "☆",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            200.286f,
+            550.0f,
+            91.43f,
+            63.0f,
+            null,
+            " 번호 ",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            291.716f,
+            550.0f,
+            57.81f,
+            63.0f,
+            null,
+            "0-4",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            349.526f,
+            550.0f,
+            274.28f,
+            63.0f,
+            null,
+            ": 단계 속도 변화; ",
+            true
+        )
+        draw(
+            "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",
+            "label",
+            623.806f,
+            550.0f,
+            22.25f,
+            63.0f,
+            null,
+            "0",
+            true
+        )
+}

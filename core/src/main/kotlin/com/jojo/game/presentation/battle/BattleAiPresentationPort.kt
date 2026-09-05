@@ -1,8 +1,8 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.domain.battle.BattleUnitMoveTimeline
 
 import com.jojo.game.AiTurnResult
 import com.jojo.game.AiUnitResolution
-import com.jojo.game.BattleUnitMoveTimeline
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.turn.CollocatedPlayerMoveScriptEnd
 import com.jojo.game.domain.scenario.PlaybackState

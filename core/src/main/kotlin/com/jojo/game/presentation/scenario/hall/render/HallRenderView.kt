@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.scenario.hall.render
 
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
+
 /** Immutable presentation-only inputs for the Hall overlay renderers. */
 internal data class HallMenuRenderView(
     val eventName: String,
@@ -9,7 +11,7 @@ internal data class HallMenuRenderView(
     val ambitionElapsedSeconds: Float,
     val indicatorEnabled: Boolean,
     val interactive: Boolean,
-    val fixture: String?,
+    val variant: RuntimeScenarioOverlay?,
 )
 
 internal data class HallSaveRowRenderView(val number: String, val stage: String, val name: String)

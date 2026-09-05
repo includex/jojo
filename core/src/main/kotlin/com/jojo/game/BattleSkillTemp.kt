@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.domain.battle
 
 /**
  * Direct state implementation of BattleScreen._skillTempValues.

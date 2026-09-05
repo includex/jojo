@@ -2,6 +2,7 @@ package com.jojo.game.presentation.scenario
 
 import com.jojo.game.domain.scenario.ScenarioCompletionRoute
 import com.jojo.game.domain.scenario.PlaybackState
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
 /** The terminal outcome of a render phase; callers must stop this frame for non-continuations. */
 internal enum class ScenarioRenderPhaseResult {
@@ -13,20 +14,12 @@ internal enum class ScenarioRenderPhaseResult {
 /** Pure predicates that keep ScenarioScreen's ordered frame phases explicit. */
 internal object ScenarioRenderPolicy {
     private val isolatedHallOverlays = setOf(
-        "info",
-        "get-item-equipment",
-        "get-item-property",
-        "item-equipment",
-        "item-property",
-        "item-discard-confirm",
-        "map-info",
-        "choice",
-        "ambition",
-        "ask",
-        "command",
-        "menu",
-        "save",
-        "save-confirm",
+        RuntimeScenarioOverlay.INFO, RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT,
+        RuntimeScenarioOverlay.GET_ITEM_PROPERTY, RuntimeScenarioOverlay.ITEM_EQUIPMENT,
+        RuntimeScenarioOverlay.ITEM_PROPERTY, RuntimeScenarioOverlay.ITEM_DISCARD_CONFIRM,
+        RuntimeScenarioOverlay.MAP_INFO, RuntimeScenarioOverlay.CHOICE, RuntimeScenarioOverlay.AMBITION,
+        RuntimeScenarioOverlay.ASK, RuntimeScenarioOverlay.COMMAND, RuntimeScenarioOverlay.MENU,
+        RuntimeScenarioOverlay.SAVE, RuntimeScenarioOverlay.SAVE_CONFIRM,
     )
 
     fun shouldContinueNaturally(
@@ -54,7 +47,7 @@ internal object ScenarioRenderPolicy {
             sceneJumpTarget,
         )
 
-    fun isStandaloneHallOverlay(overlay: String?): Boolean = overlay in isolatedHallOverlays
+    fun isStandaloneHallOverlay(overlay: RuntimeScenarioOverlay?): Boolean = overlay in isolatedHallOverlays
 
     fun autoCloseEnabled(externalRuntimeOpen: Boolean, autoCloseSettingEnabled: Boolean): Boolean =
         !externalRuntimeOpen && autoCloseSettingEnabled

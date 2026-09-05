@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.assets.*
+import com.jojo.game.presentation.battle.render.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -21,7 +21,6 @@ import com.jojo.game.presentation.scenario.hall.*
 import com.jojo.game.presentation.scenario.hall.render.*
 import com.jojo.game.presentation.scenario.ScenarioPlaybackController
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
-import com.jojo.game.presentation.scenario.evidence.*
 import com.jojo.game.presentation.scenario.input.*
 import com.jojo.game.presentation.scenario.render.*
 import com.jojo.game.presentation.scenario.story.*
@@ -159,12 +158,6 @@ class ScenarioScreen(
         onAdvance = ::advance,
     )
     internal val scenarioViewState get() = playbackController.viewState
-    private val storyEvidenceRecorder = ScenarioStoryEvidenceRecorder()
-    private val equipConfirmationEvidenceRecorder = ScenarioEquipConfirmationEvidenceRecorder()
-    private val propertyEvidenceRecorder = ScenarioPropertyEvidenceRecorder()
-    private val terrainEvidenceRecorder = ScenarioTerrainEvidenceRecorder()
-    private val treasureEvidenceRecorder = ScenarioTreasureEvidenceRecorder()
-    private val staticHallInfoEvidenceRecorder = ScenarioStaticHallInfoEvidenceRecorder()
     private val glyphLayout = GlyphLayout()
     private val settingsPreferences by lazy { game.settingsPreferences() }
     private var runtimeOverlayInstalled = false
@@ -178,7 +171,7 @@ class ScenarioScreen(
             gameDataCatalog,
             hallInteraction,
             hallManagementCommands,
-            HallManagementViewFactory(campaign, gameDataCatalog, moduleName, hallOverlayFixture),
+            HallManagementViewFactory(campaign, gameDataCatalog, moduleName, hallOverlayVariant),
         )
     }
     private val hallInformationFlow by lazy {
@@ -259,8 +252,8 @@ class ScenarioScreen(
 
     private var runtimeOverlayState: RuntimeScenarioOverlay? = null
     internal val runtimeOverlay: RuntimeScenarioOverlay? get() = runtimeOverlayState
-    internal val hallOverlayFixture: String?
-        get() = runtimeOverlay?.name?.lowercase()?.replace('_', '-')?.takeUnless { it == "hall" }
+    internal val hallOverlayVariant: RuntimeScenarioOverlay?
+        get() = runtimeOverlay?.takeUnless { it == RuntimeScenarioOverlay.HALL }
     private val hallSkipDispatches = mutableListOf<String>()
     internal val hallSkipLayer: StorySkipFlow? = if (runtimeOverlay == RuntimeScenarioOverlay.SKIP_OPEN) {
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
@@ -426,7 +419,7 @@ class ScenarioScreen(
                     )
                 }
             } else {
-                val isolatedHallOverlay = ScenarioRenderPolicy.isStandaloneHallOverlay(hallOverlayFixture)
+                val isolatedHallOverlay = ScenarioRenderPolicy.isStandaloneHallOverlay(hallOverlayVariant)
                 drawBattlefield(drawCharacters = !isolatedHallOverlay, drawUnits = !isolatedHallOverlay)
                 drawOverlay()
             }
@@ -604,7 +597,7 @@ class ScenarioScreen(
                 ScenarioModalKind.AMBITION -> ScenarioOverlayModalKind.AMBITION
                 else -> ScenarioOverlayModalKind.OTHER
             }
-            ScenarioModalRenderView(kind, text, scenarioViewState.modalVisibleText, playback.currentModalFixedText, hallOverlayFixture)
+            ScenarioModalRenderView(kind, text, scenarioViewState.modalVisibleText, playback.currentModalFixedText, hallOverlayVariant)
         }
         val choice = playback.currentChoice?.let {
             ScenarioChoiceRenderView(playback.isAskChoice, it.faceId?.let(::dialoguePortraitId), it.options)
@@ -677,7 +670,7 @@ class ScenarioScreen(
                 ambitionElapsedSeconds = playback.ambitionElapsedSeconds,
                 indicatorEnabled = playback.ambitionIndicatorEnabled,
                 interactive = interactive,
-                fixture = hallOverlayFixture,
+                variant = hallOverlayVariant,
             ),
         )
     }
@@ -954,16 +947,11 @@ class ScenarioScreen(
         bodyFont.draw(batch, playback.chosenOption ?: "시나리오 구간 완료", 95f, 145f)
     }
 
-    /** Records a completed immutable frame snapshot through small evidence recorders. */
-    fun renderEventLog(): String = ScenarioFrameEvidenceRecorder(
-        storyEvidenceRecorder,
-        staticHallInfoEvidenceRecorder,
-        propertyEvidenceRecorder,
-        terrainEvidenceRecorder,
-        treasureEvidenceRecorder,
-    ).record(ScenarioScreenEvidenceProjector.renderInput(this))
-
-    fun compositionTrace(): String = ScenarioCompositionEvidenceProjector.compositionTrace(this)
+    /** Immutable, serializer-free observation used by external artifact sinks. */
+    fun runtimeSnapshot(): ScenarioRuntimeSnapshot = ScenarioRuntimeSnapshot(
+        frame = ScenarioRuntimeSnapshotProjector.renderInput(this),
+        composition = ScenarioRuntimeCompositionProjector.project(this),
+    )
 
     /** HallLayer.turnPos: source's 100×100 isometric Hall coordinate transform. */
     private fun mapX(x: Int, y: Int): Float = (x - y + 42) * 16f

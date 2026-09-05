@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.domain.battle
 
 /** Exact timing/atlas layout used by UIFrame.CreateAnime2 for U_select_20. */
 object BattleObjectAnimationTimeline {

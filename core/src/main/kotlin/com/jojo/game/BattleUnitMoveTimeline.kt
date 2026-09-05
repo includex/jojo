@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.domain.battle
 
 /** Pure implementation of BattleUnit.move2's directional action schedule. */
 object BattleUnitMoveTimeline {

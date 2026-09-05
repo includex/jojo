@@ -1,5 +1,7 @@
 package com.jojo.game.application.runtime
 
+import com.badlogic.gdx.graphics.Texture
+
 /** Immutable frame input exposed to an optional external battle driver. */
 data class RuntimeBattleFrame(
     val delta: Float,
@@ -40,6 +42,17 @@ data class RuntimeBattlePresentation(
     val actionSample: RuntimeBattleActionSample? = null,
     val dialogueStep: Int? = null,
 )
+
+enum class RuntimeBattleReference {
+    WIN_RESULT, SAVE, LOAD, SETTING, HELPER, WIN_CONDITION, MENU,
+    TERRAIN, PROPERTY, TREASURE, FORCES, UNIT_INFO,
+}
+
+/** Neutral presentation asset port; loading and path policy belong to integrations. */
+interface RuntimeBattleReferenceAssets {
+    fun texture(reference: RuntimeBattleReference): Texture?
+    fun dispose() {}
+}
 
 /** Neutral commands an external runtime may request after observing a frame. */
 sealed interface RuntimeBattleCommand {

@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.domain.battle
 
 /** Pure implementation of BattleUnit.count_attackHarm's MRSP random ladder. */
 object BattleMrspDamage {

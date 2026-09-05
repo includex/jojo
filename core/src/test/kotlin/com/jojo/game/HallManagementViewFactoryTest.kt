@@ -2,6 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.presentation.scenario.hall.HallManagementViewFactory
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -17,7 +18,7 @@ class HallManagementViewFactoryTest {
             unitNames[0] = "시험 조조"
             setUnitAttribute(0, 18, 3)
         }
-        val factory = HallManagementViewFactory(campaign, catalog, "R_00", overlayFixture = null)
+        val factory = HallManagementViewFactory(campaign, catalog, "R_00", overlayVariant = null)
         val candidates = factory.buyCandidates()
 
         campaign.inventory.addItem(candidates.first().id)
@@ -38,7 +39,7 @@ class HallManagementViewFactoryTest {
         val property = catalog.allEquipmentProfiles().first { catalog.equipmentCategory(it) == 3 && it.price != 255 }
         campaign.inventory.addItem(equipment.id, count = 2)
         campaign.inventory.addItem(property.id)
-        val factory = HallManagementViewFactory(campaign, catalog, "R_00", overlayFixture = "buy")
+        val factory = HallManagementViewFactory(campaign, catalog, "R_00", overlayVariant = RuntimeScenarioOverlay.BUY)
 
         assertEquals(listOf(254, 253, 252), factory.buyCandidates().take(3).map { it.id })
         assertTrue(factory.buyProperties().zipWithNext().all { (first, second) -> first.id < second.id })
@@ -57,7 +58,7 @@ class HallManagementViewFactoryTest {
             unitNames[0] = "부대 조조"
             setUnitAttribute(0, 18, 4)
         }
-        val factory = HallManagementViewFactory(campaign, catalog, "R_00", overlayFixture = null)
+        val factory = HallManagementViewFactory(campaign, catalog, "R_00", overlayVariant = null)
 
         val forces = factory.forces()
 

@@ -58,6 +58,7 @@ internal data class VerificationDesktopLaunchOptions(
             runtimeArtifactObserver = artifactObserver,
             runtimeScreenObserver = artifactObserver,
             runtimeBattleDriver = VerificationBattleDriver(capture.state),
+            runtimeBattleReferenceAssets = VerificationBattleReferenceAssets(),
             runtimeBattlePresentation = VerificationBattlePresentation.from(capture.state),
             runtimeBattlePreparationDriver = VerificationBattlePreparationDriver(capture.state),
             runtimeScenarioDriver = VerificationScenarioDriver(capture.state),

@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleSkillTemp
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.domain.battle.BattleTerrainGrid

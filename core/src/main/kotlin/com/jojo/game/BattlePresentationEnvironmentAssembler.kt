@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleSkillTemp
 import com.jojo.game.domain.battle.Battlefield
 
 /** Builds the state bridge shared by presentation transactions and AI deferral. */

@@ -15,6 +15,14 @@ import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
 import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.battle.BattleScreen
 import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.verification.scenario.evidence.ScenarioCompositionEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioEquipConfirmationEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioFrameEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioPropertyEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioStaticHallInfoEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioStoryEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioTerrainEvidenceRecorder
+import com.jojo.game.verification.scenario.evidence.ScenarioTreasureEvidenceRecorder
 import com.jojo.game.verification.preparation.BattlePreparationTraceRecorder
 import com.jojo.game.verification.cmd.CmdRouteScreen
 import com.jojo.game.verification.load.ModalLoadRouteScreen
@@ -36,7 +44,7 @@ internal class VerificationArtifactObserver(
     override fun onArtifact(event: RuntimeArtifactEvent) {
         when (event) {
             is RuntimeArtifactEvent.Frame -> writeFrame(event.screen)
-            is RuntimeArtifactEvent.EventLog -> output.renderEventLogPath?.let { writeText(it, event.screen.eventLog()) }
+            is RuntimeArtifactEvent.EventLog -> output.renderEventLogPath?.let { writeText(it, event.screen.eventLog(output.state)) }
             is RuntimeArtifactEvent.MapSidecar -> writeMapSidecar(event.state)
             is RuntimeArtifactEvent.OverlayStack -> writeStack(event)
         }
@@ -118,17 +126,29 @@ internal class VerificationArtifactObserver(
     }
 }
 
-private fun Screen?.eventLog(): String = when (this) {
+private fun Screen?.eventLog(state: String?): String = when (this) {
     is CmdRouteScreen -> renderEventLog()
     is ModalLoadRouteScreen -> renderEventLog()
     is TerminalSceneRouteScreen -> renderEventLog()
-    is ScenarioScreen -> renderEventLog()
+    is ScenarioScreen -> scenarioEventLog(runtimeSnapshot(), state)
     is BattleScreen -> renderEventLog()
     else -> "{\"state\":\"unavailable\"}\n"
 }
 
 private fun Screen?.compositionTrace(): String = when (this) {
-    is ScenarioScreen -> compositionTrace()
+    is ScenarioScreen -> ScenarioCompositionEvidenceRecorder().record(runtimeSnapshot().composition)
     is BattleScreen -> compositionTrace()
     else -> "{\"state\":\"unavailable\",\"records\":[]}"
+}
+
+private fun scenarioEventLog(snapshot: com.jojo.game.presentation.scenario.ScenarioRuntimeSnapshot, state: String?): String = when (state) {
+    "street-walk-direction-fixture" -> com.jojo.game.HallUnitRender.walkingRenderEventLog()
+    "street-walk-motion-fixture" -> com.jojo.game.HallUnitRender.walkingMotionRenderEventLog()
+    else -> ScenarioFrameEvidenceRecorder(
+        ScenarioStoryEvidenceRecorder(),
+        ScenarioStaticHallInfoEvidenceRecorder(),
+        ScenarioPropertyEvidenceRecorder(),
+        ScenarioTerrainEvidenceRecorder(),
+        ScenarioTreasureEvidenceRecorder(),
+    ).record(snapshot.frame)
 }

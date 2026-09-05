@@ -1,4 +1,7 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.presentation.battle.assets.*
+import com.jojo.game.presentation.battle.input.*
+import com.jojo.game.presentation.battle.render.*
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.application.battle.*
 import com.jojo.game.domain.battle.turn.*
@@ -15,6 +18,9 @@ import com.jojo.game.application.runtime.RuntimeBattleFrame
 import com.jojo.game.application.runtime.RuntimeBattleRoute
 import com.jojo.game.application.runtime.RuntimeBattleFrameSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleCompletion
+import com.jojo.game.domain.battle.BattleObjectAnimationTimeline
+import com.jojo.game.domain.battle.BattleUnitMoveTimeline
+import com.jojo.game.application.runtime.RuntimeBattleReference
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
 import com.jojo.game.application.runtime.BattleRuntimeSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
@@ -600,7 +606,7 @@ void main() {
     private val battleActorEffectRenderer by lazy {
         BattleActorEffectRenderer(batch, hudAssets) { cocosHighlightSampler.value }
     }
-    private val captureReferenceAssets = BattleCaptureReferenceAssets()
+    private val referenceAssets = game.runtimeBattleReferenceAssets()
     private val fightRenderer by lazy {
         BattleFightRenderer(
             batch = batch,
@@ -2564,57 +2570,57 @@ void main() {
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-save") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.SAVE))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.SAVE))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-load") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.LOAD))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.LOAD))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-setting") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.SETTING))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.SETTING))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-helper") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.HELPER))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.HELPER))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-win-condition") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.WIN_CONDITION))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.WIN_CONDITION))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-menu") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.MENU))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.MENU))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-terrain") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.TERRAIN))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.TERRAIN))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-property") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.PROPERTY))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.PROPERTY))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-treasure") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.TREASURE))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.TREASURE))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-forces") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.FORCES))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.FORCES))
             game.captureFrameIfRequested()
             return true
         }
         if (game.requestedCaptureState() == "yingchuan-unit-info") {
-            drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.UNIT_INFO))
+            drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.UNIT_INFO))
             game.captureFrameIfRequested()
             return true
         }
@@ -8833,7 +8839,7 @@ void main() {
     }
 
     private fun drawSourceWinResultReference() {
-        drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.WIN_RESULT))
+        drawSourceReference(referenceAssets?.texture(RuntimeBattleReference.WIN_RESULT))
     }
 
     private fun drawSourceReference(texture: Texture?) {
@@ -9943,7 +9949,7 @@ void main() {
         unitInfoAssets.dispose()
         hudAssets.dispose()
         dynamicTextures.dispose()
-        captureReferenceAssets.dispose()
+        referenceAssets?.dispose()
         if (cocos8MapSampler.isInitialized()) cocos8MapSampler.value.dispose()
         if (cocosHighlightSampler.isInitialized()) cocosHighlightSampler.value.dispose()
         if (cocosGraySampler.isInitialized()) cocosGraySampler.value.dispose()

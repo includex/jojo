@@ -2,6 +2,7 @@ package com.jojo.game.presentation.scenario.hall
 
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
 /**
  * Creates the Hall management screens' immutable display projections from the
@@ -12,7 +13,7 @@ internal class HallManagementViewFactory(
     private val campaign: CampaignState,
     private val catalog: GameDataCatalog,
     moduleName: String,
-    private val overlayFixture: String?,
+    private val overlayVariant: RuntimeScenarioOverlay?,
 ) {
     private val stageIndex = moduleName.substringAfter('_').toIntOrNull() ?: 0
     private val equipProjector = HallEquipViewProjector(campaign, catalog)
@@ -38,7 +39,7 @@ internal class HallManagementViewFactory(
     fun buyCandidates(): List<GameDataCatalog.EquipmentProfile> {
         // The isolated source fixture feeds 0..itemCount (255 is its sentinel).
         // Cocos' vertical layout leaves the tail at the top of the viewport.
-        if (overlayFixture == "buy") return catalog.allEquipmentProfiles()
+        if (overlayVariant == RuntimeScenarioOverlay.BUY) return catalog.allEquipmentProfiles()
             .asReversed()
             .filter { it.id != 255 && catalog.equipmentCategory(it) <= 2 && it.price != 255 }
         return catalog.hallBuyProfiles(stageIndex, campaign.averageJoinedLevel())
@@ -46,7 +47,7 @@ internal class HallManagementViewFactory(
     }
 
     fun buyProperties(): List<GameDataCatalog.EquipmentProfile> =
-        (if (overlayFixture == "buy") catalog.allEquipmentProfiles()
+        (if (overlayVariant == RuntimeScenarioOverlay.BUY) catalog.allEquipmentProfiles()
         else catalog.hallBuyProfiles(stageIndex, campaign.averageJoinedLevel()))
             .filter { catalog.equipmentCategory(it) == 3 && it.price != 255 }
             .sortedBy { it.id }
