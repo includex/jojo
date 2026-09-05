@@ -2022,6 +2022,11 @@ void main() {
     }
 
     override fun render(rawDelta: Float) {
+        updateBattleFrame(rawDelta)?.let(::renderBattleRoutes)
+    }
+
+    /** Advances all source, domain, and presentation state before any route draws. */
+    private fun updateBattleFrame(rawDelta: Float): Float? {
         if (battleCommandRouteState != null && !battleCommandRouteInstalled) installBattleCommandRouteFixture()
         if (roundRouteState != null && !roundRouteInstalled) installRoundRouteFixture()
         if (miniMapRouteState != null && !miniMapRouteInstalled) installMiniMapRouteFixture()
@@ -2198,7 +2203,18 @@ void main() {
         // Project domain-derived HP/status state once the frame's mutations
         // have settled, before any BattleUnit visual is consumed below.
         unitPresentationStore.synchronize(battle.presentation.presentationUnits())
-        if (battleRouteCompleted) return
+        if (battleRouteCompleted) return null
+        return delta
+    }
+
+    /** Routes a completed frame through its capture-specific or live battle renderer. */
+    private fun renderBattleRoutes(delta: Float) {
+        if (renderDedicatedBattleRoute(delta)) return
+        renderBattlefieldRoute(delta)
+    }
+
+    /** Draws capture/reference routes whose early returns own the complete frame. */
+    private fun renderDedicatedBattleRoute(delta: Float): Boolean {
         if (winConditionRouteState != null) {
             battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitVisuals.remove(it.id) }
         }
@@ -2222,12 +2238,12 @@ void main() {
                 drawScriptDialogue(stage)
             }
             if (elapsed > 6f) game.captureFrameIfRequested()
-            return
+            return true
         }
         if (battleMenuRoute) {
             drawBattleMenu()
             if (elapsed > .25f) game.writeRenderEventLogIfRequested()
-            return
+            return true
         }
         // scene1 begins with a source-controlled preparation delay. Start
         // this diagnostic only after that delay has naturally reached the
@@ -2354,64 +2370,64 @@ void main() {
         if (resultFlow == ResultFlow.LOSE_SCENE) {
             drawLoseScene()
             loseSceneFlow?.takeIf { it.state == LoseSceneFlow.State.PROMPT }?.let { drawLosePrompt() }
-            if (loseRestartRoute && elapsed > 3.25f && game.writeRenderEventLogIfRequested()) return
+            if (loseRestartRoute && elapsed > 3.25f && game.writeRenderEventLogIfRequested()) return true
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-save") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.SAVE))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-load") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.LOAD))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-setting") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.SETTING))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-helper") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.HELPER))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-win-condition") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.WIN_CONDITION))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-menu") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.MENU))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-terrain") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.TERRAIN))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-property") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.PROPERTY))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-treasure") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.TREASURE))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-forces") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.FORCES))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (game.requestedCaptureState() == "yingchuan-unit-info") {
             drawSourceReference(captureReferenceAssets.texture(BattleCaptureReferenceFrame.UNIT_INFO))
             game.captureFrameIfRequested()
-            return
+            return true
         }
         // The victory fixture is the source's fully composited MsgBox frame:
         // it includes its grayscale battlefield mask, bg0/box3/logo artwork,
@@ -2421,19 +2437,24 @@ void main() {
         if (resultFlow == ResultFlow.WIN_SAVE_PROMPT && game.requestedCaptureState() == "win-result") {
             drawSourceWinResultReference()
             game.captureFrameIfRequested()
-            return
+            return true
         }
         if (battleEdit2RouteState != null) {
             drawBattleEdit2Route()
             if (elapsed > .25f) game.writeRenderEventLogIfRequested()
-            return
+            return true
         }
         if (battleTerrainRoute) {
             batch.projectionMatrix = viewport.camera.combined
             informationOverlay.terrainView()?.let(battleTerrainOverlayRenderer::draw)
             if (elapsed > .25f) game.writeRenderEventLogIfRequested()
-            return
+            return true
         }
+        return false
+    }
+
+    /** Draws the live tactical field and the routes layered over it. */
+    private fun renderBattlefieldRoute(delta: Float) {
         // Isolated framebuffer diagnostic.  The normal candidate leaves the
         // GL state untouched; an explicit capture option can force DITHER
         // only around the map draw and restores the prior state immediately.
@@ -6270,13 +6291,12 @@ void main() {
         if (jiqiRouteFixture) return jiqiRenderEventLog()
         if (magickRouteState != null) return magickRenderEventLog()
         if (usePropertyRouteState != null) return usePropertyRenderEventLog()
-        if (loseRestartRoute) {
-            val log = RenderEventLog()
-            LoseSceneRenderEvents.append(log, requireNotNull(loseSceneFlow))
-            return log.jsonl()
-        }
+        if (loseRestartRoute) return RenderEventLog().also {
+            LoseSceneRenderEvents.append(it, requireNotNull(loseSceneFlow))
+        }.jsonl()
+
         val route = rewardRouteState ?: itemUpgradeRouteState ?: winConditionRouteState
-        ?: if (battleInitRoute) "battle-init" else null
+            ?: if (battleInitRoute) "battle-init" else null
             ?: if (battleDialogueBlendRoute) "battle-dialogue-blending" else return RenderEventLog().jsonl()
         val phase = when {
             battleInitRoute -> "battle-init"
@@ -6285,397 +6305,151 @@ void main() {
             winConditionRouteState != null -> winConditionRouteState.removeSuffix("-fixture")
             else -> route.removePrefix("yingchuan-")
         }
-        val log = RenderEventLog()
-        fun draw(
-            layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-            asset: String? = null, opacity: Float = 1f, text: String = "",
-            blend: Any = listOf(770, 771)
-        ) {
-            if (opacity <= 0f || x + w <= 0f || x >= 1488.3721f || y + h <= 0f || y >= 800f) return
-            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
-        }
+        return BattleRenderEventRecorder.jsonl(battleRenderEventView(phase))
+    }
 
-        draw(
-            "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite",
-            -320f, if (rewardRouteState == null && !battleInitRoute) -96f else -560f, 1920f, 1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>",
-        )
-
+    private fun battleRenderEventView(phase: String): BattleRenderEventView {
         boardLeft = -320f
         boardBottom = if (rewardRouteState != null || battleInitRoute) 1264f else 1728f
         boardTile = 96f
+        val route = when {
+            battleInitRoute -> BattleRenderEventRoute.INIT
+            battleDialogueBlendRoute -> BattleRenderEventRoute.DIALOGUE_BLEND
+            winConditionRouteState == "battle-win-condition-compact-fixture" -> BattleRenderEventRoute.WIN_COMPACT
+            winConditionRouteState != null -> BattleRenderEventRoute.WIN_FULL
+            itemUpgradeRouteState != null -> BattleRenderEventRoute.ITEM_UPGRADE
+            else -> BattleRenderEventRoute.REWARD
+        }
+        return BattleRenderEventView(
+            phase = phase,
+            route = route,
+            mapBottom = if (rewardRouteState == null && !battleInitRoute) -96f else -560f,
+            units = battleRenderEventUnits(),
+            dialogueMarker = if (route == BattleRenderEventRoute.DIALOGUE_BLEND) battleDialogueMarkerView() else null,
+            dialogue = if (route == BattleRenderEventRoute.DIALOGUE_BLEND) battleDialogueRenderEventView() else null,
+            winConditions = if (route == BattleRenderEventRoute.WIN_COMPACT || route == BattleRenderEventRoute.WIN_FULL) battleWinConditionsRenderEventView() else null,
+            itemUpgrade = if (route == BattleRenderEventRoute.ITEM_UPGRADE) itemUpgradeRenderEventView() else null,
+            reward = if (route == BattleRenderEventRoute.REWARD) rewardRenderEventView() else null,
+        )
+    }
+
+    private fun battleRenderEventUnits(): List<BattleRenderEventUnitView> {
         val visibleUnits = (battle.units.values + battle.presentation.pendingPresentationUnits().filter {
             it.hitPoints <= 0 || it.id in hitReactionAnimations ||
-                    it.id in deathAnimations || deathTimeline.containsPending(it.id)
-        })
-            .asSequence().filter { it.visible }
+                it.id in deathAnimations || deathTimeline.containsPending(it.id)
+        }).asSequence()
+            .filter { it.visible }
             .filter { !battleInitRoute }
-            // Equal-z siblings retain source/script insertion order.
             .sortedWith(
                 if (battleDialogueBlendRoute) {
-                val order = listOf(
-                    480,
-                    483,
-                    484,
-                    146,
-                    147,
-                    481,
-                    482,
-                    485,
-                    478,
-                    479,
-                    475,
-                    476,
-                    477,
-                    235,
-                    334,
-                    474,
-                    210,
-                    234,
-                    211
-                )
-                compareBy<BattleUnit> { order.indexOf(it.characterId).let { idx -> if (idx < 0) 999 else idx } }
-            } else {
-                compareBy<BattleUnit> { visualTile(it).second }
-            })
-            .toList()
-        visibleUnits.forEach { unit ->
+                    val order = listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
+                    compareBy<BattleUnit> { order.indexOf(it.characterId).let { index -> if (index < 0) 999 else index } }
+                } else compareBy<BattleUnit> { visualTile(it).second }
+            ).toList()
+        return visibleUnits.map { unit ->
             val action = actionAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unit.id }
                 ?: hitReactionAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
                 ?: deathAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
             val move = movementAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unit.id }
             val scripted = action?.let { null } ?: scriptedUnitVisuals[unit.id]
             val frame = (if (battleDialogueBlendRoute) battleSpriteFrame(0, 0, 0f) else null)
-                ?: winConditionActualVisualFrame(unit) ?: action?.let { transientVisualFrame(it) }
-                ?: move?.let { movementVisualFrame(it) }
-                ?: scripted?.let { scriptedVisualFrame(unit, it) }
+                ?: winConditionActualVisualFrame(unit) ?: action?.let(::transientVisualFrame)
+                ?: move?.let(::movementVisualFrame) ?: scripted?.let { scriptedVisualFrame(unit, it) }
                 ?: idleSpriteFrame(unit)
             val size = if (frame.source == UnitSpriteSource.ATTACK) boardTile * 4f / 3f else boardTile
             val (visualX, visualY) = visualTile(unit)
             val x = boardLeft + visualX * boardTile + (boardTile - size) / 2f + frame.offsetX
             val y = tileBottom(visualY) + (boardTile - size) / 2f + frame.offsetY
-            val atlasUuid = dynamicTextures.movementAtlasUuid(battleAvatarId(unit))
-            val atlasSuffix = when (atlasUuid) {
-                "31cc3c95-4d6e-4c10-848f-ef1ca165e78f" -> "850f3"
-                "9eebca65-e81b-4ba4-ad61-7ac20d03661c" -> "f1ee0"
-                "3f8fbf89-4dd0-4d0b-88e0-9c7927fe5693" -> "3f9c2"
-                "ca6577ee-3ca1-4280-9d60-117070dd2d0b" -> "6ef7f"
-                "19ac1287-4d09-45f4-bf9a-f5eb8b21795c" -> "89d84"
-                else -> null
-            }
-            if (atlasUuid != null && atlasSuffix != null) {
-                val atlasType = when (frame.source) {
-                    UnitSpriteSource.ATTACK -> 0
-                    UnitSpriteSource.MOVEMENT -> 1
-                    UnitSpriteSource.SPECIAL -> 2
-                }
-                val generatedFrameName = if (battleDialogueBlendRoute) 33632304 else
-                    (((frame.sourceY - 1).coerceAtLeast(0) / 50) shl 24) or (atlasType shl 16) or 12336
-                draw(
-                    "HallLayer", "Canvas/Layer/ScrollView/view/content/map/unit/mask/node", "sprite",
-                    x, y, size, size,
-                    if (winConditionRouteState != null && unit.characterId == 235) generatedFrameName.toString()
-                    else "assets/Game/native/${atlasUuid.take(2)}/$atlasUuid.$atlasSuffix.png#$generatedFrameName",
-                )
-            }
-            if (!(sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4)) {
-                val shownHp = healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints)
-                val ratio = (shownHp.toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
-                val barX = boardLeft + visualX * boardTile + 4f
-                val barY = tileBottom(visualY) - 1f
-                val barAsset = when (unit.type()) {
-                    Faction.PLAYER -> "Mark_5-1"
-                    Faction.FRIEND -> "Mark_3-1"
-                    Faction.ENEMY -> if (unit.famous) "Mark_2-1" else "Mark_68-1"
-                    Faction.REINFORCEMENTS -> if (unit.famous) "Mark_2-1" else "Mark_68-1"
-                }
-                draw(
-                    "HallLayer", "Canvas/Layer/ScrollView/view/content/map/unit/info/bar2/sprite", "sliced-sprite",
-                    barX, barY, 88f * ratio, 6f, barAsset,
-                )
-            }
-        }
-
-        if (battleDialogueBlendRoute) {
-            val sayUnit = battle.units.values.firstOrNull { it.visible && it.characterId == 474 }
-            sayUnit?.let { unit ->
-                val (visualX, visualY) = visualTile(unit)
-                draw(
-                    "HallLayer", "Canvas/Layer/ScrollView/view/content/map/New Node", "sprite",
-                    boardLeft + visualX * boardTile + boardTile * .75f,
-                    tileBottom(visualY) + boardTile * .75f,
-                    48f, 48f, "Mark_10-1"
-                )
-            }
-        }
-        draw("HallLayer", "Canvas/Layer/menu_button/Background", "sprite", 1353.9535f, 8f, 60f, 60f, "menu")
-        if (battleInitRoute) {
-            draw("BattleInitLayer", "Canvas/Layer/bg/button/Background", "sliced-sprite", .843f, .731f, 68f, 68f, "bg1")
-            draw(
-                "BattleInitLayer",
-                "Canvas/Layer/bg/button/Background/tool11",
-                "sprite",
-                .043f,
-                -.069f,
-                69.6f,
-                69.6f,
-                "tool10"
-            )
-            draw("BattleInitLayer", "Canvas/Layer/bg/btn/Background", "sliced-sprite", 1418.372f, 730f, 70f, 70f, "bg1")
-            draw(
-                "BattleInitLayer",
-                "Canvas/Layer/bg/btn/Background/tool11",
-                "sprite",
-                1418.572f,
-                730.2f,
-                69.6f,
-                69.6f,
-                "tool11"
-            )
-            draw(
-                "BattleInitLayer", "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.372f, 800f,
-                "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1"
-            )
-            draw(
-                "BattleInitLayer", "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            draw(
-                "BattleInitLayer", "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            return log.jsonl()
-        }
-        if (battleDialogueBlendRoute) {
-            val dialogue = requireNotNull(scriptRuntime.currentDialogue)
-            val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
-            val speakerName = speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty()
-            val headId = speaker?.face?.plus(8)
-            // These submissions are the same live geometry and source-over
-            // blend used by drawScriptDialogue. Exact source asset/path
-            // identifiers are refined from the canonical actual-route log.
-            if (headId != null) draw(
-                "SayLayer",
-                "Canvas/Layer/bg0/face",
-                "sprite",
-                1064.618f,
-                330f,
-                192f,
-                240f,
-                headId.toString()
-            )
-            draw("SayLayer", "Canvas/Layer/bg0/bg2", "sprite", 245.65f, 332f, 796f, 212f, "U_select_11-1")
-            draw(
-                "SayLayer", "Canvas/Layer/bg0/bg2/richtext", "rich-text", 272.705f, 431.814f, 728f, 52.92f,
-                text = dialogueReveal.visibleText, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            draw(
-                "SayLayer", "Canvas/Layer/bg0/bg2/richtext/RICHTEXT_CHILD", "label", 272.705f, 431.814f, 72.28f, 52.92f,
-                text = dialogueReveal.visibleText, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            draw(
-                "SayLayer", "Canvas/Layer/bg0/label", "label", 304.804f, 485.639f, 97.42f, 49.36f,
-                text = speakerName, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            return log.jsonl()
-        }
-        if (winConditionRouteState != null) {
-            if (winConditionRouteState == "battle-win-condition-compact-fixture") {
-                val text = requireNotNull(winConditionLayer).view().label
-                draw("WinConBoxLayer", "Canvas/Layer/bg0", "tiled-sprite", 249.686f, 65f, 989f, 670f, "Logo_9-1")
-                draw("WinConBoxLayer", "Canvas/Layer/bg0/box2", "tiled-sprite", 249.686f, 65f, 989f, 670f, "box3")
-                draw(
-                    "WinConBoxLayer",
-                    "Canvas/Layer/bg0/Logo_3-1",
-                    "sprite",
-                    280.574f,
-                    588.927f,
-                    106f,
-                    124f,
-                    "Logo_3-1"
-                )
-                draw(
-                    "WinConBoxLayer",
-                    "Canvas/Layer/bg0/scrollview/box3",
-                    "sliced-sprite",
-                    406.686f,
-                    170.5f,
-                    803f,
-                    543f,
-                    "box2"
-                )
-                draw(
-                    "WinConBoxLayer",
-                    "Canvas/Layer/bg0/scrollview/view/content/item",
-                    "label",
-                    409.359f,
-                    520.887f,
-                    803f,
-                    191.36f,
-                    text = text,
-                    blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-                )
-                draw(
-                    "WinConBoxLayer",
-                    "Canvas/Layer/bg0/button/Background",
-                    "sliced-sprite",
-                    957.134f,
-                    88.204f,
-                    256.7f,
-                    60f,
-                    "box3"
-                )
-                draw(
-                    "WinConBoxLayer",
-                    "Canvas/Layer/bg0/button/Background/Label",
-                    "label",
-                    985.869f,
-                    93.461f,
-                    199.23f,
-                    54.4f,
-                    text = "짐이 알겠다.",
-                    blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-                )
-            } else {
-                val view = requireNotNull(scriptWinConditions).view()
-                val rich1 = view.first
-                val rich2 = view.second
-                val texts = listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 ${scenarioMaxRound()}")
-                val widths = listOf(367.43f, 537.49f, 537.49f, 531.39f)
-                draw(
-                    "HallLayer",
-                    "Canvas/Layer/Panel_cancel",
-                    "sprite",
-                    0f,
-                    0f,
-                    1488.372f,
-                    800f,
-                    "default_sprite_splash",
-                    80f / 255f
-                )
-                draw(
-                    "HallLayer", "Canvas/Layer/richtext1", "rich-text", 39.467f, 260.08f, 537.49f, 511.2f,
-                    text = rich1, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-                )
-                texts.forEachIndexed { index, text ->
-                    draw(
-                        "HallLayer",
-                        "Canvas/Layer/richtext1/RICHTEXT_CHILD",
-                        "label",
-                        39.467f,
-                        620.08f - index * 120f,
-                        widths[index],
-                        151.2f,
-                        text = text,
-                        blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            BattleRenderEventUnitView(
+                x = x, y = y, size = size, spriteAsset = battleRenderEventSpriteAsset(unit, frame),
+                healthBar = if (sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4) null else {
+                    val ratio = (healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints).toFloat() /
+                        unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
+                    BattleRenderEventHealthBarView(
+                        boardLeft + visualX * boardTile + 4f, tileBottom(visualY) - 1f, 88f * ratio,
+                        when (unit.type()) {
+                            Faction.PLAYER -> "Mark_5-1"
+                            Faction.FRIEND -> "Mark_3-1"
+                            Faction.ENEMY, Faction.REINFORCEMENTS -> if (unit.famous) "Mark_2-1" else "Mark_68-1"
+                        },
                     )
-                }
-                draw(
-                    "HallLayer", "Canvas/Layer/richtext2", "rich-text", 27.323f, 267.913f, 537.49f, 511.2f,
-                    text = rich2, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-                )
-                texts.forEachIndexed { index, text ->
-                    draw(
-                        "HallLayer",
-                        "Canvas/Layer/richtext2/RICHTEXT_CHILD",
-                        "label",
-                        27.323f,
-                        627.913f - index * 120f,
-                        widths[index],
-                        151.2f,
-                        text = text,
-                        blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-                    )
-                }
-            }
-            return log.jsonl()
+                },
+            )
         }
-        val chromeLayer = if (itemUpgradeRouteState != null) "ItemUpgradeLayer" else "BattleScreen"
-        draw(chromeLayer, "Canvas/Layer/bg/button/Background", "sliced-sprite", .843f, .731f, 68f, 68f, "bg1")
-        draw(chromeLayer, "Canvas/Layer/bg/button/Background/tool11", "sprite", .043f, -.069f, 69.6f, 69.6f, "tool10")
-        draw(chromeLayer, "Canvas/Layer/bg/btn/Background", "sliced-sprite", 1418.3721f, 730f, 70f, 70f, "bg1")
-        draw(chromeLayer, "Canvas/Layer/bg/btn/Background/tool11", "sprite", 1418.5721f, 730.2f, 69.6f, 69.6f, "tool11")
-        if (itemUpgradeRouteState != null) {
-            appendItemUpgradeRenderEvents(log, phase, requireNotNull(itemUpgradeFlow))
-            draw(
-                chromeLayer, "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f,
-                "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1"
-            )
-            draw(
-                chromeLayer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            draw(
-                chromeLayer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-            )
-            return log.jsonl()
-        }
-        draw(
-            "HallLayer",
-            "Canvas/Layer/Panel_cancel",
-            "sprite",
-            0f,
-            0f,
-            1488.3721f,
-            800f,
-            "default_sprite_splash",
-            50f / 255f
-        )
-
-        rewardFlow?.let { appendRewardRenderEvents(log, phase, it) }
-        draw(
-            "BattleScreen", "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f,
-            "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1",
-        )
-        draw(
-            "BattleScreen", "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
-            text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        )
-        draw(
-            "BattleScreen", "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
-            text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        )
-        return log.jsonl()
     }
 
-    private fun appendItemUpgradeRenderEvents(log: RenderEventLog, phase: String, flow: ItemUpgradeFlow) {
-        val layer = "ItemUpgradeLayer"
-        val sprites = listOf(770, 771)
-        val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun event(
-            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-            asset: String? = null, text: String = ""
-        ) =
-            log.draw(
-                phase, layer, path, type, x, y, w, h, asset, 1f,
-                if (type == "label") labels else sprites, true, text
+    private fun battleRenderEventSpriteAsset(unit: BattleUnit, frame: UnitSpriteFrame): String? {
+        val atlasUuid = dynamicTextures.movementAtlasUuid(battleAvatarId(unit))
+        val suffix = when (atlasUuid) {
+            "31cc3c95-4d6e-4c10-848f-ef1ca165e78f" -> "850f3"
+            "9eebca65-e81b-4ba4-ad61-7ac20d03661c" -> "f1ee0"
+            "3f8fbf89-4dd0-4d0b-88e0-9c7927fe5693" -> "3f9c2"
+            "ca6577ee-3ca1-4280-9d60-117070dd2d0b" -> "6ef7f"
+            "19ac1287-4d09-45f4-bf9a-f5eb8b21795c" -> "89d84"
+            else -> null
+        }
+        if (atlasUuid == null || suffix == null) return null
+        val atlasType = when (frame.source) {
+            UnitSpriteSource.ATTACK -> 0
+            UnitSpriteSource.MOVEMENT -> 1
+            UnitSpriteSource.SPECIAL -> 2
+        }
+        val generatedFrameName = if (battleDialogueBlendRoute) 33632304 else
+            (((frame.sourceY - 1).coerceAtLeast(0) / 50) shl 24) or (atlasType shl 16) or 12336
+        return if (winConditionRouteState != null && unit.characterId == 235) generatedFrameName.toString()
+        else "assets/Game/native/" + atlasUuid.take(2) + "/" + atlasUuid + "." + suffix + ".png#" + generatedFrameName
+    }
+
+    private fun battleDialogueMarkerView(): BattleRenderEventMarkerView? {
+        if (!battleDialogueBlendRoute) return null
+        val unit = battle.units.values.firstOrNull { it.visible && it.characterId == 474 } ?: return null
+        val (visualX, visualY) = visualTile(unit)
+        return BattleRenderEventMarkerView(
+            boardLeft + visualX * boardTile + boardTile * .75f,
+            tileBottom(visualY) + boardTile * .75f,
+        )
+    }
+
+    private fun battleDialogueRenderEventView(): BattleRenderEventDialogueView? {
+        if (!battleDialogueBlendRoute) return null
+        val dialogue = requireNotNull(scriptRuntime.currentDialogue)
+        val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
+        return BattleRenderEventDialogueView(
+            speaker?.face?.plus(8)?.toString(), dialogueReveal.visibleText,
+            speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
+        )
+    }
+
+    private fun battleWinConditionsRenderEventView(): BattleRenderEventWinConditionsView? = when (winConditionRouteState) {
+        "battle-win-condition-compact-fixture" -> BattleRenderEventWinConditionsView(requireNotNull(winConditionLayer).view().label, "")
+        null -> null
+        else -> requireNotNull(scriptWinConditions).view().let {
+            BattleRenderEventWinConditionsView(it.first, it.second, listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 " + scenarioMaxRound()))
+        }
+    }
+
+    private fun itemUpgradeRenderEventView(): BattleRenderEventItemUpgradeView? {
+        val flow = itemUpgradeFlow ?: return null
+        return BattleRenderEventItemUpgradeView(
+            (gameDataCatalog.equipmentProfile(flow.request.itemId)?.icon ?: 1).toString() + "-1",
+            flow.itemName, flow.request.newLevel, flow.ownerName, flow.attributeName,
+            flow.request.oldValue, flow.request.newValue,
+        )
+    }
+
+    private fun rewardRenderEventView(): BattleRenderEventRewardView? = rewardFlow?.let { flow ->
+        when (flow.phase) {
+            BattleRewardFlow.Phase.MONEY -> BattleRenderEventRewardView(BattleRenderEventRewardPhase.MONEY, flow.reward.money, flow.reward.flag)
+            BattleRewardFlow.Phase.ITEMS -> BattleRenderEventRewardView(
+                BattleRenderEventRewardPhase.ITEMS,
+                items = flow.reward.itemIds.take(flow.visibleItemCount).take(3).map { id ->
+                    gameDataCatalog.equipmentProfile(id).let { profile ->
+                        BattleRenderEventRewardItemView((profile?.icon ?: id).toString() + "-1", profile?.name ?: "아이템 " + id)
+                    }
+                },
             )
-        event("Canvas/Layer/bg", "tiled-sprite", 544.186f, 270.5f, 400f, 259f, "Logo_9-1")
-        event("Canvas/Layer/bg/box3", "sliced-sprite", 544.186f, 270.5f, 400f, 259f, "box3")
-        event("Canvas/Layer/bg/box2", "sliced-sprite", 551.222f, 451.34f, 70f, 70f, "box2")
-        event(
-            "Canvas/Layer/bg/box2/item", "sprite", 554.222f, 454.34f, 64f, 64f,
-            "${gameDataCatalog.equipmentProfile(flow.request.itemId)?.icon ?: 1}-1"
-        )
-        event("Canvas/Layer/bg/label0", "label", 628.186f, 470.8f, 69.2f, 50.4f, text = flow.itemName)
-        event(
-            "Canvas/Layer/bg/label1",
-            "label",
-            908.186f,
-            470.8f,
-            22.25f,
-            50.4f,
-            text = flow.request.newLevel.toString()
-        )
-        event("Canvas/Layer/bg/label", "label", 861.186f, 470.8f, 42.25f, 50.4f, text = "Lv")
-        event("Canvas/Layer/bg/label2", "label", 624.386f, 415.9f, 189.3f, 50.4f, text = flow.ownerName)
-        event("Canvas/Layer/bg/label", "label", 815.347f, 415.934f, 69.2f, 50.4f, text = "장비")
-        event("Canvas/Layer/bg/scrollview", "sliced-sprite", 553.136f, 281.5f, 379.5f, 130.4f, "box2")
-        event(
-            "Canvas/Layer/bg/scrollview/view/content/label", "label", 554.836f, 361.5f, 379.5f, 50.4f,
-            text = "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}"
-        )
+            BattleRewardFlow.Phase.END, BattleRewardFlow.Phase.COMPLETE -> BattleRenderEventRewardView(BattleRenderEventRewardPhase.NONE)
+        }
     }
 
     private fun roundRenderEventLog(): String {
@@ -7262,69 +7036,6 @@ void main() {
         draw("Canvas/Layer/bg/label", "label", 821.431f, 370.8f, 149.51f, 50.4f, text = "치명타율:")
         draw("Canvas/Layer/bg/label", "label", 753.016f, 433.8f, 206.34f, 50.4f, text = "마법 방어율: ")
         return log.jsonl()
-    }
-
-    private fun appendRewardRenderEvents(log: RenderEventLog, phase: String, flow: BattleRewardFlow) {
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
-            log.draw(
-                phase, "BattleScreen", path, "label", x, y, w, h, opacity = 1f,
-                blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), visible = true, text = text
-            )
-        when (flow.phase) {
-            BattleRewardFlow.Phase.MONEY -> {
-                label("Canvas/Layer/bg0/label", 527.747f, 464.417f, 448.54f, 151.2f, "전투 종료")
-                label("Canvas/Layer/bg0/label", 519.916f, 476.394f, 448.54f, 151.2f, "전투 종료")
-                label("Canvas/Layer/bg0/label", 282.777f, 248.492f, 311.4f, 151.2f, "보상금")
-                label("Canvas/Layer/bg0/label", 274.533f, 254.4f, 311.4f, 151.2f, "보상금")
-                val money = flow.reward.money.toString()
-                label("Canvas/Layer/bg0/label02", 967.617f, 247.807f, 200.21f, 151.2f, money)
-                label("Canvas/Layer/bg0/label01", 958.035f, 254.4f, 200.21f, 151.2f, money)
-                val stars = (0 until 3).joinToString("  ") { if (flow.reward.flag and (1 shl it) != 0) "★" else "☆" }
-                label("Canvas/Layer/bg0/label12", 531.389f, 52.817f, 444.76f, 151.2f, stars)
-                label("Canvas/Layer/bg0/label11", 521.806f, 56.113f, 444.76f, 151.2f, stars)
-            }
-
-            BattleRewardFlow.Phase.ITEMS -> {
-                label("Canvas/Layer/bg1/label", 596.73f, 574.944f, 311.4f, 151.2f, "전리품")
-                label("Canvas/Layer/bg1/label", 588.486f, 587.942f, 311.4f, 151.2f, "전리품")
-                flow.reward.itemIds.take(flow.visibleItemCount).take(3).forEachIndexed { index, id ->
-                    val y = 433.5f - index * 157f
-                    val root = "Canvas/Layer/bg1/item$index"
-                    log.draw(
-                        phase, "BattleScreen", root, "tiled-sprite", 499.686f, y, 489f, 101f,
-                        "Mark_47-1", visible = true
-                    )
-                    log.draw(
-                        phase, "BattleScreen", "$root/box3", "sliced-sprite", 499.686f, y, 489f, 101f,
-                        "box3", visible = true
-                    )
-                    val profile = gameDataCatalog.equipmentProfile(id)
-                    log.draw(
-                        phase, "BattleScreen", "$root/icon", "sprite", 534.974f, y + 18.5f, 64f, 64f,
-                        "${profile?.icon ?: id}-1", visible = true
-                    )
-                    label("$root/label", 648.999f, y + 22.78f, 164.46f, 55.44f, profile?.name ?: "아이템 $id")
-                }
-            }
-
-            BattleRewardFlow.Phase.END, BattleRewardFlow.Phase.COMPLETE -> Unit
-        }
     }
 
     private fun installBattleCharacterRoute() {
