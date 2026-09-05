@@ -9,7 +9,7 @@ import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.scenario.ScenarioUnitReference
 import com.jojo.game.application.battle.BattleRewardFlow
 import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
-import com.jojo.game.application.runtime.BattleRuntimeProbe
+import com.jojo.game.application.runtime.BattleRuntimeProbeFactory
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
 import com.jojo.game.application.runtime.BattleRuntimeSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
@@ -155,39 +155,8 @@ class BattleScreen(
     private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
     private val sectionTitleFont: BitmapFont = KoreanFont.create(120, "영천의 전투")
     private val overlayAssets = BattleOverlayAssets()
-    private val rewardRouteState: String? = game.requestedCaptureState()
-        ?.takeIf { it in REWARD_ROUTE_STATES }
-    private val itemUpgradeRouteState: String? = game.requestedCaptureState()
-        ?.takeIf { it == ITEM_UPGRADE_ROUTE_STATE }
-    private val loseRestartRoute = game.requestedCaptureState() == LOSE_RESTART_ROUTE_STATE
-    private val roundRouteState = game.requestedCaptureState()?.takeIf {
-        it in setOf("battle-round-normal-fixture", "battle-round-final-fixture", "battle-round-enemy-fixture")
-    }
-    private val winConditionRouteState = game.requestedCaptureState()?.takeIf {
-        it in setOf("battle-win-condition-compact-fixture", "battle-win-condition-full-fixture")
-    }
-    private val miniMapRouteState = game.requestedCaptureState()?.takeIf {
-        it in setOf("battle-mini-map-shown-fixture", "battle-mini-map-hidden-fixture")
-    }
-    private val autoBattleRouteState = game.requestedCaptureState()?.takeIf {
-        it in setOf(
-            "battle-auto-battle-prompt-off-fixture",
-            "battle-auto-battle-prompt-on-fixture",
-            "battle-auto-battle-active-fixture",
-        )
-    }
-    private val battleCommandRouteState = game.requestedCaptureState()?.takeIf {
-        it in setOf(
-            "battle-command-initial-fixture", "battle-command-disabled-fixture",
-            "battle-command-cancel-fixture", "battle-command-magick-fixture",
-            "battle-command-property-fixture",
-        )
-    }
-    private val battleCharacterRouteState = parseBattleCharacterRoute(game.requestedCaptureState())
-    private val battleEdit2RouteState = BattleEditLayer2Route.parse(game.requestedCaptureState())
-    private val otherUnitInfoRoute = game.requestedCaptureState() == "battle-other-unit-info-fixture"
+    private val capturePolicy = BattleCapturePolicy(game.requestedCaptureState())
     private var otherUnitInfoLayer: OtherUnitInfoLayer? = null
-    private val mineUnitInfoRoute = game.requestedCaptureState() == "battle-mine-unit-info-fixture"
     private var mineUnitInfoLayer: MineUnitInfoLayer? = null
     private var battleEdit2: BattleEditLayer2? = null
     private var battleEdit3Open = false
@@ -1380,53 +1349,32 @@ void main() {
 
     /** Opening scene commands have completed before the first capture frame. */
     private var presentationReady = false
-    private val actionCapture = requestedActionCapture()
-    private val actionCaptureMode = actionCapture != null
-    private val cutsceneAttackCapture = game.requestedCaptureState() == "yingchuan-attack"
-    private val cutscenePostHitCapture = game.requestedCaptureState() == "yingchuan-action4"
-    private val cutscene477Capture = game.requestedCaptureState() == "yingchuan-477"
-
-    /** Actual S_00 BattleScreen -> Stage.say -> SayLayer blend/order route. */
-    private val battleDialogueBlendRoute = game.requestedCaptureState() == "battle-dialogue-blending-fixture"
-    private val battleInitRoute = game.requestedCaptureState() == "battle-init-fixture"
-
-    /** Actual menu_button -> MenuLayer button6 -> TerrainLayer route. */
-    private val battleTerrainRoute = game.requestedCaptureState() == "battle-terrain-layer-fixture"
-
-    /** Actual BattleScreen menu_button -> MenuLayer id14 open state. */
-    private val battleMenuRoute = game.requestedCaptureState() == "battle-menu-fixture"
-
-    /** Source-harness dialogue input count: `yingchuan-dialogue-1` is the first fully revealed say. */
-    private val dialogueStepCapture = game.requestedCaptureState()
-        ?.removePrefix("yingchuan-dialogue-")
-        ?.takeIf { game.requestedCaptureState()?.startsWith("yingchuan-dialogue-") == true }
-        ?.toIntOrNull()
-
-    /**
-     * Cumulative SayLayer composition oracle.  These states never draw a
-     * source-frame texture: they exercise the ordinary Kotlin panel, portrait
-     * and label code while progressively restoring the battle scene.
-     */
-    private val dialogueComponentStage = game.requestedCaptureState()
-        ?.removePrefix("yingchuan-dialogue-components-")
-        ?.takeIf { game.requestedCaptureState()?.startsWith("yingchuan-dialogue-components-") == true }
-
-    /** Matches the original verifier's map-only diagnostic: no map children or HUD. */
-    private val mapOnlyCapture = game.requestedCaptureState() == "map-only"
-
-    /** Read-only counterpart to the source Control._process selection fixture. */
-    private val selectionOverlayCapture = game.requestedCaptureState() == "yingchuan-selection"
-
-    /** Source menu-route captures dismiss 474's opening SayLayer before opening a modal. */
-    private val modalRenderCapture = game.requestedCaptureState() in setOf(
-        "yingchuan-terrain",
-        "yingchuan-property",
-        "yingchuan-treasure",
-        "yingchuan-setting",
-        "yingchuan-save",
-        "yingchuan-load",
-        "yingchuan-forces"
-    )
+    private val actionCapture = capturePolicy.actionCapture
+    private val rewardRouteState get() = capturePolicy.rewardRouteState
+    private val itemUpgradeRouteState get() = capturePolicy.itemUpgradeRouteState
+    private val loseRestartRoute get() = capturePolicy.loseRestartRoute
+    private val roundRouteState get() = capturePolicy.roundRouteState
+    private val winConditionRouteState get() = capturePolicy.winConditionRouteState
+    private val miniMapRouteState get() = capturePolicy.miniMapRouteState
+    private val autoBattleRouteState get() = capturePolicy.autoBattleRouteState
+    private val battleCommandRouteState get() = capturePolicy.battleCommandRouteState
+    private val battleCharacterRouteState get() = capturePolicy.battleCharacterRouteState
+    private val battleEdit2RouteState get() = capturePolicy.battleEdit2RouteState
+    private val otherUnitInfoRoute get() = capturePolicy.otherUnitInfoRoute
+    private val mineUnitInfoRoute get() = capturePolicy.mineUnitInfoRoute
+    private val actionCaptureMode get() = capturePolicy.actionCaptureMode
+    private val cutsceneAttackCapture get() = capturePolicy.cutsceneAttackCapture
+    private val cutscenePostHitCapture get() = capturePolicy.cutscenePostHitCapture
+    private val cutscene477Capture get() = capturePolicy.cutscene477Capture
+    private val battleDialogueBlendRoute get() = capturePolicy.battleDialogueBlendRoute
+    private val battleInitRoute get() = capturePolicy.battleInitRoute
+    private val battleTerrainRoute get() = capturePolicy.battleTerrainRoute
+    private val battleMenuRoute get() = capturePolicy.battleMenuRoute
+    private val dialogueStepCapture get() = capturePolicy.dialogueStepCapture
+    private val dialogueComponentStage get() = capturePolicy.dialogueComponentStage
+    private val mapOnlyCapture get() = capturePolicy.mapOnlyCapture
+    private val selectionOverlayCapture get() = capturePolicy.selectionOverlayCapture
+    private val modalRenderCapture get() = capturePolicy.modalRenderCapture
 
     /** Set only after S_00's own opening delay reaches its first say. */
     private var cutsceneAttackStartedAt: Float? = null
@@ -1444,15 +1392,7 @@ void main() {
     private var boardMaxY = 1
 
     /** Action regression captures deliberately drive an isolated BRAnime while SayLayer is open. */
-    internal fun animationClock(): Float = when {
-        // The source actual-route harness stops every live idle clip at time
-        // zero before its draw inventory. Apply the identical renderer state
-        // to the game's real draw pass, not merely to event serialization.
-        rewardRouteState != null -> 0f
-        winConditionRouteState != null -> 0f
-        actionCaptureMode -> elapsed
-        else -> battleElapsed
-    }
+    internal fun animationClock(): Float = capturePolicy.animationClock(elapsed, battleElapsed)
 
     /**
      * Cocos' CreateAnime2 adds an ordinary cc.Animation component to each map
@@ -1460,22 +1400,14 @@ void main() {
      * advancing while SayLayer owns input. Keep that clock separate from the
      * combat-action clock, which intentionally pauses during dialogue.
      */
-    private fun mapObjectAnimationClock(): Float = when {
-        rewardRouteState != null -> 0f
-        winConditionRouteState != null -> 0f
-        else -> elapsed
-    }
+    private fun mapObjectAnimationClock(): Float = capturePolicy.mapObjectAnimationClock(elapsed)
 
     /**
      * `anime_state` is an ordinary cc.Animation child. StageLayer.pause()
      * only delegates to `_script.pause()` and does not pause node animation,
      * so status effects keep advancing while SayLayer owns input.
      */
-    private fun stateEffectAnimationClock(): Float = when {
-        rewardRouteState != null -> 0f
-        winConditionRouteState != null -> 0f
-        else -> elapsed
-    }
+    private fun stateEffectAnimationClock(): Float = capturePolicy.mapObjectAnimationClock(elapsed)
 
     /**
      * Prefer the lossless PNG read back from the original Cocos Texture2D.
@@ -1633,7 +1565,7 @@ void main() {
                 battle.setMaxRounds(1); outcomePresentation.enterLoseScene()
             }
 
-            LOSE_RESTART_ROUTE_STATE -> {
+            "yingchuan-lose-restart" -> {
                 battle.setMaxRounds(1)
                     outcomePresentation.enterLoseScene()
             }
@@ -3235,35 +3167,19 @@ void main() {
                 )
             },
         )
-        val probe = object : BattleRuntimeProbe {
-            override val snapshot: BattleRuntimeSnapshot = runtimeSnapshot
-
-            override fun reachableTiles(unitId: String): Set<RuntimeGridPoint> =
-                battle.movement.reachableTiles(unitId).keys.mapTo(linkedSetOf()) { RuntimeGridPoint(it.first, it.second) }
-
-            override fun canEnterTilesIgnoringEnemyWithinMoves(
-                unitId: String,
-                ignoredEnemyId: String,
-                start: RuntimeGridPoint,
-                targetTiles: Set<RuntimeGridPoint>,
-                moves: Int,
-            ): Boolean = battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
-                unitId,
-                ignoredEnemyId,
-                start.x to start.y,
-                targetTiles.mapTo(linkedSetOf()) { it.x to it.y },
-                moves,
-            )
-
-            override fun physicalDamagePreview(attackerId: String, targetId: String): Int =
-                battle.combat.physicalDamagePreview(attackerId, targetId)
-
-            override fun screenPoint(tile: RuntimeGridPoint): RuntimeGridPoint =
-                screenPoint(tile.x, tile.y).let { RuntimeGridPoint(it.first, it.second) }
-
-            override fun projectWorldPoint(x: Float, y: Float): RuntimeGridPoint =
-                projectWorldPoint(x, y).let { RuntimeGridPoint(it.first, it.second) }
-        }
+        val probe = BattleRuntimeProbeFactory(
+            initialSnapshot = runtimeSnapshot,
+            reachable = { unitId -> battle.movement.reachableTiles(unitId).keys.mapTo(linkedSetOf()) { RuntimeGridPoint(it.first, it.second) } },
+            canEnter = { unitId, ignoredEnemyId, start, targetTiles, moves ->
+                battle.movement.canEnterTilesIgnoringEnemyWithinMoves(
+                    unitId, ignoredEnemyId, start.x to start.y,
+                    targetTiles.mapTo(linkedSetOf()) { it.x to it.y }, moves,
+                )
+            },
+            damagePreview = battle.combat::physicalDamagePreview,
+            screenPointQuery = { tile -> screenPoint(tile.x, tile.y).let { RuntimeGridPoint(it.first, it.second) } },
+            projectWorldPointQuery = { x, y -> projectWorldPoint(x, y).let { RuntimeGridPoint(it.first, it.second) } },
+        ).create()
         val autoView = autoBattleFlow.view()
         val loseTitle = projectWorldPoint(844.186f, 296.285f)
         val waitCommand = projectWorldPoint(1060.6f, 225.42f)
@@ -5777,14 +5693,15 @@ void main() {
             LoseSceneRenderEvents.append(it, requireNotNull(outcomePresentation.loseSceneFlow))
         }.jsonl()
 
-        val route = rewardRouteState ?: itemUpgradeRouteState ?: winConditionRouteState
+        val winRoute = winConditionRouteState
+        val route = rewardRouteState ?: itemUpgradeRouteState ?: winRoute
             ?: if (battleInitRoute) "battle-init" else null
             ?: if (battleDialogueBlendRoute) "battle-dialogue-blending" else return RenderEventLog().jsonl()
         val phase = when {
             battleInitRoute -> "battle-init"
             battleDialogueBlendRoute -> "battle-dialogue-blending"
             itemUpgradeRouteState != null -> "battle-item-upgrade-panel-route"
-            winConditionRouteState != null -> winConditionRouteState.removeSuffix("-fixture")
+            winRoute != null -> winRoute.removeSuffix("-fixture")
             else -> route.removePrefix("yingchuan-")
         }
         return BattleRenderEventRecorder.jsonl(battleRenderEventView(phase))
@@ -9776,22 +9693,6 @@ void main() {
             "원본 BRAnime anime$action 방향 $direction 클립이 없습니다"
         }
 
-    private fun requestedActionCapture(): CaptureActionSample? = when (game.requestedCaptureState()) {
-        "attack6-f0" -> CaptureActionSample(6, 1f / 24f)
-        "attack6-f1" -> CaptureActionSample(6, 7f / 24f)
-        "attack6-f2" -> CaptureActionSample(6, 9f / 24f)
-        "attack6-f3" -> CaptureActionSample(6, 11f / 24f)
-        "attack25-f0" -> CaptureActionSample(25, 1f / 24f)
-        "attack25-f1" -> CaptureActionSample(25, 10f / 24f)
-        "attack25-f2" -> CaptureActionSample(25, 12f / 24f)
-        "attack25-f3" -> CaptureActionSample(25, 14f / 24f)
-        "attack48-f0" -> CaptureActionSample(48, 1f / 24f)
-        "attack48-f1" -> CaptureActionSample(48, 19f / 24f)
-        "attack48-f2" -> CaptureActionSample(48, 21f / 24f)
-        "attack48-f3" -> CaptureActionSample(48, 23f / 24f)
-        else -> null
-    }
-
     /** Presentation policy selects anime0 or wounded anime9. */
     private fun defaultPresentationAction(unit: BattleUnit): BattleUnitPresentationState.DefaultAction =
         unitPresentationStore.stateFor(unit).defaultAction(
@@ -10015,14 +9916,6 @@ void main() {
             if (!state.removeSuffix("-fixture").startsWith("battle-character-")) return null
             return BattleCharacterStrictState.entries.firstOrNull { it.route == route }
         }
-
-        private val REWARD_ROUTE_STATES = setOf(
-            "yingchuan-reward-basic-route",
-            "yingchuan-reward-card1-route",
-            "yingchuan-reward-card2-route",
-        )
-        private const val ITEM_UPGRADE_ROUTE_STATE = "yingchuan-item-upgrade-panel-route"
-        private const val LOSE_RESTART_ROUTE_STATE = "yingchuan-lose-restart"
 
         /**
          * data class  `IsolatedUnit`

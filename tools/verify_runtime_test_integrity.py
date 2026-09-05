@@ -103,8 +103,21 @@ def main() -> int:
         if "isFailOnNoMatchingTests = true" not in body:
             errors.append(f"{task} can pass without executing its selected test class")
 
-    # This gate uses a deterministic roster bootstrap, but it must still launch
-    # DesktopLauncher/BattleScreen, produce fresh evidence, and belong to check.
+    # This gate uses a deterministic roster bootstrap. Its test CLI belongs to
+    # :verification; the production desktop launcher must not parse it.
+    verification_launcher = ROOT / "verification/src/main/kotlin/com/jojo/game/verification/VerificationDesktopLauncher.kt"
+    launcher_source = verification_launcher.read_text() if verification_launcher.exists() else ""
+    if "object VerificationDesktopLauncher" not in launcher_source:
+        errors.append("verification-owned desktop launcher is missing")
+    if "--full-battle-trace=" not in launcher_source:
+        errors.append("verification-owned desktop launcher no longer parses full-battle traces")
+    production_launcher = ROOT / "desktop/src/main/kotlin/com/jojo/game/desktop/DesktopLauncher.kt"
+    production_source = production_launcher.read_text() if production_launcher.exists() else ""
+    if any(token in production_source for token in ("--verify", "--capture", "--full-battle-trace", "--composition-trace")):
+        errors.append("production desktop launcher still exposes verification or capture CLI")
+
+    # The legacy catalog remains the next relocation tranche. It still checks
+    # that the live BattleScreen gate emits fresh evidence and belongs to check.
     capture_start = desktop_gradle.find('tasks.register<JavaExec>("captureYingchuanBattleRegressionTrace")')
     verify_start = desktop_gradle.find('tasks.register<Exec>("verifyYingchuanBattleRegression")')
     capture_body = desktop_gradle[capture_start:verify_start] if 0 <= capture_start < verify_start else ""

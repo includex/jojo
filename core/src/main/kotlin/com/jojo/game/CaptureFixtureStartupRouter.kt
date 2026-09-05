@@ -11,7 +11,6 @@ import com.jojo.game.presentation.battle.edit.*
 import com.jojo.game.domain.scenario.*
 
 import com.jojo.game.presentation.title.LoginOptionalOverlayRoute
-import com.jojo.game.presentation.battle.unit.BattleSpriteFixtureScreen
 import com.jojo.game.domain.battle.*
 import com.jojo.game.presentation.title.TitleScreen
 import com.jojo.game.domain.campaign.*
@@ -58,18 +57,7 @@ internal class CaptureFixtureStartupRouter(
         EditRosterRoute.parse(captureState)?.let { return show(EditRosterRouteScreen(game, it)) }
 
         if (captureState in HALL_FIXTURES) prepareHallFixtureCampaign()
-        parseSpriteFixtureRequest(captureState)?.let {
-            return show(
-                BattleSpriteFixtureScreen(
-                    game,
-                    it.characterId,
-                    it.action,
-                    it.direction,
-                    it.frameTick,
-                    it.faction
-                )
-            )
-        }
+        if (CaptureFixtureStartupExtensions.route(CaptureFixtureStartupRequest(game, captureState, showScreen))) return true
         if (captureState in INFO_LAYER_FIXTURES) return show(InfoLayerFixtureScreen(game))
         captureState?.removeSuffix("-fixture")?.takeIf { it in NOTICE_FIXTURES }?.let {
             return show(NoticeInfoFixtureScreen(game, it))
@@ -141,26 +129,4 @@ internal class CaptureFixtureStartupRouter(
             "loading-default", "loading-flag1-before", "loading-flag1-after5", "loading-flag2-hidden",
         )
     }
-}
-
-internal data class SpriteFixtureRequest(
-    val characterId: Int,
-    val action: Int,
-    val direction: Int,
-    val frameTick: Int,
-    val faction: Faction,
-)
-
-/** Parses the capture router's `sprite:<character>:<action>:<dir>:<tick>:<camp>` request. */
-internal fun parseSpriteFixtureRequest(captureState: String?): SpriteFixtureRequest? {
-    val parts = captureState?.takeIf { it.startsWith("sprite:") }?.split(':') ?: return null
-    require(parts.size == 6) { "sprite fixture requires character:action:dir:tick:camp" }
-    val faction = when (parts[5].toInt()) {
-        0 -> Faction.PLAYER
-        1 -> Faction.FRIEND
-        2 -> Faction.ENEMY
-        3 -> Faction.REINFORCEMENTS
-        else -> error("sprite fixture camp must be 0, 1, 2, or 3")
-    }
-    return SpriteFixtureRequest(parts[1].toInt(), parts[2].toInt(), parts[3].toInt(), parts[4].toInt(), faction)
 }
