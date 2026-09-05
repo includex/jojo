@@ -1,6 +1,7 @@
 package com.jojo.game.application.scenario
 import com.jojo.game.*
 import com.jojo.game.domain.scenario.*
+import com.jojo.game.application.runtime.RuntimeScenarioScene
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.scenario.*
 import com.badlogic.gdx.utils.JsonValue
@@ -154,10 +155,37 @@ class ScenarioInterpreter internal constructor(
         check(state == PlaybackState.DELAY) { "외부 전투 안내는 애니메이션 대기에서만 열 수 있습니다." }
         modalController.suspendForInfo(text, ScenarioModalKind.INFO, postTypingDelaySeconds)
     }
-    fun installHallFixture() = ScenarioFixtureInstaller.installHallFixture(this)
-    fun installPalaceFixture() = ScenarioFixtureInstaller.installPalaceFixture(this)
-    fun installSectionFixture() = ScenarioFixtureInstaller.installSectionFixture(this)
-    fun installOverlayFixture(kind: String) = ScenarioFixtureInstaller.installOverlayFixture(this, kind)
+    /** Applies an externally supplied presentation without knowing its origin. */
+    fun presentRuntimeScene(scene: RuntimeScenarioScene) {
+        callStack.clear()
+        dialogueCoordinator.reset()
+        choiceCoordinator.reset()
+        modalController.reset()
+        stage.heads.clear()
+        stage.clearUnits()
+        scene.backgroundId?.let { stage.apply(ScenarioCommand.LoadBackground(2, it)) }
+        scene.units.forEach { unit ->
+            stage.apply(ScenarioCommand.ShowUnit(unit.id, unit.x, unit.y, unit.direction))
+        }
+        stage.finishAnimations()
+        scene.dialogueText?.let {
+            dialogueCoordinator.presentDialogue(Dialogue("0", it))
+            state = PlaybackState.DIALOGUE
+        }
+        scene.modal?.let { modal ->
+            modalController.setModalPresentation(modal.text, scenarioModalKind(modal.kind), modal.seconds)
+            state = PlaybackState.MODAL
+        }
+    }
+
+    private fun scenarioModalKind(kind: String): ScenarioModalKind = when (kind) {
+        "info" -> ScenarioModalKind.INFO
+        "event" -> ScenarioModalKind.EVENT
+        "section" -> ScenarioModalKind.SECTION
+        "map-info" -> ScenarioModalKind.MAP_INFO
+        "ambition" -> ScenarioModalKind.AMBITION
+        else -> error("Unknown runtime modal kind: $kind")
+    }
     fun selectPrevious() = choiceCoordinator.selectPrevious()
     fun selectNext() = choiceCoordinator.selectNext()
     fun selectChoice(index: Int) = choiceCoordinator.selectChoice(index)

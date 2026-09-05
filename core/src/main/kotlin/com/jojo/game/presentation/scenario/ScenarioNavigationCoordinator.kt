@@ -26,10 +26,9 @@ internal class ScenarioNavigationCoordinator(
     val routedAfterCompletion get() = routed
     fun startedScenes(): List<Int> = startedSceneHistory.toList()
 
-    fun continueNaturally(isVerificationRun: Boolean, hasFrameCaptureRequest: Boolean) {
+    fun continueNaturally(externalRuntimeOpen: Boolean) {
         if (!ScenarioRenderPolicy.shouldContinueNaturally(
-                isVerificationRun = isVerificationRun,
-                hasFrameCaptureRequest = hasFrameCaptureRequest,
+                externalRuntimeOpen = externalRuntimeOpen,
                 playbackState = playback.state,
                 naturalSceneIndex = naturalSceneIndex,
                 menuVisible = playback.stage.menuVisible,

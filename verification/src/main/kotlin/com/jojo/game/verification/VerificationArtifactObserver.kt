@@ -10,6 +10,7 @@ import com.jojo.game.application.runtime.RuntimeArtifactEvent
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
 import com.jojo.game.application.runtime.RuntimeScreenProbe
+import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
 import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.battle.BattleScreen
@@ -29,6 +30,8 @@ internal class VerificationArtifactObserver(
 
     override val wantsFrame get() = output.screenshotPath != null || output.rawCapturePath != null
     override val wantsEventLog get() = output.renderEventLogPath != null
+    override val keepsScenarioOpen get() = wantsFrame || wantsEventLog
+    private var scenarioArtifactSent = false
 
     override fun onArtifact(event: RuntimeArtifactEvent) {
         when (event) {
@@ -37,6 +40,14 @@ internal class VerificationArtifactObserver(
             is RuntimeArtifactEvent.MapSidecar -> writeMapSidecar(event.state)
             is RuntimeArtifactEvent.OverlayStack -> writeStack(event)
         }
+    }
+
+    override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
+        val scenario = probe as? ScenarioRuntimeProbe ?: return
+        if (scenario.elapsedSeconds <= TITLE_ARTIFACT_DELAY_SECONDS || scenarioArtifactSent) return
+        scenarioArtifactSent = true
+        if (wantsEventLog) onArtifact(RuntimeArtifactEvent.EventLog(output.state, screen))
+        else if (wantsFrame) onArtifact(RuntimeArtifactEvent.Frame(output.state, screen))
     }
 
     /** Per-screen artifact policy belongs to the verification runtime, after rendering. */

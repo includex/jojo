@@ -35,6 +35,7 @@ data class TitleRuntimeProbe(
 
 data class ScenarioRuntimeProbe(
     val module: String,
+    val elapsedSeconds: Float = 0f,
     val playback: PlaybackState,
     val options: List<String>,
     val selectedChoice: Int,

@@ -33,6 +33,9 @@ interface RuntimeArtifactObserver {
     val wantsFrame: Boolean get() = false
     val wantsEventLog: Boolean get() = false
     fun onArtifact(event: RuntimeArtifactEvent)
+
+    /** Called after a frame has been presented; external runtimes own timing. */
+    fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) = Unit
 }
 
 /** Neutral battle frame feed; consumers decide whether and how to persist it. */
@@ -47,6 +50,7 @@ data class RuntimeBattleCompletion(
     val reason: String,
     val frameCount: Long,
     val payload: String? = null,
+    val exitRequested: Boolean = false,
 )
 
 interface RuntimeBattleObserver {

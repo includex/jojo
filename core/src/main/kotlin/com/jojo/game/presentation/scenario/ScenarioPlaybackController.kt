@@ -40,7 +40,7 @@ internal class ScenarioPlaybackController(
     fun updatePresentation(
         delta: Float,
         autoCloseEnabled: Boolean,
-        revealDialogueForCapture: Boolean,
+        revealDialogueImmediately: Boolean,
         onAdvance: () -> Unit,
     ) {
         syncAudio(playback.stage)
@@ -48,7 +48,7 @@ internal class ScenarioPlaybackController(
             dialogueReveal.update(it.text, delta)
             if (sayAutoClose.update(dialogueReveal.isComplete, autoCloseEnabled, delta)) onAdvance()
         } ?: sayAutoClose.reset()
-        if (revealDialogueForCapture) dialogueReveal.revealAllIfPending()
+        if (revealDialogueImmediately) dialogueReveal.revealAllIfPending()
         playback.currentModalText?.let { text ->
             if (revealedModalSource != text) {
                 revealedModalSource = text

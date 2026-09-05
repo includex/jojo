@@ -30,16 +30,16 @@ internal class GameScreenNavigator(
 ) {
     private val run get() = configuration.scenarioRun
     private val initialScenario get() = configuration.initialScenario
-    private val captureState get() = configuration.capture.state
 
     fun showTitleScreen() {
-        val state = captureState
+        val startup = game.runtimeTitleStartupDriver()?.presentation()
         replaceScreen(
             TitleScreen(
             game,
-            state == "login-setting",
-            state == "login-load" || state?.startsWith("login-load-row") == true,
-            state?.removePrefix("login-load-row")?.takeIf { state.startsWith("login-load-row") }?.toIntOrNull()
+            startup?.settingsOpen == true,
+            startup?.loadOpen == true,
+            startup?.loadRow,
+            useInitialSettings = startup?.useInitialSettings == true,
         )
         )
     }

@@ -3,6 +3,7 @@ package com.jojo.game.verification
 import com.jojo.game.application.runtime.RuntimeBattleCompletion
 import com.jojo.game.application.runtime.RuntimeBattleFrameSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleObserver
+import com.badlogic.gdx.Gdx
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -27,5 +28,6 @@ internal class VerificationBattleObserver(
             StandardOpenOption.TRUNCATE_EXISTING,
             StandardOpenOption.WRITE,
         )
+        if (completion.exitRequested) Gdx.app.exit()
     }
 }

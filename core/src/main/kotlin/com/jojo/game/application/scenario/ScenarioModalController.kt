@@ -212,7 +212,7 @@ internal class ScenarioModalController(
     }
 
     /**
-     * 공개 메서드 `setSectionFixture`
+     * 공개 메서드 `setSectionPresentation`
      *
      * ### 파라미터
     - `chapter` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
@@ -224,7 +224,7 @@ internal class ScenarioModalController(
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun setSectionFixture(chapter: String, nextText: String, remainingSeconds: Float) {
+    fun setSectionPresentation(chapter: String, nextText: String, remainingSeconds: Float) {
         currentModalText = chapter
         currentModalKind = ScenarioModalKind.SECTION
         currentModalFixedText = ""
@@ -234,7 +234,7 @@ internal class ScenarioModalController(
     }
 
     /**
-     * 공개 메서드 `setModalFixture`
+     * 공개 메서드 `setModalPresentation`
      *
      * ### 파라미터
     - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
@@ -246,7 +246,7 @@ internal class ScenarioModalController(
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun setModalFixture(text: String, kind: ScenarioModalKind, remainingSeconds: Float) {
+    fun setModalPresentation(text: String, kind: ScenarioModalKind, remainingSeconds: Float) {
         currentModalText = text
         currentModalKind = kind
         currentModalFixedText = ""
@@ -257,7 +257,7 @@ internal class ScenarioModalController(
     }
 
     /**
-     * 공개 메서드 `setAmbitionFixture`
+     * 공개 메서드 `setAmbitionPresentation`
      *
      * ### 파라미터
     - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
@@ -269,7 +269,7 @@ internal class ScenarioModalController(
      * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
-    fun setAmbitionFixture(elapsed: Float, indicatorEnabled: Boolean, remainingSeconds: Float) {
+    fun setAmbitionPresentation(elapsed: Float, indicatorEnabled: Boolean, remainingSeconds: Float) {
         ambitionElapsedSeconds = elapsed
         ambitionIndicatorEnabled = indicatorEnabled
         modalRemainingSeconds = remainingSeconds

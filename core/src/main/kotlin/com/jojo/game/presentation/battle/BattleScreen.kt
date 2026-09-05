@@ -3097,10 +3097,9 @@ void main() {
             )
         )?.let { result ->
             game.runtimeBattleObserver()?.onCompleted(
-                RuntimeBattleCompletion(reason, result.frameCount, result.outputPath)
+                RuntimeBattleCompletion(reason, result.frameCount, result.outputPath, evidence.exitsOnFinish())
             )
             Gdx.app.log("JojoGame", "FULL_BATTLE_TRACE: ${result.outputPath}; frames=${result.frameCount}; reason=$reason")
-            if (evidence.exitsOnFinish()) Gdx.app.exit()
         }
     }
 

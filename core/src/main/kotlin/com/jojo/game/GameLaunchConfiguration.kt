@@ -7,6 +7,7 @@ import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
 import com.jojo.game.application.runtime.RuntimeScenarioDriver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
+import com.jojo.game.application.runtime.RuntimeTitleStartupDriver
 
 /** The first application route selected before LibGDX creates a screen. */
 enum class GameEntryPoint {
@@ -94,5 +95,7 @@ data class GameLaunchConfiguration(
     val runtimeBattlePreparationDriver: RuntimeBattlePreparationDriver? = null,
     /** Optional neutral scenario input driver supplied by an external runtime. */
     val runtimeScenarioDriver: RuntimeScenarioDriver? = null,
+    /** Optional neutral title startup presentation supplied by an external runtime. */
+    val runtimeTitleStartupDriver: RuntimeTitleStartupDriver? = null,
     val automatedRun: Boolean = false,
 )

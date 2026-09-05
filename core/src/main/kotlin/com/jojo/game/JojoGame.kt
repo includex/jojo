@@ -5,6 +5,7 @@ import com.jojo.game.application.navigation.GameScreenNavigator
 import com.jojo.game.application.runtime.runtimeProbe
 import com.jojo.game.application.runtime.RuntimeArtifactEvent
 import com.jojo.game.application.runtime.RuntimeBattleDriver
+import com.jojo.game.application.runtime.RuntimeTitleStartupDriver
 import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattleObserver
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
@@ -94,7 +95,9 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
 
     override fun render() {
         super.render()
-        configuration.runtimeScreenObserver?.update(Gdx.graphics.deltaTime, screen.runtimeProbe())
+        val probe = screen.runtimeProbe()
+        configuration.runtimeScreenObserver?.update(Gdx.graphics.deltaTime, probe)
+        configuration.runtimeArtifactObserver?.onFrame(screen, probe)
     }
 
     fun showTitleScreen() = screenNavigator.showTitleScreen()
@@ -163,6 +166,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun requestedFullBattleTrace(): FullBattleTraceConfig? = fullBattleTraceConfig
     fun requestedYingchuanEntryFlowTracePath(): String? = yingchuanEntryFlowTracePath
     fun runtimeBattleDriver(): RuntimeBattleDriver? = configuration.runtimeBattleDriver
+    fun runtimeTitleStartupDriver(): RuntimeTitleStartupDriver? = configuration.runtimeTitleStartupDriver
     fun runtimeBattlePresentation(): RuntimeBattlePresentation = configuration.runtimeBattlePresentation
     fun runtimeBattleObserver(): RuntimeBattleObserver? = configuration.runtimeBattleObserver
     fun runtimeBattlePreparationDriver(): RuntimeBattlePreparationDriver? = configuration.runtimeBattlePreparationDriver

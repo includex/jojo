@@ -9,8 +9,7 @@ class ScenarioRenderPolicyTest {
     @Test fun `natural continuation requires a completed non-terminal scene`() {
         assertTrue(
             ScenarioRenderPolicy.shouldContinueNaturally(
-                isVerificationRun = false,
-                hasFrameCaptureRequest = false,
+                externalRuntimeOpen = false,
                 playbackState = PlaybackState.COMPLETE,
                 naturalSceneIndex = 1,
                 menuVisible = false,
@@ -20,8 +19,7 @@ class ScenarioRenderPolicyTest {
         )
         assertFalse(
             ScenarioRenderPolicy.shouldContinueNaturally(
-                isVerificationRun = false,
-                hasFrameCaptureRequest = false,
+                externalRuntimeOpen = false,
                 playbackState = PlaybackState.COMPLETE,
                 naturalSceneIndex = 1,
                 menuVisible = true,
@@ -31,36 +29,30 @@ class ScenarioRenderPolicyTest {
         )
     }
 
-    @Test fun `capture and verification suppress automatic presentation actions`() {
+    @Test fun `external runtime suppresses automatic presentation actions`() {
         assertFalse(
             ScenarioRenderPolicy.autoCloseEnabled(
-                isVerificationRun = false,
-                hasFrameCaptureRequest = true,
-                hasRenderEventLogRequest = false,
+                externalRuntimeOpen = true,
                 autoCloseSettingEnabled = true,
             ),
         )
         assertFalse(
             ScenarioRenderPolicy.autoCloseEnabled(
-                isVerificationRun = true,
-                hasFrameCaptureRequest = false,
-                hasRenderEventLogRequest = false,
+                externalRuntimeOpen = true,
                 autoCloseSettingEnabled = true,
             ),
         )
         assertTrue(
             ScenarioRenderPolicy.autoCloseEnabled(
-                isVerificationRun = false,
-                hasFrameCaptureRequest = false,
-                hasRenderEventLogRequest = false,
+                externalRuntimeOpen = false,
                 autoCloseSettingEnabled = true,
             ),
         )
     }
 
-    @Test fun `only component fixtures suppress battlefield actors`() {
-        assertTrue(ScenarioRenderPolicy.isIsolatedHallOverlay("save-confirm"))
-        assertFalse(ScenarioRenderPolicy.isIsolatedHallOverlay("equip"))
-        assertFalse(ScenarioRenderPolicy.isIsolatedHallOverlay(null))
+    @Test fun `only component overlays suppress battlefield actors`() {
+        assertTrue(ScenarioRenderPolicy.isStandaloneHallOverlay("save-confirm"))
+        assertFalse(ScenarioRenderPolicy.isStandaloneHallOverlay("equip"))
+        assertFalse(ScenarioRenderPolicy.isStandaloneHallOverlay(null))
     }
 }

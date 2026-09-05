@@ -7,6 +7,10 @@ import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.application.runtime.RuntimeScenarioCommand
 import com.jojo.game.application.runtime.RuntimeScenarioFrame
 import com.jojo.game.application.runtime.RuntimeScenarioPresentation
+import com.jojo.game.application.runtime.RuntimeScenarioOverlay
+import com.jojo.game.application.runtime.RuntimeScenarioScene
+import com.jojo.game.application.runtime.RuntimeScenarioCommand.ShowOverlay
+import com.jojo.game.application.runtime.RuntimeScenarioCommand.Present
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
@@ -72,7 +76,7 @@ class ScenarioScreen(
     private val batch = SpriteBatch()
     internal val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
         // `campaign.enter()` prepares a fresh module state. Apply explicit
-        // verification globals afterwards so a CLI fixture never silently
+        // External globals are applied after campaign entry so a supplied
         // loses its recovered source guard inputs at scene entry.
         scriptedGlobals.forEach { (id, value) -> campaign.globalVariables[id] = value }
         scriptedUnitAttributes.forEach { (unitId, attribute, value) ->
@@ -141,7 +145,6 @@ class ScenarioScreen(
         initialSceneIndex = scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0,
     )
     private val playbackFrame = ScenarioPlaybackFrameUpdater(
-        game = game,
         playback = playback,
         playbackController = playbackController,
         navigation = scenarioNavigation,
@@ -164,7 +167,8 @@ class ScenarioScreen(
     private val staticHallInfoEvidenceRecorder = ScenarioStaticHallInfoEvidenceRecorder()
     private val glyphLayout = GlyphLayout()
     private val settingsPreferences by lazy { game.settingsPreferences() }
-    private var hallFixtureInstalled = false
+    private var runtimeOverlayInstalled = false
+    private var pendingRuntimeOverlayScene = RuntimeScenarioScene()
     private val hallInteraction = HallInteractionController()
     private val hallInteractionView get() = hallInteraction.view
     internal val hallMenuOpen get() = hallInteractionView.menuOpen
@@ -253,48 +257,12 @@ class ScenarioScreen(
     private fun hallEquipUnitIds(): List<Int> = hallManagementFlow.equipUnitIds()
     internal fun hallEquipUnitId(): Int = hallManagementFlow.equipUnitId()
 
-    internal val hallOverlayFixture = game.requestedCaptureState()
-        ?.removePrefix("hall-")
-        ?.removeSuffix("-fixture")
-        ?.takeIf {
-            it in setOf(
-                "info",
-                "get-item-equipment",
-                "get-item-property",
-                "item-equipment",
-                "item-property",
-                "item-discard-confirm",
-                "choice",
-                "map-info",
-                "ambition",
-                "ask",
-                "command",
-                "menu",
-                "save",
-                "save-confirm",
-                "equip",
-                "unit-list",
-                "unit-list-select",
-                "unit-list-close",
-                "equip-confirm",
-                "equip-confirm-unload",
-                "exclusive",
-                "exclusive-tab1",
-                "magic",
-                "feats",
-                "feats-help",
-                "buy",
-                "sell",
-                "forces",
-                "property",
-                "terrain",
-                "treasure",
-                "helper",
-                "skip-open"
-            )
-        }
+    private var runtimeOverlayState: RuntimeScenarioOverlay? = null
+    internal val runtimeOverlay: RuntimeScenarioOverlay? get() = runtimeOverlayState
+    internal val hallOverlayFixture: String?
+        get() = runtimeOverlay?.name?.lowercase()?.replace('_', '-')?.takeUnless { it == "hall" }
     private val hallSkipDispatches = mutableListOf<String>()
-    internal val hallSkipLayer: StorySkipFlow? = if (hallOverlayFixture == "skip-open") {
+    internal val hallSkipLayer: StorySkipFlow? = if (runtimeOverlay == RuntimeScenarioOverlay.SKIP_OPEN) {
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
         check("SkipLayer" in hall.layers)
         StorySkipFlow(object : StorySkipFlow.Sink {
@@ -316,31 +284,26 @@ class ScenarioScreen(
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
         applyRuntimeScenarioCommands()
-        if (!hallFixtureInstalled &&
-            ScenarioRenderPolicy.shouldInstallHallFixture(
-                game.requestedCaptureState(),
-                runtimePresentation != RuntimeScenarioPresentation.STANDARD,
-                hallOverlayFixture,
-            )
-        ) {
-            hallFixtureInstalled = true
-            when (game.requestedCaptureState()) {
-                "hall-info-fixture", "hall-get-item-equipment-fixture", "hall-get-item-property-fixture", "hall-item-equipment-fixture", "hall-item-property-fixture", "hall-item-discard-confirm-fixture", "hall-choice-fixture", "hall-map-info-fixture", "hall-ambition-fixture", "hall-ask-fixture", "hall-command-fixture", "hall-menu-fixture", "hall-save-fixture", "hall-save-confirm-fixture", "hall-equip-fixture", "hall-unit-list-fixture", "hall-unit-list-select-fixture", "hall-unit-list-close-fixture", "hall-equip-confirm-fixture", "hall-equip-confirm-unload-fixture", "hall-exclusive-fixture", "hall-exclusive-tab1-fixture", "hall-magic-fixture", "hall-feats-fixture", "hall-feats-help-fixture", "hall-buy-fixture", "hall-sell-fixture", "hall-forces-fixture", "hall-property-fixture", "hall-terrain-fixture", "hall-treasure-fixture", "hall-helper-fixture", "hall-skip-open-fixture" -> {
-                    playback.installOverlayFixture(requireNotNull(hallOverlayFixture))
-                    if (hallOverlayFixture == "menu") hallInteraction.openMenu()
-                    if (hallOverlayFixture == "save" || hallOverlayFixture == "save-confirm") {
+        if (!runtimeOverlayInstalled && runtimeOverlay != null) {
+            runtimeOverlayInstalled = true
+            when (runtimeOverlay) {
+                RuntimeScenarioOverlay.HALL -> playback.presentRuntimeScene(pendingRuntimeOverlayScene)
+                else -> {
+                    playback.presentRuntimeScene(pendingRuntimeOverlayScene)
+                    if (runtimeOverlay == RuntimeScenarioOverlay.MENU) hallInteraction.openMenu()
+                    if (runtimeOverlay == RuntimeScenarioOverlay.SAVE || runtimeOverlay == RuntimeScenarioOverlay.SAVE_CONFIRM) {
                         hallSaveLayer.onCreate(savedPage = 0)
                         hallSaveOpen = true
-                        if (hallOverlayFixture == "save-confirm") hallSaveLayer.onRowTouch(0, SaveLayer.TOUCH_END)
+                        if (runtimeOverlay == RuntimeScenarioOverlay.SAVE_CONFIRM) hallSaveLayer.onRowTouch(0, SaveLayer.TOUCH_END)
                     }
-                    when (hallOverlayFixture) {
-                        "item-equipment" -> openHallItem(0, "1", 0, canDrop = false)
-                        "item-property" -> {
+                    when (runtimeOverlay) {
+                        RuntimeScenarioOverlay.ITEM_EQUIPMENT -> openHallItem(0, "1", 0, canDrop = false)
+                        RuntimeScenarioOverlay.ITEM_PROPERTY -> {
                             campaign.inventory.addItem(150, count = 2)
                             openHallItem(150, "1", 0, canDrop = false)
                         }
 
-                        "item-discard-confirm" -> {
+                        RuntimeScenarioOverlay.ITEM_DISCARD_CONFIRM -> {
                             campaign.inventory.addItem(4, level = 0)
                             openHallItem(4, "---", 0, canDrop = true)
                             hallItemLayer?.onButton(1, ItemLayer.TOUCH_END)
@@ -348,36 +311,37 @@ class ScenarioScreen(
 
                         else -> Unit
                     }
-                    hallManagement = when (hallOverlayFixture) {
-                        "equip", "unit-list", "unit-list-select", "unit-list-close" -> HallManagement.EQUIP
-                        "buy" -> HallManagement.BUY
-                        "sell" -> HallManagement.SELL
+                    hallManagement = when (runtimeOverlay) {
+                        RuntimeScenarioOverlay.EQUIP, RuntimeScenarioOverlay.UNIT_LIST, RuntimeScenarioOverlay.UNIT_LIST_SELECT, RuntimeScenarioOverlay.UNIT_LIST_CLOSE -> HallManagement.EQUIP
+                        RuntimeScenarioOverlay.BUY -> HallManagement.BUY
+                        RuntimeScenarioOverlay.SELL -> HallManagement.SELL
                         else -> null
                     }
                     hallManagement?.let(::prepareHallManagementDefaultEquipment)
-                    if (hallOverlayFixture in setOf("unit-list", "unit-list-select", "unit-list-close")) {
+                    if (runtimeOverlay in setOf(RuntimeScenarioOverlay.UNIT_LIST, RuntimeScenarioOverlay.UNIT_LIST_SELECT, RuntimeScenarioOverlay.UNIT_LIST_CLOSE)) {
                         val layer = HallUnitListLayer(hallEquipUnitIds())
-                        when (hallOverlayFixture) {
-                            "unit-list-select" -> layer.onRow(1, HallUnitListLayer.TOUCH_END)?.let { selectedId ->
+                        when (runtimeOverlay) {
+                            RuntimeScenarioOverlay.UNIT_LIST_SELECT -> layer.onRow(1, HallUnitListLayer.TOUCH_END)?.let { selectedId ->
                                 hallEquipUnitIndex = hallEquipUnitIds().indexOf(selectedId)
                                 prepareHallManagementDefaultEquipment(HallManagement.EQUIP)
                             }
 
-                            "unit-list-close" -> layer.onCancel(HallUnitListLayer.TOUCH_END)
+                            RuntimeScenarioOverlay.UNIT_LIST_CLOSE -> layer.onCancel(HallUnitListLayer.TOUCH_END)
+                            else -> Unit
                         }
                         hallUnitListLayer = layer.takeIf { it.attached }
                     }
-                    hallEquipConfirmation = when (hallOverlayFixture) {
-                        "equip-confirm" -> HallEquipConfirmation(listOf(10, -5, 0, 2, 0, 0, 1, 0), "장비")
-                        "equip-confirm-unload" -> HallEquipConfirmation(List(8) { 0 }, "해제")
+                    hallEquipConfirmation = when (runtimeOverlay) {
+                        RuntimeScenarioOverlay.EQUIP_CONFIRM -> HallEquipConfirmation(listOf(10, -5, 0, 2, 0, 0, 1, 0), "장비")
+                        RuntimeScenarioOverlay.EQUIP_CONFIRM_UNLOAD -> HallEquipConfirmation(List(8) { 0 }, "해제")
                         else -> null
                     }
-                    hallExclusiveLayer = when (hallOverlayFixture) {
-                        "exclusive" -> ExclusiveLayer()
-                        "exclusive-tab1" -> ExclusiveLayer(ExclusiveLayer.Tab.EXCLUSIVE_LIST)
+                    hallExclusiveLayer = when (runtimeOverlay) {
+                        RuntimeScenarioOverlay.EXCLUSIVE -> ExclusiveLayer()
+                        RuntimeScenarioOverlay.EXCLUSIVE_TAB1 -> ExclusiveLayer(ExclusiveLayer.Tab.EXCLUSIVE_LIST)
                         else -> null
                     }
-                    if (hallOverlayFixture == "magic") {
+                    if (runtimeOverlay == RuntimeScenarioOverlay.MAGIC) {
                         val profile =
                             requireNotNull(gameDataCatalog.allMagicProfiles().firstOrNull { it.name == "회오리" })
                         val magic = MagicUiList.Magic(
@@ -397,32 +361,31 @@ class ScenarioScreen(
                         unitInfo.onCreate()
                         hallMagicLayer = UnitInfoMagicRoute.open(unitInfo, listOf(magic))
                     }
-                    if (hallOverlayFixture == "feats" || hallOverlayFixture == "feats-help") {
+                    if (runtimeOverlay == RuntimeScenarioOverlay.FEATS || runtimeOverlay == RuntimeScenarioOverlay.FEATS_HELP) {
                         campaign.globalVariables[4074] = 1
                         openHallUnitInfo(0)
                         openHallFeatsFromUnitInfo()
-                        if (hallOverlayFixture == "feats-help") openHallFeatsHelp()
-                        // Render-event fixtures isolate Global127 after
+                        if (runtimeOverlay == RuntimeScenarioOverlay.FEATS_HELP) openHallFeatsHelp()
+                        // Render-event projections isolate Global127 after
                         // exercising the actual Forces/UnitInfo route.
                         hallInfo = null
                         hallUnitInfoLayer = null
                     }
-                    hallInfo = when (hallOverlayFixture) {
-                        "forces" -> HallInfo.FORCES
-                        "property" -> HallInfo.PROPERTY
-                        "terrain" -> HallInfo.TERRAIN
-                        "treasure" -> HallInfo.TREASURE
-                        "helper" -> HallInfo.HELPER
+                    hallInfo = when (runtimeOverlay) {
+                        RuntimeScenarioOverlay.FORCES -> HallInfo.FORCES
+                        RuntimeScenarioOverlay.PROPERTY -> HallInfo.PROPERTY
+                        RuntimeScenarioOverlay.TERRAIN -> HallInfo.TERRAIN
+                        RuntimeScenarioOverlay.TREASURE -> HallInfo.TREASURE
+                        RuntimeScenarioOverlay.HELPER -> HallInfo.HELPER
                         else -> null
                     }
                     if (hallInfo == HallInfo.FORCES) prepareHallForcesDefaultEquipment()
                 }
 
-                else -> playback.installHallFixture()
             }
         }
         if (playbackFrame.updatePlayback(delta) == ScenarioRenderPhaseResult.ROUTED) return
-        if (playbackFrame.elapsed > 0.15f && game.requestedCaptureState() == "choice") {
+        if (playbackFrame.elapsed > 0.15f && runtimeOverlay == RuntimeScenarioOverlay.CHOICE) {
             advanceSourceUntilChoice()
             playbackController.resetDialogueReveal()
         }
@@ -451,8 +414,6 @@ class ScenarioScreen(
                 batch.end()
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             }
-            if (playbackFrame.elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
-            if (playbackFrame.elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         } else {
             if (runtimePresentation == RuntimeScenarioPresentation.PALACE) {
                 drawBattlefield(drawCharacters = true, drawUnits = true)
@@ -465,12 +426,10 @@ class ScenarioScreen(
                     )
                 }
             } else {
-                val isolatedHallOverlay = ScenarioRenderPolicy.isIsolatedHallOverlay(hallOverlayFixture)
+                val isolatedHallOverlay = ScenarioRenderPolicy.isStandaloneHallOverlay(hallOverlayFixture)
                 drawBattlefield(drawCharacters = !isolatedHallOverlay, drawUnits = !isolatedHallOverlay)
                 drawOverlay()
             }
-            if (playbackFrame.elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
-            if (playbackFrame.elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         }
 
         return ScenarioRenderPhaseResult.CONTINUE
@@ -499,6 +458,7 @@ class ScenarioScreen(
         val battleButton = viewport.project(com.badlogic.gdx.math.Vector3(936.86f, 43f, 0f))
         return ScenarioRuntimeProbe(
             module = moduleName,
+            elapsedSeconds = playbackFrame.elapsed,
             playback = playback.state,
             options = playback.currentChoice?.options.orEmpty(),
             selectedChoice = playback.selectedChoice,
@@ -535,7 +495,12 @@ class ScenarioScreen(
         )
         game.runtimeScenarioDriver()?.commands(frame).orEmpty().forEach { command ->
             when (command) {
-                is RuntimeScenarioCommand.SetPresentation -> applyRuntimePresentation(command)
+                is Present -> applyRuntimePresentation(command.presentation, command.detail, command.scene)
+                is ShowOverlay -> {
+                    runtimeOverlayState = command.overlay
+                    pendingRuntimeOverlayScene = command.scene
+                }
+                is RuntimeScenarioCommand.SetPresentation -> applyRuntimePresentation(command.mode, command.detail, RuntimeScenarioScene())
                 RuntimeScenarioCommand.AdvanceDialogue -> if (playback.state == PlaybackState.DIALOGUE) playback.advanceDialogue()
                 RuntimeScenarioCommand.ResumeModal -> if (playback.state == PlaybackState.MODAL) playback.resumeModal()
                 RuntimeScenarioCommand.SkipDelay -> if (playback.state == PlaybackState.DELAY) playback.skipDelay()
@@ -545,20 +510,20 @@ class ScenarioScreen(
         }
     }
 
-    private fun applyRuntimePresentation(command: RuntimeScenarioCommand.SetPresentation) {
-        runtimePresentation = command.mode
-        runtimePresentationDetail = command.detail
-        when (command.mode) {
-            RuntimeScenarioPresentation.PALACE -> playback.installPalaceFixture()
-            RuntimeScenarioPresentation.SECTION -> playback.installSectionFixture()
-            RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STANDARD -> Unit
-        }
+    private fun applyRuntimePresentation(
+        mode: RuntimeScenarioPresentation,
+        detail: Int,
+        scene: RuntimeScenarioScene,
+    ) {
+        runtimePresentation = mode
+        runtimePresentationDetail = detail
+        if (scene != RuntimeScenarioScene()) playback.presentRuntimeScene(scene)
     }
 
     private fun advanceSourceUntilChoice() {
         var guard = 0
         while (playback.state != PlaybackState.CHOICE && playback.state != PlaybackState.COMPLETE) {
-            check(++guard <= 10_000) { "$moduleName choice fixture did not settle" }
+            check(++guard <= 10_000) { "$moduleName choice did not settle" }
             when (playback.state) {
                 PlaybackState.DIALOGUE -> playback.advanceDialogue()
                 PlaybackState.DELAY -> playback.skipDelay()

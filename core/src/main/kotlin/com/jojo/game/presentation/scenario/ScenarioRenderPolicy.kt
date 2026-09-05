@@ -12,7 +12,7 @@ internal enum class ScenarioRenderPhaseResult {
 
 /** Pure predicates that keep ScenarioScreen's ordered frame phases explicit. */
 internal object ScenarioRenderPolicy {
-    private val isolatedHallOverlayFixtures = setOf(
+    private val isolatedHallOverlays = setOf(
         "info",
         "get-item-equipment",
         "get-item-property",
@@ -29,34 +29,24 @@ internal object ScenarioRenderPolicy {
         "save-confirm",
     )
 
-    fun shouldInstallHallFixture(
-        externalState: String?,
-        externalPresentationActive: Boolean,
-        hallOverlayFixture: String?,
-    ): Boolean = !externalPresentationActive && (externalState in setOf(
-        "hall-fixture",
-    ) || hallOverlayFixture != null)
-
     fun shouldContinueNaturally(
-        isVerificationRun: Boolean,
-        hasFrameCaptureRequest: Boolean,
+        externalRuntimeOpen: Boolean,
         playbackState: PlaybackState,
         naturalSceneIndex: Int,
         menuVisible: Boolean,
         battleEndedByScript: Boolean,
         sceneJumpTarget: Int?,
-    ): Boolean = !isVerificationRun && !hasFrameCaptureRequest &&
+    ): Boolean = !externalRuntimeOpen &&
         playbackState == PlaybackState.COMPLETE && (naturalSceneIndex == 0 || !menuVisible) &&
         !battleEndedByScript && sceneJumpTarget == null
 
     fun shouldRouteAfterCompletion(
-        isVerificationRun: Boolean,
-        hasFrameCaptureRequest: Boolean,
+        externalRuntimeOpen: Boolean,
         playbackState: PlaybackState,
         menuVisible: Boolean,
         battleEndedByScript: Boolean,
         sceneJumpTarget: Int?,
-    ): Boolean = !isVerificationRun && !hasFrameCaptureRequest &&
+    ): Boolean = !externalRuntimeOpen &&
         ScenarioCompletionRoute.shouldRoute(
             playbackState,
             menuVisible,
@@ -64,13 +54,8 @@ internal object ScenarioRenderPolicy {
             sceneJumpTarget,
         )
 
-    fun isIsolatedHallOverlay(fixture: String?): Boolean = fixture in isolatedHallOverlayFixtures
+    fun isStandaloneHallOverlay(overlay: String?): Boolean = overlay in isolatedHallOverlays
 
-    fun autoCloseEnabled(
-        isVerificationRun: Boolean,
-        hasFrameCaptureRequest: Boolean,
-        hasRenderEventLogRequest: Boolean,
-        autoCloseSettingEnabled: Boolean,
-    ): Boolean = !isVerificationRun && !hasFrameCaptureRequest &&
-        !hasRenderEventLogRequest && autoCloseSettingEnabled
+    fun autoCloseEnabled(externalRuntimeOpen: Boolean, autoCloseSettingEnabled: Boolean): Boolean =
+        !externalRuntimeOpen && autoCloseSettingEnabled
 }

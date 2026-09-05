@@ -18,6 +18,7 @@ class TitleScreen(
     initialSettingOpen: Boolean = false,
     initialLoadOpen: Boolean = false,
     initialLoadRow: Int? = null,
+    private val useInitialSettings: Boolean = false,
     private val optionalOverlayRoute: LoginOptionalOverlayRoute? = null,
     private val settingSceneName: String = "Login",
     private val settingReturnScenario: String? = null,
@@ -34,7 +35,7 @@ class TitleScreen(
     private val settingsPreferences = game.settingsPreferences()
     private val settingLayer = SettingLayer(object : SettingLayer.Store {
         override fun getInt(key: String, default: Int): Int =
-            if (optionalOverlayRoute != null || game.requestedCaptureState() == "login-setting") default
+            if (optionalOverlayRoute != null || useInitialSettings) default
             else settingsPreferences.getInteger(key, default)
 
         override fun putInt(key: String, value: Int) {
