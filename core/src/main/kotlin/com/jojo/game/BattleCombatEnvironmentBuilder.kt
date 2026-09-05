@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.magic.MagicEnvironment
 import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.*

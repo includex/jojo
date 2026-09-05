@@ -1,5 +1,6 @@
 package com.jojo.game
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
 
 /**
  * data class  `BattleUnit`
@@ -52,7 +53,7 @@ data class BattleUnit(
     /** Null is an injected custom shape; non-null is Config.EFFAREA ID. */
     var attackEffectAreaId: Int? = null,
     var attackAllScreen: Boolean = false,
-    var magic: List<GameDataCatalog.MagicProfile> = emptyList(),
+    var magic: List<BattleMagicProfile> = emptyList(),
     /** Original Unit.skills() map: SKILL_TYPE id to its resolved effect value. */
     var skills: Map<Int, Int> = emptyMap(),
     val statuses: MutableMap<BattleStatus, Int> = linkedMapOf(),

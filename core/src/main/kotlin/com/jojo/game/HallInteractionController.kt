@@ -56,9 +56,12 @@ internal class HallInteractionController {
 
     fun selectEquipTabAt(x: Float, y: Float): Boolean {
         if (y !in 566f..610f || x !in 123f..639f) return false
-        val index = ((x - 123f) / 129f).toInt()
-        if (index in 0 until EQUIP_TAB_COUNT) equipTabIndex = index
+        selectEquipTab(((x - 123f) / 129f).toInt())
         return true
+    }
+
+    fun selectEquipTab(index: Int) {
+        if (index in 0 until EQUIP_TAB_COUNT) equipTabIndex = index
     }
 
     fun selectBuyTabAt(x: Float, y: Float): Boolean {
@@ -67,8 +70,12 @@ internal class HallInteractionController {
             in 183f..338f -> 0
             in 338f..493f -> 1
             else -> null
-        }?.let { buyTabIndex = it }
+        }?.let(::selectBuyTab)
         return true
+    }
+
+    fun selectBuyTab(index: Int) {
+        if (index in 0..1) buyTabIndex = index
     }
 
     fun selectSellTabAt(x: Float, y: Float): Boolean {
@@ -77,8 +84,12 @@ internal class HallInteractionController {
             in 523f..695f -> 0
             in 695f..867f -> 1
             else -> null
-        }?.let { sellTabIndex = it }
+        }?.let(::selectSellTab)
         return true
+    }
+
+    fun selectSellTab(index: Int) {
+        if (index in 0..1) sellTabIndex = index
     }
 
     private fun menuSelection(x: Float, y: Float): HallInteractionIntent {

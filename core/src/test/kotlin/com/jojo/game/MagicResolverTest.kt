@@ -1,4 +1,8 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.magic.MagicEnvironment
+import com.jojo.game.domain.battle.magic.BattleMagicHitAreaValue
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
+import com.jojo.game.domain.battle.magic.BattleMagicProfileValue
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
@@ -32,7 +36,7 @@ class MagicResolverTest {
         maxMagicPoints: Int = 50,
         tileX: Int = 2,
         tileY: Int = 2,
-        magic: List<GameDataCatalog.MagicProfile> = emptyList(),
+        magic: List<BattleMagicProfile> = emptyList(),
         statuses: Map<BattleStatus, Int> = emptyMap(),
     ) = BattleUnit(
         id = id,
@@ -61,7 +65,7 @@ class MagicResolverTest {
         expendMp: Int = 10,
         power: Int = 100,
         offsets: Set<Pair<Int, Int>> = setOf(0 to 1, 1 to 0, 0 to -1, -1 to 0),
-    ) = GameDataCatalog.MagicProfile(
+    ) = BattleMagicProfileValue(
         id = id,
         name = name,
         type = type,
@@ -71,7 +75,7 @@ class MagicResolverTest {
         power = power,
         harmType = 0,
         effectAreaId = 0,
-        hitArea = GameDataCatalog.HitAreaProfile(0, offsets, false),
+        hitArea = BattleMagicHitAreaValue(0, offsets, false),
         effectOffsets = emptySet(),
     )
 
@@ -167,7 +171,7 @@ class MagicResolverTest {
 
     @Test
     fun `castMagicAt teleports caster to target coordinate`() {
-        val teleportSpell = GameDataCatalog.MagicProfile(
+        val teleportSpell = BattleMagicProfileValue(
             id = 77,
             name = "Teleport",
             type = 37,
@@ -177,7 +181,7 @@ class MagicResolverTest {
             power = 0,
             harmType = 4,
             effectAreaId = 0,
-            hitArea = GameDataCatalog.HitAreaProfile(0, setOf(3 to 3), false),
+            hitArea = BattleMagicHitAreaValue(0, setOf(3 to 3), false),
             effectOffsets = emptySet(),
         )
         val caster = unit("mage", tileX = 0, tileY = 0, magic = listOf(teleportSpell))

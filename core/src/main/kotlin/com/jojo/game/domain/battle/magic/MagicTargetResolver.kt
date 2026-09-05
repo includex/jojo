@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.domain.battle.magic
+
+import com.jojo.game.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleAttributeCalculator
 
@@ -12,7 +14,7 @@ internal object MagicTargetResolver {
         pass: Int,
         attacker: BattleUnit,
         victim: BattleUnit,
-        magic: GameDataCatalog.MagicProfile,
+        magic: BattleMagicProfile,
         magicCritical: Boolean,
         env: MagicEnvironment,
     ): Pair<MagicTarget, MagicLocalSettlementEntry?> {
@@ -20,33 +22,11 @@ internal object MagicTargetResolver {
         val liftsBefore = victim.attributeLifts.toMap()
         val liftRoundsBefore = victim.attributeLiftRounds.toMap()
 
-        /**
-         * 공개 메서드 `magicHarm`
-         *
-         * ### 파라미터
-        - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
         fun magicHarm(value: Int): Int {
             var result = if (pass > 0) kotlin.math.floor(value * .9).toInt() else value
             if (magicCritical) result += kotlin.math.floor(result * .5).toInt()
             return result
         }
-
-        /**
-         * 공개 메서드 `wrap`
-         *
-         * ### 파라미터
-        - `result` (`MagicTarget`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Pair<MagicTarget, MagicLocalSettlementEntry?>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun wrap(result: MagicTarget): Pair<MagicTarget, MagicLocalSettlementEntry?> {
             val entry = if (result.hit) MagicLocalSettlementEntry(

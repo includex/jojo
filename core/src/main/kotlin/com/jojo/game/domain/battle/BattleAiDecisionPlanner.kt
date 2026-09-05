@@ -3,8 +3,8 @@ import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.command.*
 
 import com.jojo.game.BattleUnit
-import com.jojo.game.GameDataCatalog
-import com.jojo.game.MagicDamageCalculator
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
+import com.jojo.game.domain.battle.magic.MagicDamageCalculator
 import com.jojo.game.domain.battle.BattleAiScorer
 
 internal data class BattleAiDecisionEnvironment(
@@ -169,7 +169,7 @@ internal object BattleAiDecisionPlanner {
         designated: BattleUnit?,
         aiMode: Int = attacker.ai,
         env: BattleAiDecisionEnvironment,
-    ): Triple<BattleUnit, GameDataCatalog.MagicProfile, Int>? {
+    ): Triple<BattleUnit, BattleMagicProfile, Int>? {
         val scoreCache = linkedMapOf<String, Int>()
         val candidates = attacker.magic.asSequence()
             .filter {

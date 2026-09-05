@@ -24,6 +24,7 @@ import com.jojo.game.domain.battle.BattleWeather
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.MagicLocalSettlement
 import com.jojo.game.domain.battle.MagicTarget
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
 import com.jojo.game.domain.battle.PhysicalAttackPass
 import com.jojo.game.domain.battle.PhysicalAttackTargetResult
 import com.jojo.game.domain.battle.TacticalActionResult
@@ -2774,159 +2775,84 @@ void main() {
     ) {
         val evidence = fullTraceEvidence ?: return
         val frame = evidence.nextFrame(elapsed, advanceFrame)
-        // A defeated source BattleUnit remains in the scene graph while its
-        // hurt/death/hidden callbacks run. Excluding presentationUnits made
-        // real anime23 episodes look like game-side omissions in the order
-        // report even though the live death driver was executing them.
-        val unitsJson = battle.presentation.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
-            .joinToString(",") { unit ->
-                val move = movementAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
-                val moveSample =
-                    move?.let { BattleUnitMoveTimeline.sample(it.path, it.timeline, animationClock() - it.startedAt) }
-                val active = actionAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
-                    ?: hitReactionAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
-                    ?: deathAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
-                val scripted = scriptedUnitVisuals[unit.id]
-                val action = if (move != null) 20 else active?.sourceAction ?: scripted?.action
-                ?: defaultPresentationAction(unit).action
-                val direction = moveSample?.direction ?: active?.direction ?: unit.direction
-                val startedAt = move?.startedAt ?: active?.startedAt ?: scripted?.startedAt ?: battleElapsed
-                val animationTime = (animationClock() - startedAt).coerceAtLeast(0f)
-                val sprite = battleSpriteFrame(action, direction, animationTime, loop = move != null)
-                val characterId = unit.characterId ?: -1
-                val internalIndex = unit.id.substringAfterLast('-').toIntOrNull() ?: -1
-                val rates = (0..7).joinToString(",") { (unit.rateAccumulators[it] ?: 0).toString() }
-                val skills =
-                    listOf(7, 43, 197, 262, 276).joinToString(",") { "[$it,${unit.skills[it]?.and(255) ?: 255}]" }
-                val attackOffsets = unit.attackOffsets.joinToString(",") { (x, y) -> "[$x,$y]" }
-                // Canonical source BATTLE_UNIT_STATUS2 slots. Source lift values
-                // are DOWN=0, NORMAL=1, UP=2; persistent states use DOWN when set.
-                val statuses = (0..14).joinToString(",") { sourceIndex ->
-                    when (sourceIndex) {
-                        in 0..5 -> ((unit.attributeLifts[BattleAttribute.entries[sourceIndex]] ?: 0) + 1).coerceIn(0, 2)
-                        7 -> if (BattleStatus.PARALYSIS in unit.statuses) 0 else 1
-                        8 -> if (BattleStatus.SILENCE in unit.statuses) 0 else 1
-                        9 -> if (BattleStatus.CONFUSION in unit.statuses) 0 else 1
-                        10 -> if (BattleStatus.POISON in unit.statuses) 0 else 1
-                        13 -> if (BattleStatus.LOST in unit.statuses) 0 else 1
-                        14 -> if (unit.hasActed) 0 else 1
-                        else -> 1
-                    }.toString()
-                }
-                val statusRounds = (0..14).joinToString(",") { sourceIndex ->
-                    when (sourceIndex) {
-                        in 0..5 -> unit.attributeLiftRounds[BattleAttribute.entries[sourceIndex]] ?: 0
-                        7 -> unit.statuses[BattleStatus.PARALYSIS] ?: 0
-                        8 -> unit.statuses[BattleStatus.SILENCE] ?: 0
-                        9 -> unit.statuses[BattleStatus.CONFUSION] ?: 0
-                        10 -> unit.statuses[BattleStatus.POISON] ?: 0
-                        13 -> unit.statuses[BattleStatus.LOST] ?: 0
-                        14 -> unit.actionStatusRound
-                        else -> 0
-                    }.toString()
-                }
-                val visual = visualTile(unit)
-                "[$internalIndex,$characterId,${unit.type().ordinal},${unit.tileX},${unit.tileY},${unit.hitPoints},${unit.magicPoints},$direction,$action,${if (unit.visible) 1 else 0},1,${if (unit.hasActed) 1 else 0},${unit.ai},${unit.aiValue},\"anime${action}_$direction\",${
-                    FullBattleTraceRecorder.number(
-                        animationTime
-                    )
-                },${sprite?.let { "[0,${it.sourceY},${it.sourceWidth},${it.sourceHeight}]" } ?: "null"},{\"abilities\":[${unit.attack},${unit.defense},${unit.spirit},${unit.critical},${unit.morale}],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience},\"growth\":{\"abilities\":[${unit.attack},${unit.defense},${unit.spirit},${unit.critical},${unit.morale}],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience}},\"attackOffsets\":[$attackOffsets],\"terrain\":${
-                    unit.terrainImpacts[terrainGrid.terrainAt(
-                        unit.tileX,
-                        unit.tileY
-                    )] ?: 100
-                },\"rates\":[$rates],\"skills\":[$skills],\"statuses\":[$statuses],\"statusRounds\":[$statusRounds],\"visual\":[${
-                    FullBattleTraceRecorder.number(
-                        visual.first
-                    )
-                },${FullBattleTraceRecorder.number(visual.second)}]}]"
-            }
-        val actions = battle.traceActions.joinToString(",") { "\"${FullBattleTraceRecorder.escape(it)}\"" }
-        // Keep the adjudication inputs beside each frame.  A terminal result
-        // during scene0 is otherwise ambiguous: it can mean a real defeat,
-        // an empty mine roster, or an accidentally shortened max-round setup.
-        val playerCount = battle.units.values.count { it.type() == Faction.PLAYER }
-        val friendCount = battle.units.values.count { it.type() == Faction.FRIEND }
-        val enemyCount = battle.units.values.count { it.type().isEnemySide() }
-        val aiPresentation = pendingAiResolution?.let { resolution ->
-            val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
-            val target = resolution.targetId?.let(battle.presentation::presentationUnit)
-            val targetCharacterId = target?.characterId ?: -1
-            val targetHpBefore = resolution.targetId?.let(resolution.healthBeforeAction::get) ?: -1
-            "{\"stage\":\"$aiPresentationStage\",\"actor\":$actor,\"from\":[${resolution.fromX},${resolution.fromY}],\"to\":[${resolution.toX},${resolution.toY}],\"target\":$targetCharacterId,\"targetHpBefore\":$targetHpBefore,\"deferred\":${battle.pendingActionTransaction != null},\"hasAction\":${resolution.result != null}}"
-        } ?: "null"
         val bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE
         val traceCamp = if (bootstrapComplete) battle.activeFaction.ordinal else -1
         val traceOutcome = battle.outcome().takeIf { bootstrapComplete }
         val dialogueSourceText = scriptRuntime.currentDialogueSourceText
-        val dialogueIdentity = dialogueSourceText?.let { sourceText ->
-            "${scriptRuntime.dialogueLifecycleRevision}:${Integer.toHexString(sourceText.hashCode())}"
-        }.orEmpty()
-        val dialogueSpeakerId = scriptRuntime.currentDialogue?.speakerId.orEmpty()
         val dialogueText = dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }
             ?.joinToString("\n") { it.text }.orEmpty()
         val (mapObjectRevision, mapObjectsJson) = fullTraceMapObjectsJson()
-        val fightJson = fullTraceFightJson()
-        val bootstrapBusy = if (bootstrapComplete) emptyList() else bootstrapPresentationBusyReasons()
-        val scriptedOutcome = scriptRuntime.stage.scriptedBattleOutcome?.name
-        val modalKind = scriptRuntime.currentModalKind?.name
-        val driverState =
-            "{\"selectedUnit\":${selectedUnitId?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"commandPhase\":\"${battleCommandFlow.phase}\",\"lastInput\":${
-                lastFullBattleInput?.let {
-                    "\"${
-                        FullBattleTraceRecorder.escape(it)
-                    }\""
-                } ?: "null"
-            },\"menuTap\":${lastFullBattleMenuTap?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"eventMessage\":\"${
-                FullBattleTraceRecorder.escape(
-                    eventMessage
-                )
-            }\",\"autoOverlay\":\"${autoBattleFlow.view().overlay}\"}"
-        evidence.record(
-            BattleEvidenceView(
-                    frame = frame,
-                    elapsed = elapsed,
-                    delta = delta,
-                    round = battle.round,
-                    camp = traceCamp,
-                    maxRounds = battle.maxRounds,
-                    playerCount = playerCount,
-                    friendCount = friendCount,
-                    enemyCount = enemyCount,
-                    paused = scriptRuntime.state != PlaybackState.COMPLETE,
-                    ended = traceOutcome != null,
-                    collocation = autoBattleFlow.view().collocation,
-                    dialogue = scriptRuntime.state == PlaybackState.DIALOGUE,
-                    dialogueRevision = scriptRuntime.dialogueLifecycleRevision,
-                    dialogueIdentity = dialogueIdentity,
-                    dialogueSpeakerId = dialogueSpeakerId,
-                    dialogueText = dialogueText,
-                    phase = turnController.snapshot.phase.toString(),
-                    script = scriptRuntime.state.toString(),
-                    bootstrapBusy = bootstrapBusy,
-                    cameraX = battleCamera.contentX,
-                    cameraY = battleCamera.contentY,
-                    mapObjectRevision = mapObjectRevision,
-                    mapObjectsJson = mapObjectsJson,
-                    fightJson = fightJson,
-                    aiPresentationJson = aiPresentation,
-                    actionsJson = actions,
-                    unitsJson = unitsJson,
-                    driverJson = driverState,
-                    observation = observation,
-                    scriptEnded = scriptRuntime.stage.battleEndedByScript,
-                    scriptedOutcome = scriptedOutcome,
-                    resultFlow = resultFlow.toString(),
-                    modalKind = modalKind,
-                    pendingScriptPasses = pendingBattleScriptPassesAfterAction,
-                    pendingAiDeathPass = pendingAiUnitDeathScriptPass,
-                    postActionDeaths = deathTimeline.startedPostActionDeaths(),
-                    pendingAiResolution = pendingAiResolution != null,
-                    activeAiCamp = activeAiCamp?.toString(),
-                    roundLayer = activeRoundLayer != null,
-                    turnSettlement = activeTurnSettlement != null,
-                    combatPresentation = combatPresentationBusy(),
+        evidence.record(FullBattleTraceFrameProjector.project(
+            FullBattleTraceFrameInput(
+                frame, elapsed, delta, battle.round, traceCamp, battle.maxRounds,
+                battle.units.values.count { it.type() == Faction.PLAYER },
+                battle.units.values.count { it.type() == Faction.FRIEND },
+                battle.units.values.count { it.type().isEnemySide() },
+                scriptRuntime.state != PlaybackState.COMPLETE, traceOutcome != null,
+                autoBattleFlow.view().collocation,
+                FullBattleTraceDialogueInput(
+                    scriptRuntime.state == PlaybackState.DIALOGUE, scriptRuntime.dialogueLifecycleRevision,
+                    dialogueSourceText, scriptRuntime.currentDialogue?.speakerId.orEmpty(), dialogueText,
+                ),
+                turnController.snapshot.phase.toString(), scriptRuntime.state.toString(),
+                if (bootstrapComplete) emptyList() else bootstrapPresentationBusyReasons(),
+                battleCamera.contentX, battleCamera.contentY, mapObjectRevision, mapObjectsJson, fullTraceFightJson(),
+                fullTraceAiPresentation(), battle.traceActions.toList(),
+                battle.presentation.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
+                    .map(::fullTraceUnitInput),
+                FullBattleTraceDriverInput(
+                    selectedUnitId, battleCommandFlow.phase.toString(), lastFullBattleInput,
+                    lastFullBattleMenuTap, eventMessage, autoBattleFlow.view().overlay.toString(),
+                ),
+                observation, scriptRuntime.stage.battleEndedByScript, scriptRuntime.stage.scriptedBattleOutcome?.name,
+                resultFlow.toString(), scriptRuntime.currentModalKind?.name,
+                pendingBattleScriptPassesAfterAction, pendingAiUnitDeathScriptPass, deathTimeline.startedPostActionDeaths(),
+                pendingAiResolution != null, activeAiCamp?.toString(), activeRoundLayer != null,
+                activeTurnSettlement != null, combatPresentationBusy(),
             )
+        ))
+    }
+
+    private fun fullTraceAiPresentation(): FullBattleTraceAiPresentationInput? = pendingAiResolution?.let { resolution ->
+        val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
+        val target = resolution.targetId?.let(battle.presentation::presentationUnit)
+        FullBattleTraceAiPresentationInput(
+            aiPresentationStage.toString(), actor, resolution.fromX, resolution.fromY, resolution.toX, resolution.toY,
+            target?.characterId ?: -1, resolution.targetId?.let(resolution.healthBeforeAction::get) ?: -1,
+            battle.pendingActionTransaction != null, resolution.result != null,
+        )
+    }
+
+    /** Reads live animation collaborators once, then passes only values to the evidence projector. */
+    private fun fullTraceUnitInput(unit: BattleUnit): FullBattleTraceUnitInput {
+        val now = animationClock()
+        val move = movementAnimation?.takeIf { it.unitId == unit.id && now < it.endsAt }
+        val moveSample = move?.let { BattleUnitMoveTimeline.sample(it.path, it.timeline, now - it.startedAt) }
+        val active = actionAnimation?.takeIf { it.unitId == unit.id && now < it.endsAt }
+            ?: hitReactionAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
+            ?: deathAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
+        val scripted = scriptedUnitVisuals[unit.id]
+        val action = if (move != null) 20 else active?.sourceAction ?: scripted?.action ?: defaultPresentationAction(unit).action
+        val direction = moveSample?.direction ?: active?.direction ?: unit.direction
+        val animationTime = (now - (move?.startedAt ?: active?.startedAt ?: scripted?.startedAt ?: battleElapsed)).coerceAtLeast(0f)
+        val sprite = battleSpriteFrame(action, direction, animationTime, loop = move != null)
+        val visual = visualTile(unit)
+        return FullBattleTraceUnitInput(
+            unit.id.substringAfterLast('-').toIntOrNull() ?: -1, unit.characterId ?: -1, unit.type().ordinal,
+            unit.tileX, unit.tileY, unit.hitPoints, unit.magicPoints, direction, action, unit.visible, unit.hasActed,
+            unit.ai, unit.aiValue, animationTime, sprite?.let { FullBattleTraceSpriteInput(it.sourceY, it.sourceWidth, it.sourceHeight) },
+            listOf(unit.attack, unit.defense, unit.spirit, unit.critical, unit.morale), unit.level, unit.posts,
+            unit.armId, unit.experience, unit.attackOffsets.map { FullBattleTracePoint(it.first, it.second) },
+            unit.terrainImpacts[terrainGrid.terrainAt(unit.tileX, unit.tileY)] ?: 100,
+            (0..7).map { unit.rateAccumulators[it] ?: 0 }, listOf(7, 43, 197, 262, 276).map { unit.skills[it]?.and(255) ?: 255 },
+            BattleAttribute.entries.take(6).map { unit.attributeLifts[it] ?: 0 },
+            BattleAttribute.entries.take(6).map { unit.attributeLiftRounds[it] ?: 0 },
+            BattleStatus.PARALYSIS in unit.statuses, unit.statuses[BattleStatus.PARALYSIS] ?: 0,
+            BattleStatus.SILENCE in unit.statuses, unit.statuses[BattleStatus.SILENCE] ?: 0,
+            BattleStatus.CONFUSION in unit.statuses, unit.statuses[BattleStatus.CONFUSION] ?: 0,
+            BattleStatus.POISON in unit.statuses, unit.statuses[BattleStatus.POISON] ?: 0,
+            BattleStatus.LOST in unit.statuses, unit.statuses[BattleStatus.LOST] ?: 0,
+            unit.actionStatusRound, visual.first, visual.second,
         )
     }
 
@@ -9044,7 +8970,7 @@ void main() {
         unitInfoOverlay.open(rows, index)
     }
 
-    private fun toMagicUi(profile: GameDataCatalog.MagicProfile) = MagicUiList.Magic(
+    private fun toMagicUi(profile: BattleMagicProfile) = MagicUiList.Magic(
         profile.id, profile.name, profile.expendMp, profile.power, profile.icon,
         profile.hitArea.id, profile.effectAreaId, profile.intro,
     )

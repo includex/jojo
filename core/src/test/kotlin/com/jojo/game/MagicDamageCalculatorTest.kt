@@ -1,4 +1,8 @@
 package com.jojo.game
+
+import com.jojo.game.domain.battle.magic.MagicDamageCalculator
+import com.jojo.game.domain.battle.magic.BattleMagicHitAreaValue
+import com.jojo.game.domain.battle.magic.BattleMagicProfileValue
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
@@ -56,7 +60,7 @@ class MagicDamageCalculatorTest {
         condition: Int = 0,
         power: Int = 100,
         effectAreaId: Int = 0,
-    ) = GameDataCatalog.MagicProfile(
+    ) = BattleMagicProfileValue(
         id = id,
         name = name,
         type = type,
@@ -67,7 +71,7 @@ class MagicDamageCalculatorTest {
         target = 0,
         expendMp = 10,
         harmType = 0,
-        hitArea = GameDataCatalog.HitAreaProfile(0, emptySet(), false),
+        hitArea = BattleMagicHitAreaValue(0, emptySet(), false),
         effectOffsets = emptySet(),
     )
 

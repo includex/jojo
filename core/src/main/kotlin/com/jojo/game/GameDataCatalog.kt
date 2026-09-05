@@ -1,5 +1,7 @@
 package com.jojo.game
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.magic.BattleMagicHitArea
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
 import com.jojo.game.domain.campaign.*
 
 /**
@@ -151,39 +153,39 @@ class GameDataCatalog private constructor(
      */
 
     data class HitAreaProfile(
-        val id: Int,
-        val offsets: Set<Pair<Int, Int>>,
-        val allScreen: Boolean = false,
+        override val id: Int,
+        override val offsets: Set<Pair<Int, Int>>,
+        override val allScreen: Boolean = false,
         /** Model.hitareaUpgrade(id), or this ID when the source has no upgrade. */
-        val upgradeId: Int = id,
-    )
+        override val upgradeId: Int = id,
+    ) : BattleMagicHitArea
 
     /** Original MAGIC_ATTR_NAME2 fields needed by the tactical resolver. */
     data class MagicProfile(
-        val id: Int,
-        val name: String,
-        val type: Int,
-        val target: Int,
-        val hitArea: HitAreaProfile,
-        val effectAreaId: Int,
-        val effectOffsets: Set<Pair<Int, Int>>,
-        val expendMp: Int,
-        val power: Int,
-        val harmType: Int,
-        val category: Int,
+        override val id: Int,
+        override val name: String,
+        override val type: Int,
+        override val target: Int,
+        override val hitArea: BattleMagicHitArea,
+        override val effectAreaId: Int,
+        override val effectOffsets: Set<Pair<Int, Int>>,
+        override val expendMp: Int,
+        override val power: Int,
+        override val harmType: Int,
+        override val category: Int,
         /** MAGIC_ATTR_NAME2.MEFF: source target-effect index, 255 for none. */
-        val effectId: Int = 255,
+        override val effectId: Int = 255,
         /** Original MAGIC_ATTR_NAME.CONDITION (magicConditionTest). */
-        val condition: Int = -1,
+        override val condition: Int = -1,
         /** MAGIC_ATTR_NAME.AIUSE; 13 bypasses magicConditionTest in Control._AIProcess. */
-        val aiUse: Int = 0,
+        override val aiUse: Int = 0,
         /** Original MAGIC_ATTR_NAME.HITRATELIMIT. */
-        val hitRateLimit: Int = 0,
+        override val hitRateLimit: Int = 0,
         /** MAGIC_ATTR_NAME.ICON (raw field 6), used by Global108 MagicLayer. */
-        val icon: Int = 0,
+        override val icon: Int = 0,
         /** MAGIC_ATTR_NAME.INTRO (raw field 7), used by Global108 MagicLayer. */
-        val intro: String = "",
-    )
+        override val intro: String = "",
+    ) : BattleMagicProfile
 
     /** Original ITEM_ATTR_NAME values used by battle-script equipment. */
     data class EquipmentProfile(

@@ -2,6 +2,7 @@ package com.jojo.game.presentation.scenario
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioModalKind
+import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.domain.scenario.ScenarioCompletionRoute
 
@@ -125,6 +126,7 @@ class ScenarioScreen(
         startedSceneHistory += scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0
     }
     private val gameDataCatalog = GameDataCatalog.load()
+    private val hallManagementCommands = HallManagementCommandAdapter(campaign, gameDataCatalog)
     private val equipConfirmationFlow = EquipConfirmationFlow(campaign, gameDataCatalog)
     private val sceneAssets = ScenarioSceneAssets {
         buildString {
@@ -172,6 +174,7 @@ class ScenarioScreen(
     private var hallFixtureInstalled = false
     private val hallInteraction = HallInteractionController()
     private val hallOverlayInteraction = HallOverlayInteractionController()
+    private val hallManagementInteraction = HallManagementInteractionController()
     private val hallInteractionView get() = hallInteraction.view
     private val hallMenuOpen get() = hallInteractionView.menuOpen
     private var hallManagement: HallManagement? = null
@@ -2283,22 +2286,18 @@ class ScenarioScreen(
             gameDataCatalog.equipmentExperienceLimit(itemId, level.toIntOrNull() ?: 1)
         )
         hallItemLayer = ItemLayer(itemId, profile.name, canDrop, object : ItemLayer.Repository {
-            override fun discard(itemId: Int): Boolean = campaign.inventory.consumeItem(itemId)
+            override fun discard(itemId: Int): Boolean = hallManagementCommands.discard(itemId)
         })
     }
 
     private fun handleHallItemTap(x: Float, y: Float) {
         val layer = hallItemLayer ?: return
-        val sx = x / .86f
-        val sy = y / .86f
-        if (layer.discardConfirmationOpen) {
-            when {
-                sx in 554.186f..734.186f && sy in 271.285f..321.285f -> layer.onDiscardAnswer(1)
-                sx in 754.186f..934.186f && sy in 271.285f..321.285f -> layer.onDiscardAnswer(0)
-            }
-        } else when {
-            sx in 1065.827f..1215.827f && sy in 97.824f..147.824f -> layer.onButton(0, ItemLayer.TOUCH_END)
-            sx in 901.312f..1051.312f && sy in 97.824f..147.824f -> layer.onButton(1, ItemLayer.TOUCH_END)
+        when (hallManagementInteraction.itemTap(layer.discardConfirmationOpen, x, y)) {
+            HallItemInputIntent.DISCARD_YES -> layer.onDiscardAnswer(1)
+            HallItemInputIntent.DISCARD_NO -> layer.onDiscardAnswer(0)
+            HallItemInputIntent.CLOSE -> layer.onButton(0, ItemLayer.TOUCH_END)
+            HallItemInputIntent.REQUEST_DISCARD -> layer.onButton(1, ItemLayer.TOUCH_END)
+            HallItemInputIntent.NONE -> Unit
         }
         if (!layer.attached) {
             hallItemLayer = null
@@ -2395,26 +2394,31 @@ class ScenarioScreen(
         when (kind) {
             HallManagement.EQUIP -> {
                 hallEquipConfirmation?.let { confirmation ->
-                    if (x in 472.30f..601.30f && y in 216.63f..259.63f) {
-                        val changed = if (confirmation.itemId != null || confirmation.unequipSlot != null)
-                            equipConfirmationFlow.answer(unitId, accept = true) else false
-                        if (changed) hallManagementNotice =
-                            if (confirmation.actionLabel == "해제") "장비를 해제했습니다." else "장비를 변경했습니다."
-                    } else equipConfirmationFlow.cancel()
+                    when (hallManagementInteraction.equipConfirmationTap(x, y)) {
+                        HallEquipConfirmationInputIntent.CONFIRM -> {
+                            val changed = if (confirmation.itemId != null || confirmation.unequipSlot != null)
+                                equipConfirmationFlow.answer(unitId, accept = true) else false
+                            if (changed) hallManagementNotice =
+                                if (confirmation.actionLabel == "해제") "장비를 해제했습니다." else "장비를 변경했습니다."
+                        }
+
+                        HallEquipConfirmationInputIntent.CANCEL -> equipConfirmationFlow.cancel()
+                    }
                     // EquipConfirmLayer's full-canvas Panel_cancel and cancel
                     // button both dismiss without applying the preview.
                     hallEquipConfirmation = null
                     return
                 }
                 if (hallEquipUnequipConfirmation) {
-                    when {
-                        x in 439f..623f && y in 291f..334f -> {
-                            val count = campaign.inventory.unequipAllEquipment()
+                    when (hallManagementInteraction.unequipConfirmationTap(x, y)) {
+                        HallUnequipConfirmationInputIntent.CONFIRM -> {
+                            val count = hallManagementCommands.unequipAll()
                             hallEquipUnequipConfirmation = false
                             hallManagementNotice = if (count == 0) "해제할 장비가 없습니다." else "장비 ${count}개를 모두 해제했습니다."
                         }
 
-                        x in 657f..841f && y in 291f..334f -> hallEquipUnequipConfirmation = false
+                        HallUnequipConfirmationInputIntent.CANCEL -> hallEquipUnequipConfirmation = false
+                        HallUnequipConfirmationInputIntent.NONE -> Unit
                     }
                     return
                 }
@@ -2434,51 +2438,43 @@ class ScenarioScreen(
                     hallManagementNotice = null
                     return
                 }
-                if (hallInteraction.selectEquipTabAt(x, y)) {
-                    hallManagementNotice = null
-                    return
-                }
-                when {
-                    x in 125f..212f && y in 37f..82f -> {
+                when (val intent = hallManagementInteraction.equipTap(x, y)) {
+                    is HallEquipInputIntent.SelectTab -> {
+                        hallInteraction.selectEquipTab(intent.index)
+                        hallManagementNotice = null
+                    }
+
+                    HallEquipInputIntent.OpenExclusive -> {
                         // Source EquipLayer.button14 opens Global126. Keep the
                         // Equip layer resident beneath it and remove the old
                         // game-only notice substitute.
                         hallExclusiveLayer = EquipExclusiveRoute.openFromInformationButton(ExclusiveLayer.TOUCH_END)
                         hallManagementNotice = null
-                        return
                     }
 
-                    x in 493f..642f && y in 37f..82f -> {
+                    HallEquipInputIntent.RequestUnequipConfirmation -> {
                         hallEquipUnequipConfirmation = true
                         hallManagementNotice = null
-                        return
                     }
 
-                    x in 842f..995f && y in 37f..82f -> {
+                    HallEquipInputIntent.PreviousUnit -> {
                         hallEquipUnitIndex--
                         prepareHallManagementDefaultEquipment(HallManagement.EQUIP)
                         hallManagementNotice = null
-                        return
                     }
 
-                    x in 995f..1148f && y in 37f..82f -> {
+                    HallEquipInputIntent.NextUnit -> {
                         hallEquipUnitIndex++
                         prepareHallManagementDefaultEquipment(HallManagement.EQUIP)
                         hallManagementNotice = null
-                        return
                     }
-                    // UnitInfoBaseLayer button0 opens the roster. Until that
-                    // list overlay is drawn, tapping either half still cycles
-                    // through the same source-ordered roster.
-                    x in 820f..1125f && y in 566f..610f -> {
+
+                    HallEquipInputIntent.OpenUnitList -> {
                         hallUnitListLayer = HallUnitListLayer(hallEquipUnitIds())
                         hallManagementNotice = null
-                        return
                     }
-                    // The visible weapon card is UnitInfoBaseLayer's equip(0)
-                    // target. A short click opens ItemLayer in Cocos; TOUCH_END
-                    // after a press previews removal through EquipConfirmLayer.
-                    x in 745f..1149f && y in 85f..151f -> {
+
+                    HallEquipInputIntent.RequestWeaponUnequip -> {
                         equipConfirmationFlow.requestUnequip(unitId, CampaignEquipmentSlot.WEAPON)?.let { preview ->
                             hallEquipConfirmation = EquipConfirmation(
                                 preview.values,
@@ -2486,64 +2482,60 @@ class ScenarioScreen(
                                 unequipSlot = preview.unequipSlot,
                             )
                         }
-                        return
                     }
-                }
-                if (x !in 124f..729f) return
-                val index = ((529f - y) / 68f).toInt()
-                val itemId = hallViews.equipInventory(hallInteractionView.equipTabIndex).getOrNull(index)?.itemId ?: return
-                val preview = equipConfirmationFlow.requestEquip(unitId, itemId)
-                if (preview == null) hallManagementNotice = "이 물품은 장착할 수 없습니다."
-                else {
-                    hallEquipConfirmation =
-                        EquipConfirmation(preview.values, preview.actionLabel, itemId = preview.itemId)
-                    hallManagementNotice = null
+
+                    is HallEquipInputIntent.RequestEquipmentRow -> {
+                        val itemId = hallViews.equipInventory(hallInteractionView.equipTabIndex)
+                            .getOrNull(intent.row)
+                            ?.itemId
+                            ?: return
+                        val preview = equipConfirmationFlow.requestEquip(unitId, itemId)
+                        if (preview == null) hallManagementNotice = "이 물품은 장착할 수 없습니다."
+                        else {
+                            hallEquipConfirmation = EquipConfirmation(
+                                preview.values,
+                                preview.actionLabel,
+                                itemId = preview.itemId,
+                            )
+                            hallManagementNotice = null
+                        }
+                    }
+
+                    HallEquipInputIntent.None -> Unit
                 }
             }
 
             HallManagement.BUY -> {
-                if (hallInteraction.selectBuyTabAt(x, y)) {
-                    hallManagementNotice = null
-                    return
-                }
-                if (x !in 176f..657f) return
-                val item = if (hallBuyTab == 0) {
-                    if (y !in 118f..577f) return
-                    hallViews.buyCandidates().getOrNull(((522.16f - y) / 153.08f).toInt())
-                } else {
-                    if (y !in 132f..563f) return
-                    hallViews.buyProperties().getOrNull(((562.64f - y) / 108f).toInt())
-                } ?: return
-                val price = gameDataCatalog.purchasePrice(item)
-                if (price == 255) {
-                    hallManagementNotice = "값으로 매길 수 없는 보물이므로 구매할 수 없습니다."
-                    return
-                }
-                if (campaign.money < price) {
-                    hallManagementNotice = "금화가 부족하여 구매할 수 없습니다"
-                } else {
-                    campaign.addMoney(-price)
-                    campaign.inventory.addItem(item.id)
-                    hallManagementNotice = "${item.name} 구매"
+                when (val intent = hallManagementInteraction.buyTap(x, y, hallBuyTab)) {
+                    is HallBuyInputIntent.SelectTab -> {
+                        hallInteraction.selectBuyTab(intent.index)
+                        hallManagementNotice = null
+                    }
+
+                    is HallBuyInputIntent.Row -> {
+                        val item = if (hallBuyTab == 0) hallViews.buyCandidates().getOrNull(intent.index)
+                        else hallViews.buyProperties().getOrNull(intent.index)
+                        item?.let { hallManagementNotice = hallManagementCommands.buy(it.id).message }
+                    }
+
+                    HallBuyInputIntent.None -> Unit
                 }
             }
 
             HallManagement.SELL -> {
-                if (hallInteraction.selectSellTabAt(x, y)) {
-                    hallManagementNotice = null
-                    return
-                }
-                if (x !in 271f..1009f) return
-                if (y !in 182f..495f) return
-                val col = if (x >= 636f) 1 else 0
-                val row = ((495f - y) / 157f).toInt()
-                val itemId = hallViews.sellCandidates(hallSellTab).getOrNull(row * 2 + col)?.itemId ?: return
-                val item = gameDataCatalog.equipmentProfile(itemId) ?: return
-                if (item.price == 255) {
-                    hallManagementNotice = "판매할 수 없는 물품입니다."
-                } else if (campaign.inventory.consumeItem(itemId)) {
-                    campaign.addMoney(gameDataCatalog.sellingPrice(item))
-                    hallManagementNotice = "${item.name} 판매"
+                when (val intent = hallManagementInteraction.sellTap(x, y)) {
+                    is HallSellInputIntent.SelectTab -> {
+                        hallInteraction.selectSellTab(intent.index)
+                        hallManagementNotice = null
+                    }
+
+                    is HallSellInputIntent.Cell -> {
+                        hallViews.sellCandidates(hallSellTab).getOrNull(intent.row * 2 + intent.column)?.let { item ->
+                            hallManagementNotice = hallManagementCommands.sell(item.itemId).message
+                        }
+                    }
+
+                    HallSellInputIntent.None -> Unit
                 }
             }
         }

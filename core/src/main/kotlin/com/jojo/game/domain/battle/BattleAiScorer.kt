@@ -4,8 +4,8 @@ import com.jojo.game.domain.battle.command.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 
 import com.jojo.game.BattleUnit
-import com.jojo.game.GameDataCatalog
-import com.jojo.game.MagicDamageCalculator
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
+import com.jojo.game.domain.battle.magic.MagicDamageCalculator
 import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
 import com.jojo.game.domain.battle.BattleAttributeCalculator
@@ -123,7 +123,7 @@ internal object BattleAiScorer {
     fun estimatedMagicValue(
         attacker: BattleUnit,
         target: BattleUnit,
-        magic: GameDataCatalog.MagicProfile,
+        magic: BattleMagicProfile,
         cache: MutableMap<String, Int>,
         env: BattleAiScoringEnvironment,
     ): Int = ControlActionScoring.magicValue(
@@ -134,7 +134,7 @@ internal object BattleAiScorer {
         hitRate = { _, _, _ -> env.probabilityResolver.magicHitRate(attacker, target, magic) },
     )
 
-    private data class AiMagic(val source: GameDataCatalog.MagicProfile) : ControlScoring.Magic {
+    private data class AiMagic(val source: BattleMagicProfile) : ControlScoring.Magic {
         override val id get() = source.id
         override val category get() = source.category
         override val type get() = source.type
@@ -246,7 +246,7 @@ internal object BattleAiScorer {
             }
         }
 
-        private fun offensiveMagicHarm(base: Int, magic: GameDataCatalog.MagicProfile, victim: BattleUnit): Int {
+        private fun offensiveMagicHarm(base: Int, magic: BattleMagicProfile, victim: BattleUnit): Int {
             var value = maxOf(1, base * magic.power / 100 * victim.magicHarmRate / 100)
             value += MagicDamageCalculator.magicFlatSkillDamage(source, magic)
             val flagBonus =

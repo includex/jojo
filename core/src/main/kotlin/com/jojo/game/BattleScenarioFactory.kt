@@ -5,6 +5,7 @@ import com.jojo.game.domain.battle.settlement.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.*
+import com.jojo.game.application.battle.toBattleMagicProfile
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 
 /**
@@ -213,7 +214,7 @@ object BattleScenarioFactory {
                         magic.copy(effectAreaId = id, effectOffsets = offsets)
                     } ?: magic
                 } else magic
-            }
+            }.map { it.toBattleMagicProfile() }
             return BattleUnit(
                 id = unit.battleId,
                 name = campaign?.unitNames?.get(unit.characterId) ?: profile?.name ?: "유닛 ${unit.characterId}",

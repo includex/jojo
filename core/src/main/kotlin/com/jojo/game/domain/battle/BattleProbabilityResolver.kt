@@ -1,8 +1,8 @@
 package com.jojo.game.domain.battle
 
 import com.jojo.game.BattleUnit
-import com.jojo.game.GameDataCatalog
 import com.jojo.game.SourceRandomStreams
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
 
 import java.util.*
 
@@ -217,20 +217,7 @@ internal class BattleProbabilityResolver(
         return rate.toInt().coerceIn(25, 100)
     }
 
-    /**
-     * 공개 메서드 `magicHitRate`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `magic` (`GameDataCatalog.MagicProfile`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun magicHitRate(attacker: BattleUnit, target: BattleUnit, magic: GameDataCatalog.MagicProfile): Int {
+    fun magicHitRate(attacker: BattleUnit, target: BattleUnit, magic: BattleMagicProfile): Int {
         val base = magicHitRate(
             BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT),
             BattleAttributeCalculator.effective(attacker, BattleAttribute.MORALE),
