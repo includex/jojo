@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.hall
 
 /**
  * Exact HallUnit CreateAnime selection for the authored animeRR.json clips.

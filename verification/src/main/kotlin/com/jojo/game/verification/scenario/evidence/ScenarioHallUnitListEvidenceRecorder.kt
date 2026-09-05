@@ -2,7 +2,7 @@ package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 internal class ScenarioHallUnitListEvidenceRecorder(
     private val rows: List<ScenarioHallUnitListEvidenceRow>,

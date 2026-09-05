@@ -1,5 +1,7 @@
 package com.jojo.game.verification
 
+import com.jojo.game.presentation.scenario.hall.*
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Pixmap
@@ -142,8 +144,8 @@ private fun Screen?.compositionTrace(): String = when (this) {
 }
 
 private fun scenarioEventLog(snapshot: com.jojo.game.presentation.scenario.ScenarioRuntimeSnapshot, state: String?): String = when (state) {
-    "street-walk-direction-fixture" -> com.jojo.game.HallUnitRender.walkingRenderEventLog()
-    "street-walk-motion-fixture" -> com.jojo.game.HallUnitRender.walkingMotionRenderEventLog()
+    "street-walk-direction-fixture" -> com.jojo.game.presentation.scenario.hall.HallUnitRender.walkingRenderEventLog()
+    "street-walk-motion-fixture" -> com.jojo.game.presentation.scenario.hall.HallUnitRender.walkingMotionRenderEventLog()
     else -> ScenarioFrameEvidenceRecorder(
         ScenarioStoryEvidenceRecorder(),
         ScenarioStaticHallInfoEvidenceRecorder(),

@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.presentation.scenario.*
 import com.jojo.game.verification.scenario.evidence.*

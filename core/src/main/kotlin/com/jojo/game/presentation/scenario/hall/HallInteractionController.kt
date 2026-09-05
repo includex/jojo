@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.hall
 
 /** Immutable hall-input projection for rendering and evidence consumers. */
 internal data class HallInteractionView(

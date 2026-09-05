@@ -1,9 +1,11 @@
 package com.jojo.game.verification.scenario.evidence
 
+import com.jojo.game.presentation.scenario.hall.*
+
 import com.jojo.game.presentation.scenario.*
 
-import com.jojo.game.RenderEventLog
-import com.jojo.game.HallUnitRender
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import com.jojo.game.presentation.scenario.hall.HallUnitRender
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
 /** Coordinates small evidence recorders over a completed frame snapshot. */

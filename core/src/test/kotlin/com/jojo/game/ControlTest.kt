@@ -1,5 +1,6 @@
 package com.jojo.game
 
+import com.jojo.game.domain.battle.command.Control
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

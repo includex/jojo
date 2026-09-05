@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream
 import java.util.*
 import java.util.zip.GZIPInputStream
 import com.jojo.game.application.battle.LearnUnitSkillRoute
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 object LearnUnitSkillRenderEvents {
     private const val DEFAULT =

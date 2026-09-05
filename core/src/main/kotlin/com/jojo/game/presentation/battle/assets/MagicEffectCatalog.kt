@@ -1,7 +1,8 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
+import com.jojo.game.EncryptedGameDataCodec
 
 /**
  * class  `MagicEffectCatalog`

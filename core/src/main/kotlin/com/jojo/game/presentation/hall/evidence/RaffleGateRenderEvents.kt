@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.hall.evidence
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 object RaffleGateRenderEvents {
     private const val PHASE = "hall-raffle-gated-stable"

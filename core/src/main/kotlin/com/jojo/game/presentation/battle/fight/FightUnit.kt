@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.fight
 
 /** State implementation of recovered battle/FightUnit.js, excluding Cocos drawing primitives. */
 class FightUnit(

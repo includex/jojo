@@ -1,6 +1,6 @@
 package com.jojo.game.verification.title.evidence
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.title.LoginOptionalOverlayRoute
 
 /** Canonical authored event traversal for title-screen optional overlays. */

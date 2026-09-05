@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

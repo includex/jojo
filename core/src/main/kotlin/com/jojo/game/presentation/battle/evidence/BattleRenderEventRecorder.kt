@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.battle.evidence
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** A value-only projection of the battle routes that share the battlefield chrome. */
 internal data class BattleRenderEventView(

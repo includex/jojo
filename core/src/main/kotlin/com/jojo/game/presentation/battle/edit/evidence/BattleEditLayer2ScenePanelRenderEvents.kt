@@ -1,6 +1,6 @@
     package com.jojo.game.presentation.battle.edit.evidence
 
-    import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
     internal object BattleEditLayer2ScenePanelRenderEvents {
         private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")

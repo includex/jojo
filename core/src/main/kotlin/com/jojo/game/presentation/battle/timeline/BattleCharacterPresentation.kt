@@ -1,4 +1,5 @@
 package com.jojo.game.presentation.battle.timeline
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
 
@@ -351,4 +352,3 @@ object BattleCharacterStateRenderer {
     private fun num(value: Float) = String.format(Locale.US, "%.3f", value)
     private fun quote(value: String) = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 }
-

@@ -2,7 +2,7 @@ package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Pure JSONL recorder for the palace, section, and isolated street-dialogue fixtures. */
 internal class ScenarioStoryEvidenceRecorder {

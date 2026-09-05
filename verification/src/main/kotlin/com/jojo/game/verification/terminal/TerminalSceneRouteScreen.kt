@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.jojo.game.JojoGame
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.TerminalSceneFlow
 
 /** Actual Welcome/End lifecycle followed by the Login draw submissions. */

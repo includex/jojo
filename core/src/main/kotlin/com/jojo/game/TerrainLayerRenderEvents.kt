@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Deterministic draw inventory for the actual MenuLayer button6 terrain route. */
 object TerrainLayerRenderEvents {

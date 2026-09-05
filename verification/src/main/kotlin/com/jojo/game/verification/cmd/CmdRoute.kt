@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream
 import com.jojo.game.CmdLayer
 import com.jojo.game.CmdProductionRoute
 import com.jojo.game.JojoGame
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /**
  * enum class  `CmdRoute`

@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.scenario.input
 
-import com.jojo.game.HallInteractionIntent
+import com.jojo.game.presentation.scenario.hall.HallInteractionIntent
 
 interface ScenarioHallInteractionPort {
     fun startBattle()

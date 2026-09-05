@@ -2,7 +2,7 @@ package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
 internal class ScenarioHallEquipEvidenceRecorder(

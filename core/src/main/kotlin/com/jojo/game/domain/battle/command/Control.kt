@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.domain.battle.command
 
 /**
  * Injectable implementation of recovered-js/modules/battle/Control.js.

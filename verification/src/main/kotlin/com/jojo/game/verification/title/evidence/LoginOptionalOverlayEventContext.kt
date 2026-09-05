@@ -1,6 +1,6 @@
 package com.jojo.game.verification.title.evidence
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Shared sink for the authored optional-login overlay event sequence. */
 internal data class LoginOptionalOverlayEventContext(

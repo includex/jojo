@@ -1,6 +1,6 @@
     package com.jojo.game.presentation.battle.edit.evidence
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2
 
     internal object BattleEditLayer2WeatherRenderEvents {

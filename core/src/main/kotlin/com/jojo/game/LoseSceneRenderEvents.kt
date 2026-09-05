@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Visible submissions shared by the real Lose draw and its JSONL route. */
 object LoseSceneRenderEvents {

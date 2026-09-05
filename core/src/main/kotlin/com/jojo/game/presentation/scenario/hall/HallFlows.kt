@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.hall
 
 /** State flows for recovered ui/HallMenuLayer.js and HallCommandLayer.js. */
 data class HallRoute(val layer: String, val payload: String?)

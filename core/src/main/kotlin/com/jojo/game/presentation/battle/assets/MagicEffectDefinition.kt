@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.assets
 
 /** Frame metadata used to render a battle magic-effect strip. */
 data class MagicEffectDefinition(

@@ -2,7 +2,7 @@ package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Appends the source-order equipment confirmation records to an existing Hall trace. */
 internal class ScenarioEquipConfirmationEvidenceRecorder {

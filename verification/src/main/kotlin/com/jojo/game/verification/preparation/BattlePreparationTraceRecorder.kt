@@ -1,6 +1,6 @@
 package com.jojo.game.verification.preparation
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 import java.util.*
 

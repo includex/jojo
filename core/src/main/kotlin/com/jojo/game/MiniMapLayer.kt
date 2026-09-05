@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Cocos-independent, source-faithful core of ui/MiniMapLayer.js. */
 class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = {}) {

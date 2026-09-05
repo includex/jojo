@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.hall
 
 /** Behavioural implementation of Hall/scene/UnitListLayer (Hall layer id 9). */
 class HallUnitListLayer(unitIds: Collection<Int>) {

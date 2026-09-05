@@ -10,6 +10,7 @@ import com.jojo.game.application.battle.movement.*
 import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.magic.MagicEnvironment
+import com.jojo.game.domain.battle.magic.MagicResolver
 import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.BattlePropertyResolver
 

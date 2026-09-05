@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.hall
+
+import com.jojo.game.HallPathfinder
 
 import kotlin.math.floor
 

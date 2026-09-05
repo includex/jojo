@@ -3,6 +3,7 @@ package com.jojo.game
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.magic.MagicEnvironment
+import com.jojo.game.domain.battle.magic.MagicResolver
 import com.jojo.game.domain.battle.magic.BattleMagicHitAreaValue
 import com.jojo.game.domain.battle.magic.BattleMagicProfile
 import com.jojo.game.domain.battle.magic.BattleMagicProfileValue

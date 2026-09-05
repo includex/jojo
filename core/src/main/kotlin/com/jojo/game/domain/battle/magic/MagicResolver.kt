@@ -1,12 +1,6 @@
-package com.jojo.game
+package com.jojo.game.domain.battle.magic
 
 import com.jojo.game.domain.battle.*
-
-import com.jojo.game.domain.battle.magic.*
-import com.jojo.game.domain.battle.BattleTerrainGrid
-import com.jojo.game.domain.battle.BattleProbabilityResolver
-import com.jojo.game.domain.battle.BattleRateGauge
-
 
 
 /**

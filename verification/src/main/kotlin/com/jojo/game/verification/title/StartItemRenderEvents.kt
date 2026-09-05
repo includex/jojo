@@ -1,6 +1,6 @@
 package com.jojo.game.verification.title
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Initial Login._launch -> StartItemLayer id5 production draw inventory. */
 object StartItemRenderEvents {

@@ -1,4 +1,5 @@
 package com.jojo.game.presentation.battle.unit
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
 
@@ -64,4 +65,3 @@ object BattleUnitStateRender {
         )
     }.jsonl()
 }
-

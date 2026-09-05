@@ -1,6 +1,6 @@
 package com.jojo.game.verification.preparation
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Canonical authored traversal for Hall/scene/StartBattleScreen and UnitInfoLayer. */
 internal fun appendStartBattleRenderEvents(

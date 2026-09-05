@@ -1,7 +1,5 @@
 package com.jojo.game.domain.battle.command
 
-import com.jojo.game.Control
-
 /**
  * Injectable, side-effect-free control policies for the ten subclasses created in
  * BattleScreen.onCreate.  The recovered game keeps one instance of each class

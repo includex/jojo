@@ -1,6 +1,6 @@
 package com.jojo.game.verification.preparation
 
-import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Shared inputs and exact event sink for the authored start-battle traversal. */
 internal data class StartBattleRenderEventContext(
