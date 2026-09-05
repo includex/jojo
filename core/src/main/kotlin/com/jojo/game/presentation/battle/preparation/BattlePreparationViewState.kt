@@ -1,4 +1,7 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation
+
+import com.jojo.game.GameDataCatalog
+import com.jojo.game.BattleAvatarResolver
 import com.jojo.game.domain.battle.*
 
 internal data class BattlePreparationViewState(

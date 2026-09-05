@@ -1,5 +1,12 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation
+
+import com.jojo.game.BattleViewLayer
+import com.jojo.game.GameDataCatalog
+import com.jojo.game.JojoGame
+import com.jojo.game.ScenarioJoinBattleLimit
+import com.jojo.game.StartBattleSortRoute
 import com.jojo.game.domain.campaign.*
+import com.jojo.game.presentation.battle.preparation.evidence.BattlePreparationTraceRecorder
 
 import com.badlogic.gdx.*
 

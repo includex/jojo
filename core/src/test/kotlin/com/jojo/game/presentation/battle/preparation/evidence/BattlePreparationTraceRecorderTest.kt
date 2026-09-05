@@ -1,4 +1,8 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation.evidence
+
+import com.jojo.game.presentation.battle.preparation.BattlePreparationFixture
+import com.jojo.game.presentation.battle.preparation.BattlePreparationUnitView
+import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

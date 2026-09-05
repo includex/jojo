@@ -202,142 +202,14 @@ class ScenarioScreen(
     private var hallTerrainTab = TerrainLayer.Tab.RISE
     private val hallBuyTab get() = hallInteractionView.buyTabIndex
     private val hallSellTab get() = hallInteractionView.sellTabIndex
-    private fun currentStageIndex(): Int = moduleName.substringAfter('_').toIntOrNull() ?: 0
-    private fun hallBuyCandidates(): List<GameDataCatalog.EquipmentProfile> {
-        // The isolated source fixture feeds 0..itemCount (255 is its sentinel).
-        // Cocos' vertical layout leaves the tail at the top of the viewport,
-        // hence 254, 253, 252 are the three visible rows.
-        if (hallOverlayFixture == "buy") return gameDataCatalog.allEquipmentProfiles()
-            .asReversed()
-            .filter { it.id != 255 && gameDataCatalog.equipmentCategory(it) <= 2 && it.price != 255 }
-        return gameDataCatalog.hallBuyProfiles(currentStageIndex(), campaign.averageJoinedLevel())
-            .filter { gameDataCatalog.equipmentCategory(it) <= 2 }
-    }
-
-    private fun hallBuyProperties(): List<GameDataCatalog.EquipmentProfile> =
-        (if (hallOverlayFixture == "buy") gameDataCatalog.allEquipmentProfiles()
-        else gameDataCatalog.hallBuyProfiles(currentStageIndex(), campaign.averageJoinedLevel()))
-            .filter { gameDataCatalog.equipmentCategory(it) == 3 && it.price != 255 }
-            .sortedBy { it.id }
-
-    private fun hallBuyCatalogView(): HallBuyCatalogView {
-        val propertyTab = hallBuyTab != 0
-        val profiles = if (propertyTab) hallBuyProperties().take(4) else hallBuyCandidates().take(3)
-        return HallBuyCatalogView(
-            propertyTab = propertyTab,
-            rows = profiles.map { item ->
-                val inventory = campaign.inventory.items[item.id] ?: 0
-                HallBuyCatalogRowView(
-                    name = item.name,
-                    icon = item.icon,
-                    typeName = gameDataCatalog.equipmentTypeName(item.itemType),
-                    inventory = inventory,
-                    total = inventory + campaign.inventory.equippedItems().count { it.itemId == item.id },
-                    price = gameDataCatalog.purchasePrice(item).let { price -> if (item.price == 255) "---" else price.toString() },
-                )
-            },
-        )
-    }
-
-    /** Immutable right-side BuyLayer unit card; drawing never prepares inventory state. */
-    private fun hallBuyUnitSummaryView(): HallBuyUnitSummaryView {
-        val unitId = campaign.joinedUnits.firstOrNull() ?: 0
-        val unit = gameDataCatalog.unitProfile(unitId) ?: gameDataCatalog.unitProfile(0)
-        val zeroBasedLevel = (campaign.unitAttribute(unitId, 18, unit?.level ?: 1) - 1).coerceAtLeast(0)
-        val profile = unit?.let {
-            gameDataCatalog.battleProfile(
-                it.id,
-                zeroBasedLevel,
-                campaign.unitAttribute(it.id, 17, it.posts),
-            )
-        }
-        val bonus = campaign.inventory.equipment[unitId]
-            ?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) }
-            ?: GameDataCatalog.EquipmentBonus()
-        return HallBuyUnitSummaryView(
-            portraitId = dialoguePortraitId(unitId),
-            name = campaign.unitNames[unitId] ?: unit?.name ?: "조조",
-            postName = gameDataCatalog.postsName(campaign.unitAttribute(unitId, 17, unit?.posts ?: 0))
-                .ifEmpty { "군웅" },
-            level = profile?.level ?: 1,
-            hitPoints = profile?.maxHitPoints ?: 0,
-            magicPoints = profile?.maxMagicPoints ?: 0,
-            stats = listOf(
-                HallBuyUnitSummaryStat("공격력", (profile?.attack ?: 0) + bonus.attack),
-                HallBuyUnitSummaryStat("정신력", (profile?.spirit ?: 0) + bonus.spirit),
-                HallBuyUnitSummaryStat("방어력", (profile?.defense ?: 0) + bonus.defense),
-                HallBuyUnitSummaryStat("폭발력", profile?.critical ?: 0),
-                HallBuyUnitSummaryStat("사기", profile?.morale ?: 0),
-                HallBuyUnitSummaryStat("이동력", profile?.movement ?: 0),
-            ),
-        )
-    }
-
     /** State transition hook for unit cards that require the campaign's default slots. */
     private fun prepareHallManagementDefaultEquipment(kind: HallManagement) {
         val unitId = if (kind == HallManagement.EQUIP) hallEquipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
         campaign.inventory.ensureDefaultEquipment(unitId, gameDataCatalog)
     }
 
-    /** Immutable ForcesListLayer snapshot; the renderer does not mutate campaign inventory. */
-    private fun hallForcesView(): HallForcesView = HallForcesView(
-        rows = campaign.joinedUnits.take(7).mapNotNull { id ->
-            val unit = gameDataCatalog.unitProfile(id) ?: return@mapNotNull null
-            val level = campaign.unitAttribute(id, 18, unit.level)
-            val profile = gameDataCatalog.battleProfile(
-                id,
-                (level - 1).coerceAtLeast(0),
-                campaign.unitAttribute(id, 17, unit.posts),
-            ) ?: return@mapNotNull null
-            val bonus = campaign.inventory.equipment[id]?.let {
-                gameDataCatalog.equipmentBonus(it.asScriptValues(), profile.level)
-            } ?: GameDataCatalog.EquipmentBonus()
-            HallForcesRowView(
-                values = listOf(
-                    campaign.unitNames[id] ?: GameDataCatalog.sayLayerUnitName(unit.name),
-                    profile.arm.name,
-                    profile.level.toString(),
-                    "${profile.maxHitPoints}/${profile.maxHitPoints}",
-                    "${profile.maxMagicPoints}/${profile.maxMagicPoints}",
-                    (profile.attack + bonus.attack).toString(),
-                    (profile.defense + bonus.defense).toString(),
-                    (profile.spirit + bonus.spirit).toString(),
-                    profile.critical.toString(),
-                    profile.morale.toString(),
-                ),
-            )
-        },
-    )
-
     private fun prepareHallForcesDefaultEquipment() {
         campaign.joinedUnits.forEach { campaign.inventory.ensureDefaultEquipment(it, gameDataCatalog) }
-    }
-
-    private fun hallSellCandidates(): List<Map.Entry<Int, Int>> = campaign.inventory.items.entries
-        .filter { (_, count) -> count > 0 }
-        .filter { (id, _) ->
-            gameDataCatalog.equipmentProfile(id)?.let(gameDataCatalog::equipmentCategory)?.let { category ->
-                if (hallSellTab == 0) category <= 2 else category == 3
-            } == true
-        }
-        .sortedBy { it.key }
-
-    private fun hallSellView(): HallSellView {
-        val equipmentTab = hallSellTab == 0
-        return HallSellView(
-            rows = hallSellCandidates().take(5).mapNotNull { (itemId, count) ->
-                val item = gameDataCatalog.equipmentProfile(itemId) ?: return@mapNotNull null
-                HallSellRowView(
-                    name = item.name,
-                    icon = item.icon,
-                    primaryDetail = if (equipmentTab) "Lv: ${campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1}" else "인벤토리: $count",
-                    secondaryDetail = if (equipmentTab) "Exp: 0" else null,
-                    salePrice = if (item.price == 255) "---" else gameDataCatalog.sellingPrice(item).toString(),
-                )
-            },
-            money = campaign.money,
-            notice = hallManagementNotice,
-        )
     }
 
     private fun hallEquipUnitIds(): List<Int> = campaign.joinedUnits.toList().ifEmpty { listOf(0) }
@@ -346,23 +218,6 @@ class ScenarioScreen(
         hallEquipUnitIndex = ((hallEquipUnitIndex % units.size) + units.size) % units.size
         return units[hallEquipUnitIndex]
     }
-
-    private fun hallEquipInventory(): List<Map.Entry<Int, Int>> = campaign.inventory.items.entries
-        .filter { (itemId, _) ->
-            val type = gameDataCatalog.equipmentProfile(itemId)?.itemType ?: return@filter false
-            when (hallEquipTab) {
-                HallEquipTab.ALL -> type < 150
-                HallEquipTab.WEAPON -> type in 0..19
-                HallEquipTab.ARMOR -> type in 20..25
-                HallEquipTab.AUXILIARY -> type in 26..149
-            }
-        }
-        // UnitInfoBaseLayer: treasure, type, then descending item id.
-        .sortedWith(compareBy<Map.Entry<Int, Int>> {
-            if (gameDataCatalog.equipmentProfile(it.key)?.price == 255) 0 else 1
-        }.thenBy {
-            gameDataCatalog.equipmentProfile(it.key)?.itemType ?: 255
-        }.thenByDescending { it.key })
 
     private val hallOverlayFixture = game.requestedCaptureState()
         ?.removePrefix("hall-")
@@ -404,6 +259,7 @@ class ScenarioScreen(
                 "skip-open"
             )
         }
+    private val hallViews = HallManagementViewFactory(campaign, gameDataCatalog, moduleName, hallOverlayFixture)
     private val hallSkipDispatches = mutableListOf<String>()
     private val hallSkipLayer: StorySkipFlow? = if (hallOverlayFixture == "skip-open") {
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
@@ -2120,7 +1976,7 @@ class ScenarioScreen(
     /** EquipLayer / BuyLayer / SellLayer shown by HallCommandLayer buttons 1..3. */
     private fun drawHallManagement(kind: HallManagement) {
         if (kind == HallManagement.SELL) {
-            HallSellRenderer.draw(sceneAssets, batch, hallSellView())
+            HallSellRenderer.draw(sceneAssets, batch, hallViews.sell(hallSellTab, hallManagementNotice))
             return
         }
         /**
@@ -2443,7 +2299,9 @@ class ScenarioScreen(
                 texture("box2")?.let { batch.draw(it, 947.02f, 571.17f, 5.16f, 41.02f) }
                 label(campaign.unitNames[unitId] ?: unit?.name ?: "조조", 842.32f, 604f, 59.51f, true)
                 label(if (unitId == 0) "군웅" else profile?.arm?.name ?: "군웅", 998.89f, 604f, 59.51f, true)
-                hallEquipInventory().take(6).forEachIndexed { index, (itemId, count) ->
+                hallViews.equipInventory(hallInteractionView.equipTabIndex).take(6).forEachIndexed { index, itemView ->
+                    val itemId = itemView.itemId
+                    val count = itemView.count
                     val item = gameDataCatalog.equipmentProfile(itemId) ?: return@forEachIndexed
                     val iy = 515f - index * 68f
                     panel(132f, iy - 48f, 582f, 62f)
@@ -2466,9 +2324,13 @@ class ScenarioScreen(
 
             HallManagement.BUY -> {
                 val splitX = 673.77f
-                HallBuyCatalogRenderer.draw(sceneAssets, batch, hallBuyCatalogView())
+                HallBuyCatalogRenderer.draw(sceneAssets, batch, hallViews.buyCatalog(hallBuyTab))
                 panel(splitX, 89.44f, 414.52f, 474.72f)
-                HallBuyUnitSummaryRenderer.draw(sceneAssets, batch, hallBuyUnitSummaryView())
+                HallBuyUnitSummaryRenderer.draw(
+                    sceneAssets,
+                    batch,
+                    hallViews.buyUnitSummary(campaign.joinedUnits.firstOrNull() ?: 0),
+                )
                 label("현금", rootX + 22f, rootY + 23f); label(
                     campaign.money.toString(),
                     rootX + 170f,
@@ -2572,7 +2434,7 @@ class ScenarioScreen(
 
     private fun drawHallInfo(kind: HallInfo) {
         if (kind == HallInfo.FORCES) {
-            HallForcesRenderer.draw(sceneAssets, batch, hallForcesView())
+            HallForcesRenderer.draw(sceneAssets, batch, hallViews.forces())
             return
         }
         if (kind == HallInfo.TERRAIN) {
@@ -3222,7 +3084,7 @@ class ScenarioScreen(
                 }
                 if (x !in 124f..729f) return
                 val index = ((529f - y) / 68f).toInt()
-                val itemId = hallEquipInventory().getOrNull(index)?.key ?: return
+                val itemId = hallViews.equipInventory(hallInteractionView.equipTabIndex).getOrNull(index)?.itemId ?: return
                 val preview = equipConfirmationFlow.requestEquip(unitId, itemId)
                 if (preview == null) hallManagementNotice = "이 물품은 장착할 수 없습니다."
                 else {
@@ -3240,10 +3102,10 @@ class ScenarioScreen(
                 if (x !in 176f..657f) return
                 val item = if (hallBuyTab == 0) {
                     if (y !in 118f..577f) return
-                    hallBuyCandidates().getOrNull(((522.16f - y) / 153.08f).toInt())
+                    hallViews.buyCandidates().getOrNull(((522.16f - y) / 153.08f).toInt())
                 } else {
                     if (y !in 132f..563f) return
-                    hallBuyProperties().getOrNull(((562.64f - y) / 108f).toInt())
+                    hallViews.buyProperties().getOrNull(((562.64f - y) / 108f).toInt())
                 } ?: return
                 val price = gameDataCatalog.purchasePrice(item)
                 if (price == 255) {
@@ -3268,7 +3130,7 @@ class ScenarioScreen(
                 if (y !in 182f..495f) return
                 val col = if (x >= 636f) 1 else 0
                 val row = ((495f - y) / 157f).toInt()
-                val itemId = hallSellCandidates().getOrNull(row * 2 + col)?.key ?: return
+                val itemId = hallViews.sellCandidates(hallSellTab).getOrNull(row * 2 + col)?.itemId ?: return
                 val item = gameDataCatalog.equipmentProfile(itemId) ?: return
                 if (item.price == 255) {
                     hallManagementNotice = "판매할 수 없는 물품입니다."
@@ -7077,7 +6939,7 @@ class ScenarioScreen(
             sourceButton("bg1/box1/button1", "상점", 337.547f, 521.159f, 154.8f, 376.376f, 105.78f, 9.002f)
             source("bg1/box1/button1/Background/command1", "sprite", 347.030f, 534.108f, 25.8f, 25.8f, "command3")
             source("bg1/box1/box0", "sliced-sprite", 182.910f, 95.331f, 465.26f, 426.818f, "box2")
-            hallBuyCandidates().take(3).forEachIndexed { index, item ->
+            hallViews.buyCandidates().take(3).forEachIndexed { index, item ->
                 val y = 369.069f - index * 153.08f
                 val path = "bg1/box1/box0/scrollview/view/content/item"
                 source(path, "sliced-sprite", 184.630f, y, 461.82f, 151.36f, "box3")
@@ -7262,7 +7124,8 @@ class ScenarioScreen(
                 button("bg1/button0/name", campaign.unitNames[unitId] ?: unit?.name ?: "조조", 820f, 566.74f, 150f)
                 val posts = campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)
                 button("bg1/button0/posts", gameDataCatalog.armProfile(posts)?.name ?: "군웅", 975f, 566.74f, 150f)
-                hallEquipInventory().take(6).forEachIndexed { index, (itemId, _) ->
+                hallViews.equipInventory(hallInteractionView.equipTabIndex).take(6).forEachIndexed { index, itemView ->
+                    val itemId = itemView.itemId
                     val item = gameDataCatalog.equipmentProfile(itemId) ?: return@forEachIndexed
                     val iy = 515f - index * 68f
                     panel("bg1/box1/content/item$index", 132f, iy - 48f, 582f, 62f)
@@ -7308,7 +7171,7 @@ class ScenarioScreen(
                 panel("bg1/scrollview", 673.77f, 89.44f, 414.52f, 474.72f)
                 button("bg1/button0", "무기점", 183.25f, 521.28f, 154.8f)
                 button("bg1/button1", "상점", 337.85f, 521.28f, 154.8f)
-                hallBuyCandidates().take(3).forEachIndexed { index, item ->
+                hallViews.buyCandidates().take(3).forEachIndexed { index, item ->
                     val iy = root[1] + root[3] - 245f - index * 139f
                     panel("bg1/box1/content/item$index", root[0] + 20f, iy - 91f, 635f, 132f)
                     event(

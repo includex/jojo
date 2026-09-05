@@ -1,0 +1,28 @@
+package com.jojo.game.presentation.battle.preparation.evidence
+
+internal fun writeUnitInfoChromeEvents(context: StartBattleRenderEventContext) = with(context) {
+    context.draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0.0f * scale, 0.0f * scale, 1488.372f * scale, 800.0f * scale, "default_sprite_splash", 0.392f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1", "tiled-sprite", 197.186f * scale, 12.0f * scale, 1094.0f * scale, 776.0f * scale, "Logo_9-1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/title", "sprite", 197.186f * scale, 738.0f * scale, 1094.0f * scale, 50.0f * scale, "bg1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/title/label", "label", 202.186f * scale, 737.8f * scale, 149.51f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "무장 정보")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button0/Background", "sliced-sprite", 825.923f * scale, 712.65f * scale, 188.0f * scale, 60.0f * scale, "box3", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button0/Background/Label", "label", 803.423f * scale, 725.65f * scale, 233.0f * scale, 40.0f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "무장 열전")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button1/Background", "sliced-sprite", 1014.008f * scale, 712.65f * scale, 193.4f * scale, 60.0f * scale, "box3", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button1/Background/Label", "label", 994.208f * scale, 725.65f * scale, 233.0f * scale, 40.0f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "부대 특성")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button2/Background", "sliced-sprite", 826.481f * scale, 651.471f * scale, 130.0f * scale, 60.0f * scale, "box3", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button2/Background/Label", "label", 774.981f * scale, 664.471f * scale, 233.0f * scale, 40.0f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "능력")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button3/Background", "sliced-sprite", 956.444f * scale, 651.471f * scale, 130.0f * scale, 60.0f * scale, "box3", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button3/Background/Label", "label", 904.944f * scale, 664.471f * scale, 233.0f * scale, 40.0f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "장비")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button4/Background", "sliced-sprite", 1086.444f * scale, 651.471f * scale, 130.0f * scale, 60.0f * scale, "box3", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/button4/Background/Label", "label", 1034.944f * scale, 664.471f * scale, 233.0f * scale, 40.0f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "마법")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/face", "sprite", 230.186f * scale, 490.956f * scale, 192.0f * scale, 240.0f * scale, "1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0", "sliced-sprite", 454.186f * scale, 509.642f * scale, 358.0f * scale, 144.0f * scale, "box1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/bg1", "sprite", 467.022f * scale, 634.38f * scale, 166.0f * scale, 40.0f * scale, "bg1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/bg1/label", "label", 475.267f * scale, 629.18f * scale, 149.51f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "부대 속성")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/label0", "label", 466.186f * scale, 578.901f * scale, 69.2f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "군웅")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/label", "label", 682.215f * scale, 578.901f * scale, 42.25f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "Lv")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/label1", "label", 778.413f * scale, 578.901f * scale, 22.25f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "3")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/label", "label", 466.186f * scale, 520.442f * scale, 68.93f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "Exp")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/bar", "sliced-sprite", 545.186f * scale, 531.052f * scale, 254.0f * scale, 24.0f * scale, "default_progressbar_bg", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/bar/bar", "sliced-sprite", 547.186f * scale, 533.052f * scale, 0.0f * scale, 20.0f * scale, "Mark_6-1", 1.0f, listOf(770, 771), true, "")
+}

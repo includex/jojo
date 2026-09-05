@@ -2,6 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.presentation.scenario.ScenarioScreen
 import com.jojo.game.presentation.title.TitleScreen
+import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
 
 import com.badlogic.gdx.Screen
 

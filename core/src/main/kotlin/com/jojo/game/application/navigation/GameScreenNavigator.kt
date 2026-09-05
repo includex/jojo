@@ -1,6 +1,5 @@
 package com.jojo.game.application.navigation
 
-import com.jojo.game.BattlePreparationScreen
 import com.jojo.game.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 import com.jojo.game.LoadGameLayer
@@ -8,6 +7,7 @@ import com.jojo.game.ScenarioJoinBattleLimit
 import com.jojo.game.presentation.scenario.ScenarioScreen
 import com.jojo.game.presentation.title.TitleScreen
 import com.jojo.game.presentation.battle.BattleScreen
+import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
 import com.jojo.game.infrastructure.data.CampaignStore
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
 

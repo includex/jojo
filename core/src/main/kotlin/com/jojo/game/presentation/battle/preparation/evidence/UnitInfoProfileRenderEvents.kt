@@ -1,0 +1,28 @@
+package com.jojo.game.presentation.battle.preparation.evidence
+
+internal fun writeUnitInfoProfileEvents(context: StartBattleRenderEventContext) = with(context) {
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg0/bar/label1", "label", 622.136f * scale, 531.852f * scale, 100.1f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "0/100")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1", "sliced-sprite", 454.186f * scale, 339.359f * scale, 358.0f * scale, 144.0f * scale, "box1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/bg1", "sprite", 468.944f * scale, 461.813f * scale, 85.0f * scale, 40.8f * scale, "bg1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/bg1/label", "label", 476.844f * scale, 457.013f * scale, 69.2f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "상태")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/label", "label", 468.186f * scale, 409.159f * scale, 55.57f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "HP")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/hp_bar", "sliced-sprite", 547.186f * scale, 420.359f * scale, 254.0f * scale, 24.0f * scale, "default_progressbar_bg", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/hp_bar/bar", "sliced-sprite", 549.186f * scale, 422.359f * scale, 250.0f * scale, 20.0f * scale, "Mark_3-1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/hp_bar/label1", "label", 601.891f * scale, 421.159f * scale, 144.59f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "123/123")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/label", "label", 468.186f * scale, 355.159f * scale, 60.0f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "MP")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/mp_bar", "sliced-sprite", 547.186f * scale, 364.359f * scale, 254.0f * scale, 24.0f * scale, "default_progressbar_bg", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/mp_bar/bar", "sliced-sprite", 549.186f * scale, 366.359f * scale, 250.0f * scale, 20.0f * scale, "Mark_2-1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/bg1/mp_bar/label1", "label", 624.136f * scale, 365.159f * scale, 100.1f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "36/36")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/label0", "label", 455.186f * scale, 678.756f * scale, 212.4f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "조조")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/box1", "sliced-sprite", 206.136f * scale, 394.456f * scale, 241.3f * scale, 75.0f * scale, "box1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/box1/bg1", "sprite", 216.601f * scale, 448.425f * scale, 85.1f * scale, 39.9f * scale, "bg1", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/box1/bg1/label", "label", 224.551f * scale, 443.175f * scale, 69.2f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "현금")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/box1/box1/label", "label", 418.456f * scale, 398.558f * scale, 22.25f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "0")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/vline2", "sprite", 201.186f * scale, 328.4f * scale, 620.0f * scale, 2.0f * scale, "vline2", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/label", "label", 436.431f * scale, 268.0f * scale, 149.51f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "인물 상태")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/bg2/label", "label", 202.232f * scale, 202.662f * scale, 620.0f * scale, 55.44f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "정상입니다.")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/vline2", "sprite", 201.186f * scale, 190.56f * scale, 620.0f * scale, 2.0f * scale, "vline2", 1.0f, listOf(770, 771), true, "")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/label", "label", 396.271f * scale, 130.16f * scale, 229.83f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "모든 특기 보기")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/scrollview/view/content/label99", "label", 202.441f * scale, 76.16f * scale, 617.49f * scale, 44.0f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "없음")
+    context.draw("UnitInfoLayer", "Canvas/Layer/bg1/panel0/box1", "sliced-sprite", 821.986f * scale, 71.95f * scale, 457.0f * scale, 580.5f * scale, "box1", 1.0f, listOf(770, 771), true, "")
+}

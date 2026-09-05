@@ -1,5 +1,8 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation.evidence
 
+import com.jojo.game.RenderEventLog
+import com.jojo.game.presentation.battle.preparation.BattlePreparationFixture
+import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 import java.util.*
 
 /** Verification output boundary for preparation, sort, and battle-view fixtures. */

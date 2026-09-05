@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation
 
 /** Pure selection and pointer policy for battle preparation. */
 internal class BattlePreparationController(

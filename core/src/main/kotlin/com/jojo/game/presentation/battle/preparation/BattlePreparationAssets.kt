@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation
+
+import com.jojo.game.KoreanFont
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color

@@ -17,7 +17,6 @@ import com.jojo.game.domain.campaign.CampaignEquipment
 import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 import com.jojo.game.domain.campaign.CampaignState
-import com.jojo.game.domain.scenario.ScenarioMapObject
 import com.jojo.game.presentation.battle.timeline.BattleDeathPresentationTimeline
 import com.jojo.game.presentation.battle.timeline.BattleCharacterCamp
 import com.jojo.game.presentation.battle.timeline.BattleCharacterDrawEvent
@@ -33,6 +32,7 @@ import com.jojo.game.presentation.battle.timeline.hitCallbackEconomyDelta
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
+import com.jojo.game.presentation.battle.evidence.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -165,39 +165,45 @@ class BattleScreen(
     private var losePressedAnswer: Int? = null
 
     /** Runtime-only isolated composition observation; no rendering behavior changes. */
-    fun compositionTrace(): String {
-        val unitRecords = battle.units.values.filter { it.visible }.joinToString(",") { u ->
-            val sourceX = 48 * u.tileX - 456
-            val sourceY = 456 - 48 * u.tileY
-            // Cocos UIFrame.CreateAnime creates these frames at runtime, so
-            // its numeric frame name has no imported SpriteFrame UUID.  Use
-            // the same persistent scripted action selection as the draw pass
-            // so action 4 is not misreported as an idle actor in captures.
-            val scripted = scriptedUnitVisuals[u.id]
-            val selected = scripted?.let { scriptedVisualFrame(u, it) } ?: idleSpriteFrame(u)
-            val atlasUuid = dynamicTextures.movementAtlasUuid(battleAvatarId(u))
+    fun compositionTrace(): String =
+        BattleCompositionEvidenceRecorder.record(compositionEvidenceView())
+
+    private fun compositionEvidenceView(): BattleCompositionEvidenceView {
+        val units = battle.units.values.filter { it.visible }.map { unit ->
+            // Cocos UIFrame.CreateAnime creates these frames at runtime, so its
+            // numeric frame name has no imported SpriteFrame UUID.
+            val scripted = scriptedUnitVisuals[unit.id]
+            val selected = scripted?.let { scriptedVisualFrame(unit, it) } ?: idleSpriteFrame(unit)
             val row = (selected.sourceY - 1) / 50
-            val generatedFrameName = (row shl 24) or (1 shl 16) or 12336
-            val atlasJson = if (atlasUuid == null) "null" else "\"$atlasUuid\""
-            val actionJson = scripted?.action?.toString() ?: "null"
-            val material =
-                if (sourceScenario == "S_00" && scripted?.action == 4) "hight-light/u_value=1" else "SpriteBatch/source-over"
-            "{\"address\":\"candidate/unit/${u.id}\",\"frame\":\"$generatedFrameName\",\"runtimeGeneratedFrame\":true,\"textureUuid\":$atlasJson,\"frameRect\":[0,${selected.sourceY},${selected.sourceWidth},${selected.sourceHeight}],\"asset\":${u.characterId ?: -1},\"tile\":[${u.tileX},${u.tileY}],\"action\":$actionJson,\"material\":\"$material\",\"sourceLocalPosition\":[${sourceX},${sourceY}],\"sourceChildPosition\":[0,0],\"sourceChildScale\":[${if (selected.flipX) -1 else 1},1],\"flipX\":${selected.flipX},\"flipY\":false,\"z\":${u.tileY + 1}}"
+            BattleCompositionUnit(
+                id = unit.id,
+                frame = (row shl 24) or (1 shl 16) or 12336,
+                textureUuid = dynamicTextures.movementAtlasUuid(battleAvatarId(unit)),
+                sourceY = selected.sourceY,
+                sourceWidth = selected.sourceWidth,
+                sourceHeight = selected.sourceHeight,
+                asset = unit.characterId ?: -1,
+                tileX = unit.tileX,
+                tileY = unit.tileY,
+                action = scripted?.action,
+                material = if (sourceScenario == "S_00" && scripted?.action == 4) {
+                    "hight-light/u_value=1"
+                } else {
+                    "SpriteBatch/source-over"
+                },
+                sourceX = 48 * unit.tileX - 456,
+                sourceYPosition = 456 - 48 * unit.tileY,
+                scaleX = if (selected.flipX) -1 else 1,
+            )
         }
-        val maskRecords = battle.units.values.filter { it.visible }.mapNotNull { u ->
-            when (terrainGrid.terrainAt(u.tileX, u.tileY)) {
-                10 -> "{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/mask/node#${u.id}\",\"frame\":\"Mark_19-1\",\"asset\":\"maps/marks/19.png#c91c07bf\",\"tile\":[${u.tileX},${u.tileY}],\"stencil\":true}"
-                1 -> "{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/mask/node#${u.id}\",\"frame\":\"Mark_21-1\",\"asset\":\"maps/marks/21.png#f52b641a\",\"tile\":[${u.tileX},${u.tileY}],\"stencil\":true}"
+        val masks = battle.units.values.filter { it.visible }.mapNotNull { unit ->
+            when (terrainGrid.terrainAt(unit.tileX, unit.tileY)) {
+                10 -> BattleCompositionMask(unit.id, "Mark_19-1", "maps/marks/19.png#c91c07bf", unit.tileX, unit.tileY)
+                1 -> BattleCompositionMask(unit.id, "Mark_21-1", "maps/marks/21.png#f52b641a", unit.tileX, unit.tileY)
                 else -> null
             }
-        }.joinToString(",")
-        battle.weather.name
-        val optionalMasks = if (maskRecords.isEmpty()) "" else ",$maskRecords"
+        }
         val captureState = game.requestedCaptureState()
-        // Keep the trace bound to the same isolation/full-scene map branch as
-        // drawGrid(), rather than presenting the map-only y=-560 mutation as
-        // a normal Battle transform.
-        val tracedMapBottom = if (captureState == "map-only") -560 else -96
         val scenarioKey = when (captureState) {
             "yingchuan-opening-say" -> "r00-opening-say"
             "yingchuan-dialogue-1" -> "dialogue-1"
@@ -208,82 +214,63 @@ class BattleScreen(
             "win-result" -> "win-result"
             else -> "natural-r00"
         }
-        // State-addressed records reflect live candidate objects, rather than
-        // reusing the natural-map inventory for every capture state.
-        val scenarioRecords = when (scenarioKey) {
-            "r00-opening-say" -> scriptRuntime.currentDialogue?.let { dialogue ->
-                val speakerJson = dialogue.speakerId?.let { "\"$it\"" } ?: "null"
-                val speakerNameJson = dialogue.speakerId?.toIntOrNull()
-                    ?.let(gameDataCatalog::unitProfile)?.name
-                    ?.let(GameDataCatalog::sayLayerUnitName)
-                    ?.replace("\\", "\\\\")?.replace("\"", "\\\"")
-                    ?.let { "\"$it\"" } ?: "null"
-                val textJson =
-                    dialogueReveal.visibleText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-                val remainingJson =
-                    dialogue.text.removePrefix(dialogueReveal.visibleText).replace("\\", "\\\\").replace("\"", "\\\"")
-                        .replace("\n", "\\n")
-                ",{\"address\":\"Battle/Canvas/Layer\",\"kind\":\"SayLayer\",\"active\":true,\"speaker\":$speakerJson,\"speakerName\":$speakerNameJson,\"sourceStrings\":[\"&${dialogue.speakerId}\",\"${dialogue.text}\"],\"typewriterActive\":${!dialogueReveal.isComplete},\"timeline\":\"scene0-opening-first-glyph\",\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/Panel_cancel\",\"kind\":\"Panel\",\"active\":true,\"size\":[1488.3720930232557,800],\"opacity\":0},{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"DialoguePanel\",\"active\":true,\"position\":[0,50],\"size\":[1030,260],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/face\",\"kind\":\"Head\",\"active\":true,\"position\":[416.432,0],\"size\":[96,120],\"scale\":[2,2],\"renderedSize\":[192,240],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/bg2\",\"kind\":\"DialoguePanelBody\",\"active\":true,\"position\":[-100.536,-12],\"size\":[796,212],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/bg2/richtext\",\"kind\":\"RichText\",\"active\":true,\"text\":\"$textJson\",\"remainingText\":\"$remainingJson\",\"fontSize\":36,\"lineHeight\":42,\"maxWidth\":728,\"position\":[-370.945,46.734],\"size\":[728,52.92],\"anchor\":[0,1],\"opacity\":255}"
-            } ?: ",{\"address\":\"Battle/Canvas/Layer\",\"kind\":\"SayLayer\",\"active\":false}"
-
-            "dialogue-1" -> scriptRuntime.currentDialogue?.let { dialogue ->
-                val speakerJson = dialogue.speakerId?.let { "\"$it\"" } ?: "null"
-                val speakerNameJson = dialogue.speakerId?.toIntOrNull()
-                    ?.let(gameDataCatalog::unitProfile)?.name
-                    ?.let(GameDataCatalog::sayLayerUnitName)
-                    ?.replace("\\", "\\\\")?.replace("\"", "\\\"")
-                    ?.let { "\"$it\"" } ?: "null"
-                val textJson =
-                    dialogueReveal.visibleText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-                ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"SayLayer\",\"active\":true,\"speaker\":$speakerJson,\"speakerName\":$speakerNameJson,\"sourceStrings\":[\"&${dialogue.speakerId}\",\"${dialogue.text}\"],\"timeline\":\"dialogue-step-1\",\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/text\",\"kind\":\"DialogueText\",\"text\":\"$textJson\",\"visible\":true,\"fontSize\":36,\"lineHeight\":42,\"maxWidth\":728,\"position\":[-370.945,46.734],\"size\":[728,52.92],\"anchor\":[0,1],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/bg2\",\"frame\":\"U_select_11-1\",\"asset\":\"maps/ui/dialogue-panel.png\",\"renderMode\":\"Simple/stretch\",\"opacity\":255,\"material\":\"SpriteBatch/linear\"}"
-            } ?: ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"SayLayer\",\"active\":false}"
-
-            "battle-action-6-f0" -> actionAnimation?.let { action ->
-                ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/action\",\"kind\":\"BRAnime\",\"action\":${action.sourceAction},\"direction\":${action.direction},\"active\":${animationClock() < action.endsAt},\"timeline\":\"attack6-f0\"}"
-            }
-                ?: ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/action\",\"kind\":\"BRAnime\",\"active\":false,\"timeline\":\"attack6-f0\"}"
-
-            "win-condition-modal" -> ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"WinConBoxLayer\",\"active\":$winConditionOpen,\"timeline\":\"open\",\"modal\":${winConditionLayer != null},\"opacity\":255}"
-            "enemy-turn" -> battle.ai.tracePlanner(474, aiFlags = 1)?.let { plan ->
-                val targetJson = plan.targetId?.let { "\"$it\"" } ?: "null"
-                val magicJson = plan.magicId?.toString() ?: "null"
-                val valueJson = plan.value?.toString() ?: "null"
-                val actionValueJson = plan.actionValue?.toString() ?: "null"
-                ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/enemy-planner#${plan.characterId}\",\"kind\":\"Battle._ai/current-point\",\"active\":true,\"sourceCharacterId\":${plan.characterId},\"ai\":${plan.ai},\"x\":${plan.x},\"y\":${plan.y},\"value\":$valueJson,\"actionValue\":$actionValueJson,\"targetId\":$targetJson,\"magicId\":$magicJson,\"timeline\":\"enemy-turn-planner\"}"
-            }
-                ?: ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/enemy-planner#474\",\"kind\":\"Battle._ai/current-point\",\"active\":false,\"timeline\":\"enemy-turn-planner\"}"
-
-            "lose-result" -> ",{\"address\":\"Lose/Canvas/Logo_8-1\",\"kind\":\"LoseScene\",\"active\":${resultFlow == ResultFlow.LOSE_SCENE},\"frame\":\"Logo_8-1\",\"asset\":\"Logo/Logo_8-1\",\"frameRect\":[0,0,640,400],\"timeline\":\"Battle.lose->endProcess\"}"
-            "win-result" -> ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"MsgBox\",\"active\":${resultFlow == ResultFlow.WIN_SAVE_PROMPT},\"frame\":\"box3\",\"timeline\":\"Battle.enemyHide->endProcess\"},{\"address\":\"Battle/Canvas/Layer/bg0/label\",\"kind\":\"Label\",\"text\":\"게임 저장하시겠습니까?\",\"timeline\":\"save-prompt\"}"
-            else -> ""
+        val dialogue = scriptRuntime.currentDialogue?.let { current ->
+            val sourceText = current.text
+            val speakerName = current.speakerId?.toIntOrNull()
+                ?.let(gameDataCatalog::unitProfile)?.name
+                ?.let(GameDataCatalog::sayLayerUnitName)
+            BattleCompositionDialogue(
+                opening = scenarioKey == "r00-opening-say",
+                speakerId = current.speakerId,
+                speakerName = speakerName,
+                sourceText = sourceText,
+                visibleText = dialogueReveal.visibleText,
+                remainingText = sourceText.removePrefix(dialogueReveal.visibleText),
+                typewriterActive = !dialogueReveal.isComplete,
+            )
         }
-        val miniMarkers = listOf(
-            "img5" to Pair(0f, -42f),
-            "img5" to Pair(-6f, -48f),
-            "img5" to Pair(12f, -42f),
-            "img5" to Pair(-18f, -36f),
-            "img5" to Pair(12f, -36f),
-            "img9" to Pair(-6f, -6f),
-            "img9" to Pair(0f, -6f),
-            "img9" to Pair(-24f, -36f),
-            "img9" to Pair(-6f, -30f),
-            "img9" to Pair(0f, -30f),
-            "img9" to Pair(12f, -30f),
-            "img9" to Pair(-6f, -24f),
-            "img9" to Pair(0f, -24f),
-            "img9" to Pair(-30f, 0f),
-            "img9" to Pair(-30f, -6f),
-            "img9" to Pair(-18f, -6f),
-            "img9" to Pair(-12f, 0f),
-            "img9" to Pair(12f, 0f),
-            "img9" to Pair(12f, -12f),
-        ).mapIndexed { index, (frame, point) ->
-            val uuid =
-                if (frame == "img5") "1ff0ac4a-8fe9-4b8e-a5f7-374a5440571a" else "98825d51-e8ff-4a12-9906-a4372e913cdd"; "{\"address\":\"Battle/Canvas/Layer/bg/map/tiled#$index\",\"frame\":\"$frame\",\"asset\":\"maps/ui/battle-smlmap-$frame.png\",\"assetUuid\":\"$uuid\",\"frameRect\":[1,1,10,10],\"localPosition\":[${point.first},${point.second}],\"parentScale\":[2,2],\"opacity\":168,\"z\":0,\"material\":\"SpriteBatch/linear\"}"
-        }.joinToString(",")
-        val naturalSay =
-            if (returnScenario == "R_00") ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/New Node\",\"frame\":\"Mark_10-1\",\"asset\":\"maps/ui/battle-say.png\",\"assetUuid\":\"6e23f416-6258-4c79-9ac4-e89fc8b8df4f\",\"frameRect\":[702,2,24,24],\"localPosition\":[-96,-288],\"parentScale\":[2,2],\"opacity\":255,\"z\":1000,\"timeline\":\"SHOW_SAY(active)\",\"material\":\"SpriteBatch/linear\"}" else ""
-        return "{\"state\":\"R_00/natural-battle/t=stable\",\"scenarioKey\":\"$scenarioKey\",\"oracle\":\"isolated-libgdx-runtime\",\"animationClock\":${animationClock()},\"visualAnimationClock\":$elapsed,\"records\":[{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map\",\"frame\":null,\"asset\":\"4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg\",\"uv\":\"0,1,1,1,0,0,1,0\",\"draw\":[-320,$tracedMapBottom,1920,1920],\"material\":\"SpriteBatch/linear\"},{\"address\":\"Battle/Canvas/Layer/bg/map\",\"frame\":\"Smlmap_1-1\",\"asset\":\"maps/ui/battle-smlmap-1.jpg\",\"assetUuid\":\"28fcaf09-66e0-4d64-b968-438f0b7db258\",\"frameRect\":[0,0,120,120],\"position\":[1610.3721,678],\"scale\":[2,2],\"opacity\":168,\"z\":0,\"material\":\"SpriteBatch/linear\"},{\"address\":\"Battle/Canvas/Layer/bg/weather\",\"frame\":\"weather_0\",\"asset\":\"maps/ui/battle-menu/weather_0.png\",\"frameRect\":[270,2,72,72],\"position\":[1492.3721,560],\"scale\":[0.8,0.8],\"opacity\":127,\"z\":0,\"material\":\"SpriteBatch/linear\"},{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/info/bar2/sprite\",\"frame\":\"Mark_3-1\",\"asset\":\"maps/marks/3.png#45bb9e80\",\"material\":\"SpriteBatch/linear\"},$miniMarkers$naturalSay,$unitRecords$optionalMasks$scenarioRecords],\"modal\":${battleMenuOpen},\"effectCount\":${magicEffectAnimations.size}}"
+        val scenario = BattleCompositionScenario(
+            dialogue = dialogue,
+            action = actionAnimation?.let { action ->
+                if (scenarioKey == "battle-action-6-f0") {
+                    BattleCompositionAction(
+                        action.sourceAction,
+                        action.direction,
+                        animationClock() < action.endsAt,
+                    )
+                } else null
+            },
+            winConditionOpen = winConditionOpen,
+            winConditionModal = winConditionLayer != null,
+            enemyPlanner = if (scenarioKey == "enemy-turn") {
+                battle.ai.tracePlanner(474, aiFlags = 1)?.let { plan ->
+                    BattleCompositionEnemyPlanner(
+                        characterId = plan.characterId,
+                        ai = plan.ai,
+                        x = plan.x,
+                        y = plan.y,
+                        value = plan.value,
+                        actionValue = plan.actionValue,
+                        targetId = plan.targetId,
+                        magicId = plan.magicId,
+                    )
+                }
+            } else null,
+            loseActive = resultFlow == ResultFlow.LOSE_SCENE,
+            winPromptActive = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
+        )
+        return BattleCompositionEvidenceView(
+            scenarioKey = scenarioKey,
+            animationClock = animationClock(),
+            visualAnimationClock = elapsed,
+            tracedMapBottom = if (captureState == "map-only") -560 else -96,
+            units = units,
+            masks = masks,
+            scenario = scenario,
+            naturalSay = returnScenario == "R_00",
+            modal = battleMenuOpen,
+            effectCount = magicEffectAnimations.size,
+        )
     }
 
     // Cocos uses a 1280×800 design canvas with SHOW_ALL.  On our 1.86:1
@@ -395,22 +382,16 @@ void main() {
     private var yingchuanEntryFlowSawInit = false
     private var yingchuanEntryFlowWritten = false
     private val fullTraceRandom = fullTraceConfig?.let { SourceRandomStreams(it.toolSeed, it.mathSeed) }
-    private val fullTraceRecorder =
-        fullTraceConfig?.let { FullBattleTraceRecorder(it, requireNotNull(fullTraceRandom)) }
+    private val fullTraceEvidence = fullTraceConfig?.let { config ->
+        FullBattleTraceEvidenceSession(
+            config,
+            FullBattleTraceRecorder(config, requireNotNull(fullTraceRandom)),
+        )
+    }
 
     /** Last accepted production input, retained in each frame for deadlock diagnosis. */
     private var lastFullBattleInput: String? = null
     private var lastFullBattleMenuTap: String? = null
-    private val fullTraceDeadline = fullTraceConfig?.let { FullBattleTraceDeadline(it.maxSimulationSeconds) }
-    private var fullTraceFinished = false
-
-    /**
-     * The source recorder snapshots the current RAF before applying its
-     * three-terminal-frame completion check.  Keep the finish request until
-     * [recordFullBattleTraceFrame] has persisted the corresponding LibGDX
-     * frame as well.
-     */
-    private var fullTraceFinishAfterFrame: String? = null
     private val gameDataCatalog = GameDataCatalog.load()
 
     /** Battle.js constructs this overlay before BattleScreen.loadGame. */
@@ -923,14 +904,6 @@ void main() {
     /** Source `_state_meff` clip begins whenever its selected texture pair changes. */
     private val battleStateAnimationStarts = mutableMapOf<String, Pair<List<Int>, Float>>()
     private var elapsed = 0f
-    private var fullTraceLastDriverAt = Float.NEGATIVE_INFINITY
-    private var fullTraceInitialPlayerScriptRan = false
-    private var fullTraceTerminalFrames = 0
-    private var fullTraceMapObjectRevision = 0
-    private var fullTraceMapObjectSignature: String? = null
-
-    /** Next append-only ScenarioStage.setObjects call not yet written to the trace. */
-    private var fullTraceMapObjectsCallCursor = 0
 
     /** BattleScreen pauses its unit/effect AnimationStates while SayLayer owns input. */
     private var battleElapsed = 0f
@@ -2477,10 +2450,7 @@ void main() {
         driveFullBattleTrace()
         recordFullBattleMapObjectsCalls()
         recordFullBattleTraceFrame(delta)
-        fullTraceFinishAfterFrame?.let { reason ->
-            fullTraceFinishAfterFrame = null
-            finishFullBattleTrace(reason)
-        }
+        fullTraceEvidence?.consumeFinishAfterFrame()?.let(::finishFullBattleTrace)
         scriptRuntime.currentDialogue?.let {
             dialogueReveal.update(it.text, delta)
             // The source diagnostic consumes SayLayer's active typewriter
@@ -2838,65 +2808,28 @@ void main() {
     }
 
     private fun driveFullBattleTrace() {
-        val config = fullTraceConfig ?: return
-        if (fullTraceFinished) return
-        val outcome = battle.outcome().takeIf { bootstrapPhase == BattleBootstrapPhase.COMPLETE }
-        fullTraceDeadline?.timeoutReason(elapsed, outcome != null)?.let { reason ->
-            fullTraceFinishAfterFrame = reason
-            return
-        }
-        if (elapsed - fullTraceLastDriverAt < config.driverIntervalSeconds) return
-        fullTraceLastDriverAt = elapsed
-        // UI progression belongs to ProductionBattleInputDriver. The trace
-        // path only observes and flushes; it must not call BattleScreen's
-        // private dialogue/modal continuations or mutate tactical state.
-        if (scriptRuntime.state == PlaybackState.DIALOGUE ||
-            scriptRuntime.state == PlaybackState.CHOICE || scriptRuntime.state == PlaybackState.MODAL ||
-            scriptWinConditions != null
-        ) return
-        if (!presentationReady || actionAnimation?.let { animationClock() < it.endsAt } == true ||
-            movementAnimation?.let { animationClock() < it.endsAt } == true ||
-            hitReactionAnimations.values.any { animationClock() < it.endsAt } ||
-            deathAnimations.values.any { animationClock() < it.endsAt }
-        ) return
-
-        if (outcome != null) {
-            // The source hands loss input to Lose.scene, rather than to a
-            // Battle result modal.  Campaign capture may therefore flush as
-            // soon as that stable scene owns input; do not wait for its
-            // independent three-second prompt or the generic result timeout.
-            if (NaturalBattleTransition.campaignLossTraceReadyToFlush(
-                    exitOnFinish = config.exitOnFinish,
-                    outcome = outcome,
-                    loseSceneActive = resultFlow == ResultFlow.LOSE_SCENE,
-                    scriptState = scriptRuntime.state,
-                    callbackPending = outcomeCallbacksPending(),
-                    scriptEnded = scriptRuntime.stage.battleEndedByScript,
-                )
-            ) {
-                fullTraceFinishAfterFrame = "battle-end"
-                return
-            }
-            // Campaign E2E owns the authored result/save/R_01 route and flushes
-            // from openVictorySavePrompt. Standalone traces settle scene1 and
-            // then terminate after three stable production frames.
-            if (!config.exitOnFinish) return
-            // Never manufacture another scene1 invocation here. The real
-            // camp/round/action controller has already called run_script
-            // before it exposes the outcome, exactly like BattleScreen's
-            // `_endProcess` chain. Restarting scene1 after that callback
-            // repeated result-trigger dialogue whose guard is the defeated
-            // unit's HP (S22's hidden unit still correctly retains HP=0).
-            if (NaturalBattleTransition.fullTraceTerminalReady(
-                    scriptRuntime.state,
-                    outcomeCallbacksPending(),
-                    scriptRuntime.stage.battleEndedByScript,
-                    resultFlow != ResultFlow.NONE,
-                )
-            ) fullTraceTerminalFrames++ else fullTraceTerminalFrames = 0
-            if (fullTraceTerminalFrames >= 3) fullTraceFinishAfterFrame = "battle-end"
-            return
-        }
+        val evidence = fullTraceEvidence ?: return
+        val presentationBarrier = !presentationReady ||
+                actionAnimation?.let { animationClock() < it.endsAt } == true ||
+                movementAnimation?.let { animationClock() < it.endsAt } == true ||
+                hitReactionAnimations.values.any { animationClock() < it.endsAt } ||
+                deathAnimations.values.any { animationClock() < it.endsAt }
+        evidence.drive(
+            FullBattleTraceDriveSnapshot(
+                elapsed = elapsed,
+                outcome = battle.outcome().takeIf { bootstrapPhase == BattleBootstrapPhase.COMPLETE },
+                scriptState = scriptRuntime.state,
+                traceBarrierOpen = scriptRuntime.state in setOf(
+                    PlaybackState.DIALOGUE,
+                    PlaybackState.CHOICE,
+                    PlaybackState.MODAL,
+                ) || scriptWinConditions != null || presentationBarrier,
+                lossSceneActive = resultFlow == ResultFlow.LOSE_SCENE,
+                callbackPending = outcomeCallbacksPending(),
+                scriptEnded = scriptRuntime.stage.battleEndedByScript,
+                endProcessStarted = resultFlow != ResultFlow.NONE,
+            )
+        )
     }
 
     /**
@@ -2906,18 +2839,10 @@ void main() {
      * traces bounded while preserving every resulting state.
      */
     private fun fullTraceMapObjectsJson(): Pair<Int, String> {
-        val rows = scriptRuntime.stage.mapObjects.values.asSequence()
-            .filter(ScenarioMapObject::enabled)
-            .sortedWith(compareBy<ScenarioMapObject>({ it.x }, { it.y }, { it.objectId }, { it.terrainId }))
-            .joinToString(",") { "[${it.objectId},${it.terrainId},${it.x},${it.y}]" }
-        val signature = "[$rows]"
-        return if (signature != fullTraceMapObjectSignature) {
-            fullTraceMapObjectSignature = signature
-            fullTraceMapObjectRevision++
-            fullTraceMapObjectRevision to signature
-        } else {
-            fullTraceMapObjectRevision to "null"
-        }
+        val snapshot = fullTraceEvidence?.mapSnapshot(scriptRuntime.stage.mapObjects.values.map {
+            FullBattleTraceMapObject(it.objectId, it.terrainId, it.x, it.y, it.enabled)
+        }) ?: return 0 to "null"
+        return snapshot.revision to snapshot.json
     }
 
     /**
@@ -2926,88 +2851,47 @@ void main() {
      * queue, but must not emit a second copy of this mutation observation.
      */
     private fun recordFullBattleMapObjectsCalls() {
-        if (fullTraceRecorder == null) return
-        val calls = scriptRuntime.stage.mapObjectsCalls
-        while (fullTraceMapObjectsCallCursor < calls.size) {
-            val call = calls[fullTraceMapObjectsCallCursor++]
-            val entries = call.objects.joinToString(";") { "${it.objectId},${it.x},${it.y}" }
-            recordFullBattleTraceFrame(
-                0f,
-                "transition:objects:${if (call.enabled) 1 else 0}:${call.terrainId}:$entries",
-                advanceFrame = false,
-            )
-        }
+        val observations = fullTraceEvidence?.mapObjectCallObservations(
+            scriptRuntime.stage.mapObjectsCalls.map { call ->
+                FullBattleTraceMapObjectsCall(
+                    call.enabled,
+                    call.terrainId,
+                    call.objects.map { FullBattleTraceMapObjectCall(it.objectId, it.x, it.y) },
+                )
+            }
+        ).orEmpty()
+        observations.forEach { recordFullBattleTraceFrame(0f, it, advanceFrame = false) }
     }
 
     /** Live FightLayer renderer state, in source prefab slot order (0, 1). */
     private fun fullTraceFightJson(): String {
-        if (!fightOverlayActive) return "null"
-        /**
-         * 공개 메서드 `slotUnit`
-         *
-         * ### 파라미터
-        - `slot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `FightUnitPresentation`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
         fun slotUnit(slot: Int): FightUnitPresentation =
             if (fightPresentation.mineIndex == slot) fightPresentation.mine else fightPresentation.enemy
 
-        /**
-         * 공개 메서드 `fighterJson`
-         *
-         * ### 파라미터
-        - `fighter` (`FightUnitPresentation`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun fighterJson(fighter: FightUnitPresentation): String {
+        fun fighter(fighter: FightUnitPresentation): FullBattleTraceFighter {
             val action = fighter.action
             val pose = action?.let { fightSprites.pose(it, fighter.actionElapsedSeconds) } ?: FightActionPose()
-            return "[${fighter.characterId ?: "null"},${fighter.created},${action ?: "null"}," +
-                    "${FullBattleTraceRecorder.number(fighter.actionElapsedSeconds)}," +
-                    "${FullBattleTraceRecorder.number(fighter.parentX)},${FullBattleTraceRecorder.number(fighter.parentScaleX)}," +
-                    "${FullBattleTraceRecorder.number(pose.childX)},${FullBattleTraceRecorder.number(pose.childY)}," +
-                    "${FullBattleTraceRecorder.number(pose.childScaleX)},${FullBattleTraceRecorder.number(pose.opacity)}," +
-                    "${fighter.zIndex},${fighter.dead}]"
+            return FullBattleTraceFighter(
+                fighter.characterId, fighter.created, action, fighter.actionElapsedSeconds,
+                fighter.parentX, fighter.parentScaleX, pose.childX, pose.childY, pose.childScaleX,
+                pose.opacity, fighter.zIndex, fighter.dead,
+            )
         }
 
-        /**
-         * 공개 메서드 `speechJson`
-         *
-         * ### 파라미터
-        - `fighter` (`FightUnitPresentation`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun speechJson(fighter: FightUnitPresentation): String {
+        fun speech(fighter: FightUnitPresentation): FullBattleTraceSpeech {
             val side = if (fighter === fightPresentation.mine) FightSide.MINE else FightSide.ENEMY
-            val speech = fightPresentation.speech(side)
-            return "[${speech.active},\"${FullBattleTraceRecorder.escape(speech.renderedText)}\"]"
+            return fightPresentation.speech(side).let { FullBattleTraceSpeech(it.active, it.renderedText) }
         }
-
         val slot0 = slotUnit(0)
         val slot1 = slotUnit(1)
-        val introOpacity = if (fightPresentation.introBackgroundActive) 1f - fightPresentation.startCrossFade else 0f
-        val duelOpacity = if (fightPresentation.duelBackgroundActive) fightPresentation.startCrossFade else 0f
-        return "{\"mineIndex\":${fightPresentation.mineIndex},\"enemyIndex\":${fightPresentation.enemyIndex}," +
-                "\"backgrounds\":[[${fightPresentation.introBackgroundActive},${
-                    FullBattleTraceRecorder.number(
-                        introOpacity
-                    )
-                }]," +
-                "[${fightPresentation.duelBackgroundActive},${FullBattleTraceRecorder.number(duelOpacity)}]]," +
-                "\"units\":[${fighterJson(slot0)},${fighterJson(slot1)}]," +
-                "\"speeches\":[${speechJson(slot0)},${speechJson(slot1)}]}"
+        val snapshot = fightOverlayActive.takeIf { it }?.let {
+            FullBattleTraceFightSnapshot(
+                fightPresentation.mineIndex, fightPresentation.enemyIndex,
+                fightPresentation.introBackgroundActive, fightPresentation.duelBackgroundActive,
+                fightPresentation.startCrossFade, fighter(slot0), fighter(slot1), speech(slot0), speech(slot1),
+            )
+        }
+        return FullBattleTraceFightEvidence.json(snapshot)
     }
 
     private fun recordFullBattleTraceFrame(
@@ -3015,8 +2899,8 @@ void main() {
         observation: String? = null,
         advanceFrame: Boolean = true,
     ) {
-        val recorder = fullTraceRecorder ?: return
-        val frame = if (advanceFrame) recorder.nextFrame(elapsed) else recorder.upcomingFrame()
+        val evidence = fullTraceEvidence ?: return
+        val frame = evidence.nextFrame(elapsed, advanceFrame)
         // A defeated source BattleUnit remains in the scene graph while its
         // hurt/death/hidden callbacks run. Excluding presentationUnits made
         // real anime23 episodes look like game-side omissions in the order
@@ -3125,9 +3009,8 @@ void main() {
                     eventMessage
                 )
             }\",\"autoOverlay\":\"${autoBattleFlow.view().overlay}\"}"
-        recorder.addFrame(
-            BattleEvidenceRecorder.frame(
-                BattleEvidenceView(
+        evidence.record(
+            BattleEvidenceView(
                     frame = frame,
                     elapsed = elapsed,
                     delta = delta,
@@ -3170,48 +3053,40 @@ void main() {
                     roundLayer = activeRoundLayer != null,
                     turnSettlement = activeTurnSettlement != null,
                     combatPresentation = combatPresentationBusy(),
-                )
             )
         )
     }
 
     private fun finishFullBattleTrace(reason: String) {
-        val recorder = fullTraceRecorder ?: return
-        if (fullTraceFinished) return
-        fullTraceFinished = true
+        val evidence = fullTraceEvidence ?: return
         val bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE
         val outcome = battle.outcome().takeIf { bootstrapComplete }
         val camp = if (bootstrapComplete) battle.activeFaction.ordinal else -1
-        val expectedScript = "Game/data/RS/$sourceScenario"
-        val mapName = mapFile?.path().orEmpty()
-        // Evidence comes from the live runtime objects used by this battle;
-        // the batch verifier must not accept the requested CLI label alone.
-        val scenarioEvidence =
-            "{\"requestedScenario\":\"${FullBattleTraceRecorder.escape(fullTraceConfig?.scenario ?: sourceScenario)}\",\"expectedScript\":\"${
-                FullBattleTraceRecorder.escape(expectedScript)
-            }\",\"loadedScript\":\"${FullBattleTraceRecorder.escape(expectedScript)}\",\"route\":\"JojoGame.showBattleSandbox\",\"seededUnitIds\":[${
-                campaign.roster.battleRoster.joinToString(
-                    ","
-                )
-            }],\"loadBgCalls\":[{\"mapIndex\":$loadedBattleMapIndex}],\"loadedMap\":{\"mapIndex\":$loadedBattleMapIndex,\"textureName\":\"${
-                FullBattleTraceRecorder.escape(
-                    mapName
-                )
-            }\",\"width\":${terrainGrid.width},\"height\":${terrainGrid.height}}}"
-        val summary =
-            "{\"scenario\":\"${FullBattleTraceRecorder.escape(sourceScenario)}\",\"gameScenario\":$scenarioEvidence,\"round\":${battle.round},\"camp\":$camp,\"end\":${outcome != null},\"frameCount\":${recorder.recordedRowCount},\"outcome\":${outcome?.let { "\"$it\"" } ?: "null"}}"
-        recorder.write(reason, summary)
-        Gdx.app.log(
-            "JojoGame",
-            "FULL_BATTLE_TRACE: ${fullTraceConfig?.outputPath}; frames=${recorder.recordedRowCount}; reason=$reason"
-        )
-        if (fullTraceConfig?.exitOnFinish != false) Gdx.app.exit()
+        evidence.finish(
+            reason,
+            FullBattleTraceFinishSnapshot(
+                scenario = sourceScenario,
+                requestedScenario = fullTraceConfig?.scenario ?: sourceScenario,
+                round = battle.round,
+                camp = camp,
+                ended = outcome != null,
+                outcome = outcome,
+                seededUnitIds = campaign.roster.battleRoster,
+                loadedMapIndex = loadedBattleMapIndex,
+                mapName = mapFile?.path().orEmpty(),
+                mapWidth = terrainGrid.width,
+                mapHeight = terrainGrid.height,
+            )
+        )?.let { result ->
+            Gdx.app.log("JojoGame", "FULL_BATTLE_TRACE: ${result.outputPath}; frames=${result.frameCount}; reason=$reason")
+            if (evidence.exitsOnFinish()) Gdx.app.exit()
+        }
     }
 
     /** Input provenance is appended only after ProductionBattleInputDriver dispatches it. */
     internal fun recordFullBattleInput(context: String) {
         lastFullBattleInput = context
-        fullTraceRecorder?.recordInput(context)
+        fullTraceEvidence?.recordInput(context)
     }
 
     /** Read-only observation for the desktop campaign E2E driver. */

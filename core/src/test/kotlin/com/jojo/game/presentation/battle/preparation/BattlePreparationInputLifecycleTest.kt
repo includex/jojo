@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.preparation
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
