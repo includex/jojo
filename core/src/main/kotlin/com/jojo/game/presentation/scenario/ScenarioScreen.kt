@@ -6,6 +6,7 @@ import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.application.runtime.RuntimeScenarioCommand
 import com.jojo.game.application.runtime.RuntimeScenarioFrame
+import com.jojo.game.application.runtime.RuntimeScenarioPresentation
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
@@ -125,11 +126,10 @@ class ScenarioScreen(
     private val choiceRowTexture get() = sceneAssets.choiceRowTexture
     private val dialoguePanelTexture get() = sceneAssets.dialoguePanelTexture
     private val streetSpeechBubbleTexture get() = sceneAssets.streetSpeechBubbleTexture
-    internal val streetCaptureStage = game.requestedCaptureState()
-        ?.removePrefix("street-")
-        ?.takeIf { game.requestedCaptureState()?.startsWith("street-") == true }
-    internal val hallPalaceFixture = game.requestedCaptureState() == "hall-palace-fixture"
-    internal val hallSectionFixture = game.requestedCaptureState() == "hall-section-fixture"
+    internal var runtimePresentation = RuntimeScenarioPresentation.STANDARD
+        private set
+    internal var runtimePresentationDetail = -1
+        private set
     private val infoPanelPatch get() = sceneAssets.infoPanelPatch
     private val audio = GameAudioPlayer()
     private val playbackController = ScenarioPlaybackController(playback, audio::sync, audio::dispose)
@@ -146,7 +146,7 @@ class ScenarioScreen(
         playbackController = playbackController,
         navigation = scenarioNavigation,
         isVerificationRun = ::isVerificationRun,
-        streetCaptureStage = streetCaptureStage,
+        isStreetPresentation = { runtimePresentation == RuntimeScenarioPresentation.STREET },
         autoCloseSettingEnabled = {
             settingsPreferences.getInteger(
                 SettingLayer.GAME_SETTING,
@@ -319,14 +319,12 @@ class ScenarioScreen(
         if (!hallFixtureInstalled &&
             ScenarioRenderPolicy.shouldInstallHallFixture(
                 game.requestedCaptureState(),
-                streetCaptureStage,
+                runtimePresentation != RuntimeScenarioPresentation.STANDARD,
                 hallOverlayFixture,
             )
         ) {
             hallFixtureInstalled = true
             when (game.requestedCaptureState()) {
-                "hall-palace-fixture" -> playback.installPalaceFixture()
-                "hall-section-fixture" -> playback.installSectionFixture()
                 "hall-info-fixture", "hall-get-item-equipment-fixture", "hall-get-item-property-fixture", "hall-item-equipment-fixture", "hall-item-property-fixture", "hall-item-discard-confirm-fixture", "hall-choice-fixture", "hall-map-info-fixture", "hall-ambition-fixture", "hall-ask-fixture", "hall-command-fixture", "hall-menu-fixture", "hall-save-fixture", "hall-save-confirm-fixture", "hall-equip-fixture", "hall-unit-list-fixture", "hall-unit-list-select-fixture", "hall-unit-list-close-fixture", "hall-equip-confirm-fixture", "hall-equip-confirm-unload-fixture", "hall-exclusive-fixture", "hall-exclusive-tab1-fixture", "hall-magic-fixture", "hall-feats-fixture", "hall-feats-help-fixture", "hall-buy-fixture", "hall-sell-fixture", "hall-forces-fixture", "hall-property-fixture", "hall-terrain-fixture", "hall-treasure-fixture", "hall-helper-fixture", "hall-skip-open-fixture" -> {
                     playback.installOverlayFixture(requireNotNull(hallOverlayFixture))
                     if (hallOverlayFixture == "menu") hallInteraction.openMenu()
@@ -434,12 +432,12 @@ class ScenarioScreen(
 
     /** Draws the post-update scene and reports capture completion to its caller. */
     private fun renderScenarioFrame(): ScenarioRenderPhaseResult {
-        if (streetCaptureStage != null) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        if (runtimePresentation == RuntimeScenarioPresentation.STREET) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         else Gdx.gl.glClearColor(0.08f, 0.11f, 0.15f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         viewport.apply()
-        if (streetCaptureStage != null) {
-            val stageIndex = ScenarioStreetDialogueStages.indexOf(streetCaptureStage)
+        if (runtimePresentation == RuntimeScenarioPresentation.STREET) {
+            val stageIndex = runtimePresentationDetail
             if (stageIndex >= 0) {
                 if (stageIndex >= ScenarioStreetDialogueStages.backgroundIndex()) {
                     drawBattlefield(
@@ -456,7 +454,7 @@ class ScenarioScreen(
             if (playbackFrame.elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
             if (playbackFrame.elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         } else {
-            if (hallPalaceFixture) {
+            if (runtimePresentation == RuntimeScenarioPresentation.PALACE) {
                 drawBattlefield(drawCharacters = true, drawUnits = true)
                 playback.currentDialogue?.let { dialogue ->
                     batch.projectionMatrix = viewport.camera.combined
@@ -537,12 +535,23 @@ class ScenarioScreen(
         )
         game.runtimeScenarioDriver()?.commands(frame).orEmpty().forEach { command ->
             when (command) {
+                is RuntimeScenarioCommand.SetPresentation -> applyRuntimePresentation(command)
                 RuntimeScenarioCommand.AdvanceDialogue -> if (playback.state == PlaybackState.DIALOGUE) playback.advanceDialogue()
                 RuntimeScenarioCommand.ResumeModal -> if (playback.state == PlaybackState.MODAL) playback.resumeModal()
                 RuntimeScenarioCommand.SkipDelay -> if (playback.state == PlaybackState.DELAY) playback.skipDelay()
                 RuntimeScenarioCommand.ConfirmChoice -> if (playback.state == PlaybackState.CHOICE) confirmChoice()
                 RuntimeScenarioCommand.RevealDialogue -> playbackController.resetDialogueReveal()
             }
+        }
+    }
+
+    private fun applyRuntimePresentation(command: RuntimeScenarioCommand.SetPresentation) {
+        runtimePresentation = command.mode
+        runtimePresentationDetail = command.detail
+        when (command.mode) {
+            RuntimeScenarioPresentation.PALACE -> playback.installPalaceFixture()
+            RuntimeScenarioPresentation.SECTION -> playback.installSectionFixture()
+            RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STANDARD -> Unit
         }
     }
 

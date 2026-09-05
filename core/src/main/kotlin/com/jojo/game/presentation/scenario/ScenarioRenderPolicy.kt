@@ -30,14 +30,12 @@ internal object ScenarioRenderPolicy {
     )
 
     fun shouldInstallHallFixture(
-        requestedCaptureState: String?,
-        streetCaptureStage: String?,
+        externalState: String?,
+        externalPresentationActive: Boolean,
         hallOverlayFixture: String?,
-    ): Boolean = requestedCaptureState in setOf(
+    ): Boolean = !externalPresentationActive && (externalState in setOf(
         "hall-fixture",
-        "hall-palace-fixture",
-        "hall-section-fixture",
-    ) || streetCaptureStage != null || hallOverlayFixture != null
+    ) || hallOverlayFixture != null)
 
     fun shouldContinueNaturally(
         isVerificationRun: Boolean,

@@ -2,6 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
 import com.jojo.game.application.runtime.RuntimeBattleDriver
+import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
 import com.jojo.game.application.runtime.RuntimeScenarioDriver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
@@ -84,6 +85,8 @@ data class GameLaunchConfiguration(
     val runtimeArtifactObserver: RuntimeArtifactObserver? = null,
     /** Optional neutral battle input driver supplied by an external runtime. */
     val runtimeBattleDriver: RuntimeBattleDriver? = null,
+    /** Optional immutable presentation selection supplied by an external runtime. */
+    val runtimeBattlePresentation: RuntimeBattlePresentation = RuntimeBattlePresentation(),
     /** Optional neutral preparation presentation request supplied by an external runtime. */
     val runtimeBattlePreparationDriver: RuntimeBattlePreparationDriver? = null,
     /** Optional neutral scenario input driver supplied by an external runtime. */

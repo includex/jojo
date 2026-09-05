@@ -22,6 +22,8 @@ internal object ScenarioStreetDialogueStages {
 
     fun indexOf(stage: String): Int = order.indexOf(stage)
 
+    fun nameAt(index: Int): String? = order.getOrNull(index)
+
     fun backgroundIndex(): Int = order.indexOf("background")
 
     fun charactersIndex(): Int = order.indexOf("characters")

@@ -15,6 +15,7 @@ import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.battle.BattleScreen
 import com.jojo.game.presentation.scenario.ScenarioScreen
 import com.jojo.game.verification.preparation.BattlePreparationTraceRecorder
+import com.jojo.game.verification.cmd.CmdRouteScreen
 import com.jojo.game.verification.title.evidence.TitleRenderEventRecorder
 
 /** Verification-owned filesystem sink for renderer observations. */
@@ -105,6 +106,7 @@ internal class VerificationArtifactObserver(
 }
 
 private fun Screen?.eventLog(): String = when (this) {
+    is CmdRouteScreen -> renderEventLog()
     is ScenarioScreen -> renderEventLog()
     is BattleScreen -> renderEventLog()
     else -> "{\"state\":\"unavailable\"}\n"

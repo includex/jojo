@@ -3,6 +3,8 @@ package com.jojo.game.presentation.scenario.evidence
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.FeatsLayer
 import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.application.runtime.RuntimeScenarioPresentation
+import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueStages
 import com.jojo.game.presentation.scenario.hall.HallManagement
 
 /**
@@ -30,9 +32,10 @@ internal object ScenarioScreenEvidenceProjector {
         }
         return ScenarioFrameEvidenceInput(
             fixture = screen.game.requestedCaptureState()?.removeSuffix("-fixture"),
-            palace = screen.hallPalaceFixture,
-            section = screen.hallSectionFixture,
-            street = screen.streetCaptureStage?.let { stage -> ScenarioStoryEvidenceView.StreetDialogue(
+            palace = screen.runtimePresentation == RuntimeScenarioPresentation.PALACE,
+            section = screen.runtimePresentation == RuntimeScenarioPresentation.SECTION,
+            street = ScenarioStreetDialogueStages.nameAt(screen.runtimePresentationDetail)
+                ?.takeIf { screen.runtimePresentation == RuntimeScenarioPresentation.STREET }?.let { stage -> ScenarioStoryEvidenceView.StreetDialogue(
                 stage = stage,
                 dialogueVisible = dialogue != null,
                 visibleText = screen.scenarioViewState.dialogueVisibleText,

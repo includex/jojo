@@ -12,6 +12,7 @@ import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
 import com.jojo.game.application.runtime.BattleRuntimeProbeFactory
 import com.jojo.game.application.runtime.RuntimeBattleCommand
 import com.jojo.game.application.runtime.RuntimeBattleFrame
+import com.jojo.game.application.runtime.RuntimeBattleRoute
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
 import com.jojo.game.application.runtime.BattleRuntimeSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
@@ -157,7 +158,7 @@ class BattleScreen(
     private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
     private val sectionTitleFont: BitmapFont = KoreanFont.create(120, "영천의 전투")
     private val overlayAssets = BattleOverlayAssets()
-    private val presentationRoutePolicy = BattlePresentationRoutePolicy(game.requestedCaptureState())
+    private val presentationConfiguration = BattlePresentationConfiguration(game.runtimeBattlePresentation())
     private var otherUnitInfoLayer: OtherUnitInfoLayer? = null
     private var mineUnitInfoLayer: MineUnitInfoLayer? = null
     private var battleEdit2: BattleEditLayer2? = null
@@ -839,7 +840,7 @@ void main() {
     private var jiqiLayer: JiQiLayer? = null
     private var jiqiPressed = false
     private var jiqiRouteInstalled = false
-    private val jiqiRouteFixture = game.requestedCaptureState() == "battle-jiqi-fixture"
+    private val jiqiRouteFixture = presentationConfiguration.jiqiRoute
     private var magickListLayer: MagicUiList? = null
     private var magickInfoLayer: MagicInfoLayer? = null
     private var magickPressedRow: Int? = null
@@ -847,9 +848,7 @@ void main() {
     private var magickCancelPressed = false
     private var magickInfoSuppressRelease = false
     private var magickRouteInstalled = false
-    private val magickRouteState = game.requestedCaptureState().takeIf {
-        it == "battle-magick-list-fixture" || it == "battle-magick-detail-fixture"
-    }
+    private val magickRouteState get() = presentationConfiguration.magickRoute
     private var usePropertyLayer: UsePropertyLayer? = null
     private var usePropertyDetail: UsePropertyLayer.Property? = null
     private var usePropertyPressedRow: Int? = null
@@ -857,12 +856,7 @@ void main() {
     private var usePropertyPanelPressed = false
     private var usePropertyDetailSuppressRelease = false
     private var usePropertyRouteInstalled = false
-    private val usePropertyRouteState = game.requestedCaptureState().takeIf {
-        it in setOf(
-            "battle-use-property-list-fixture", "battle-use-property-detail-fixture",
-            "battle-use-property-select-fixture", "battle-use-property-cancel-fixture",
-        )
-    }
+    private val usePropertyRouteState get() = presentationConfiguration.usePropertyRoute
     /** Global/scene/HelperLayer, opened by MenuLayer.HELP. */
     private val helperOverlay = BattleHelperOverlayController()
 
@@ -1351,32 +1345,32 @@ void main() {
 
     /** Opening scene commands have completed before the first capture frame. */
     private var presentationReady = false
-    private val actionCapture = presentationRoutePolicy.actionSample
-    private val rewardRouteState get() = presentationRoutePolicy.rewardRouteState
-    private val itemUpgradeRouteState get() = presentationRoutePolicy.itemUpgradeRouteState
-    private val loseRestartRoute get() = presentationRoutePolicy.loseRestartRoute
-    private val roundRouteState get() = presentationRoutePolicy.roundRouteState
-    private val winConditionRouteState get() = presentationRoutePolicy.winConditionRouteState
-    private val miniMapRouteState get() = presentationRoutePolicy.miniMapRouteState
-    private val autoBattleRouteState get() = presentationRoutePolicy.autoBattleRouteState
-    private val battleCommandRouteState get() = presentationRoutePolicy.battleCommandRouteState
-    private val battleCharacterRouteState get() = presentationRoutePolicy.battleCharacterRouteState
-    private val battleEdit2RouteState get() = presentationRoutePolicy.battleEdit2RouteState
-    private val otherUnitInfoRoute get() = presentationRoutePolicy.otherUnitInfoRoute
-    private val mineUnitInfoRoute get() = presentationRoutePolicy.mineUnitInfoRoute
-    private val actionCaptureMode get() = presentationRoutePolicy.actionSampleMode
-    private val cutsceneAttackCapture get() = presentationRoutePolicy.cutsceneAttackCapture
-    private val cutscenePostHitCapture get() = presentationRoutePolicy.cutscenePostHitCapture
-    private val cutscene477Capture get() = presentationRoutePolicy.cutscene477Capture
-    private val battleDialogueBlendRoute get() = presentationRoutePolicy.battleDialogueBlendRoute
-    private val battleInitRoute get() = presentationRoutePolicy.battleInitRoute
-    private val battleTerrainRoute get() = presentationRoutePolicy.battleTerrainRoute
-    private val battleMenuRoute get() = presentationRoutePolicy.battleMenuRoute
-    private val dialogueStepCapture get() = presentationRoutePolicy.dialogueStepCapture
-    private val dialogueComponentStage get() = presentationRoutePolicy.dialogueComponentStage
-    private val mapOnlyCapture get() = presentationRoutePolicy.mapOnlyCapture
-    private val selectionOverlayCapture get() = presentationRoutePolicy.selectionOverlayCapture
-    private val modalRenderCapture get() = presentationRoutePolicy.modalRenderCapture
+    private val actionCapture = presentationConfiguration.actionSample
+    private val rewardRouteState get() = presentationConfiguration.rewardRouteState
+    private val itemUpgradeRouteState get() = presentationConfiguration.itemUpgradeRouteState
+    private val loseRestartRoute get() = presentationConfiguration.loseRestartRoute
+    private val roundRouteState get() = presentationConfiguration.roundRouteState
+    private val winConditionRouteState get() = presentationConfiguration.winConditionRouteState
+    private val miniMapRouteState get() = presentationConfiguration.miniMapRouteState
+    private val autoBattleRouteState get() = presentationConfiguration.autoBattleRouteState
+    private val battleCommandRouteState get() = presentationConfiguration.battleCommandRouteState
+    private val battleCharacterRouteState get() = presentationConfiguration.battleCharacterRouteState
+    private val battleEdit2RouteState get() = presentationConfiguration.battleEdit2RouteState
+    private val otherUnitInfoRoute get() = presentationConfiguration.otherUnitInfoRoute
+    private val mineUnitInfoRoute get() = presentationConfiguration.mineUnitInfoRoute
+    private val actionCaptureMode get() = presentationConfiguration.actionSampleMode
+    private val cutsceneAttackCapture get() = presentationConfiguration.cutsceneAttackCapture
+    private val cutscenePostHitCapture get() = presentationConfiguration.cutscenePostHitCapture
+    private val cutscene477Capture get() = presentationConfiguration.cutscene477Capture
+    private val battleDialogueBlendRoute get() = presentationConfiguration.battleDialogueBlendRoute
+    private val battleInitRoute get() = presentationConfiguration.battleInitRoute
+    private val battleTerrainRoute get() = presentationConfiguration.battleTerrainRoute
+    private val battleMenuRoute get() = presentationConfiguration.battleMenuRoute
+    private val dialogueStepCapture get() = presentationConfiguration.dialogueStepCapture
+    private val dialogueComponentStage get() = presentationConfiguration.dialogueComponentStage
+    private val mapOnlyCapture get() = presentationConfiguration.mapOnlyCapture
+    private val selectionOverlayCapture get() = presentationConfiguration.selectionOverlayCapture
+    private val modalRenderCapture get() = presentationConfiguration.modalRenderCapture
 
     /** Set only after S_00's own opening delay reaches its first say. */
     private var cutsceneAttackStartedAt: Float? = null
@@ -1394,7 +1388,7 @@ void main() {
     private var boardMaxY = 1
 
     /** Action regression captures deliberately drive an isolated BRAnime while SayLayer is open. */
-    internal fun animationClock(): Float = presentationRoutePolicy.animationClock(elapsed, battleElapsed)
+    internal fun animationClock(): Float = presentationConfiguration.animationClock(elapsed, battleElapsed)
 
     /**
      * Cocos' CreateAnime2 adds an ordinary cc.Animation component to each map
@@ -1402,14 +1396,14 @@ void main() {
      * advancing while SayLayer owns input. Keep that clock separate from the
      * combat-action clock, which intentionally pauses during dialogue.
      */
-    private fun mapObjectAnimationClock(): Float = presentationRoutePolicy.mapObjectAnimationClock(elapsed)
+    private fun mapObjectAnimationClock(): Float = presentationConfiguration.mapObjectAnimationClock(elapsed)
 
     /**
      * `anime_state` is an ordinary cc.Animation child. StageLayer.pause()
      * only delegates to `_script.pause()` and does not pause node animation,
      * so status effects keep advancing while SayLayer owns input.
      */
-    private fun stateEffectAnimationClock(): Float = presentationRoutePolicy.mapObjectAnimationClock(elapsed)
+    private fun stateEffectAnimationClock(): Float = presentationConfiguration.mapObjectAnimationClock(elapsed)
 
     /**
      * Prefer the lossless PNG read back from the original Cocos Texture2D.
@@ -1531,7 +1525,7 @@ void main() {
         // synthetic desktop click; used only for framebuffer comparison.
         if (game.requestedCaptureState() == "yingchuan-win-condition") openWinConditionBox()
         when (winConditionRouteState) {
-            "battle-win-condition-compact-fixture" -> {
+            RuntimeBattleRoute.WIN_COMPACT -> {
                 // Actual MenuLayer command path: open menu, then dispatch its
                 // authored SLTJ command instead of constructing id20 directly.
                 openBattleMenu()
@@ -1542,10 +1536,12 @@ void main() {
                 battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
             }
 
-            "battle-win-condition-full-fixture" -> {
+            RuntimeBattleRoute.WIN_FULL -> {
                 battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
                 scriptRuntime.suspendForWinCondition("장보와 장량을\n격퇴하십시오.")
             }
+
+            else -> Unit
         }
         // scene0 is already evaluated while ScenarioInterpreter is created.
         // It may have queued setUnitStatus/setUnitPos commands before the
@@ -2423,8 +2419,10 @@ void main() {
             // first SayLayer.  Keep the real script clock running until that
             // dialogue exists; an early capture would only validate black.
             if (scriptRuntime.currentDialogue != null) {
-                if (stage == "background" || stage == "characters") drawGrid()
-                drawScriptDialogue(stage)
+                if (stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_BACKGROUND ||
+                    stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_CHARACTERS
+                ) drawGrid()
+                drawScriptDialogue(stage.name.removePrefix("DIALOGUE_COMPONENT_").lowercase())
             }
             if (elapsed > 6f) game.captureFrameIfRequested()
             return true
@@ -5708,15 +5706,16 @@ void main() {
         }.jsonl()
 
         val winRoute = winConditionRouteState
-        val route = rewardRouteState ?: itemUpgradeRouteState ?: winRoute
-            ?: if (battleInitRoute) "battle-init" else null
-            ?: if (battleDialogueBlendRoute) "battle-dialogue-blending" else return RenderEventLog().jsonl()
+        if (rewardRouteState == null && itemUpgradeRouteState == null && winRoute == null &&
+            !battleInitRoute && !battleDialogueBlendRoute
+        ) return RenderEventLog().jsonl()
         val phase = when {
             battleInitRoute -> "battle-init"
             battleDialogueBlendRoute -> "battle-dialogue-blending"
             itemUpgradeRouteState != null -> "battle-item-upgrade-panel-route"
-            winRoute != null -> winRoute.removeSuffix("-fixture")
-            else -> route.removePrefix("yingchuan-")
+            winRoute == RuntimeBattleRoute.WIN_COMPACT -> "battle-win-condition-compact"
+            winRoute == RuntimeBattleRoute.WIN_FULL -> "battle-win-condition-full"
+            else -> "yingchuan-reward"
         }
         return BattleRenderEventRecorder.jsonl(battleRenderEventView(phase))
     }
@@ -5728,7 +5727,7 @@ void main() {
         val route = when {
             battleInitRoute -> BattleRenderEventRoute.INIT
             battleDialogueBlendRoute -> BattleRenderEventRoute.DIALOGUE_BLEND
-            winConditionRouteState == "battle-win-condition-compact-fixture" -> BattleRenderEventRoute.WIN_COMPACT
+            winConditionRouteState == RuntimeBattleRoute.WIN_COMPACT -> BattleRenderEventRoute.WIN_COMPACT
             winConditionRouteState != null -> BattleRenderEventRoute.WIN_FULL
             itemUpgradeRouteState != null -> BattleRenderEventRoute.ITEM_UPGRADE
             else -> BattleRenderEventRoute.REWARD
@@ -5834,7 +5833,7 @@ void main() {
     }
 
     private fun battleWinConditionsRenderEventView(): BattleRenderEventWinConditionsView? = when (winConditionRouteState) {
-        "battle-win-condition-compact-fixture" -> BattleRenderEventWinConditionsView(requireNotNull(winConditionLayer).view().label, "")
+        RuntimeBattleRoute.WIN_COMPACT -> BattleRenderEventWinConditionsView(requireNotNull(winConditionLayer).view().label, "")
         null -> null
         else -> requireNotNull(scriptWinConditions).view().let {
             BattleRenderEventWinConditionsView(it.first, it.second, listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 " + scenarioMaxRound()))
@@ -5867,7 +5866,11 @@ void main() {
 
     private fun roundRenderEventLog(): String {
         val layer = activeRoundLayer ?: return RenderEventLog().jsonl()
-        val mode = roundRouteState?.removePrefix("battle-round-")?.removeSuffix("-fixture") ?: "normal"
+        val mode = when (roundRouteState) {
+            RuntimeBattleRoute.ROUND_FINAL -> "final"
+            RuntimeBattleRoute.ROUND_ENEMY -> "enemy"
+            else -> "normal"
+        }
         val phase = "battle-round-$mode"
         val log = RenderEventLog()
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
@@ -5932,9 +5935,9 @@ void main() {
 
     private fun usePropertyRenderEventLog(): String {
         val phase = when (usePropertyRouteState) {
-            "battle-use-property-detail-fixture" -> "battle-use-property-detail"
-            "battle-use-property-select-fixture" -> "battle-use-property-select"
-            "battle-use-property-cancel-fixture" -> "battle-use-property-cancel"
+            RuntimeBattleRoute.USE_PROPERTY_DETAIL -> "battle-use-property-detail"
+            RuntimeBattleRoute.USE_PROPERTY_SELECT -> "battle-use-property-select"
+            RuntimeBattleRoute.USE_PROPERTY_CANCEL -> "battle-use-property-cancel"
             else -> "battle-use-property-list"
         }
         val log = RenderEventLog()
@@ -6162,7 +6165,7 @@ void main() {
     private fun magickRenderEventLog(): String {
         val list = magickListLayer ?: return RenderEventLog().jsonl()
         val phase =
-            if (magickRouteState == "battle-magick-detail-fixture") "battle-magick-list-detail" else "battle-magick-list-list"
+            if (magickRouteState == RuntimeBattleRoute.MAGICK_DETAIL) "battle-magick-list-detail" else "battle-magick-list-list"
         val log = RenderEventLog()
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
@@ -6802,7 +6805,7 @@ void main() {
         // alpha source factor to ONE.
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         battleGridMapSurfaceRenderer.draw(battleGridMapSurfaceView())
-        if (mapOnlyCapture || dialogueComponentStage == "background") {
+        if (mapOnlyCapture || dialogueComponentStage == RuntimeBattleRoute.DIALOGUE_COMPONENT_BACKGROUND) {
             batch.end()
             return
         }
@@ -7546,19 +7549,26 @@ void main() {
         check(autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.PROMPT) {
             "MenuLayer.HHJS did not dispatch END_ROUND to MsgBox4"
         }
-        val wantedChecked = autoBattleRouteState != "battle-auto-battle-prompt-off-fixture"
+        val wantedChecked = autoBattleRouteState != RuntimeBattleRoute.AUTO_PROMPT_OFF
         if (autoBattleFlow.view().checked != wantedChecked) autoBattleFlow.toggle()
         when (autoBattleRouteState) {
-            "battle-auto-battle-active-fixture" -> {
+            RuntimeBattleRoute.AUTO_ACTIVE -> {
                 answerAutoBattle(0)
             }
+
+            else -> Unit
         }
     }
 
     private fun autoBattleRenderEventLog(): String {
         val log = RenderEventLog()
         val view = autoBattleFlow.view()
-        val phase = autoBattleRouteState?.removeSuffix("-fixture") ?: "battle-auto-battle"
+        val phase = when (autoBattleRouteState) {
+            RuntimeBattleRoute.AUTO_PROMPT_OFF -> "battle-auto-battle-prompt-off"
+            RuntimeBattleRoute.AUTO_PROMPT_ON -> "battle-auto-battle-prompt-on"
+            RuntimeBattleRoute.AUTO_ACTIVE -> "battle-auto-battle-active"
+            else -> "battle-auto-battle"
+        }
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = ""
@@ -7837,10 +7847,10 @@ void main() {
     private fun installBattleCommandRouteFixture() {
         battleCommandRouteInstalled = true
         campaign.inventory.removeItemStack(150); campaign.inventory.removeItemStack(151)
-        if (battleCommandRouteState in setOf("battle-command-initial-fixture", "battle-command-property-fixture")) {
+        if (battleCommandRouteState in setOf(RuntimeBattleRoute.COMMAND_INITIAL, RuntimeBattleRoute.COMMAND_PROPERTY)) {
             campaign.inventory.addItem(150, 3); campaign.inventory.addItem(151, 2)
         }
-        val needsMagic = battleCommandRouteState == "battle-command-magick-fixture"
+        val needsMagic = battleCommandRouteState == RuntimeBattleRoute.COMMAND_MAGICK
         val eligible = battle.units.values.filter {
             it.visible && it.isPlayerSide() && (!needsMagic || it.magic.isNotEmpty())
         }
@@ -7857,8 +7867,8 @@ void main() {
         handleTileClick(unit.tileX, unit.tileY)
         check(battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) { "unitMove did not open CommandLayer" }
         when (battleCommandRouteState) {
-            "battle-command-cancel-fixture" -> dispatchBattleCommand(6)
-            "battle-command-magick-fixture" -> {
+            RuntimeBattleRoute.COMMAND_CANCEL -> dispatchBattleCommand(6)
+            RuntimeBattleRoute.COMMAND_MAGICK -> {
                 dispatchBattleCommand(1)
                 // The source actual-route oracle selects its first eligible
                 // S_00 tactician (책사, MP 42) with one visible 작열 row.
@@ -7868,7 +7878,8 @@ void main() {
                     MagicUiList(42, 42, listOf(MagicUiList.Magic(0, "작열", 6, 70, 1, 0, 0, "")), emptyMap())
             }
 
-            "battle-command-property-fixture" -> dispatchBattleCommand(2)
+            RuntimeBattleRoute.COMMAND_PROPERTY -> dispatchBattleCommand(2)
+            else -> Unit
         }
     }
 
@@ -7938,7 +7949,14 @@ void main() {
 
     private fun battleCommandRenderEventLog(): String {
         val log = RenderEventLog()
-        val route = requireNotNull(battleCommandRouteState).removeSuffix("-fixture")
+        val route = when (requireNotNull(battleCommandRouteState)) {
+            RuntimeBattleRoute.COMMAND_INITIAL -> "battle-command-initial"
+            RuntimeBattleRoute.COMMAND_DISABLED -> "battle-command-disabled"
+            RuntimeBattleRoute.COMMAND_CANCEL -> "battle-command-cancel"
+            RuntimeBattleRoute.COMMAND_MAGICK -> "battle-command-magick"
+            RuntimeBattleRoute.COMMAND_PROPERTY -> "battle-command-property"
+            else -> "battle-command"
+        }
 
         /**
          * 공개 메서드 `d`
@@ -8189,12 +8207,12 @@ void main() {
     private fun installRoundRouteFixture() {
         roundRouteInstalled = true
         when (roundRouteState) {
-            "battle-round-final-fixture" -> showRoundCard(
+            RuntimeBattleRoute.ROUND_FINAL -> showRoundCard(
                 battle.maxRounds + 1,
                 battle.maxRounds
             ) { roundRouteCallbackCount++ }
 
-            "battle-round-enemy-fixture" -> showRoundCard(null, battle.maxRounds) { roundRouteCallbackCount++ }
+            RuntimeBattleRoute.ROUND_ENEMY -> showRoundCard(null, battle.maxRounds) { roundRouteCallbackCount++ }
             else -> showRoundCard(3.coerceAtMost(battle.maxRounds), battle.maxRounds) { roundRouteCallbackCount++ }
         }
     }
@@ -8237,7 +8255,7 @@ void main() {
         }
         miniMapLayer.touch(MiniMapLayer.TOUCH_END)
         miniMapLayer.advance(MiniMapLayer.SLIDE_SECONDS)
-        if (miniMapRouteState == "battle-mini-map-hidden-fixture") {
+        if (miniMapRouteState == RuntimeBattleRoute.MINI_MAP_HIDDEN) {
             miniMapLayer.touch(MiniMapLayer.TOUCH_END)
             miniMapLayer.advance(MiniMapLayer.SLIDE_SECONDS)
         }
@@ -8355,18 +8373,20 @@ void main() {
         selectedUnitId = battle.units.values.firstOrNull { it.visible && it.isPlayerSide() }?.id
         openUsePropertyLayer()
         when (usePropertyRouteState) {
-            "battle-use-property-detail-fixture" -> {
+            RuntimeBattleRoute.USE_PROPERTY_DETAIL -> {
                 usePropertyLayer?.touchStart(0)
                 usePropertyLayer?.update(UsePropertyLayer.LONG_PRESS_SECONDS)
             }
 
-            "battle-use-property-select-fixture" -> {
+            RuntimeBattleRoute.USE_PROPERTY_SELECT -> {
                 usePropertyLayer?.touchStart(0); usePropertyLayer?.touchEnd(0); usePropertyLayer = null
             }
 
-            "battle-use-property-cancel-fixture" -> {
+            RuntimeBattleRoute.USE_PROPERTY_CANCEL -> {
                 usePropertyLayer?.closeTouchEnd(); usePropertyLayer = null
             }
+
+            else -> Unit
         }
     }
 
@@ -8379,7 +8399,7 @@ void main() {
         shapes.end()
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
-        val commandChild = battleCommandRouteState == "battle-command-property-fixture"
+        val commandChild = battleCommandRouteState == RuntimeBattleRoute.COMMAND_PROPERTY
         val ox = if (commandChild) -59.536f else 0f
         val oy = if (commandChild) -294f else 0f
         for (ty in 0..4) for (tx in 0..5) batch.draw(
@@ -8499,7 +8519,7 @@ void main() {
     private fun installMagickRouteFixture() {
         magickRouteInstalled = true
         magickListLayer = MagicUiList(24, 58, fixtureMagics(), emptyMap())
-        if (magickRouteState == "battle-magick-detail-fixture") {
+        if (magickRouteState == RuntimeBattleRoute.MAGICK_DETAIL) {
             magickListLayer?.start(0)
             magickInfoLayer = magickListLayer?.tick()?.let(::MagicInfoLayer)
         }

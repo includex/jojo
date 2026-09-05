@@ -9,6 +9,8 @@ import com.jojo.game.presentation.hall.RaffleGateRouteScreen
 import com.jojo.game.presentation.overlay.fixture.SystemOverlayFixtureScreen
 import com.jojo.game.presentation.title.LoginOptionalOverlayRoute
 import com.jojo.game.presentation.title.TitleScreen
+import com.jojo.game.verification.cmd.CmdRoute
+import com.jojo.game.verification.cmd.CmdRouteScreen
 
 /** Verification-only startup catalogue for isolated capture surfaces. */
 class CaptureFixtureStartupExtension : RuntimeStartupExtension {

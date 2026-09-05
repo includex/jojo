@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.verification.cmd
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
@@ -8,73 +8,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import java.io.ByteArrayInputStream
 import java.util.*
 import java.util.zip.GZIPInputStream
-
-/**
- * Production route for SettingLayer's gated other-tools button8. This is the
- * Global CmdLayer (id121), not Battle CommandLayer (id5).
- */
-/**
- * class  `CmdProductionRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
-class CmdProductionRoute {
-    /**
-     * enum class  `State`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
-    enum class State { SETTING, CMD, CLOSED }
-
-    var state = State.SETTING; private set
-    val input = mutableListOf<String>()
-
-    /**
-     * 공개 메서드 `settingTool`
-     *
-     * ### 파라미터
-    - `tag2` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `rFlag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun settingTool(tag2: Int, touchEnd: Boolean, rFlag: Int): Boolean {
-        val open = state == State.SETTING && touchEnd && tag2 == 3 && rFlag != 0
-        if (open) {
-            state = State.CMD
-            input += "SettingLayer.button8 TOUCH_END"
-        }
-        return open
-    }
-
-    /**
-     * 공개 메서드 `close`
-     *
-     * ### 파라미터
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    fun close(touchEnd: Boolean): Boolean {
-        if (!touchEnd || state != State.CMD) return false
-        state = State.CLOSED
-        input += "CmdLayer.button0 TOUCH_END"
-        return true
-    }
-}
+import com.jojo.game.CmdLayer
+import com.jojo.game.CmdProductionRoute
+import com.jojo.game.JojoGame
+import com.jojo.game.RenderEventLog
 
 /**
  * enum class  `CmdRoute`
@@ -226,4 +163,3 @@ class CmdRouteScreen(
     fun renderEventLog() = CmdRenderEvents.jsonl(route)
     override fun dispose() = shapes.dispose()
 }
-

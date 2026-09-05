@@ -12,7 +12,7 @@ internal class ScenarioPlaybackFrameUpdater(
     private val playbackController: ScenarioPlaybackController,
     private val navigation: ScenarioNavigationCoordinator,
     private val isVerificationRun: () -> Boolean,
-    private val streetCaptureStage: String?,
+    private val isStreetPresentation: () -> Boolean,
     private val autoCloseSettingEnabled: () -> Boolean,
     private val onAdvance: () -> Unit,
 ) {
@@ -57,13 +57,13 @@ internal class ScenarioPlaybackFrameUpdater(
                 hasRenderEventLogRequest = game.hasRenderEventLogRequest(),
                 autoCloseSettingEnabled = autoCloseSettingEnabled(),
             ),
-            revealDialogueForCapture = streetCaptureStage != null && game.hasRenderEventLogRequest(),
+            revealDialogueForCapture = isStreetPresentation() && game.hasRenderEventLogRequest(),
             onAdvance = onAdvance,
         )
     }
 
     private fun settleStreetFixture() {
-        if (streetCaptureStage == null) return
+        if (!isStreetPresentation()) return
         var fixtureGuard = 0
         while ((playback.state == PlaybackState.MODAL || playback.state == PlaybackState.DELAY) && fixtureGuard++ < 1000) {
             if (playback.state == PlaybackState.MODAL) playback.resumeModal() else playback.skipDelay()

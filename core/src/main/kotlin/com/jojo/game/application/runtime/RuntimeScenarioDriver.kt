@@ -17,9 +17,16 @@ data class RuntimeScenarioFrame(
 
 /** Bounded, input-equivalent playback commands. */
 sealed interface RuntimeScenarioCommand {
+    data class SetPresentation(
+        val mode: RuntimeScenarioPresentation,
+        val detail: Int = -1,
+    ) : RuntimeScenarioCommand
     data object AdvanceDialogue : RuntimeScenarioCommand
     data object ResumeModal : RuntimeScenarioCommand
     data object SkipDelay : RuntimeScenarioCommand
     data object ConfirmChoice : RuntimeScenarioCommand
     data object RevealDialogue : RuntimeScenarioCommand
 }
+
+/** Renderer-neutral visual mode selected by an external runtime. */
+enum class RuntimeScenarioPresentation { STANDARD, STREET, PALACE, SECTION }

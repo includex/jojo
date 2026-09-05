@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.verification.cmd
+
+import com.jojo.game.CmdProductionRoute
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
