@@ -28,6 +28,7 @@ internal data class HallCommandRenderView(
 )
 
 internal sealed interface HallManagementRenderView {
+    data class Equip(val view: com.jojo.game.presentation.scenario.hall.HallEquipView) : HallManagementRenderView
     data class Sell(val catalog: com.jojo.game.presentation.scenario.hall.HallSellView) : HallManagementRenderView
 }
 
@@ -40,8 +41,10 @@ internal data class HallBuyManagementRenderView(
 
 internal sealed interface HallInfoRenderView {
     data class Forces(val view: com.jojo.game.presentation.scenario.hall.HallForcesView) : HallInfoRenderView
+    data class Property(val view: com.jojo.game.presentation.scenario.hall.HallPropertyView) : HallInfoRenderView
     data class Terrain(val view: com.jojo.game.presentation.scenario.hall.HallTerrainView) : HallInfoRenderView
     data class Treasure(val view: com.jojo.game.presentation.scenario.hall.HallTreasureView) : HallInfoRenderView
+    data class Helper(val view: com.jojo.game.presentation.scenario.hall.HallHelperView) : HallInfoRenderView
 }
 
 /** Source-authored geometry retained independently of mutable Hall controllers. */

@@ -1433,16 +1433,14 @@ class ScenarioScreen(
 
     /** EquipLayer / BuyLayer / SellLayer shown by HallCommandLayer buttons 1..3. */
     private fun drawHallManagement(kind: HallManagement) {
-        if (kind == HallManagement.SELL) {
-            HallManagementRenderer.draw(
+        when (kind) {
+            HallManagement.SELL -> HallManagementRenderer.draw(
                 sceneAssets,
                 batch,
                 HallManagementRenderView.Sell(hallViews.sell(hallSellTab, hallManagementNotice)),
             )
-            return
-        }
-        if (kind == HallManagement.BUY) {
-            HallBuyManagementRenderer.draw(
+
+            HallManagement.BUY -> HallBuyManagementRenderer.draw(
                 sceneAssets,
                 batch,
                 HallBuyManagementRenderView(
@@ -1452,405 +1450,33 @@ class ScenarioScreen(
                     notice = hallManagementNotice,
                 ),
             )
-            return
-        }
-        /**
-         * 공개 메서드 `texture`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
-        fun texture(name: String): Texture? {
-            val path = "maps/ui/start-battle/$name.png"
-            return hallMenuTextures[path] ?: Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[path] = it
-            }
-        }
-
-        /**
-         * 공개 메서드 `patch`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `inset` (`Int = 3`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `NinePatch?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun patch(name: String, inset: Int = 3): NinePatch? =
-            texture(name)?.let { NinePatch(it, inset, inset, inset, inset) }
-
-        /**
-         * 공개 메서드 `tiled`
-         *
-         * ### 파라미터
-        - `tex` (`Texture`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun tiled(tex: Texture, x: Float, y: Float, width: Float, height: Float) {
-            val tw = tex.width * .86f
-            val th = tex.height * .86f
-            var dy = 0f
-            while (dy < height - .01f) {
-                val dh = minOf(th, height - dy)
-                val sh = (dh / .86f).toInt().coerceIn(1, tex.height)
-                var dx = 0f
-                while (dx < width - .01f) {
-                    val dw = minOf(tw, width - dx)
-                    val sw = (dw / .86f).toInt().coerceIn(1, tex.width)
-                    batch.draw(tex, x + dx, y + dy, dw, dh, 0, 0, sw, sh, false, false)
-                    dx += tw
-                }
-                dy += th
-            }
-        }
-
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float = 240f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `centered` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(text: String, x: Float, y: Float, width: Float = 240f, centered: Boolean = false) {
-            bodyFont.color = Color.BLACK
-            bodyFont.draw(batch, text, x, y, width, if (centered) Align.center else Align.left, false)
-        }
-
-        /**
-         * 공개 메서드 `button`
-         *
-         * ### 파라미터
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun button(text: String, x: Float, y: Float, width: Float) {
-            patch("button", 9)?.draw(batch, x, y, width, 43f)
-            label(text, x, y + 31f, width, centered = true)
-        }
-
-        /**
-         * 공개 메서드 `panel`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun panel(x: Float, y: Float, width: Float, height: Float) {
-            patch("box1")?.draw(batch, x, y, width, height)
-        }
-
-        /**
-         * 공개 메서드 `clipped`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `draw` (`(`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun clipped(x: Float, y: Float, width: Float, height: Float, draw: () -> Unit) {
-            val scissors = Rectangle()
-            ScissorStack.calculateScissors(
-                viewport.camera,
-                batch.transformMatrix,
-                Rectangle(x, y, width, height),
-                scissors
-            )
-            batch.flush()
-            if (ScissorStack.pushScissors(scissors)) {
-                draw()
-                batch.flush()
-                ScissorStack.popScissors()
-            }
-        }
-
-        /**
-         * 공개 메서드 `itemIcon`
-         *
-         * ### 파라미터
-        - `itemId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun itemIcon(itemId: Int): Texture? {
-            val icon = gameDataCatalog.equipmentProfile(itemId)?.icon ?: return null
-            val path = "maps/item-icons/$icon.png"
-            return hallMenuTextures[path] ?: Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[path] = it
-            }
-        }
-
-        val unitId = if (kind == HallManagement.EQUIP) hallEquipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
-        val unit = gameDataCatalog.unitProfile(unitId) ?: gameDataCatalog.unitProfile(0)
-        val zeroBasedLevel = (campaign.unitAttribute(unitId, 18, unit?.level ?: 1) - 1).coerceAtLeast(0)
-        val profile = unit?.let {
-            gameDataCatalog.battleProfile(
-                it.id,
-                zeroBasedLevel,
-                campaign.unitAttribute(it.id, 17, it.posts)
-            )
-        }
-
-        /**
-         * 공개 메서드 `drawUnitSummary`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `showEquipment` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun drawUnitSummary() {
-            val bonus = campaign.inventory.equipment[unitId]
-                ?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) }
-                ?: GameDataCatalog.EquipmentBonus()
-            // EquipLayer's UnitInfoBase uses absolute authored positions;
-                // its ScrollView then clips the equipment cards at the lower
-                // boundary. Keep those coordinates instead of reflowing the
-                // panel as a conventional game-side card list.
-                dialoguePortrait(unitId)?.let { batch.draw(it, 769.54f, 355.47f, 165.12f, 206.4f) }
-                patch("box2")?.draw(batch, 748.90f, 357.19f, 206.4f, 202.96f)
-                label(campaign.unitNames[unitId] ?: unit?.name ?: "조조", 965.08f, 551.88f, 59.51f)
-                label(if (unitId == 0) "군웅" else profile?.arm?.name ?: "군웅", 965.08f, 508.88f, 80f)
-                label("Exp", 965.08f, 422.02f, 59.28f)
-                patch("box2")?.draw(batch, 1029.58f, 387.79f, 115.24f, 20.64f)
-                label("0/100", 1044.16f, 423.20f, 86.09f, true)
-                label("Lv", 964.97f, 465.02f, 36.34f)
-                label((profile?.level ?: 1).toString(), 1019.15f, 465.07f, 19.14f, true)
-                val names = listOf("HP", "MP", "공격력", "정신력", "방어력", "폭발력", "사기", "이동력")
-                val values = listOf(
-                    profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0,
-                    (profile?.attack ?: 0) + bonus.attack, (profile?.spirit ?: 0) + bonus.spirit,
-                    (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0,
-                    profile?.morale ?: 0, profile?.movement ?: 0,
-                )
-                val namePos = listOf(
-                    755.42f to 343.76f, 968.52f to 343.76f,
-                    762.21f to 293.02f, 975.49f to 293.02f,
-                    762.21f to 241.42f, 975.49f to 241.42f,
-                    759.88f to 190.68f, 975.49f to 190.68f,
-                )
-                val boxPos = listOf(
-                    867.04f to 309.53f, 1081.18f to 309.53f,
-                    867.04f to 258.79f, 1081.18f to 258.79f,
-                    867.04f to 207.19f, 1081.18f to 207.19f,
-                    867.04f to 156.45f, 1081.18f to 156.45f,
-                )
-                names.forEachIndexed { index, name ->
-                    val (lx, ly) = namePos[index]
-                    label(name, lx, ly, if (name.length <= 2) 59.51f else 89.27f)
-                    val (bx, by) = boxPos[index]
-                    patch("box2")?.draw(batch, bx, by, 68.8f, 43f)
-                    label(values[index].toString(), bx, by + 34.23f, 68.8f, true)
-                }
-                val equipment = campaign.inventory.equippedItems().filter { it.unitId == unitId }
-                val slots = listOf(
-                    Triple(
-                        "무기:",
-                        equipment.firstOrNull { gameDataCatalog.equipmentProfile(it.itemId)?.itemType?.let { t -> t < 20 } == true },
-                        20.97f
-                    ),
-                    Triple(
-                        "보구: ",
-                        equipment.firstOrNull { gameDataCatalog.equipmentProfile(it.itemId)?.itemType?.let { t -> t in 20..25 } == true },
-                        -114.91f
-                    ),
-                    Triple(
-                        "보조: ",
-                        equipment.firstOrNull { gameDataCatalog.equipmentProfile(it.itemId)?.itemType?.let { t -> t > 25 } == true },
-                        -250.79f
-                    ),
-                )
-                slots.forEachIndexed { index, (slotName, equipped, sy) ->
-                    if (index == 2 && equipped == null) return@forEachIndexed
-                    val item = equipped?.let { gameDataCatalog.equipmentProfile(it.itemId) }
-                    panel(745.74f, sy, 402.57f, 129f)
-                    label(slotName, if (index == 0) 901.05f else 894f, sy + 118.42f, 76f)
-                    label(item?.name ?: "없음", 966.8f, sy + 118.68f, 177.16f)
-                    panel(752.32f, sy + 8.04f, 115.91f, 116.19f)
-                    item?.let { itemIcon(it.id) }?.let { batch.draw(it, 755.24f, sy + 11.10f, 110.08f, 110.08f) }
-                    if (index == 0) {
-                        label("Lv", 875.64f, sy + 78.86f, 36.34f)
-                        label((equipped?.level ?: 1).toString(), 933.26f, sy + 78.86f, 19.14f)
-                        label("Exp", 875.64f, sy + 39.30f, 59.28f)
-                        patch("box2")?.draw(batch, 949.60f, sy + 4.22f, 175.44f, 20.64f)
-                        label("${equipped?.experience ?: 0}/100", 994.28f, sy + 39.63f, 86.09f, true)
-                    }
-                }
-        }
-        val (rootX, rootY, rootW, rootH, title) = when (kind) {
-            HallManagement.EQUIP -> listOf(118.84f, 28.81f, 1042.32f, 630.38f, 0f)
-            HallManagement.BUY -> listOf(168.72f, 28.81f, 943.42f, 630.38f, 1f)
-            HallManagement.SELL -> error("sell is rendered before the shared management scaffold")
-        }.let { values -> arrayOf(values[0], values[1], values[2], values[3], values[4]) }
-        val titleText = when (title.toInt()) {
-            0 -> "장비"; 1 -> "매입"; else -> "판매하기"
-        }
-        batch.color = Color.WHITE
-        texture("logo9")?.let { tiled(it, rootX, rootY, rootW, rootH) }
-        patch(if (kind == HallManagement.EQUIP) "button" else "box1", if (kind == HallManagement.EQUIP) 9 else 3)
-            ?.draw(batch, rootX, rootY, rootW, rootH)
-        patch("title", 5)?.draw(batch, rootX, rootY + rootH - 43f, rootW, 43f)
-        titleFont.color = Color.BLACK
-        glyphLayout.setText(titleFont, titleText)
-        titleFont.draw(batch, glyphLayout, rootX + (rootW - glyphLayout.width) / 2f, rootY + rootH - 5f)
-
-        when (kind) {
             HallManagement.EQUIP -> {
-                val splitX = 739.76f
-                // Source traversal paints the footer controls before the
-                // content nodes. This matters at their clipped boundaries.
-                button("이전 무장", 842.53f, 37.84f, 152.22f)
-                button("다음 무장", 994.75f, 37.84f, 152.22f)
-                button("종료", 643.73f, 37.84f, 83.42f)
-                button("모두 해제", 493.37f, 37.84f, 148.95f)
-                listOf("전부", "무기", "보구", "보조").forEachIndexed { i, text ->
-                    button(text, 124f + i * 129f, 566.74f, 129f)
-                    if (hallEquipTab.ordinal == i) {
-                        batch.color = Color(0f, 0f, 0f, .10f)
-                        texture("box2")?.let { batch.draw(it, 128f + i * 129f, 570.74f, 121f, 35f) }
-                        batch.color = Color.WHITE
-                        label(text, 124f + i * 129f, 597.74f, 129f, centered = true)
-                    }
-                }
-                button("정보", 125.35f, 37.84f, 85.74f)
-                panel(124.26f, 85.96f, 604.92f, 481.69f)
-                patch("box2")?.draw(batch, 124.26f, 85.96f, 604.92f, 481.69f)
-                texture("box2")?.let { batch.draw(it, 730.56f, 33.84f, 5.16f, 582.31f) }
-                patch("button", 9)?.draw(batch, 794.8f, 565.88f, 309.6f, 48.16f)
-                texture("box2")?.let { batch.draw(it, 947.02f, 571.17f, 5.16f, 41.02f) }
-                label(campaign.unitNames[unitId] ?: unit?.name ?: "조조", 842.32f, 604f, 59.51f, true)
-                label(if (unitId == 0) "군웅" else profile?.arm?.name ?: "군웅", 998.89f, 604f, 59.51f, true)
-                hallViews.equipInventory(hallInteractionView.equipTabIndex).take(6).forEachIndexed { index, itemView ->
-                    val itemId = itemView.itemId
-                    val count = itemView.count
-                    val item = gameDataCatalog.equipmentProfile(itemId) ?: return@forEachIndexed
-                    val iy = 515f - index * 68f
-                    panel(132f, iy - 48f, 582f, 62f)
-                    itemIcon(itemId)?.let { batch.draw(it, 141f, iy - 40f, 52f, 52f) }
-                    label(item.name + if (count > 1) "  ×$count" else "", 207f, iy + 8f, 260f)
-                    label(gameDataCatalog.equipmentTypeName(item.itemType), 430f, iy + 8f, 135f)
-                    val level = campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1
-                    val exp = campaign.inventory.itemExperiences(itemId).firstOrNull() ?: 0
-                    val limit = gameDataCatalog.equipmentExperienceLimit(itemId, level)
-                    label(level.toString(), 568f, iy + 8f, 54f, true)
-                    label(if (exp >= limit) "MAX" else exp.toString(), 626f, iy + 8f, 72f, true)
-                }
-                // UnitInfoBase's equipment ScrollView is masked by the right
-                // content panel; without this the first card painted over the
-                // previous/next buttons at the bottom.
-                clipped(splitX, 89.44f, 414.52f, 474.72f) {
-                    drawUnitSummary()
-                }
-            }
-
-            HallManagement.BUY -> {
-                val splitX = 673.77f
-                HallBuyCatalogRenderer.draw(sceneAssets, batch, hallViews.buyCatalog(hallBuyTab))
-                panel(splitX, 89.44f, 414.52f, 474.72f)
-                HallBuyUnitSummaryRenderer.draw(
+                HallManagementRenderer.draw(
                     sceneAssets,
                     batch,
-                    hallViews.buyUnitSummary(campaign.joinedUnits.firstOrNull() ?: 0),
+                    HallManagementRenderView.Equip(
+                        hallViews.equip(
+                            unitId = hallEquipUnitId(),
+                            selectedTab = hallInteractionView.equipTabIndex,
+                            notice = hallManagementNotice,
+                        ),
+                    ),
+                    viewport,
                 )
-                label("현금", rootX + 22f, rootY + 23f); label(
-                    campaign.money.toString(),
-                    rootX + 170f,
-                    rootY + 23f,
-                    140f,
-                    true
-                )
-                button("종료", 530.78f, 36.98f, 120.4f)
-                button("이전 무장", 678.70f, 36.98f, 146.2f)
-                button("다음 무장", 838.66f, 36.98f, 146.2f)
+                if (hallEquipUnequipConfirmation) {
+                    HallEquipOverlayRenderer.drawUnequipConfirmation(sceneAssets, batch)
+                } else if (hallUnitListLayer != null) {
+                    HallUnitRosterRenderer.draw(
+                        sceneAssets,
+                        batch,
+                        hallViews.unitRoster(requireNotNull(hallUnitListLayer).rows),
+                    )
+                }
+                hallEquipConfirmation?.let(::drawEquipConfirmation)
             }
-
-            HallManagement.SELL -> error("sell is rendered before the shared management scaffold")
         }
-        hallManagementNotice?.let { notice ->
-            bodyFont.color = Color(0.55f, 0.05f, 0.05f, 1f)
-            bodyFont.draw(batch, notice, rootX + 18f, rootY + rootH - 52f, rootW - 36f, Align.right, false)
-        }
-        if (kind == HallManagement.EQUIP && hallEquipUnequipConfirmation) {
-            val x = 421f
-            val y = 275f
-            val width = 438f
-            val height = 139f
-            patch("box1")?.draw(batch, x, y, width, height)
-            patch("title", 5)?.draw(batch, x, y + height - 43f, width, 43f)
-            label("확인", x, y + height - 11f, width, centered = true)
-            label("모두에게 장비를 해제하도록 확정하시겠습니까?", x + 14f, y + 86f, width - 28f, centered = true)
-            button("예", x + 18f, y + 16f, 184f)
-            button("비", x + 236f, y + 16f, 184f)
-        } else if (kind == HallManagement.EQUIP && hallUnitListLayer != null) {
-            HallUnitRosterRenderer.draw(sceneAssets, batch, hallUnitRosterView(requireNotNull(hallUnitListLayer)))
-        }
-        if (kind == HallManagement.EQUIP) hallEquipConfirmation?.let(::drawEquipConfirmation)
-        batch.color = Color.WHITE
     }
-
-    private fun hallUnitRosterView(unitList: HallUnitListLayer): HallUnitRosterView = HallUnitRosterView(
-        unitList.rows.take(6).map { id ->
-            val unit = gameDataCatalog.unitProfile(id)
-            HallUnitRosterRowView(
-                name = campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장",
-                postName = gameDataCatalog.postsName(campaign.unitAttribute(id, 17, unit?.posts ?: 0)),
-            )
-        },
-    )
 
     /** Source Hall/scene/EquipConfirmLayer, transformed from 1488.372x800 by .86. */
     private fun drawEquipConfirmation(confirmation: EquipConfirmation) {
@@ -1908,327 +1534,54 @@ class ScenarioScreen(
         }
 
     private fun drawHallInfo(kind: HallInfo) {
-        if (kind == HallInfo.FORCES) {
-            HallInfoRenderer.draw(sceneAssets, batch, HallInfoRenderView.Forces(hallViews.forces()))
-            return
-        }
-        if (kind == HallInfo.TERRAIN) {
-            HallInfoRenderer.draw(
-                sceneAssets,
-                batch,
-                HallInfoRenderView.Terrain(HallTerrainView.from(
-                    hallTerrainTab,
-                    gameDataCatalog.terrainLayer().select(hallTerrainTab).rows,
-                )),
-            )
-            return
-        }
-        if (kind == HallInfo.TREASURE) {
-            val treasures = gameDataCatalog.treasureProfiles()
-            val discovered = campaign.inventory.discoveredTreasures
-            HallInfoRenderer.draw(
-                sceneAssets,
-                batch,
-                HallInfoRenderView.Treasure(HallTreasureView(
-                    entries = treasures.take(6).map { item ->
-                        HallTreasureEntryView(item.name, item.icon, item.id in discovered)
-                    },
-                    discoveredCount = discovered.size,
-                    totalCount = treasures.size,
-                )),
-            )
-            return
-        }
-        /**
-         * 공개 메서드 `texture`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Texture?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun texture(path: String): Texture? =
-            hallMenuTextures[path] ?: Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-                hallMenuTextures[path] = it
-            }
-
-        /**
-         * 공개 메서드 `ui`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun ui(name: String) = texture("maps/ui/start-battle/$name.png")
-
-        /**
-         * 공개 메서드 `patch`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `inset` (`Int = 3`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun patch(name: String, inset: Int = 3) = ui(name)?.let { NinePatch(it, inset, inset, inset, inset) }
-
-        /**
-         * 공개 메서드 `tiled`
-         *
-         * ### 파라미터
-        - `tex` (`Texture`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun tiled(tex: Texture, x: Float, y: Float, width: Float, height: Float) {
-            val tw = tex.width * .86f
-            val th = tex.height * .86f
-            var dy = 0f
-            while (dy < height - .01f) {
-                val dh = minOf(th, height - dy)
-                val sh = (dh / .86f).toInt().coerceIn(1, tex.height)
-                var dx = 0f
-                while (dx < width - .01f) {
-                    val dw = minOf(tw, width - dx)
-                    val sw = (dw / .86f).toInt().coerceIn(1, tex.width)
-                    batch.draw(tex, x + dx, y + dy, dw, dh, 0, 0, sw, sh, false, false); dx += tw
-                }
-                dy += th
-            }
-        }
-
-        /**
-         * 공개 메서드 `text`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `center` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `small` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun text(value: String, x: Float, y: Float, width: Float, center: Boolean = false, small: Boolean = false) {
-            val font = if (small) smallUiFont else bodyFont
-            font.color = Color.BLACK
-            font.draw(batch, value, x, y, width, if (center) Align.center else Align.left, false)
-        }
-
-        /**
-         * 공개 메서드 `cell`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun cell(x: Float, y: Float, width: Float, height: Float) = patch("box2")?.draw(batch, x, y, width, height)
-
-        /**
-         * 공개 메서드 `button`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float = 130f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun button(value: String, x: Float, y: Float, width: Float = 130f) {
-            patch("button", 9)?.draw(batch, x, y, width, 51.6f); text(value, x, y + 35f, width, center = true)
-        }
-
-        val geometry = when (kind) {
-            HallInfo.FORCES -> floatArrayOf(142.49f, 68.37f, 995.02f, 551.26f)
-            HallInfo.PROPERTY -> floatArrayOf(212.42f, 40.42f, 854.84f, 607.16f)
-            HallInfo.HELPER -> floatArrayOf(127f, 21.07f, 1025.98f, 645.86f)
-            HallInfo.TERRAIN -> error("terrain is rendered before the shared hall-info scaffold")
-            HallInfo.TREASURE -> error("treasure is rendered before the shared hall-info scaffold")
-        }
-        val (x, y, w, h) = geometry
-        batch.color = Color.WHITE
-        ui("logo9")?.let { tiled(it, x, y, w, h) }
-        patch("box1")?.draw(batch, x, y, w, h)
-
         when (kind) {
-            HallInfo.FORCES -> error("forces is rendered before the shared hall-info scaffold")
-            HallInfo.PROPERTY -> {
-                patch("title", 5)?.draw(batch, x, y + h - 51.6f, w, 51.6f)
-                titleFont.color = Color.BLACK; glyphLayout.setText(titleFont, "창고 일람")
-                titleFont.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 8f)
-                val widths = floatArrayOf(323.06f, 168.13f, 91.24f, 87.69f, 176.44f)
-                val headers = listOf("이름", "속성", "레벨", "경험치", "소지자")
-                var cx = x + 5f
-                headers.forEachIndexed { index, header ->
-                    cell(cx, y + h - 101f, widths[index], 48f); text(
-                    header,
-                    cx,
-                    y + h - 67f,
-                    widths[index],
-                    true
-                ); cx += widths[index]
-                }
-                campaign.joinedUnits.forEach { campaign.inventory.ensureDefaultEquipment(it, gameDataCatalog) }
-                /**
-                 * data class  `PropertyRow`
-                 *
-                 * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-                 *
-                 * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-                 */
+            HallInfo.FORCES -> HallInfoRenderer.draw(
+                sceneAssets,
+                batch,
+                HallInfoRenderView.Forces(hallViews.forces()),
+            )
 
-                data class PropertyRow(
-                    val id: Int,
-                    val count: Int,
-                    val level: String,
-                    val experience: String,
-                    val owner: String
-                )
+            HallInfo.PROPERTY -> HallInfoRenderer.draw(
+                sceneAssets,
+                batch,
+                HallInfoRenderView.Property(hallViews.property(hallPropertyTab.ordinal)),
+            )
 
-                /**
-                 * 공개 메서드 `accepts`
-                 *
-                 * ### 파라미터
-                - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Boolean`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
+            HallInfo.TERRAIN -> HallInfoRenderer.draw(
+                sceneAssets,
+                batch,
+                HallInfoRenderView.Terrain(
+                    HallTerrainView.from(
+                        hallTerrainTab,
+                        gameDataCatalog.terrainLayer().select(hallTerrainTab).rows,
+                    ),
+                ),
+            )
 
-                fun accepts(id: Int): Boolean {
-                    val item = gameDataCatalog.equipmentProfile(id) ?: return false
-                    return when (hallPropertyTab) {
-                        HallPropertyTab.WEAPON -> item.itemType < 20
-                        HallPropertyTab.ARMOR -> item.itemType in 20..25
-                        HallPropertyTab.AUXILIARY -> item.itemType > 45 && id < 150
-                        HallPropertyTab.PROPERTY -> id >= 150 || item.itemType in 26..45
-                    }
-                }
-
-                val equippedRows =
-                    if (hallPropertyTab == HallPropertyTab.PROPERTY) emptyList() else campaign.inventory.equippedItems()
-                        .filter { accepts(it.itemId) }
-                val rows = equippedRows.sortedWith(compareBy<CampaignEquippedItem> { it.itemId }.thenBy { it.unitId })
-                    .map { equipped ->
-                        val owner = campaign.unitNames[equipped.unitId]
-                            ?: gameDataCatalog.unitProfile(equipped.unitId)?.name.orEmpty()
-                        PropertyRow(
-                            equipped.itemId,
-                            1,
-                            if (hallPropertyTab == HallPropertyTab.AUXILIARY) "---" else equipped.level.toString(),
-                            if (hallPropertyTab == HallPropertyTab.AUXILIARY) "---" else equipped.experience.toString(),
-                            owner
-                        )
-                    } + campaign.inventory.items.entries.sortedBy { it.key }.filter { (id, _) -> accepts(id) }
-                    .map { (id, count) ->
-                        PropertyRow(
-                            id,
-                            count,
-                            if (hallPropertyTab == HallPropertyTab.AUXILIARY || hallPropertyTab == HallPropertyTab.PROPERTY) "---" else (campaign.inventory.itemLevels(
-                                id
-                            ).firstOrNull() ?: 1).toString(),
-                            if (hallPropertyTab == HallPropertyTab.AUXILIARY || hallPropertyTab == HallPropertyTab.PROPERTY) "---" else (campaign.inventory.itemExperiences(
-                                id
-                            ).firstOrNull() ?: 0).toString(),
-                            "창고"
-                        )
-                    }
-                rows.take(7).forEachIndexed { row, entry ->
-                    val item = gameDataCatalog.equipmentProfile(entry.id) ?: return@forEachIndexed
-                    cx = x + 5f
-                    val ry = y + h - 166f - row * 67.08f
-                    val values = listOf(
-                        "${item.name}${if (entry.count > 1) " ×${entry.count}" else ""}",
-                        gameDataCatalog.equipmentTypeName(item.itemType),
-                        entry.level,
-                        entry.experience,
-                        entry.owner
-                    )
-                    values.forEachIndexed { index, value ->
-                        cell(cx, ry, widths[index], 65.36f)
-                        if (index == 0) {
-                            texture("maps/item-icons/${item.icon}.png")?.let {
-                                batch.draw(
-                                    it,
-                                    cx + 6f,
-                                    ry + 7f,
-                                    50f,
-                                    50f
-                                )
-                            }
-                            text(value, cx + 63f, ry + 43f, widths[index] - 69f)
-                        } else text(value, cx + 4f, ry + 43f, widths[index] - 8f, true)
-                        cx += widths[index]
-                    }
-                }
-                val radioOn = texture("maps/ui/title/setting/radio-on.png")
-                val radioOff = texture("maps/ui/title/setting/radio-off.png")
-                listOf("무기", "방어구", "보조", "아이템").forEachIndexed { index, value ->
-                    val centerX = 244.23f + index * 127.28f
-                    (if (hallPropertyTab.ordinal == index) radioOn else radioOff)?.let {
-                        batch.draw(it, centerX - 13.76f, 58.12f, 27.52f, 27.52f)
-                    }
-                    text(value, centerX + 29.7f, 88f, 95f)
-                }
-                button("확인", x + w - 135f, y + 5f, 125f)
-            }
-
-            HallInfo.HELPER -> {
-                patch("title", 5)?.draw(batch, x, y + h - 62f, w, 62f)
-                titleFont.color = Color(0.65f, 0f, 0.68f, 1f); titleFont.draw(batch, "역사 정보", x + 8f, y + h - 12f)
-                cell(x + 12f, y + 82f, w - 24f, h - 151f)
-                val help =
-                    "6 [단축키 설명]\n☆ 일부 단축키 기능은 메뉴 — 설정을 통해 직접 설정할 수 있습니다.\n☆ 번호 0-4: 단계 속도 변화. 0가 원래 속도이며, 1-4가 가속.\n☆ 번호 5: 진영에 따라 다른 색상의 체력 바를 표시합니다.\n☆ 번호 6: 문자 BUFF와 DEBUFF를 표시합니다.\n☆ 번호 7: 왼쪽 하단에 캐릭터 능력과 장비를 표시합니다.\n☆ 숫자 8: 더블 히트의 치명타 확률과 카운터 관계를 표시합니다.\n☆ 번호 9: 지형 적응 및 이동 비용을 표시합니다.\n☆ 문자 A: 턴 시작 시 자동으로 저장됩니다.\n☆ 문자 B: 속성 인터페이스는 모든 가능한 전략과 학습 수준을 표시합니다."
-                bodyFont.color = Color.BLACK; bodyFont.draw(
+            HallInfo.TREASURE -> {
+                val treasures = gameDataCatalog.treasureProfiles()
+                val discovered = campaign.inventory.discoveredTreasures
+                HallInfoRenderer.draw(
+                    sceneAssets,
                     batch,
-                    help,
-                    x + 18f,
-                    y + h - 90f,
-                    w - 36f,
-                    Align.left,
-                    true
+                    HallInfoRenderView.Treasure(
+                        HallTreasureView(
+                            entries = treasures.take(6).map { item ->
+                                HallTreasureEntryView(item.name, item.icon, item.id in discovered)
+                            },
+                            discoveredCount = discovered.size,
+                            totalCount = treasures.size,
+                        ),
+                    ),
                 )
-                button("확인", x + w - 145f, y + 7f, 135f)
             }
 
-            HallInfo.TERRAIN -> error("terrain is rendered before the shared hall-info scaffold")
-            HallInfo.TREASURE -> error("treasure is rendered before the shared hall-info scaffold")
+            HallInfo.HELPER -> HallInfoRenderer.draw(
+                sceneAssets,
+                batch,
+                HallInfoRenderView.Helper(HallHelperView.default),
+            )
         }
-        batch.color = Color.WHITE
     }
 
     private fun handleHallInfoTap(kind: HallInfo, x: Float, y: Float) {
@@ -2248,34 +1601,7 @@ class ScenarioScreen(
         }
     }
 
-    private fun hallPropertyItemIds(): List<Int> {
-        /**
-         * 공개 메서드 `accepts`
-         *
-         * ### 파라미터
-        - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Boolean`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun accepts(id: Int): Boolean {
-            val item = gameDataCatalog.equipmentProfile(id) ?: return false
-            return when (hallPropertyTab) {
-                HallPropertyTab.WEAPON -> item.itemType < 20
-                HallPropertyTab.ARMOR -> item.itemType in 20..25
-                HallPropertyTab.AUXILIARY -> item.itemType > 45 && id < 150
-                HallPropertyTab.PROPERTY -> id >= 150 || item.itemType in 26..45
-            }
-        }
-
-        val equipped =
-            if (hallPropertyTab == HallPropertyTab.PROPERTY) emptyList() else campaign.inventory.equippedItems()
-                .filter { accepts(it.itemId) }
-                .sortedWith(compareBy<CampaignEquippedItem> { it.itemId }.thenBy { it.unitId }).map { it.itemId }
-        return equipped + campaign.inventory.items.entries.sortedBy { it.key }.filter { accepts(it.key) }.map { it.key }
-    }
+    private fun hallPropertyItemIds(): List<Int> = hallViews.propertyItemIds(hallPropertyTab.ordinal)
 
     private fun openHallItem(itemId: Int, level: String, experience: Int, canDrop: Boolean) {
         val profile = gameDataCatalog.equipmentProfile(itemId) ?: return

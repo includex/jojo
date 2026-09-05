@@ -15,6 +15,25 @@ internal class HallManagementViewFactory(
     private val overlayFixture: String?,
 ) {
     private val stageIndex = moduleName.substringAfter('_').toIntOrNull() ?: 0
+    private val equipProjector = HallEquipViewProjector(campaign, catalog)
+    private val propertyProjector = HallPropertyViewProjector(campaign, catalog)
+
+    fun equip(unitId: Int, selectedTab: Int, notice: String?): HallEquipView =
+        equipProjector.project(unitId, selectedTab, notice)
+
+    fun property(selectedTab: Int): HallPropertyView = propertyProjector.project(selectedTab)
+
+    fun propertyItemIds(selectedTab: Int): List<Int> = propertyProjector.itemIds(selectedTab)
+
+    fun unitRoster(unitIds: List<Int>): HallUnitRosterView = HallUnitRosterView(
+        unitIds.take(6).map { id ->
+            val unit = catalog.unitProfile(id)
+            HallUnitRosterRowView(
+                name = campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장",
+                postName = catalog.postsName(campaign.unitAttribute(id, 17, unit?.posts ?: 0)),
+            )
+        },
+    )
 
     fun buyCandidates(): List<GameDataCatalog.EquipmentProfile> {
         // The isolated source fixture feeds 0..itemCount (255 is its sentinel).

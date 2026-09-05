@@ -2,7 +2,11 @@ package com.jojo.game.presentation.battle
 
 import com.jojo.game.domain.scenario.ScenarioFightCommand
 import com.jojo.game.presentation.battle.fight.FightSpriteTimeline
-import kotlin.math.max
+import com.jojo.game.presentation.battle.fight.FightActionTimeline
+import com.jojo.game.presentation.battle.fight.FightAttackPlan
+import com.jojo.game.presentation.battle.fight.FightAttackPlanner
+import com.jojo.game.presentation.battle.fight.FightSpeechLifecycle
+import com.jojo.game.presentation.battle.fight.FightStartSequence
 
 /** Logical side used by FightLayer after its `_mineIdx`/`_enemyIdx` lookup. */
 enum class FightSide { MINE, ENEMY }
@@ -177,17 +181,14 @@ class FightPresentationState(
         const val SHOW_START_SECONDS = 1f
         private const val ACTION_DEATH = 28
         private const val ACTION_ENTER = 29
-
         /** Exact frame totals from the shipped `animeFR` FightUnit asset. */
         val SOURCE_ACTION_FRAMES: Map<Int, Int> = listOf(
             4, 4, 10, 8, 8, 4, 4, 4, 4, 10,
             18, 4, 24, 8, 792, 360, 12, 8, 12, 8,
             5, 5, 6, 8, 20, 5, 5, 8, 12, 11,
         ).mapIndexed { action, frames -> action to frames }.toMap()
-
         val SOURCE_ACTION_DURATIONS: Map<Int, Float> =
             SOURCE_ACTION_FRAMES.mapValues { (_, frames) -> frames * FRAME_SECONDS }
-
         /** `hit` event offsets in the same recovered animation asset. */
         val SOURCE_ACTION_HIT_FRAMES: Map<Int, Int> = mapOf(
             16 to 8,
@@ -198,68 +199,21 @@ class FightPresentationState(
         )
         val SOURCE_ACTION_HIT_TIMES: Map<Int, Float> =
             SOURCE_ACTION_HIT_FRAMES.mapValues { (_, frames) -> frames * FRAME_SECONDS }
-
         /** Number of Cocos scheduler callbacks used by say2 for this UTF-16 string. */
         fun typingTickCount(text: String): Int = typingContents(text).size
-
-        /**
-         * Raw RichText contents after each 0.04-second say2 callback.
-         * Markup is consumed as a group, while surrogate pairs remain two JS
-         * UTF-16 substring steps, exactly as in the recovered implementation.
-         */
-        /**
-         * 공개 메서드 `typingContents`
-         *
-         * ### 파라미터
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `List<String>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun typingContents(text: String): List<String> {
-            var remaining = text
-            var content = ""
-            val result = mutableListOf<String>()
-            do {
-                var tagDepth = 0
-                while (remaining.isNotEmpty()) {
-                    val next = remaining.substring(0, 1)
-                    remaining = remaining.substring(1)
-                    content += next
-                    if (next == "<") tagDepth++
-                    else if (tagDepth > 0 && next == ">") tagDepth--
-                    if (tagDepth == 0) break
-                }
-                result += content
-            } while (remaining.isNotEmpty())
-            return result
-        }
-
-        /**
-         * 공개 메서드 `renderedRichText`
-         *
-         * ### 파라미터
-        - `content` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun renderedRichText(content: String): String =
-            if ("<color=" in content) "$content</c>" else content
+        /** Raw RichText contents after each source `say2` typing callback. */
+        fun typingContents(text: String): List<String> = FightSpeechLifecycle.typingContents(text)
+        fun renderedRichText(content: String): String = FightSpeechLifecycle.renderedRichText(content)
     }
 
     private data class TimedMutation(val at: Float, val order: Int, val mutate: () -> Unit)
-
     val mine = FightUnitPresentation()
     val enemy = FightUnitPresentation()
-    val mineSpeech = FightSpeechPresentation()
-    val enemySpeech = FightSpeechPresentation()
+    private val actions = FightActionTimeline(actionDurations, actionHitTimes, actionPoseAt, actionSoundsCrossed)
+    private val speeches = FightSpeechLifecycle()
+    val mineSpeech get() = speeches.mine
+    val enemySpeech get() = speeches.enemy
     val emittedEvents = mutableListOf<FightPresentationEvent>()
-
     var activeFightId: Long? = null
         private set
     var backgroundIndex: Int = 0
@@ -288,39 +242,12 @@ class FightPresentationState(
         private set
     var enemyIndex: Int = 1
         private set
-
     val commandComplete: Boolean get() = currentCommand == null
 
     private val mutations = mutableListOf<TimedMutation>()
-    private val actionStartedAt = mutableMapOf<FightSide, Float>()
-    private val actionSoundStartPending = mutableSetOf<FightSide>()
     private var nextMutation = 0
     private var mutationOrder = 0
-
-    /**
-     * 공개 메서드 `unit`
-     *
-     * ### 파라미터
-    - `side` (`FightSide`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `FightUnitPresentation`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
     fun unit(side: FightSide): FightUnitPresentation = if (side == FightSide.MINE) mine else enemy
-
-    /**
-     * 공개 메서드 `speech`
-     *
-     * ### 파라미터
-    - `side` (`FightSide`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `FightSpeechPresentation`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
     fun speech(side: FightSide): FightSpeechPresentation = if (side == FightSide.MINE) mineSpeech else enemySpeech
 
     /** Begin one command and return its source-faithful callback duration. */
@@ -332,19 +259,16 @@ class FightPresentationState(
         } else {
             check(activeFightId == command.fightId) { "fight command does not target the active FightLayer" }
         }
-
         currentCommand = command
         commandElapsedSeconds = 0f
         commandDurationSeconds = 0f
         lastHitAtSeconds = null
         pendingAnimationCallbacks = 0
         mutations.clear()
-        actionStartedAt.clear()
-        actionSoundStartPending.clear()
+        actions.reset()
         nextMutation = 0
         mutationOrder = 0
         emittedEvents += FightPresentationEvent.CommandStarted(command)
-
         when (command) {
             is ScenarioFightCommand.Start -> beginStart(command)
             is ScenarioFightCommand.ShowUnit -> beginShowUnit(command)
@@ -364,22 +288,7 @@ class FightPresentationState(
         mutations.sortWith(compareBy<TimedMutation> { it.at }.thenBy { it.order })
         return commandDurationSeconds
     }
-
-    /**
-     * Advance only the current command. Any excess time is intentionally not
-     * applied to a future command; the AST owns the next-command boundary.
-     */
-    /**
-     * 공개 메서드 `advance`
-     *
-     * ### 파라미터
-    - `deltaSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<FightPresentationEvent>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** Advances the active command without crossing the next AST boundary. */
     fun advance(deltaSeconds: Float): List<FightPresentationEvent> {
         require(deltaSeconds >= 0f) { "deltaSeconds must be non-negative" }
         if (currentCommand == null) return emptyList()
@@ -401,36 +310,15 @@ class FightPresentationState(
         }
         return emittedEvents.subList(eventStart, emittedEvents.size).toList()
     }
-
     private fun beginStart(command: ScenarioFightCommand.Start) {
-        backgroundIndex = command.backgroundIndex
-        mineIndex = if (isMineUnit(command.firstUnitId) ?: true) 0 else 1
-        enemyIndex = if (mineIndex == 0) 1 else 0
-        mine.characterId = if (mineIndex == 0) command.firstUnitId else command.secondUnitId
-        enemy.characterId = if (enemyIndex == 0) command.firstUnitId else command.secondUnitId
-        /**
-         * 공개 메서드 `resetSlot`
-         *
-         * ### 파라미터
-        - `fighter` (`FightUnitPresentation`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `slot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun resetSlot(fighter: FightUnitPresentation, slot: Int) {
-            fighter.parentX = if (slot == 0) -200f else 200f
-            fighter.parentScaleX = if (slot == 0) -4f else 4f
-            fighter.childX = 0f
-            fighter.childScaleX = 1f
-            fighter.action = null
-            fighter.actionElapsedSeconds = 0f
-            fighter.zIndex = 0
-        }
-        resetSlot(mine, mineIndex)
-        resetSlot(enemy, enemyIndex)
+        val layout = FightStartSequence.layout(command, isMineUnit)
+        backgroundIndex = layout.backgroundIndex
+        mineIndex = layout.mineIndex
+        enemyIndex = layout.enemyIndex
+        mine.characterId = layout.mineCharacterId
+        enemy.characterId = layout.enemyCharacterId
+        FightStartSequence.resetSlot(mine, mineIndex)
+        FightStartSequence.resetSlot(enemy, enemyIndex)
         mine.created = false
         enemy.created = false
         mine.dead = false
@@ -452,7 +340,6 @@ class FightPresentationState(
         }
         finishAt(START_SECONDS)
     }
-
     private fun beginShowUnit(command: ScenarioFightCommand.ShowUnit) {
         val side = command.side()
         val fighter = unit(side)
@@ -464,15 +351,12 @@ class FightPresentationState(
         scheduleSpeech(side, command.text, speechAt)
         finishAt(speechAt + speechDuration(command.text))
     }
-
     private fun beginShowStart() {
         startLabelsActive = true
-        mineSpeech.active = false
-        enemySpeech.active = false
+        speeches.deactivateAll()
         schedule(SHOW_START_SECONDS) { startLabelsActive = false }
         finishAt(SHOW_START_SECONDS)
     }
-
     private fun beginSetAction(command: ScenarioFightCommand.SetAction) {
         val side = command.side()
         setForeground(side)
@@ -481,82 +365,37 @@ class FightPresentationState(
         schedule(duration(command.action)) { pendingAnimationCallbacks-- }
         finishAt(duration(command.action))
     }
-
     private fun beginSay(command: ScenarioFightCommand.Say) {
         val side = command.side()
         scheduleSpeech(side, command.text, 0f, applyImmediately = true)
         finishAt(speechDuration(command.text))
     }
-
-    private fun beginAttack2(command: ScenarioFightCommand.Attack2) {
-        require(command.style in 0..2) { "FightLayer.attack2 style must be 0..2" }
-        val attacker = command.side()
-        val defender = attacker.other()
-        val attackerAction = when (command.style) {
-            0 -> 16
-            1 -> 17
-            else -> 18
-        }
-        val defenderAction = when (command.style) {
-            0, 1 -> if (command.defended) 20 else 21
-            else -> 18
-        }
-        setForeground(attacker)
-        startAction(attacker, attackerAction)
+    private fun beginAttack2(command: ScenarioFightCommand.Attack2) = beginAttack(
+        FightAttackPlanner.attack2(command, ::duration, ::hitTime),
+    )
+    private fun beginAttack1(command: ScenarioFightCommand.Attack1) = beginAttack(
+        FightAttackPlanner.attack1(command, ::duration, ::hitTime),
+    )
+    private fun beginAttack(plan: FightAttackPlan) {
+        setForeground(plan.attacker)
+        startAction(plan.attacker, plan.attackerAction)
         pendingAnimationCallbacks = 1
-        val attackerEnds = duration(attackerAction)
-        schedule(attackerEnds) { pendingAnimationCallbacks-- }
-
-        if (command.style == 2) {
-            startAction(defender, defenderAction)
+        schedule(plan.attackerEndsAt) { pendingAnimationCallbacks-- }
+        if (plan.defenderStartsImmediately) {
+            startAction(plan.defender, plan.defenderAction)
             pendingAnimationCallbacks++
         }
-        val hitAt = hitTime(attackerAction)
-        schedule(hitAt) {
-            lastHitAtSeconds = hitAt
-            emittedEvents += FightPresentationEvent.Hit(attacker, defender)
-            // play() restarts the defender clip. Existing `once(finished)`
-            // callbacks survive that restart, so all defender joins complete
-            // at the new clip's finish.
-            startAction(defender, defenderAction)
-            if (command.style != 2) pendingAnimationCallbacks++
+        schedule(plan.hitAt) {
+            lastHitAtSeconds = plan.hitAt
+            emittedEvents += FightPresentationEvent.Hit(plan.attacker, plan.defender)
+            startAction(plan.defender, plan.defenderAction)
+            if (!plan.defenderStartsImmediately) pendingAnimationCallbacks++
         }
-        val defenderEnds = hitAt + duration(defenderAction)
-        schedule(defenderEnds) {
-            pendingAnimationCallbacks = 0
+        schedule(plan.defenderEndsAt) {
+            if (plan.completionClearsAllCallbacks) pendingAnimationCallbacks = 0 else pendingAnimationCallbacks--
         }
-        finishAt(max(attackerEnds, defenderEnds))
+        finishAt(plan.duration)
     }
-
-    private fun beginAttack1(command: ScenarioFightCommand.Attack1) {
-        require(command.style in 0..4) { "FightLayer.attack1 style must be 0..4" }
-        val attacker = command.side()
-        val defender = attacker.other()
-        val attackerAction = if (command.critical) 24 else 19
-        val defenderAction = when (command.style) {
-            0 -> 21
-            1 -> 20
-            2 -> 22
-            3 -> 27
-            else -> 23
-        }
-        setForeground(attacker)
-        startAction(attacker, attackerAction)
-        pendingAnimationCallbacks = 1
-        val attackerEnds = duration(attackerAction)
-        schedule(attackerEnds) { pendingAnimationCallbacks-- }
-        val hitAt = hitTime(attackerAction)
-        schedule(hitAt) {
-            lastHitAtSeconds = hitAt
-            emittedEvents += FightPresentationEvent.Hit(attacker, defender)
-            startAction(defender, defenderAction)
-            pendingAnimationCallbacks++
-        }
-        val defenderEnds = hitAt + duration(defenderAction)
-        schedule(defenderEnds) { pendingAnimationCallbacks-- }
-        finishAt(max(attackerEnds, defenderEnds))
-    }
-
     private fun beginDeath(command: ScenarioFightCommand.Death) {
         val side = if (command.enemy) FightSide.ENEMY else FightSide.MINE
         startAction(side, ACTION_DEATH)
@@ -567,89 +406,43 @@ class FightPresentationState(
         }
         finishAt(duration(ACTION_DEATH))
     }
-
     private fun scheduleSpeech(side: FightSide, text: String, startsAt: Float, applyImmediately: Boolean = false) {
         val begin = {
-            val panel = speech(side)
-            panel.active = true
-            panel.sourceText = text
-            panel.content = ""
-            panel.renderedText = ""
+            speeches.begin(side, text)
         }
         if (applyImmediately) begin() else schedule(startsAt, begin)
         typingContents(text).forEachIndexed { index, content ->
             schedule(startsAt + (index + 1) * TYPE_SECONDS) {
-                val rendered = renderedRichText(content)
-                speech(side).content = content
-                speech(side).renderedText = rendered
-                emittedEvents += FightPresentationEvent.TextChanged(side, rendered)
+                emittedEvents += speeches.applyContent(side, content)
             }
         }
     }
-
-    private fun speechDuration(text: String): Float =
-        typingTickCount(text) * TYPE_SECONDS + SPEECH_CLOSE_SECONDS
-
+    private fun speechDuration(text: String): Float = speeches.duration(text, TYPE_SECONDS, SPEECH_CLOSE_SECONDS)
     private fun setForeground(side: FightSide) {
         unit(side).zIndex = 1
         unit(side.other()).zIndex = 0
     }
-
     private fun startAction(side: FightSide, action: Int) {
-        val fighter = unit(side)
-        fighter.resetAnimatedChild()
-        fighter.action = action
-        fighter.actionElapsedSeconds = 0f
-        actionStartedAt[side] = commandElapsedSeconds
-        actionSoundStartPending += side
-        emittedEvents += FightPresentationEvent.ActionStarted(side, action)
+        emittedEvents += actions.start(side, unit(side), commandElapsedSeconds, action)
     }
 
     private fun updateActionStates(at: Float) {
-        actionStartedAt.forEach { (side, startedAt) ->
-            val fighter = unit(side)
-            val action = fighter.action ?: return@forEach
-            val actionElapsed = (at - startedAt).coerceAtLeast(0f).coerceAtMost(duration(action))
-            val includeStart = actionSoundStartPending.remove(side)
-            actionSoundsCrossed?.invoke(
-                action,
-                fighter.actionElapsedSeconds,
-                actionElapsed,
-                includeStart,
-            )?.forEach { sound ->
-                emittedEvents += FightPresentationEvent.Sound(side, action, sound.value, sound.atSeconds)
-            }
-            fighter.actionElapsedSeconds = actionElapsed
-            actionPoseAt?.invoke(action, actionElapsed)?.let { pose ->
-                fighter.childX = pose.childX
-                fighter.childScaleX = pose.childScaleX
-            }
-        }
+        emittedEvents += actions.advance(at, ::unit)
     }
-
-    private fun duration(action: Int): Float = requireNotNull(actionDurations[action]) {
-        "missing recovered FightUnit duration for anime$action"
-    }
-
-    private fun hitTime(action: Int): Float = requireNotNull(actionHitTimes[action]) {
-        "missing recovered FightUnit hit event for anime$action"
-    }
-
+    private fun duration(action: Int): Float = actions.duration(action)
+    private fun hitTime(action: Int): Float = actions.hitTime(action)
     private fun schedule(at: Float, mutation: () -> Unit) {
         mutations += TimedMutation(at, mutationOrder++, mutation)
     }
-
     private fun finishAt(at: Float) {
         commandDurationSeconds = at
         val command = requireNotNull(currentCommand)
         schedule(at) { complete(command) }
     }
-
     private fun complete(command: ScenarioFightCommand) {
         currentCommand = null
         emittedEvents += FightPresentationEvent.CommandCompleted(command)
     }
-
     private fun ScenarioFightCommand.ShowUnit.side() = if (mine) FightSide.MINE else FightSide.ENEMY
     private fun ScenarioFightCommand.SetAction.side() = if (mine) FightSide.MINE else FightSide.ENEMY
     private fun ScenarioFightCommand.Say.side() = if (mine) FightSide.MINE else FightSide.ENEMY

@@ -10,7 +10,9 @@ import com.jojo.game.presentation.scenario.hall.HallTreasureRenderer
 internal object HallInfoRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallInfoRenderView) = when (view) {
         is HallInfoRenderView.Forces -> HallForcesRenderer.draw(assets, batch, view.view)
+        is HallInfoRenderView.Property -> HallPropertyRenderer.draw(assets, batch, view.view)
         is HallInfoRenderView.Terrain -> HallTerrainRenderer.draw(assets, batch, view.view)
         is HallInfoRenderView.Treasure -> HallTreasureRenderer.draw(assets, batch, view.view)
+        is HallInfoRenderView.Helper -> HallHelperRenderer.draw(assets, batch, view.view)
     }
 }

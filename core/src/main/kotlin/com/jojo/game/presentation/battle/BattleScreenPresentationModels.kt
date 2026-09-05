@@ -440,28 +440,6 @@ internal sealed interface TurnSettlementOp {
     data class Default(val unitId: String) : TurnSettlementOp
 }
 
-internal data class ActiveTurnSettlement(
-    val plan: BattleSettlementPlan,
-    val operations: List<TurnSettlementOp>,
-    /** Magic-local `_jiesuan(h)` has no TurnController completion. */
-    val onComplete: (() -> Unit)? = null,
-    var operationIndex: Int = 0,
-    var waitUntil: Float = 0f,
-    var operationStarted: Boolean = false,
-    var actionIndex: Int = 0,
-)
-
-internal data class SettlementInfoOverlay(
-    val unitId: String,
-    val panel: SettlementInfoPanel,
-    val startedAt: Float,
-    val deltas: List<SettlementInfoDelta> = emptyList(),
-    val grants: List<SettlementGrowthGrant> = emptyList(),
-    val title: String,
-)
-
-internal data class SettlementInfo2Overlay(val text: String, var startedAt: Float, var endsAt: Float)
-
 internal data class ActiveUnitDeath(
     val pending: PendingDeathAnimation,
     val endsAt: Float,

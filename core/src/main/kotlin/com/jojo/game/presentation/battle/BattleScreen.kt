@@ -48,6 +48,9 @@ import com.jojo.game.presentation.battle.timeline.BattleMagicPresentation
 import com.jojo.game.presentation.battle.timeline.BattlePhysicalPresentationTimeline
 import com.jojo.game.presentation.battle.timeline.UnitDeathPresentation
 import com.jojo.game.presentation.battle.timeline.hitCallbackEconomyDelta
+import com.jojo.game.presentation.battle.settlement.BattleSettlementPresentationController
+import com.jojo.game.presentation.battle.settlement.SettlementInfoView
+import com.jojo.game.presentation.battle.settlement.SettlementInfo2View
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
@@ -1009,9 +1012,9 @@ void main() {
             }
         }
     })
-    private var activeTurnSettlement: ActiveTurnSettlement? = null
-    private var settlementInfoOverlay: SettlementInfoOverlay? = null
-    private var settlementInfo2Overlay: SettlementInfo2Overlay? = null
+    private val settlementPresentation = BattleSettlementPresentationController()
+    private var settlementMeffEndsAt: Float? = null
+    private var settlementItemUpgradeStarted = false
     private var activeScriptedHide: ActiveScriptedHide? = null
     private var scriptedHideAwaitingDialogue: PendingScriptedHide? = null
     private var activeScriptedShow: ActiveScriptedShow? = null
@@ -1448,7 +1451,7 @@ void main() {
             private fun inputSurface(): BattleInputSurface = BattleInputSurface(
                 dialogue = BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) ==
                         BattleInteractiveInput.Route.DIALOGUE,
-                settlementInfo = settlementInfo2Overlay != null,
+                settlementInfo = settlementPresentation.info2View() != null,
                 roundLayer = activeRoundLayer != null,
                 resultPrompt = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
                 modalInfo = scriptRuntime.state == PlaybackState.MODAL &&
@@ -2114,7 +2117,7 @@ void main() {
         // could discard the final camera tick when MOVING completed below.
         driveMovementTicks()
         applyDueBattleMutations()
-        driveTurnSettlementPresentation()
+        driveSettlementPresentationController()
         driveScriptedUnitHide()
         driveScriptedUnitShow()
         driveScriptedCameraCenters()
@@ -2808,7 +2811,7 @@ void main() {
                 resultFlow.toString(), scriptRuntime.currentModalKind?.name,
                 pendingBattleScriptPassesAfterAction, pendingAiUnitDeathScriptPass, deathTimeline.startedPostActionDeaths(),
                 pendingAiResolution != null, activeAiCamp?.toString(), activeRoundLayer != null,
-                activeTurnSettlement != null, combatPresentationBusy(),
+                settlementPresentation.isActive(), combatPresentationBusy(),
             )
         ))
     }
@@ -3360,7 +3363,7 @@ void main() {
     /** Starts the next `_attack2` pass only after every `_attack3` callback in the prior pass. */
     private fun startQueuedPhysicalPassPresentation() {
         val queue = queuedPhysicalPresentation ?: return
-        if (activeTurnSettlement != null) return
+        if (settlementPresentation.isActive()) return
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
         if (animationClock() < queue.startsAt) return
         val pass = queue.passes.getOrNull(queue.nextPassIndex)
@@ -3432,7 +3435,7 @@ void main() {
     /** `_magic` repeats say4 -> preparation -> _magicProcess for every CLLJ pass. */
     private fun startQueuedMagicPassPresentation() {
         val queue = queuedMagicPresentation ?: return
-        if (activeTurnSettlement != null) return
+        if (settlementPresentation.isActive()) return
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
         if (animationClock() < queue.startsAt) return
         val index = queue.nextPassIndex
@@ -3865,13 +3868,13 @@ void main() {
     }
 
     private fun applyDueBattleMutations() {
-        if (activeTurnSettlement != null) return
+        if (settlementPresentation.isActive()) return
         val now = animationClock()
         while (timedBattleMutations.firstOrNull()?.at?.let { now >= it } == true) {
             timedBattleMutations.removeAt(0).mutation()
             // A nested `_jiesuan(t, o)` is an awaited generator callback.
             // Do not let another same-frame target/pass mutation cross it.
-            if (activeTurnSettlement != null) break
+            if (settlementPresentation.isActive()) break
         }
     }
 
@@ -3926,7 +3929,7 @@ void main() {
      * released until the source's serial info/MEFF barriers have completed.
      */
     private fun presentTurnSettlement(settlement: CampSettlement): Boolean {
-        check(activeTurnSettlement == null) { "overlapping BattleScreen._jiesuan presentations" }
+        check(!settlementPresentation.isActive()) { "overlapping BattleScreen._jiesuan presentations" }
         val unitsById = (battle.units.values + battle.presentation.pendingPresentationUnits()).associateBy { it.id }
         val plan = BattleSettlementPlanningAdapter.plan(settlement, unitsById) { state ->
             gameDataCatalog.statusMeff(state.sourceStatusIndex, state.meffSlot)
@@ -3942,14 +3945,15 @@ void main() {
             refreshSettlementUnits(plan)
             return true
         }
-        activeTurnSettlement = ActiveTurnSettlement(plan, operations)
-        return false
+        return settlementPresentation.start(plan, operations, local = false).also { immediate ->
+            if (immediate) refreshSettlementUnits(plan)
+        }
     }
 
     /** `_magicProcess` calls `_jiesuan(h)` only after its meff callbacks. */
     private fun presentMagicLocalSettlement(settlement: MagicLocalSettlement, casterId: String) {
         if (settlement.entries.isEmpty()) return
-        check(activeTurnSettlement == null) { "overlapping BattleScreen._magicProcess settlement" }
+        check(!settlementPresentation.isActive()) { "overlapping BattleScreen._magicProcess settlement" }
         val plan = buildLocalSettlementPlan(settlement, casterId)
         val operations = settlementOperations(plan)
         if (operations.isEmpty()) {
@@ -3971,12 +3975,12 @@ void main() {
     }
 
     private fun startLocalSettlement(plan: BattleSettlementPlan, operations: List<TurnSettlementOp>) {
-        check(activeTurnSettlement == null) { "overlapping callback-local BattleScreen._jiesuan presentation" }
+        check(!settlementPresentation.isActive()) { "overlapping callback-local BattleScreen._jiesuan presentation" }
         if (operations.isEmpty()) {
             refreshSettlementUnits(plan)
             return
         }
-        activeTurnSettlement = ActiveTurnSettlement(plan, operations, onComplete = {})
+        if (settlementPresentation.start(plan, operations, local = true)) refreshSettlementUnits(plan)
     }
 
     /** Local attack settlement has no Info rows; retain a defensive complete duration map. */
@@ -4133,174 +4137,86 @@ void main() {
         if (refreshIds.isNotEmpty()) add(TurnSettlementOp.Refresh(refreshIds))
     }
 
-    private fun driveTurnSettlementPresentation() {
-        val active = activeTurnSettlement ?: return
+    private fun driveSettlementPresentationController() {
         val now = animationClock()
-        if (active.operationIndex >= active.operations.size) {
-            finishTurnSettlementPresentation(active)
-            return
+        actionAnimation?.takeIf { it.endsAt <= now }?.let {
+            actionAnimation = null
+            settlementPresentation.actionCompleted()
         }
-        val operation = active.operations[active.operationIndex]
-        if (active.operationStarted) {
-            if (operation is TurnSettlementOp.ItemUpgrade) {
-                if (itemUpgradeFlow != null) return
-                advanceSettlementOperation(active)
-                return
-            }
-            if (now < active.waitUntil) return
-            if (operation is TurnSettlementOp.Actions && active.actionIndex + 1 < operation.actionIds.size) {
-                active.actionIndex++
-                val unit = battle.presentation.presentationUnit(operation.unitId) ?: return advanceSettlementOperation(active)
-                actionAnimation =
-                    sourceActionAnimation(unit.id, operation.actionIds[active.actionIndex], unit.direction, now)
-                active.waitUntil = requireNotNull(actionAnimation).endsAt
-                return
-            }
-            settlementInfoOverlay = null
-            settlementInfo2Overlay = null
-            if (operation is TurnSettlementOp.Actions) actionAnimation = null
-            advanceSettlementOperation(active)
-            return
+        settlementMeffEndsAt?.takeIf { now >= it }?.let {
+            settlementMeffEndsAt = null
+            settlementPresentation.meffCompleted()
         }
-
-        Gdx.app.log(
-            "BattleSettlement",
-            "t=$now stage=${active.plan.stage} " +
-                    "op=${active.operationIndex}/${active.operations.size}:${operation.javaClass.simpleName}",
-        )
-
-        when (operation) {
-            is TurnSettlementOp.Focus -> {
-                battle.presentation.presentationUnit(operation.unitId)
-                    ?.let { focusCameraOn(it, forceCenter = operation.forceCenter) }
-                if (operation.seconds <= 0f) return advanceSettlementOperation(active)
-                active.waitUntil = now + operation.seconds
-            }
-
-            is TurnSettlementOp.Sound -> {
-                audio.playBattleEffect(operation.soundIndex)
-                return advanceSettlementOperation(active)
-            }
-
-            is TurnSettlementOp.Info2 -> {
-                val autoClose = operation.text.length < 10 || settingsPreferences.getInteger(
-                    SettingLayer.GAME_SETTING,
-                    SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-                ) and SettingLayer.AUTO_CLOSE != 0
-                val duration = if (autoClose) operation.text.length * .04f + 1f else Float.POSITIVE_INFINITY
-                settlementInfo2Overlay = SettlementInfo2Overlay(operation.text, now, now + duration)
-                active.waitUntil = now + duration
-            }
-
-            is TurnSettlementOp.Actions -> {
-                active.actionIndex = 0
-                val unit = battle.presentation.presentationUnit(operation.unitId) ?: return advanceSettlementOperation(active)
-                actionAnimation = sourceActionAnimation(unit.id, operation.actionIds.first(), unit.direction, now)
-                active.waitUntil = requireNotNull(actionAnimation).endsAt
-            }
-
-            is TurnSettlementOp.UnitInfo -> {
-                val unit = battle.presentation.presentationUnit(operation.plan.unitId) ?: return advanceSettlementOperation(active)
-                settlementInfoOverlay = SettlementInfoOverlay(
-                    unit.id, requireNotNull(operation.plan.infoPanel), now,
-                    deltas = operation.plan.infoDeltas, title = unit.name,
-                )
-                var cursor = now + operation.plan.preInfoDelaySeconds
-                operation.plan.infoDeltas.forEach { delta ->
-                    cursor += delta.tickSeconds
-                    if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(
-                        unit.id,
-                        delta.before,
-                        delta.after,
-                        cursor
-                    )
+        if (settlementItemUpgradeStarted && itemUpgradeFlow == null) {
+            settlementItemUpgradeStarted = false
+            settlementPresentation.itemUpgradeCompleted()
+        }
+        val autoClose: (String) -> Boolean = { text ->
+            text.length < 10 || settingsPreferences.getInteger(
+                SettingLayer.GAME_SETTING,
+                SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+            ) and SettingLayer.AUTO_CLOSE != 0
+        }
+        settlementPresentation.tick(now, autoClose).forEach { effect ->
+            when (effect) {
+                is BattleSettlementPresentationController.Effect.Focus ->
+                    battle.presentation.presentationUnit(effect.unitId)?.let { focusCameraOn(it, effect.forceCenter) }
+                is BattleSettlementPresentationController.Effect.Sound -> audio.playBattleEffect(effect.index)
+                is BattleSettlementPresentationController.Effect.Info2 -> Unit
+                is BattleSettlementPresentationController.Effect.Actions -> {
+                    battle.presentation.presentationUnit(effect.unitId)?.let { unit ->
+                        actionAnimation = sourceActionAnimation(unit.id, effect.actionId, unit.direction, now)
+                    } ?: settlementPresentation.actionCompleted()
                 }
-                healthTimelineHoldUntil[unit.id] = now + operation.plan.infoBarrierSeconds
-                active.waitUntil = now + operation.plan.infoBarrierSeconds
-            }
-
-            is TurnSettlementOp.GrowthInfo -> {
-                val unit = battle.presentation.presentationUnit(operation.unitId) ?: return advanceSettlementOperation(active)
-                settlementInfoOverlay = SettlementInfoOverlay(
-                    unit.id, SettlementInfoPanel.MINE, now, grants = operation.grants, title = unit.name,
-                )
-                val ticks = operation.grants.sumOf { grant ->
-                    val delta = grant.unitResult?.gained ?: grant.equipmentResult?.gained ?: 0
-                    minOf(kotlin.math.abs(delta), 5)
-                }
-                active.waitUntil = now + .1f + ticks * .2f + .3f
-            }
-
-            is TurnSettlementOp.Meff -> {
-                val effect = magicEffects.effect(operation.effectId) ?: return advanceSettlementOperation(active)
-                val targets = operation.targetIds.filter { battle.presentation.presentationUnit(it) != null }
-                if (targets.isEmpty()) return advanceSettlementOperation(active)
-                magicEffectAnimations += MagicEffectAnimation(operation.effectId, targets, now, now + effect.duration)
-                active.waitUntil = now + effect.duration
-            }
-
-            is TurnSettlementOp.ItemUpgrade -> {
-                battle.experience.consumeEquipmentUpgrade()?.let { queued ->
-                    check(queued == operation.result) { "settlement item-upgrade queue order mismatch" }
-                }
-                openSettlementItemUpgrade(operation.result)
-                active.waitUntil = Float.POSITIVE_INFINITY
-            }
-
-            is TurnSettlementOp.HideState -> {
-                operation.unitIds.forEach { id ->
-                    battle.presentation.presentationUnit(id)?.let { unitPresentationStore.stateFor(it).setStateAnimationVisible(false) }
-                }
-                return advanceSettlementOperation(active)
-            }
-
-            is TurnSettlementOp.Refresh -> {
-                operation.unitIds.forEach { id ->
-                    battle.presentation.presentationUnit(id)?.let {
-                        unitPresentationStore.refresh(it)
-                        defaultPresentationAction(it)
+                is BattleSettlementPresentationController.Effect.UnitInfo -> {
+                    battle.presentation.presentationUnit(effect.plan.unitId)?.let { unit ->
+                        settlementPresentation.setInfoTitle(unit.name)
+                        var cursor = now + effect.plan.preInfoDelaySeconds
+                        effect.plan.infoDeltas.forEach { delta ->
+                            cursor += delta.tickSeconds
+                            if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(unit.id, delta.before, delta.after, cursor)
+                        }
+                        healthTimelineHoldUntil[unit.id] = now + effect.plan.infoBarrierSeconds
                     }
                 }
-                return advanceSettlementOperation(active)
-            }
-
-            is TurnSettlementOp.Default -> {
-                battle.presentation.presentationUnit(operation.unitId)?.let(::defaultPresentationAction)
-                return advanceSettlementOperation(active)
+                is BattleSettlementPresentationController.Effect.GrowthInfo ->
+                    battle.presentation.presentationUnit(effect.unitId)?.let { settlementPresentation.setInfoTitle(it.name) }
+                is BattleSettlementPresentationController.Effect.Meff -> {
+                    val animation = magicEffects.effect(effect.effectId)
+                    val targets = effect.targetIds.filter { battle.presentation.presentationUnit(it) != null }
+                    if (animation == null || targets.isEmpty()) settlementPresentation.meffCompleted() else {
+                        magicEffectAnimations += MagicEffectAnimation(effect.effectId, targets, now, now + animation.duration)
+                        settlementMeffEndsAt = now + animation.duration
+                    }
+                }
+                is BattleSettlementPresentationController.Effect.ItemUpgrade -> {
+                    battle.experience.consumeEquipmentUpgrade()?.let { queued ->
+                        check(queued == effect.result) { "settlement item-upgrade queue order mismatch" }
+                    }
+                    settlementItemUpgradeStarted = true
+                    openSettlementItemUpgrade(effect.result)
+                }
+                is BattleSettlementPresentationController.Effect.HideState -> effect.unitIds.forEach { id ->
+                    battle.presentation.presentationUnit(id)?.let { unitPresentationStore.stateFor(it).setStateAnimationVisible(false) }
+                }
+                is BattleSettlementPresentationController.Effect.Refresh -> effect.unitIds.forEach { id ->
+                    battle.presentation.presentationUnit(id)?.let { unit -> unitPresentationStore.refresh(unit); defaultPresentationAction(unit) }
+                }
+                is BattleSettlementPresentationController.Effect.Default ->
+                    battle.presentation.presentationUnit(effect.unitId)?.let(::defaultPresentationAction)
+                is BattleSettlementPresentationController.Effect.Finished -> {
+                    refreshSettlementUnits(effect.plan)
+                    if (!effect.local) when (effect.plan.stage) {
+                        CampSettlementStage.START_STATE -> turnController.completeCampStatePresentation()
+                        CampSettlementStage.END_RESTORE -> turnController.completeCampRestorePresentation()
+                    }
+                }
             }
         }
-        active.operationStarted = true
-    }
-
-    private fun advanceSettlementOperation(active: ActiveTurnSettlement) {
-        active.operationIndex++
-        active.operationStarted = false
-        active.actionIndex = 0
-        // Generator callbacks immediately execute the following synchronous
-        // statement/bucket. Waiting for another LibGDX render frame between
-        // Sound/HideState/Refresh/Default (or after an awaited callback)
-        // introduced a non-authored delay for every settlement operation.
-        driveTurnSettlementPresentation()
     }
 
     private fun closeSettlementInfo2() {
-        val overlay = settlementInfo2Overlay ?: return
-        val active = activeTurnSettlement ?: return
-        if (active.operations.getOrNull(active.operationIndex) !is TurnSettlementOp.Info2) return
-        val now = animationClock()
-        val fullyRevealed = now - overlay.startedAt >= overlay.text.length * .04f
-        if (!fullyRevealed) {
-            overlay.startedAt = now - overlay.text.length * .04f
-            val autoClose = overlay.endsAt.isFinite()
-            if (autoClose) {
-                overlay.endsAt = now + 1f
-                active.waitUntil = overlay.endsAt
-            }
-        } else {
-            settlementInfo2Overlay = null
-            active.waitUntil = now
-            driveTurnSettlementPresentation()
-        }
+        if (settlementPresentation.dismissInfo2(animationClock())) driveSettlementPresentationController()
     }
 
     private fun refreshSettlementUnits(plan: BattleSettlementPlan) {
@@ -4309,20 +4225,6 @@ void main() {
                 unitPresentationStore.refresh(unit)
                 defaultPresentationAction(unit)
             }
-        }
-    }
-
-    private fun finishTurnSettlementPresentation(active: ActiveTurnSettlement) {
-        val plan = active.plan
-        refreshSettlementUnits(plan)
-        activeTurnSettlement = null
-        active.onComplete?.let {
-            it()
-            return
-        }
-        when (plan.stage) {
-            CampSettlementStage.START_STATE -> turnController.completeCampStatePresentation()
-            CampSettlementStage.END_RESTORE -> turnController.completeCampRestorePresentation()
         }
     }
 
@@ -4865,7 +4767,7 @@ void main() {
                 queuedCounterPresentation != null ||
                 queuedCounterFollowUpPresentation != null ||
                 pendingCriticalSpeechAction != null ||
-                activeTurnSettlement != null
+                settlementPresentation.isActive()
     }
 
     /**
@@ -4885,7 +4787,7 @@ void main() {
                 // another result script before it closes can put a SayLayer behind
                 // the card, leaving the dialogue unable to receive its input.
                 activeRoundLayer != null ||
-                activeTurnSettlement != null
+                settlementPresentation.isActive()
 
     /** Drive the same move -> action -> next `_ai2` callback chain as Cocos. */
     private fun driveVisibleAiTurn() {
@@ -5700,7 +5602,7 @@ void main() {
         }
     }
 
-    private fun settlementAnimatedValues(overlay: SettlementInfoOverlay): Map<Int, Int> {
+    private fun settlementAnimatedValues(overlay: SettlementInfoView): Map<Int, Int> {
         val values = buildList {
             overlay.deltas.forEach { delta ->
                 add(
@@ -5755,7 +5657,7 @@ void main() {
 
     /** Live MineUnitInfoLayer/OtherUnitInfoLayer settlement fields, not a HUD message shortcut. */
     private fun drawSettlementOverlays() {
-        settlementInfoOverlay?.let { overlay ->
+        settlementPresentation.infoView()?.let { overlay ->
             val unit = battle.presentation.presentationUnit(overlay.unitId) ?: return@let
             val values = settlementAnimatedValues(overlay)
             val mine = overlay.panel == SettlementInfoPanel.MINE
@@ -5822,7 +5724,7 @@ void main() {
             font.data.setScale(1f)
             batch.end()
         }
-        settlementInfo2Overlay?.let { overlay ->
+        settlementPresentation.info2View()?.let { overlay ->
             val elapsed = (animationClock() - overlay.startedAt).coerceAtLeast(0f)
             val visibleChars = (elapsed / .04f).toInt().coerceIn(0, overlay.text.length)
             val text = overlay.text.take(visibleChars)
@@ -5943,7 +5845,7 @@ void main() {
 
     private fun openEquipmentUpgradeIfNeeded() {
         if (itemUpgradeFlow != null) return
-        if (activeTurnSettlement != null) return
+        if (settlementPresentation.isActive()) return
         if (itemUpgradeRouteState == null && (
                     actionAnimation?.let { animationClock() < it.endsAt } == true ||
                             movementAnimation?.let { animationClock() < it.endsAt } == true ||
