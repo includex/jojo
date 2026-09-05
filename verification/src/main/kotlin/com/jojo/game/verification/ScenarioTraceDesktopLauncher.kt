@@ -2,10 +2,10 @@ package com.jojo.game.verification
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.jojo.game.GameEntryPoint
-import com.jojo.game.GameLaunchConfiguration
+import com.jojo.game.application.runtime.GameEntryPoint
+import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
-import com.jojo.game.ScenarioRunConfiguration
+import com.jojo.game.application.runtime.ScenarioRunConfiguration
 
 /** Verification-owned LWJGL entry point for deterministic scenario fixtures. */
 object ScenarioTraceDesktopLauncher {

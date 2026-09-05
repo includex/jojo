@@ -1,12 +1,13 @@
 package com.jojo.game.presentation.battle.edit
 
+import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.jojo.game.JojoGame
-import com.jojo.game.RuntimeRenderEventLogProvider
 import com.jojo.game.application.battle.LearnUnitSkillFlow
 import com.jojo.game.application.battle.LearnUnitSkillRoute
 import com.jojo.game.application.battle.EditRosterLearnRoute

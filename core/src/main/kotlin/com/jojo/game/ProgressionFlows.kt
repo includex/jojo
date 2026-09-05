@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.shared.overlay.*
 
 /** Renderer-free progression state machines used by the persistence-facing overlays. */
 class AchievementFixtureState(private val rewards: Map<Int, List<Any>>) {

@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 /** Desktop reward and shop models derived from RewardLayer, BuyLayer and SellLayer. */
 data class ShopItem(val id: Int, val name: String, val type: String, val price: Int, val sell: Int)
 

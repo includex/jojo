@@ -1,6 +1,7 @@
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.presentation.shared.overlay.*
 
-import com.jojo.game.SettingLayer
+import com.jojo.game.presentation.shared.overlay.SettingLayer
 import com.jojo.game.presentation.battle.BattleSettingsOverlayView
 import kotlin.math.abs
 

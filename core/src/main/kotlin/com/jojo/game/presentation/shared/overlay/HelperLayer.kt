@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.shared.overlay
 
 /**
  * Injectable implementation of `ui/HelperLayer.js` and its `Global/scene/HelperLayer`

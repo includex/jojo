@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.shared.overlay
 
 /** Behavioral implementation of registered Global104 `LoadingLayer`. */
 class LoadingLayer(private val flag: Int = 0) {

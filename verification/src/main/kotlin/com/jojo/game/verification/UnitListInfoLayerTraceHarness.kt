@@ -1,5 +1,8 @@
 package com.jojo.game.verification
 
+import com.jojo.game.presentation.battle.overlay.MineUnitInfoLayer
+import com.jojo.game.presentation.battle.overlay.OtherUnitInfoLayer
+
 import com.jojo.game.presentation.scenario.hall.*
 
 import com.jojo.game.*

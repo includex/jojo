@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.overlay
 
 /** Interaction state for Global/scene/ExclusiveLayer (source layer id 126). */
 class ExclusiveLayer(initialTab: Tab = Tab.SET_LIST) {

@@ -1,4 +1,7 @@
 package com.jojo.game.presentation.scenario
+import com.jojo.game.presentation.shared.overlay.*
+
+import com.jojo.game.presentation.scenario.overlay.*
 
 import com.jojo.game.presentation.battle.preparation.HallPreparationFlow
 import com.jojo.game.application.scenario.ScenarioInterpreter

@@ -1,6 +1,7 @@
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.ExclusiveLayer
+import com.jojo.game.presentation.scenario.overlay.*
+
 import com.jojo.game.FeatsLayer
 
 /** Immutable data consumed by the hall feature-layer renderers. */

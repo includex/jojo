@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.shared.overlay
 
 /** Direct state implementation of recovered ui/SectionLayer.js. */
 class SectionLayer(private val setting: Int) {

@@ -1,6 +1,6 @@
 package com.jojo.game.verification
 
-import com.jojo.game.GameEntryPoint
+import com.jojo.game.application.runtime.GameEntryPoint
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

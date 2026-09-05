@@ -1,5 +1,7 @@
 package com.jojo.game.application.battle
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.scenario.*

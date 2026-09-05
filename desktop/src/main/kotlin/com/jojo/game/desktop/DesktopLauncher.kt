@@ -2,8 +2,8 @@ package com.jojo.game.desktop
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.jojo.game.GameEntryPoint
-import com.jojo.game.GameLaunchConfiguration
+import com.jojo.game.application.runtime.GameEntryPoint
+import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 
 /** Production desktop entry point. Verification and capture flags live in :verification. */

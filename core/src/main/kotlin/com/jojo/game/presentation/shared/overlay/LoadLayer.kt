@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.shared.overlay
 
 class LoadLayer {
     data class View(val labelActive: Boolean, val label: String, val anime: String)

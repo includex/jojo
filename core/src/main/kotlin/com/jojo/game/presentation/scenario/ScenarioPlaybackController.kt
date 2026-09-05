@@ -1,11 +1,11 @@
 package com.jojo.game.presentation.scenario
+
+import com.jojo.game.presentation.scenario.overlay.*
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioModalKind
 
 import com.jojo.game.domain.scenario.PlaybackState
-import com.jojo.game.SayLayerAutoClose
 import com.jojo.game.ScenarioStage
-import com.jojo.game.SourceTextReveal
 
 /** Immutable render-facing projection of the playback presentation state. */
 internal data class ScenarioViewState(

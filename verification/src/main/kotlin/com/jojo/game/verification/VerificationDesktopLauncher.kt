@@ -2,12 +2,12 @@ package com.jojo.game.verification
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.jojo.game.GameEntryPoint
-import com.jojo.game.GameLaunchConfiguration
+import com.jojo.game.application.runtime.GameEntryPoint
+import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
-import com.jojo.game.RenderCaptureConfiguration
-import com.jojo.game.ScenarioRunConfiguration
-import com.jojo.game.VerificationConfiguration
+import com.jojo.game.application.runtime.RenderCaptureConfiguration
+import com.jojo.game.application.runtime.ScenarioRunConfiguration
+import com.jojo.game.application.runtime.VerificationConfiguration
 import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 import com.jojo.game.verification.preparation.VerificationBattlePreparationDriver
 import com.jojo.game.verification.title.VerificationTitleStartupDriver

@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.overlay
 
 import com.jojo.game.domain.battle.*
 

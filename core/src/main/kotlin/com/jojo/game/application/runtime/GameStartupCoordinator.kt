@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.application.runtime
+
+import com.jojo.game.*
 
 import com.jojo.game.application.scenario.*
 

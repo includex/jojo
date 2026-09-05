@@ -1,4 +1,6 @@
 package com.jojo.game
+
+import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 import com.jojo.game.presentation.battle.edit.*
 
 import com.badlogic.gdx.Gdx

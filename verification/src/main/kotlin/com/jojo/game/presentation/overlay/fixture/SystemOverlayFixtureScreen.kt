@@ -1,4 +1,7 @@
 package com.jojo.game.presentation.overlay.fixture
+
+import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
+import com.jojo.game.presentation.shared.overlay.*
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.*

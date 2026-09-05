@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 import com.jojo.game.*
 import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot

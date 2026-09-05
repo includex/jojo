@@ -1,7 +1,6 @@
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.presentation.shared.overlay.*
 
-import com.jojo.game.LoadGameLayer
-import com.jojo.game.SaveLayer
 import com.jojo.game.presentation.battle.BattleSaveLoadOverlayKind
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -1,6 +1,7 @@
 package com.jojo.game
 
 import com.jojo.game.domain.campaign.*
+import com.jojo.game.application.runtime.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -1,5 +1,7 @@
 package com.jojo.game.verification.scenario.evidence
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 import com.jojo.game.presentation.scenario.*
 
 internal fun appendFixture2(writer: ScenarioHallOverlayEventWriter) = with(writer) {

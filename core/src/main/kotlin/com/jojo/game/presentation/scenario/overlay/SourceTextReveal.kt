@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.overlay
 
 /**
  * Cocos InfoLayer reveals one printable character every .04 seconds.  Its

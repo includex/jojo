@@ -1,4 +1,7 @@
 package com.jojo.game.verification.campaign
+import com.jojo.game.presentation.shared.overlay.*
+
+import com.jojo.game.presentation.scenario.overlay.*
 
 import com.jojo.game.*
 import com.jojo.game.application.runtime.*

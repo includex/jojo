@@ -1,6 +1,7 @@
 package com.jojo.game.presentation.title
+import com.jojo.game.presentation.shared.overlay.*
 
-import com.jojo.game.SettingLayer
+import com.jojo.game.presentation.shared.overlay.SettingLayer
 
 /** Renderer-independent hit and route contract for the title scene. */
 object TitleInteraction {

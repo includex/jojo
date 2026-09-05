@@ -1,4 +1,9 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.presentation.shared.overlay.*
+
+import com.jojo.game.presentation.battle.overlay.*
+
+import com.jojo.game.presentation.scenario.overlay.*
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
@@ -6,7 +11,6 @@ import com.jojo.game.presentation.battle.assets.*
 import com.jojo.game.presentation.battle.input.*
 import com.jojo.game.presentation.battle.render.*
 import com.jojo.game.presentation.battle.evidence.*
-import com.jojo.game.presentation.battle.overlay.JiQiLayer
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.application.battle.*
 import com.jojo.game.domain.battle.turn.*

@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.application.runtime
+
+import com.jojo.game.*
 
 /** Neutral optional evidence contract implemented by external runtime screens. */
 interface RuntimeRenderEventLogProvider {

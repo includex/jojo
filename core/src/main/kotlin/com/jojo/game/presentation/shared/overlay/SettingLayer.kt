@@ -1,5 +1,6 @@
-package com.jojo.game
+package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.*
 import com.jojo.game.domain.battle.*
 
 

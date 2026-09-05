@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.overlay
 
 /** Direct state implementations for the recovered choice/command Cocos layers. */
 class ChoiceLayer(private val plainNewline: Boolean) {

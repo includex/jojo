@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.overlay
 
 /**
  * Direct state implementation of recovered-js/modules/battle/RoundLayer.js.

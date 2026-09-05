@@ -1,4 +1,5 @@
 package com.jojo.game.presentation.scenario.hall
+import com.jojo.game.presentation.shared.overlay.*
 
 /** Ready-to-draw HelperLayer content. */
 internal data class HallHelperView(val text: String) {

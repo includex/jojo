@@ -1,5 +1,7 @@
 package com.jojo.game.verification
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 /** Runs one complete Buy/Sell/Reward fixture and preserves its observable trace. */
 object ShopRewardTraceScenario {
     fun run(fixture: ShopRewardFixture): String = ShopRewardTraceState(fixture).run()

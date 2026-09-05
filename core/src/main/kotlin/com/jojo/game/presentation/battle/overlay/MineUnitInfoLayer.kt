@@ -1,4 +1,5 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*

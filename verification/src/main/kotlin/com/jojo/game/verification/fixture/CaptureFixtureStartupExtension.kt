@@ -1,5 +1,9 @@
 package com.jojo.game.verification.fixture
 
+import com.jojo.game.application.runtime.RuntimeStartupRequest
+
+import com.jojo.game.application.runtime.RuntimeStartupExtension
+
 import com.jojo.game.*
 import com.jojo.game.application.battle.LearnUnitSkillRoute
 import com.jojo.game.application.navigation.RaffleGateRoute

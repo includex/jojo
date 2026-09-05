@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.scenario.overlay
 
 /**
  * Source SayLayer `_enabledAutoClose` timer.

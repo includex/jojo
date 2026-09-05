@@ -2,8 +2,8 @@ package com.jojo.game.verification.campaign
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import com.jojo.game.GameEntryPoint
-import com.jojo.game.GameLaunchConfiguration
+import com.jojo.game.application.runtime.GameEntryPoint
+import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 import java.nio.file.Path
 

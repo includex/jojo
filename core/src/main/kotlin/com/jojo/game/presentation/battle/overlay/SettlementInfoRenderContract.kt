@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.overlay
 
 /**
  * Exact MineUnitInfoLayer / OtherUnitInfoLayer prefab draw inventory.

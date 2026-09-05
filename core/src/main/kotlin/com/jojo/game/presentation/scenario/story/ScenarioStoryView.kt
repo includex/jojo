@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.scenario.story
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 /** Immutable input for the source DialogueLayer street composition. */
 internal data class ScenarioStreetDialogueView(
     val hasDialogue: Boolean,

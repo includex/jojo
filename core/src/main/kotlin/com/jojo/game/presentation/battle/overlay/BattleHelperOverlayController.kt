@@ -1,6 +1,7 @@
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.presentation.shared.overlay.*
 
-import com.jojo.game.HelperLayer
+import com.jojo.game.presentation.shared.overlay.HelperLayer
 import com.jojo.game.presentation.battle.BattleHelperOverlayView
 
 /**

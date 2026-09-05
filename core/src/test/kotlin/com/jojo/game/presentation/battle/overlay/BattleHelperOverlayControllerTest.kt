@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.presentation.shared.overlay.*
 
-import com.jojo.game.HelperLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

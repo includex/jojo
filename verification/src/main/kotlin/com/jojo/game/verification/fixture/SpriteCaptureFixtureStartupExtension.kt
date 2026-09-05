@@ -1,8 +1,9 @@
 package com.jojo.game.verification.fixture
 
+import com.jojo.game.application.runtime.RuntimeStartupRequest
+
 import com.badlogic.gdx.Screen
-import com.jojo.game.RuntimeStartupExtension
-import com.jojo.game.RuntimeStartupRequest
+import com.jojo.game.application.runtime.RuntimeStartupExtension
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.presentation.battle.unit.BattleSpriteFixtureScreen
 

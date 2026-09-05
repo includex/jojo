@@ -1,12 +1,13 @@
 package com.jojo.game.presentation.hall
 
+import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.jojo.game.JojoGame
-import com.jojo.game.RuntimeRenderEventLogProvider
 import com.jojo.game.application.navigation.RaffleGateRoute
 import com.jojo.game.presentation.hall.evidence.RaffleGateRenderEvents
 

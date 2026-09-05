@@ -1,7 +1,8 @@
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.presentation.shared.overlay.*
 
-import com.jojo.game.LoadGameLayer
-import com.jojo.game.SaveLayer
+import com.jojo.game.presentation.shared.overlay.LoadGameLayer
+import com.jojo.game.presentation.shared.overlay.SaveLayer
 import com.jojo.game.presentation.battle.BattleSaveLoadOverlayKind
 import com.jojo.game.presentation.battle.BattleSaveLoadOverlayView
 import com.jojo.game.presentation.battle.BattleSaveLoadRowView

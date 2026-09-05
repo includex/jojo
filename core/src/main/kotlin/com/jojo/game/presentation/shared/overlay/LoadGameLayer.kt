@@ -1,6 +1,4 @@
-package com.jojo.game
-
-import com.jojo.game.infrastructure.data.CampaignStore
+package com.jojo.game.presentation.shared.overlay
 
 import com.badlogic.gdx.utils.JsonReader
 

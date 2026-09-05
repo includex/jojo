@@ -1,5 +1,7 @@
 package com.jojo.game.presentation.scenario.hall.render
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 

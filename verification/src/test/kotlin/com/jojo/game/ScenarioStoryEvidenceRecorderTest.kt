@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 import com.jojo.game.presentation.scenario.*
 import com.jojo.game.verification.scenario.evidence.*
 

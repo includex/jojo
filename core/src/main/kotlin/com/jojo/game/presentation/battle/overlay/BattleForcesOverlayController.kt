@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.ForcesListLayer
+import com.jojo.game.presentation.battle.overlay.ForcesListLayer
 import com.jojo.game.presentation.battle.BattleForcesOverlayView
 import com.jojo.game.presentation.battle.BattleForcesRowView
 

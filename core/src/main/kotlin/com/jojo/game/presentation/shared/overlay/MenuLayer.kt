@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.shared.overlay
 
 /** Testable state implementation of `ui/MenuLayer.js` onCreate/button wiring. */
 class MenuLayer {

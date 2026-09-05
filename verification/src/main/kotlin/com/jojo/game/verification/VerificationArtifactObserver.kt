@@ -7,7 +7,7 @@ import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.utils.ScreenUtils
-import com.jojo.game.RenderCaptureConfiguration
+import com.jojo.game.application.runtime.RenderCaptureConfiguration
 import com.jojo.game.application.runtime.RuntimeArtifactEvent
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
 import com.jojo.game.application.runtime.RuntimeScreenObserver

@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.application.runtime.RuntimeCompositionTraceProvider
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color

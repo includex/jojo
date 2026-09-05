@@ -1,5 +1,7 @@
 package com.jojo.game.verification
 
+import com.jojo.game.presentation.battle.overlay.ForcesListLayer
+
 import com.jojo.game.*
 
 import java.nio.file.Files

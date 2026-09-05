@@ -1,5 +1,7 @@
 package com.jojo.game
 
+import com.jojo.game.presentation.scenario.overlay.*
+
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
