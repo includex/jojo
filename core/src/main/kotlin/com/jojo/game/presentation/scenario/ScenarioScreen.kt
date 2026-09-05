@@ -46,9 +46,6 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 class ScenarioScreen(
     private val game: JojoGame,
     private val moduleName: String,
-    private val verifyMode: Boolean,
-    private val branchVerifyMode: Boolean,
-    private val alternateBranchVerifyMode: Boolean,
     private val scriptedRandomValues: List<Int>,
     private val scriptedInfoTransferRandomValues: List<Int>,
     private val scriptedGlobals: Map<Int, Int>,
@@ -324,10 +321,6 @@ class ScenarioScreen(
                     return true
                 }
                 when (keycode) {
-                    Input.Keys.B -> if (verifyMode) game.showBattleSandbox(matchingBattleModule(), moduleName)
-                    Input.Keys.H -> if (verifyMode) game.showCampaignHall(moduleName)
-                    Input.Keys.LEFT_BRACKET -> if (verifyMode) game.showScenario(previousModule())
-                    Input.Keys.RIGHT_BRACKET -> if (verifyMode) game.showScenario(nextModule())
                     Input.Keys.UP -> playback.selectPrevious()
                     Input.Keys.DOWN -> playback.selectNext()
                     Input.Keys.ENTER, Input.Keys.SPACE -> advance()
@@ -541,55 +534,6 @@ class ScenarioScreen(
         }
         playbackFrame.updatePresentation(delta)
         if (renderScenarioFrame() == ScenarioRenderPhaseResult.CAPTURED) return
-        runVerificationChecks()
-    }
-
-    private fun runVerificationChecks() {
-        if (playbackFrame.elapsed <= .8f) return
-        if (verifyMode) {
-            val scenarioCount = ScenarioCatalog.verifyEmbeddedSources()
-            check(scenarioCount == 119) { "Expected 119 restored scenarios, got $scenarioCount" }
-            check(playback.stage.backgroundId != 0) { "$moduleName background command was not executed" }
-            check(playback.stage.units.isNotEmpty()) { "$moduleName unit commands were not executed" }
-            check(playback.currentDialogue?.text?.isNotBlank() == true) { "$moduleName Korean dialogue extraction failed" }
-            if (moduleName == "R_00") {
-                check(playback.stage.units.keys.containsAll(listOf(0, 157, 181, 182))) { "R_00 grouped unit commands were not executed" }
-                check(playback.currentDialogue?.text?.contains("대장님") == true) { "R_00 dialogue did not match" }
-                check(Gdx.files.internal("maps/heads/181.png").exists()) { "R_00 speaker portrait was not bundled" }
-                check(Gdx.files.internal("maps/2.jpg").exists()) { "R_00 loadBg source image was not bundled" }
-            }
-            Gdx.app.log("JojoGame", "VERIFY_OK: $scenarioCount scenario sources + ASTs embedded; $moduleName AST runtime loaded")
-            Gdx.app.exit()
-        }
-        if (branchVerifyMode) {
-            advanceSourceUntilChoice()
-            check(playback.state == PlaybackState.CHOICE) { "R_00 first choice was not reached" }
-            playback.confirmChoice()
-            completeSourceDelays()
-            check(playback.currentDialogue?.text?.contains("내가 남자로 태어났을 때부터") == true) {
-                "R_00 sel == 1 branch was not executed"
-            }
-            Gdx.app.log(
-                "JojoGame",
-                "VERIFY_BRANCH_OK: R_00 first choice selected and sel == 1 dialogue branch executed"
-            )
-            Gdx.app.exit()
-        }
-        if (alternateBranchVerifyMode) {
-            advanceSourceUntilChoice()
-            check(playback.state == PlaybackState.CHOICE) { "R_00 first choice was not reached" }
-            playback.selectNext()
-            playback.confirmChoice()
-            completeSourceDelays()
-            check(playback.currentDialogue?.text?.contains("간웅이라고? 지금 단정 짓기엔 너무 이르지 않나") == true) {
-                "R_00 sel == 2 branch was not executed"
-            }
-            Gdx.app.log(
-                "JojoGame",
-                "VERIFY_BRANCH_2_OK: R_00 second choice selected and sel == 2 dialogue branch executed"
-            )
-            Gdx.app.exit()
-        }
     }
 
     /** Draws the post-update scene and reports capture completion to its caller. */
@@ -666,6 +610,8 @@ class ScenarioScreen(
             selectedChoice = playback.selectedChoice,
             sceneIndex = scenarioNavigation.naturalSceneIndex,
             startedScenes = scenarioNavigation.startedScenes(),
+            backgroundId = playback.stage.backgroundId,
+            unitIds = playback.stage.units.keys.toSet(),
             campaignStage = game.campaignStage(),
             menuVisible = playback.stage.menuVisible,
             dialogueText = playback.currentDialogue?.text,
@@ -684,8 +630,7 @@ class ScenarioScreen(
         playback.chosenOption?.let { game.recordChoice(moduleName, it) }
     }
 
-    private fun isVerificationRun(): Boolean = verifyMode || branchVerifyMode || alternateBranchVerifyMode ||
-        game.externalScenarioDriverKeepsScreenOpen()
+    private fun isVerificationRun(): Boolean = game.externalScenarioDriverKeepsScreenOpen()
 
     private fun advanceSourceUntilChoice() {
         var guard = 0
@@ -697,14 +642,6 @@ class ScenarioScreen(
                 PlaybackState.MODAL -> playback.resumeModal()
                 PlaybackState.CHOICE, PlaybackState.COMPLETE -> Unit
             }
-        }
-    }
-
-    private fun completeSourceDelays() {
-        var guard = 0
-        while (playback.state == PlaybackState.DELAY) {
-            check(++guard <= 10_000) { "$moduleName branch delay did not settle" }
-            playback.skipDelay()
         }
     }
 
@@ -1139,141 +1076,61 @@ class ScenarioScreen(
         bodyFont.draw(batch, playback.chosenOption ?: "시나리오 구간 완료", 95f, 145f)
     }
 
-    /** Ordered draw-call metadata for deterministic source/game comparison. */
-    fun renderEventLog(): String {
-        if (game.requestedCaptureState()?.removeSuffix("-fixture") == "street-walk-direction") {
-            return HallUnitRender.walkingRenderEventLog()
-        }
-        if (game.requestedCaptureState()?.removeSuffix("-fixture") == "street-walk-motion") {
-            return HallUnitRender.walkingMotionRenderEventLog()
-        }
-        val log = RenderEventLog()
-        if (hallPalaceFixture) {
-            return storyEvidenceRecorder.record(ScenarioStoryEvidenceView.Palace)
-        }
-        if (hallSectionFixture) {
-            return storyEvidenceRecorder.record(ScenarioStoryEvidenceView.Section)
-        }
-        streetCaptureStage?.let {
-            val dialogue = playback.currentDialogue
-            return storyEvidenceRecorder.record(
-                ScenarioStoryEvidenceView.StreetDialogue(
-                    stage = it,
-                    dialogueVisible = dialogue != null,
-                    visibleText = scenarioViewState.dialogueVisibleText,
-                    speakerName = dialogue?.speakerId?.toIntOrNull()?.let(::unitName).orEmpty(),
-                ),
-            )
-        }
+    /** Records a completed immutable frame snapshot through small evidence recorders. */
+    fun renderEventLog(): String = ScenarioFrameEvidenceRecorder(
+        storyEvidenceRecorder,
+        staticHallInfoEvidenceRecorder,
+        propertyEvidenceRecorder,
+        terrainEvidenceRecorder,
+        treasureEvidenceRecorder,
+    ).record(renderEvidenceSnapshot())
+
+    private fun renderEvidenceSnapshot(): ScenarioFrameEvidenceInput {
+        val dialogue = playback.currentDialogue
         if (hallOverlayFixture == "skip-open") {
             check(requireNotNull(hallSkipLayer).button && !hallSkipLayer.panel && hallSkipLayer.zIndex == 999)
-            // Keep the trace in the source layer's 1488.372 x 800 logical
-            // coordinate space. The runtime viewport applies its normal
-            // 1280 x 688 fit separately; logging before that transform avoids
-            // introducing decimal-rounding drift into strict comparisons.
-            log.draw(
-                "hall-skip-open", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
-                "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
-            )
-            log.draw(
-                "hall-skip-open", "HallLayer", "Canvas/Layer/button/Background", "sprite",
-                1386.356f, 361f, 92f, 78f, "skip"
-            )
-            return log.jsonl()
         }
-        hallOverlayFixture?.takeIf {
-            it in setOf(
-                "info",
-                "get-item-equipment",
-                "get-item-property",
-                "item-equipment",
-                "item-property",
-                "item-discard-confirm",
-                "map-info",
-                "choice",
-                "ambition",
-                "ask",
-                "command",
-                "menu",
-                "save",
-                "save-confirm",
-                "exclusive",
-                "exclusive-tab1",
-                "magic",
-                "feats",
-                "feats-help",
-                "skip-open"
+        val overlayFixtures = setOf(
+            "info", "get-item-equipment", "get-item-property", "item-equipment", "item-property",
+            "item-discard-confirm", "map-info", "choice", "ambition", "ask", "command", "menu",
+            "save", "save-confirm", "exclusive", "exclusive-tab1", "magic", "feats", "feats-help",
+        )
+        val unitList = hallUnitListLayer?.rows?.take(6)?.map { id ->
+            val unit = gameDataCatalog.unitProfile(id)
+            ScenarioHallUnitListEvidenceRow(
+                campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장",
+                gameDataCatalog.postsName(campaign.unitAttribute(id, 17, unit?.posts ?: 0)),
             )
-        }?.let {
-            appendHallOverlayFixtureRenderEvents(log, it)
-            return log.jsonl()
         }
-        if (hallInfo != null) {
-            // Hall information fixtures share the same stable source map and
-            // full-screen modal blocker. The actors underneath keep animating
-            // in Cocos but are not part of the information-layer draw contract.
-            log.draw(
-                "hall-info", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1280f, 688f,
-                "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
-            )
-            log.draw(
-                "hall-info", "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1280f, 688f,
-                "default_sprite_splash", opacity = .392f
-            )
-            appendHallInfoRenderEvents(log, requireNotNull(hallInfo))
-        } else {
-            val backgroundId = playback.stage.backgroundId
-            val hallEquipFixture = hallManagement == HallManagement.EQUIP || hallEquipConfirmation != null
-            log.draw(
-                "background", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1280f, 688f,
-                if (hallEquipFixture && backgroundId == 71) {
-                    "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
-                } else "maps/$backgroundId.jpg",
-                blend = if (hallEquipFixture) listOf(770, 771) else "DISABLED"
-            )
-            // Source overlay fixtures intentionally omit mutable Hall actors: the
-            // management layer is compared independently of map-unit state.
-            if (hallManagement == null && hallInfo == null && hallEquipConfirmation == null) playback.stage.units.values.filter { it.visible }
-                .forEach { unit ->
-                    val profile = gameDataCatalog.unitProfile(unit.id)
-                    log.draw(
-                        "characters", "HallLayer", "Canvas/Layer/map/unit-${unit.id}", "sprite",
-                        mapX(unit.visualX, unit.visualY) - 41.28f, mapY(unit.visualX, unit.visualY) - 55.04f,
-                        82.56f, 110.08f, "map-avatar:${profile?.mapAvatar ?: unit.id}:direction:${unit.direction}"
-                    )
-                }
-        }
-        if (hallManagement != null) {
-            appendHallManagementRenderEvents(log, requireNotNull(hallManagement))
-        } else if (hallEquipConfirmation != null) {
-            val confirmation = requireNotNull(hallEquipConfirmation)
-            equipConfirmationEvidenceRecorder.append(
-                log,
-                ScenarioEquipConfirmationEvidenceView(
-                    hallOverlayFixture,
-                    confirmation.values,
-                    confirmation.actionLabel
-                ),
-            )
-        } else if (hallInfo == null && playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible) {
-            log.draw(
-                "controls", "HallCommandLayer", "Canvas/HallCommandLayer/menu", "sprite", 31f, 318.2f, 51.6f, 51.6f,
-                "maps/ui/hall-command/menu.png"
-            )
-            listOf("battle", "equip", "buy", "sell").forEachIndexed { index, name ->
-                log.draw(
-                    "controls", "HallCommandLayer", "Canvas/HallCommandLayer/$name", "sprite",
-                    895.58f + index * 82.56f, 1.72f, 82.56f, 82.56f, "maps/ui/hall-command/$name.png"
+        return ScenarioFrameEvidenceInput(
+            fixture = game.requestedCaptureState()?.removeSuffix("-fixture"),
+            palace = hallPalaceFixture,
+            section = hallSectionFixture,
+            street = streetCaptureStage?.let { stage -> ScenarioStoryEvidenceView.StreetDialogue(
+                stage, dialogue != null, scenarioViewState.dialogueVisibleText,
+                dialogue?.speakerId?.toIntOrNull()?.let(::unitName).orEmpty(),
+            ) },
+            overlay = hallOverlayFixture?.takeIf(overlayFixtures::contains)?.let(::hallOverlayEvidenceInput),
+            hallInfo = hallInfo?.let { ScenarioFrameHallInfo.valueOf(it.name) },
+            background = ScenarioFrameBackgroundEvidence(
+                playback.stage.backgroundId,
+                hallManagement == HallManagement.EQUIP || hallEquipConfirmation != null,
+            ),
+            units = playback.stage.units.values.filter { it.visible }.map { unit ->
+                ScenarioFrameUnitEvidence(
+                    unit.id, unit.visualX, unit.visualY, unit.direction,
+                    gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id,
                 )
-            }
-        }
-        return log.jsonl()
-    }
-
-
-    /** Source-authored non-management Hall overlays in exact Cocos traversal order. */
-    private fun appendHallOverlayFixtureRenderEvents(log: RenderEventLog, fixture: String) {
-        ScenarioHallOverlayEvidenceRecorder(hallOverlayEvidenceInput(fixture)).append(log)
+            },
+            management = hallManagement?.takeIf { it != HallManagement.EQUIP }?.let(::hallManagementEvidenceInput),
+            equip = hallManagement?.takeIf { it == HallManagement.EQUIP }?.let { hallEquipEvidenceInput() },
+            unitList = unitList,
+            confirmation = hallEquipConfirmation?.let { confirmation ->
+                ScenarioEquipConfirmationEvidenceView(hallOverlayFixture, confirmation.values, confirmation.actionLabel)
+            },
+            commandVisible = hallInfo == null && hallManagement == null && hallEquipConfirmation == null &&
+                playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
+        )
     }
 
     private fun hallOverlayEvidenceInput(fixture: String): ScenarioHallOverlayEvidenceInput =
@@ -1288,522 +1145,82 @@ class ScenarioScreen(
             },
             modalText = sanitizeInfoText(playback.currentModalText.orEmpty()),
             items = listOf(0, 4, 150).mapNotNull { id -> gameDataCatalog.equipmentProfile(id)?.let { item ->
-                id to ScenarioHallOverlayItemEvidence(
-                    item.name, item.icon, gameDataCatalog.equipmentTypeName(item.itemType),
-                    gameDataCatalog.purchasePrice(item), item.intro,
-                )
+                id to ScenarioHallOverlayItemEvidence(item.name, item.icon, gameDataCatalog.equipmentTypeName(item.itemType), gameDataCatalog.purchasePrice(item), item.intro)
             } }.toMap(),
             postsNames = (0..80).map(gameDataCatalog::postsName),
         )
 
-    private fun appendHallInfoRenderEvents(log: RenderEventLog, kind: HallInfo) = when (kind) {
-        HallInfo.FORCES -> staticHallInfoEvidenceRecorder.appendForces(log)
-        HallInfo.HELPER -> staticHallInfoEvidenceRecorder.appendHelper(log)
-        HallInfo.PROPERTY -> propertyEvidenceRecorder.append(
-            log, ScenarioStaticHallEvidenceView(ScenarioStaticHallEvidenceKind.PROPERTY),
-        )
-        HallInfo.TERRAIN -> terrainEvidenceRecorder.append(
-            log, ScenarioStaticHallEvidenceView(ScenarioStaticHallEvidenceKind.TERRAIN),
-        )
-        HallInfo.TREASURE -> treasureEvidenceRecorder.append(
-            log, ScenarioStaticHallEvidenceView(ScenarioStaticHallEvidenceKind.TREASURE),
-        )
-    }
-
-    private fun appendEquipRenderEvents(
-        log: RenderEventLog,
-        phase: String = "hall-equip-stable",
-        layer: String = "EquipLayer",
-    ) {
-        val scale = .86f
-        val spriteBlend = listOf(770, 771)
-        val labelBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun event(
-            path: String,
-            type: String,
-            x: Float,
-            y: Float,
-            w: Float,
-            h: Float,
-            asset: String? = null,
-            text: String = "",
-            visible: Boolean = true,
-            opacity: Float = 1f,
-        ) = log.draw(
-            phase, layer, path, type,
-            x * scale, y * scale, w * scale, h * scale, asset,
-            opacity = opacity,
-            blend = if (type == "label") labelBlend else spriteBlend,
-            visible = visible,
-            text = text,
-        )
-
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float = 50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `visible` (`Boolean = true`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(
-            path: String,
-            value: String,
-            x: Float,
-            y: Float,
-            w: Float,
-            h: Float = 50.4f,
-            visible: Boolean = true
-        ) =
-            event(path, "label", x, y, w, h, text = value, visible = visible)
-
-        /**
-         * 공개 메서드 `button`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `labelX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `labelY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `labelW` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun button(
-            path: String,
-            value: String,
-            x: Float,
-            y: Float,
-            w: Float,
-            labelX: Float,
-            labelY: Float,
-            labelW: Float
-        ) {
-            event("$path/Background", "sliced-sprite", x, y, w, 50f, "box3")
-            label("$path/Background/Label", value, labelX, labelY, labelW, 40f)
-        }
-
+    private fun hallEquipEvidenceInput(): ScenarioHallEquipEvidenceInput {
         val unitId = hallEquipUnitId()
         val unit = gameDataCatalog.unitProfile(unitId) ?: gameDataCatalog.unitProfile(0)
         campaign.inventory.ensureDefaultEquipment(unitId, gameDataCatalog)
-        val zeroBasedLevel = (campaign.unitAttribute(unitId, 18, unit?.level ?: 1) - 1).coerceAtLeast(0)
+        val level = campaign.unitAttribute(unitId, 18, unit?.level ?: 1)
         val posts = campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)
-        val profile = unit?.let { gameDataCatalog.battleProfile(it.id, zeroBasedLevel, posts) }
-        val bonus = campaign.inventory.equipment[unitId]
-            ?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) }
-            ?: GameDataCatalog.EquipmentBonus()
-        val unitName = campaign.unitNames[unitId] ?: unit?.name ?: "조조"
-        // Source UnitInfoBase uses the pre-promotion display class for the
-        // initial Jojo fixture even though the battle profile resolves its
-        // internal arm record as "군주".
-        val postsName = if (unitId == 0) "군웅"
-        else gameDataCatalog.armProfile(profile?.arm?.id ?: posts)?.name ?: "군웅"
-
-        /**
-         * 공개 메서드 `rosterLabelWidth`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Float`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun rosterLabelWidth(value: String): Float = when (value) {
-            "조조", "군웅" -> 69.2f
-            "허자장", "풍수사" -> 103.8f
-            else -> 103.8f
-        }
-
-        val unitNameWidth = rosterLabelWidth(unitName)
-        val postsNameWidth = rosterLabelWidth(postsName)
-
-        event("Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", opacity = .392f)
-        event("Canvas/Layer/bg1", "tiled-sprite", 138.186f, 33.5f, 1212f, 733f, "Logo_9-1")
-        event("Canvas/Layer/bg1/box3", "sliced-sprite", 138.186f, 33.5f, 1212f, 733f, "box3")
-        event("Canvas/Layer/bg1/title", "sprite", 138.186f, 716.5f, 1212f, 50f, "bg1")
-        label("Canvas/Layer/bg1/title/label", "장비", 709.586f, 716.3f, 69.2f)
-        button("Canvas/Layer/bg1/button5", "이전 무장", 979.686f, 44f, 177f, 988.186f, 52f, 160f)
-        button("Canvas/Layer/bg1/button6", "다음 무장", 1156.686f, 44f, 177f, 1165.186f, 52f, 160f)
-        button("Canvas/Layer/bg1/button7", "종료", 748.527f, 44f, 97f, 747.027f, 52f, 100f)
-        button("Canvas/Layer/bg1/button8", "모두 해제", 573.685f, 44f, 173.2f, 580.285f, 52f, 160f)
-        listOf("전부", "무기", "보구", "보조").forEachIndexed { index, value ->
-            val x = 144.186f + index * 150f
-            button("Canvas/Layer/bg1/button${10 + index}", value, x, 659f, 150f, x - 5f, 667f, 160f)
-        }
-        button("Canvas/Layer/bg1/button14", "정보", 145.76f, 44f, 99.7f, 115.61f, 52f, 160f)
-        event("Canvas/Layer/bg1/box1", "sliced-sprite", 144.486f, 99.95f, 703.4f, 560.1f, "box1")
-        event("Canvas/Layer/bg1/box1/box2", "sliced-sprite", 144.486f, 99.95f, 703.4f, 560.1f, "box2")
-        event("Canvas/Layer/bg1/vline", "sprite", 849.486f, 39.35f, 6f, 677.1f, "vline")
-        event("Canvas/Layer/bg1/button0", "sliced-sprite", 924.186f, 658f, 360f, 56f, "box3")
-        event("Canvas/Layer/bg1/button0/vline", "sprite", 1101.186f, 664.15f, 6f, 47.7f, "vline")
-        label("Canvas/Layer/bg1/button0/label0", unitName, 1014.039f - unitNameWidth / 2f, 663.8f, unitNameWidth)
-        label("Canvas/Layer/bg1/button0/label1", postsName, 1196.1f - postsNameWidth / 2f, 663.8f, postsNameWidth)
-
-        val base = "Canvas/Layer/bg1/scrollview/view/content/box1"
-        val faceFrame = when (unitId) {
-            0 -> if ((unit?.face ?: 0) <= 3) (unit?.face ?: 0) + 1 else unit?.face ?: unitId
-            157 -> 214
-            else -> unit?.face ?: unitId
-        }
-        event("$base/face", "sprite", 894.812f, 413.337f, 192f, 240f, faceFrame.toString())
-        if (hallOverlayFixture == "unit-list-close") {
-            event("$base/face/bg0", "sliced-sprite", 894.812f, 413.337f, 192f, 240f, "box2")
-        } else {
-            event("$base/face/bg0", "sliced-sprite", 870.812f, 415.337f, 240f, 236f, "box2")
-        }
-        label("$base/label0", unitName, 1122.186f, 601.72f, unitNameWidth)
-        label("$base/label1", postsName, 1122.186f, 551.72f, postsNameWidth)
-        label("$base/label", "Exp", 1122.186f, 450.72f, 68.93f)
-        event("$base/progressBar", "sliced-sprite", 1197.186f, 450.92f, 134f, 24f, "default_scrollbar_bg")
-        event("$base/progressBar/bar", "sliced-sprite", 1199.186f, 452.92f, 0f, 20f, "Mark_6-1")
-        label("$base/progressBar/label", "0/100", 1214.136f, 452.094f, 100.1f)
-        label("$base/label", "Lv", 1122.061f, 500.72f, 42.25f)
-        label("$base/label2", (profile?.level ?: 1).toString(), 1185.061f, 500.778f, 22.25f)
-        label("$base/label", "HP", 878.401f, 359.72f, 55.57f)
-        label("$base/label", "MP", 1126.186f, 359.72f, 60f)
-        label("$base/label", "공격력", 886.286f, 300.72f, 103.8f)
-        label("$base/label", "정신력", 1134.286f, 300.72f, 103.8f)
-        label("$base/label", "방어력", 886.286f, 240.72f, 103.8f)
-        label("$base/label", "폭발력", 1134.286f, 240.72f, 103.8f)
-        label("$base/label", "사기", 883.586f, 181.72f, 69.2f)
-        label("$base/label", "이동력", 1134.286f, 181.72f, 103.8f)
-        val stats = listOf(
-            profile?.maxHitPoints ?: 0,
-            profile?.maxMagicPoints ?: 0,
-            (profile?.attack ?: 0) + bonus.attack,
-            (profile?.spirit ?: 0) + bonus.spirit,
-            (profile?.defense ?: 0) + bonus.defense,
-            profile?.critical ?: 0,
-            profile?.morale ?: 0,
-            profile?.movement ?: 0,
-        )
-        val statBoxes = listOf(
-            floatArrayOf(1008.186f, 359.92f, 1014.816f, 359.72f, 66.74f),
-            floatArrayOf(1257.186f, 359.92f, 1274.941f, 359.72f, 44.49f),
-            floatArrayOf(1008.186f, 300.92f, 1025.941f, 300.72f, 44.49f),
-            floatArrayOf(1257.186f, 300.92f, 1274.941f, 300.72f, 44.49f),
-            floatArrayOf(1008.186f, 240.92f, 1025.941f, 240.72f, 44.49f),
-            floatArrayOf(1257.186f, 240.92f, 1274.941f, 240.72f, 44.49f),
-            floatArrayOf(1008.186f, 181.92f, 1025.941f, 181.72f, 44.49f),
-            floatArrayOf(1257.186f, 181.92f, 1286.061f, 181.72f, 22.25f),
-        )
-        statBoxes.forEachIndexed { index, pos ->
-            event("$base/bg$index", "sliced-sprite", pos[0], pos[1], 80f, 50f, "box2")
-            val value = stats[index].toString()
-            val width = if (value == "115" || value == "112") 63.77f else pos[4]
-            label("$base/bg$index/label", value, pos[0] + (80f - width) / 2f, pos[3], width)
-        }
-
+        val profile = unit?.let { gameDataCatalog.battleProfile(it.id, (level - 1).coerceAtLeast(0), posts) }
+        val bonus = campaign.inventory.equipment[unitId]?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) } ?: GameDataCatalog.EquipmentBonus()
         val equipped = campaign.inventory.equippedItems().filter { it.unitId == unitId }
-        val weapon =
-            equipped.firstOrNull { gameDataCatalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type < 20 } == true }
-        val armor =
-            equipped.firstOrNull { gameDataCatalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type in 20..25 } == true }
-
-        /**
-         * 공개 메서드 `equipmentSlot`
-         *
-         * ### 파라미터
-        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `item` (`CampaignEquippedItem?`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `slotLabel` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun equipmentSlot(index: Int, item: CampaignEquippedItem?, slotLabel: String) {
-            val rootY = 24.38f - index * 158f
+        fun slot(type: (Int) -> Boolean): ScenarioHallEquipEvidenceSlot {
+            val item = equipped.firstOrNull { equipment -> gameDataCatalog.equipmentProfile(equipment.itemId)?.itemType?.let(type) == true }
             val itemProfile = item?.let { gameDataCatalog.equipmentProfile(it.itemId) }
-            val slotVisible = index < 2
-            val detailVisible = index == 0
-            val slotRoot = "Canvas/Layer/bg1/scrollview/view/content/bg$index"
-            event(slotRoot, "sliced-sprite", 867.136f, rootY, 468.1f, 150f, "box1", visible = slotVisible)
-            val labelY = floatArrayOf(122.083f, -38.415f, -194.883f)[index]
-            val valueY = floatArrayOf(122.38f, -38.62f, -194.62f)[index]
-            val frameY = floatArrayOf(33.733f, -126.765f, -283.233f)[index]
-            label(
-                "$slotRoot/label", slotLabel, if (index == 0) 1047.737f else 1039.506f, labelY,
-                if (index == 0) 80.31f else 91.43f, visible = slotVisible
-            )
-            label("$slotRoot/label0", itemProfile?.name ?: "없음", 1124.186f, valueY, 206f, 50f, visible = slotVisible)
-            event("$slotRoot/box2", "sliced-sprite", 874.796f, frameY, 134.78f, 135.1f, "box2", visible = slotVisible)
-            if (index < 2 && itemProfile != null) {
-                event(
-                    "$slotRoot/box2/icon", "sprite", 878.186f, 37.283f - index * 160.498f,
-                    128f, 128f, "${itemProfile.icon}-1"
-                )
-            }
-            if (index < 2) {
-                label("$slotRoot/label_0", "Lv", 1018.186f, 76.083f - index * 160.498f, 42.25f, visible = detailVisible)
-                label(
-                    "$slotRoot/label1",
-                    (item?.level ?: 1).toString(),
-                    1085.186f,
-                    76.083f - index * 160.498f,
-                    22.25f,
-                    visible = detailVisible
-                )
-                label(
-                    "$slotRoot/label_1",
-                    "Exp",
-                    1018.186f,
-                    30.083f - index * 160.498f,
-                    68.93f,
-                    visible = detailVisible
-                )
-                event(
-                    "$slotRoot/progressBar", "sliced-sprite", 1104.186f, 29.283f - index * 160.498f,
-                    204f, 24f, "default_scrollbar_bg", visible = detailVisible
-                )
-                event(
-                    "$slotRoot/progressBar/bar", "sliced-sprite", 1106.186f, 31.283f - index * 160.498f,
-                    0f, 20f, "Mark_6-1", visible = detailVisible
-                )
-                label(
-                    "$slotRoot/progressBar/label", "${item?.experience ?: 0}/100", 1156.136f,
-                    30.457f - index * 160.498f, 100.1f, visible = detailVisible
-                )
-            }
+            return ScenarioHallEquipEvidenceSlot(itemProfile?.name ?: "없음", item?.level ?: 1, item?.experience ?: 0, itemProfile?.icon)
         }
-        equipmentSlot(0, weapon, "무기:")
-        equipmentSlot(1, armor, "보구: ")
-        equipmentSlot(2, null, "보조: ")
-    }
-
-    /** Hall id 9 opened through UnitInfoBaseLayer.button0. */
-    private fun appendHallUnitListRenderEvents(log: RenderEventLog) {
-        val scale = .86f
-        val spriteBlend = listOf(770, 771)
-        val labelBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun event(
-            layer: String,
-            path: String,
-            type: String,
-            x: Float,
-            y: Float,
-            w: Float,
-            h: Float,
-            asset: String? = null,
-            text: String = "",
-            visible: Boolean = true,
-            opacity: Float = 1f,
-        ) = log.draw(
-            "hall-unit-list-stable", layer, path, type,
-            x * scale, y * scale, w * scale, h * scale, asset,
-            opacity = opacity,
-            blend = if (type == "label") labelBlend else spriteBlend,
-            visible = visible,
-            text = text,
+        val face = when (unitId) { 0 -> if ((unit?.face ?: 0) <= 3) (unit?.face ?: 0) + 1 else unit?.face ?: unitId; 157 -> 214; else -> unit?.face ?: unitId }
+        return ScenarioHallEquipEvidenceInput(
+            hallOverlayFixture, campaign.unitNames[unitId] ?: unit?.name ?: "조조",
+            if (unitId == 0) "군웅" else gameDataCatalog.armProfile(profile?.arm?.id ?: posts)?.name ?: "군웅",
+            face, profile?.level ?: 1,
+            listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, (profile?.spirit ?: 0) + bonus.spirit, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0),
+            listOf(slot { it < 20 }, slot { it in 20..25 }, ScenarioHallEquipEvidenceSlot("없음", 1, 0, null)),
         )
-        event(
-            "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f,
-            "default_sprite_splash", visible = false, opacity = 0f
-        )
-        event("UnitListLayer", "Canvas/Layer/bg1", "tiled-sprite", 924.186f, 248.3f, 360f, 409.7f, "Logo_9-1")
-        event("UnitListLayer", "Canvas/Layer/bg1/vline", "sprite", 1101.186f, 249.85f, 6f, 406.5f, "vline")
-        event("UnitListLayer", "Canvas/Layer/bg1/box3", "sliced-sprite", 924.186f, 248.3f, 360f, 409.7f, "box1")
-
-        val rows = requireNotNull(hallUnitListLayer).rows.take(6)
-        rows.forEachIndexed { index, id ->
-            val unit = gameDataCatalog.unitProfile(id)
-            val name = campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장"
-            val posts = gameDataCatalog.postsName(campaign.unitAttribute(id, 17, unit?.posts ?: 0))
-            val y = 607f - index * 52f
-            val nameWidth = when (name) {
-                "조조" -> 69.2f; "허자장" -> 103.8f; "병사 " -> 80.31f; else -> 103.8f
-            }
-            val postsWidth = when (posts) {
-                "군웅" -> 69.2f; else -> 103.8f
-            }
-            event(
-                "UnitListLayer", "Canvas/Layer/bg1/scrollview/view/content/item", "sprite", 924.186f, y, 360f, 50f,
-                "885a69b4-08ed-4c78-8896-ffb04eb2bd20"
-            )
-            event(
-                "UnitListLayer", "Canvas/Layer/bg1/scrollview/view/content/item/label0", "label",
-                1013.669f - nameWidth / 2f, y - .2f, nameWidth, 50.4f, text = name
-            )
-            event(
-                "UnitListLayer", "Canvas/Layer/bg1/scrollview/view/content/item/label1", "label",
-                1194.669f - postsWidth / 2f, y - .2f, postsWidth, 50.4f, text = posts
-            )
-        }
-    }
-
-    private fun appendHallManagementRenderEvents(log: RenderEventLog, kind: HallManagement) {
-        if (kind != HallManagement.EQUIP) {
-            ScenarioHallManagementEvidenceRecorder(hallManagementEvidenceInput(kind)).append(log)
-            return
-        }
-        if (kind == HallManagement.EQUIP) {
-            val unitListOpen = hallUnitListLayer != null
-            appendEquipRenderEvents(
-                log,
-                phase = if (unitListOpen) "hall-unit-list-stable" else "hall-equip-stable",
-                layer = if (unitListOpen) "UnitListLayer" else "EquipLayer",
-            )
-            if (unitListOpen) appendHallUnitListRenderEvents(log)
-            return
-        }
     }
 
     private fun hallManagementEvidenceInput(kind: HallManagement): ScenarioHallManagementEvidenceInput {
-        val unitId = hallEquipUnitId()
-        val unit = gameDataCatalog.unitProfile(unitId)
+        val unitId = hallEquipUnitId(); val unit = gameDataCatalog.unitProfile(unitId)
         val level = campaign.unitAttribute(unitId, 18, unit?.level ?: 1)
-        val profile = unit?.let {
-            gameDataCatalog.battleProfile(unitId, (level - 1).coerceAtLeast(0), campaign.unitAttribute(unitId, 17, it.posts))
-        }
+        val profile = unit?.let { gameDataCatalog.battleProfile(unitId, (level - 1).coerceAtLeast(0), campaign.unitAttribute(unitId, 17, it.posts)) }
         campaign.inventory.ensureDefaultEquipment(unitId, gameDataCatalog)
-        val bonus = campaign.inventory.equipment[unitId]?.let {
-            gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1)
-        } ?: GameDataCatalog.EquipmentBonus()
-        val weapon = campaign.inventory.equippedItems().firstOrNull { it.unitId == unitId }?.let {
-            gameDataCatalog.equipmentProfile(it.itemId)?.let { item -> ScenarioHallManagementEquipment(item.name, it.level) }
-        }
+        val bonus = campaign.inventory.equipment[unitId]?.let { gameDataCatalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1) } ?: GameDataCatalog.EquipmentBonus()
+        val weapon = campaign.inventory.equippedItems().firstOrNull { it.unitId == unitId }?.let { equipped -> gameDataCatalog.equipmentProfile(equipped.itemId)?.let { ScenarioHallManagementEquipment(it.name, equipped.level) } }
         return ScenarioHallManagementEvidenceInput(
-            kind = ScenarioHallManagementEvidenceKind.valueOf(kind.name),
-            money = campaign.money,
-            buyRows = hallViews.buyCandidates().take(3).map { item ->
-                ScenarioHallManagementBuyRow(
-                    item.name, gameDataCatalog.equipmentTypeName(item.itemType),
-                    campaign.inventory.items[item.id] ?: 0, gameDataCatalog.purchasePrice(item),
-                )
-            },
-            unit = ScenarioHallManagementUnitEvidence(
-                unit?.name ?: "조조",
-                gameDataCatalog.postsName(campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { "군웅" },
-                level,
-                listOf(
-                    profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack,
-                    profile?.spirit ?: 0, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0,
-                    profile?.morale ?: 0, profile?.movement ?: 0,
-                ),
-                weapon,
-            ),
+            ScenarioHallManagementEvidenceKind.valueOf(kind.name), campaign.money,
+            hallViews.buyCandidates().take(3).map { item -> ScenarioHallManagementBuyRow(item.name, gameDataCatalog.equipmentTypeName(item.itemType), campaign.inventory.items[item.id] ?: 0, gameDataCatalog.purchasePrice(item)) },
+            ScenarioHallManagementUnitEvidence(unit?.name ?: "조조", gameDataCatalog.postsName(campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { "군웅" }, level, listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, profile?.spirit ?: 0, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0), weapon),
         )
     }
 
-    /**
-     * Renderer-side frame log for source/game composition comparison. Values
-     * describe the quads actually submitted in the current 1280x688 viewport;
-     * screenshots remain a separate second-stage visual oracle.
-     */
-    /**
-     * 공개 메서드 `compositionTrace`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
-    /** Delegates serialization to a pure recorder over an immutable projection. */
-    fun compositionTrace(): String = ScenarioCompositionEvidenceRecorder().record(evidenceView())
-
-
-    private fun evidenceView(): ScenarioEvidenceView = ScenarioEvidenceView(
-        moduleName = moduleName,
-        playbackState = playback.state.toString(),
-        backgroundId = playback.stage.backgroundId,
-        units = playback.stage.units.values.filter { it.visible }.map { unit ->
-            ScenarioEvidenceUnit(
-                id = unit.id,
-                scriptX = unit.visualX,
-                scriptY = unit.visualY,
-                direction = unit.direction,
-                action = unit.action,
-                avatarId = gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id,
-            )
-        },
-        heads = playback.stage.heads.values.filter { it.opacity > 0f }.map { head ->
-            ScenarioEvidenceHead(head.characterId, head.visualX, head.visualY, head.opacity)
-        },
-        dialogue = playback.currentDialogue?.let { dialogue ->
-            ScenarioEvidenceDialogue(
-                side = playback.currentDialogueSide,
-                atTop = playback.currentDialogueAtTop,
-                speakerId = dialogue.speakerId?.toIntOrNull(),
-                visibleText = scenarioViewState.dialogueVisibleText,
-            )
-        },
-        modal = if (playback.state == PlaybackState.MODAL && playback.currentModalKind != null) {
-            ScenarioEvidenceModal(playback.currentModalKind.toString(), playback.currentModalText.orEmpty())
-        } else null,
-        hallMenu = hallEvidenceMenu(),
-        hallCommandVisible = playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
-        hallManagement = hallManagement?.let { ScenarioEvidenceHallManagement.valueOf(it.name) },
-        hallInfo = hallEvidenceInfo(),
+    fun compositionTrace(): String = ScenarioCompositionEvidenceRecorder().record(
+        ScenarioEvidenceView(
+            moduleName, playback.state.toString(), playback.stage.backgroundId,
+            playback.stage.units.values.filter { it.visible }.map { unit -> ScenarioEvidenceUnit(unit.id, unit.visualX, unit.visualY, unit.direction, unit.action, gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id) },
+            playback.stage.heads.values.filter { it.opacity > 0f }.map { ScenarioEvidenceHead(it.characterId, it.visualX, it.visualY, it.opacity) },
+            playback.currentDialogue?.let { ScenarioEvidenceDialogue(playback.currentDialogueSide, playback.currentDialogueAtTop, it.speakerId?.toIntOrNull(), scenarioViewState.dialogueVisibleText) },
+            if (playback.state == PlaybackState.MODAL && playback.currentModalKind != null) ScenarioEvidenceModal(playback.currentModalKind.toString(), playback.currentModalText.orEmpty()) else null,
+            hallEvidenceMenu(), playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
+            hallManagement?.let { ScenarioEvidenceHallManagement.valueOf(it.name) }, hallEvidenceInfo(),
+        ),
     )
 
     private fun hallEvidenceMenu(): ScenarioEvidenceHallMenu? {
-        val isAmbitionModal = playback.state == PlaybackState.MODAL &&
-                playback.currentModalKind == ScenarioModalKind.AMBITION
-        if (!hallMenuOpen && !isAmbitionModal) return null
+        val ambition = playback.state == PlaybackState.MODAL && playback.currentModalKind == ScenarioModalKind.AMBITION
+        if (!hallMenuOpen && !ambition) return null
         val tween = ((playback.ambitionElapsedSeconds - 1.2f) / 1f).coerceIn(0f, 1f)
-        val value = if (hallMenuOpen) playback.stage.ambition.toFloat()
-        else playback.ambitionFrom + (playback.ambitionTo - playback.ambitionFrom) * tween
-        return ScenarioEvidenceHallMenu(playback.ambitionFrom, playback.ambitionTo, value)
+        return ScenarioEvidenceHallMenu(playback.ambitionFrom, playback.ambitionTo, if (hallMenuOpen) playback.stage.ambition.toFloat() else playback.ambitionFrom + (playback.ambitionTo - playback.ambitionFrom) * tween)
     }
 
     private fun hallEvidenceInfo(): ScenarioEvidenceHallInfo? = hallInfo?.let { kind ->
         val rows = when (kind) {
-            HallInfo.FORCES -> campaign.joinedUnits.take(7).indices.map { row ->
-                ScenarioEvidenceRect(147.49f, 469.63f - row * 49f, 985.02f, 49f)
-            }
-
+            HallInfo.FORCES -> campaign.joinedUnits.take(7).indices.map { ScenarioEvidenceRect(147.49f, 469.63f - it * 49f, 985.02f, 49f) }
             HallInfo.PROPERTY -> propertyEvidenceRows()
-            HallInfo.TERRAIN -> (0 until 6).map { row ->
-                ScenarioEvidenceRect(249f, 453.56f - row * 64.5f, 854.07f, 64.5f)
-            }
-
-            HallInfo.TREASURE -> (0 until 6).map { index ->
-                ScenarioEvidenceRect(232.10f + index % 2 * 410.22f, 413.23f - index / 2 * 165.98f, 405.06f, 163.40f)
-            }
-
+            HallInfo.TERRAIN -> (0 until 6).map { ScenarioEvidenceRect(249f, 453.56f - it * 64.5f, 854.07f, 64.5f) }
+            HallInfo.TREASURE -> (0 until 6).map { ScenarioEvidenceRect(232.10f + it % 2 * 410.22f, 413.23f - it / 2 * 165.98f, 405.06f, 163.40f) }
             HallInfo.HELPER -> listOf(ScenarioEvidenceRect(139f, 103.07f, 1001.98f, 494.86f))
-        }
-        ScenarioEvidenceHallInfo(kind.name.lowercase(), rows)
+        }; ScenarioEvidenceHallInfo(kind.name.lowercase(), rows)
     }
 
     private fun propertyEvidenceRows(): List<ScenarioEvidenceRect> {
-        fun accepts(id: Int): Boolean {
-            val itemType = gameDataCatalog.equipmentProfile(id)?.itemType ?: return false
-            return when (hallPropertyTab) {
-                HallPropertyTab.WEAPON -> itemType < 20
-                HallPropertyTab.ARMOR -> itemType in 20..25
-                HallPropertyTab.AUXILIARY -> itemType > 45 && id < 150
-                HallPropertyTab.PROPERTY -> id >= 150 || itemType in 26..45
-            }
-        }
-
-        val equippedCount = if (hallPropertyTab == HallPropertyTab.PROPERTY) 0
-        else campaign.inventory.equippedItems().count { accepts(it.itemId) }
-        val count = (equippedCount + campaign.inventory.items.count { (id, _) -> accepts(id) }).coerceAtMost(7)
-        return (0 until count).map { row ->
-            ScenarioEvidenceRect(217.42f, 481.58f - row * 67.08f, 846.56f, 65.36f)
-        }
+        fun accepts(id: Int): Boolean = gameDataCatalog.equipmentProfile(id)?.itemType?.let { type -> when (hallPropertyTab) { HallPropertyTab.WEAPON -> type < 20; HallPropertyTab.ARMOR -> type in 20..25; HallPropertyTab.AUXILIARY -> type > 45 && id < 150; HallPropertyTab.PROPERTY -> id >= 150 || type in 26..45 } } ?: false
+        val equipped = if (hallPropertyTab == HallPropertyTab.PROPERTY) 0 else campaign.inventory.equippedItems().count { accepts(it.itemId) }
+        return (0 until (equipped + campaign.inventory.items.count { accepts(it.key) }).coerceAtMost(7)).map { ScenarioEvidenceRect(217.42f, 481.58f - it * 67.08f, 846.56f, 65.36f) }
     }
 
     /** HallLayer.turnPos: source's 100×100 isometric Hall coordinate transform. */
@@ -1831,9 +1248,7 @@ class ScenarioScreen(
         return candidate.takeIf { it in ScenarioCatalog.sModuleNames() } ?: "S_00"
     }
 
-    private fun portraitTexture(characterId: Int): Texture? {
-        return sceneAssets.portraitTexture(characterId)
-    }
+    private fun portraitTexture(characterId: Int): Texture? = sceneAssets.portraitTexture(characterId)
 
     /** Model.unitAttrFace2, which DialogueLayer uses before loading Head/<id>. */
     private fun dialoguePortrait(unitId: Int): Texture? = portraitTexture(dialoguePortraitId(unitId))
@@ -1843,12 +1258,6 @@ class ScenarioScreen(
         return if (unitId == 0 && face <= 3) face + 1 else face + 8
     }
 
-    private fun backgroundTexture(backgroundId: Int): Texture? {
-        return sceneAssets.backgroundTexture(backgroundId)
-    }
-
-    private fun unitTexture(assetId: Int): Texture? {
-        return sceneAssets.unitTexture(assetId)
-    }
-
+    private fun backgroundTexture(backgroundId: Int): Texture? = sceneAssets.backgroundTexture(backgroundId)
+    private fun unitTexture(assetId: Int): Texture? = sceneAssets.unitTexture(assetId)
 }

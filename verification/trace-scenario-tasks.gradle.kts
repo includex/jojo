@@ -39,6 +39,21 @@ fun scenarioRandomFixture(name: String, expectedLine: Int, expectedValue: Int, v
     }
 }
 
+fun scenarioRuntimeFixture(name: String, argument: String) = tasks.register<JavaExec>(name) {
+    group = "verification"
+    description = "Runs the verification-owned scenario runtime assertion: $name."
+    dependsOn(tasks.named("classes"))
+    classpath = scenarioFixtureRuntime
+    mainClass.set("com.jojo.game.verification.ScenarioTraceDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    args("--scenario=R_00", argument)
+}
+
+scenarioRuntimeFixture("verifyScenarioSmoke", "--verify-scenario-smoke")
+scenarioRuntimeFixture("verifyScenarioFirstBranch", "--verify-scenario-branch")
+scenarioRuntimeFixture("verifyScenarioAlternateBranch", "--verify-scenario-branch-2")
+
 val scenarioBranchFixtures = listOf(
     scenarioBranchFixture("verifyR00ChoicePathOne", "--scenario=R_00", "--verify-choice-script=0,0,3"),
     scenarioBranchFixture("verifyR00ChoicePathTwo", "--scenario=R_00", "--verify-choice-script=1,0,3"),

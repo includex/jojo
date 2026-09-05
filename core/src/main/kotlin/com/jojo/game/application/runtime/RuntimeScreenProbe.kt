@@ -35,6 +35,8 @@ data class ScenarioRuntimeProbe(
     val selectedChoice: Int,
     val sceneIndex: Int,
     val startedScenes: List<Int>,
+    val backgroundId: Int,
+    val unitIds: Set<Int>,
     val campaignStage: Int,
     val menuVisible: Boolean,
     val dialogueText: String?,

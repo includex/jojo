@@ -65,12 +65,6 @@ object DesktopLauncher {
                 exitOnFinish = true,
             )
         }
-        val choiceScript = args.firstOrNull { it.startsWith("--verify-choice-script=") }
-            ?.substringAfter('=')
-            ?.takeIf(String::isNotBlank)
-            ?.split(',')
-            ?.map { it.trim().toInt() }
-            ?: emptyList()
         val globals = args.firstOrNull { it.startsWith("--verify-globals=") }
             ?.substringAfter('=')
             ?.takeIf(String::isNotBlank)
@@ -100,8 +94,6 @@ object DesktopLauncher {
         val battleCamp = args.firstOrNull { it.startsWith("--verify-camp=") }?.substringAfter('=')?.toInt() ?: 1
         val startScene = args.firstOrNull { it.startsWith("--verify-scene=") }?.substringAfter('=') ?: "scene1"
         val startLabel = args.firstOrNull { it.startsWith("--verify-label=") }?.substringAfter('=')
-        val choiceTracePath = args.firstOrNull { it.startsWith("--choice-trace=") }?.substringAfter('=')
-        val randomTracePath = args.firstOrNull { it.startsWith("--random-trace=") }?.substringAfter('=')
         val infoTransferRandomSequence = args.firstOrNull { it.startsWith("--verify-info-random=") }
             ?.substringAfter('=')?.takeIf(String::isNotBlank)?.split(',')?.map(String::toInt) ?: emptyList()
         val unitAttributes = args.firstOrNull { it.startsWith("--verify-unit-attrs=") }?.substringAfter('=')
@@ -175,15 +167,13 @@ object DesktopLauncher {
                 JojoGame(GameLaunchConfiguration(
                     entryPoint = when {
                         args.contains("--battle") || fullBattleTraceConfig != null -> GameEntryPoint.BATTLE
-                        screenshotState == null && yingchuanEntryFlowTracePath == null && !args.contains("--verify") && !hasExplicitScenario && choiceScript.isEmpty() && globals.isEmpty() && variables.isEmpty() && randomSequence.isEmpty() && startScene == "scene1" -> GameEntryPoint.TITLE
+                        screenshotState == null && yingchuanEntryFlowTracePath == null && !hasExplicitScenario && globals.isEmpty() && variables.isEmpty() && randomSequence.isEmpty() && startScene == "scene1" -> GameEntryPoint.TITLE
                         else -> GameEntryPoint.SCENARIO
                     },
                     initialScenario = scenario,
                     battleReturnScenario = battleReturnScenario,
                     initialScenarioExplicit = hasExplicitScenario,
                     scenarioRun = ScenarioRunConfiguration(
-                        choices = choiceScript,
-                        allowPendingChoiceAfterScript = args.contains("--verify-stop-at-choice"),
                         globals = globals,
                         unitAttributes = unitAttributes,
                         variables = variables,
@@ -198,16 +188,11 @@ object DesktopLauncher {
                         battleEnemyDefeated = enemyDefeated,
                         startScene = startScene,
                         startLabel = startLabel,
-                        choiceTracePath = choiceTracePath,
-                        randomTracePath = randomTracePath,
                         stopAfterRandomTrace = args.contains("--verify-stop-after-random"),
                         stopAfterRandomTraceCount = stopAfterRandomTraceCount,
                     ),
                     verification = VerificationConfiguration(
-                        scenario = args.contains("--verify"),
                         battle = args.contains("--verify-battle"),
-                        firstBranch = args.contains("--verify-branch"),
-                        alternateBranch = args.contains("--verify-branch-2"),
                         scriptedBattle = args.contains("--verify-scripted-battle"),
                     ),
                     capture = RenderCaptureConfiguration(

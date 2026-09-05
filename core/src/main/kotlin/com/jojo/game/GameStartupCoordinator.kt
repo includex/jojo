@@ -55,8 +55,7 @@ internal class GameStartupCoordinator(
 
             configuration.entryPoint == GameEntryPoint.TITLE -> showTitle()
             else -> {
-                val scenario = if (!configuration.verification.scenario &&
-                    !configuration.initialScenarioExplicit &&
+                val scenario = if (!configuration.initialScenarioExplicit &&
                     configuration.initialScenario == "R_00"
                 ) savedScenario() else configuration.initialScenario
                 showScenario(scenario)

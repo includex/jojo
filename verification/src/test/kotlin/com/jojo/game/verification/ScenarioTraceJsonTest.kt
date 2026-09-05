@@ -13,7 +13,7 @@ class ScenarioTraceJsonTest {
     @Test fun `writes immutable scenario evidence from the runtime probe`() {
         val probe = ScenarioRuntimeProbe(
             module = "R_00", playback = PlaybackState.CHOICE, options = listOf("one"), selectedChoice = 0,
-            sceneIndex = 1, startedScenes = listOf(1), campaignStage = 0, menuVisible = false,
+            sceneIndex = 1, startedScenes = listOf(1), backgroundId = 1, unitIds = setOf(0), campaignStage = 0, menuVisible = false,
             dialogueText = null, hallBattleScenePending = false, battleButtonScreenX = 0, battleButtonScreenY = 0,
             choiceTrace = listOf(ScenarioChoiceTrace("R_00", "scene1", 12, 0, 2)),
             randomTrace = listOf(ScenarioRandomTrace("R_00", "scene1", 13, 42)),

@@ -11,8 +11,6 @@ enum class GameEntryPoint {
 
 /** Explicit scenario inputs used by deterministic diagnostics and scripted runs. */
 data class ScenarioRunConfiguration(
-    val choices: List<Int> = emptyList(),
-    val allowPendingChoiceAfterScript: Boolean = false,
     val globals: Map<Int, Int> = emptyMap(),
     val unitAttributes: List<Triple<Int, Int, Int>> = emptyList(),
     val variables: Map<Int, Int> = emptyMap(),
@@ -27,8 +25,6 @@ data class ScenarioRunConfiguration(
     val battleEnemyDefeated: Boolean = false,
     val startScene: String = "scene1",
     val startLabel: String? = null,
-    val choiceTracePath: String? = null,
-    val randomTracePath: String? = null,
     val stopAfterRandomTrace: Boolean = false,
     val stopAfterRandomTraceCount: Int? = null,
 )
@@ -42,10 +38,7 @@ data class ScenarioRunConfiguration(
  */
 
 data class VerificationConfiguration(
-    val scenario: Boolean = false,
     val battle: Boolean = false,
-    val firstBranch: Boolean = false,
-    val alternateBranch: Boolean = false,
     val scriptedBattle: Boolean = false,
 )
 

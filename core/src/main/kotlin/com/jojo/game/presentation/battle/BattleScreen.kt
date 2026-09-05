@@ -118,8 +118,11 @@ class BattleScreen(
     private val campaign: CampaignState,
     private val loadTerrain: (Int) -> BattleTerrainGrid,
 ) : ScreenAdapter() {
-    private enum class ResultFlow { NONE, LOSE_SCENE, WIN_SAVE_PROMPT }
-
+    private fun CampaignEquipmentSlot.attributeLabel() = when (this) {
+        CampaignEquipmentSlot.WEAPON -> "공격력"
+        CampaignEquipmentSlot.ARMOR -> "방어력"
+        CampaignEquipmentSlot.AUXILIARY -> "정신력"
+    }
     /** `Battle.fire`'s ordered `BattleScreen.areas` SpriteFrames. */
     private enum class SelectAreaFrame(val assetName: String) {
         RED("range-red"),
@@ -131,12 +134,6 @@ class BattleScreen(
 
     private data class SelectAreaTile(val x: Int, val y: Int, val frame: SelectAreaFrame)
 
-    private var resultFlow = ResultFlow.NONE
-    private var rewardFlow: BattleRewardFlow? = null
-    private var itemUpgradeFlow: ItemUpgradeFlow? = null
-    private var itemUpgradeCallbackCount = 0
-    private var itemUpgradeRouteInstalled = false
-    private var postBattleSceneStarted = false
     private var initialPlayerCampScriptStarted = false
 
     /** Original BattleScreen keeps curCamp=UNKNOW until scene0 and the first scene1 startOper complete. */
@@ -145,13 +142,10 @@ class BattleScreen(
     } else {
         BattleBootstrapPhase.SCENE0
     }
-    private var naturalOutcomeScriptStarted = false
 
     /** Monotonic trace marker for a source callback that enters scene1 after victory. */
     private var resultScene1Observed = false
     private var battleRouteCompleted = false
-    private var victorySaveAnswerPressed: Int? = null
-    private var postBattleSaveLayer = false
 
     /** InfoLayer's transparent full-screen Panel_cancel is committed on TOUCH_END. */
     private var battleInfoPanelPressed = false
@@ -203,7 +197,6 @@ class BattleScreen(
     private var miniMapRouteInstalled = false
     private var roundRouteInstalled = false
     private var roundRouteCallbackCount = 0
-    private var loseSceneFlow: LoseSceneFlow? = null
     private var losePressedAnswer: Int? = null
 
     /** Runtime-only isolated composition observation; no rendering behavior changes. */
@@ -298,8 +291,8 @@ class BattleScreen(
                     )
                 }
             } else null,
-            loseActive = resultFlow == ResultFlow.LOSE_SCENE,
-            winPromptActive = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
+            loseActive = outcomePresentation.loseSceneActive,
+            winPromptActive = outcomePresentation.winPromptActive,
         )
         return BattleCompositionEvidenceView(
             scenarioKey = scenarioKey,
@@ -1212,6 +1205,80 @@ void main() {
                     }
         },
     )
+    private val outcomePresentation = BattleOutcomePresentationCoordinator(
+        object : BattleOutcomePresentationCoordinator.Port {
+            override fun visibleOutcome() = visibleBattleOutcome()
+            override fun rewardRequest(): ResolvedBattleReward? {
+                val request = scriptRuntime.stage.consumeRewardRequest() ?: return null
+                val resolved = BattleRewardResolver.resolve(
+                    request, campaign.averageJoinedLevel(), battle.round, scenarioMaxRound(),
+                    battle.units.values.count { it.faction == Faction.PLAYER && it.hitPoints < 1 },
+                    battle.units.values.count { it.type().isEnemySide() && it.visible },
+                    objectivesComplete = false,
+                )
+                campaign.addMoney(resolved.money)
+                request.items.chunked(2).forEach { pair ->
+                    val id = pair.firstOrNull() ?: return@forEach
+                    if (id >= 255) return@forEach
+                    val supplied = pair.getOrNull(1) ?: 1
+                    val level = if (supplied < 0) {
+                        (campaign.averageJoinedLevel() / 10).coerceIn(0, 8) + 1
+                    } else supplied.coerceAtLeast(1)
+                    campaign.inventory.addItem(id, 1, level)
+                    campaign.inventory.discoverTreasure(id, gameDataCatalog)
+                }
+                return resolved
+            }
+            override fun resumeRewardModal() { if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal() }
+            override fun syncScriptedUnits() { this@BattleScreen.syncScriptedUnits() }
+            override fun scene2Available() = "scene2" in scriptRuntime.functionNames
+            override fun startScene2() { scriptRuntime.start("scene2") }
+            override fun scriptIsBlocked() = scriptRuntime.state != PlaybackState.COMPLETE
+            override fun scriptState() = scriptRuntime.state
+            override fun openSaveLayer() { saveLoadOverlay.openSave() }
+            override fun nextScenario(): String = this@BattleScreen.nextScenario()
+            override fun completeBattle(nextScenario: String) {
+                scriptRuntime.stage.sceneJumpStage?.let(game::setCampaignStage) ?: game.advanceCampaignStage()
+                game.completeBattle(returnScenario, nextScenario)
+                battleRouteCompleted = true
+            }
+            override fun showNextScenario(nextScenario: String) { game.showNextScenario(nextScenario) }
+            override fun finishTrace() { if (fullTraceConfig?.exitOnFinish == false) finishFullBattleTrace("battle-end") }
+            override fun showVictoryPrompt() { eventMessage = "게임 저장하시겠습니까?" }
+            override fun campaignEquipmentUpgrade(): BattleOutcomePresentationCoordinator.UpgradePresentation? {
+                val request = battle.experience.consumeEquipmentUpgrade() ?: return null
+                val profile = gameDataCatalog.equipmentProfile(request.itemId) ?: return null
+                val owner = campaign.unitNames[request.unitId]
+                    ?: gameDataCatalog.unitProfile(request.unitId)?.name.orEmpty()
+                return BattleOutcomePresentationCoordinator.UpgradePresentation(
+                    request, owner, profile.name, request.slot.attributeLabel(),
+                )
+            }
+            override fun equipmentUpgradeAllowed() = !settlementPresentation.isActive() &&
+                (itemUpgradeRouteState != null || (
+                    actionAnimation?.let { animationClock() < it.endsAt } != true &&
+                        movementAnimation?.let { animationClock() < it.endsAt } != true &&
+                        hitReactionAnimations.values.none { animationClock() < it.endsAt }
+                    ))
+            override fun settlementUpgrade(request: CampaignEquipmentExperienceResult) =
+                BattleOutcomePresentationCoordinator.UpgradePresentation(
+                    request,
+                    campaign.unitNames[request.unitId] ?: gameDataCatalog.unitProfile(request.unitId)?.name.orEmpty(),
+                    gameDataCatalog.equipmentProfile(request.itemId)?.name
+                        ?: error("settlement item profile is missing: ${request.itemId}"),
+                    request.slot.attributeLabel(),
+                )
+            override fun itemUpgradeCompleted() = Unit
+            override fun createLoseScene() = LoseSceneFlow(openLogin = game::showTitleScreen, endGame = { Gdx.app.exit() })
+            override fun transitionBusy() = combatPresentationBusy() || outcomeCallbacksPending()
+            override fun naturalTransitionAllowed() =
+                !verifyMode && !scriptedBattleVerifyMode && !game.hasFrameCaptureRequest() &&
+                    !game.hasRenderEventLogRequest()
+            override fun routeCompleted() = battleRouteCompleted
+            override fun battleEndedByScript() = scriptRuntime.stage.battleEndedByScript
+            override fun runNaturalScene1() { runBattleScript() }
+        },
+    )
 
     /** Harm-number animation values visible from the attack `hit` event onward. */
     private val harmNumberAnimations = mutableMapOf<String, HarmNumberAnimation>()
@@ -1476,9 +1543,9 @@ void main() {
                 )
                 scriptRuntime.stage.reward(items = cards)
                 scriptRuntime.stage.scriptedBattleOutcome?.let(battle::setScriptedOutcome)
-                openRewardRequestIfNeeded()
-                if (game.requestedCaptureState() != "yingchuan-reward-basic-route") advanceRewardFlow()
-                if (game.requestedCaptureState() == "yingchuan-reward-card2-route") advanceRewardFlow()
+                outcomePresentation.openRewardRequestIfNeeded()
+                if (game.requestedCaptureState() != "yingchuan-reward-basic-route") outcomePresentation.advanceRewardFlow()
+                if (game.requestedCaptureState() == "yingchuan-reward-card2-route") outcomePresentation.advanceRewardFlow()
             }
 
             else -> Unit
@@ -1570,12 +1637,12 @@ void main() {
             // Setting the real Battle max-round contract makes outcome() use
             // the same loss branch without injecting an output record.
             "lose-result" -> {
-                battle.setMaxRounds(1); resultFlow = ResultFlow.LOSE_SCENE
+                battle.setMaxRounds(1); outcomePresentation.enterLoseScene()
             }
 
             LOSE_RESTART_ROUTE_STATE -> {
                 battle.setMaxRounds(1)
-                enterLoseScene()
+                    outcomePresentation.enterLoseScene()
             }
             // Source win retires the actual live enemy BattleUnits before its
             // `_endProcess` save prompt.  Preserve candidate presentation
@@ -1586,7 +1653,7 @@ void main() {
                 // not on `loseTest()`: the real CDP R_00 fixture has no
                 // controllable Mine unit, yet enemy retirement still opens
                 // the save MsgBox while LOSE remains false.
-                resultFlow = ResultFlow.WIN_SAVE_PROMPT
+                outcomePresentation.openVictorySavePrompt()
             }
         }
         if (game.requestedCaptureState() == "yingchuan-unit-info") {
@@ -1635,18 +1702,18 @@ void main() {
                         BattleInteractiveInput.Route.DIALOGUE,
                 settlementInfo = settlementPresentation.info2View() != null,
                 roundLayer = activeRoundLayer != null,
-                resultPrompt = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
+                resultPrompt = outcomePresentation.winPromptActive,
                 modalInfo = scriptRuntime.state == PlaybackState.MODAL &&
                         scriptRuntime.currentModalKind == ScenarioModalKind.INFO,
-                loseScene = loseSceneFlow != null,
+                loseScene = outcomePresentation.loseSceneActive,
                 command = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
                 usePropertyDetail = usePropertyDetail != null,
                 useProperty = usePropertyLayer != null,
                 magicInfo = magickInfoLayer != null,
                 magicList = magickListLayer != null,
                 jiqi = jiqiLayer != null,
-                reward = rewardFlow != null,
-                itemUpgrade = itemUpgradeFlow != null,
+                reward = outcomePresentation.rewardActive,
+                itemUpgrade = outcomePresentation.itemUpgradeActive,
                 scriptWinConditions = scriptWinConditions != null,
                 unitInfo = unitInfoOverlay.isVisible(),
                 forces = forcesOverlay.isVisible(),
@@ -1715,11 +1782,11 @@ void main() {
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.REWARD) {
-                    if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) advanceRewardFlow()
+                    if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) outcomePresentation.advanceRewardFlow()
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.ITEM_UPGRADE) {
-                    if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) closeItemUpgrade()
+                    if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) outcomePresentation.closeItemUpgrade()
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.TREASURE) {
@@ -1775,7 +1842,7 @@ void main() {
                     } else game.showScenario(returnScenario)
 
                     Input.Keys.T, Input.Keys.SPACE, Input.Keys.ENTER -> {
-                        if (battle.outcome() == null) endTurn() else continueAfterOutcome()
+                        if (battle.outcome() == null) endTurn() else outcomePresentation.continueAfterOutcome()
                     }
 
                     Input.Keys.M -> {
@@ -1810,8 +1877,8 @@ void main() {
                     return true
                 }
                 if (pointerIntent.capture == BattleInputCapture.ROUND) return true
-                if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) {
-                    victorySaveAnswerPressed = victorySaveAnswerAt(world.x, world.y)
+                if (outcomePresentation.winPromptActive) {
+                    outcomePresentation.victorySaveAnswerPressed = victorySaveAnswerAt(world.x, world.y)
                     return true
                 }
                 if (scriptRuntime.state == PlaybackState.MODAL &&
@@ -1820,7 +1887,7 @@ void main() {
                     battleInfoPanelPressed = true
                     return true
                 }
-                loseSceneFlow?.let { flow ->
+                outcomePresentation.loseSceneFlow?.let { flow ->
                     losePressedAnswer =
                         if (flow.state == LoseSceneFlow.State.PROMPT) loseAnswerAt(world.x, world.y) else null
                     return true
@@ -1848,8 +1915,8 @@ void main() {
                     return true
                 }
                 jiqiLayer?.let { jiqiPressed = true; return true }
-                rewardFlow?.let { advanceRewardFlow(); return true }
-                itemUpgradeFlow?.let { closeItemUpgrade(); return true }
+                if (outcomePresentation.rewardActive) { outcomePresentation.advanceRewardFlow(); return true }
+                if (outcomePresentation.itemUpgradeActive) { outcomePresentation.closeItemUpgrade(); return true }
                 scriptWinConditions?.let { return true }
                 if (unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
                 if (forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
@@ -1938,14 +2005,16 @@ void main() {
                     if (pointerIntent.releasedTarget == BattleInputTarget.MENU_HUD) openBattleMenu()
                     return true
                 }
-                if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) {
+                if (outcomePresentation.winPromptActive) {
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val answer = victorySaveAnswerAt(world.x, world.y)
-                    if (answer != null && answer == victorySaveAnswerPressed) answerVictorySavePrompt(answer)
-                    victorySaveAnswerPressed = null
+                    if (answer != null && answer == outcomePresentation.victorySaveAnswerPressed) {
+                        outcomePresentation.answerVictorySavePrompt(answer)
+                    }
+                    outcomePresentation.victorySaveAnswerPressed = null
                     return true
                 }
-                loseSceneFlow?.let { flow ->
+                outcomePresentation.loseSceneFlow?.let { flow ->
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val released = loseAnswerAt(world.x, world.y)
                     if (released != null && released == losePressedAnswer) flow.answer(released)
@@ -2222,7 +2291,7 @@ void main() {
                 magickInfoSuppressRelease = true
             }
         }
-        if (itemUpgradeRouteState != null && !itemUpgradeRouteInstalled) installItemUpgradeRoute()
+        if (itemUpgradeRouteState != null && !outcomePresentation.itemUpgradeRouteInstalled) installItemUpgradeRoute()
         val delta = rawDelta * (fullTraceConfig?.timeScale ?: 1f)
         elapsed += delta
         completeBattleBackgroundLoadIfReady()
@@ -2233,7 +2302,7 @@ void main() {
         }
         completePendingBattleCommand()
         miniMapLayer.advance(delta)
-        loseSceneFlow?.update(delta)
+        outcomePresentation.loseSceneFlow?.update(delta)
         usePropertyLayer?.update(delta)
         // Source Script.pause()/resume() drives stage.delay and cut-scene
         // attacks. Resume its AST only after the same visible interval.
@@ -2275,9 +2344,9 @@ void main() {
             battleInitLayer.onDestroy()
         }
         writeYingchuanEntryFlowIfReady()
-        openRewardRequestIfNeeded()
-        itemUpgradeFlow?.update(delta)
-        openEquipmentUpgradeIfNeeded()
+        outcomePresentation.openRewardRequestIfNeeded()
+        outcomePresentation.itemUpgradeFlow?.update(delta)
+        outcomePresentation.openEquipmentUpgradeIfNeeded()
         activeRoundLayer?.let { layer ->
             activeRoundLayerElapsed += delta
             layer.elapsed(activeRoundLayerElapsed)
@@ -2328,7 +2397,7 @@ void main() {
         // the ordinary outcome transition.
         if (bootstrapPhase == BattleBootstrapPhase.COMPLETE &&
             dialogueStepCapture == null && !selectionOverlayCapture &&
-            resultFlow == ResultFlow.NONE && NaturalBattleTransition.resultScriptReadyForLoseScene(
+            !outcomePresentation.loseSceneActive && NaturalBattleTransition.resultScriptReadyForLoseScene(
                 battle.outcome(), scriptRuntime.state, scriptRuntime.currentDialogue != null,
             ) &&
             // Source scene1 owns its Say/Info callback chain through
@@ -2344,7 +2413,7 @@ void main() {
             !scriptedUnitCallbacks.hideBusy && !scriptedUnitCallbacks.showBusy
             && !combatPresentationBusy()
             && !outcomeCallbacksPending()
-        ) enterLoseScene()
+        ) outcomePresentation.enterLoseScene()
         if (pendingBattleScriptPassesAfterAction > 0 && scriptRuntime.state == PlaybackState.COMPLETE) {
             if (!pendingBattleActionCommitted) {
                 commitDeferredBattleAction(pendingBattleSettlementActorId)
@@ -2380,7 +2449,7 @@ void main() {
         // visible during the async load while combat data is already fresh.
         scriptedUnitCallbacks.drivePosts()
         syncDialogueSpeakerPresentation()
-        driveNaturalBattleCompletion()
+        outcomePresentation.driveNaturalBattleCompletion()
         // Project domain-derived HP/status state once the frame's mutations
         // have settled, before any BattleUnit visual is consumed below.
         unitPresentationStore.synchronize(battle.presentation.presentationUnits())
@@ -2548,9 +2617,9 @@ void main() {
         // standalone Lose scene.  Do not retain a Battle canvas beneath this
         // visual state: the Lose prefab consists solely of Logo_8-1 on the
         // cleared framebuffer.
-        if (resultFlow == ResultFlow.LOSE_SCENE) {
+        if (outcomePresentation.loseSceneActive) {
             drawLoseScene()
-            loseSceneFlow?.takeIf { it.state == LoseSceneFlow.State.PROMPT }?.let { drawLosePrompt() }
+            outcomePresentation.loseSceneFlow?.takeIf { it.state == LoseSceneFlow.State.PROMPT }?.let { drawLosePrompt() }
             if (loseRestartRoute && elapsed > 3.25f && game.writeRenderEventLogIfRequested()) return true
             game.captureFrameIfRequested()
             return true
@@ -2615,7 +2684,7 @@ void main() {
         // button alpha, and Cocos layer order. Keep this exact reference
         // scoped to the explicitly addressed raw-comparison state; live
         // result-flow input still uses the ordinary in-game overlay below.
-        if (resultFlow == ResultFlow.WIN_SAVE_PROMPT && game.requestedCaptureState() == "win-result") {
+        if (outcomePresentation.winPromptActive && game.requestedCaptureState() == "win-result") {
             drawSourceWinResultReference()
             game.captureFrameIfRequested()
             return true
@@ -2741,13 +2810,13 @@ void main() {
             batch.projectionMatrix = viewport.camera.combined
             battleAutoOverlayRenderer.draw(battleAutoOverlayView())
             if (winConditionOpen) drawWinConditionBox()
-            if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) drawSavePrompt()
+            if (outcomePresentation.winPromptActive) drawSavePrompt()
             scriptWinConditions?.let { drawScriptWinConditions(it) }
-            if (rewardFlow != null || rewardRouteState != null) {
+            if (outcomePresentation.rewardActive || rewardRouteState != null) {
                 batch.projectionMatrix = viewport.camera.combined
                 battleRewardOverlayRenderer.draw(battleRewardOverlayView())
             }
-            itemUpgradeFlow?.let(::drawItemUpgrade)
+            outcomePresentation.itemUpgradeFlow?.let(::drawItemUpgrade)
             if (itemUpgradeRouteState != null) drawRewardSectionOverlay()
         }
         // battleCharacterRouteState returned immediately above after writing
@@ -2904,10 +2973,10 @@ void main() {
                     PlaybackState.CHOICE,
                     PlaybackState.MODAL,
                 ) || scriptWinConditions != null || presentationBarrier,
-                lossSceneActive = resultFlow == ResultFlow.LOSE_SCENE,
+                lossSceneActive = outcomePresentation.loseSceneActive,
                 callbackPending = outcomeCallbacksPending(),
                 scriptEnded = scriptRuntime.stage.battleEndedByScript,
-                endProcessStarted = resultFlow != ResultFlow.NONE,
+                endProcessStarted = !outcomePresentation.resultIsNone,
             )
         )
     }
@@ -3011,7 +3080,7 @@ void main() {
                     lastFullBattleMenuTap, eventMessage, autoBattleFlow.view().overlay.toString(),
                 ),
                 observation, scriptRuntime.stage.battleEndedByScript, scriptRuntime.stage.scriptedBattleOutcome?.name,
-                resultFlow.toString(), scriptRuntime.currentModalKind?.name,
+                outcomePresentation.resultFlow.toString(), scriptRuntime.currentModalKind?.name,
                 pendingBattleScriptPassesAfterAction, pendingAiUnitDeathScriptPass, deathTimeline.startedPostActionDeaths(),
                 pendingAiResolution != null, activeAiCamp?.toString(), activeRoundLayer != null,
                 settlementPresentation.isActive(), combatPresentationBusy(),
@@ -3215,12 +3284,12 @@ void main() {
             outcome = battle.outcome(),
             bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE,
             initialScene1Started = initialPlayerCampScriptStarted,
-            resultScene1Started = resultScene1Observed || naturalOutcomeScriptStarted,
-            scene2Started = postBattleSceneStarted,
-            rewardOpen = rewardFlow != null,
+            resultScene1Started = resultScene1Observed || outcomePresentation.naturalOutcomeScriptStarted,
+            scene2Started = outcomePresentation.postBattleSceneStarted,
+            rewardOpen = outcomePresentation.rewardActive,
             winConditionsOpen = scriptWinConditions != null,
-            savePromptOpen = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
-            losePromptOpen = loseSceneFlow?.state == LoseSceneFlow.State.PROMPT,
+            savePromptOpen = outcomePresentation.winPromptActive,
+            losePromptOpen = outcomePresentation.loseSceneFlow?.state == LoseSceneFlow.State.PROMPT,
             loseTitleScreenX = loseTitle.first,
             loseTitleScreenY = loseTitle.second,
             playerMoveCommitted = playerMoveCommitted,
@@ -4350,7 +4419,7 @@ void main() {
             settlementMeffEndsAt = null
             settlementPresentation.meffCompleted()
         }
-        if (settlementItemUpgradeStarted && itemUpgradeFlow == null) {
+        if (settlementItemUpgradeStarted && !outcomePresentation.itemUpgradeActive) {
             settlementItemUpgradeStarted = false
             settlementPresentation.itemUpgradeCompleted()
         }
@@ -4397,7 +4466,7 @@ void main() {
                         check(queued == effect.result) { "settlement item-upgrade queue order mismatch" }
                     }
                     settlementItemUpgradeStarted = true
-                    openSettlementItemUpgrade(effect.result)
+                    outcomePresentation.openSettlementItemUpgrade(effect.result)
                 }
                 is BattleSettlementPresentationController.Effect.HideState -> effect.unitIds.forEach { id ->
                     battle.presentation.presentationUnit(id)?.let { unitPresentationStore.stateFor(it).setStateAnimationVisible(false) }
@@ -5359,130 +5428,10 @@ void main() {
     private fun visibleBattleOutcome(): BattleOutcome? =
         battle.outcome().takeIf { bootstrapPhase == BattleBootstrapPhase.COMPLETE }
 
-    private fun continueAfterOutcome() {
-        when (visibleBattleOutcome()) {
-            BattleOutcome.PLAYER_VICTORY -> {
-                rewardFlow?.let { advanceRewardFlow(); return }
-                // Source BattleScreen dispatches scene2 once. Its dialogue and
-                // RewardLayer remain live modal steps instead of being drained
-                // in one key press.
-                if (!postBattleSceneStarted && "scene2" in scriptRuntime.functionNames) {
-                    postBattleSceneStarted = true
-                    scriptRuntime.start("scene2")
-                    syncScriptedUnits()
-                    openRewardRequestIfNeeded()
-                    if (scriptRuntime.state != PlaybackState.COMPLETE || rewardFlow != null) return
-                }
-                if (scriptRuntime.state == PlaybackState.DIALOGUE ||
-                    scriptRuntime.state == PlaybackState.CHOICE ||
-                    scriptRuntime.state == PlaybackState.MODAL
-                ) return
-                openVictorySavePrompt()
-            }
-
-            BattleOutcome.ENEMY_VICTORY -> enterLoseScene()
-            null -> Unit
-        }
-    }
-
-    private fun openVictorySavePrompt() {
-        if (resultFlow == ResultFlow.WIN_SAVE_PROMPT || battleRouteCompleted || postBattleSaveLayer) return
-        if (fullTraceConfig?.exitOnFinish == false) finishFullBattleTrace("battle-end")
-        resultFlow = ResultFlow.WIN_SAVE_PROMPT
-        eventMessage = "게임 저장하시겠습니까?"
-    }
-
     private fun victorySaveAnswerAt(x: Float, y: Float): Int? = when {
         x in 460f..620f && y in 285f..365f -> 0 // 예
         x in 690f..850f && y in 285f..365f -> 1 // 비
         else -> null
-    }
-
-    private fun answerVictorySavePrompt(answer: Int) {
-        resultFlow = ResultFlow.NONE
-        if (answer == 0) {
-            postBattleSaveLayer = true
-            saveLoadOverlay.openSave()
-        } else finishVictoryRoute()
-    }
-
-    private fun finishVictoryRoute() {
-        if (battleRouteCompleted) return
-        postBattleSaveLayer = false
-        val next = nextScenario()
-        scriptRuntime.stage.sceneJumpStage?.let(game::setCampaignStage) ?: game.advanceCampaignStage()
-        game.completeBattle(returnScenario, next)
-        battleRouteCompleted = true
-        game.showNextScenario(next)
-    }
-
-    private fun openRewardRequestIfNeeded() {
-        if (rewardFlow != null) return
-        val request = scriptRuntime.stage.consumeRewardRequest() ?: return
-        val resolved = BattleRewardResolver.resolve(
-            request = request,
-            averageLevel = campaign.averageJoinedLevel(),
-            round = battle.round,
-            maxRound = scenarioMaxRound(),
-            mineDeaths = battle.units.values.count { it.faction == Faction.PLAYER && it.hitPoints < 1 },
-            enemiesRemaining = battle.units.values.count { it.type().isEnemySide() && it.visible },
-            // The runtime does not discard authored objective completion: a
-            // scripted victory has already satisfied the active condition.
-            objectivesComplete = false,
-        )
-        campaign.addMoney(resolved.money)
-        request.items.chunked(2).forEach { pair ->
-            val id = pair.firstOrNull() ?: return@forEach
-            if (id >= 255) return@forEach
-            val supplied = pair.getOrNull(1) ?: 1
-            val level =
-                if (supplied < 0) (campaign.averageJoinedLevel() / 10).coerceIn(0, 8) + 1 else supplied.coerceAtLeast(1)
-            campaign.inventory.addItem(id, count = 1, level = level)
-            campaign.inventory.discoverTreasure(id, gameDataCatalog)
-        }
-        rewardFlow = BattleRewardFlow(resolved)
-        if (rewardFlow?.complete == true) advanceRewardFlow()
-    }
-
-    private fun advanceRewardFlow() {
-        val flow = rewardFlow ?: return
-        flow.advance()
-        if (!flow.complete) return
-        rewardFlow = null
-        if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal()
-        syncScriptedUnits()
-        openRewardRequestIfNeeded()
-        if (postBattleSceneStarted && scriptRuntime.state == PlaybackState.COMPLETE && rewardFlow == null) {
-            openVictorySavePrompt()
-        }
-    }
-
-    /**
-     * Source battle completion is callback-driven: scene1 observes victory,
-     * resumes from RewardLayer, ends, then scene2 and Hall replacement run.
-     * None of those boundaries waits for an extra keyboard event.
-     */
-    private fun driveNaturalBattleCompletion() {
-        val transitionBusy = combatPresentationBusy() || outcomeCallbacksPending()
-        if (verifyMode || scriptedBattleVerifyMode || game.hasFrameCaptureRequest() ||
-            game.hasRenderEventLogRequest() || battleRouteCompleted ||
-            visibleBattleOutcome() != BattleOutcome.PLAYER_VICTORY || transitionBusy
-        ) return
-        when (NaturalBattleTransition.completionAction(
-            visibleBattleOutcome(), transitionBusy, scriptRuntime.state,
-            rewardFlow != null, scriptRuntime.stage.battleEndedByScript,
-            naturalOutcomeScriptStarted,
-        )) {
-            NaturalBattleTransition.CompletionAction.WAIT -> Unit
-            NaturalBattleTransition.CompletionAction.RUN_SCENE1 -> {
-                naturalOutcomeScriptStarted = true
-                runBattleScript()
-                syncScriptedUnits()
-                openRewardRequestIfNeeded()
-            }
-
-            NaturalBattleTransition.CompletionAction.START_SCENE2 -> continueAfterOutcome()
-        }
     }
 
     private fun settlementAnimatedValues(overlay: SettlementInfoView): Map<Int, Int> {
@@ -5682,7 +5631,7 @@ void main() {
     }
 
     private fun battleRewardOverlayView(): BattleRewardOverlayView {
-        val flow = rewardFlow
+        val flow = outcomePresentation.rewardFlow
         val phase = flow?.phase?.let {
             when (it) {
                 BattleRewardFlow.Phase.MONEY -> BattleRewardOverlayPhase.MONEY
@@ -5726,55 +5675,13 @@ void main() {
         )
     }
 
-    private fun openEquipmentUpgradeIfNeeded() {
-        if (itemUpgradeFlow != null) return
-        if (settlementPresentation.isActive()) return
-        if (itemUpgradeRouteState == null && (
-                    actionAnimation?.let { animationClock() < it.endsAt } == true ||
-                            movementAnimation?.let { animationClock() < it.endsAt } == true ||
-                            hitReactionAnimations.values.any { animationClock() < it.endsAt }
-                    )
-        ) return
-        val request = battle.experience.consumeEquipmentUpgrade() ?: return
-        val profile = gameDataCatalog.equipmentProfile(request.itemId) ?: return
-        val owner = campaign.unitNames[request.unitId]
-            ?: gameDataCatalog.unitProfile(request.unitId)?.name
-            ?: ""
-        val attribute = when (request.slot) {
-            CampaignEquipmentSlot.WEAPON -> "공격력"
-            CampaignEquipmentSlot.ARMOR -> "방어력"
-            CampaignEquipmentSlot.AUXILIARY -> "정신력"
-        }
-        itemUpgradeFlow = ItemUpgradeFlow(request, owner, profile.name, attribute) {
-            itemUpgradeCallbackCount++
-            itemUpgradeFlow = null
-        }
-    }
-
-    private fun openSettlementItemUpgrade(request: CampaignEquipmentExperienceResult) {
-        check(itemUpgradeFlow == null) { "overlapping settlement ItemUpgradeLayer" }
-        val profile = gameDataCatalog.equipmentProfile(request.itemId)
-            ?: error("settlement item profile is missing: ${request.itemId}")
-        val owner = campaign.unitNames[request.unitId]
-            ?: gameDataCatalog.unitProfile(request.unitId)?.name.orEmpty()
-        val attribute = when (request.slot) {
-            CampaignEquipmentSlot.WEAPON -> "공격력"
-            CampaignEquipmentSlot.ARMOR -> "방어력"
-            CampaignEquipmentSlot.AUXILIARY -> "정신력"
-        }
-        itemUpgradeFlow = ItemUpgradeFlow(request, owner, profile.name, attribute) {
-            itemUpgradeCallbackCount++
-            itemUpgradeFlow = null
-        }
-    }
-
     /**
      * Drives the same Battle._addWeaponExp-equivalent queue as combat. Only
      * the deterministic route preloads EXP=limit-1; the level mutation and
      * Global113 request are produced by the live Campaign/Battle callbacks.
      */
     private fun installItemUpgradeRoute() {
-        itemUpgradeRouteInstalled = true
+        outcomePresentation.markItemUpgradeRouteInstalled()
         val owner = battle.units.values.firstOrNull { it.visible && it.isPlayerSide() && it.characterId != null }
             ?: error("ItemUpgrade actual route has no player equipment owner")
         val target = battle.units.values.firstOrNull { it.visible && it.type().isEnemySide() }
@@ -5794,12 +5701,8 @@ void main() {
         )
         campaign.unitNames[ownerId] = "유비"
         battle.experience.addEquipmentExperience(owner.id, target.id, 1)
-        openEquipmentUpgradeIfNeeded()
-        check(itemUpgradeFlow?.request?.leveledUp == true) { "ItemUpgrade actual route did not level equipment" }
-    }
-
-    private fun closeItemUpgrade() {
-        itemUpgradeFlow?.panelCancelTouchEnd()
+        outcomePresentation.openEquipmentUpgradeIfNeeded()
+        check(outcomePresentation.itemUpgradeFlow?.request?.leveledUp == true) { "ItemUpgrade actual route did not level equipment" }
     }
 
     /** Actual Global113 composition, sharing the imported DynamicAtlas crops. */
@@ -6184,7 +6087,7 @@ void main() {
         if (magickRouteState != null) return magickRenderEventLog()
         if (usePropertyRouteState != null) return usePropertyRenderEventLog()
         if (loseRestartRoute) return RenderEventLog().also {
-            LoseSceneRenderEvents.append(it, requireNotNull(loseSceneFlow))
+            LoseSceneRenderEvents.append(it, requireNotNull(outcomePresentation.loseSceneFlow))
         }.jsonl()
 
         val route = rewardRouteState ?: itemUpgradeRouteState ?: winConditionRouteState
@@ -6321,7 +6224,7 @@ void main() {
     }
 
     private fun itemUpgradeRenderEventView(): BattleRenderEventItemUpgradeView? {
-        val flow = itemUpgradeFlow ?: return null
+        val flow = outcomePresentation.itemUpgradeFlow ?: return null
         return BattleRenderEventItemUpgradeView(
             (gameDataCatalog.equipmentProfile(flow.request.itemId)?.icon ?: 1).toString() + "-1",
             flow.itemName, flow.request.newLevel, flow.ownerName, flow.attributeName,
@@ -6329,7 +6232,7 @@ void main() {
         )
     }
 
-    private fun rewardRenderEventView(): BattleRenderEventRewardView? = rewardFlow?.let { flow ->
+    private fun rewardRenderEventView(): BattleRenderEventRewardView? = outcomePresentation.rewardFlow?.let { flow ->
         when (flow.phase) {
             BattleRewardFlow.Phase.MONEY -> BattleRenderEventRewardView(BattleRenderEventRewardPhase.MONEY, flow.reward.money, flow.reward.flag)
             BattleRewardFlow.Phase.ITEMS -> BattleRenderEventRewardView(
@@ -7897,7 +7800,7 @@ void main() {
     private fun handleSaveLoadEffect(effect: BattleSaveLoadOverlayController.Effect) {
         if (effect !is BattleSaveLoadOverlayController.Effect.Closed || effect.mode != BattleSaveLoadOverlayController.Mode.SAVE) return
         if (effect.saved) eventMessage = "진행 상황을 저장했습니다."
-        if (postBattleSaveLayer) finishVictoryRoute()
+        if (outcomePresentation.postBattleSaveLayer) outcomePresentation.finishVictoryRoute()
     }
 
     private fun handleForcesOverlayEffect(effect: BattleForcesOverlayController.Effect) {
@@ -9248,15 +9151,6 @@ void main() {
         batch.begin(); batch.color = Color.WHITE
         overlayAssets.loseLogoTexture?.let { batch.draw(it, 0f, 0f, viewport.worldWidth, viewport.worldHeight) }
         batch.end()
-    }
-
-    private fun enterLoseScene() {
-        if (loseSceneFlow != null) return
-        resultFlow = ResultFlow.LOSE_SCENE
-        loseSceneFlow = LoseSceneFlow(
-            openLogin = { game.showTitleScreen() },
-            endGame = { Gdx.app.exit() },
-        )
     }
 
     private fun loseAnswerAt(x: Float, y: Float): Int? = when {

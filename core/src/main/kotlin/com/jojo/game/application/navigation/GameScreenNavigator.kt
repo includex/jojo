@@ -96,9 +96,6 @@ internal class GameScreenNavigator(
             ScenarioScreen(
                 game,
                 moduleName,
-                configuration.verification.scenario,
-                configuration.verification.firstBranch,
-                configuration.verification.alternateBranch,
                 run.randomSequence,
                 run.infoTransferRandomSequence,
                 run.globals,
