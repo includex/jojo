@@ -77,7 +77,6 @@ class ScenarioScreen(
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val shapes = ShapeRenderer()
     private val batch = SpriteBatch()
-    private val startedSceneHistory = mutableListOf<Int>()
     private val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
         // `campaign.enter()` prepares a fresh module state. Apply explicit
         // verification globals afterwards so a CLI fixture never silently
@@ -111,7 +110,6 @@ class ScenarioScreen(
         )
         game.scenarioStarted(moduleName, scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0)
         start(scriptedStartScene, scriptedStartLabel)
-        startedSceneHistory += scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0
     }
     private val gameDataCatalog = GameDataCatalog.load()
     private val hallManagementCommands = HallManagementCommandAdapter(campaign, gameDataCatalog)
@@ -143,6 +141,28 @@ class ScenarioScreen(
     private val infoPanelPatch get() = sceneAssets.infoPanelPatch
     private val audio = GameAudioPlayer()
     private val playbackController = ScenarioPlaybackController(playback, audio::sync, audio::dispose)
+    private val scenarioNavigation = ScenarioNavigationCoordinator(
+        game = game,
+        moduleName = moduleName,
+        campaign = campaign,
+        playback = playback,
+        initialSceneIndex = scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0,
+    )
+    private val playbackFrame = ScenarioPlaybackFrameUpdater(
+        game = game,
+        playback = playback,
+        playbackController = playbackController,
+        navigation = scenarioNavigation,
+        isVerificationRun = ::isVerificationRun,
+        streetCaptureStage = streetCaptureStage,
+        autoCloseSettingEnabled = {
+            settingsPreferences.getInteger(
+                SettingLayer.GAME_SETTING,
+                SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+            ) and SettingLayer.AUTO_CLOSE != 0
+        },
+        onAdvance = ::advance,
+    )
     private val scenarioViewState get() = playbackController.viewState
     private val storyEvidenceRecorder = ScenarioStoryEvidenceRecorder()
     private val equipConfirmationEvidenceRecorder = ScenarioEquipConfirmationEvidenceRecorder()
@@ -152,13 +172,6 @@ class ScenarioScreen(
     private val staticHallInfoEvidenceRecorder = ScenarioStaticHallInfoEvidenceRecorder()
     private val glyphLayout = GlyphLayout()
     private val settingsPreferences by lazy { game.settingsPreferences() }
-    private var elapsed = 0f
-    private val routedAfterCompletion get() = scenarioViewState.routedAfterCompletion
-    private var naturalSceneIndex = scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0
-
-    /** True between HallLayer's battle command and sceneN's source completion. */
-    private var hallBattleScenePending = false
-    private var nextEntryFlowInputAt = 0f
     private var hallFixtureInstalled = false
     private val hallInteraction = HallInteractionController()
     private val hallInteractionView get() = hallInteraction.view
@@ -419,7 +432,7 @@ class ScenarioScreen(
     }
 
     override fun render(delta: Float) {
-        elapsed += delta
+        playbackFrame.advanceClock(delta)
         if (!hallFixtureInstalled &&
             ScenarioRenderPolicy.shouldInstallHallFixture(
                 game.requestedCaptureState(),
@@ -527,140 +540,85 @@ class ScenarioScreen(
                 else -> playback.installHallFixture()
             }
         }
-        if (updateScenarioFrame(delta) == ScenarioRenderPhaseResult.ROUTED) return
+        if (playbackFrame.updatePlayback(delta) == ScenarioRenderPhaseResult.ROUTED) return
+        if (playbackFrame.elapsed > 0.15f && game.requestedCaptureState() == "choice") {
+            advanceSourceUntilChoice()
+            playbackController.resetDialogueReveal()
+        }
+        playbackFrame.updatePresentation(delta)
         if (renderScenarioFrame() == ScenarioRenderPhaseResult.CAPTURED) return
         runVerificationChecks()
     }
 
-    /** Applies script, route, and presentation updates before any draw calls. */
-    private fun updateScenarioFrame(delta: Float): ScenarioRenderPhaseResult {
-        // Component-isolation fixtures begin at the first SayLayer. The live
-        // title route still presents the preceding source InfoLayer, while
-        // this staged oracle intentionally excludes it.
-        if (streetCaptureStage != null) {
-            var fixtureGuard = 0
-            while ((playback.state == PlaybackState.MODAL || playback.state == PlaybackState.DELAY) && fixtureGuard++ < 1000) {
-                if (playback.state == PlaybackState.MODAL) playback.resumeModal() else playback.skipDelay()
+    private fun runVerificationChecks() {
+        if (playbackFrame.elapsed <= .8f) return
+        if (verifyMode) {
+            val scenarioCount = ScenarioCatalog.verifyEmbeddedSources()
+            check(scenarioCount == 119) { "Expected 119 restored scenarios, got $scenarioCount" }
+            check(playback.stage.backgroundId != 0) { "$moduleName background command was not executed" }
+            check(playback.stage.units.isNotEmpty()) { "$moduleName unit commands were not executed" }
+            check(playback.currentDialogue?.text?.isNotBlank() == true) { "$moduleName Korean dialogue extraction failed" }
+            if (moduleName == "R_00") {
+                check(playback.stage.units.keys.containsAll(listOf(0, 157, 181, 182))) { "R_00 grouped unit commands were not executed" }
+                check(playback.currentDialogue?.text?.contains("대장님") == true) { "R_00 dialogue did not match" }
+                check(Gdx.files.internal("maps/heads/181.png").exists()) { "R_00 speaker portrait was not bundled" }
+                check(Gdx.files.internal("maps/2.jpg").exists()) { "R_00 loadBg source image was not bundled" }
             }
-            playback.stage.finishAnimations()
+            Gdx.app.log("JojoGame", "VERIFY_OK: $scenarioCount scenario sources + ASTs embedded; $moduleName AST runtime loaded")
+            Gdx.app.exit()
         }
-        // StageLayer.delay() pauses the original script component and resumes
-        // it from the game update loop.  Advance the restored AST on every
-        // frame for the same reason; without this, R_00 can stop before its
-        // BattleHall / Yingchuan transition whenever a source delay occurs.
-        playbackController.updatePlayback(
-            delta, autoCloseUi = settingsPreferences.getInteger(
-                SettingLayer.GAME_SETTING,
-                SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-            ) and SettingLayer.AUTO_CLOSE != 0
-        )
-        // R_01 scene8 returns true only after its departure SayLayer closes
-        // and bgSound(-1) runs. HallLayer consumes that return immediately;
-        // it does not wait for another keyboard event before opening battle.
-        if (hallBattleScenePending && playback.state == PlaybackState.COMPLETE && !playback.stage.menuVisible) {
-            routeAfterScenario()
-            return ScenarioRenderPhaseResult.ROUTED
-        }
-        // RControlScript.__dispatch__ continues sceneN -> sceneN+1 until a
-        // source menu boundary or the first missing function.
-        if (ScenarioRenderPolicy.shouldContinueNaturally(
-                isVerificationRun = isVerificationRun(),
-                hasFrameCaptureRequest = game.hasFrameCaptureRequest(),
-                playbackState = playback.state,
-                naturalSceneIndex = naturalSceneIndex,
-                menuVisible = playback.stage.menuVisible,
-                battleEndedByScript = playback.stage.battleEndedByScript,
-                sceneJumpTarget = playback.stage.sceneJumpTarget,
-            )) {
-            val next = "scene${naturalSceneIndex + 1}"
-            if (next in playback.functionNames) {
-                naturalSceneIndex++
-                game.scenarioStarted(moduleName, naturalSceneIndex)
-                playback.start(next)
-                startedSceneHistory += naturalSceneIndex
-            }
-        }
-        // Deterministic driver for the real R_00 screen route.  Every action
-        // goes through the same advance/choice functions as keyboard/touch;
-        // delays remain wall-clock driven and no AST fast-forward is used.
-        if (moduleName == "R_00" && game.requestedYingchuanEntryFlowTracePath() != null && elapsed >= nextEntryFlowInputAt) {
-            nextEntryFlowInputAt = elapsed + .04f
-            when (playback.state) {
-                PlaybackState.DIALOGUE -> advance()
-                PlaybackState.CHOICE -> {
-                    val start = playback.currentChoice?.options?.indexOfFirst { it.contains("게임 시작") } ?: -1
-                    playback.selectChoice(if (start >= 0) start else 0)
-                    advance()
-                }
-
-                PlaybackState.MODAL -> advance()
-                PlaybackState.COMPLETE -> advance()
-                PlaybackState.DELAY -> Unit
-            }
-        }
-        // routeAfterScenario replaces and disposes this screen.  Do not
-        // submit another frame through its released SpriteBatch.
-        if (routedAfterCompletion) return ScenarioRenderPhaseResult.ROUTED
-        if (game.requestedCaptureState() == "scenario-dialogue") {
-            var guard = 0
-            while (playback.state != PlaybackState.DIALOGUE && playback.state != PlaybackState.COMPLETE && guard++ < 1000) {
-                when (playback.state) {
-                    PlaybackState.MODAL -> playback.resumeModal()
-                    PlaybackState.DELAY -> playback.skipDelay()
-                    PlaybackState.CHOICE -> playback.confirmChoice()
-                    PlaybackState.DIALOGUE, PlaybackState.COMPLETE -> Unit
-                }
-            }
-        }
-        if (game.requestedCaptureState() == "map-info") {
-            var guard = 0
-            while (!(playback.state == PlaybackState.MODAL &&
-                        playback.currentModalKind == ScenarioModalKind.MAP_INFO) &&
-                playback.state != PlaybackState.COMPLETE && guard++ < 1000
-            ) {
-                when (playback.state) {
-                    PlaybackState.DIALOGUE -> playback.advanceDialogue()
-                    PlaybackState.CHOICE -> playback.confirmChoice()
-                    PlaybackState.DELAY -> playback.skipDelay()
-                    PlaybackState.MODAL -> playback.resumeModal()
-                    PlaybackState.COMPLETE -> Unit
-                }
-            }
-        }
-        // HallLayer._scriptOver transitions immediately after stage.end().
-        // Keep deterministic capture/verifier screens stationary, but never
-        // expose the migration-era completion placeholder in normal play.
-        if (!routedAfterCompletion && ScenarioRenderPolicy.shouldRouteAfterCompletion(
-                isVerificationRun = isVerificationRun(),
-                hasFrameCaptureRequest = game.hasFrameCaptureRequest(),
-                playbackState = playback.state,
-                menuVisible = playback.stage.menuVisible,
-                battleEndedByScript = playback.stage.battleEndedByScript,
-                sceneJumpTarget = playback.stage.sceneJumpTarget,
-            )) {
-            routeAfterScenario()
-            return ScenarioRenderPhaseResult.ROUTED
-        }
-        if (elapsed > 0.15f && game.requestedCaptureState() == "choice") {
+        if (branchVerifyMode) {
             advanceSourceUntilChoice()
-            playbackController.resetDialogueReveal()
+            check(playback.state == PlaybackState.CHOICE) { "R_00 first choice was not reached" }
+            playback.confirmChoice()
+            completeSourceDelays()
+            check(playback.currentDialogue?.text?.contains("내가 남자로 태어났을 때부터") == true) {
+                "R_00 sel == 1 branch was not executed"
+            }
+            Gdx.app.log(
+                "JojoGame",
+                "VERIFY_BRANCH_OK: R_00 first choice selected and sel == 1 dialogue branch executed"
+            )
+            Gdx.app.exit()
         }
-        val autoCloseEnabled = ScenarioRenderPolicy.autoCloseEnabled(
-            isVerificationRun = isVerificationRun(),
-            hasFrameCaptureRequest = game.hasFrameCaptureRequest(),
-            hasRenderEventLogRequest = game.hasRenderEventLogRequest(),
-            autoCloseSettingEnabled = settingsPreferences.getInteger(
-                SettingLayer.GAME_SETTING,
-                SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-            ) and SettingLayer.AUTO_CLOSE != 0,
-        )
-        playbackController.updatePresentation(
-            delta = delta,
-            autoCloseEnabled = autoCloseEnabled,
-            revealDialogueForCapture = streetCaptureStage != null && game.hasRenderEventLogRequest(),
-            onAdvance = ::advance,
-        )
-        return ScenarioRenderPhaseResult.CONTINUE
+        if (alternateBranchVerifyMode) {
+            advanceSourceUntilChoice()
+            check(playback.state == PlaybackState.CHOICE) { "R_00 first choice was not reached" }
+            playback.selectNext()
+            playback.confirmChoice()
+            completeSourceDelays()
+            check(playback.currentDialogue?.text?.contains("간웅이라고? 지금 단정 짓기엔 너무 이르지 않나") == true) {
+                "R_00 sel == 2 branch was not executed"
+            }
+            Gdx.app.log(
+                "JojoGame",
+                "VERIFY_BRANCH_2_OK: R_00 second choice selected and sel == 2 dialogue branch executed"
+            )
+            Gdx.app.exit()
+        }
+        if (scriptedChoices.isNotEmpty()) {
+            scriptedChoices.forEachIndexed { step, choiceIndex ->
+                advanceSourceUntilChoice()
+                val choice = requireNotNull(playback.currentChoice) { "$moduleName choice script step $step reached completion before a choice" }
+                require(choiceIndex in choice.options.indices) { "$moduleName choice script step $step selected $choiceIndex, options=${choice.options.size}" }
+                playback.selectChoice(choiceIndex)
+                confirmChoice()
+            }
+            advanceSourceUntilChoice()
+            check(playback.state == PlaybackState.COMPLETE || (allowPendingChoiceAfterScript && playback.state == PlaybackState.CHOICE)) {
+                "$moduleName choice script ended with an unconsumed choice"
+            }
+            choiceTracePath?.let(::writeChoiceTrace)
+            randomTracePath?.let(::writeRandomTrace)
+            Gdx.app.log("JojoGame", "VERIFY_CHOICE_SCRIPT_OK: $moduleName choices=${scriptedChoices.joinToString(",")} random=${scriptedRandomValues.joinToString(",")} draws=${playback.randomDrawCount} randomRemaining=${playback.remainingInjectedRandomCount} round=$scriptedBattleRound camp=$scriptedBattleCamp pendingChoice=${playback.state == PlaybackState.CHOICE}")
+            Gdx.app.exit()
+        }
+        if (scriptedChoices.isEmpty() && randomTracePath != null) {
+            advanceSourceUntilChoice()
+            writeRandomTrace(randomTracePath)
+            Gdx.app.log("JojoGame", "VERIFY_RANDOM_TRACE_OK: $moduleName draws=${playback.randomTrace.size}")
+            Gdx.app.exit()
+        }
     }
 
     /** Draws the post-update scene and reports capture completion to its caller. */
@@ -684,8 +642,8 @@ class ScenarioScreen(
                 batch.end()
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             }
-            if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
-            if (elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
+            if (playbackFrame.elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
+            if (playbackFrame.elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         } else {
             if (hallPalaceFixture) {
                 drawBattlefield(drawCharacters = true, drawUnits = true)
@@ -702,102 +660,11 @@ class ScenarioScreen(
                 drawBattlefield(drawCharacters = !isolatedHallOverlay, drawUnits = !isolatedHallOverlay)
                 drawOverlay()
             }
-            if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
-            if (elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
+            if (playbackFrame.elapsed > 1f && game.writeRenderEventLogIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
+            if (playbackFrame.elapsed > 1f && game.captureFrameIfRequested()) return ScenarioRenderPhaseResult.CAPTURED
         }
 
         return ScenarioRenderPhaseResult.CONTINUE
-    }
-
-    private fun runVerificationChecks() {
-        if (verifyMode && elapsed > 0.8f) {
-            val scenarioCount = ScenarioCatalog.verifyEmbeddedSources()
-            check(scenarioCount == 119) { "Expected 119 restored scenarios, got $scenarioCount" }
-            check(playback.stage.backgroundId != 0) { "$moduleName background command was not executed" }
-            check(playback.stage.units.isNotEmpty()) { "$moduleName unit commands were not executed" }
-            check(playback.currentDialogue?.text?.isNotBlank() == true) { "$moduleName Korean dialogue extraction failed" }
-            if (moduleName == "R_00") {
-                check(
-                    playback.stage.units.keys.containsAll(
-                        listOf(
-                            0,
-                            157,
-                            181,
-                            182
-                        )
-                    )
-                ) { "R_00 grouped unit commands were not executed" }
-                check(playback.currentDialogue?.text?.contains("대장님") == true) { "R_00 dialogue did not match" }
-                check(Gdx.files.internal("maps/heads/181.png").exists()) { "R_00 speaker portrait was not bundled" }
-                check(Gdx.files.internal("maps/2.jpg").exists()) { "R_00 loadBg source image was not bundled" }
-            }
-            Gdx.app.log(
-                "JojoGame",
-                "VERIFY_OK: $scenarioCount scenario sources + ASTs embedded; $moduleName AST runtime loaded"
-            )
-            Gdx.app.exit()
-        }
-        if (branchVerifyMode && elapsed > 0.8f) {
-            advanceSourceUntilChoice()
-            check(playback.state == PlaybackState.CHOICE) { "R_00 first choice was not reached" }
-            playback.confirmChoice()
-            completeSourceDelays()
-            check(playback.currentDialogue?.text?.contains("내가 남자로 태어났을 때부터") == true) {
-                "R_00 sel == 1 branch was not executed"
-            }
-            Gdx.app.log(
-                "JojoGame",
-                "VERIFY_BRANCH_OK: R_00 first choice selected and sel == 1 dialogue branch executed"
-            )
-            Gdx.app.exit()
-        }
-        if (alternateBranchVerifyMode && elapsed > 0.8f) {
-            advanceSourceUntilChoice()
-            check(playback.state == PlaybackState.CHOICE) { "R_00 first choice was not reached" }
-            playback.selectNext()
-            playback.confirmChoice()
-            completeSourceDelays()
-            check(playback.currentDialogue?.text?.contains("간웅이라고? 지금 단정 짓기엔 너무 이르지 않나") == true) {
-                "R_00 sel == 2 branch was not executed"
-            }
-            Gdx.app.log(
-                "JojoGame",
-                "VERIFY_BRANCH_2_OK: R_00 second choice selected and sel == 2 dialogue branch executed"
-            )
-            Gdx.app.exit()
-        }
-        if (scriptedChoices.isNotEmpty() && elapsed > 0.8f) {
-            scriptedChoices.forEachIndexed { step, choiceIndex ->
-                advanceSourceUntilChoice()
-                val choice = requireNotNull(playback.currentChoice) {
-                    "$moduleName choice script step $step reached completion before a choice"
-                }
-                require(choiceIndex in choice.options.indices) {
-                    "$moduleName choice script step $step selected $choiceIndex, options=${choice.options.size}"
-                }
-                playback.selectChoice(choiceIndex)
-                confirmChoice()
-            }
-            advanceSourceUntilChoice()
-            check(playback.state == PlaybackState.COMPLETE || (allowPendingChoiceAfterScript && playback.state == PlaybackState.CHOICE)) {
-                "$moduleName choice script ended with an unconsumed choice"
-            }
-            choiceTracePath?.let(::writeChoiceTrace)
-            randomTracePath?.let(::writeRandomTrace)
-            Gdx.app.log(
-                "JojoGame",
-                "VERIFY_CHOICE_SCRIPT_OK: $moduleName choices=${scriptedChoices.joinToString(",")} " +
-                        "random=${scriptedRandomValues.joinToString(",")} draws=${playback.randomDrawCount} " +
-                        "randomRemaining=${playback.remainingInjectedRandomCount} round=$scriptedBattleRound camp=$scriptedBattleCamp pendingChoice=${playback.state == PlaybackState.CHOICE}",
-            )
-            Gdx.app.exit()
-        }
-        if (scriptedChoices.isEmpty() && randomTracePath != null && elapsed > 0.8f) {
-            advanceSourceUntilChoice()
-            writeRandomTrace(randomTracePath)
-            Gdx.app.log("JojoGame", "VERIFY_RANDOM_TRACE_OK: $moduleName draws=${playback.randomTrace.size}")
-            Gdx.app.exit()
-        }
     }
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
@@ -813,8 +680,8 @@ class ScenarioScreen(
         playbackController.advance(
             onConfirmChoice = ::confirmChoice,
             closeHallMenu = hallInteraction::closeMenu,
-            beginHallBattleScene = ::beginHallBattleScene,
-            onRoute = ::routeAfterScenario,
+            beginHallBattleScene = scenarioNavigation::beginHallBattleScene,
+            onRoute = scenarioNavigation::routeAfterScenario,
         )
     }
 
@@ -826,80 +693,15 @@ class ScenarioScreen(
             playback = playback.state,
             options = playback.currentChoice?.options.orEmpty(),
             selectedChoice = playback.selectedChoice,
-            sceneIndex = naturalSceneIndex,
-            startedScenes = startedSceneHistory.toList(),
+            sceneIndex = scenarioNavigation.naturalSceneIndex,
+            startedScenes = scenarioNavigation.startedScenes(),
             campaignStage = game.campaignStage(),
             menuVisible = playback.stage.menuVisible,
             dialogueText = playback.currentDialogue?.text,
-            hallBattleScenePending = hallBattleScenePending,
+            hallBattleScenePending = scenarioNavigation.hallBattleScenePending,
             battleButtonScreenX = battleButton.x.toInt(),
             battleButtonScreenY = (Gdx.graphics.height - battleButton.y).toInt(),
         )
-    }
-
-    /**
-     * Source HallLayer does not jump straight to StartBattleScreen. Its battle
-     * button dispatches sceneN once more with battleTest() true; R_01 scene8
-     * hides the menu, says "출발.", stops the BGM, and only then returns true.
-     */
-    private fun beginHallBattleScene(): Boolean {
-        if (routedAfterCompletion || hallBattleScenePending ||
-            playback.state != PlaybackState.COMPLETE || !playback.stage.menuVisible ||
-            playback.stage.joinBattleLimit == null
-        ) return false
-        val nextIndex = naturalSceneIndex + 1
-        val nextScene = "scene$nextIndex"
-        if (nextScene !in playback.functionNames) return false
-
-        playback.selectHallBattleCommand()
-        naturalSceneIndex = nextIndex
-        hallBattleScenePending = true
-        game.scenarioStarted(moduleName, nextIndex)
-        startedSceneHistory += nextIndex
-        playback.start(nextScene)
-        return true
-    }
-
-    private fun isVerificationRun(): Boolean = verifyMode || branchVerifyMode || alternateBranchVerifyMode ||
-            scriptedChoices.isNotEmpty() || choiceTracePath != null || randomTracePath != null
-
-    private fun routeAfterScenario() {
-        playbackController.routeOnce {
-            hallBattleScenePending = false
-            val jump = playback.stage.sceneJumpTarget
-            if (jump != null) {
-                val targetStage = checkNotNull(playback.stage.sceneJumpStage) {
-                    "$moduleName jumpScene($jump) did not resolve its source Model stage"
-                }
-                game.setCampaignStage(targetStage)
-                val targetIndex = targetStage / 2
-                val target = "%s_%02d".format(if (targetStage % 2 == 0) "R" else "S", targetIndex)
-                if (target.startsWith("R_")) game.showScenario(target)
-                else game.showBattleSandbox(target, "R_%02d".format(targetIndex + 1))
-            } else playback.stage.joinBattleLimit?.let { limit ->
-                val entry = campaign.roster.configureBattleRoster(limit)
-                game.advanceCampaignStage()
-                if (entry.directBattleRoster != null) {
-                    // HallLayer._startBattle skips StartBattleScreen when its
-                    // mandatory roster already fills the clamped authored max.
-                    game.showBattleSandbox(matchingBattleModule(), moduleName)
-                } else {
-                    game.showBattlePreparation(
-                        moduleName,
-                        matchingBattleModule(),
-                        entry.selectionLimit,
-                        playback.stage.backgroundId,
-                    )
-                }
-            } ?: run {
-                // R_00 does not call setJoinBattle. Source HallLayer._startBattle
-                // derives an implicit one-unit roster and enters S_00 directly.
-                // Preserve that state mutation before BattleScreen.createMine.
-                campaign.roster.prepareImplicitSingleUnitBattle()
-                game.advanceCampaignStage()
-                game.showBattleSandbox(matchingBattleModule(), moduleName)
-            }
-        }
     }
 
     private fun confirmChoice() {
@@ -907,13 +709,9 @@ class ScenarioScreen(
         playback.chosenOption?.let { game.recordChoice(moduleName, it) }
     }
 
-    /**
-     * Capture/branch fixtures follow the original verifier's "next" route:
-     * it completes each SayLayer and waits for every StageLayer.delay before
-     * inspecting the actual stage.choice suspension.  In a deterministic
-     * fixture, skipDelay is that completed source delay; it never invents a
-     * UI state or bypasses the recovered Python statements.
-     */
+    private fun isVerificationRun(): Boolean = verifyMode || branchVerifyMode || alternateBranchVerifyMode ||
+        scriptedChoices.isNotEmpty() || choiceTracePath != null || randomTracePath != null
+
     private fun advanceSourceUntilChoice() {
         var guard = 0
         while (playback.state != PlaybackState.CHOICE && playback.state != PlaybackState.COMPLETE) {
@@ -967,7 +765,7 @@ class ScenarioScreen(
         val speakerId = playback.currentDialogue?.speakerId?.toIntOrNull()
         val units = playback.stage.units.values.mapIndexed { index, unit ->
             val avatar = gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id
-            val animationTime = if (unit.action == 20) unit.animationElapsed else elapsed
+            val animationTime = if (unit.action == 20) unit.animationElapsed else playbackFrame.elapsed
             val frame = HallUnitRender.frame(avatar, unit.action, unit.direction, animationTime)
             ScenarioBattlefieldUnitView(
                 id = unit.id,
@@ -1646,7 +1444,7 @@ class ScenarioScreen(
             HallInteractionIntent.MenuClosed,
             HallInteractionIntent.OpenMenu -> Unit
 
-            HallInteractionIntent.StartBattle -> if (!beginHallBattleScene()) routeAfterScenario()
+            HallInteractionIntent.StartBattle -> if (!scenarioNavigation.beginHallBattleScene()) scenarioNavigation.routeAfterScenario()
             is HallInteractionIntent.OpenManagement -> hallManagementFlow.open(HallManagement.valueOf(intent.kind.name))
             is HallInteractionIntent.MenuSelection -> when (intent.index) {
                 0 -> game.showTitleScreen()

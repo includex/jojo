@@ -52,6 +52,7 @@ import com.jojo.game.presentation.battle.settlement.BattleSettlementPresentation
 import com.jojo.game.presentation.battle.settlement.SettlementInfoView
 import com.jojo.game.presentation.battle.settlement.SettlementInfo2View
 import com.jojo.game.presentation.battle.script.ScriptPresentationTimeline
+import com.jojo.game.presentation.battle.script.ScriptedUnitPresentationLifecycle
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
@@ -88,7 +89,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Json
 import com.badlogic.gdx.utils.viewport.ExtendViewport
-
 
 /**
  * LibGDX tactical battle screen and presentation coordinator.
@@ -209,7 +209,7 @@ class BattleScreen(
         val units = battle.units.values.filter { it.visible }.map { unit ->
             // Cocos UIFrame.CreateAnime creates these frames at runtime, so its
             // numeric frame name has no imported SpriteFrame UUID.
-            val scripted = scriptedUnitVisuals[unit.id]
+            val scripted = scriptedUnitPresentation.visual(unit.id)
             val selected = scripted?.let { scriptedVisualFrame(unit, it) } ?: idleSpriteFrame(unit)
             val row = (selected.sourceY - 1) / 50
             BattleCompositionUnit(
@@ -1025,18 +1025,12 @@ void main() {
     private val settlementPresentation = BattleSettlementPresentationController()
     private var settlementMeffEndsAt: Float? = null
     private var settlementItemUpgradeStarted = false
-    private var activeScriptedHide: ActiveScriptedHide? = null
-    private var scriptedHideAwaitingDialogue: PendingScriptedHide? = null
-    private var activeScriptedShow: ActiveScriptedShow? = null
-
-    /** One `loadUnitPicture` completion edge for BattleUnit.setPosts. */
-    private var activeScriptedUnitPosts: ActiveScriptedUnitPosts? = null
+    /** Callback state for scripted hide/show/posts/map/action presentation. */
+    private val scriptedUnitPresentation = ScriptedUnitPresentationLifecycle()
 
     /** BattleUnit._avatar remains old until loadAvatar's async completion. */
     private val loadedBattleAvatarIds = mutableMapOf<String, Int>()
-    private var activeMapPresentation: ActiveMapPresentation? = null
     private val scriptPresentationTimeline = ScriptPresentationTimeline()
-    private var activeScriptedUnitAction: ActiveScriptedUnitAction? = null
 
     /** Harm-number animation values visible from the attack `hit` event onward. */
     private val harmNumberAnimations = mutableMapOf<String, HarmNumberAnimation>()
@@ -1060,9 +1054,6 @@ void main() {
     private var queuedMagicPresentation: MagicPassPresentationQueue? = null
     private var pendingCriticalSpeechAction: PendingCriticalSpeechAction? = null
     private var activeCounterMagicPresentation: ActiveCounterMagicPresentation? = null
-
-    /** Persistent BattleUnit.setAction() state; source keeps it until action 0 replaces it. */
-    private val scriptedUnitVisuals = mutableMapOf<String, ScriptedUnitVisual>()
 
     /** One entry per `_magicProcess → playMeff` group (CLLJ has two). */
     private val magicEffectAnimations = mutableListOf<MagicEffectAnimation>()
@@ -1373,11 +1364,11 @@ void main() {
                 // Source actual menu entry occurs after the opening Say
                 // sequence has restored 235 from scripted action4 to its
                 // ordinary idle action.
-                battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitVisuals.remove(it.id) }
+                battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
             }
 
             "battle-win-condition-full-fixture" -> {
-                battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitVisuals.remove(it.id) }
+                battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
                 scriptRuntime.suspendForWinCondition("장보와 장량을\n격퇴하십시오.")
             }
         }
@@ -2169,7 +2160,8 @@ void main() {
             hitReactionAnimations.values.none { animationClock() < it.endsAt } &&
             deathAnimations.values.none { animationClock() < it.endsAt } &&
             !deathTimeline.isBusy() &&
-            scriptedHideAwaitingDialogue == null && activeScriptedHide == null && activeScriptedShow == null
+            scriptedUnitPresentation.awaitingHideDialogue == null && scriptedUnitPresentation.activeHide == null &&
+                scriptedUnitPresentation.activeShow == null
             && !combatPresentationBusy()
             && !outcomeCallbacksPending()
         ) enterLoseScene()
@@ -2225,7 +2217,7 @@ void main() {
     /** Draws capture/reference routes whose early returns own the complete frame. */
     private fun renderDedicatedBattleRoute(delta: Float): Boolean {
         if (winConditionRouteState != null) {
-            battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitVisuals.remove(it.id) }
+            battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
         }
         dialogueComponentStage?.let { stage ->
             // Match the source isolation controller: the camera clears to a
@@ -2865,7 +2857,7 @@ void main() {
         val active = actionAnimation?.takeIf { it.unitId == unit.id && now < it.endsAt }
             ?: hitReactionAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
             ?: deathAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
-        val scripted = scriptedUnitVisuals[unit.id]
+        val scripted = scriptedUnitPresentation.visual(unit.id)
         val action = if (move != null) 20 else active?.sourceAction ?: scripted?.action ?: defaultPresentationAction(unit).action
         val direction = moveSample?.direction ?: active?.direction ?: unit.direction
         val animationTime = (now - (move?.startedAt ?: active?.startedAt ?: scripted?.startedAt ?: battleElapsed)).coerceAtLeast(0f)
@@ -4268,7 +4260,7 @@ void main() {
     }
 
     private fun driveScriptedUnitHide() {
-        val active = activeScriptedHide
+        val active = scriptedUnitPresentation.activeHide
         if (active != null) {
             if (animationClock() < active.endsAt) return
             deathAnimations.remove(active.battleUnitId)
@@ -4279,14 +4271,14 @@ void main() {
                 unit.visible = false
             }
             battle.presentation.completeScriptedUnitHide(active.battleUnitId)
-            activeScriptedHide = null
+            scriptedUnitPresentation.finishHide()
             if (active.request.resumesScript) scriptRuntime.resumeExternalDelay()
             else driveScriptedUnitHide()
             return
         }
-        scriptedHideAwaitingDialogue?.let { pending ->
+        scriptedUnitPresentation.awaitingHideDialogue?.let { pending ->
             if (scriptRuntime.currentDialogue != null) return
-            scriptedHideAwaitingDialogue = null
+            scriptedUnitPresentation.takeHideDialogue()
             battle.presentation.presentationUnit(pending.battleUnitId)?.let { unit ->
                 startScriptedUnitHide(pending.request, unit)
             } ?: run {
@@ -4317,7 +4309,7 @@ void main() {
         val effectiveRequest = request.copy(hideType = effectiveHideType)
         val message = unit.retireMessage.takeIf { unit.deathMessageEnabled }
         if (request.showsRetireMessage && message != null) {
-            scriptedHideAwaitingDialogue = PendingScriptedHide(effectiveRequest, unit.id)
+            scriptedUnitPresentation.awaitHideDialogue(effectiveRequest, unit.id)
             scriptRuntime.presentExternalBattleDialogue(Dialogue(unit.characterId?.toString(), message))
             return
         }
@@ -4343,20 +4335,20 @@ void main() {
         deathAnimations[unit.id] = UnitActionAnimation(
             unit.id, UnitAnimationKind.DEATH, unit.direction, startedAt, endsAt, sourceAction,
         )
-        activeScriptedHide = ActiveScriptedHide(request, unit.id, endsAt, originalHp)
+        scriptedUnitPresentation.startHide(request, unit.id, endsAt, originalHp)
     }
 
     /** BattleUnit.show restores model state before awaiting its native show callback. */
     private fun driveScriptedUnitShow() {
-        activeScriptedShow?.let { active ->
+        scriptedUnitPresentation.activeShow?.let { active ->
             if (animationClock() < active.endsAt) return
-            scriptedUnitVisuals.remove(active.battleUnitId)
+            scriptedUnitPresentation.clearVisual(active.battleUnitId)
             battle.presentation.presentationUnit(active.battleUnitId)?.let { unit ->
                 unit.otherNodesVisible = true
                 active.request.direction.takeIf { it in 0..3 }?.let { unit.direction = it }
                 defaultPresentationAction(unit)
             }
-            activeScriptedShow = null
+            scriptedUnitPresentation.finishShow()
             scriptRuntime.resumeExternalDelay()
             return
         }
@@ -4400,8 +4392,8 @@ void main() {
         unit.otherNodesVisible = !revive
         val startedAt = animationClock()
         val duration = if (revive) requireSourceActionDuration(46, unit.direction) else .2f
-        if (revive) scriptedUnitVisuals[unit.id] = ScriptedUnitVisual(46, startedAt)
-        activeScriptedShow = ActiveScriptedShow(request, unit.id, startedAt + duration)
+        if (revive) scriptedUnitPresentation.setVisual(unit.id, ScriptedUnitVisual(46, startedAt))
+        scriptedUnitPresentation.startShow(request, unit.id, startedAt + duration)
     }
 
     /**
@@ -4412,9 +4404,9 @@ void main() {
      * preserves the authored async callback boundary.
      */
     private fun driveScriptedUnitPosts() {
-        activeScriptedUnitPosts?.let { active ->
+        scriptedUnitPresentation.activePosts?.let { active ->
             loadedBattleAvatarIds[active.battleUnitId] = active.request.newAvatarId
-            activeScriptedUnitPosts = null
+            scriptedUnitPresentation.finishPosts()
             if (active.request.pausesScript) scriptRuntime.resumeExternalDelay()
             return
         }
@@ -4427,7 +4419,7 @@ void main() {
         // The old group is still what Cocos displays while loadUnitPicture is
         // pending; only its completion publishes the new avatar and resumes.
         loadedBattleAvatarIds[unit.id] = request.oldAvatarId
-        activeScriptedUnitPosts = ActiveScriptedUnitPosts(request, unit.id)
+        scriptedUnitPresentation.startPosts(request, unit.id)
     }
 
     /** StageLayer.setObject2/playMagicMeff use exact tile centering, not _contains. */
@@ -4447,15 +4439,15 @@ void main() {
 
     /** StageLayer.setObject2/playMagicMeff use exact tile centering, not _contains. */
     private fun driveMapPresentation() {
-        activeMapPresentation?.let { active ->
+        scriptedUnitPresentation.activeMap?.let { active ->
             if (animationClock() < active.endsAt) return
-            activeMapPresentation = null
+            scriptedUnitPresentation.finishMap()
             scriptRuntime.resumeExternalDelay()
             return
         }
         val request = scriptRuntime.stage.consumeMapPresentationRequest() ?: return
         focusCameraOnTile(request.x.toFloat(), request.y.toFloat(), forceCenter = true)
-        activeMapPresentation = ActiveMapPresentation(request, animationClock() + request.duration)
+        scriptedUnitPresentation.startMap(request, animationClock() + request.duration)
     }
 
     /**
@@ -4469,7 +4461,7 @@ void main() {
         advance.effects.forEach { effect ->
             when (effect) {
                 is ScriptPresentationTimeline.Effect.FinishUnitAction -> {
-                    scriptedUnitVisuals.remove(effect.battleUnitId)
+                    scriptedUnitPresentation.clearVisual(effect.battleUnitId)
                     battle.presentation.presentationUnit(effect.battleUnitId)?.let(::defaultPresentationAction)
                 }
                 ScriptPresentationTimeline.Effect.PlayGetItemSound -> audio.playBattleEffect(14)
@@ -4512,7 +4504,7 @@ void main() {
                     return
                 }
                 focusCameraOn(unit)
-                scriptedUnitVisuals[unit.id] = ScriptedUnitVisual(request.action, now)
+                scriptedUnitPresentation.setVisual(unit.id, ScriptedUnitVisual(request.action, now))
                 val duration = requireSourceActionDuration(request.action, unit.direction)
                 scriptPresentationTimeline.startItem(request, now, duration, unit.id)
             }
@@ -4563,12 +4555,12 @@ void main() {
     }
 
     private fun driveScriptedUnitActionCallback() {
-        val active = activeScriptedUnitAction ?: return
+        val active = scriptedUnitPresentation.activeAction ?: return
         if (animationClock() < active.endsAt) return
         if (actionAnimation?.unitId == active.battleUnitId) actionAnimation = null
-        scriptedUnitVisuals.remove(active.battleUnitId)
+        scriptedUnitPresentation.clearVisual(active.battleUnitId)
         battle.presentation.presentationUnit(active.battleUnitId)?.let(::defaultPresentationAction)
-        activeScriptedUnitAction = null
+        scriptedUnitPresentation.finishAction()
         scriptRuntime.resumeExternalDelay()
     }
 
@@ -4672,8 +4664,8 @@ void main() {
         return BattleBootstrapCallbackState(
             move = scriptRuntime.stage.units.values.any { it.moveDuration > 0f },
             attackAction = now < scriptedAttackCallbackEndsAt,
-            hide = activeScriptedHide != null || scriptedHideAwaitingDialogue != null,
-            show = activeScriptedShow != null,
+            hide = scriptedUnitPresentation.hideBusy,
+            show = scriptedUnitPresentation.showBusy,
             fight = activeFightCommand != null || pendingFightCommands.isNotEmpty(),
         ).blockingReasons()
     }
@@ -4757,8 +4749,8 @@ void main() {
                 hitReactionAnimations.values.any { now < it.endsAt } ||
                 deathAnimations.values.any { now < it.endsAt } ||
                 deathTimeline.isBusy() ||
-                activeScriptedHide != null || scriptedHideAwaitingDialogue != null || activeScriptedShow != null ||
-                scriptPresentationTimeline.isActive() || activeScriptedUnitAction != null ||
+                scriptedUnitPresentation.hideBusy || scriptedUnitPresentation.showBusy ||
+                scriptPresentationTimeline.isActive() || scriptedUnitPresentation.actionBusy ||
                 magicEffectAnimations.any { now < it.endsAt } ||
                 queuedMagicPresentation != null ||
                 activeCounterMagicPresentation?.let { now < it.endsAt } == true ||
@@ -6360,7 +6352,7 @@ void main() {
                 ?: hitReactionAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
                 ?: deathAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
             val move = movementAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unit.id }
-            val scripted = action?.let { null } ?: scriptedUnitVisuals[unit.id]
+            val scripted = action?.let { null } ?: scriptedUnitPresentation.visual(unit.id)
             val frame = (if (battleDialogueBlendRoute) battleSpriteFrame(0, 0, 0f) else null)
                 ?: winConditionActualVisualFrame(unit) ?: action?.let(::transientVisualFrame)
                 ?: move?.let(::movementVisualFrame) ?: scripted?.let { scriptedVisualFrame(unit, it) }
@@ -6371,7 +6363,7 @@ void main() {
             val y = tileBottom(visualY) + (boardTile - size) / 2f + frame.offsetY
             BattleRenderEventUnitView(
                 x = x, y = y, size = size, spriteAsset = battleRenderEventSpriteAsset(unit, frame),
-                healthBar = if (sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4) null else {
+                healthBar = if (sourceScenario == "S_00" && scriptedUnitPresentation.visual(unit.id)?.action == 4) null else {
                     val ratio = (healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints).toFloat() /
                         unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
                     BattleRenderEventHealthBarView(
@@ -7599,7 +7591,7 @@ void main() {
                 ?: hitReactionAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
                 ?: deathAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
             val move = movementAnimation?.takeIf { now < it.endsAt && it.unitId == unit.id }
-            val scripted = action?.let { null } ?: scriptedUnitVisuals[unit.id]
+            val scripted = action?.let { null } ?: scriptedUnitPresentation.visual(unit.id)
             val frame = (if (battleDialogueBlendRoute) battleSpriteFrame(0, 0, 0f) else null)
                 ?: winConditionActualVisualFrame(unit) ?: action?.let { transientVisualFrame(it) }
                 ?: move?.let { movementVisualFrame(it) }
@@ -7630,7 +7622,7 @@ void main() {
                 )
             }
             val showHpBar = deathAnimations[unit.id]?.let { now in it.startedAt..<it.endsAt } != true &&
-                (!(!battleDialogueBlendRoute && sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4))
+                (!(!battleDialogueBlendRoute && sourceScenario == "S_00" && scriptedUnitPresentation.visual(unit.id)?.action == 4))
             BattleActorRenderUnit(
                 id = unit.id,
                 tileX = visualX,
@@ -10012,8 +10004,10 @@ void main() {
                 }?.let { unit ->
                     if (scripted.moveDuration > 0f) {
                         unit.direction = scripted.direction
-                        scriptedUnitVisuals[unit.id] =
-                            ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed)
+                        scriptedUnitPresentation.setVisual(
+                            unit.id,
+                            ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed),
+                        )
                         scriptedMovementCameraCursors
                             .getOrPut(scripted.id, ::MovementCameraTickCursor)
                             .crossed(
@@ -10024,7 +10018,7 @@ void main() {
                             .forEach { sample ->
                                 focusCameraOnTile(sample.x, sample.y)
                             }
-                    } else if (scriptedUnitVisuals[unit.id]?.action == 20) {
+                    } else if (scriptedUnitPresentation.visual(unit.id)?.action == 20) {
                         // updateAnimations reaches move2's final callFunc before
                         // this synchronization pass. Consume the final scheduled
                         // centerUnit tick before discarding the route cursor;
@@ -10039,7 +10033,7 @@ void main() {
                             ?.forEach { sample ->
                                 focusCameraOnTile(sample.x, sample.y)
                             }
-                        scriptedUnitVisuals.remove(unit.id)
+                        scriptedUnitPresentation.clearVisual(unit.id)
                         scriptedMovementCameraCursors.remove(scripted.id)
                         unit.direction = scripted.direction
                     }
@@ -10053,11 +10047,11 @@ void main() {
             } else {
                 action.direction.takeIf { it in 0..3 }?.let { unit.direction = it }
                 if (action.action == 0) {
-                    scriptedUnitVisuals.remove(unit.id)
+                    scriptedUnitPresentation.clearVisual(unit.id)
                 } else if (action.action in setOf(6, 25, 48)) {
                     actionAnimation = sourceActionAnimation(unit.id, action.action, unit.direction)
                 } else {
-                    scriptedUnitVisuals[unit.id] = ScriptedUnitVisual(action.action, animationClock())
+                    scriptedUnitPresentation.setVisual(unit.id, ScriptedUnitVisual(action.action, animationClock()))
                 }
                 if (action.awaitsFinishedCallback) {
                     val duration = battleSprites.duration(action.action, unit.direction)
@@ -10067,7 +10061,7 @@ void main() {
                         scriptRuntime.resumeExternalDelay()
                     } else {
                         focusCameraOn(unit)
-                        activeScriptedUnitAction = ActiveScriptedUnitAction(
+                        scriptedUnitPresentation.startAction(
                             action, unit.id, animationClock() + duration,
                         )
                     }

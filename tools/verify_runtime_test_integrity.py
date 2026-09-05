@@ -16,7 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "core/src/main/kotlin"
 VERIFICATION_MAIN = ROOT / "verification/src/main/kotlin"
-BUILD = ROOT / "core/build.gradle.kts"
+BUILD = ROOT / "verification/trace-tasks.gradle.kts"
+CORE_BUILD = ROOT / "core/build.gradle.kts"
 ROOT_BUILD = ROOT / "build.gradle.kts"
 DESKTOP_BUILD = ROOT / "desktop/build.gradle.kts"
 YINGCHUAN_CHECK = ROOT / "tools/verify_yingchuan_battle_regression.mjs"
@@ -67,6 +68,7 @@ def production_references(type_name: str) -> list[str]:
 def main() -> int:
     errors: list[str] = []
     gradle = BUILD.read_text(encoding="utf-8")
+    core_gradle = CORE_BUILD.read_text(encoding="utf-8")
     root_gradle = ROOT_BUILD.read_text(encoding="utf-8")
     desktop_gradle = DESKTOP_BUILD.read_text(encoding="utf-8")
     yingchuan_check = YINGCHUAN_CHECK.read_text(encoding="utf-8")
@@ -76,26 +78,26 @@ def main() -> int:
         behavior_body = root_gradle.split('tasks.register("verifyBehaviorPairwise")', 1)[-1].split(
             'tasks.register("verifyIsolatedFixtureOracles")', 1
         )[0]
-        if f'":core:{task}"' in behavior_body:
+        if f'":verification:{task}"' in behavior_body:
             errors.append(f"isolated fixture gate is wired into verifyBehaviorPairwise: {task}")
-        if f'":core:{task}"' not in root_gradle.split('tasks.register("verifyIsolatedFixtureOracles")', 1)[-1]:
+        if f'":verification:{task}"' not in root_gradle.split('tasks.register("verifyIsolatedFixtureOracles")', 1)[-1]:
             errors.append(f"isolated fixture gate is missing from the explicit oracle aggregate: {task}")
 
     # These used to be named as runtime/screen tests even though they invoke
     # renderer-independent production contracts directly. Keep the coverage,
     # but prevent it from being presented as a live Screen route.
     for misleading in ("naturalCampaignRuntimeTest", "titleUiRuntimeTest"):
-        if misleading in gradle:
+        if misleading in gradle or misleading in core_gradle:
             errors.append(f"isolated production contract is mislabeled as runtime coverage: {misleading}")
     contract_tasks = {
         "titleInteractionContractTest": "com.jojo.game.TitleInteractionTest",
     }
     for task, test_class in contract_tasks.items():
-        start = gradle.find(f'tasks.register<Test>("{task}")')
+        start = core_gradle.find(f'tasks.register<Test>("{task}")')
         if start < 0:
             errors.append(f"missing isolated production-contract task: {task}")
             continue
-        body = gradle[start:start + 1200]
+        body = core_gradle[start:start + 1200]
         if test_class not in body:
             errors.append(f"{task} no longer selects {test_class}")
         if "isFailOnNoMatchingTests = true" not in body:
@@ -145,7 +147,8 @@ def main() -> int:
         errors.append("baseline names are no longer tracked: " + ", ".join(stale))
 
     # Direct expected-JSON branches are allowed only in explicitly isolated
-    # gates above.  This check prevents silently promoting them to core:test.
+    # gates above.  This check prevents silently promoting them to
+    # verification:test.
     harness_files = [VERIFICATION_MAIN / f"com/jojo/game/verification/{name}.kt" for name in (
         "HeadTraceHarness", "BattleBootstrapTraceHarness", "ProgressionLayerTraceHarness",
         "EditMutationTraceHarness", "UnitListInfoLayerTraceHarness",

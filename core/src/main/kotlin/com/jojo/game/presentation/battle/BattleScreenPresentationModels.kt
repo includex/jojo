@@ -445,34 +445,3 @@ internal data class ActiveUnitDeath(
     val endsAt: Float,
     val originalHp: Int,
 )
-
-internal data class ActiveScriptedHide(
-    val request: ScenarioUnitHideRequest,
-    val battleUnitId: String,
-    val endsAt: Float,
-    val originalHp: Int,
-)
-
-internal data class PendingScriptedHide(
-    val request: ScenarioUnitHideRequest,
-    val battleUnitId: String,
-)
-
-internal data class ActiveScriptedShow(
-    val request: ScenarioUnitShowRequest,
-    val battleUnitId: String,
-    val endsAt: Float,
-)
-
-internal data class ActiveScriptedUnitPosts(
-    val request: ScenarioUnitPostsRequest,
-    val battleUnitId: String,
-)
-
-internal data class ActiveMapPresentation(val request: ScenarioMapPresentationRequest, val endsAt: Float)
-
-internal data class ActiveScriptedUnitAction(
-    val request: ScriptedUnitAction,
-    val battleUnitId: String,
-    val endsAt: Float,
-)

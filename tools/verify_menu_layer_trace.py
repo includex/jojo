@@ -3,7 +3,7 @@ import json, subprocess, sys
 from pathlib import Path
 root = Path(__file__).resolve().parents[1]; fixture = (Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else root / "tools/menu_layer_trace_cases.json")
 source = json.loads(subprocess.check_output(["node", str(root / "tools/menu_layer_source_trace_harness.js"), str(fixture)], text=True))
-game = json.loads(subprocess.check_output([str(root / "gradlew"), "-q", f"-DmenuFixture={fixture}", ":core:menuLayerTrace"], cwd=root, text=True))
+game = json.loads(subprocess.check_output([str(root / "gradlew"), "-q", f"-DmenuFixture={fixture}", ":verification:menuLayerTrace"], cwd=root, text=True))
 ids = {case["id"] for case in source}
 if any(identifier.startswith("switch-") for identifier in ids):
     if not all(case["initial"]["switchWeatherSheet"] is not None and all(not button["interactable"] for button in case["initial"]["buttons"]) for case in source):
