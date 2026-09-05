@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.presentation.battle.edit.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -90,5 +91,20 @@ class BattleEditLayer2Test {
                 BattleEditLayer2Route.REGISTER to 54,
             ).getValue(route), count)
         }
+    }
+
+    @Test
+    fun `render event writers retain route append order`() {
+        fun trace(route: BattleEditLayer2Route) =
+            BattleEditLayer2RenderEvents.jsonl(route, BattleEditLayer2(0, 1, true))
+
+        val weather = trace(BattleEditLayer2Route.WEATHER)
+        assertTrue(weather.indexOf("전장 편집") < weather.indexOf("맑음"))
+
+        val childScene = trace(BattleEditLayer2Route.CHILD_SCENE)
+        assertTrue(childScene.indexOf("전역 변수 편집") < childScene.indexOf("0 영천의 전투"))
+
+        val register = trace(BattleEditLayer2Route.REGISTER)
+        assertTrue(register.indexOf("전역 변수 편집") < register.indexOf("등록 코드 생성기"))
     }
 }

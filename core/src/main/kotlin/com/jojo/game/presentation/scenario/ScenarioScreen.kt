@@ -162,6 +162,9 @@ class ScenarioScreen(
     private val scenarioViewState get() = playbackController.viewState
     private val storyEvidenceRecorder = ScenarioStoryEvidenceRecorder()
     private val equipConfirmationEvidenceRecorder = ScenarioEquipConfirmationEvidenceRecorder()
+    private val propertyEvidenceRecorder = ScenarioPropertyEvidenceRecorder()
+    private val terrainEvidenceRecorder = ScenarioTerrainEvidenceRecorder()
+    private val treasureEvidenceRecorder = ScenarioTreasureEvidenceRecorder()
     private val glyphLayout = GlyphLayout()
     private val settingsPreferences by lazy { game.settingsPreferences() }
     private var elapsed = 0f
@@ -4384,15 +4387,24 @@ class ScenarioScreen(
             return
         }
         if (kind == HallInfo.PROPERTY) {
-            appendSourcePropertyRenderEvents(log)
+            propertyEvidenceRecorder.append(
+                log,
+                ScenarioStaticHallEvidenceView(ScenarioStaticHallEvidenceKind.PROPERTY),
+            )
             return
         }
         if (kind == HallInfo.TREASURE) {
-            appendSourceTreasureRenderEvents(log)
+            treasureEvidenceRecorder.append(
+                log,
+                ScenarioStaticHallEvidenceView(ScenarioStaticHallEvidenceKind.TREASURE),
+            )
             return
         }
         if (kind == HallInfo.TERRAIN) {
-            appendSourceTerrainRenderEvents(log)
+            terrainEvidenceRecorder.append(
+                log,
+                ScenarioStaticHallEvidenceView(ScenarioStaticHallEvidenceKind.TERRAIN),
+            )
             return
         }
         if (kind == HallInfo.HELPER) {
@@ -4940,185 +4952,6 @@ class ScenarioScreen(
         draw("Canvas/Layer/bg1/button0/Background/Label", 1169.071f, 90.823f, 100f, 40f, text = "폐쇄")
     }
 
-    /** TerrainLayer's full 28-row authored scroll content and header traversal. */
-    private fun appendSourceTerrainRenderEvents(log: RenderEventLog) {
-        val scale = .86f
-        fun draw(
-            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-            asset: String? = null, text: String = "", visible: Boolean = true,
-        ) = log.draw(
-            "hall-terrain-stable", "TerrainLayer", path, type,
-            x * scale, y * scale, w * scale, h * scale, asset,
-            blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
-            visible = visible, text = text,
-        )
-
-        /**
-         * 공개 메서드 `sprite`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `visible` (`Boolean = true`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `sliced` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun sprite(
-            path: String,
-            x: Float,
-            y: Float,
-            w: Float,
-            h: Float,
-            asset: String,
-            visible: Boolean = true,
-            sliced: Boolean = false
-        ) =
-            draw(path, if (sliced) "sliced-sprite" else "sprite", x, y, w, h, asset, visible = visible)
-
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `visible` (`Boolean = true`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun label(path: String, value: String, x: Float, y: Float, w: Float, h: Float, visible: Boolean = true) =
-            draw(path, "label", x, y, w, h, text = value, visible = visible)
-
-        draw("Canvas/Layer/bg", "tiled-sprite", 274.236f, 100f, 1021.1f, 600f, "Logo_9-1")
-        sprite("Canvas/Layer/bg/box1", 274.236f, 100f, 1021.1f, 600f, "box1", sliced = true)
-        sprite("Canvas/Layer/bg/bg1", 274.236f, 650f, 1021.1f, 50f, "bg1")
-        label("Canvas/Layer/bg/bg1/label", "지형 정보 일람", 282.086f, 649.8f, 229.83f, 50.4f)
-        sprite("Canvas/Layer/bg/panel", 285.538f, 183.098f, 1001.1f, 459.3f, "box4", sliced = true)
-
-        val names = listOf(
-            "평원", "초원", "숲", "황지", "산지", "암산", "절벽", "설원", "다리", "얕은 물가", "늪지대", "연못", "작은 강", "대하",
-            "울타리", "성벽", "성내", "성문", "성채", "관문", "사슴덧", "마을", "병영", "민가", "보물 창고", "연못", "화염", "배",
-        )
-        val nameWidths = floatArrayOf(
-            62.28f, 62.28f, 31.14f, 62.28f, 62.28f, 62.28f, 62.28f, 62.28f, 62.28f,
-            134.56f, 93.42f, 62.28f, 103.42f, 62.28f, 93.42f, 62.28f, 62.28f, 62.28f, 62.28f, 62.28f,
-            93.42f, 62.28f, 62.28f, 62.28f, 134.56f, 62.28f, 62.28f, 31.14f
-        )
-        val terrainValues = listOf(
-            "◎◎◎○○◎◎◎◎◎◎◎◎", "○◎◎○○◎◎◎◎◎◎○◎", "★◎◎★◎★◎○◎◎○★◎", "★◎◎★◎★◎○★★○★★",
-            "★◎◎★★★★○★★○★★", "◎◎◎◎◎◎◎◎◎◎◎◎◎", "◎◎◎◎◎◎◎◎◎◎★◎◎", "◎◎◎◎◎◎★★★◎★◎★",
-            "○◎◎○○○◎◎◎◎◎○◎", "★◎◎★★★◎★◎◎★★○", "★◎◎★★★◎★★★★★○", "◎◎◎◎◎◎◎◎◎◎◎◎◎",
-            "◎◎◎◎◎◎◎◎◎◎◎◎◎", "★◎◎★★◎○★★◎★★○", "◎◎◎◎◎◎◎◎◎◎◎◎◎", "◎◎◎◎◎◎◎◎◎◎◎◎◎",
-            "◎○○◎◎○◎◎◎◎◎◎◎", "◎◎◎◎◎◎◎◎◎◎◎◎◎", "○○○○○○○○○○○○○", "○○○○○○○○○○○○○",
-            "○○○○○○○○○○○○○", "○○○○○○○○○○○○○", "○○○○○○○○○○○○○", "◎○○★★◎○○○○○★○",
-            "◎◎◎◎◎◎◎◎◎◎◎◎◎", "◎◎◎◎◎◎◎◎◎◎◎◎◎", "◎◎◎◎◎◎◎◎◎◎◎◎◎", "◎◎◎◎◎◎◎◎◎◎◎◎◎",
-        )
-        val valueX = floatArrayOf(
-            516.463f, 576.463f, 636.463f, 696.463f, 756.463f, 816.463f, 875.463f,
-            935.463f, 995.463f, 1055.463f, 1115.463f, 1175.463f, 1235.463f
-        )
-        names.indices.forEach { row ->
-            val even = row % 2 == 0
-            val item = if (even) "item0" else "item1"
-            val path = "Canvas/Layer/bg/panel/scrollview0/view/content/$item"
-            val y = 527.398f - row * 75f
-            val itemVisible = row <= 8
-            val childVisible = row <= 7
-            sprite(
-                path, 289.538f, y, 993.1f, 75f,
-                if (even) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2", itemVisible, sliced = true
-            )
-            val childX = if (even) 292.488f else 292.919f
-            sprite("$path/icon", childX, y + 3.9f, 67.2f, 67.2f, row.toString(), childVisible)
-            val nameX = if (even) 376.088f else 375.651f
-            val nameY = y + if (even) 34.82f else 34.598f
-            label("$path/label", names[row], nameX, nameY, nameWidths[row], 45.36f, itemVisible)
-            repeat(4) { skill ->
-                sprite(
-                    "$path/skill/skill_$skill",
-                    369.088f + skill * 33f,
-                    y + 6.5f,
-                    30f,
-                    30f,
-                    "${skill + 1}-1",
-                    childVisible
-                )
-            }
-            terrainValues[row].forEachIndexed { column, symbol ->
-                val narrow = symbol == '○'
-                val x = valueX[column] + if (narrow) 6.525f else 0f
-                val w = if (narrow) 30.2f else 43.25f
-                val fractionalHeight = !even && column in setOf(1, 2, 4, 5, 7, 8, 10, 11, 12)
-                label(
-                    "$path/label$column",
-                    symbol.toString(),
-                    x,
-                    y + 6f,
-                    w,
-                    if (fractionalHeight) 63.001f else 63f,
-                    childVisible
-                )
-            }
-        }
-        listOf(
-            505.588f, 564.788f, 624.288f, 684.788f, 745.288f, 804.788f, 865.488f, 924.888f,
-            984.388f, 1044.488f, 1103.888f, 1103.888f, 1164.588f, 1223.588f
-        ).forEach { x ->
-            sprite("Canvas/Layer/bg/panel/vline", x, 189.448f, 6f, 448.6f, "vline")
-        }
-        /**
-         * data class  `Header`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
-
-        data class Header(val id: String, val x: Float, val y: Float, val text: String)
-
-        val headers = listOf(
-            Header("button", 285.588f, 602.358f, "이름"), Header("button0", 508.088f, 602.358f, "마왕"),
-            Header("button1", 568.397f, 602.183f, "보병"), Header("button2", 628.116f, 602.183f, "기병"),
-            Header("button3", 688.268f, 602.183f, "궁기"), Header("button4", 748.137f, 602.183f, "포차"),
-            Header("button5", 808.101f, 602.183f, "무술"), Header("button11", 1167.145f, 602.358f, "무술"),
-            Header("button10", 1107.125f, 602.183f, "포차"), Header("button9", 1047.297f, 602.183f, "궁기"),
-            Header("button8", 987.145f, 602.183f, "기병"), Header("button7", 927.426f, 602.183f, "보병"),
-            Header("button6", 867.443f, 602.183f, "군주"), Header("button12", 1227.088f, 602.358f, "무술"),
-        )
-        headers.forEachIndexed { index, h ->
-            val width = if (index == 0) 223f else 60f
-            val labelX = if (index == 0) 347.088f else h.x - 20f
-            val path = "Canvas/Layer/bg/panel/${h.id}/Background"
-            sprite(path, h.x, h.y, width, 40f, "box4", sliced = true)
-            label("$path/Label", h.text, labelX, h.y, 100f, 40f)
-        }
-        val buttons = listOf(
-            floatArrayOf(285.436f, 110.1f, 196.7f, 61.8f, 301.386f, 121f, 164.8f, 40f) to "지형 효과",
-            floatArrayOf(491.436f, 109.4f, 222.7f, 63.2f, 498.186f, 116.2f, 209.2f, 49.6f) to "기동력 소모",
-            floatArrayOf(1164.786f, 111f, 120f, 60f, 1174.786f, 121f, 100f, 40f) to "확인",
-        )
-        buttons.forEachIndexed { index, (g, value) ->
-            val path = "Canvas/Layer/bg/button$index/Background"
-            sprite(path, g[0], g[1], g[2], g[3], "box3", sliced = true)
-            label("$path/Label", value, g[4], g[5], g[6], g[7])
-        }
-    }
-
-    /** HelperLayer's rich-text expansion exactly as authored by Cocos. */
     private fun appendSourceHelperRenderEvents(log: RenderEventLog) {
         val scale = .86f
 
@@ -6234,210 +6067,6 @@ class ScenarioScreen(
         )
     }
 
-    /** PropertyLayer's authored node order and bounds, transformed by SHOW_ALL. */
-    private fun appendSourcePropertyRenderEvents(log: RenderEventLog) {
-        val scale = .86f
-
-        /**
-         * 공개 메서드 `draw`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String = ""`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun draw(path: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") {
-            val type = when {
-                text.isNotEmpty() -> "label"
-                asset == "Logo_9-1" -> "tiled-sprite"
-                asset in setOf("box1", "box2", "box3", "box4") -> "sliced-sprite"
-                else -> "sprite"
-            }
-            log.draw(
-                "hall-property-stable",
-                "PropertyLayer",
-                path,
-                type,
-                x * scale,
-                y * scale,
-                w * scale,
-                h * scale,
-                asset,
-                blend = if (text.isEmpty()) listOf(770, 771) else listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"),
-                text = text
-            )
-        }
-        draw("Canvas/Layer/bg", 247.186f, 47f, 994f, 706f, "Logo_9-1")
-        draw("Canvas/Layer/bg/box1", 247.186f, 47f, 994f, 706f, "box1")
-        draw("Canvas/Layer/bg/bg1", 247.186f, 703f, 994f, 50f, "bg1")
-        draw("Canvas/Layer/bg/bg1/label", 669.431f, 702.8f, 149.51f, 50.4f, text = "창고 일람")
-        draw("Canvas/Layer/bg/panel0", 249.186f, 117f, 990f, 524f, "box4")
-        val headers = listOf(
-            floatArrayOf(251.236f, 637.9f, 376.9f, 60f, 405.086f, 642.7f, 69.2f, 50.4f) to "이름",
-            floatArrayOf(628.636f, 638f, 195.1f, 60f, 691.586f, 642.8f, 69.2f, 50.4f) to "속성",
-            floatArrayOf(823.736f, 638f, 106.9f, 60f, 842.586f, 642.8f, 69.2f, 50.4f) to "레벨",
-            floatArrayOf(931.586f, 638f, 101.2f, 60f, 930.286f, 642.8f, 103.8f, 50.4f) to "경험치",
-            floatArrayOf(1031.986f, 638f, 206.4f, 60f, 1083.286f, 642.8f, 103.8f, 50.4f) to "소지자",
-        )
-        headers.forEach { (g, value) ->
-            draw("Canvas/Layer/bg/panel0/title0", g[0], g[1], g[2], g[3], "box3")
-            draw("Canvas/Layer/bg/panel0/title0/label", g[4], g[5], g[6], g[7], text = value)
-        }
-        val rows = listOf(
-            listOf("단검", "조조", "검", "1", "0") to "1-1",
-            listOf("단검", "병사 01", "검", "1", "0") to "1-1",
-            listOf("돌로 만든 보검", "허자장", "보검", "1", "0") to "19-1",
-        )
-        rows.forEachIndexed { index, (values, icon) ->
-            val y = 560f - index * 78f
-            draw("Canvas/Layer/bg/panel0/scrollview/view/content/item", 253.186f, y, 984f, 76f, "box3")
-            draw("Canvas/Layer/bg/panel0/scrollview/view/content/item/box2", 260.288f, y + 9.597f, 60f, 60f, "box2")
-            draw(
-                "Canvas/Layer/bg/panel0/scrollview/view/content/item/box2/icon",
-                262.538f,
-                y + 11.547f,
-                55.7f,
-                55.9f,
-                icon
-            )
-            val labelRects = arrayOf(
-                floatArrayOf(329.286f, y + 12.8f, 288.1f, 50.4f), floatArrayOf(1037.986f, y + 12.8f, 190.8f, 50.4f),
-                floatArrayOf(633.386f, y + 12.8f, 186.2f, 50.4f), floatArrayOf(866.061f, y + 12.8f, 22.25f, 50.4f),
-                floatArrayOf(971.061f, y + 12.8f, 22.25f, 50.4f),
-            )
-            values.forEachIndexed { column, value ->
-                val g = labelRects[column]
-                draw(
-                    "Canvas/Layer/bg/panel0/scrollview/view/content/item/label$column",
-                    g[0],
-                    g[1],
-                    g[2],
-                    g[3],
-                    text = value
-                )
-            }
-        }
-        listOf(820.971f, 625.468f, 927.065f, 1029.026f).forEach { x ->
-            draw("Canvas/Layer/bg/panel0/vline", x, 122.75f, 6f, 515.38f, "vline")
-        }
-        val tabs = listOf(
-            Triple(267.99f, "무기", floatArrayOf(314.292f, 69.2f)),
-            Triple(415.99f, "방어구", floatArrayOf(444.992f, 103.8f)),
-            Triple(563.99f, "보조", floatArrayOf(610.292f, 69.2f)),
-            Triple(711.99f, "아이템", floatArrayOf(740.992f, 103.8f)),
-        )
-        tabs.forEachIndexed { index, (radioX, value, labelGeometry) ->
-            draw(
-                "Canvas/Layer/bg/toggleContainer/toggle$index/Background",
-                radioX,
-                67.577f,
-                32f,
-                32f,
-                "default_radio_button_off"
-            )
-            if (index == 0) draw(
-                "Canvas/Layer/bg/toggleContainer/toggle0/checkmark",
-                radioX,
-                67.577f,
-                32f,
-                32f,
-                "default_radio_button_on"
-            )
-            draw(
-                "Canvas/Layer/bg/toggleContainer/toggle$index/label",
-                labelGeometry[0],
-                58.377f,
-                labelGeometry[1],
-                50.4f,
-                text = value
-            )
-        }
-        draw("Canvas/Layer/bg/button0/Background", 1084.386f, 54.5f, 144.8f, 54f, "box3")
-        draw("Canvas/Layer/bg/button0/Background/Label", 1106.786f, 59.5f, 100f, 50f, text = "확인")
-    }
-
-    /** TreasureLayer creates all 50 scroll cards; offscreen nodes remain in draw order. */
-    private fun appendSourceTreasureRenderEvents(log: RenderEventLog) {
-        val scale = .86f
-
-        /**
-         * 공개 메서드 `draw`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String = ""`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
-        fun draw(path: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") {
-            val visible = x + w > 0f && y + h > 0f && x < 1488.372f && y < 800f
-            val type = when {
-                text.isNotEmpty() -> "label"
-                asset == "Logo_9-1" -> "tiled-sprite"
-                asset in setOf("box1", "box2", "box3", "box4") -> "sliced-sprite"
-                else -> "sprite"
-            }
-            log.draw(
-                "hall-treasure-stable",
-                "TreasureLayer",
-                path,
-                type,
-                x * scale,
-                y * scale,
-                w * scale,
-                h * scale,
-                asset,
-                blend = if (text.isEmpty()) listOf(770, 771) else listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"),
-                visible = visible,
-                text = text
-            )
-        }
-        draw("Canvas/Layer/bg1", 259.186f, 84f, 970f, 632f, "Logo_9-1")
-        draw("Canvas/Layer/bg1/box3", 259.186f, 84f, 970f, 632f, "box3")
-        draw("Canvas/Layer/bg1/title", 259.186f, 671f, 970f, 50f, "bg1")
-        draw("Canvas/Layer/bg1/title/box1", 259.186f, 671f, 970f, 50f, "box1")
-        draw("Canvas/Layer/bg1/title/label", 264.141f, 670.8f, 149.51f, 50.4f, text = "보물 도감")
-        draw("Canvas/Layer/bg1/button7/Background", 1070.986f, 90.95f, 150.6f, 51.5f, "box3")
-        draw("Canvas/Layer/bg1/button7/Background/Label", 1096.286f, 98.7f, 100f, 40f, text = "종료")
-        draw("Canvas/Layer/bg1/label", 266.194f, 91.731f, 467.06f, 50.4f, text = "지금까지 발견한 보물 00 / 50")
-        repeat(50) { index ->
-            val column = index % 2
-            val row = index / 2
-            val x = 270.186f + column * 477f
-            val y = 480.5f - row * 193f
-            val itemPath = "Canvas/Layer/bg1/scrollview/view/content/item"
-            draw(itemPath, x, y, 471f, 190f, "box3")
-            draw("$itemPath/New Node", x, y, 471f, 190f, "Logo_9-1")
-            draw("$itemPath/New Node/box3", x, y, 471f, 190f, "box3")
-            draw("$itemPath/box2", x + 11.256f, y + 42.5f, 113f, 105f, "box2")
-            draw("$itemPath/label0", x + 134f, y + 131f, 329f, 50f, text = "발견되지 않음")
-        }
-    }
-
-    /**
-     * EquipLayer's initial frame, in the exact traversal order used by the
-     * recovered Cocos scene. Coordinates below are authored 1488.372x800
-     * coordinates converted to the game's 1280x688 logical viewport.
-     * Invisible, clipped descendants are retained because they are part of
-     * the source render-event contract even though no pixels are submitted.
-     */
     private fun appendEquipRenderEvents(
         log: RenderEventLog,
         phase: String = "hall-equip-stable",

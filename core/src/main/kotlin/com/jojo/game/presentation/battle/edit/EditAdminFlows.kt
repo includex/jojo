@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.edit
+
+import com.jojo.game.*
 
 /** Pure roster contract recovered from Hall/scene/EditLayer4. */
 class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>) {

@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.edit
+
+import com.jojo.game.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter

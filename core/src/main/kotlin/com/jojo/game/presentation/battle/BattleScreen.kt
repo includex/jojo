@@ -1,4 +1,5 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.presentation.battle.edit.*
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioModalKind
@@ -48,6 +49,7 @@ import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 import com.jojo.game.presentation.battle.evidence.*
 import com.jojo.game.presentation.battle.fight.*
+import com.jojo.game.presentation.battle.overlay.BattleHelperOverlayController
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 import com.badlogic.gdx.Gdx
@@ -890,8 +892,7 @@ void main() {
     private var terrainScrollRow = 0
 
     /** Global/scene/HelperLayer, opened by MenuLayer.HELP. */
-    private var helperLayer: HelperLayer? = null
-    private var helperButtonPressed = false
+    private val helperOverlay = BattleHelperOverlayController()
 
     /** MenuLayer.SLTJ dispatches WIN_CONDITION, which opens WinConBoxLayer. */
     private var winConditionOpen = false
@@ -1489,7 +1490,7 @@ void main() {
                 scriptWinConditions = scriptWinConditions != null,
                 unitInfo = unitInfoLayer != null,
                 forces = forcesLayer != null,
-                helper = helperLayer != null,
+                helper = helperOverlay.view() != null,
                 setting = settingLayerOpen,
                 save = saveLayerOpen,
                 load = loadGameLayerOpen,
@@ -1700,10 +1701,7 @@ void main() {
                         if (!forcesClosePressed && forcesPressedTab == null && world.x in 170f..1318f && world.y in 150f..614f) ((614f - world.y) / 60f).toInt() else null
                     return true
                 }
-                if (helperLayer != null) {
-                    helperButtonPressed = world.x in 1172.451f..1320.051f && world.y in 33.187f..89.187f
-                    return true
-                }
+                if (helperOverlay.dispatch(BattleHelperOverlayController.Intent.PointerDown(world.x, world.y))) return true
                 if (settingLayerOpen) {
                     settingPress = world.x to world.y; return true
                 }
@@ -1973,14 +1971,8 @@ void main() {
                     else if (pressed == null && (world.x !in 278f..1210f || (world.x in 1051f..1199f && world.y in 110f..170f))) closeLoadGameLayer()
                     return true
                 }
-                helperLayer?.let { layer ->
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    if (helperButtonPressed && world.x in 1172.451f..1320.051f && world.y in 33.187f..89.187f) {
-                        layer.onButtonTouch(HelperLayer.TOUCH_END)
-                        if (!layer.view().attached) helperLayer = null
-                    }
-                    helperButtonPressed = false
-                    return true
+                viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).let { world ->
+                    if (helperOverlay.dispatch(BattleHelperOverlayController.Intent.PointerUp(world.x, world.y))) return true
                 }
                 when (autoBattleFlow.view().overlay) {
                     AutoBattleFlow.Overlay.PROMPT -> {
@@ -2615,7 +2607,7 @@ void main() {
         if (!mapOnlyCapture) {
             drawBattleHudChrome()
             if (battleMenuOpen) drawBattleMenu()
-            helperOverlayView()?.let { view ->
+            helperOverlay.view()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
                 battleHelperOverlayRenderer.draw(view)
             }
@@ -2668,7 +2660,7 @@ void main() {
             // SaveLayer body, which is a layer-stack mismatch rather than a
             // text-rasterization difference. Terrain/property keep the source
             // dialogue stack; Save and Menu replace it.
-            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && !saveLayerOpen && helperLayer == null && forcesLayer == null && unitInfoLayer == null && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
+            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && !saveLayerOpen && helperOverlay.view() == null && forcesLayer == null && unitInfoLayer == null && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
                 drawScriptDialogue()
                 drawScriptChoice()
                 drawScriptInfoLayer()
@@ -9041,14 +9033,6 @@ void main() {
         )
     }
 
-    private fun helperOverlayView(): BattleHelperOverlayView? {
-        val state = helperLayer?.view() ?: return null
-        return BattleHelperOverlayView(
-            richText = state.richText,
-            buttonText = state.prefab.buttonText,
-        )
-    }
-
     private fun battleSaveLoadOverlayView(kind: BattleSaveLoadOverlayKind): BattleSaveLoadOverlayView? {
         if (kind == BattleSaveLoadOverlayKind.SAVE && saveLayerOpen) {
             val state = saveLayer.view()
@@ -9343,7 +9327,7 @@ void main() {
                 },
             )
         }
-        helperLayer = HelperLayer(model).also { it.onCreate() }
+        helperOverlay.open(model)
     }
 
     private fun openForcesListLayer() {

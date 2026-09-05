@@ -59,3 +59,16 @@ internal data class ScenarioEvidenceRect(
     val width: Float,
     val height: Float,
 )
+
+/** Immutable selector projected by ScenarioScreen for authored hall-info evidence. */
+internal enum class ScenarioStaticHallEvidenceKind { PROPERTY, TERRAIN, TREASURE }
+
+/**
+ * Deliberately small boundary for scene-authored hall evidence.
+ *
+ * The three fixtures contain no runtime screen state; the kind is all a writer
+ * needs to choose the recovered node traversal.
+ */
+internal data class ScenarioStaticHallEvidenceView(
+    val kind: ScenarioStaticHallEvidenceKind,
+)
