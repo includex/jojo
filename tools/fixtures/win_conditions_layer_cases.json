@@ -1,0 +1,5 @@
+[
+  {"id":"single-line","text":"적을 물리쳐라","round":20,"events":[1,2]},
+  {"id":"two-lines","text":"장바오와 장량을 죽였다!\n적군을 전멸시켜라","round":3,"events":[1,2]},
+  {"id":"replace-first-newline-only","text":"첫째\n둘째\n셋째","round":1,"events":[2,2]}
+]

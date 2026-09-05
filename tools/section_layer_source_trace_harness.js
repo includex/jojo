@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+const fs=require('fs'),path=require('path'),f=JSON.parse(fs.readFileSync(process.argv[2]));let E={};
+function N(){this.active=true} function L(){this.node=new N;this.string=''}
+function U(){this.n={};this.c={};this.ev={};this.callbacks=0;this.dead=false;this.scheduled=[];this.m_ud={getIntegerForKey:()=>this.setting}}U.prototype.seekCompByName=function(K,n){return this.c[n]||(this.c[n]=new K)};U.prototype.seekNodeByName=function(n){return this.n[n]||(this.n[n]=new N)};U.prototype.addTouchEventListener=function(n,h){n.listener=h};U.prototype.schedule=function(h,t){this.scheduled.push([h,t])};U.prototype.addEventListener=function(n,h){this.ev[n]=h};U.prototype.removeFromParent=function(){this.dead=true};
+global.cc={_RF:{push(){},pop(){}},_decorator:{ccclass:x=>x,property:()=>()=>{}},Component:U,Label:L};
+require(path.resolve(__dirname,'../../jojo_mobile/sgccz-desktop/recovered-js/modules/ui/SectionLayer.js'))(n=>n==='UILayer'?{default:U}:n==='Config'?{GAME_SETTING:'setting',SETTING_FLAG:{AUTO_CLOSE:8}}:{},{},E);
+function snap(x,step){return{step,label:x._lab.string,count:x._count,scheduled:x.scheduled.map(z=>z[1]),callbacks:x.callbacks,dead:x.dead}}
+function run(q){let x=new E.default;x.setting=q.setting;x.onCreate({idx:q.idx,name:q.name,func:()=>x.callbacks++});let r=[snap(x,'create')];for(const e of q.events){if(e.startsWith('touch:'))x.seekNodeByName('Panel_cancel').listener(null,+e.split(':')[1]);else if(e==='auto')x.scheduled[0][0]();else x.ev.SKIP();r.push(snap(x,e))}return r}fs.writeFileSync(process.argv[3],JSON.stringify(Object.fromEntries(f.cases.map(q=>[q.id,run(q)]))));

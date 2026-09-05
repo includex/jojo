@@ -1,0 +1,1 @@
+{"cases":[{"id":"prologue-touch-two-step","idx":0,"name":"황건","setting":0,"events":["touch:1","touch:2","touch:2","skip"]},{"id":"chapter-ten-auto-and-skip","idx":10,"name":"동탁","setting":8,"events":["auto","skip"]}]}

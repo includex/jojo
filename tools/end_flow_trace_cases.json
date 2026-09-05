@@ -1,0 +1,7 @@
+{"cases":[
+ {"name":"wincon_scroll_close_repeat","kind":"wincon","info":"조건\\n두번째","events":["button:1","button:2","button:2"]},
+ {"name":"lose_login_after_three_seconds","kind":"lose","events":["time:2","time:3","msg:0"]},
+ {"name":"lose_end_game_after_three_seconds","kind":"lose","events":["time:3","msg:1"]},
+ {"name":"end_create_and_event_three","kind":"end","events":["event:2","event:3"]},
+ {"name":"skip_confirm_hide_swap","kind":"skip","events":["button:1","button:2","msg:1","swap","swap","button:2","msg:0"]}
+]}

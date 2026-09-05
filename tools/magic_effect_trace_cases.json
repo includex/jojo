@@ -1,0 +1,1 @@
+{"cases":[{"id":"normal-area","targets":[{"id":"a","effect":7,"hp":-12,"mp":0,"anime":3},{"id":"b","effect":7,"hp":-5,"mp":0,"anime":3}],"events":["hit:1","end:1","hit:2","end:2"]},{"id":"special-mp-and-fallback","targets":[{"id":"a","effect":9,"hp":0,"mp":-4,"anime":26}],"events":["end:1"]}]}

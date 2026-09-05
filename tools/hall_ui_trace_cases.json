@@ -1,0 +1,10 @@
+{
+  "cases": [
+    {"id":"menu-all-routes-edit-enabled","kind":"menu","edit":true,"eventName":"동탁 토벌전","stageName":"영천","ambition":null,"events":["button:0:1","button:0:2","msgbox:0","button:1:2","button:2:2","button:3:2","button:4:2","button:5:2","button:6:2","button:7:2","button:8:2","button:9:2"]},
+    {"id":"menu-edit-locked-and-cancel","kind":"menu","edit":false,"eventName":"E","stageName":"S","ambition":null,"events":["button:8:1","button:8:2","cancel:1","cancel:2"]},
+    {"id":"menu-ambition-low-completes","kind":"menu","edit":true,"eventName":"","stageName":"","ambition":[20,10],"events":[]},
+    {"id":"menu-ambition-high-completes","kind":"menu","edit":true,"eventName":"","stageName":"","ambition":[20,90],"events":[]},
+    {"id":"command-menu-and-four-commands","kind":"command","flag":3,"events":["menu:1","menu:2","button:0:1","button:0:2","button:1:2","button:2:2","button:3:2","button:4:2"]},
+    {"id":"command-no-flags","kind":"command","flag":0,"events":["menu:2","button:0:2","button:4:2"]}
+  ]
+}

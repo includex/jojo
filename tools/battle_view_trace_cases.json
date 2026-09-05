@@ -1,0 +1,9 @@
+{
+  "cases": [
+    {"name":"view-layout-and-selection","kind":"view","map":2,"pos":[[0,0],[3,4]],"events":["unit:-1","unit:1","unit:99"]},
+    {"name":"view-empty-non-end-lifecycle","kind":"view","map":0,"pos":[],"events":["non-end","unit:0"]},
+    {"name":"fight-create-action-reset","kind":"fight","parent":[10,20,-1],"node":[5,2,-1],"action":7,"events":["sound:yidong","shader:0","shader:105","shader:203","action","finished"]},
+    {"name":"fight-create-move-sound","kind":"fight","parent":[0,0,1],"node":[-3,4,1],"action":2,"events":["sound:321","action"]},
+    {"name":"dule-noop-lifecycle","kind":"dule","events":["non-end","showUnit","showStart","say","setAction","attack1","attack2","end","death"]}
+  ]
+}

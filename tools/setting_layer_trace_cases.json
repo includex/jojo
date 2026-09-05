@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "name": "all-flags-immediate-save-and-sound",
+      "initial": {"GAME_SETTING": 19, "MSG_SPEED": 1, "GAME_SPEED2": 40, "NOTIFY_LV": 1, "BG_IDX": 0},
+      "events": ["flag:0:false", "flag:0:true", "flag:1:false", "flag:1:true", "flag:2:true", "flag:2:false", "flag:3:true", "flag:3:false", "flag:4:true", "flag:4:false", "flag:5:true", "flag:5:false", "flag:6:true", "flag:6:false"]
+    },
+    {
+      "name": "radio-panels-and-background-save-immediately",
+      "initial": {"GAME_SETTING": 0, "MSG_SPEED": 1, "GAME_SPEED2": 25, "NOTIFY_LV": 2, "BG_IDX": 1},
+      "events": ["radio:0:0", "radio:0:1", "radio:0:2", "radio:2:0", "radio:2:1", "radio:2:2", "background:0", "background:3"]
+    },
+    {
+      "name": "slider-is-deferred-until-destroy",
+      "initial": {"GAME_SETTING": 19, "MSG_SPEED": 1, "GAME_SPEED2": 25, "NOTIFY_LV": 1, "BG_IDX": 0},
+      "events": ["slider:0.678", "close:1", "destroy"]
+    },
+    {
+      "name": "touch-end-detaches-and-destroy-commits",
+      "initial": {"GAME_SETTING": 19, "MSG_SPEED": 1, "GAME_SPEED2": 99, "NOTIFY_LV": 1, "BG_IDX": 0},
+      "events": ["slider:0.333", "close:2", "destroy", "destroy"]
+    },
+    {
+      "name": "slider-endpoints-are-deferred-until-destroy",
+      "initial": {"GAME_SETTING": 19, "MSG_SPEED": 1, "GAME_SPEED2": 50, "NOTIFY_LV": 1, "BG_IDX": 0},
+      "events": ["slider:0", "slider:1", "destroy"]
+    },
+    {
+      "name": "destroy-without-slider-does-not-write-speed",
+      "initial": {"GAME_SETTING": 19, "MSG_SPEED": 1, "GAME_SPEED2": 55, "NOTIFY_LV": 1, "BG_IDX": 0},
+      "events": ["close:2", "destroy"]
+    }
+  ]
+}

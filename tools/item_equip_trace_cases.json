@@ -1,0 +1,6 @@
+{"cases":[
+ {"name":"item_drop_confirm_and_cancel","kind":"item","item":{"id":10,"property":true,"drop":true},"events":["click:0:1","click:1:2","answer:1","click:1:2","answer:0"]},
+ {"name":"property_use_preview_commit_and_cancel","kind":"use","items":[10,11],"events":["row:0:0","row:0:2","cancel:2"]},
+ {"name":"equip_confirm_values_actions","kind":"confirm","values":[-2,-1,0,1,2,0,-3,4],"events":["button:0:1","button:0:2","cancel:1","cancel:2","button:1:2"]},
+ {"name":"equip_select_equip_unload_confirm","kind":"equip","events":["tab:2:1","tab:2:2","clickItem:55","equip:0:1","equip:0:2","equip:2:2","answer:0","equip:3:2"]}
+]}

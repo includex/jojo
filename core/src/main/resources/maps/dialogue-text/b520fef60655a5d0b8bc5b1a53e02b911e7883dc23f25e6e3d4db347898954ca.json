@@ -1,0 +1,16 @@
+{
+  "text": "하지만, 얼마나 증오스러운 일인가.......",
+  "source": "Cocos cc.Label._ttfTexture gl.readPixels RGBA/UNSIGNED_BYTE",
+  "rawOrigin": "bottom-left",
+  "width": 545,
+  "height": 52,
+  "worldOrigin": [
+    272.7050465116278,
+    431.814
+  ],
+  "drawSize": [
+    545.98,
+    52.92
+  ],
+  "rawSha256": "f88b41ce69c114e3aaf75dd6a13ef0dd63cfca049a5e7ac6172067f14287c316"
+}

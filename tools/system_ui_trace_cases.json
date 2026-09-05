@@ -1,0 +1,12 @@
+{"cases":[
+ {"name":"msg_default_cancel_and_repeat","kind":"msg","data":{"txt":"확인","flag":7},"events":["button:1:1","button:1:2","button:0:2"]},
+ {"name":"msg_panel_and_single_center","kind":"msg","data":{"txt":"닫기","flag":4,"ok":"예"},"events":["panel:2"]},
+ {"name":"msg2_two_buttons","kind":"msg2","events":["button:0:1","button:1:2"]},
+ {"name":"msg3_clamp_input_callback","kind":"msg3","data":{"count":5,"txt":"x{0}","lab0":"수량"},"events":["input:9","button:0:2","button:1:2"]},
+ {"name":"msg4_toggle_result","kind":"msg4","data":{"flag":1},"events":["toggle:1","button:0:2"]},
+ {"name":"toast_queue_cap_and_empty","kind":"toast","data":{"texts":["a","b","c","d","e","f",""]},"events":["expire"]},
+ {"name":"progress_truncate","kind":"progress","events":["progress:0","progress:0.239","progress:1"]},
+ {"name":"loading_flags_delay","kind":"loading","data":{"flag":0},"events":[]},
+ {"name":"loading_cancel_delay","kind":"loading","data":{"flag":1},"events":["time:4","time:5"]},
+ {"name":"loading_hidden","kind":"loading","data":{"flag":2},"events":[]}
+]}

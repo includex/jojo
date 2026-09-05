@@ -1,0 +1,9 @@
+{
+  "cases": [
+    {"name":"numbered-round-boundary-and-no-touch-listener","args":{"roundPresent":true,"round":3,"maxPresent":true,"max":5},"events":["touch:1","touch:2","elapsed:0","elapsed:1.999","elapsed:2","elapsed:3"]},
+    {"name":"final-round","args":{"roundPresent":true,"round":6,"maxPresent":true,"max":5},"events":["elapsed:2"]},
+    {"name":"enemy-camp-indicator-still-completes","args":{"roundPresent":false,"round":0,"maxPresent":true,"max":20},"events":["elapsed:1","elapsed:2"]},
+    {"name":"present-round-missing-max-is-numbered","args":{"roundPresent":true,"round":0,"maxPresent":false},"events":["elapsed:2"]},
+    {"name":"present-null-max-coerces-to-zero","args":{"roundPresent":true,"round":1,"maxPresent":true,"max":null},"events":["elapsed:2"]}
+  ]
+}

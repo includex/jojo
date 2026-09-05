@@ -1,0 +1,5 @@
+{"cases":[
+ {"id":"slots-paging-touch-and-cancel","savedPage":0,"feature":true,"versionCode":5,"slots":[{"index":0,"time":10,"name":"A","stage":4},{"index":21,"time":30,"name":"Z","stage":7},{"index":22,"time":20,"name":"B","stage":2}],"events":["row0:1","page1:1","page1:2","cancel:1","cancel:2"]},
+ {"id":"confirmation-cancel-and-hall","savedPage":0,"feature":false,"versionCode":5,"slots":[{"index":0,"time":10,"name":"Hall","stage":4},{"index":1,"time":20,"name":"Battle","stage":2,"battle":1}],"events":["row0:2","confirm:1","row0:2","confirm:0"]},
+ {"id":"restore-battle-and-after-battle","savedPage":0,"feature":true,"versionCode":5,"slots":[{"index":0,"time":10,"name":"Battle","stage":2,"battle":1},{"index":1,"time":20,"name":"After","stage":6,"battle":2}],"events":["row0:2","confirm:0","row1:2","confirm:0"]}
+]}

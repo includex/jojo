@@ -1,0 +1,312 @@
+{
+  "format": "jojo-battle-stage-api-lifecycle-contracts/v1",
+  "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/recovered-js/modules",
+  "contracts": [
+    {
+      "api": "stage.info",
+      "eagerMutation": [
+        "Reads INFO_CTRL and deletes that global before deciding whether presentation is needed."
+      ],
+      "pause": "Only when !_skip and INFO_CTRL is zero; calls _script.pause() before _info5.",
+      "resume": "_info5 waits for each InfoLayer callback, then its final callback calls _script.resume(). Remaining chunks are skipped if _skip becomes true, but the final callback still runs.",
+      "assetFailure": "No asset load is initiated by these functions. If InfoLayer never invokes func, its Promise remains pending and resume is unreachable.",
+      "branches": [
+        "_skip: no pause or presentation",
+        "INFO_CTRL != 0: delegates to model.info without pausing",
+        "normal: sequential <=~100-character InfoLayer chunks under one pause"
+      ],
+      "sourceFunctions": [
+        {
+          "file": "ui/StageLayer.js",
+          "method": "info",
+          "line": 311,
+          "bodySha256": "de4821fabbbe4be9009063a18698a0ee84f94863f10e1a2dcc79c9b0d3eabe30",
+          "evidenceAnchors": [
+            "delGvars",
+            "_script\\.pause",
+            "_info5"
+          ]
+        },
+        {
+          "file": "ui/StageLayer.js",
+          "method": "_info5",
+          "line": 323,
+          "bodySha256": "6a63916d114126ae9536c7c2fa34df5dd3fd57a1d0be9978182fbd2a99b77a20",
+          "evidenceAnchors": [
+            "new Promise",
+            "info2",
+            "r\\(\\)"
+          ]
+        },
+        {
+          "file": "ui/StageLayer.js",
+          "method": "info2",
+          "line": 444,
+          "bodySha256": "ba3eb8907437a9ba446b3c8fb94a8b303c535285ab5ae2752f64bd6cc8dcc204",
+          "evidenceAnchors": [
+            "InfoLayer",
+            "func: e"
+          ]
+        }
+      ]
+    },
+    {
+      "api": "stage.loadBg",
+      "eagerMutation": [
+        "If t < 0 or JUMP_OFFSET != 0, clears JUMP_OFFSET and rewrites the map index before pausing.",
+        "After MiniMapLayer callback, writes BG_INDEX before JSON/texture loads complete."
+      ],
+      "pause": "Unconditional at entry, before _loadBg.",
+      "resume": "Only the success tail of _loadBg invokes the supplied callback; loadBg's callback calls resume(). Success requires MiniMapLayer callback, map JSON, map texture, and (flag 1) Promise.all unit avatar initialization.",
+      "assetFailure": "JSON err returns break with status 1 and texture err returns break with status 2 before the callback, so the script remains paused. A missing MiniMapLayer callback or rejected avatar Promise also prevents resume; there is no finally fallback.",
+      "branches": [
+        "jump-offset normalization occurs before pause",
+        "flag 1 refreshes all unit avatars before callback"
+      ],
+      "sourceFunctions": [
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "loadBg",
+          "line": 2948,
+          "bodySha256": "3da864e224e4398500709dfb9d9ffc6f8bd0504d7cb6df9f87ada548e89c82ef",
+          "evidenceAnchors": [
+            "setGVars",
+            "this\\.pause",
+            "e\\.resume"
+          ]
+        },
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "_loadBg",
+          "line": 2848,
+          "bodySha256": "d6a43d1e18a2f9d7faf136aff6887024a0d46334d741e4a8f6bb8ee68ee8f3ce",
+          "evidenceAnchors": [
+            "MiniMapLayer",
+            "if \\(\\(s = _\\.sent\\(\\)\\)\\.err\\)",
+            "if \\(\\(u = _\\.sent\\(\\)\\)\\.err\\)",
+            "Promise\\.all",
+            "e && e\\(\\)"
+          ]
+        }
+      ]
+    },
+    {
+      "api": "stage.setRectUnitHide",
+      "eagerMutation": [
+        "No unit mutation occurs before pause. During the paused coroutine each unit is centered, marked RETREAT, HP is set to zero, and the authored hide action starts; after its callback visibility is cleared, HP restored, and retreat count may increment."
+      ],
+      "pause": "Only when the rectangle search returns at least one unit; empty selection returns synchronously.",
+      "resume": "ctrlUnitHide invokes its completion callback after serial unitHide completion for every unit. Each unit advances on optional retreat-dialogue callback and setAction2 completion callback.",
+      "assetFailure": "No asset load. Missing dialogue/action callback, generator exception, or rejected child operation prevents the final callback; there is no finally resume.",
+      "branches": [
+        "multiple units are sorted before pause",
+        "BAI_TUI can wait for retire dialogue and converts the self master to death animation"
+      ],
+      "sourceFunctions": [
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "setRectUnitHide",
+          "line": 5474,
+          "bodySha256": "47882afbccf2d83f3e0476b00902dea43997dae963ba29b56327a31e1ff1ef9b",
+          "evidenceAnchors": [
+            "searchUnitByRect",
+            "this\\.pause",
+            "ctrlUnitHide",
+            "resume\\.bind"
+          ]
+        },
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "ctrlUnitHide",
+          "line": 9732,
+          "bodySha256": "11ec661fab21ab6fe35d8e6102490778324412fb467d3af71c11e4577a7b65f2",
+          "evidenceAnchors": [
+            "unitHide",
+            "r && r\\(\\)"
+          ]
+        },
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "unitHide",
+          "line": 7033,
+          "bodySha256": "26b318fcb360dd8a914c712cef6e1e0ca0b29f8734935d29e6261b9d98f84341",
+          "evidenceAnchors": [
+            "say4",
+            "setFlag",
+            "setCurHp\\(0\\)",
+            "setAction2",
+            "setVisible\\(!1\\)"
+          ]
+        }
+      ]
+    },
+    {
+      "api": "stage.setStageName",
+      "eagerMutation": [
+        "Model.setStageName(t) runs first, before any presentation or pause."
+      ],
+      "pause": "Only when !_skip && _isDraw.",
+      "resume": "InfoLayer receives resume.bind(this) as func; resume occurs only when that layer invokes the callback.",
+      "assetFailure": "No direct asset load. Failure to create/complete InfoLayer or invoke func leaves the script paused; no fallback is present.",
+      "branches": [
+        "skip or not-yet-drawn: model mutation only, synchronous return"
+      ],
+      "sourceFunctions": [
+        {
+          "file": "ui/StageLayer.js",
+          "method": "setStageName",
+          "line": 237,
+          "bodySha256": "623b956c83c5d978f6275c2d53e2d7ee9929b900cece9838b82be6dca7746c53",
+          "evidenceAnchors": [
+            "setStageName\\(t\\)",
+            "!this\\._skip && this\\._isDraw",
+            "this\\.pause",
+            "resume\\.bind"
+          ]
+        },
+        {
+          "file": "ui/StageLayer.js",
+          "method": "info2",
+          "line": 444,
+          "bodySha256": "ba3eb8907437a9ba446b3c8fb94a8b303c535285ab5ae2752f64bd6cc8dcc204",
+          "evidenceAnchors": [
+            "InfoLayer",
+            "func: e"
+          ]
+        }
+      ]
+    },
+    {
+      "api": "stage.setUnitAttr",
+      "eagerMutation": [
+        "Battle-specific X/Y/action/direction/HP/MP/status branches mutate the live BattleUnit synchronously.",
+        "The default branch first calls StageLayer.setUnitAttr, which updates model/base or additive attributes synchronously; equipment is then updated synchronously.",
+        "S_AVATAR/POSTS call _loadAvatar only after the model mutation and only when a live battle unit exists."
+      ],
+      "pause": "Only the live-unit S_AVATAR/POSTS path pauses, inside _loadAvatar before awaiting BattleUnit.loadAvatar. Other attributes and absent live units return without pause.",
+      "resume": "_loadAvatar resumes immediately after the awaited loadAvatar resolves; it does not use try/finally.",
+      "assetFailure": "Normal cc.loader/loadByUrl errors are converted by loadUnitPicture into resolved {code,data} entries, so loadAvatar still sets the avatar (possibly from a partial/empty array), runs defaultAction, and _loadAvatar resumes. A thrown/rejected Promise bypasses resume and strands the pause.",
+      "branches": [
+        "INDEX is ignored",
+        "equipment WQ/HJ/FZ updates equipItem",
+        "only S_AVATAR/POSTS trigger avatar refresh"
+      ],
+      "sourceFunctions": [
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "setUnitAttr",
+          "line": 11167,
+          "bodySha256": "2f0ae8f1335da4b9b375535fc9ec410bf96f470d55195aae4e3747e4c30e6003",
+          "evidenceAnchors": [
+            "t\\.prototype\\.setUnitAttr",
+            "equipItem",
+            "_loadAvatar"
+          ]
+        },
+        {
+          "file": "ui/StageLayer.js",
+          "method": "setUnitAttr",
+          "line": 954,
+          "bodySha256": "e81755e47104871f71e04e5ccb4fdad6a7af638429c7d17fc5e1614c1d739d2d",
+          "evidenceAnchors": [
+            "setUnitAttr2"
+          ]
+        },
+        {
+          "file": "battle/BattleLayer.js",
+          "method": "_loadAvatar",
+          "line": 11246,
+          "bodySha256": "f81229229e06c4b226c295cbc891a84ac0f65a65b9b968733048f97fdcfe57bf",
+          "evidenceAnchors": [
+            "this\\.pause",
+            "t\\.loadAvatar",
+            "this\\.resume"
+          ]
+        },
+        {
+          "file": "battle/BattleUnit.js",
+          "method": "loadAvatar",
+          "line": 290,
+          "bodySha256": "d728a0e23274ec9d159057561582cc748d82eddc8795368cc131d20dbd29cdf7",
+          "evidenceAnchors": [
+            "loadUnitPicture",
+            "_setAvater",
+            "defaultAction"
+          ]
+        },
+        {
+          "file": "framework/UILayer.js",
+          "method": "loadUnitPicture",
+          "line": 244,
+          "bodySha256": "28fc870d7ae424d8a16b2a0d17947f53c97bb2178f341df3e9cd2ab4849eca4e",
+          "evidenceAnchors": [
+            "code: t\\.err",
+            "Promise\\.all",
+            "return \\[ 2, I \\]"
+          ]
+        }
+      ]
+    },
+    {
+      "api": "stage.unit().setPosts",
+      "eagerMutation": [
+        "_unit.setPosts(t,e) always mutates model state before avatar testing, pause, or load."
+      ],
+      "pause": "Only when flag bit 16 is set and testAvatar() reports an attached node whose computed avatar differs. Bit 16 with no change/node returns after mutation without pause; other flags start loadAvatar without waiting or pausing.",
+      "resume": "On the paused branch, loadAvatar's callback resumes after loadUnitPicture resolves, _setAvater runs, and defaultAction is restored.",
+      "assetFailure": "loadUnitPicture converts normal loader errors to resolved code entries and returns available frames, so the callback/resume still occurs (possibly with partial/empty frames). Unexpected rejection/throw prevents callback and resume. testAvatar guards the no-node/already-current cases before pausing.",
+      "branches": [
+        "flag 16 + avatar change: blocking reload",
+        "flag 16 + no change: synchronous",
+        "without flag 16: nonblocking fire-and-forget reload"
+      ],
+      "sourceFunctions": [
+        {
+          "file": "battle/BattleUnit.js",
+          "method": "setPosts",
+          "line": 2463,
+          "bodySha256": "fa315535c4193107f972b84d0dc91e81d824f6582168e2078271b083d754d0ad",
+          "evidenceAnchors": [
+            "_unit\\.setPosts",
+            "16 & e",
+            "testAvatar",
+            "_battleLayer\\.pause",
+            "loadAvatar",
+            "_battleLayer\\.resume"
+          ]
+        },
+        {
+          "file": "battle/BattleUnit.js",
+          "method": "testAvatar",
+          "line": 285,
+          "bodySha256": "12084fb84c0d206965feac130be2ee2690cceac1ba5eb2919a1ec14bee73dccf",
+          "evidenceAnchors": [
+            "!this\\._node",
+            "this\\._avatar != t"
+          ]
+        },
+        {
+          "file": "battle/BattleUnit.js",
+          "method": "loadAvatar",
+          "line": 290,
+          "bodySha256": "d728a0e23274ec9d159057561582cc748d82eddc8795368cc131d20dbd29cdf7",
+          "evidenceAnchors": [
+            "loadUnitPicture",
+            "t && t\\(\\)"
+          ]
+        },
+        {
+          "file": "framework/UILayer.js",
+          "method": "loadUnitPicture",
+          "line": 244,
+          "bodySha256": "28fc870d7ae424d8a16b2a0d17947f53c97bb2178f341df3e9cd2ab4849eca4e",
+          "evidenceAnchors": [
+            "code: t\\.err",
+            "Promise\\.all",
+            "return \\[ 2, I \\]"
+          ]
+        }
+      ]
+    }
+  ]
+}

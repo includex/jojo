@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "name": "all-colours-unknown-row-and-all-button-events",
+      "info": [[1,"","black {{unit}}"],[2,"","red"],[3,"","blue"],[4,"","purple"],[9,"","unknown"]],
+      "replacement": {"{{unit}}":"Guan Yu"},
+      "events": ["button:0","button:1","button:2","button:2"]
+    },
+    {
+      "name": "empty-info-has-no-tabs-or-routes",
+      "info": [],
+      "replacement": {},
+      "events": ["button:1","button:2"]
+    },
+    {
+      "name": "replacement-runs-on-every-source-row-break",
+      "info": [[7,"reserved","{{a}}"],[2,"reserved","{{b}}\nline"]],
+      "replacement": {"{{a}}":"A","{{b}}":"B"},
+      "events": []
+    }
+  ]
+}

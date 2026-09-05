@@ -1,0 +1,10 @@
+{"cases":[
+{"id":"lifecycle-tabs-cancel","units":[{"mine":true},{"mine":true}],"index":0,"defaultTab":0,"editEnabled":false,"featsEnabled":true,"flag":0,"events":["button0:2","button1:2","button2:2","button3:1","button3:2","button4:2","button5:2","button6:2","Panel_cancel:1","Panel_cancel:2","Panel_cancel:2"]},
+{"id":"equipment-nonempty-empty","units":[{"mine":true,"equipment":["검",null,"방패"]}],"index":0,"defaultTab":3,"editEnabled":false,"featsEnabled":true,"flag":0,"events":["equip0:1","equip0:2","equip1:2","equip2:2"]},
+{"id":"magic-row-touch-end","units":[{"mine":true,"magic":["화계"]}],"index":0,"defaultTab":4,"editEnabled":false,"featsEnabled":true,"flag":0,"events":["magic0:1","magic0:2"]},
+{"id":"feats-button-visible-and-hidden","units":[{"mine":true},{"mine":false}],"index":0,"defaultTab":0,"editEnabled":false,"featsEnabled":true,"flag":0,"events":["button8:1","button8:2","button6:2","button8:2"]},
+{"id":"feats-global-gate","units":[{"mine":true}],"index":0,"defaultTab":0,"editEnabled":false,"featsEnabled":false,"flag":0,"events":["button8:2"]},
+{"id":"battle-jiqi-gate","units":[{"mine":true}],"index":0,"defaultTab":0,"editEnabled":true,"featsEnabled":true,"flag":1,"events":["button9:1","button9:2"]},
+{"id":"edit-normal-and-battle-payload","units":[{"mine":true}],"index":0,"defaultTab":0,"editEnabled":true,"featsEnabled":true,"flag":0,"events":["button9:2","button10:1","button10:2"]},
+{"id":"edit-battle-payload","units":[{"mine":true}],"index":0,"defaultTab":0,"editEnabled":true,"featsEnabled":true,"flag":1,"events":["button10:2"]}
+]}

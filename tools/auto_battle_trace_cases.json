@@ -1,0 +1,4 @@
+{"cases":[
+ {"name":"tuoguan_cancel_non_end_end_and_repeated_listener","kind":"tuoguan","events":["cancel:1","cancel:2","cancel:2"]},
+ {"name":"auto_battle_choice_persists_only_on_end","kind":"msg4","stored":1,"flag":1,"events":["button:0:1","toggle:0","button:0:2","recreate","toggle:1","button:0:2","recreate"]}
+]}

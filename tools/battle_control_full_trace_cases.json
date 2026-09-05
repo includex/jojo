@@ -1,0 +1,17 @@
+{"cases":[
+ {"name":"dzdd_arrival_reverts_passive","kind":"dzdd_arrival"},
+ {"name":"gjwj_missing_target_reverts_active","kind":"gjwj_missing"},
+ {"name":"gjwj_friend_near_reverts_passive","kind":"gjwj_friend_near"},
+ {"name":"gjwj_enemy_attack_holds_existing_target","kind":"gjwj_enemy_attack"},
+ {"name":"gswj_follow_missing_and_move","kind":"gswj"},
+ {"name":"tzzdd_arrival_priority_and_score","kind":"tzzdd"},
+ {"name":"yddb_move_point_and_ai_mode","kind":"yddbm"},
+ {"name":"yddg_attack_target_score","kind":"yddgj"},
+ {"name":"base_process1_paralysis_and_surround","kind":"process1"},
+ {"name":"base_cxpl_retreats_to_resume_point","kind":"cxpl_resume"},
+ {"name":"base_ps_iterator_stops_on_callback","kind":"ps_iter"},
+ {"name":"base_ai_empty_positions_keeps_first_equal_score","kind":"ai_empty"},
+ {"name":"base_zdmdd_styles_and_no_slot","kind":"zdmdd"},
+ {"name":"base_ganlu_direct_route_enemy_and_fail","kind":"ganlu"},
+ {"name":"base_search_and_resume_terrain","kind":"search_resume"}
+]}

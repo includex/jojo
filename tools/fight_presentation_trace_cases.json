@@ -1,0 +1,1 @@
+{"cases":[{"id":"miss","mode":3,"critical":false,"hp":80,"maxHp":100,"damage":0,"events":["hit","complete"]},{"id":"guard","mode":1,"critical":false,"hp":80,"maxHp":100,"damage":10,"events":["hit","complete"]},{"id":"normal-critical-kill","mode":0,"critical":true,"hp":20,"maxHp":100,"damage":25,"events":["hit","complete","death","complete"]}]}

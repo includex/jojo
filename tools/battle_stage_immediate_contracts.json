@@ -1,0 +1,96 @@
+{
+  "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop",
+  "contracts": {
+    "stage.center": {
+      "callCount": 18,
+      "synchronous": true,
+      "pausesScript": false,
+      "callback": false,
+      "camera": {
+        "tileSize": 96,
+        "s57MapTiles": [40, 40],
+        "sourceTraceViewport": [1488.372093, 800],
+        "s57ExpectedPositions": {
+          "5,20": [1175.813954, 0],
+          "11,20": [864, 0],
+          "13,20": [672, 0]
+        },
+        "formula": [
+          "clamp(mapPixelWidth / 2 - x * 96, -(mapPixelWidth - viewportWidth) / 2, +(mapPixelWidth - viewportWidth) / 2)",
+          "clamp(y * 96 - mapPixelHeight / 2, -(mapPixelHeight - viewportHeight) / 2, +(mapPixelHeight - viewportHeight) / 2)"
+        ],
+        "mutationOrder": ["content.position=set", "MAP_SCROLLING dispatch"]
+      }
+    },
+    "stage.setMaxRound": {
+      "callCount": 4,
+      "synchronous": true,
+      "pausesScript": false,
+      "callback": false,
+      "camera": false,
+      "effectiveValue": "requested + (eFlag & 8 != 0 ? 4 : 0)",
+      "writeRule": "setProperty writes only when the effective value differs"
+    },
+    "stage.unit.addLv": {
+      "callCount": 21,
+      "synchronous": true,
+      "pausesScript": false,
+      "callback": false,
+      "camera": false,
+      "argument": 1,
+      "effectiveValue": "clamp(oldLevel + 1, 1, Unit.lvLimit())",
+      "mutationOrder": [
+        "persistent model level write",
+        "ability update or refAbilityPhase",
+        "equipment skill reset",
+        "unit skill reset",
+        "posts skill reset",
+        "magic cache invalidation"
+      ]
+    }
+  },
+  "scenarioLogs": [
+    {
+      "scenario": "S_57.scene1",
+      "branch": "totalRectUnit == 1",
+      "expected": [
+        "center(5,20); MAP_SCROLLING; continue",
+        "delay(5); pause",
+        "center(11,20); MAP_SCROLLING; continue",
+        "delay(5); pause",
+        "center(13,20); MAP_SCROLLING; continue",
+        "delay(1); pause",
+        "center(11,20); MAP_SCROLLING; continue",
+        "delay(1); pause",
+        "center(13,20); MAP_SCROLLING; continue",
+        "delay(1); pause",
+        "center(11,20); MAP_SCROLLING; continue",
+        "delay(1); pause",
+        "center(13,20); MAP_SCROLLING; continue",
+        "delay(1); pause",
+        "center(11,20); MAP_SCROLLING; continue",
+        "delay(1); pause",
+        "center(13,20); MAP_SCROLLING; continue",
+        "delay(5); pause"
+      ]
+    },
+    {
+      "scenario": "S_57.scene1",
+      "branch": "totalRectUnit == 2",
+      "sameAs": "S_57.scene1:totalRectUnit == 1"
+    },
+    {"scenario": "S_11.scene1", "expected": ["setMaxRound(12); maxRound=12|16; continue", "showWinCondition(...); modal pause"]},
+    {"scenario": "S_38.scene1", "branch": "offensive transition", "expected": ["setMaxRound(30); maxRound=30|34; continue", "showWinCondition(...); modal pause"]},
+    {"scenario": "S_38.scene1", "branch": "retreat transition", "expected": ["setMaxRound(30); maxRound=30|34; continue", "showWinCondition(...); modal pause"]},
+    {"scenario": "S_44.scene1", "expected": ["setMaxRound(15); maxRound=15|19; continue", "showWinCondition(...); modal pause"]},
+    {
+      "scenario": "S_04.scene1",
+      "branch": "choice sel == 2",
+      "expected": [
+        "addLv(474..480,483..489,492..498,+1); 21 immediate ordered model mutations",
+        "no pause/callback/camera between calls",
+        "next stage.say is reached in the same Python run and owns the next pause"
+      ]
+    }
+  ]
+}

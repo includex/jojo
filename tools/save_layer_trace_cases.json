@@ -1,0 +1,13 @@
+{
+  "saves":[
+    {"index":1,"time":9,"name":"후기","stage":6,"game":true},
+    {"index":4,"time":2,"name":"초기","stage":3,"game":false},
+    {"index":22,"time":5,"name":"다음","stage":8,"game":true},
+    {"index":42,"time":1,"name":"세번째","stage":1,"game":false}
+  ],
+  "cases":[
+    {"id":"page-zero-confirm-cancel-complete","savedPage":0,"pagesEnabled":true,"tip":true,"events":["row:4:0","row:4:2","confirm:1","row:1:2","confirm:0","completion:2"]},
+    {"id":"page-pagination-and-cancel","savedPage":1,"pagesEnabled":true,"tip":false,"events":["page:2:1","page:2:2","row:42:2","confirm:0"]},
+    {"id":"disabled-pages-cancel","savedPage":0,"pagesEnabled":false,"tip":false,"events":["page:1:2","cancel:1","cancel:2"]}
+  ]
+}

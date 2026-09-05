@@ -1,0 +1,16 @@
+{
+  "text": "아.......",
+  "source": "Cocos cc.Label._ttfTexture gl.readPixels RGBA/UNSIGNED_BYTE",
+  "rawOrigin": "bottom-left",
+  "width": 101,
+  "height": 52,
+  "worldOrigin": [
+    272.7050465116278,
+    431.81399999999996
+  ],
+  "drawSize": [
+    101.15,
+    52.92
+  ],
+  "rawSha256": "717a7f95d7b34e5a7fbd68796116704fa9f5a75b980b79fb107799bd3ddb1023"
+}

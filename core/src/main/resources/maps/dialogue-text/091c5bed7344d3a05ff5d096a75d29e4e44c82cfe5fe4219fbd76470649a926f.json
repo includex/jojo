@@ -1,0 +1,16 @@
+{
+  "text": "젠장, 황번 반역자 수가 계속 늘어났다.",
+  "source": "Cocos cc.Label._ttfTexture gl.readPixels RGBA/UNSIGNED_BYTE",
+  "rawOrigin": "bottom-left",
+  "width": 537,
+  "height": 52,
+  "worldOrigin": [
+    272.7050465116278,
+    335.81399999999996
+  ],
+  "drawSize": [
+    537.11,
+    52.92
+  ],
+  "rawSha256": "9d91bf22dd52a3db2fda25d6c3715bd7036150c4a7934c219e95e1e4d8a41dc7"
+}

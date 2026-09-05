@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "source_item_order_and_discovered_ordinal",
+      "treasures": [
+        {"id": 9, "name": "첫보물", "icon": 19, "property": false, "description": "스킬설명"},
+        {"id": 3, "name": "미발견", "icon": 13, "property": true, "description": "소모품"},
+        {"id": 7, "name": "둘째보물", "icon": 17, "property": true, "description": "보물분류"}
+      ],
+      "discovered": [9, 7],
+      "events": ["touchStart:9", "tap:3", "tap:7", "button7", "cancel"]
+    },
+    {
+      "name": "empty_discovery",
+      "treasures": [{"id": 5, "name": "숨김", "icon": 5, "property": false, "description": "설명"}],
+      "discovered": [],
+      "events": ["tap:5", "cancel"]
+    }
+  ]
+}

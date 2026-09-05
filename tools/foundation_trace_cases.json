@@ -1,0 +1,10 @@
+{"cases":[
+ {"id":"uuid_roundtrip","kind":"uuid","uuid":"01234567-89ab-cdef-0123-456789abcdef@import"},
+ {"id":"uuid_invalid","kind":"uuid","uuid":"short@x"},
+ {"id":"tool_unicode_cipher","kind":"tool","text":"A한🙂"},
+ {"id":"md5_vectors","kind":"md5","text":"abc","key":"key"},
+ {"id":"userdefault_migrate_save","kind":"user","legacySave":"legacy","legacyX":"v"},
+ {"id":"userdefault_global_delete","kind":"userGlobal","globalG":"G"},
+ {"id":"status_transition_order","kind":"status"},
+ {"id":"event_mutation_queue","kind":"event"}
+]}

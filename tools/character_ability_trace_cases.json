@@ -1,0 +1,6 @@
+{"cases":[
+ {"name":"feats_rows_help_and_cancel","kind":"feats","wuwei":[11,12,13,14,15],"feats":[[3,10,2],[4,11,0],[5,12,3],[6,13,4],[7,14,5]],"events":["button:1:1","button:1:2","button:0:2","cancel:1","cancel:2"]},
+ {"name":"jiqi_rates_cancel","kind":"jiqi","rates":[100,85,70,55],"events":["cancel:1","cancel:2"]},
+ {"name":"attribute_pool_rows","kind":"attribute","rows":[["공격",12],["방어",0],["민첩",-3]],"events":[]},
+ {"name":"exclusive_tabs_lazy_close","kind":"exclusive","tz":[[1,2,255,5,"T1"],[255,255,255,0,"skip"]],"zs":[[7,9,2,"Z1"],[1024,8,3,"skip"]],"events":["tab:1:1","tab:1:2","tab:0:2","tab:2:1","tab:2:2","cancel:2"]}
+]}

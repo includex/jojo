@@ -1,0 +1,8 @@
+{"cases":[
+{"id":"hall-entry-command-routes","kind":"hall","flag":2,"events":["command:-1","command:0","command:1","command:2","command:3"]},
+{"id":"battle-init-training","kind":"init","flag":1,"events":["load:영천 전투"]},
+{"id":"battle-init-normal-training-destroy","kind":"init","flag":0,"events":["load:영천 전투","destroy"]},
+{"id":"battle-sort-nonend-select-cancel","kind":"sort","events":["button:2:1","button:2:2","cancel:1","cancel:2"]},
+{"id":"start-roster-select-cancel","kind":"start","events":["fight:1","fight:2","cancel:1"]}
+,{"id":"start-oncreate-enterlimit-mandatory-persisted-sort","kind":"startinit","flag":0,"events":[]}
+]}

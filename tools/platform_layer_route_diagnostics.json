@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "sgccz-desktop/recovered-js/modules",
+  "layers": [
+    {
+      "id": "achievements",
+      "registry": "Global142 AchievementsLayer",
+      "classification": "actual-caller-strict-render",
+      "productionCaller": "ui/SettingLayer.js tools button tag2=7",
+      "evidence": [
+        "SettingLayer.js attaches AchievementsLayer when stageReward() is non-empty",
+        "The recovered AchievementsLayer creates Logo_12-1 rows, battleName labels, level/gold and three star markers",
+        "The port routes a deterministic AchievementsFixtureScreen and the source/port draw-event fixture covers the authored Logo_12-1 prefab"
+      ],
+      "verification": "Source and port canonical draw streams compare strictly (23/23, zero differences)."
+    },
+    {
+      "id": "attribute",
+      "registry": "Global130 AttributeLayer",
+      "classification": "actual-script-caller-port-headless",
+      "productionCaller": "ui/StageLayer.js showAttrbute(t)",
+      "sourceLines": "recovered-js/modules/ui/StageLayer.js:484-485",
+      "evidence": [
+        "StageLayer.js attaches AttributeLayer for truthy script payloads and removes it otherwise",
+        "AttributeLayer.js renders pooled scrollview rows label0/label1 from the supplied [name,value] list",
+        "The port has CharacterAbilityTraceHarness attribute_pool_rows coverage and StageLayerPort.showAttribute rows/removal lifecycle; no screen-level StageLayer overlay or draw-event fixture yet"
+      ],
+      "verification": "Behavioral source/port trace passes; keep screenshot gate blocked until the StageLayer attribute overlay is rendered and routed."
+    },
+    {
+      "id": "help",
+      "registry": "Global? HelpLayer",
+      "classification": "orphan-caller-stub",
+      "productionCaller": null,
+      "evidence": [
+        "HelpLayer.js is a standalone prefab with close listeners and static instructional text",
+        "Instance.jumpHelp() is an empty method; no recovered module attaches HelpLayer",
+        "The port MiscUiTraceHarness verifies HelpLayer text and close touch semantics, but no production route exists"
+      ],
+      "verification": "Behavioral trace passes; keep blocked because attaching this orphan prefab would invent a lifecycle."
+    },
+    {
+      "id": "generic-list",
+      "registry": "Global129 ListLayer",
+      "classification": "actual-script-caller-port-headless",
+      "productionCaller": "ui/StageLayer.js list(t)",
+      "sourceLines": "recovered-js/modules/ui/StageLayer.js:474-482",
+      "evidence": [
+        "StageLayer.js pauses the script, injects a callback, and attaches ListLayer",
+        "ListLayer.js renders Logo_12-1 rows, labels, alternating imgs, toggles and optional sort buttons",
+        "The port MiscUiTraceHarness verifies list selection/cancel semantics and StageLayerPort.showList/finishList pause-resume lifecycle; no StageLayer script overlay renderer is implemented"
+      ],
+      "verification": "Behavioral trace passes; keep screenshot gate blocked until a real StageLayer ListLayer route and draw events exist."
+    },
+    {
+      "id": "reset",
+      "registry": "ResetLayer (registry not found)",
+      "classification": "orphan-prefab",
+      "productionCaller": null,
+      "evidence": [
+        "ResetLayer.js only animates Logo_12-1/progressBar and invokes the injected callback on completion",
+        "No recovered module references ResetLayer outside its implementation",
+        "The port progression trace covers callback/removal semantics, but there is no production caller or render route"
+      ],
+      "verification": "Behavioral trace passes; keep blocked because direct attachment would invent a lifecycle."
+    },
+    {
+      "id": "send-gifts",
+      "registry": "Global117 SendGiftsLayer",
+      "classification": "orphan-prefab",
+      "productionCaller": null,
+      "evidence": [
+        "Instance.js registers SendGiftsLayer at Global117",
+        "No recovered module references SendGiftsLayer outside its implementation and registry",
+        "The port SendGiftsTraceHarness verifies close inversion and CmdLayer/skmLayer routing, but no production caller reaches it"
+      ],
+      "verification": "Behavioral trace passes; keep blocked because direct attachment would invent a lifecycle."
+    },
+    {
+      "id": "privacy",
+      "registry": "Global141 PrivacyLayer",
+      "classification": "orphan-prefab",
+      "productionCaller": null,
+      "evidence": [
+        "core/Instance.js registers PrivacyLayer at Global141",
+        "No recovered module references PrivacyLayer outside its implementation and registry",
+        "platform/PrivacyLayer.js requires an injected completion callback and native jsb.fileUtils/initAdSdk operations"
+      ],
+      "verification": "Keep blocked; direct attachment would invent a caller and desktop-native privacy lifecycle."
+    },
+    {
+      "id": "install",
+      "registry": "Global134 InstallLayer",
+      "classification": "authored-caller-inactive",
+      "productionCaller": "SettingLayer tools button tag2=1",
+      "evidence": [
+        "ui/SettingLayer.js tag2=1 calls addLayer(InstallLayer)",
+        "The same authored loop forces the tag2=1 node inactive (E==1 -> active=false)",
+        "platform/InstallLayer.js depends on native jsb.fileUtils writable games directory and archive operations"
+      ],
+      "verification": "Keep blocked; production input cannot reach the inactive button, and force-activating it is not an actual route."
+    },
+    {
+      "id": "video",
+      "registry": "Global140 VideoLayer",
+      "classification": "orphan-prefab",
+      "productionCaller": null,
+      "evidence": [
+        "core/Instance.js registers VideoLayer at Global140",
+        "No recovered addLayer/pushLayer caller references VideoLayer",
+        "ui/StageLayer.video() is an empty method and does not attach Global140",
+        "platform/VideoLayer.js requires an injected func callback and loads Game/video/logo"
+      ],
+      "verification": "Keep blocked; a direct prefab diagnostic is not a production video route."
+    },
+    {
+      "id": "hot-update",
+      "registry": "Global122 HotUpdateLayer",
+      "classification": "orphan-stub",
+      "productionCaller": null,
+      "evidence": [
+        "core/Instance.js registers HotUpdateLayer at Global122",
+        "No recovered module references HotUpdateLayer outside its implementation and registry",
+        "platform/HotUpdateLayer.js onCreate(), checkUpdate(), retry(), loadCustomManifest(), and updateCb() are empty"
+      ],
+      "verification": "Keep blocked; the shipped implementation has neither an entry route nor an initialized update manager."
+    },
+    {
+      "id": "skip",
+      "registry": "Hall14 SkipLayer",
+      "classification": "actual",
+      "productionCaller": "HallLayer.setMenuVisible(false)",
+      "evidence": [
+        "ui/HallLayer.js attaches SkipLayer when TGJQ(256) is enabled and the menu becomes hidden",
+        "Source actual canonical/repeat logs each contain the Hall map and authored skip button submissions",
+        "Source route sidecars confirm registered/enabled flags 256 and Skip id14 attachment"
+      ],
+      "verification": "original-skip-open canonical/repeat are byte-identical; port strict comparison is owned by the Skip route agent."
+    }
+  ]
+}

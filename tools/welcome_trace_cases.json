@@ -1,0 +1,6 @@
+{
+  "cases": [
+    {"name":"create","events":[]},
+    {"name":"ignored_then_end","events":[2,3,5,1]}
+  ]
+}

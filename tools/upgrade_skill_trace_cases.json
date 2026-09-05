@@ -1,0 +1,7 @@
+{"cases":[
+ {"name":"upgrade_cancel_and_timer_lifecycle","kind":"upgrade","item":{"id":12,"name":"철검","lv":3,"flag":5},"unit":"조조","value":[2,5],"events":["cancel:1","cancel:2","timer"]},
+ {"name":"start_item_non_end_four_choices_and_cancel","kind":"start","events":["choice:0:1","choice:0:2","choice:3:2","cancel:1","cancel:2"]},
+ {"name":"learn_select_modify_save_and_close","kind":"learn","events":["touch:0:1","touch:0:2","select:4","save:2","close:1","close:2"]},
+ {"name":"learn_selection_prompt_cancel_discards_pending","kind":"learn","events":["touch:1:2","select:2","skill:1","answer:1","save:2"]},
+ {"name":"learn_invalid_edit_becomes_unavailable","kind":"learn","events":["edit:-4","save:2"]}
+]}

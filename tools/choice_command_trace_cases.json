@@ -1,0 +1,8 @@
+{"cases":[
+ {"name":"choose_markup_face_and_repeated_end","kind":"choose","info":"첫<br/>둘","replace":{"첫":"A"},"face":7,"mask":0,"events":["row:1:1","row:2:2","row:1:2"]},
+ {"name":"choose_markup_without_face","kind":"choose","info":"하나","replace":{},"face":-1,"mask":0,"events":["row:1:2"]},
+ {"name":"choose2_literal_backslash_newline","kind":"choose2","info":"가\\n나\n다","replace":{},"face":-1,"mask":0,"events":["row:3:2"]},
+ {"name":"command_mask_cancel_after_button","kind":"command","info":"","replace":{},"face":-1,"mask":5,"events":["button:1:1","button:0:2","cancel:2"]},
+ {"name":"command_disabled_direct_listener","kind":"command","info":"","replace":{},"face":-1,"mask":0,"events":["button:1:2"]},
+ {"name":"command_remaining_enabled_tags_and_builtin_5_6","kind":"command","info":"","replace":{},"face":-1,"mask":31,"events":["button:2:1","button:2:2","button:3:2","button:4:2","button:5:2","button:6:2"]}
+]}

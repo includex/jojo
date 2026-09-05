@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {"name":"achievements_rows_and_close","kind":"achievements","rewards":{"1":["R",2,30,5],"8":["S",9,0,2]},"events":["button:0:1","button:0:2"]},
+    {"name":"signin_counter_and_claim","kind":"signin","count":3,"signins":[86400,172800],"time":259201,"events":["claim","button:0:2"]},
+    {"name":"raffle_quota_reset_and_reward","kind":"raffle","count":9,"coins":4,"last":0,"time":90000,"reward":{"type":4,"id":500},"events":["inc","reset","reward","button:0:1"]},
+    {"name":"reset_callback_after_tween","kind":"reset","time":2,"events":["time:1","time:2"]},
+    {"name":"register_input_and_cancel","kind":"register","text":"CODE","events":["text:CODE","end:CODE","button:1:1","button:1:2"]},
+    {"name":"raffle_reward_video_success","kind":"raffle","count":0,"coins":0,"last":0,"time":90000,"video":"03512","events":["video"]},
+    {"name":"raffle_reward_video_failure","kind":"raffle","count":0,"coins":0,"last":0,"time":90000,"video":"ERR","events":["video"]},
+    {"name":"raffle_quota_coin_confirm","kind":"raffle","count":10,"coins":2,"last":0,"time":90000,"video":"03512","confirm":0,"events":["video"]},
+    {"name":"raffle_quota_coin_cancel","kind":"raffle","count":10,"coins":2,"last":0,"time":90000,"video":"03512","confirm":1,"events":["video"]},
+    {"name":"raffle_generated_pool","kind":"raffle","count":0,"coins":0,"time":90000,"events":["pool"]},
+    {"name":"register_valid_encrypted_code_write","kind":"register","code":"sgzlbz_eyJtZDUiOiJkZXYtMS1sYnpTaGEwOEdlWjFGdS0xLTItYXBwLTQtMyIsImRhdGEiOiJ7XCJkZXZpY2VJZFwiOlwiZGV2XCIsXCJhcHBJZFwiOlwiYXBwXCIsXCJ2ZXJzaW9uXCI6XCIxXCIsXCJyRmxhZ1wiOjEsXCJzRmxhZ1wiOjIsXCJjb3VudFwiOjMsXCJtb25leVwiOjR9In0=","confirm":0,"events":["text:sgzlbz_eyJtZDUiOiJkZXYtMS1sYnpTaGEwOEdlWjFGdS0xLTItYXBwLTQtMyIsImRhdGEiOiJ7XCJkZXZpY2VJZFwiOlwiZGV2XCIsXCJhcHBJZFwiOlwiYXBwXCIsXCJ2ZXJzaW9uXCI6XCIxXCIsXCJyRmxhZ1wiOjEsXCJzRmxhZ1wiOjIsXCJjb3VudFwiOjMsXCJtb25leVwiOjR9In0=","build"]}
+  ]
+}

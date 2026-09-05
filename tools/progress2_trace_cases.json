@@ -1,0 +1,1 @@
+{"cases":[{"name":"empty_label","arg":null,"events":[0,0.25,1]},{"name":"label_and_out_of_range","arg":"로딩 중","events":[1.2,-0.1]}]}

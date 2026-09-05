@@ -1,0 +1,9 @@
+{
+  "groups": [
+    "free_weapon_drop_and_exp",
+    "unit_owned_weapon_attrs",
+    "unit_owned_auxiliary_guard",
+    "property_delete_count",
+    "skill_cache_level_phase"
+  ]
+}

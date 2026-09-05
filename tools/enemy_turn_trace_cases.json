@@ -1,0 +1,1 @@
+{"cases":[{"id":"unavailable","ai":0,"immobile":false,"attack":false,"action":"hold"},{"id":"immobilized","ai":1,"immobile":true,"attack":false,"action":"hold"},{"id":"move","ai":1,"immobile":false,"attack":false,"action":"move"},{"id":"attack","ai":1,"immobile":false,"attack":true,"action":"attack"}]}

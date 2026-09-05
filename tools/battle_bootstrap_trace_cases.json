@@ -1,0 +1,1 @@
+{"cases":[{"name":"battle_registry_resources_save_and_forces_route","events":["resource:Battle/scene/BattleLayer","resource:Battle/scene/BattleInitLayer","resource:Battle/scene/MiniMapLayer","resource:Battle/scene/NoticeInfoLayer","resource:missing","save:17","forces"]}]}

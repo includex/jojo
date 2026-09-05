@@ -1,0 +1,5 @@
+{"cases":[
+{"name":"manual-type-cancel-and-close","setting":0,"data":{"txt":"A<color=#f00>B</color>","changePage":true,"wepon":false,"wait":false},"events":["tick","cancel:1","cancel:2","cancel:2"]},
+{"name":"auto-close-normal","setting":8,"data":{"txt":"hello","changePage":true,"wepon":false,"wait":false},"events":["tick","tick","tick","tick","tick","elapse:0","elapse:1"]},
+{"name":"auto-close-wait-and-skip","setting":8,"data":{"txt":"wait","changePage":true,"wepon":false,"wait":true},"events":["cancel:2","elapse:4","skip","elapse:5"]}
+]}

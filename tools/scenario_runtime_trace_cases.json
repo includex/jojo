@@ -1,0 +1,8 @@
+{"cases":[
+ {"name":"py_builtin_reset_pause_resume_destroy","kind":"lifecycle"},
+ {"name":"py_load_bin_invalid_magic","kind":"invalid"},
+ {"name":"py_load_bin_consts_labels_and_arithmetic_execution","kind":"bytecode"},
+ {"name":"py_load_method_exception_contract","kind":"method_error"},
+ {"name":"rcontrol_existing_script_dispatch_pause_and_callback","kind":"rcontrol_existing"},
+ {"name":"rcontrol_file_load_source_route","kind":"rcontrol_file"}
+]}

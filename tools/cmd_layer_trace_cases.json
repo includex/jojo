@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "name": "selection_and_non_end",
+      "rFlag": 0,
+      "eFlag": 0,
+      "deviceId": "device",
+      "units": [],
+      "inventory": [],
+      "events": ["item:0:1", "item:0:2", "button:1:2", "prompt:0", "item:0:2", "cancelPrompt:1"]
+    },
+    {
+      "name": "registered_all_features_and_buttons",
+      "rFlag": 16383,
+      "eFlag": 0,
+      "deviceId": "device",
+      "units": [{"id":1}],
+      "inventory": [{"id":100,"treasure":true,"property":true},{"id":101,"treasure":true,"property":false},{"id":102,"treasure":false,"property":true}],
+      "events": ["item:0:2", "item:1:2", "item:2:2", "item:3:2", "item:4:2", "item:5:2", "item:6:2", "item:7:2", "item:8:2", "item:9:2", "item:10:2", "item:11:2", "item:12:2", "item:13:2", "button:0:2", "button:1:2", "prompt:0", "button:2:2", "button:3:2", "button:4:2", "button:5:2", "prompt:0"]
+    },
+    {
+      "name": "unregistered_activation_failures_and_device_missing",
+      "rFlag": 3,
+      "eFlag": 3,
+      "deviceId": "",
+      "units": [],
+      "inventory": [],
+      "events": ["item:0:2", "item:1:2", "button:1:2", "button:4:2", "button:5:2", "prompt:1", "item:2:2"]
+    }
+  ]
+}

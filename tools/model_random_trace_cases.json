@@ -1,0 +1,8 @@
+{
+  "cases": [
+    {"id": "zero", "seed": 0, "draws": 4},
+    {"id": "one", "seed": 1, "draws": 4},
+    {"id": "fractional", "seed": 123.5, "draws": 5},
+    {"id": "tool_initial_range", "seed": 999.999, "draws": 5}
+  ]
+}

@@ -1,0 +1,13 @@
+{"cases":[
+ {"id":"scene_direct_replace","kind":"scene","layers":[[1,"A",0],[1,"B",0]]},
+ {"id":"scene_modal_queue","kind":"scene","layers":[[2,"ModalA",1],[3,"ModalB",1]],"remove":2},
+ {"id":"scene_model_loading_queue","kind":"scene","layers":[[4,"ModalLoading",1],[5,"ModalQueued",1]],"modeling":true,"remove":4},
+ {"id":"uilayer_cancel_self","kind":"uilayer","event":"cancel:self"},
+ {"id":"uiframe_touch","kind":"uiframe","events":["start","move","end","cancel","disabled:end"]},
+ {"id":"sound_flags","kind":"sound","music":true,"effect":true},
+ {"id":"service_close","kind":"service","event":"0:2"},
+ {"id":"service_close_nonend","kind":"service","event":"0:1"},
+ {"id":"service_skm","kind":"service","event":"1:2"},
+ {"id":"skm_bits","kind":"skm","flag":4,"event":2},
+ {"id":"skm_inverted_close","kind":"skm","flag":1,"event":1}
+]}

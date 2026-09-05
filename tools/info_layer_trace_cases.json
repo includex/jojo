@@ -1,0 +1,8 @@
+{
+  "cases": [
+    {"name":"short_auto_close","setting":0,"txt":"짧다","delay":0.5,"events":["reveal","reveal","auto"]},
+    {"name":"rich_touch_fast_forward_then_next","setting":0,"txt":"<color=#ff0000>가</color>나","events":["reveal","touch","touch"]},
+    {"name":"setting_auto_delayed_close","setting":2,"txt":"열한글자입니다","delay":2,"events":["reveal","reveal","reveal","reveal","reveal","reveal","auto"]},
+    {"name":"skip_cancels_pending_close","setting":2,"txt":"짧다","events":["reveal","reveal","skip","auto"]}
+  ]
+}

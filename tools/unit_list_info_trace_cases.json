@@ -1,0 +1,5 @@
+{"cases":[
+  {"name":"unit_list_sorted_select_cancel","kind":"list","pos":[41,73],"units":[{"id":9,"name":"Nine","post":"P9"},{"id":2,"name":"Two","post":"P2"},{"id":5,"name":"Five","post":"P5"}],"events":["row:0:1","row:0:2","cancel:1","cancel:2"]},
+  {"name":"mine_base_and_add_animation","kind":"mine","unit":{"id":2,"name":"Two","post":"P2","lv":7,"hp":60,"hpMax":100,"mp":22,"mpMax":40,"exp":90,"expMax":100,"weaponExp":8,"weaponMax":10,"armorExp":100,"armorMax":100},"data":{"HP":55,"MP":20,"EXP":80,"WQ_EXP":7,"HJ_EXP":99,"HP_ADD":5,"EXP_ADD":20,"WQ_EXP_ADD":3},"events":["callback","callback","callback","callback","callback","callback","callback","callback","callback","callback"]},
+  {"name":"other_base_and_add_animation","kind":"other","unit":{"id":5,"name":"Five","post":"P5","lv":3,"hp":30,"hpMax":60,"mp":0,"mpMax":20},"data":{"HP":28,"MP":4,"HP_ADD":4,"MP_ADD":-2},"events":["callback","callback","callback","callback","callback","callback","callback","callback","callback","callback"]}
+]}

@@ -1,0 +1,10 @@
+.DS_Store
+.gradle/
+.kotlin/
+.lwjgl/
+.port-isolated/
+build/
+**/build/
+local.properties
+*.iml
+.idea/

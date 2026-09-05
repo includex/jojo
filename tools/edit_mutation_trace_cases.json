@@ -1,0 +1,8 @@
+{"cases":[
+ {"id":"battle_end_only_weather_round_kill","owner":"battle","flag":3,"events":["apply:1","weather:3","round:77","apply:2","kill:3:2","kill:4:2","kill:5:2"]},
+ {"id":"battle_round_feature_enabled","owner":"battle","flag":5,"events":["weather:4","round:42","apply:2"]},
+ {"id":"unit_feature_rejection_keeps_layer","owner":"unit","flag":1,"events":["apply:1","level:99","apply:2","apply:2"]},
+ {"id":"global_apply_clamp_stage_and_store_confirm","owner":"global","flag":1,"events":["apply:1","ambition:120","money:-7","stage:4","apply:2","store:2:1","store:2:2","confirm:1","store:2:2","confirm:0"]},
+ {"id":"roster_join_leave_all_and_routes","owner":"roster","flag":1,"events":["edit:0:2","all:3:2","learn:4:2","close:2:2"]},
+ {"id":"avatar_apply_reset_reload","owner":"avatar","flag":1,"events":["apply:1","apply:2","reset:4:2"]}
+]}

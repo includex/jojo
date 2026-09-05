@@ -1,0 +1,10 @@
+{"cases":[
+ {"id":"notice","kind":"notice","events":["toggle:1","notice:hello","toggle:2","notice:ignored"]},
+ {"id":"help","kind":"help","events":["cancel:1","close:2"]},
+ {"id":"input_saved_confirm","kind":"input","saved":"old","text":"new","events":["button:0:1","button:0:2"]},
+ {"id":"input_cancel","kind":"input","saved":"old","text":"new","events":["button:1:2"]},
+ {"id":"select_pages","kind":"select","list":["a","b","c","d","e"],"pageCount":2,"sel":4,"events":["prev:1","prev:2","row:3:2","ok:2"]},
+ {"id":"select_cancel","kind":"select","list":["a"],"pageCount":50,"sel":0,"events":["cancel:2"]},
+ {"id":"list_single","kind":"list","flag":0,"list":[[7,"seven","x"],[3,"three"]],"events":["row:7:1","row:7:2","ok:2"]},
+ {"id":"list_multi_cancel","kind":"list","flag":1,"list":[[7,"seven"],[3,"three"]],"events":["row:7:2","row:3:2","cancel:2"]}
+]}

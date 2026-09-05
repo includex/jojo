@@ -1,0 +1,17 @@
+{
+  "cases": [
+    {
+      "name": "equip_property_sell_and_reward_cards",
+      "unitId": 7,
+      "money": 100,
+      "capacity": 9,
+      "owned": 3,
+      "reward": {"end": false, "money": 0, "flag": 0, "items": [2, 11]},
+      "items": [
+        {"id": 2, "name": "약초", "type": "property", "price": 20, "sell": 10, "lv": 1, "exp": 0, "limit": 10},
+        {"id": 11, "name": "검", "type": "weapon", "price": 80, "sell": 40, "lv": 2, "exp": 10, "limit": 20}
+      ],
+      "events": ["buy:equip:11", "buy:equipMsgBox2:0", "sell:tab:1", "sell:press:2", "sell:msgbox3:2", "reward:cards", "reward:cards", "sell:cancel"]
+    }
+  ]
+}
