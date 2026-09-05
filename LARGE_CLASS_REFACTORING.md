@@ -98,7 +98,7 @@ com.jojo.game.verification
 
 첫 세 단계는 완료했다. `BattleState` typealias와 71개 production/test 참조를 직접 `Battle`로 바꿨고 호환 API는 남기지 않았다. 79줄의 `BattleAttributeCalculator`는 skill 157 지원치와 lift 순서, skill 165 최저 방어, 날씨별 이동력, 원거리 저항을 순수 계산한다. 일반·반격·강제 공격에는 `defenseAgainst`를 사용하되 splash와 magic에는 private-defense skill을 적용하지 않는 기존 규칙 차이도 명시적으로 유지했다. 214줄의 `BattleProbabilityResolver`는 8개 누적 gauge와 일반/flag 난수 채널, 물리·마법 명중, 치명타, 연속 공격, 상태 지속시간을 소유한다. skill 47 후속 공격의 short-circuit와 skill 269의 마법 치명타 gauge 우회를 포함해 난수 소비 순서를 그대로 유지했다. `Battle`은 3,685줄로 줄었고 core JUnit 784개, 전체 headless suite, desktop/android compile과 Python 112개가 통과했다.
 
-도메인 이름 정리도 완료했다. 전투 모델의 구현 역사형 `sourceCharacterId`, `sourceBattleSlot`, `sourceHarm`은 각각 `characterId`, `battleSlot`, `resolvedHarm`으로 바꾸고, 슬롯 배치와 기본 물리 피해 계산도 `BattleSlotLayout`, `basePhysicalDamage`라는 역할 이름을 사용한다. 좌표의 콘텐츠 작성 여부는 `hasAuthoredTileX/Y`, 능력치 변화 command는 `applyAttributeLift`로 명확히 했다. 호환 alias는 만들지 않았으며 외부 비교 trace schema의 `sourceCharacterId` JSON key 한 건만 계약으로 유지한다.
+도메인 이름 정리도 완료했다. 전투 모델의 구현 역사형 `sourceCharacterId`, `sourceBattleSlot`과 harm 계산 인자는 각각 `characterId`, `battleSlot`, `resolvedHarm`으로 바꾸고, 슬롯 배치와 기본 물리 피해 계산도 `BattleSlotLayout`, `basePhysicalDamage`라는 역할 이름을 사용한다. 좌표의 콘텐츠 작성 여부는 `hasAuthoredTileX/Y`, 능력치 변화 command는 `applyAttributeLift`로 명확히 했다. 호환 alias는 만들지 않았으며 외부 비교 trace schema의 `sourceCharacterId` JSON key 한 건만 계약으로 유지한다.
 
 유닛 topology 소유권 분리도 완료했다. 93줄의 `Battlefield`가 active와 퇴각 후 연출 유지 컬렉션, 점유 조회, 숨김·복귀, topology snapshot/restore를 전담한다. `Battle.units`는 구조 변경이 차단되면서 내부 추가를 즉시 반영하는 live read-only view다. 동일 ID가 두 컬렉션에 함께 남는 기존의 특이한 흐름, active 우선 조회, retained가 이기는 runtime memento까지 8개 순수 테스트로 고정했으며 `Battle`의 유닛 map 직접 구조 변경은 0건이다. `Battle`은 3,658줄로 줄었고 core JUnit 792개와 전체 검증이 통과했다.
 

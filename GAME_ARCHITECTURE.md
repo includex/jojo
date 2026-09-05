@@ -81,6 +81,6 @@ verification ──> public application/domain contracts
 
 Fight 연출은 mutable `FightPresentationState`를 매 frame 깊은 불변 snapshot으로 복사한 뒤 화면에서 이름·얼굴·avatar를 해석해 완성된 `FightPresentationView`를 만든다. `BattleFightRenderer`는 이 뷰와 빌려 쓴 LibGDX 자원만 읽으며 전투 aggregate, catalog, scenario runtime을 알지 않는다. slot은 builder에서 한 번 결정되고 최종 view에 중복 index를 남기지 않는다.
 
-전투 도메인의 첫 규칙 경계도 완성됐다. `BattleState` 호환 별칭을 제거하고, 이동·능력치·누적 확률과 난수 판정을 각각 `BattleMovementPlanner`, `BattleAttributeCalculator`, `BattleProbabilityResolver`로 옮겼다. resolver는 LibGDX나 화면을 모르며 `Battle`은 판정 순서만 조립한다. `sourceCharacterId`, `sourceBattleSlot`, `sourceHarm` 같은 내부 모델 이름도 `characterId`, `battleSlot`, `resolvedHarm`으로 바로잡았으며 호환 alias는 두지 않았다.
+전투 도메인의 첫 규칙 경계도 완성됐다. `BattleState` 호환 별칭을 제거하고, 이동·능력치·누적 확률과 난수 판정을 각각 `BattleMovementPlanner`, `BattleAttributeCalculator`, `BattleProbabilityResolver`로 옮겼다. resolver는 LibGDX나 화면을 모르며 `Battle`은 판정 순서만 조립한다. `sourceCharacterId`, `sourceBattleSlot` 같은 내부 모델 이름과 harm 계산 인자도 `characterId`, `battleSlot`, `resolvedHarm`으로 바로잡았으며 호환 alias는 두지 않았다.
 
 `Battlefield`는 active/퇴각 연출 유닛의 두 ordered collection과 점유, 숨김·복귀, topology snapshot을 소유한다. `Battle`은 이 컬렉션의 backing map을 더 이상 직접 변경하지 않으며 외부에는 구조 변경 불가능한 live view만 제공한다. `BattleUnitMemento`와 `BattleActionTransaction`은 계산 시점의 깊은 snapshot/rollback과 애니메이션 callback 시점의 단계별 commit을 맡는다. 다음 경계는 이 transaction 위에서 물리 공격 결과 계산과 적용을 `PhysicalCombatResolver`로 분리하는 것이다.

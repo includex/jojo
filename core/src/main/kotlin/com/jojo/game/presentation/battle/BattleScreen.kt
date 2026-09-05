@@ -622,6 +622,9 @@ void main() {
         )
     }
     private val battleGridMapSurfaceRenderer by lazy { BattleGridMapSurfaceRenderer(batch) }
+    private val battleActorEffectRenderer by lazy {
+        BattleActorEffectRenderer(batch, hudAssets) { cocosHighlightSampler.value }
+    }
     private val captureReferenceAssets = BattleCaptureReferenceAssets()
     private val fightRenderer by lazy {
         BattleFightRenderer(
@@ -7582,14 +7585,20 @@ void main() {
         }
         font.color = Color.WHITE
         battleMapRenderer.drawTerrainImpacts(mapView)
-        visibleUnits.forEach { unit ->
-            // Prefab child order is status -> unit -> info, so the six
-            // ability lift/down icons are behind the avatar.
-            drawUnitAttributeStatuses(unit)
-            val action = actionAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unit.id }
-                ?: hitReactionAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
-                ?: deathAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
-            val move = movementAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unit.id }
+        val actorView = battleActorEffectRenderView(visibleUnits)
+        battleActorEffectRenderer.drawActors(actorView)
+        battleMapRenderer.drawHarmNumbers(mapView)
+        battleActorEffectRenderer.drawSayMarker(actorView)
+    }
+
+    /** Projects mutable actor/effect state into the renderer's immutable view. */
+    private fun battleActorEffectRenderView(visibleUnits: List<BattleUnit>): BattleActorEffectRenderView {
+        val now = animationClock()
+        val actors = visibleUnits.map { unit ->
+            val action = actionAnimation?.takeIf { now < it.endsAt && it.unitId == unit.id }
+                ?: hitReactionAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
+                ?: deathAnimations[unit.id]?.takeIf { now in it.startedAt..<it.endsAt }
+            val move = movementAnimation?.takeIf { now < it.endsAt && it.unitId == unit.id }
             val scripted = action?.let { null } ?: scriptedUnitVisuals[unit.id]
             val frame = (if (battleDialogueBlendRoute) battleSpriteFrame(0, 0, 0f) else null)
                 ?: winConditionActualVisualFrame(unit) ?: action?.let { transientVisualFrame(it) }
@@ -7601,153 +7610,102 @@ void main() {
                 UnitSpriteSource.SPECIAL -> specialTexture(unit) ?: unitTexture(unit)
                 UnitSpriteSource.MOVEMENT -> unitTexture(unit)
             }
-            texture?.let { texture ->
-                // BattleUnit's normal mov sprite is 48px but Unit_atk frames
-                // expand to 64px before the source map's ×2 transform.
-                val size = if (frame.source == UnitSpriteSource.ATTACK) boardTile * 4f / 3f else boardTile
-                val drawX = boardLeft + visualTile(unit).first * boardTile + (boardTile - size) / 2 + frame.offsetX
-                val drawY = tileBottom(visualTile(unit).second) + (boardTile - size) / 2 + frame.offsetY
-                // Source S_00 scene0 leaves unit 235 in action 4 while its
-                // SayLayer is visible. Its resulting source framebuffer
-                // sprite is fully saturated white; the ordinary SpriteBatch
-                // path cannot reproduce that hight-light material output.
-                val sourceHighlight = !battleDialogueBlendRoute && sourceScenario == "S_00" && scripted?.action == 4
-                if (sourceHighlight) {
-                    batch.flush()
-                    batch.shader = cocosHighlightSampler.value
-                    // Source diagnostics read the live material's u_value
-                    // as 1 for this frame, which saturates the sprite RGB.
-                    cocosHighlightSampler.value.setUniformf("u_value", 1f)
-                }
-                drawWithTerrainMask(unit, drawX, drawY, size) {
-                    batch.draw(
-                        texture,
-                        drawX,
-                        drawY,
-                        size,
-                        size,
-                        0,
-                        // Both the original Cocos SpriteFrame.rect and LibGDX's
-                        // source rectangle are bottom-origin.  Asset extraction
-                        // preserves the source atlas verbatim, so no y conversion
-                        // belongs in the runtime renderer.
-                        // Battle.CreateAnime resets an out-of-range generated
-                        // row to zero (`G + w > texture.height && (G = 0)`).
-                        // Clamping to the final row is visually different for
-                        // the shorter Unit_* atlases.
-                        if (frame.sourceY + frame.sourceHeight > texture.height) 0 else frame.sourceY,
-                        minOf(frame.sourceWidth, texture.width),
-                        minOf(frame.sourceHeight, texture.height),
-                        frame.flipX || (action?.kind == UnitAnimationKind.ATTACK && action.direction == 1),
-                        false,
+            val size = if (frame.source == UnitSpriteSource.ATTACK) boardTile * 4f / 3f else boardTile
+            val (visualX, visualY) = visualTile(unit)
+            val stateEffect = unitPresentationStore.stateFor(unit).stateAnimation.current()
+            val stateCommand = if (stateEffect == null || !stateEffect.active) {
+                battleStateAnimationStarts.remove(unit.id)
+                null
+            } else {
+                val previous = battleStateAnimationStarts[unit.id]
+                val startedAt = if (previous == null || previous.first != stateEffect.textureIndices) {
+                    now.also { battleStateAnimationStarts[unit.id] = stateEffect.textureIndices.toList() to it }
+                } else previous.second
+                BattleUnitStateRender.command(
+                    stateEffect,
+                    stateEffectAnimationClock() - startedAt,
+                    boardLeft + visualX * boardTile,
+                    tileBottom(visualY),
+                    boardTile,
+                )
+            }
+            val showHpBar = deathAnimations[unit.id]?.let { now in it.startedAt..<it.endsAt } != true &&
+                (!(!battleDialogueBlendRoute && sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4))
+            BattleActorRenderUnit(
+                id = unit.id,
+                tileX = visualX,
+                tileY = visualY,
+                texture = texture,
+                sourceY = frame.sourceY,
+                sourceWidth = frame.sourceWidth,
+                sourceHeight = frame.sourceHeight,
+                size = size,
+                offsetX = frame.offsetX,
+                offsetY = frame.offsetY,
+                flipX = frame.flipX || (action?.kind == UnitAnimationKind.ATTACK && action.direction == 1),
+                terrainMask = when (terrainGrid.terrainAt(unit.tileX, unit.tileY)) {
+                    10 -> hudAssets.terrainMask19
+                    1 -> hudAssets.terrainMask21
+                    else -> null
+                },
+                sourceHighlight = !battleDialogueBlendRoute && sourceScenario == "S_00" && scripted?.action == 4,
+                hpTexture = when (unit.type()) {
+                    Faction.PLAYER -> hudAssets.mineHpBarTexture
+                    Faction.FRIEND -> hudAssets.friendHpBarTexture
+                    Faction.ENEMY, Faction.REINFORCEMENTS ->
+                        if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
+                },
+                hpRatio = (healthTimeline.shownHp(unit.id, now, unit.hitPoints).toFloat() /
+                    unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f),
+                showHpBar = showHpBar,
+                attributeStatuses = BattleUnitAttributeStatusRender.commands(
+                    unitPresentationStore.stateFor(unit).attributeStatusIcons,
+                    unit.otherNodesVisible,
+                    boardLeft + visualX * boardTile,
+                    tileBottom(visualY),
+                    boardTile,
+                ),
+                state = stateCommand,
+                stateTexture = stateCommand?.let { hudAssets.battleStateTextures.getOrNull(it.textureIndex) },
+            )
+        }
+        val effects = magicEffectAnimations.filter { now in it.startedAt..<it.endsAt }.flatMap { animation ->
+            val effect = magicEffects.effect(animation.effectId) ?: return@flatMap emptyList()
+            val frame = effect.frameAt(now - animation.startedAt) ?: return@flatMap emptyList()
+            if (frame.sourceIndex < 0) return@flatMap emptyList()
+            val texture = dynamicTextures.effect(animation.effectId) ?: return@flatMap emptyList()
+            animation.targetIds.mapNotNull { id ->
+                battle.presentation.presentationUnit(id)?.takeIf { it.visible }?.let { target ->
+                    val width = effect.frameWidth / 48f * boardTile
+                    val height = effect.frameHeight / 48f * boardTile
+                    BattleEffectRender(
+                        texture = texture,
+                        x = boardLeft + target.tileX * boardTile + (boardTile - width) / 2 + frame.offsetX / 48f * boardTile,
+                        y = tileBottom(target.tileY) + (boardTile - height) / 2 - frame.offsetY / 48f * boardTile,
+                        width = width,
+                        height = height,
+                        sourceX = 0,
+                        sourceY = (frame.sourceIndex * effect.frameHeight).coerceAtMost(
+                            (texture.height - effect.frameHeight).coerceAtLeast(0)
+                        ),
+                        sourceWidth = minOf(effect.frameWidth, texture.width),
+                        sourceHeight = minOf(effect.frameHeight, texture.height),
+                        alpha = (frame.alpha + 24).coerceIn(0, 32) / 32f,
                     )
                 }
-                if (sourceHighlight) {
-                    batch.flush()
-                    batch.shader = null
-                }
             }
-            drawUnitInfoBarInline(unit)
-            drawUnitStateAnimation(unit)
         }
-        battleMapRenderer.drawHarmNumbers(mapView)
-        // BattleScreen's SHOW_SAY handler parents qipao to map at the speaking
-        // BattleUnit node position + (24,24) Cocos-local pixels. In the
-        // scaled map this is +48,+48 from the unit centre. The source map's
-        // centred Cocos anchor contributes a further half-cell relative to
-        // our bottom-left map quad. The live raw framebuffer therefore puts
-        // the 474 bubble at tile-bottom-left +72,+72 (not +96,+96).
-        // SayLayer dispatches SHOW_SAY for every consumed `&unitId` marker;
-        // BattleScreen reparents qipao to that current speaker.  It does not
-        // remain attached to the opening actor when a later line begins.
-        val saySpeakerId = if (battleMenuOpen) null else scriptRuntime.currentDialogue?.speakerId?.toIntOrNull()
-        saySpeakerId?.let { speakerId ->
+        val sayMarker = if (battleMenuOpen) null else {
+            val speakerId = scriptRuntime.currentDialogue?.speakerId?.toIntOrNull()
+            val speaker = speakerId?.let { id -> visibleUnits.firstOrNull { it.characterId == id } }
             hudAssets.battleSayTexture?.let { texture ->
-                visibleUnits.firstOrNull { it.characterId == speakerId }?.let { speaker ->
-                    val (speakerX, speakerY) = visualTile(speaker)
-                    batch.draw(
-                        texture,
-                        boardLeft + speakerX * boardTile + boardTile * 0.75f,
-                        tileBottom(speakerY) + boardTile * 0.75f,
-                        boardTile / 2f,
-                        boardTile / 2f,
-                    )
+                speaker?.let { unit ->
+                    val (x, y) = visualTile(unit)
+                    BattleSayMarkerRender(texture, x, y)
                 }
             }
         }
-    }
-
-    /**
-     * BattleUnit's own `mask` parent is a cc.Mask stencil.  It is distinct
-     * from an avatar overlay: recovered source sets it enabled only when the
-     * terrain config supplies a Mark frame.  The source mask node is 80×80
-     * while its normal avatar child is 48×48; map rendering scales both ×2.
-     */
-    private fun drawWithTerrainMask(unit: BattleUnit, x: Float, y: Float, size: Float, draw: () -> Unit) {
-        val mask = when (terrainGrid.terrainAt(unit.tileX, unit.tileY)) {
-            10 -> hudAssets.terrainMask19; 1 -> hudAssets.terrainMask21; else -> null
-        }
-        if (mask == null) {
-            draw(); return
-        }
-        batch.flush(); Gdx.gl.glEnable(GL20.GL_STENCIL_TEST); Gdx.gl.glClear(GL20.GL_STENCIL_BUFFER_BIT)
-        Gdx.gl.glColorMask(false, false, false, false); Gdx.gl.glStencilFunc(
-            GL20.GL_ALWAYS,
-            1,
-            0xff
-        ); Gdx.gl.glStencilOp(GL20.GL_REPLACE, GL20.GL_REPLACE, GL20.GL_REPLACE)
-        val maskSize = boardTile * (80f / 48f)
-        batch.draw(mask, x + (size - maskSize) / 2f, y + (size - maskSize) / 2f, maskSize, maskSize); batch.flush()
-        Gdx.gl.glColorMask(true, true, true, true); Gdx.gl.glStencilFunc(GL20.GL_EQUAL, 1, 0xff); Gdx.gl.glStencilOp(
-            GL20.GL_KEEP,
-            GL20.GL_KEEP,
-            GL20.GL_KEEP
-        )
-        draw(); batch.flush(); Gdx.gl.glDisable(GL20.GL_STENCIL_TEST)
-    }
-
-    /** Dynamic `status` child is appended after the prefab unit/info nodes. */
-    private fun drawUnitStateAnimation(unit: BattleUnit) {
-        val effect = unitPresentationStore.stateFor(unit).stateAnimation.current()
-        if (effect == null || !effect.active) {
-            battleStateAnimationStarts.remove(unit.id)
-            return
-        }
-        val now = stateEffectAnimationClock()
-        val previous = battleStateAnimationStarts[unit.id]
-        val startedAt = if (previous == null || previous.first != effect.textureIndices) {
-            now.also { battleStateAnimationStarts[unit.id] = effect.textureIndices.toList() to it }
-        } else previous.second
-        val (visualX, visualY) = visualTile(unit)
-        val command = BattleUnitStateRender.command(
-            effect,
-            now - startedAt,
-            boardLeft + visualX * boardTile,
-            tileBottom(visualY),
-            boardTile,
-        ) ?: return
-        hudAssets.battleStateTextures.getOrNull(command.textureIndex)?.let { texture ->
-            batch.color = Color.WHITE
-            batch.draw(texture, command.x, command.y, command.width, command.height)
-        }
-    }
-
-    /** BattleUnit prefab status/unit_status_0..5 at its authored positions. */
-    private fun drawUnitAttributeStatuses(unit: BattleUnit) {
-        val (visualX, visualY) = visualTile(unit)
-        val unitLeft = boardLeft + visualX * boardTile
-        val unitBottom = tileBottom(visualY)
-        BattleUnitAttributeStatusRender.commands(
-            unitPresentationStore.stateFor(unit).attributeStatusIcons,
-            unit.otherNodesVisible,
-            unitLeft,
-            unitBottom,
-            boardTile,
-        ).forEach { command ->
-            val texture = hudAssets.battleAttributeStatusTextures[command.textureIndex] ?: return@forEach
-            batch.color = Color.WHITE
-            batch.draw(texture, command.x, command.y, command.size, command.size)
-        }
+        return BattleActorEffectRenderView(boardLeft, boardBottom, boardTile, actors, effects, sayMarker)
     }
 
     /** Faithful BattleScreen.meff strip playback, including frame alpha and offsets. */
@@ -7768,62 +7726,7 @@ void main() {
 
     /** Faithful BattleScreen.meff strip playback, including frame alpha and offsets. */
     private fun drawMagicEffect() {
-        magicEffectAnimations.filter { animationClock() in it.startedAt..<it.endsAt }.forEach { animation ->
-            val effect = magicEffects.effect(animation.effectId) ?: return@forEach
-            val frame = effect.frameAt(animationClock() - animation.startedAt) ?: return@forEach
-            if (frame.sourceIndex < 0) return@forEach
-            val texture = dynamicTextures.effect(animation.effectId) ?: return@forEach
-            batch.color = Color(1f, 1f, 1f, ((frame.alpha + 24).coerceIn(0, 32) / 32f))
-            animation.targetIds.mapNotNull(battle.presentation::presentationUnit).filter { it.visible }.forEach { target ->
-                val width = effect.frameWidth / 48f * boardTile
-                val height = effect.frameHeight / 48f * boardTile
-                batch.draw(
-                    texture,
-                    boardLeft + target.tileX * boardTile + (boardTile - width) / 2 + frame.offsetX / 48f * boardTile,
-                    tileBottom(target.tileY) + (boardTile - height) / 2 - frame.offsetY / 48f * boardTile,
-                    width,
-                    height,
-                    0,
-                    (frame.sourceIndex * effect.frameHeight).coerceAtMost(
-                        (texture.height - effect.frameHeight).coerceAtLeast(
-                            0
-                        )
-                    ),
-                    minOf(effect.frameWidth, texture.width),
-                    minOf(effect.frameHeight, texture.height),
-                    false,
-                    false,
-                )
-            }
-        }
-        batch.color = Color.WHITE
-    }
-
-    /** BattleUnit.createInfoNode's always-visible bar2, without debug names. */
-    /** The HP sprite is a child of each unit and follows its actor draw. */
-    private fun drawUnitInfoBarInline(unit: BattleUnit) {
-        // unitHide first clears other child nodes before starting anime24.
-        if (deathAnimations[unit.id]?.let { animationClock() in it.startedAt..<it.endsAt } == true) return
-        // The authored S_00 cut-scene leaves the struck 235 actor drawn
-        // for its highlight/death frame, while BattleUnit's source HP
-        // ratio is already zero, so its child bar contributes no pixels.
-        if (!battleDialogueBlendRoute && sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4) return
-        val (visualX, visualY) = visualTile(unit)
-        val shownHp = healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints)
-        val ratio = (shownHp.toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
-        val width = 88f
-        val x = boardLeft + visualX * boardTile + (boardTile - width) / 2
-        val y = tileBottom(visualY) - 1f
-        val texture = when (unit.type()) {
-            Faction.PLAYER -> hudAssets.mineHpBarTexture
-            Faction.FRIEND -> hudAssets.friendHpBarTexture
-            Faction.ENEMY -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
-            Faction.REINFORCEMENTS -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
-        }
-        texture?.let {
-            batch.color = Color.WHITE
-            batch.draw(it, x, y, width * ratio, 6f)
-        }
+        battleActorEffectRenderer.drawEffects(battleActorEffectRenderView(emptyList()))
     }
 
     /** Source BattleScreen coordinates use y=0 at the top of the Hexzmap. */

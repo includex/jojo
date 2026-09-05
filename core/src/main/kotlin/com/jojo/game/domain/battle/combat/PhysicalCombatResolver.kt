@@ -86,7 +86,7 @@ internal object PhysicalCombatResolver {
             passAttacker = attacker,
             passTarget = target,
             criticalRoll = criticalRoll,
-            sourceHarm = resolvedDamage,
+            resolvedHarm = resolvedDamage,
             hit = hit,
             attackStatusBatch = attackStatusBatch,
             splashHarms = primarySplashHarms,
@@ -95,12 +95,12 @@ internal object PhysicalCombatResolver {
             collectSplashTargets = true,
         )
         val primaryResolution = primaryRecord.result
-        val primarySourceHarm = primaryRecord.primarySourceHarm
+        val primaryResolvedHarm = primaryRecord.primaryResolvedHarm
 
         val primaryHpDamage = when {
             primaryResolution.mpShieldDamage > 0 -> 0
             primaryResolution.moneyShieldSpent > 0 -> primaryResolution.damage
-            else -> primarySourceHarm
+            else -> primaryResolvedHarm
         }
         val mpShieldDamage = primaryResolution.mpShieldDamage
         attacker.markActionComplete()
@@ -117,7 +117,7 @@ internal object PhysicalCombatResolver {
             val followUpIsCritical = followUpHit && followUpCriticalRoll
             followUpCritical = followUpIsCritical
             val followUpSpecialDamage = if (followUpHit) env.mrspDamage(attacker, target) else null
-            val followUpSourceHarm = if (followUpHit) {
+            val followUpResolvedHarm = if (followUpHit) {
                 followUpSpecialDamage ?: PhysicalDamageCalculator.calculatePhysicalDamage(
                     attacker = attacker,
                     target = target,
@@ -147,7 +147,7 @@ internal object PhysicalCombatResolver {
                 passAttacker = attacker,
                 passTarget = target,
                 criticalRoll = followUpCriticalRoll,
-                sourceHarm = followUpSourceHarm,
+                resolvedHarm = followUpResolvedHarm,
                 hit = followUpHit,
                 attackStatusBatch = attackStatusBatch,
                 splashHarms = followUpSplashHarms,
@@ -185,7 +185,7 @@ internal object PhysicalCombatResolver {
             )
             val counterCritical = counterHit && counterCriticalRoll
             counterCriticalResult = counterCritical
-            val counterSourceHarm = if (counterHit) {
+            val counterResolvedHarm = if (counterHit) {
                 PhysicalDamageCalculator.calculatePhysicalDamage(
                     attacker = target,
                     target = attacker,
@@ -214,7 +214,7 @@ internal object PhysicalCombatResolver {
                 passAttacker = target,
                 passTarget = attacker,
                 criticalRoll = counterCriticalRoll,
-                sourceHarm = counterSourceHarm,
+                resolvedHarm = counterResolvedHarm,
                 hit = counterHit,
                 attackStatusBatch = counterStatusBatch,
                 splashHarms = counterSplashHarms,
@@ -233,7 +233,7 @@ internal object PhysicalCombatResolver {
                 val secondCriticalRoll = env.probabilityResolver.criticalHit(target, attacker)
                 val secondHit = env.probabilityResolver.physicalHit(target, attacker, counterHitRate)
                 counterFollowUpCritical = secondHit && secondCriticalRoll
-                val counterFollowUpSourceHarm = if (secondHit) {
+                val counterFollowUpResolvedHarm = if (secondHit) {
                     PhysicalDamageCalculator.calculatePhysicalDamage(
                         attacker = target,
                         target = attacker,
@@ -262,7 +262,7 @@ internal object PhysicalCombatResolver {
                     passAttacker = target,
                     passTarget = attacker,
                     criticalRoll = secondCriticalRoll,
-                    sourceHarm = counterFollowUpSourceHarm,
+                    resolvedHarm = counterFollowUpResolvedHarm,
                     hit = secondHit,
                     attackStatusBatch = counterStatusBatch,
                     splashHarms = counterFollowUpSplashHarms,

@@ -69,7 +69,7 @@ verification ---> public application/domain observation contracts
   - `SourceBattleSlots` -> `BattleSlotLayout`
   - `sourceTileX/YAuthored` -> `hasAuthoredTileX/Y`
   - `applySourceAttributeLift` -> `applyAttributeLift`
-  - `sourceHarm` -> `resolvedHarm`
+  - old harm-source parameter -> `resolvedHarm`
 - 외부 비교 trace schema의 JSON key `sourceCharacterId` 한 건은 의도적으로 유지한다.
 
 현재 targeted identity 검색은 0건이어야 한다.
@@ -203,7 +203,7 @@ rg -n 'Battle\b|Battlefield|Screen|Gdx|GameDataCatalog|Campaign|Random|SourceRan
   core/src/main/kotlin/com/jojo/game/PhysicalDamageCalculator.kt
 
 # 기존 전투 모델 이름 잔존. sourceCharacterId JSON schema 한 건만 허용
-rg -n 'sourceCharacterId|sourceBattleSlot|sourceTileXAuthored|sourceTileYAuthored|sourceHarm|SourceBattleSlots' \
+rg -n 'sourceCharacterId|sourceBattleSlot|sourceTileXAuthored|sourceTileYAuthored|SourceBattleSlots' \
   core/src/main/kotlin core/src/test/kotlin verification/src/main/kotlin
 ```
 

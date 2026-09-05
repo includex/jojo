@@ -8,7 +8,6 @@ import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.Battlefield
-import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 import com.jojo.game.domain.campaign.CampaignEquippedItem
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.scenario.hall.*
@@ -74,16 +73,6 @@ class ScenarioScreen(
     private val stopAfterRandomTraceCount: Int?,
     private val campaign: CampaignState,
 ) : ScreenAdapter() {
-    private enum class HallManagement { EQUIP, BUY, SELL }
-    private enum class HallEquipTab { ALL, WEAPON, ARMOR, AUXILIARY }
-    private enum class HallInfo { FORCES, PROPERTY, TERRAIN, TREASURE, HELPER }
-    private enum class HallPropertyTab { WEAPON, ARMOR, AUXILIARY, PROPERTY }
-    private data class EquipConfirmation(
-        val values: List<Int>,
-        val actionLabel: String,
-        val itemId: Int? = null,
-        val unequipSlot: CampaignEquipmentSlot? = null,
-    )
 
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val shapes = ShapeRenderer()
@@ -126,7 +115,6 @@ class ScenarioScreen(
     }
     private val gameDataCatalog = GameDataCatalog.load()
     private val hallManagementCommands = HallManagementCommandAdapter(campaign, gameDataCatalog)
-    private val equipConfirmationFlow = EquipConfirmationFlow(campaign, gameDataCatalog)
     private val sceneAssets = ScenarioSceneAssets {
         buildString {
             append("삼국지 조조전 LibGDX 게임 개발 직접 읽은 한국어 시나리오 인물 내레이션 선택 선택완료 Enter Space 클릭 다음 확정 처음으로 재능의 첫 징후 전투 병영 원본 궁정 대화 UI 비교 조조가 수저우 도겸과 전투를 벌였을 때 장비 장비 정보 매입 판매하기 상품 목록 창고 목록 무기점 상점 현금 종료 모두 해제 자동 장비 전부 무기 보구 보조 정보 조조 군웅 이전 무장 다음 무장 공격력 정신력 방어력 폭발력 사기 이동력 레벨 속성 검 이벤트 총합 가격 인벤토리 판매가 없음 부대 정보 일람 무장명 부대 속성 체력 공격 방어 정신 폭발 폐쇄 창고 일람 이름 경험치 소지자 아이템 확인 지형 정보 효과 기동력 소모 마왕 보병 기병 궁기 포차 무술 보물 도감 발견되지 않음 지금까지 발견한 역사 단축키 설명 메뉴 설정 단계 속도 변화 전용 목록 세트 목록 특수 효과 진영에 따라 다른 색상의 체력 바를 표시합니다 ★◎○△×—☆●")
@@ -173,12 +161,34 @@ class ScenarioScreen(
     private var nextEntryFlowInputAt = 0f
     private var hallFixtureInstalled = false
     private val hallInteraction = HallInteractionController()
-    private val hallOverlayInteraction = HallOverlayInteractionController()
-    private val hallManagementInteraction = HallManagementInteractionController()
     private val hallInteractionView get() = hallInteraction.view
     private val hallMenuOpen get() = hallInteractionView.menuOpen
-    private var hallManagement: HallManagement? = null
-    private var hallManagementNotice: String? = null
+    private val hallManagementFlow by lazy {
+        HallManagementCoordinator(
+            campaign,
+            gameDataCatalog,
+            hallInteraction,
+            hallManagementCommands,
+            HallManagementViewFactory(campaign, gameDataCatalog, moduleName, hallOverlayFixture),
+        )
+    }
+    private val hallInformationFlow by lazy {
+        HallInformationCoordinator(
+            campaign,
+            gameDataCatalog,
+            hallManagementCommands,
+            hallManagementFlow.views,
+            hallManagementFlow::equipUnitIds,
+        )
+    }
+    private val hallOverlayInteraction = HallOverlayInteractionController()
+    private val hallViews get() = hallManagementFlow.views
+    private var hallManagement: HallManagement?
+        get() = hallManagementFlow.management
+        set(value) { hallManagementFlow.management = value }
+    private var hallManagementNotice: String?
+        get() = hallManagementFlow.notice
+        set(value) { hallManagementFlow.notice = value }
     private val hallSaveLayer by lazy {
         SaveLayer(object : SaveLayer.Repository {
             override fun load(index: Int): String? = game.savedCampaignSlot(index)
@@ -189,43 +199,54 @@ class ScenarioScreen(
     }
     private var hallSaveOpen = false
 
-    private data class HallItemDetail(val itemId: Int, val level: String, val experience: Int, val experienceLimit: Int)
-
-    private var hallItemDetail: HallItemDetail? = null
-    private var hallItemLayer: ItemLayer? = null
-
-    /** EquipLayer starts on its weapon tab and the first Model.unitsIter row. */
-    private val hallEquipTab get() = HallEquipTab.entries[hallInteractionView.equipTabIndex]
-    private var hallEquipUnitIndex = 0
-    private var hallEquipUnequipConfirmation = false
-    private var hallUnitListLayer: HallUnitListLayer? = null
-    private var hallEquipConfirmation: EquipConfirmation? = null
-    private var hallExclusiveLayer: ExclusiveLayer? = null
-    private var hallMagicLayer: MagicInfoLayer? = null
-    private var hallUnitInfoLayer: UnitInfoLayer? = null
-    private var hallFeatsLayer: FeatsLayer? = null
-    private var hallFeatsHelpOpen = false
-    private var hallInfo: HallInfo? = null
-    private var hallPropertyTab = HallPropertyTab.WEAPON
-    private var hallTerrainTab = TerrainLayer.Tab.RISE
+    private var hallItemDetail: HallItemDetail?
+        get() = hallInformationFlow.itemDetail
+        set(value) { hallInformationFlow.itemDetail = value }
+    private var hallItemLayer: ItemLayer?
+        get() = hallInformationFlow.itemLayer
+        set(value) { hallInformationFlow.itemLayer = value }
+    private var hallEquipUnitIndex: Int
+        get() = hallManagementFlow.equipUnitIndex
+        set(value) { hallManagementFlow.equipUnitIndex = value }
+    private var hallEquipUnequipConfirmation: Boolean
+        get() = hallManagementFlow.unequipConfirmationOpen
+        set(value) { hallManagementFlow.unequipConfirmationOpen = value }
+    private var hallUnitListLayer: HallUnitListLayer?
+        get() = hallManagementFlow.unitListLayer
+        set(value) { hallManagementFlow.unitListLayer = value }
+    private var hallEquipConfirmation: HallEquipConfirmation?
+        get() = hallManagementFlow.equipConfirmation
+        set(value) { hallManagementFlow.equipConfirmation = value }
+    private var hallExclusiveLayer: ExclusiveLayer?
+        get() = hallManagementFlow.exclusiveLayer
+        set(value) { hallManagementFlow.exclusiveLayer = value }
+    private var hallMagicLayer: MagicInfoLayer?
+        get() = hallInformationFlow.magicLayer
+        set(value) { hallInformationFlow.magicLayer = value }
+    private var hallUnitInfoLayer: UnitInfoLayer?
+        get() = hallInformationFlow.unitInfoLayer
+        set(value) { hallInformationFlow.unitInfoLayer = value }
+    private var hallFeatsLayer: FeatsLayer?
+        get() = hallInformationFlow.featsLayer
+        set(value) { hallInformationFlow.featsLayer = value }
+    private var hallFeatsHelpOpen: Boolean
+        get() = hallInformationFlow.featsHelpOpen
+        set(value) { hallInformationFlow.featsHelpOpen = value }
+    private var hallInfo: HallInfo?
+        get() = hallInformationFlow.info
+        set(value) { hallInformationFlow.info = value }
+    private var hallPropertyTab: HallPropertyTab
+        get() = hallInformationFlow.propertyTab
+        set(value) { hallInformationFlow.propertyTab = value }
+    private var hallTerrainTab: TerrainLayer.Tab
+        get() = hallInformationFlow.terrainTab
+        set(value) { hallInformationFlow.terrainTab = value }
     private val hallBuyTab get() = hallInteractionView.buyTabIndex
     private val hallSellTab get() = hallInteractionView.sellTabIndex
-    /** State transition hook for unit cards that require the campaign's default slots. */
-    private fun prepareHallManagementDefaultEquipment(kind: HallManagement) {
-        val unitId = if (kind == HallManagement.EQUIP) hallEquipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
-        campaign.inventory.ensureDefaultEquipment(unitId, gameDataCatalog)
-    }
-
-    private fun prepareHallForcesDefaultEquipment() {
-        campaign.joinedUnits.forEach { campaign.inventory.ensureDefaultEquipment(it, gameDataCatalog) }
-    }
-
-    private fun hallEquipUnitIds(): List<Int> = campaign.joinedUnits.toList().ifEmpty { listOf(0) }
-    private fun hallEquipUnitId(): Int {
-        val units = hallEquipUnitIds()
-        hallEquipUnitIndex = ((hallEquipUnitIndex % units.size) + units.size) % units.size
-        return units[hallEquipUnitIndex]
-    }
+    private fun prepareHallManagementDefaultEquipment(kind: HallManagement) = hallManagementFlow.prepareDefaultEquipment(kind)
+    private fun prepareHallForcesDefaultEquipment() = hallManagementFlow.prepareForcesDefaultEquipment()
+    private fun hallEquipUnitIds(): List<Int> = hallManagementFlow.equipUnitIds()
+    private fun hallEquipUnitId(): Int = hallManagementFlow.equipUnitId()
 
     private val hallOverlayFixture = game.requestedCaptureState()
         ?.removePrefix("hall-")
@@ -267,7 +288,6 @@ class ScenarioScreen(
                 "skip-open"
             )
         }
-    private val hallViews = HallManagementViewFactory(campaign, gameDataCatalog, moduleName, hallOverlayFixture)
     private val hallSkipDispatches = mutableListOf<String>()
     private val hallSkipLayer: StorySkipFlow? = if (hallOverlayFixture == "skip-open") {
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
@@ -352,10 +372,7 @@ class ScenarioScreen(
                             HallManagement.SELL -> world.x in 869f..1000f && world.y in 75f..130f
                         }
                         if (closes) {
-                            hallManagement = null
-                            hallManagementNotice = null
-                            hallEquipUnequipConfirmation = false
-                            hallUnitListLayer = null
+                            hallManagementFlow.close()
                         } else {
                             handleHallManagementTap(management, world.x, world.y)
                         }
@@ -457,8 +474,8 @@ class ScenarioScreen(
                         hallUnitListLayer = layer.takeIf { it.attached }
                     }
                     hallEquipConfirmation = when (hallOverlayFixture) {
-                        "equip-confirm" -> EquipConfirmation(listOf(10, -5, 0, 2, 0, 0, 1, 0), "장비")
-                        "equip-confirm-unload" -> EquipConfirmation(List(8) { 0 }, "해제")
+                        "equip-confirm" -> HallEquipConfirmation(listOf(10, -5, 0, 2, 0, 0, 1, 0), "장비")
+                        "equip-confirm-unload" -> HallEquipConfirmation(List(8) { 0 }, "해제")
                         else -> null
                     }
                     hallExclusiveLayer = when (hallOverlayFixture) {
@@ -1492,7 +1509,7 @@ class ScenarioScreen(
     }
 
     /** Source Hall/scene/EquipConfirmLayer, transformed from 1488.372x800 by .86. */
-    private fun drawEquipConfirmation(confirmation: EquipConfirmation) {
+    private fun drawEquipConfirmation(confirmation: HallEquipConfirmation) {
         HallEquipConfirmationRenderer.draw(
             sceneAssets,
             batch,
@@ -1597,52 +1614,12 @@ class ScenarioScreen(
         }
     }
 
-    private fun handleHallInfoTap(kind: HallInfo, x: Float, y: Float) {
-        when (val intent = hallOverlayInteraction.infoTap(HallInfoInputKind.valueOf(kind.name), x, y)) {
-            HallInfoInputIntent.None -> Unit
-            HallInfoInputIntent.Close -> hallInfo = null
-            is HallInfoInputIntent.OpenForcesRow -> hallEquipUnitIds().sorted().getOrNull(intent.row)?.let(::openHallUnitInfo)
-            is HallInfoInputIntent.SelectPropertyTab -> HallPropertyTab.entries.getOrNull(intent.tab)?.let { hallPropertyTab = it }
-            is HallInfoInputIntent.OpenPropertyRow -> hallPropertyItemIds().getOrNull(intent.row)?.let { itemId ->
-                val level = if (hallPropertyTab >= HallPropertyTab.AUXILIARY) "---" else (campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1).toString()
-                val experience = if (hallPropertyTab >= HallPropertyTab.AUXILIARY) 0 else campaign.inventory.itemExperiences(itemId).firstOrNull() ?: 0
-                val profile = gameDataCatalog.equipmentProfile(itemId) ?: return@let
-                openHallItem(itemId, level, experience, campaign.inventory.items[itemId]?.let { it > 0 } == true && gameDataCatalog.equipmentCategory(profile) != 3)
-            }
-            is HallInfoInputIntent.SelectTerrainTab -> hallTerrainTab = if (intent.index == 0) TerrainLayer.Tab.RISE else TerrainLayer.Tab.EXPEND
-            is HallInfoInputIntent.OpenTreasureRow -> gameDataCatalog.treasureProfiles().take(6).getOrNull(intent.row)?.takeIf { it.id in campaign.inventory.discoveredTreasures }?.let { openHallItem(it.id, "1", 0, false) }
-        }
-    }
+    private fun handleHallInfoTap(kind: HallInfo, x: Float, y: Float) = hallInformationFlow.handleInfoTap(kind, x, y)
 
-    private fun hallPropertyItemIds(): List<Int> = hallViews.propertyItemIds(hallPropertyTab.ordinal)
+    private fun openHallItem(itemId: Int, level: String, experience: Int, canDrop: Boolean) =
+        hallInformationFlow.openItem(itemId, level, experience, canDrop)
 
-    private fun openHallItem(itemId: Int, level: String, experience: Int, canDrop: Boolean) {
-        val profile = gameDataCatalog.equipmentProfile(itemId) ?: return
-        hallItemDetail = HallItemDetail(
-            itemId,
-            level,
-            experience,
-            gameDataCatalog.equipmentExperienceLimit(itemId, level.toIntOrNull() ?: 1)
-        )
-        hallItemLayer = ItemLayer(itemId, profile.name, canDrop, object : ItemLayer.Repository {
-            override fun discard(itemId: Int): Boolean = hallManagementCommands.discard(itemId)
-        })
-    }
-
-    private fun handleHallItemTap(x: Float, y: Float) {
-        val layer = hallItemLayer ?: return
-        when (hallManagementInteraction.itemTap(layer.discardConfirmationOpen, x, y)) {
-            HallItemInputIntent.DISCARD_YES -> layer.onDiscardAnswer(1)
-            HallItemInputIntent.DISCARD_NO -> layer.onDiscardAnswer(0)
-            HallItemInputIntent.CLOSE -> layer.onButton(0, ItemLayer.TOUCH_END)
-            HallItemInputIntent.REQUEST_DISCARD -> layer.onButton(1, ItemLayer.TOUCH_END)
-            HallItemInputIntent.NONE -> Unit
-        }
-        if (!layer.attached) {
-            hallItemLayer = null
-            hallItemDetail = null
-        }
-    }
+    private fun handleHallItemTap(x: Float, y: Float) = hallInformationFlow.handleItemTap(x, y)
 
     private fun handleExclusiveTap(layer: ExclusiveLayer, x: Float, y: Float) {
         when (hallOverlayInteraction.exclusiveTap(x, y)) {
@@ -1655,230 +1632,13 @@ class ScenarioScreen(
         if (!layer.attached) hallExclusiveLayer = null
     }
 
-    private fun handleMagicTap(layer: MagicInfoLayer, x: Float, y: Float) {
-        if (hallOverlayInteraction.magicTap(x, y) == HallLayerTapIntent.CLOSE) layer.close(UnitInfoLayer.TOUCH_END)
-        if (!layer.attached) hallMagicLayer = null
-    }
-
-    private fun openHallUnitInfo(selectedUnitId: Int) {
-        val ids = hallEquipUnitIds().sorted()
-        val rows = ids.mapNotNull { id ->
-            val unit = gameDataCatalog.unitProfile(id) ?: return@mapNotNull null
-            val level = campaign.unitAttribute(id, 18, unit.level)
-            val battle = gameDataCatalog.battleProfile(
-                id,
-                (level - 1).coerceAtLeast(0),
-                campaign.unitAttribute(id, 17, unit.posts)
-            )
-            UnitInfoLayer.Unit(
-                id, campaign.unitNames[id] ?: if (id == 181) "병사 " else unit.name,
-                gameDataCatalog.postsName(campaign.unitAttribute(id, 17, unit.posts)), level,
-                battle?.maxHitPoints ?: unit.maxHitPoints, battle?.maxHitPoints ?: unit.maxHitPoints,
-                battle?.maxMagicPoints ?: unit.maxMagicPoints, battle?.maxMagicPoints ?: unit.maxMagicPoints,
-                battle?.attack ?: unit.attack, battle?.defense ?: unit.defense, battle?.spirit ?: unit.spirit,
-                battle?.critical ?: unit.critical, battle?.morale ?: unit.morale,
-            )
-        }
-        if (rows.isEmpty()) return
-        hallUnitInfoLayer = UnitInfoLayer(
-            rows,
-            featsEnabled = campaign.globalVariables[4074].toString().toIntOrNull() != 0,
-        ).also { it.onCreate(rows.indexOfFirst { row -> row.id == selectedUnitId }.coerceAtLeast(0)) }
-    }
-
-    private fun featsRows(unit: UnitInfoLayer.Unit): List<FeatsLayer.Row> {
-        val abilities = if (unit.id == 0) listOf(41, 49, 46, 40, 42)
-        else listOf(unit.attack, unit.defense, unit.spirit, unit.critical, unit.morale)
-        return FeatsLayer.TITLES.mapIndexed { index, title ->
-            FeatsLayer.Row(title, abilities[index], 0, 100, 127)
-        }
-    }
-
-    private fun openHallFeatsFromUnitInfo() {
-        val unitInfo = hallUnitInfoLayer ?: return
-        if (!unitInfo.onButton(8, UnitInfoLayer.TOUCH_END)) return
-        if (unitInfo.takeRoutes().none { it.route == UnitInfoLayer.Route.FEATS }) return
-        hallFeatsLayer = FeatsLayer(featsRows(unitInfo.ref().unit))
-    }
-
-    private fun openHallFeatsHelp() {
-        val layer = hallFeatsLayer ?: return
-        if (layer.onButton(1, FeatsLayer.TOUCH_END) && layer.consumeRoute() == FeatsLayer.Route.HELP) {
-            hallFeatsHelpOpen = true
-        }
-    }
-
-    private fun handleHallUnitInfoTap(layer: UnitInfoLayer, x: Float, y: Float) {
-        when (hallOverlayInteraction.unitInfoTap(x, y)) {
-            HallLayerTapIntent.PRIMARY -> openHallFeatsFromUnitInfo()
-            HallLayerTapIntent.CLOSE -> layer.onCancel(UnitInfoLayer.TOUCH_END)
-            else -> Unit
-        }
-        if (!layer.ref().attached) hallUnitInfoLayer = null
-    }
-
-    private fun handleHallFeatsTap(layer: FeatsLayer, x: Float, y: Float) {
-        when (hallOverlayInteraction.featsTap(x, y, hallFeatsHelpOpen)) {
-            HallLayerTapIntent.PRIMARY -> if (hallFeatsHelpOpen) hallFeatsHelpOpen = false
-            HallLayerTapIntent.SECONDARY -> openHallFeatsHelp()
-            HallLayerTapIntent.CLOSE -> layer.onButton(0, FeatsLayer.TOUCH_END)
-            HallLayerTapIntent.CANCEL -> layer.onCancel(FeatsLayer.TOUCH_END)
-            HallLayerTapIntent.NONE -> Unit
-        }
-        if (!layer.attached) hallFeatsLayer = null
-    }
-
-    private fun handleHallManagementTap(kind: HallManagement, x: Float, y: Float) {
-        val unitId = if (kind == HallManagement.EQUIP) hallEquipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
-        when (kind) {
-            HallManagement.EQUIP -> {
-                hallEquipConfirmation?.let { confirmation ->
-                    when (hallManagementInteraction.equipConfirmationTap(x, y)) {
-                        HallEquipConfirmationInputIntent.CONFIRM -> {
-                            val changed = if (confirmation.itemId != null || confirmation.unequipSlot != null)
-                                equipConfirmationFlow.answer(unitId, accept = true) else false
-                            if (changed) hallManagementNotice =
-                                if (confirmation.actionLabel == "해제") "장비를 해제했습니다." else "장비를 변경했습니다."
-                        }
-
-                        HallEquipConfirmationInputIntent.CANCEL -> equipConfirmationFlow.cancel()
-                    }
-                    // EquipConfirmLayer's full-canvas Panel_cancel and cancel
-                    // button both dismiss without applying the preview.
-                    hallEquipConfirmation = null
-                    return
-                }
-                if (hallEquipUnequipConfirmation) {
-                    when (hallManagementInteraction.unequipConfirmationTap(x, y)) {
-                        HallUnequipConfirmationInputIntent.CONFIRM -> {
-                            val count = hallManagementCommands.unequipAll()
-                            hallEquipUnequipConfirmation = false
-                            hallManagementNotice = if (count == 0) "해제할 장비가 없습니다." else "장비 ${count}개를 모두 해제했습니다."
-                        }
-
-                        HallUnequipConfirmationInputIntent.CANCEL -> hallEquipUnequipConfirmation = false
-                        HallUnequipConfirmationInputIntent.NONE -> Unit
-                    }
-                    return
-                }
-                hallUnitListLayer?.let { unitList ->
-                    val row = if (x in (924.186f * .86f)..(1284.186f * .86f)) {
-                        (0 until unitList.rows.size.coerceAtMost(6)).firstOrNull { index ->
-                            y in ((607f - index * 52f) * .86f)..((657f - index * 52f) * .86f)
-                        }
-                    } else null
-                    val selectedId = row?.let { unitList.onRow(it, HallUnitListLayer.TOUCH_END) }
-                    if (selectedId != null) {
-                        hallEquipUnitIndex = hallEquipUnitIds().indexOf(selectedId)
-                        prepareHallManagementDefaultEquipment(HallManagement.EQUIP)
-                    }
-                    if (unitList.attached) unitList.onCancel(HallUnitListLayer.TOUCH_END)
-                    hallUnitListLayer = null
-                    hallManagementNotice = null
-                    return
-                }
-                when (val intent = hallManagementInteraction.equipTap(x, y)) {
-                    is HallEquipInputIntent.SelectTab -> {
-                        hallInteraction.selectEquipTab(intent.index)
-                        hallManagementNotice = null
-                    }
-
-                    HallEquipInputIntent.OpenExclusive -> {
-                        // Source EquipLayer.button14 opens Global126. Keep the
-                        // Equip layer resident beneath it and remove the old
-                        // game-only notice substitute.
-                        hallExclusiveLayer = EquipExclusiveRoute.openFromInformationButton(ExclusiveLayer.TOUCH_END)
-                        hallManagementNotice = null
-                    }
-
-                    HallEquipInputIntent.RequestUnequipConfirmation -> {
-                        hallEquipUnequipConfirmation = true
-                        hallManagementNotice = null
-                    }
-
-                    HallEquipInputIntent.PreviousUnit -> {
-                        hallEquipUnitIndex--
-                        prepareHallManagementDefaultEquipment(HallManagement.EQUIP)
-                        hallManagementNotice = null
-                    }
-
-                    HallEquipInputIntent.NextUnit -> {
-                        hallEquipUnitIndex++
-                        prepareHallManagementDefaultEquipment(HallManagement.EQUIP)
-                        hallManagementNotice = null
-                    }
-
-                    HallEquipInputIntent.OpenUnitList -> {
-                        hallUnitListLayer = HallUnitListLayer(hallEquipUnitIds())
-                        hallManagementNotice = null
-                    }
-
-                    HallEquipInputIntent.RequestWeaponUnequip -> {
-                        equipConfirmationFlow.requestUnequip(unitId, CampaignEquipmentSlot.WEAPON)?.let { preview ->
-                            hallEquipConfirmation = EquipConfirmation(
-                                preview.values,
-                                preview.actionLabel,
-                                unequipSlot = preview.unequipSlot,
-                            )
-                        }
-                    }
-
-                    is HallEquipInputIntent.RequestEquipmentRow -> {
-                        val itemId = hallViews.equipInventory(hallInteractionView.equipTabIndex)
-                            .getOrNull(intent.row)
-                            ?.itemId
-                            ?: return
-                        val preview = equipConfirmationFlow.requestEquip(unitId, itemId)
-                        if (preview == null) hallManagementNotice = "이 물품은 장착할 수 없습니다."
-                        else {
-                            hallEquipConfirmation = EquipConfirmation(
-                                preview.values,
-                                preview.actionLabel,
-                                itemId = preview.itemId,
-                            )
-                            hallManagementNotice = null
-                        }
-                    }
-
-                    HallEquipInputIntent.None -> Unit
-                }
-            }
-
-            HallManagement.BUY -> {
-                when (val intent = hallManagementInteraction.buyTap(x, y, hallBuyTab)) {
-                    is HallBuyInputIntent.SelectTab -> {
-                        hallInteraction.selectBuyTab(intent.index)
-                        hallManagementNotice = null
-                    }
-
-                    is HallBuyInputIntent.Row -> {
-                        val item = if (hallBuyTab == 0) hallViews.buyCandidates().getOrNull(intent.index)
-                        else hallViews.buyProperties().getOrNull(intent.index)
-                        item?.let { hallManagementNotice = hallManagementCommands.buy(it.id).message }
-                    }
-
-                    HallBuyInputIntent.None -> Unit
-                }
-            }
-
-            HallManagement.SELL -> {
-                when (val intent = hallManagementInteraction.sellTap(x, y)) {
-                    is HallSellInputIntent.SelectTab -> {
-                        hallInteraction.selectSellTab(intent.index)
-                        hallManagementNotice = null
-                    }
-
-                    is HallSellInputIntent.Cell -> {
-                        hallViews.sellCandidates(hallSellTab).getOrNull(intent.row * 2 + intent.column)?.let { item ->
-                            hallManagementNotice = hallManagementCommands.sell(item.itemId).message
-                        }
-                    }
-
-                    HallSellInputIntent.None -> Unit
-                }
-            }
-        }
-    }
+    private fun handleMagicTap(layer: MagicInfoLayer, x: Float, y: Float) = hallInformationFlow.handleMagicTap(x, y)
+    private fun openHallUnitInfo(selectedUnitId: Int) = hallInformationFlow.openUnitInfo(selectedUnitId)
+    private fun openHallFeatsFromUnitInfo() = hallInformationFlow.openFeatsFromUnitInfo()
+    private fun openHallFeatsHelp() = hallInformationFlow.openFeatsHelp()
+    private fun handleHallUnitInfoTap(layer: UnitInfoLayer, x: Float, y: Float) = hallInformationFlow.handleUnitInfoTap(x, y)
+    private fun handleHallFeatsTap(layer: FeatsLayer, x: Float, y: Float) = hallInformationFlow.handleFeatsTap(x, y)
+    private fun handleHallManagementTap(kind: HallManagement, x: Float, y: Float) = hallManagementFlow.handleTap(kind, x, y)
 
     private fun executeHallInteraction(intent: HallInteractionIntent) {
         when (intent) {
@@ -1887,10 +1647,7 @@ class ScenarioScreen(
             HallInteractionIntent.OpenMenu -> Unit
 
             HallInteractionIntent.StartBattle -> if (!beginHallBattleScene()) routeAfterScenario()
-            is HallInteractionIntent.OpenManagement -> {
-                hallManagement = HallManagement.valueOf(intent.kind.name)
-                prepareHallManagementDefaultEquipment(requireNotNull(hallManagement))
-            }
+            is HallInteractionIntent.OpenManagement -> hallManagementFlow.open(HallManagement.valueOf(intent.kind.name))
             is HallInteractionIntent.MenuSelection -> when (intent.index) {
                 0 -> game.showTitleScreen()
                 1 -> {

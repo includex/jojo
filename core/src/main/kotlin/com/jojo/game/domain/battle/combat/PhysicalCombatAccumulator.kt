@@ -6,7 +6,7 @@ import com.jojo.game.domain.battle.*
 
 internal data class CombatPassRecord(
     val result: PhysicalAttackTargetResult,
-    val primarySourceHarm: Int,
+    val primaryResolvedHarm: Int,
 )
 
 internal class CombatSettlementAccumulator(
@@ -39,7 +39,7 @@ internal class CombatSettlementAccumulator(
         passAttacker: BattleUnit,
         passTarget: BattleUnit,
         criticalRoll: Boolean,
-        sourceHarm: Int,
+        resolvedHarm: Int,
         hit: Boolean,
         attackStatusBatch: AttackStatusBatch,
         splashHarms: List<Pair<BattleUnit, Int>>,
@@ -49,9 +49,9 @@ internal class CombatSettlementAccumulator(
     ): CombatPassRecord {
         val passTargets = mutableListOf<PhysicalAttackTargetResult>()
         val transfer = if (hit) PhysicalAttackAreaResolver.physicalDamageTransfer(
-            passAttacker, passTarget, sourceHarm, env.units, env.unitAt, env.areAllied,
+            passAttacker, passTarget, resolvedHarm, env.units, env.unitAt, env.areAllied,
         ) else null
-        val primaryHarm = sourceHarm - (transfer?.second ?: 0)
+        val primaryHarm = resolvedHarm - (transfer?.second ?: 0)
         val primaryResult =
             env.resolvePhysicalTarget(passAttacker, passTarget, primaryHarm, attackStatusBatch, isActiveAttack)
         recordResolution(primaryResult, isCounter)
