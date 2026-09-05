@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.verification.terminal
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import com.jojo.game.JojoGame
+import com.jojo.game.RenderEventLog
+import com.jojo.game.TerminalSceneFlow
 
 /** Actual Welcome/End lifecycle followed by the Login draw submissions. */
 enum class TerminalSceneRoute(val state: String, val phase: String) {

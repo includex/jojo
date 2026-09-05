@@ -1,6 +1,7 @@
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
+import com.jojo.game.application.runtime.RuntimeBattleObserver
 import com.jojo.game.application.runtime.RuntimeBattleDriver
 import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
@@ -83,6 +84,8 @@ data class GameLaunchConfiguration(
     val runtimeScreenObserver: RuntimeScreenObserver? = null,
     /** Optional neutral sink for immutable renderer artifact requests. */
     val runtimeArtifactObserver: RuntimeArtifactObserver? = null,
+    /** Optional neutral battle frame observer; persistence remains external. */
+    val runtimeBattleObserver: RuntimeBattleObserver? = null,
     /** Optional neutral battle input driver supplied by an external runtime. */
     val runtimeBattleDriver: RuntimeBattleDriver? = null,
     /** Optional immutable presentation selection supplied by an external runtime. */

@@ -11,6 +11,9 @@ import com.jojo.game.presentation.title.LoginOptionalOverlayRoute
 import com.jojo.game.presentation.title.TitleScreen
 import com.jojo.game.verification.cmd.CmdRoute
 import com.jojo.game.verification.cmd.CmdRouteScreen
+import com.jojo.game.verification.load.ModalLoadRouteScreen
+import com.jojo.game.verification.terminal.TerminalSceneRoute
+import com.jojo.game.verification.terminal.TerminalSceneRouteScreen
 
 /** Verification-only startup catalogue for isolated capture surfaces. */
 class CaptureFixtureStartupExtension : RuntimeStartupExtension {

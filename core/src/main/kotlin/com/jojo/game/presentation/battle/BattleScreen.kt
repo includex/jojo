@@ -13,6 +13,8 @@ import com.jojo.game.application.runtime.BattleRuntimeProbeFactory
 import com.jojo.game.application.runtime.RuntimeBattleCommand
 import com.jojo.game.application.runtime.RuntimeBattleFrame
 import com.jojo.game.application.runtime.RuntimeBattleRoute
+import com.jojo.game.application.runtime.RuntimeBattleFrameSnapshot
+import com.jojo.game.application.runtime.RuntimeBattleCompletion
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
 import com.jojo.game.application.runtime.BattleRuntimeSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
@@ -2994,7 +2996,7 @@ void main() {
         val dialogueText = dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }
             ?.joinToString("\n") { it.text }.orEmpty()
         val (mapObjectRevision, mapObjectsJson) = fullTraceMapObjectsJson()
-        evidence.record(FullBattleTraceFrameProjector.project(
+        val projected = FullBattleTraceFrameProjector.project(
             FullBattleTraceFrameInput(
                 frame, elapsed, delta, battle.round, traceCamp, battle.maxRounds,
                 battle.units.values.count { it.type() == Faction.PLAYER },
@@ -3022,7 +3024,12 @@ void main() {
                 aiPresentation.resolution != null, aiPresentation.activeCamp?.toString(), activeRoundLayer != null,
                 settlementPresentation.isActive(), combatPresentationBusy(),
             )
-        ))
+        )
+        val payload = BattleEvidenceRecorder.frame(projected)
+        evidence.record(projected)
+        game.runtimeBattleObserver()?.onFrame(
+            RuntimeBattleFrameSnapshot(projected.frame, projected.elapsed, projected.delta, payload)
+        )
     }
 
     private fun fullTraceAiPresentation(): FullBattleTraceAiPresentationInput? = aiPresentation.resolution?.let { resolution ->
@@ -3089,6 +3096,9 @@ void main() {
                 mapHeight = terrainGrid.height,
             )
         )?.let { result ->
+            game.runtimeBattleObserver()?.onCompleted(
+                RuntimeBattleCompletion(reason, result.frameCount, result.outputPath)
+            )
             Gdx.app.log("JojoGame", "FULL_BATTLE_TRACE: ${result.outputPath}; frames=${result.frameCount}; reason=$reason")
             if (evidence.exitsOnFinish()) Gdx.app.exit()
         }
