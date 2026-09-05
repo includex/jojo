@@ -358,21 +358,19 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private val route = mutableListOf<String>()
     private val stopEvaluator = CampaignE2eStopEvaluator(config.stopAt)
 
-    // Kept for backwards compatibility.  It now includes only accepted
-    // attempts, while inputRecords retains every dispatch for audit.
-    private val inputs = mutableListOf<String>()
-    private val inputRecords = mutableListOf<CampaignE2eInputRecord>()
     private var elapsed = 0f
     private var nextInputAt = .25f
     private var lastScreenName: String? = null
     private var lastScreen: RuntimeScreenProbe = OtherRuntimeProbe("null")
+    private val inputReporter = CampaignE2eInputReporter {
+        CampaignE2eScreenObservation.of(lastScreen)
+    }
     private var titleClicked = false
     private var sawInitialScene1 = false
     private var sawResultScene1 = false
     private var sawScene2 = false
     private var sawSavePrompt = false
     private val observedScenarioScenes = mutableSetOf<String>()
-    private var transitionEnterCount = 0
     private var playerMoveBeforeScene1 = false
     private var committedPlayerMove: String? = null
     private var finished = false
@@ -381,8 +379,8 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private val pendingScenarioStarts = mutableListOf<Pair<String, Int>>()
     private val battleInputDriver = ProductionBattleInputDriver(
         inputIntervalSeconds = config.inputIntervalSeconds,
-        onInput = { inputs += it },
-        onInputRecord = { inputRecords += it },
+        onInput = inputReporter::recordAcceptedInput,
+        onInputRecord = inputReporter::recordInputAttempt,
     )
     private val observedInitialBattleScenes = mutableSetOf<String>()
     private val observedResultBattleScenes = mutableSetOf<String>()
@@ -451,7 +449,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         when (current) {
             is TitleRuntimeProbe -> if (!titleClicked && elapsed >= nextInputAt) {
                 // Centre of TitleInteraction.NEW_GAME in logical window coordinates.
-                pointer(1097, 688 - 500, "TitleScreen:new-game-click")
+                inputReporter.pointer(1097, 688 - 500, "TitleScreen:new-game-click")
                 titleClicked = true
             }
 
@@ -514,12 +512,12 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         }
         if (elapsed < nextInputAt) return
         when (state.playback) {
-            PlaybackState.DIALOGUE -> key(Input.Keys.ENTER, "${state.module}:dialogue")
-            PlaybackState.MODAL -> key(Input.Keys.ENTER, "${state.module}:modal")
+            PlaybackState.DIALOGUE -> inputReporter.key(Input.Keys.ENTER, "${state.module}:dialogue")
+            PlaybackState.MODAL -> inputReporter.key(Input.Keys.ENTER, "${state.module}:modal")
             PlaybackState.CHOICE -> {
                 val desired = state.options.indexOfFirst { "게임 시작" in it }.takeIf { it >= 0 } ?: 0
-                if (state.selectedChoice != desired) key(Input.Keys.DOWN, "${state.module}:choice-next")
-                else key(Input.Keys.ENTER, "${state.module}:choice-confirm")
+                if (state.selectedChoice != desired) inputReporter.key(Input.Keys.DOWN, "${state.module}:choice-next")
+                else inputReporter.key(Input.Keys.ENTER, "${state.module}:choice-confirm")
             }
 
             PlaybackState.COMPLETE -> if (state.menuVisible && hallBattleCommands.add(state.module)) {
@@ -528,7 +526,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                             state.battleButtonScreenY in 0 until Gdx.graphics.height
                 ) { "${state.module} projected Hall battle command is outside the viewport" }
                 route += "ScenarioScreen:${state.module}:hall-battle-button"
-                pointer(
+                inputReporter.pointer(
                     state.battleButtonScreenX,
                     state.battleButtonScreenY,
                     "${state.module}:hall-battle-button",
@@ -563,13 +561,13 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
             state.cursorSelected,
             state.canStart,
         )) {
-            CampaignBattlePreparationAction.START -> key(Input.Keys.ENTER, "${state.sourceScenario}:preparation-start")
-            CampaignBattlePreparationAction.NEXT_UNIT -> key(
+            CampaignBattlePreparationAction.START -> inputReporter.key(Input.Keys.ENTER, "${state.sourceScenario}:preparation-start")
+            CampaignBattlePreparationAction.NEXT_UNIT -> inputReporter.key(
                 Input.Keys.RIGHT,
                 "${state.sourceScenario}:preparation-next-unit"
             )
 
-            CampaignBattlePreparationAction.TOGGLE_UNIT -> key(
+            CampaignBattlePreparationAction.TOGGLE_UNIT -> inputReporter.key(
                 Input.Keys.SPACE,
                 "${state.sourceScenario}:preparation-select-unit"
             )
@@ -619,35 +617,12 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         }
     }
 
-    private fun key(code: Int, context: String) {
-        if (context.endsWith(":transition")) transitionEnterCount++
-        val before = screenObservation()
-        val accepted =
-            checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }.keyDown(code)
-        recordInput(context, accepted, before, screenObservation())
-    }
-
-    private fun pointer(x: Int, y: Int, context: String) {
-        val input = checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }
-        val before = screenObservation()
-        val accepted = input.touchDown(x, y, 0, Input.Buttons.LEFT)
-        input.touchUp(x, y, 0, Input.Buttons.LEFT)
-        recordInput(context, accepted, before, screenObservation())
-    }
-
-    private fun recordInput(event: String, accepted: Boolean, before: String, after: String) {
-        inputRecords += CampaignE2eInputRecord(event, accepted, before, after)
-        if (accepted) inputs += event
-    }
-
-    private fun screenObservation(): String = CampaignE2eScreenObservation.of(lastScreen)
-
     private fun finish(actualModule: String, actualSceneIndex: Int, forwardOvershoot: Boolean) {
         CampaignE2eTraceWriter.write(
             config = config,
             snapshot = CampaignE2eTraceWriter.Snapshot(
-                route = route, inputs = inputs, inputRecords = inputRecords,
-                transitionEnterCount = transitionEnterCount, playerMoveBeforeScene1 = playerMoveBeforeScene1,
+                route = route, inputs = inputReporter.inputs, inputRecords = inputReporter.records,
+                transitionEnterCount = inputReporter.transitionEnterCount, playerMoveBeforeScene1 = playerMoveBeforeScene1,
                 committedPlayerMove = committedPlayerMove, initialBattleScenes = observedInitialBattleScenes,
                 campaignStages = campaignStages, battlePreparations = battlePreparations,
                 sawR01DepartureDialogue = sawR01DepartureDialogue,
