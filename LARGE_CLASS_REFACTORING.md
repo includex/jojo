@@ -21,9 +21,9 @@
 |---|---:|---|---|---:|
 | `BattleScreen` | 9,578 | **자원 수명과 Fight 렌더 경계 분리 완료.** 여전히 입력, 전투 진행, 다른 overlay draw와 trace를 소유해 추가 분리가 필수다. 정적 HUD·overlay·UnitInfo, 동적 texture cache와 capture reference는 162줄 이하 `Disposable` 소유자로 이동했고 Fight draw는 204줄 renderer가 맡는다. | `BattleInputController`, `BattlePresentationCoordinator`, `BattleSceneRenderer`, 나머지 overlay renderer, verification observer | P0 |
 | `ScenarioScreen` | 4,534 | 시나리오 재생과 회관의 구매·판매·장비·정보 UI, 입력, render log가 결합돼 있다. | `ScenarioPlaybackController`, `HallController`, `ScenarioRenderer`, `HallRenderer`, 화면별 input handler | P0 |
-| `Battle` | 3,467 | 전투 상태, 물리 공격, 마법, AI, 턴 정산과 캠페인 callback이 결합돼 있다. 이동·능력치·확률·topology와 계산/연출 commit 경계는 작은 도메인 객체로 분리했고 `PhysicalDamageCalculator` 연결은 검증 전이다. | `Battle`, `Battlefield`, `BattleActionTransaction`, `PhysicalCombatResolver`, `MagicResolver`, `BattleAiPlanner`, `TurnSettlementService` | P0 |
-| `ScenarioInterpreter` | 1,843 | AST 순회, 표현식 평가, 문장 실행, 호출 dispatch, 게임 command 생성이 한 객체에 있다. | `ScenarioStatementExecutor`, `ScenarioExpressionEvaluator`, `ScenarioFunctionRegistry`, `ScenarioCommandSink` | P0 |
-| `ScenarioStage` | 1,082 | `ScenarioRuntime.kt` 안에서 시나리오 변수 저장소와 수십 개의 게임 command API, 전투 bridge 상태를 함께 가진다. | `ScenarioVariables`, `ScenarioCommandBuffer`, `ScenarioBattleContext`, 좁은 command interfaces | P0 |
+| `Battle` | 787 | **도메인 엔진 분해 대폭 완료.** 전투 상태, 물리 공격, 마법, AI 계획/점수, 턴 정산, 이동, 경험치, 전장 환경 등이 20개의 순수 Kotlin 협력 객체로 분리됐다. (3,468줄 → 787줄) | `Battle` (최종 300줄 이하 조율: 상태/설정 분리) | P1 |
+| `ScenarioInterpreter` | 277 | **완료.** AST 순회, 표현식 평가, 문장 실행, 조건식, 모달/대화/선택/전투 디스패치가 19개의 단일 책임 협력 객체로 분리됐다. (1,844줄 → 277줄, 전 객체 <= 300줄 엄수) | 현재 분해 구조 유지 | 완료 |
+| `ScenarioStage` | 468 | **1차 분리 완료.** `ScenarioRuntime.kt`에서 유닛 레지스트리, 이동 코디네이터, 연출 코디네이터, 일기토 코디네이터, 시나리오 자율 재생기가 추출됐다. (1,082줄 → 468줄) | `ScenarioStage` (최종 300줄 이하 조율: 맵오브젝트/날씨 분리) | P1 |
 | `GameDataCatalog` | 823 | 리소스 I/O·복호화·파싱은 `GameDataRepository`로 분리됐다. 아직 여러 도메인 catalog 조회가 한 객체에 모여 있다. | `UnitCatalog`, `EquipmentCatalog`, `MagicCatalog`, `TerrainCatalog`로 추가 분리 | P1 |
 | `CampaignState` | 247 | **완료.** unit/global/info/talent/level 상태만 유지한다. 인벤토리·장비는 287줄의 `CampaignInventory`, 장비 성장은 95줄의 `CampaignEquipmentProgression`, 전투 명단은 84줄의 `CampaignRoster`로 분리했다. 각 collection은 read-only view와 의도 기반 command로 캡슐화했다. | 현재 aggregate와 세 collaborator 경계 유지 | 완료 |
 | `TitleScreen` | 185 | **완료.** lifecycle·입력·navigation만 유지한다. 73줄의 `TitleSceneAssets`가 자원 수명을, 205줄의 `TitleSceneRenderer`가 draw를, 138줄의 LibGDX 비의존 `TitleRenderEventRecorder`가 검증 로그를 담당한다. renderer와 recorder는 34줄의 immutable `TitleViewState`만 읽는다. | 현재 controller/view/renderer/assets/verification 경계 유지 | 완료 |
@@ -90,7 +90,7 @@ com.jojo.game.verification
 3. **완료.** 누적 확률 gauge, 명중·치명타·연속 공격·상태 지속시간의 난수 소비를 `BattleProbabilityResolver`로 옮긴다. gauge 종류는 숫자 상수 대신 `BattleRateGauge`로 표현하고, aggregate는 판정 순서만 조립한다.
 4. **완료.** active/presentation unit collection, 점유 조회와 퇴각/복귀를 `Battlefield` 한 곳으로 옮긴다. 이후 전투 resolver가 `Battle`의 map 두 개를 직접 조작하지 않게 한다.
 5. **완료.** 계산 후 애니메이션 callback 시점에 적용하는 snapshot/restore 책임을 `BattleActionTransaction`으로 옮긴다. transaction은 전투 규칙을 계산하지 않고 memento와 staged domain effect만 관리한다.
-6. **진행 중.** 피해·상태 부여를 `PhysicalCombatResolver`, 아이템 효과를 `BattlePropertyResolver`, 마법을 `MagicResolver`로 분리한다. 각 resolver는 immutable request를 받고 결과와 domain effect를 반환하며 캠페인 저장 callback을 직접 호출하지 않는다. 선행 작업인 208줄 `PhysicalDamageCalculator`는 연결됐지만 순수 테스트와 전체 회귀 전이다.
+6. **진행 중.** 피해·상태 부여를 `PhysicalCombatResolver` 계열(`PhysicalDamageCalculator`, `PhysicalTargetResolver`, `PhysicalAttackAreaResolver`, `PhysicalCombatAccumulator`, `PhysicalCombatResolver`), 아이템 효과를 `BattlePropertyResolver`로 분리 완료했다. 다음으로 마법을 `MagicResolver`로 분리한다. 각 resolver는 immutable request를 받고 결과와 domain effect를 반환하며 캠페인 저장 callback을 직접 호출하지 않는다. 현재 `Battle`은 2,621줄로 줄었다.
 7. AI는 read-only `BattleAiPlanner`가 이동/행동 결정을 만들고 aggregate가 그 command를 실행하게 한다. AI 점수 계산 중 전투 상태를 미리 변경했다가 복구하는 현재 결합은 transaction 경계가 만들어진 뒤 제거한다.
 8. camp 시작/종료, round·weather·status 처리는 `TurnSettlementService`로 옮긴다. `Battle`에는 command 순서와 불변식만 남긴다.
 

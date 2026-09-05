@@ -204,5 +204,31 @@ internal object PhysicalDamageCalculator {
     private fun effect(unit: BattleUnit, skillId: Int): Int? =
         unit.skills[skillId]?.and(255)?.takeIf { it != 255 }
 
+    fun calculatePhysicalDamage(
+        attacker: BattleUnit,
+        target: BattleUnit,
+        baseDamage: Int,
+        damageRateContext: PhysicalDamageRateContext,
+        flatContext: FlatPhysicalDamageContext,
+        criticalRateContext: PhysicalCriticalRateContext,
+        visibleFamousPlayerCount: Int,
+        overrideDamage: Int? = null,
+        bonusFlatDamage: Int = 0,
+    ): Int {
+        if (overrideDamage == 0) return 0
+        var normalDamage = overrideDamage?.coerceAtLeast(0)
+            ?: maxOf(1, baseDamage * physicalArmRestraint(attacker, target) / 100)
+        normalDamage = normalDamage * physicalDamageRate(attacker, target, damageRateContext) / 100
+        normalDamage = BattleAttributeCalculator.physicalDamageAfterResistance(normalDamage, attacker, target)
+        normalDamage += physicalFlatSkillDamage(attacker, target, flatContext) + bonusFlatDamage
+        normalDamage = maxOf(1, normalDamage)
+        normalDamage = armorPiercingMinimumDamage(attacker, target, normalDamage)
+        normalDamage = cappedPhysicalDamage(target, normalDamage)
+        return maxOf(
+            physicalMinimumDamage(attacker, visibleFamousPlayerCount),
+            normalDamage * physicalCriticalRate(attacker, target, criticalRateContext) / 100,
+        )
+    }
+
     private fun hasSkill(unit: BattleUnit, skillId: Int): Boolean = effect(unit, skillId) != null
 }

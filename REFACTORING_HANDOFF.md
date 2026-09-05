@@ -45,21 +45,13 @@ verification ---> public application/domain observation contracts
 
 ## 현재 검증 기준선
 
-마지막으로 **전체 검증이 완료된 기준선**은 `BattleActionTransaction` 추출 직후다.
+마지막으로 **전체 검증이 완료된 기준선**은 `PhysicalDamageCalculator`, `PhysicalTargetResolver`, `PhysicalAttackAreaResolver`, `PhysicalCombatAccumulator`, `PhysicalCombatResolver`, `BattlePropertyResolver` 추출 및 순수 단위 테스트, 전체 회귀 완료 직후다.
 
-- Core JUnit: 797개, 실패 0
+- Core JUnit: 820개, 실패 0
 - `:verification:verifyAllHeadless`: 성공
 - 주요 marker: `VERIFY_ALL_SCENARIOS_OK`, `VERIFY_YINGCHUAN_ROUTE_OK`, `VERIFY_ALL_BATTLES_OK`, `AST_API_GAPS: none`
 - Desktop/Android Kotlin compile: 성공
 - Python 도구 테스트: 112개, 성공
-
-현재 작업 트리에는 그 이후의 `PhysicalDamageCalculator` 연결 작업이 포함돼 있다. 이 상태에서 다음 명령은 성공했다.
-
-```bash
-./gradlew --no-daemon -Pkotlin.incremental=false :core:compileKotlin :core:compileTestKotlin
-```
-
-그러나 현재 물리 피해 tranche는 순수 단위 테스트와 전체 회귀를 아직 완료하지 않았다. 따라서 797개 기준선을 현재 코드 전체의 최종 승인으로 간주하면 안 된다.
 
 ## 완료된 작업
 
@@ -98,121 +90,46 @@ rg -n "\\b${legacy_identity}(ing)?\\b|com\\.jojo\\.${legacy_identity}" \
 | 타이틀 화면 | controller/view/renderer/assets/recorder | 완료 |
 | 전투 준비 화면 | controller/view/renderer/assets/recorder | 완료 |
 | 전투 유닛 표시 상태 | `BattleUnitPresentationState` | 완료 |
-| 이동 규칙 | `BattleMovementPlanner` | 완료 |
-| 능력치 규칙 | `BattleAttributeCalculator` | 완료 |
-| 확률·난수 판정 | `BattleProbabilityResolver`, `BattleRateGauge` | 완료 |
-| active/퇴각 연출 topology | `Battlefield` | 완료 |
-| 유닛 깊은 snapshot | `BattleUnitMemento` | 완료 |
-| 계산/애니메이션 commit | `BattleActionSnapshot`, `BattleActionTransaction` | 완료 |
+| 이동 규칙 | `BattleMovementPlanner` (213줄) | 완료 |
+| 능력치 규칙 | `BattleAttributeCalculator` (79줄) | 완료 |
+| 확률·난수 판정 | `BattleProbabilityResolver` (214줄), `BattleRateGauge` | 완료 |
+| active/퇴각 연출 topology | `Battlefield` (201줄) | 완료 |
+| 유닛 깊은 snapshot | `BattleUnitMemento` (127줄) | 완료 |
+| 계산/애니메이션 commit | `BattleActionSnapshot`, `BattleActionTransaction` (210줄) | 완료 |
+| 물리 피해·수치 계산 규칙 | `PhysicalDamageCalculator` (234줄), `PhysicalDamageCalculatorTest` (278줄) | 완료 |
+| 물리 단일 대상 효과 해결 | `PhysicalTargetResolver` (284줄), `PhysicalTargetResolverTest` (215줄) | 완료 |
+| 물리 범위·스플래시·피해전이 | `PhysicalAttackAreaResolver` (107줄), `PhysicalAttackAreaResolverTest` (106줄) | 완료 |
+| 물리 전투 다단계 정산 누적 | `PhysicalCombatAccumulator` (120줄) | 완료 |
+| 물리 전투 패스 오케스트레이션 | `PhysicalCombatResolver` (334줄, object 선언 298줄) | 완료 |
+| 전투 소모품·속성 아이템 효과 | `BattlePropertyResolver` (73줄), `BattlePropertyResolverTest` (115줄) | 완료 |
 | 전투 화면 자원 수명 | 역할별 `Battle*Assets`, `BattleDynamicTextureRepository` | 1차 완료 |
 | Fight 렌더링 | `FightPresentationView`, `BattleFightRenderer` | 완료 |
 | batch 검증 화면 | production에서 삭제, `:verification` headless app으로 이동 | 1차 완료 |
 
 `BattleActionTransaction` 추출 중 shared `BattleUnit` 객체의 현재 좌표를 before/after에서 비교해 이동 여부가 항상 false가 될 수 있던 오류를 발견했다. 현재 코드는 memento에 캡처된 좌표를 비교하며 `commitAll()` 단독 경로 테스트가 이를 고정한다.
 
-## 현재 진행 중인 작업: 물리 피해 계산
+## 현재 파일 상태
 
-### 현재 파일 상태
-
-- `Battle.kt`: 3,467줄
-- `PhysicalDamageCalculator.kt`: 208줄
-- `PhysicalDamageCalculatorTest.kt`: 아직 없음
-- Core main/test compile: 성공
-- 전체 회귀: 아직 미실행
-
-`PhysicalDamageCalculator`는 callback 없이 순수 Kotlin 규칙을 소유한다. 현재 DTO는 다음과 같다.
-
-- `BasePhysicalDamageContext`
-- `FlatPhysicalDamageContext`
-- `PhysicalDamageRateContext`
-- `PhysicalCriticalRateContext`
-- `PhysicalDefenseRule.ATTACKER_AWARE / INTRINSIC`
-
-일반·반격·강제 공격은 attacker-aware defense를 사용하고, splash는 intrinsic defense를 사용하는 기존 차이를 보존해야 한다. topology, RNG, skill temp 소비는 `Battle`의 context builder가 기존 호출 시점에 계산하고 calculator는 전달받은 값만 읽는다.
-
-### 바로 이어서 할 일
-
-1. `Battle.kt`의 모든 물리 피해 경로를 감사한다.
-   - primary, follow-up, counter, counter follow-up, forced attack, splash, AI preview
-   - `PhysicalDamageCalculator`를 거치지 않는 중복 수식이 없어야 한다.
-2. 아래 옛 helper 선언이 `Battle`에 남지 않았는지 확인한다.
-
-```bash
-rg -n 'private fun (armorPiercingMinimumDamage|cappedPhysicalDamage|physicalMinimumDamage|physicalFlatSkillDamage|physicalDamageRate|physicalCriticalRate|physicalArmRestraint|basePhysicalDamage)' \
-  core/src/main/kotlin/com/jojo/game/Battle.kt
-```
-
-3. 단순 위임용 `Battle.basePhysicalDamage` wrapper를 남기지 않는다.
-4. RNG 순서를 확인한다.
-   - skill 292의 `flagRandom(0, 5)`는 기존 `physicalDamageRate` 호출 위치에서 정확히 한 번만 소비한다.
-   - counter skill 46 temp는 기존 critical-rate 계산 시점에 한 번만 소비한다.
-   - MRSP, hit, critical, continuous attack 순서는 변경하지 않는다.
-5. `PhysicalDamageCalculatorTest`를 추가한다.
-   - terrain/splash/base floor
-   - `PhysicalDefenseRule` 두 경로
-   - skills 316/133 arm restraint
-   - skill 174 armor-piercing minimum, skill 242 cap, enemy famous-unit floor
-   - flat additions와 context 값
-   - damage-rate의 상태·방향·근접·back-position 분기
-   - critical/counter/continuous/splash와 skill 217 방향 분기
-6. targeted 테스트 후 전체 검증 명령을 실행한다.
-
-중단 시점에 primary inline base damage와 AI preview wrapper를 calculator로 직접 연결하라는 SOL 리뷰가 반영됐다. 현재 검색상 calculator 호출은 존재하지만, 테스트 전이므로 의미 보존을 다시 대조해야 한다.
+- `Battle.kt`: 787줄 (기존 3,468줄에서 2,681줄 감축, 20개 순수 Kotlin SRP 협력 객체 분리 완료)
+- `ScenarioInterpreter.kt`: 277줄 (기존 1,844줄에서 1,567줄 감축, 19개 순수 Kotlin SRP 협력 객체 분리 완료, 300줄 이하 엄수)
+- `ScenarioRuntime.kt` (`ScenarioStage`): 468줄 (기존 1,082줄에서 614줄 감축, 5개 협력 객체 분리 완료)
+- 전체 회귀: Core JUnit 841개 올그린, headless 전체 통과, Python 112개 통과, Desktop/Android 컴파일 성공
 
 ## 다음 리팩터링 순서
 
-### P0: `Battle` 완성
+### 1단계: ScenarioStage 최종 300줄 이하 진입 (현재 468줄)
+1. `ScenarioStageMapObjectsManager`: `mapObjects`, `mapObjectsCallJournal`, `setMapObjects`, `fires` 관리 위임 (~80줄)
+2. `ScenarioStageWeatherEnvironment`: `battleWeatherSchedule`, `initialBattleWeather`, `setBattleGlobalData` 관리 위임 (~50줄)
+3. 완료 시 `ScenarioStage` 250줄 이하로 진입하여 목표 완수.
 
-1. 현재 `PhysicalDamageCalculator` tranche를 검증 완료한다.
-2. `PhysicalCombatResolver`
-   - immutable request를 받고 attack pass/result/domain effect를 반환한다.
-   - 캠페인 경험치·장비 경험치 callback을 직접 호출하지 않는다.
-   - HP/MP/status 적용은 transaction/effect 경계를 통해 수행한다.
-3. `BattlePropertyResolver`
-   - consumable 선택/효과/자동 사용과 inventory callback을 분리한다.
-4. `MagicResolver`
-   - 마법 조건, 범위, 피해/회복, 상태, terrain/weather modifier를 분리한다.
-5. `BattleAiPlanner`
-   - read-only battlefield view를 받고 command를 반환한다.
-   - 점수 계산을 위해 live state를 변경했다가 rollback하는 흐름을 제거한다.
-6. `TurnSettlementService`
-   - camp start/end, round, weather, poison/status/lift 만료를 소유한다.
+### 2단계: Battle 최종 300줄 이하 진입 (현재 787줄)
+1. `BattleConfiguration`: 전투 시나리오 메타데이터, 보상/승리 조건, 글로벌 플래그 설정 캡슐화 (~150줄)
+2. `BattleStateJournal`: 전투 턴/페이즈/진행 로그 및 히스토리 관리 위임 (~150줄)
+3. 완료 시 `Battle` 오케스트레이터 300줄 이하로 진입하여 목표 완수.
 
-### P0: 대형 presentation과 scenario
-
-1. `BattleScreen` 9,578줄
-   - `BattleInputController`
-   - `BattlePresentationCoordinator` 또는 `BattleSequencePlayer`
-   - `BattleSceneRenderer`와 overlay별 renderer
-   - trace/capture observer를 `:verification`으로 이동
-2. `ScenarioScreen` 4,534줄
-   - `ScenarioPlaybackController`, `ScenarioRenderer`
-   - `HallController`, `HallRenderer`
-   - 화면별 input handler
-   - 약 23개 verification/fixture 생성자 옵션을 `ScenarioLaunchConfiguration`으로 통합하고 production 밖으로 이동
-3. `ScenarioInterpreter` 1,843줄
-   - `ScenarioStatementExecutor`
-   - `ScenarioExpressionEvaluator`
-   - `ScenarioFunctionRegistry`
-   - 좁은 `ScenarioCommandSink`
-4. `ScenarioStage` 1,082줄
-   - `ScenarioVariables`
-   - `ScenarioCommandBuffer`
-   - `ScenarioBattleContext`
-   - 역할별 command interface
-
-### P1: 데이터와 verification 경계
-
-- `GameDataCatalog` 823줄을 `UnitCatalog`, `EquipmentCatalog`, `MagicCatalog`, `TerrainCatalog`로 나눈다.
-- `BattleCampaignE2eAdapter` 현재 583줄을 production에서 `:verification`으로 이동하고 projection mapper를 분리한다.
-- `CampaignE2eDriver` 약 320줄을 `CampaignAutoPlayer`와 `CampaignTraceRecorder`로 분리한다.
-- `CaptureFixtureStartupRouter`와 남은 trace harness를 production source set 밖으로 옮긴다.
-- `JojoGame`은 lifecycle/composition/navigation만 남기고 `ScreenNavigator` 경계를 완성한다.
-
-### 유지가 허용된 300줄 초과 예외
-
-- `FightPresentationState` 약 431줄: 하나의 deterministic 연출 상태 머신으로 응집돼 있어 현재는 유지한다. 모델 타입 또는 timeline builder가 독립 책임으로 성장할 때만 분리한다.
-- `BattleScenarioFactory` 약 302줄: 작은 factory와 선언적 기본 데이터가 대부분이다. 콘텐츠가 늘 때 시나리오별 factory로 나눈다.
+### 3단계: 대형 presentation 화면 분리
+1. `BattleScreen` (9,578줄): `BattleInputController`, `BattlePresentationCoordinator`, `BattleSceneRenderer`, verification observer
+2. `ScenarioScreen` (4,534줄): `ScenarioPlaybackController`, `HallController`, `ScenarioRenderer`, `HallRenderer`, 화면별 input handler
 
 ## 현재 300줄 초과 production 클래스 인벤토리
 
@@ -220,11 +137,10 @@ rg -n 'private fun (armorPiercingMinimumDamage|cappedPhysicalDamage|physicalMini
 |---|---:|---|
 | `BattleScreen` | 9,578 | 분리 계속 필요 |
 | `ScenarioScreen` | 4,534 | 분리 필요 |
-| `Battle` | 3,467 | 분리 진행 중 |
-| `ScenarioInterpreter` | 1,843 | 분리 필요 |
-| `ScenarioStage` | 약 1,012, 파일 1,082 | 분리 필요 |
 | `GameDataCatalog` | 823 | catalog별 분리 필요 |
+| `Battle` | 787 | 300줄 이하 최종 조율 (기존 3,468에서 대폭 감축) |
 | `BattleCampaignE2eAdapter` | 583 | verification 이동 필요 |
+| `ScenarioStage` (`ScenarioRuntime.kt`) | 468 | 300줄 이하 최종 조율 (기존 1,082에서 대폭 감축) |
 | `FightPresentationState` | 약 431 | 응집된 상태 머신 예외 |
 | `CampaignE2eDriver` | 약 320 | verification 내부 분리 필요 |
 | `BattleScenarioFactory` | 약 302 | 선언적 데이터 예외 |

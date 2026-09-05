@@ -26,6 +26,23 @@ enum class BattleStatus {
 enum class BattleAttribute { ATTACK, DEFENSE, SPIRIT, CRITICAL, MORALE, MOVEMENT }
 enum class BattleWeather { CLEAR, CLOUDY, WINDY, HEAVY_RAIN, SNOW }
 
+fun BattleStatus.label(): String = when (this) {
+    BattleStatus.PARALYSIS -> "마비"
+    BattleStatus.SILENCE -> "금주"
+    BattleStatus.CONFUSION -> "혼란"
+    BattleStatus.POISON -> "중독"
+    BattleStatus.LOST -> "길 잃음"
+}
+
+fun BattleAttribute.label(): String = when (this) {
+    BattleAttribute.ATTACK -> "공격력"
+    BattleAttribute.DEFENSE -> "방어력"
+    BattleAttribute.SPIRIT -> "정신력"
+    BattleAttribute.CRITICAL -> "폭발력"
+    BattleAttribute.MORALE -> "사기"
+    BattleAttribute.MOVEMENT -> "이동력"
+}
+
 data class BattleUnit(
     val id: String,
     val name: String,

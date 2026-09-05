@@ -183,9 +183,12 @@ def _attach_lifecycle_evidence(
 
 
 def runtime_handlers(runtime_text: str) -> dict[str, str]:
-    start = runtime_text.index("private fun invokeCall")
-    end = runtime_text.index("private fun stageVariableValue", start)
-    section = runtime_text[start:end]
+    if "private fun invokeCall" in runtime_text:
+        start = runtime_text.index("private fun invokeCall")
+        end = runtime_text.find("private fun stageVariableValue", start)
+        section = runtime_text[start:end] if end != -1 else runtime_text[start:]
+    else:
+        section = runtime_text
     pattern = re.compile(r'^[ \t]+((?:"[^"]+"\s*,?\s*)+)\s*->', re.MULTILINE)
     matches = list(pattern.finditer(section))
     result: dict[str, str] = {}
@@ -272,8 +275,9 @@ def game_battle_barrier_evidence(body: str) -> list[dict[str, Any]]:
     they do not suspend the battle script.
     """
     barrier = re.compile(
-        r"\b(?:suspendFor[A-Za-z_$][\w$]*|suspendFor)\s*\(|"
-        r"state\s*=\s*PlaybackState\.(?:DIALOGUE|CHOICE|MODAL|DELAY)"
+        r"\b(?:suspendFor[A-Za-z_$][\w$]*|suspendFor)\s*(?:\(|[\s\),]|;|$)|"
+        r"(?:state\s*=|onSetState\s*\()\s*(?:PlaybackState\.)?(?:DIALOGUE|CHOICE|MODAL|DELAY)|"
+        r"\b(?:startSay|startTalk|startChoice)\s*\("
     )
     evidence: list[dict[str, Any]] = []
     for line_number, line in enumerate(body.splitlines(), 1):
@@ -373,7 +377,23 @@ def audit(
         source_dir, lifecycle_path,
     )
     _attach_lifecycle_evidence(calls, lifecycle_by_site)
-    handlers = runtime_handlers(runtime_path.read_text(encoding="utf-8"))
+    if runtime_path.name == "ScenarioInterpreter.kt" and runtime_path.is_file():
+        dispatch_files = [
+            "ScenarioCallCoordinator.kt",
+            "ScenarioStageCallDispatcher.kt",
+            "ScenarioTacticalActionDispatcher.kt",
+            "ScenarioUnitActionDispatcher.kt",
+            "ScenarioFightDispatcher.kt",
+            "ScenarioInterpreter.kt",
+        ]
+        combined_text = "\n".join(
+            (runtime_path.parent / name).read_text(encoding="utf-8")
+            for name in dispatch_files
+            if (runtime_path.parent / name).exists()
+        )
+        handlers = runtime_handlers(combined_text)
+    else:
+        handlers = runtime_handlers(runtime_path.read_text(encoding="utf-8"))
     battle_methods = source_methods((source_root / "battle/BattleLayer.js").read_text(encoding="utf-8"))
     unit_methods = source_methods((source_root / "battle/BattleUnit.js").read_text(encoding="utf-8"))
     stage_methods = source_methods((source_root / "ui/StageLayer.js").read_text(encoding="utf-8"))
