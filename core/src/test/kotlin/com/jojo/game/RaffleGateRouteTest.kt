@@ -5,6 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+/**
+ * class  `RaffleGateRouteTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class RaffleGateRouteTest {
     @Test fun `actual hall setting caller remains setting when supportAd is unavailable`() {
         val route=RaffleGateRoute();route.openHallMenu(true);route.hallMenuButton(3,true);route.settingButton(8,true,0)

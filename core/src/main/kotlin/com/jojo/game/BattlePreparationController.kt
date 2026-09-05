@@ -17,9 +17,31 @@ internal class BattlePreparationController(
     val cursorId: Int? get() = availableIds.getOrNull(cursor) ?: selectedIds.firstOrNull()
     val canStart: Boolean get() = selectedIds.size in minimum..maximum
 
+    /**
+     * 공개 메서드 `moveCursor`
+     *
+     * ### 파라미터
+    - `offset` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun moveCursor(offset: Int) {
         if (availableIds.isNotEmpty()) cursor = Math.floorMod(cursor + offset, availableIds.size)
     }
+
+    /**
+     * 공개 메서드 `toggle`
+     *
+     * ### 파라미터
+    - `id` (`Int?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun toggle(id: Int?) {
         id ?: return
@@ -27,6 +49,17 @@ internal class BattlePreparationController(
         if (id in selectedIds) selectedIds.remove(id)
         else if (selectedIds.size < maximum && id in availableIds) selectedIds += id
     }
+
+    /**
+     * 공개 메서드 `commit`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Int>?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun commit(): List<Int>? = selection.takeIf { canStart }
 
@@ -60,7 +93,9 @@ internal class BattlePreparationController(
         return BattlePreparationAction.None
     }
 
-    private companion object { const val SCALE = .86f }
+    private companion object {
+        const val SCALE = .86f
+    }
 }
 
 internal sealed interface BattlePreparationAction {
@@ -70,5 +105,14 @@ internal sealed interface BattlePreparationAction {
     data object Cancel : BattlePreparationAction
     data object OpenSort : BattlePreparationAction
     data object CancelSort : BattlePreparationAction
+
+    /**
+     * data class  `SelectSort`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class SelectSort(val index: Int) : BattlePreparationAction
 }

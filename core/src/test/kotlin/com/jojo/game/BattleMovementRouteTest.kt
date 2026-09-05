@@ -1,9 +1,19 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+
+/**
+ * class  `BattleMovementRouteTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 class BattleMovementRouteTest {
     @Test
@@ -118,6 +128,18 @@ class BattleMovementRouteTest {
     @Test
     fun `canMovePoints stops expansion after entering enemy-near tile unless TJYD is present`() {
         val terrain = BattleTerrainGrid(4, 2, listOf(intArrayOf(0, 0, 0, 0), intArrayOf(0, 0, 0, 0)))
+/**
+ * 공개 메서드 `unit`
+ *
+ * ### 파라미터
+- `id` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+- `skills` (`Map<Int, Int> = emptyMap(`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun unit(id: String, skills: Map<Int, Int> = emptyMap()) = BattleUnit(
             id, id, Faction.PLAYER, 0, 0, movement = 4,
             terrainMovementCosts = mapOf(0 to 1), skills = skills,

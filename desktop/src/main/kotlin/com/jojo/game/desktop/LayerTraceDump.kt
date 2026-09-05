@@ -17,6 +17,17 @@ object LayerTraceDump {
         val trace = cases.joinToString(prefix = "[\n", postfix = "\n]\n", separator = ",\n") { item ->
             val layer = WinConditionsLayer(); var callbacks = 0
             layer.onCreate(item.text, item.round) { callbacks++ }
+/**
+ * 공개 메서드 `step`
+ *
+ * ### 파라미터
+- `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `String`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
             fun step(event: Int): String { val v = layer.view(); return "{\"event\":$event,\"first\":${quote(v.first)},\"second\":${quote(v.second)},\"attached\":${v.attached},\"callbacks\":$callbacks}" }
             val steps = mutableListOf(step(0))
             item.events.forEach { event -> layer.cancel(event); steps += step(event) }

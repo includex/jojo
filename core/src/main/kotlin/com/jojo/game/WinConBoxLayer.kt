@@ -6,8 +6,25 @@ package com.jojo.game
  * The Cocos prefab owns `bg0/scrollview`, `bg0/button`, and `lab`; rendering
  * code may bind this state verbatim without giving the layer game authority.
  */
+/**
+ * class  `WinConBoxLayer`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class WinConBoxLayer {
+    /**
+     * data class  `CreateData`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class CreateData(val info: String, val onClose: () -> Unit)
+
     /** Serialized `Battle/scene/WinConBoxLayer` prefab geometry (1280×800 canvas). */
     data class Prefab(
         val rootName: String = "WinConBoxLayer", val backgroundNode: String = "bg0",
@@ -25,8 +42,18 @@ class WinConBoxLayer {
         val titleScale: Float = 2f,
         val richTextNode: String = "bg0/scrollview/view/content/richtext", val listenerPriority: Int = 2,
         /** Full-screen BlockInputEvents node, invisible but part of the fixture stack. */
-        val panelCancelNode: String = "Panel_cancel", val blocksUnderlyingInput: Boolean = true,
+        val panelCancelNode: String = "Panel_cancel",
+        val blocksUnderlyingInput: Boolean = true,
     )
+
+    /**
+     * data class  `View`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class View(
         val prefab: Prefab, val label: String, val scrollAtTop: Boolean, val attached: Boolean,
         val blocksUnderlyingInput: Boolean = true,
@@ -57,6 +84,17 @@ class WinConBoxLayer {
         }
         return view()
     }
+
+    /**
+     * 공개 메서드 `view`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun view() = View(prefab = PREFAB, label = label, scrollAtTop = scrollAtTop, attached = attached)
 

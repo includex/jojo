@@ -1,4 +1,9 @@
 package com.jojo.game
+import com.jojo.game.infrastructure.data.CampaignSaveCodec
+import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.scenario.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -7,12 +12,33 @@ import kotlin.test.assertNull
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+/**
+ * class  `ScenarioRuntimeTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class ScenarioRuntimeTest {
     @Test
     fun `countDirection matches BattleUnit axes tie and self contracts`() {
         val stage = ScenarioStage()
         stage.seedBattleUnitPosition(1, 10, 10)
         stage.setUnitDirection(1, 2)
+
+/**
+ * 공개 메서드 `target`
+ *
+ * ### 파라미터
+- `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+- `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+- `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Int`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
 
         fun target(id: Int, x: Int, y: Int): Int {
             stage.seedBattleUnitPosition(id, x, y)
@@ -944,6 +970,17 @@ class ScenarioRuntimeTest {
         val clearOnly = GameDataCatalog.MagicProfile(1, "청명", 0, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), 0, emptySet(), 0, 100, 0, 0, condition = 3)
         val special = clearOnly.copy(id = 2, condition = 5)
         val rain = clearOnly.copy(id = 58, target = 2)
+/**
+ * 공개 메서드 `battle`
+ *
+ * ### 파라미터
+- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
                 BattleUnit("caster", "책사", Faction.PLAYER, 0, 0, magic = listOf(rain, clearOnly, special), skills = skills),
@@ -958,6 +995,18 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `original unit restraint skills override and adjust arm matchup`() {
+/**
+ * 공개 메서드 `damage`
+ *
+ * ### 파라미터
+- `attackerSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+- `targetSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Int`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun damage(attackerSkills: Map<Int, Int>, targetSkills: Map<Int, Int>): Int {
             val state = Battle(
                 units = listOf(
@@ -1379,6 +1428,17 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `S52 all-camp rectangle selector 6 keeps an occupied gate open`() {
+/**
+ * 공개 메서드 `runtimeAtGate`
+ *
+ * ### 파라미터
+- `occupied` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `ScenarioInterpreter`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun runtimeAtGate(occupied: Boolean): ScenarioInterpreter = ScenarioInterpreter.load("S_52").also { runtime ->
             runtime.setScriptVariables((0..100).associateWith { 1 } + (20 to 0))
             runtime.setBattleContext(
@@ -1785,6 +1845,17 @@ class ScenarioRuntimeTest {
             hitArea = GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), effectAreaId = 0,
             effectOffsets = emptySet(), expendMp = 1, power = 100, harmType = 0, category = 0,
         )
+/**
+ * 공개 메서드 `state`
+ *
+ * ### 파라미터
+- `flag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun state(flag: Int) = Battle(
             listOf(
                 BattleUnit("caster", "책사", Faction.PLAYER, 0, 0, magicPoints = 2, maxMagicPoints = 2, magic = listOf(fire)),
@@ -2042,6 +2113,17 @@ class ScenarioRuntimeTest {
     @Test
     fun `original strategy hit limit and magic evasion are resolved`() {
         val tactic = GameDataCatalog.MagicProfile(0, "책략", 5, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), 0, emptySet(), 0, 100, 0, 0, hitRateLimit = 3)
+/**
+ * 공개 메서드 `battle`
+ *
+ * ### 파라미터
+- `targetSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun battle(targetSkills: Map<Int, Int>) = Battle(
             listOf(
                 BattleUnit("caster", "책사", Faction.PLAYER, 0, 0, spirit = 100, morale = 100, magic = listOf(tactic)),
@@ -2076,10 +2158,32 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `Control magic hit limit three and four retain source floor but ignore modifiers against famous targets`() {
+/**
+ * 공개 메서드 `tactic`
+ *
+ * ### 파라미터
+- `limit` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun tactic(limit: Int) = GameDataCatalog.MagicProfile(
             0, "책략", 5, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)),
             0, emptySet(), 0, 100, 0, 0, hitRateLimit = limit,
         )
+/**
+ * 공개 메서드 `battle`
+ *
+ * ### 파라미터
+- `limit` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun battle(limit: Int) = Battle(
             listOf(
                 // CLJDMZ would normally force 100%, proving that the source
@@ -2828,5 +2932,51 @@ class ScenarioRuntimeTest {
         assertEquals(setOf("enemy-0", "enemy-1", "enemy-80", "enemy-82"), battle.units.keys)
         assertEquals(140, battle.units.getValue("enemy-80").battleSlot)
         assertEquals(Faction.REINFORCEMENTS, battle.units.getValue("enemy-82").faction)
+    }
+
+    @Test
+    fun `weather environment resolves authored schedule and offset independently`() {
+        val weather = ScenarioStageWeatherEnvironment()
+
+        weather.configure(type = 0, offset = -2)
+        assertEquals(
+            listOf(
+                BattleWeather.CLEAR,
+                BattleWeather.CLOUDY,
+                BattleWeather.WINDY,
+                BattleWeather.WINDY,
+                BattleWeather.WINDY,
+                BattleWeather.HEAVY_RAIN,
+            ),
+            weather.schedule(),
+        )
+        assertEquals(BattleWeather.HEAVY_RAIN, weather.initialWeather())
+
+        weather.configure(type = 7, offset = 42)
+        assertEquals(BattleWeather.HEAVY_RAIN, weather.initialWeather())
+    }
+
+    @Test
+    fun `world state journals object batches before replacing coordinate state`() {
+        val world = ScenarioStageWorldState()
+
+        world.setMapObjects(
+            enabled = true,
+            terrainId = 4,
+            positions = listOf(listOf(7, 2, 3), listOf(9, 2, 3), listOf(1, 2)),
+        )
+        world.setMapObjects(enabled = false, terrainId = 8, positions = listOf(listOf(11, 2, 3)))
+
+        assertEquals(
+            listOf(
+                ScenarioMapObjectsCall(true, 4, listOf(
+                    ScenarioMapObjectsCall.Object(7, 2, 3),
+                    ScenarioMapObjectsCall.Object(9, 2, 3),
+                )),
+                ScenarioMapObjectsCall(false, 8, listOf(ScenarioMapObjectsCall.Object(11, 2, 3))),
+            ),
+            world.mapObjectsCalls,
+        )
+        assertEquals(ScenarioMapObject(2, 3, 11, 8, false), world.mapObjects.getValue(2 to 3))
     }
 }

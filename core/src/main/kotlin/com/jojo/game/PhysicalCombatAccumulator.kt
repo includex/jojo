@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
 
 internal data class CombatPassRecord(
     val result: PhysicalAttackTargetResult,
@@ -48,7 +50,8 @@ internal class CombatSettlementAccumulator(
             passAttacker, passTarget, sourceHarm, env.units, env.unitAt, env.areAllied,
         ) else null
         val primaryHarm = sourceHarm - (transfer?.second ?: 0)
-        val primaryResult = env.resolvePhysicalTarget(passAttacker, passTarget, primaryHarm, attackStatusBatch, isActiveAttack)
+        val primaryResult =
+            env.resolvePhysicalTarget(passAttacker, passTarget, primaryHarm, attackStatusBatch, isActiveAttack)
         recordResolution(primaryResult, isCounter)
         passTargets += primaryResult
         recordExperience(passAttacker, passTarget, primaryResult.defeated)
@@ -81,6 +84,17 @@ internal class CombatSettlementAccumulator(
         return CombatPassRecord(primaryResult, primaryHarm)
     }
 
+    /**
+     * 공개 메서드 `applySettlement`
+     *
+     * ### 파라미터
+    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun applySettlement(attacker: BattleUnit) {
         if (attacker.hitPoints <= 0) env.onDefeat(attacker.id)
         experienceByAttacker.values.forEach { (u, reward) -> env.notifyBattleExperience(u, reward) }
@@ -110,7 +124,12 @@ internal class CombatSettlementAccumulator(
         if (source.armType != 1) recordEquipment(source, victim, harm, BattleEquipmentExperienceKind.WEAPON)
     }
 
-    private fun recordEquipment(recipient: BattleUnit, opponent: BattleUnit, harm: Int, kind: BattleEquipmentExperienceKind) {
+    private fun recordEquipment(
+        recipient: BattleUnit,
+        opponent: BattleUnit,
+        harm: Int,
+        kind: BattleEquipmentExperienceKind
+    ) {
         val amount = env.equipmentExperienceAmount(recipient, opponent, harm, kind)
         val key = recipient.id to kind
         if (amount > (equipmentByRecipient[key]?.amount ?: 0)) {

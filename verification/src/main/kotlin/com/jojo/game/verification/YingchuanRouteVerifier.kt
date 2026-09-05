@@ -2,8 +2,9 @@ package com.jojo.game.verification
 
 import com.jojo.game.BattleOutcome
 import com.jojo.game.BattleScenarioFactory
-import com.jojo.game.BattleTerrainGrid
-import com.jojo.game.CampaignState
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.campaign.CampaignState
+import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.Faction
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.ScenarioInterpreter
@@ -12,6 +13,17 @@ import com.jojo.game.isEnemySide
 
 /** Exercises the real R_00 → S_00 campaign and scripted victory route. */
 internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
+/**
+ * 공개 메서드 `verify`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `String`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun verify(): String {
         val campaign = CampaignState()
         val prelude = ScenarioInterpreter.load("R_00", campaign).apply { start("scene1") }
@@ -30,7 +42,7 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 첫 턴 이벤트가 종료되지 않았습니다.")
         verifyBattleOperationStart(campaign)
 
-        val terrain = BattleTerrainGrid.load(runtime.stage.battleMapIndex)
+        val terrain = BattleTerrainLoader.load(runtime.stage.battleMapIndex)
         val battle = BattleScenarioFactory.fromScriptedUnits(
             runtime.stage.battleUnits.values,
             runtime.stage.mapObjects.values

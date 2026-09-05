@@ -7,6 +7,14 @@ package com.jojo.game
  * continuation state between those operations so opening a child list is not
  * confused with the existing desktop M/B development shortcuts.
  */
+/**
+ * class  `BattleCommandFlow`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleCommandFlow {
     companion object {
         const val TOUCH_END = 2
@@ -17,23 +25,75 @@ class BattleCommandFlow {
         const val SIEGE_BIT = 1 shl 4
     }
 
+    /**
+     * enum class  `Command`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class Command(val tag: Int) {
         ATTACK(0), MAGICK(1), PROPERTY(2), SWAP(3), SIEGE(4), WAIT(5), CANCEL(6);
 
         companion object {
+            /**
+             * 공개 메서드 `fromTag`
+             *
+             * ### 파라미터
+            - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun fromTag(tag: Int) = entries.firstOrNull { it.tag == tag }
         }
     }
 
+    /**
+     * enum class  `Phase`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class Phase { IDLE, MOVING, COMMAND, CHILD_ACTION, COMMITTED, ROLLED_BACK }
 
+    /**
+     * data class  `UnitPose`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class UnitPose(val x: Int, val y: Int, val direction: Int)
+
+    /**
+     * data class  `Move`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Move(
         val unitId: String,
         val before: UnitPose,
         val destination: UnitPose,
         val enabledMask: Int,
     )
+
+    /**
+     * data class  `Button`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     data class Button(
         val command: Command,
@@ -44,8 +104,35 @@ class BattleCommandFlow {
 
     sealed interface Result {
         data object Ignored : Result
+
+        /**
+         * data class  `OpenChild`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class OpenChild(val command: Command) : Result
+
+        /**
+         * data class  `Commit`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Commit(val command: Command) : Result
+
+        /**
+         * data class  `Rollback`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Rollback(val unitId: String, val pose: UnitPose) : Result
     }
 
@@ -76,6 +163,17 @@ class BattleCommandFlow {
         childCommand = null
         phase = Phase.IDLE
     }
+
+    /**
+     * 공개 메서드 `view`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Button>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun view(): List<Button> {
         val mask = move?.enabledMask ?: 0
@@ -111,6 +209,17 @@ class BattleCommandFlow {
         phase = Phase.COMMAND
     }
 
+    /**
+     * 공개 메서드 `childCompleted`
+     *
+     * ### 파라미터
+    - `consumesAction` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Result`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun childCompleted(consumesAction: Boolean): Result {
         check(phase == Phase.CHILD_ACTION) { "childCompleted requires CHILD_ACTION" }
         val command = checkNotNull(childCommand)
@@ -129,6 +238,18 @@ class BattleCommandFlow {
 
 /** Source ctrl_mine checks isEnd immediately after its move callback script. */
 internal object BattleMoveScriptContinuation {
+    /**
+     * 공개 메서드 `shouldOpenCommand`
+     *
+     * ### 파라미터
+    - `scriptState` (`PlaybackState`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `battleEndedByScript` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun shouldOpenCommand(scriptState: PlaybackState, battleEndedByScript: Boolean): Boolean =
         scriptState == PlaybackState.COMPLETE && !battleEndedByScript
 }
@@ -139,6 +260,14 @@ object BattleCommandRenderModel {
     const val DISMISS_DIM_OPACITY = 10f / 255f
     const val DISABLED_COMPONENT = 160f / 255f
 
+    /**
+     * data class  `Node`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Node(
         val path: String,
         val visible: Boolean,
@@ -147,16 +276,29 @@ object BattleCommandRenderModel {
         val listenerPriority: Int,
     )
 
+    /**
+     * 공개 메서드 `nodes`
+     *
+     * ### 파라미터
+    - `buttons` (`List<BattleCommandFlow.Button>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Node>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun nodes(buttons: List<BattleCommandFlow.Button>): List<Node> = buildList {
         add(Node("Canvas/Layer/bg", true, false, false, 0))
         buttons.forEach { button ->
-            add(Node(
-                path = "Canvas/Layer/bg/button${button.command.tag}",
-                visible = true,
-                interactable = button.interactable,
-                grayscaleMaterial = button.grayscale,
-                listenerPriority = button.listenerPriority,
-            ))
+            add(
+                Node(
+                    path = "Canvas/Layer/bg/button${button.command.tag}",
+                    visible = true,
+                    interactable = button.interactable,
+                    grayscaleMaterial = button.grayscale,
+                    listenerPriority = button.listenerPriority,
+                )
+            )
         }
         add(Node("Canvas/Layer/Panel_cancel", true, true, false, 2))
     }
@@ -167,7 +309,24 @@ object BattleCommandRenderModel {
      * copies of the same SpriteFrame (img0 and img1); command3 and command5
      * retain their source-trimmed 15x15 and 16x14 pixel extents.
      */
+    /**
+     * data class  `Icon`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Icon(val asset: String, val x: Float, val y: Float, val width: Float, val height: Float)
+
+    /**
+     * data class  `ButtonVisual`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class ButtonVisual(
         val x: Float,
         val y: Float,
@@ -179,12 +338,60 @@ object BattleCommandRenderModel {
     )
 
     val visuals: List<ButtonVisual> = listOf(
-        ButtonVisual(743.6f, 291.175f, 120f, 120f, 753.6f, 334.175f, listOf(Icon("command1", 749.6f, 373.175f, 32f, 32f), Icon("command1", 825.6f, 297.175f, 32f, 32f))),
-        ButtonVisual(871.6f, 291.175f, 120f, 120f, 881.6f, 334.175f, listOf(Icon("command2", 875.6f, 375.175f, 32f, 32f), Icon("command2", 953.6f, 297.175f, 32f, 32f))),
-        ButtonVisual(1000.6f, 291.175f, 120f, 120f, 1010.6f, 334.175f, listOf(Icon("command3", 1004.6f, 377.175f, 30f, 30f), Icon("command3", 1084.6f, 297.175f, 30f, 30f))),
-        ButtonVisual(743.6f, 165.42f, 120f, 120f, 753.6f, 208.42f, listOf(Icon("command5", 747.6f, 253.42f, 32f, 28f), Icon("command5", 825.6f, 171.42f, 32f, 28f))),
-        ButtonVisual(871.6f, 165.42f, 120f, 120f, 881.6f, 208.42f, listOf(Icon("command6", 875.6f, 249.42f, 32f, 32f), Icon("command6", 953.6f, 171.42f, 32f, 32f))),
-        ButtonVisual(1000.6f, 165.42f, 120f, 120f, 1010.6f, 208.42f, listOf(Icon("command4", 1004.6f, 249.42f, 32f, 32f), Icon("command4", 1082.6f, 171.42f, 32f, 32f))),
+        ButtonVisual(
+            743.6f,
+            291.175f,
+            120f,
+            120f,
+            753.6f,
+            334.175f,
+            listOf(Icon("command1", 749.6f, 373.175f, 32f, 32f), Icon("command1", 825.6f, 297.175f, 32f, 32f))
+        ),
+        ButtonVisual(
+            871.6f,
+            291.175f,
+            120f,
+            120f,
+            881.6f,
+            334.175f,
+            listOf(Icon("command2", 875.6f, 375.175f, 32f, 32f), Icon("command2", 953.6f, 297.175f, 32f, 32f))
+        ),
+        ButtonVisual(
+            1000.6f,
+            291.175f,
+            120f,
+            120f,
+            1010.6f,
+            334.175f,
+            listOf(Icon("command3", 1004.6f, 377.175f, 30f, 30f), Icon("command3", 1084.6f, 297.175f, 30f, 30f))
+        ),
+        ButtonVisual(
+            743.6f,
+            165.42f,
+            120f,
+            120f,
+            753.6f,
+            208.42f,
+            listOf(Icon("command5", 747.6f, 253.42f, 32f, 28f), Icon("command5", 825.6f, 171.42f, 32f, 28f))
+        ),
+        ButtonVisual(
+            871.6f,
+            165.42f,
+            120f,
+            120f,
+            881.6f,
+            208.42f,
+            listOf(Icon("command6", 875.6f, 249.42f, 32f, 32f), Icon("command6", 953.6f, 171.42f, 32f, 32f))
+        ),
+        ButtonVisual(
+            1000.6f,
+            165.42f,
+            120f,
+            120f,
+            1010.6f,
+            208.42f,
+            listOf(Icon("command4", 1004.6f, 249.42f, 32f, 32f), Icon("command4", 1082.6f, 171.42f, 32f, 32f))
+        ),
         ButtonVisual(842.65f, 106.491f, 181.9f, 50f, 883.6f, 114.491f, emptyList()),
     )
 }

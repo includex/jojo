@@ -3,8 +3,14 @@ package com.jojo.game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.Screen
-import java.nio.file.Files
-import java.nio.file.Path
+
+/**
+ * data class  `CampaignE2eTraceConfig`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class CampaignE2eTraceConfig(
     val outputPath: String,
@@ -15,6 +21,14 @@ data class CampaignE2eTraceConfig(
     /** Extended data-driven routes opt out after supplying their own verifier contract. */
     val requireYingchuanBootstrapContract: Boolean = true,
 )
+
+/**
+ * data class  `CampaignE2eStopPoint`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class CampaignE2eStopPoint(val module: String = "R_01", val sceneIndex: Int = 1)
 
@@ -107,12 +121,13 @@ internal fun s57GuidedOffensiveMagicPlan(
     if (scenario != "S_57" || !guidedAuthoredRoute || holdFire || firstRoomLeaderVisible || casterCharacterId != 0) return null
     return options.asSequence()
         .filter { option -> option.id == 10 && option.target == 0 && option.cost == 6 && option.power == 50 && magicPoints >= option.cost }
-        .flatMap { option -> visibleEnemies.asSequence()
-            .filter { target ->
-                option.category in setOf(1, 29) || option.allScreen ||
-                    (target.x - casterX to target.y - casterY) in option.offsets
-            }
-            .map { target -> CampaignE2eGuidedMagicPlan(option.id, target.id) }
+        .flatMap { option ->
+            visibleEnemies.asSequence()
+                .filter { target ->
+                    option.category in setOf(1, 29) || option.allScreen ||
+                            (target.x - casterX to target.y - casterY) in option.offsets
+                }
+                .map { target -> CampaignE2eGuidedMagicPlan(option.id, target.id) }
         }
         .firstOrNull()
 }
@@ -250,7 +265,7 @@ internal fun productionTacticalInputReady(
     playback: PlaybackState,
     phase: BattleTurnController.Phase,
 ): Boolean = initialScene1Started && playback == PlaybackState.COMPLETE &&
-    phase == BattleTurnController.Phase.PLAYER_INPUT
+        phase == BattleTurnController.Phase.PLAYER_INPUT
 
 internal fun productionManualUnitEligible(statuses: Map<BattleStatus, Int>): Boolean =
     BattleStatus.PARALYSIS !in statuses && BattleStatus.CONFUSION !in statuses
@@ -273,7 +288,7 @@ internal fun productionManualMoveAllowed(
 ): Boolean {
     val manualRoute = scenario == "S_01" || guidedAuthoredRoute || !playerMoveCommitted
     val quotaAvailable = scenario == "S_01" || guidedAuthoredRoute ||
-        manualMoveAttemptLimit == null || manualMoveAttempts < manualMoveAttemptLimit
+            manualMoveAttemptLimit == null || manualMoveAttempts < manualMoveAttemptLimit
     return manualRoute && quotaAvailable
 }
 
@@ -330,6 +345,7 @@ internal fun campaignBattlePreparationAction(
 ): CampaignBattlePreparationAction = when {
     returnScenario == "R_01" && sourceScenario == "S_01" && selectedCount < maximum ->
         if (cursorSelected) CampaignBattlePreparationAction.NEXT_UNIT else CampaignBattlePreparationAction.TOGGLE_UNIT
+
     canStart -> CampaignBattlePreparationAction.START
     cursorSelected -> CampaignBattlePreparationAction.NEXT_UNIT
     else -> CampaignBattlePreparationAction.TOGGLE_UNIT
@@ -342,6 +358,7 @@ internal fun campaignBattlePreparationAction(
  */
 internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private val route = mutableListOf<String>()
+
     // Kept for backwards compatibility.  It now includes only accepted
     // attempts, while inputRecords retains every dispatch for audit.
     private val inputs = mutableListOf<String>()
@@ -380,9 +397,33 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         if (campaignStages.lastOrNull() != stage) campaignStages += stage
     }
 
+    /**
+     * 공개 메서드 `scenarioStarted`
+     *
+     * ### 파라미터
+    - `module` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun scenarioStarted(module: String, index: Int) {
         pendingScenarioStarts += module to index
     }
+
+    /**
+     * 공개 메서드 `update`
+     *
+     * ### 파라미터
+    - `delta` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `current` (`Screen?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun update(delta: Float, current: Screen?) {
         if (finished) return
@@ -397,6 +438,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                 is BattlePreparationScreen -> current.campaignE2eState().let { state ->
                     route += "BattlePreparationScreen:${state.returnScenario}->${state.sourceScenario}"
                 }
+
                 is BattleScreen -> route += "BattleScreen:${current.campaignE2eState().scenario}"
                 null -> route += "null"
                 else -> route += current.javaClass.simpleName
@@ -412,6 +454,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                 pointer(1097, 688 - 500, "TitleScreen:new-game-click")
                 titleClicked = true
             }
+
             is ScenarioScreen -> driveScenario(current.campaignE2eState())
             is BattlePreparationScreen -> driveBattlePreparation(current.campaignE2eState())
             is BattleScreen -> driveBattle(delta, current)
@@ -485,9 +528,11 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                 if (state.selectedChoice != desired) key(Input.Keys.DOWN, "${state.module}:choice-next")
                 else key(Input.Keys.ENTER, "${state.module}:choice-confirm")
             }
+
             PlaybackState.COMPLETE -> if (state.menuVisible && hallBattleCommands.add(state.module)) {
-                check(state.battleButtonScreenX in 0 until Gdx.graphics.width &&
-                    state.battleButtonScreenY in 0 until Gdx.graphics.height
+                check(
+                    state.battleButtonScreenX in 0 until Gdx.graphics.width &&
+                            state.battleButtonScreenY in 0 until Gdx.graphics.height
                 ) { "${state.module} projected Hall battle command is outside the viewport" }
                 route += "ScenarioScreen:${state.module}:hall-battle-button"
                 pointerOnce(
@@ -496,6 +541,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                     "${state.module}:hall-battle-button",
                 )
             }
+
             PlaybackState.DELAY -> Unit
         }
         nextInputAt = elapsed + config.inputIntervalSeconds
@@ -512,7 +558,8 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
             "${state.sourceScenario} preparation raw campaign stage=${state.campaignStage}"
         }
         observeStage(state.campaignStage)
-        val evidence = "${state.returnScenario}->${state.sourceScenario}:${state.selectedCount}/${state.minimum}-${state.maximum}"
+        val evidence =
+            "${state.returnScenario}->${state.sourceScenario}:${state.selectedCount}/${state.minimum}-${state.maximum}"
         if (state.canStart && battlePreparations.lastOrNull() != evidence) battlePreparations += evidence
         if (elapsed < nextInputAt) return
         when (campaignBattlePreparationAction(
@@ -524,8 +571,15 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
             state.canStart,
         )) {
             CampaignBattlePreparationAction.START -> key(Input.Keys.ENTER, "${state.sourceScenario}:preparation-start")
-            CampaignBattlePreparationAction.NEXT_UNIT -> key(Input.Keys.RIGHT, "${state.sourceScenario}:preparation-next-unit")
-            CampaignBattlePreparationAction.TOGGLE_UNIT -> key(Input.Keys.SPACE, "${state.sourceScenario}:preparation-select-unit")
+            CampaignBattlePreparationAction.NEXT_UNIT -> key(
+                Input.Keys.RIGHT,
+                "${state.sourceScenario}:preparation-next-unit"
+            )
+
+            CampaignBattlePreparationAction.TOGGLE_UNIT -> key(
+                Input.Keys.SPACE,
+                "${state.sourceScenario}:preparation-select-unit"
+            )
         }
         nextInputAt = elapsed + config.inputIntervalSeconds
     }
@@ -538,7 +592,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         }
         observeStage(state.campaignStage)
         val stateLabel = "round=${state.round}:camp=${state.activeFaction}:phase=${state.turnPhase}:" +
-            "playback=${state.playback}:collocation=${state.collocation}:outcome=${state.outcome}"
+                "playback=${state.playback}:collocation=${state.collocation}:outcome=${state.outcome}"
         if (stateLabel != lastBattleState) {
             lastBattleState = stateLabel
             Gdx.app.log("JojoGame", "CAMPAIGN_E2E_BATTLE: $stateLabel")
@@ -572,7 +626,8 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     private fun key(code: Int, context: String) {
         if (context.endsWith(":transition")) transitionEnterCount++
         val before = screenObservation()
-        val accepted = checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }.keyDown(code)
+        val accepted =
+            checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }.keyDown(code)
         recordInput(context, accepted, before, screenObservation())
     }
 
@@ -598,65 +653,23 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         if (accepted) inputs += event
     }
 
-    private fun screenObservation(): String = when (val screen = lastScreen) {
-        is ScenarioScreen -> screen.campaignE2eState().let {
-            "screen=ScenarioScreen;module=${it.module};scene=${it.sceneIndex};" +
-                "playback=${it.playback};menuVisible=${it.menuVisible};choice=${it.selectedChoice};" +
-                "hallBattleScenePending=${it.hallBattleScenePending}"
-        }
-        is BattlePreparationScreen -> screen.campaignE2eState().let {
-            "screen=BattlePreparationScreen;return=${it.returnScenario};source=${it.sourceScenario};" +
-                "selected=${it.selectedCount};canStart=${it.canStart};cursorSelected=${it.cursorSelected}"
-        }
-        is TitleScreen -> "screen=TitleScreen"
-        null -> "screen=null"
-        else -> "screen=${screen.javaClass.simpleName}"
-    }
+    private fun screenObservation(): String = CampaignE2eScreenObservation.of(lastScreen)
 
     private fun finish(actualModule: String, actualSceneIndex: Int, forwardOvershoot: Boolean) {
-        val expected = listOf(
-            "TitleScreen", "ScenarioScreen:R_00",
-            "ScenarioScreen:R_00:scene0", "ScenarioScreen:R_00:scene1",
-            "ScenarioScreen:R_00:scene2", "ScenarioScreen:R_00:scene3",
-            "BattleScreen:S_00", "BattleScreen:S_00:scene1",
-            "BattleScreen:S_00:result-scene1", "BattleScreen:S_00:scene2",
-            "BattleScreen:S_00:save-prompt", "ScenarioScreen:R_01",
-            "ScenarioScreen:R_01:scene0", "ScenarioScreen:R_01:scene1",
-        )
-        if (config.requireYingchuanBootstrapContract) check(route == expected) { "campaign E2E route mismatch: $route" }
-        check(transitionEnterCount == 0) { "campaign E2E required $transitionEnterCount extra Enter inputs" }
-        val escapedInputs = inputs.joinToString(",") { "\"${escape(it)}\"" }
-        val escapedInputRecords = inputRecords.joinToString(",") { record ->
-            "{\"event\":\"${escape(record.event)}\",\"accepted\":${record.accepted}," +
-                "\"before\":\"${escape(record.before)}\",\"after\":\"${escape(record.after)}\"}"
-        }
-        val escapedRoute = route.joinToString(",") { "\"${escape(it)}\"" }
-        val output = Path.of(config.outputPath).toAbsolutePath()
-        // R_00 checkpoints may intentionally stop before the first battle.
-        // Once a battle was traversed, retaining a real committed move remains
-        // mandatory production-input evidence.
-        val move = committedPlayerMove
-        if (observedInitialBattleScenes.isNotEmpty()) {
-            checkNotNull(move) { "missing committed player move provenance" }
-        }
-        val escapedMove = move?.let { "\"${escape(it)}\"" } ?: "null"
-        val escapedPreparations = battlePreparations.joinToString(",") { "\"${escape(it)}\"" }
-        val escapedStages = campaignStages.joinToString(",")
-        output.parent?.let(Files::createDirectories)
-        Files.writeString(output,
-            """{"format":"jojo-campaign-screen-e2e/v1","route":[$escapedRoute],"inputs":[$escapedInputs],"inputRecords":[$escapedInputRecords],"transitionEnterCount":$transitionEnterCount,"screenClassesVerified":true,"playerMoveBeforeScene1":$playerMoveBeforeScene1,"committedPlayerMove":$escapedMove,"campaignStages":[$escapedStages],"stopPoint":{"module":"${escape(config.stopAt.module)}","sceneIndex":${config.stopAt.sceneIndex}},"actualStopPoint":{"module":"${escape(actualModule)}","sceneIndex":$actualSceneIndex},"completion":"${if (forwardOvershoot) "forward-overshoot" else "checkpoint"}","battlePreparations":[$escapedPreparations],"sawR01DepartureDialogue":$sawR01DepartureDialogue}"""
-        )
-        val completionLabel = if (forwardOvershoot) "CAMPAIGN_SCREEN_E2E_OVERSHOOT" else "CAMPAIGN_SCREEN_E2E_OK"
-        Gdx.app.log(
-            "JojoGame",
-            "$completionLabel: $output; requested=${config.stopAt.module}:scene${config.stopAt.sceneIndex}; " +
-                "actual=$actualModule:scene$actualSceneIndex; transitionEnterCount=0",
+        CampaignE2eTraceWriter.write(
+            config = config,
+            snapshot = CampaignE2eTraceWriter.Snapshot(
+                route = route, inputs = inputs, inputRecords = inputRecords,
+                transitionEnterCount = transitionEnterCount, playerMoveBeforeScene1 = playerMoveBeforeScene1,
+                committedPlayerMove = committedPlayerMove, initialBattleScenes = observedInitialBattleScenes,
+                campaignStages = campaignStages, battlePreparations = battlePreparations,
+                sawR01DepartureDialogue = sawR01DepartureDialogue,
+            ),
+            actualModule = actualModule, actualSceneIndex = actualSceneIndex, forwardOvershoot = forwardOvershoot,
         )
         finished = true
         Gdx.app.exit()
     }
-
-    private fun escape(value: String) = value.replace("\\", "\\\\").replace("\"", "\\\"")
 }
 
 /** Shared real-input battle driver used by both campaign and standalone traces. */
@@ -676,6 +689,7 @@ internal class ProductionBattleInputDriver(
     private var nextInputAt = .2f
     private var manualMoveAttempts = 0
     private var observeBattleState: (() -> CampaignE2eBattleState)? = null
+
     /** CommandLayer Attack intent retained while CHILD_ACTION is reprojected. */
     private var pendingPhysicalAttackInput: CampaignE2eAttackInput? = null
 
@@ -698,6 +712,7 @@ internal class ProductionBattleInputDriver(
                 pointer(point.first, point.second, "$scenario:lose-title-yes")
                 true
             } == true -> Unit
+
             state.savePromptOpen -> pointer(662, 408, "$scenario:save-prompt-no")
             state.rewardOpen -> key(Input.Keys.ENTER, "$scenario:reward")
             state.winConditionsOpen -> pointer(640, 344, "$scenario:win-conditions-close")
@@ -714,12 +729,13 @@ internal class ProductionBattleInputDriver(
             // confirming row zero would bypass every authored gate episode.
             state.playback == PlaybackState.CHOICE && state.guidedAuthoredRoute && state.selectedChoice == 0 ->
                 key(Input.Keys.DOWN, "$scenario:choice-continue")
+
             state.playback == PlaybackState.CHOICE -> key(Input.Keys.ENTER, "$scenario:choice-confirm")
             state.playback == PlaybackState.MODAL -> pointer(640, 344, "$scenario:modal-close")
             tacticalInputReady && state.magicTargetSelection && state.manualMagicInput != null -> {
                 val magic = state.manualMagicInput
                 val targetVisible = magic.targetScreenX in 1 until Gdx.graphics.width &&
-                    magic.targetScreenY in 1 until Gdx.graphics.height
+                        magic.targetScreenY in 1 until Gdx.graphics.height
                 if (targetVisible) {
                     pointer(magic.targetScreenX, magic.targetScreenY, "$scenario:player-magick-target")
                 } else {
@@ -732,17 +748,20 @@ internal class ProductionBattleInputDriver(
                     )
                 }
             }
+
             tacticalInputReady && state.magickListOpen && state.manualMagicInput != null -> {
                 val magic = state.manualMagicInput
                 pointer(magic.rowScreenX, magic.rowScreenY, "$scenario:player-magick-row")
             }
+
             tacticalInputReady && !state.magicTargetSelection &&
-                state.battleCommandOpen && state.manualMagicInput != null -> {
+                    state.battleCommandOpen && state.manualMagicInput != null -> {
                 val magic = state.manualMagicInput
                 pointer(magic.commandScreenX, magic.commandScreenY, "$scenario:player-command-magick")
             }
+
             tacticalInputReady && !state.authoredRouteHoldFire &&
-                !state.magicTargetSelection && state.battleTargetSelectionOpen -> {
+                    !state.magicTargetSelection && state.battleTargetSelectionOpen -> {
                 // Re-observe before map input. BattleScreen only emits this
                 // projection when the selected actor can physically hit the
                 // visible targetUnitId right now.
@@ -762,7 +781,7 @@ internal class ProductionBattleInputDriver(
                     return
                 }
                 val targetVisible = attack.targetScreenX in 1 until Gdx.graphics.width &&
-                    attack.targetScreenY in 1 until Gdx.graphics.height
+                        attack.targetScreenY in 1 until Gdx.graphics.height
                 if (targetVisible) {
                     pointer(attack.targetScreenX, attack.targetScreenY, "$scenario:player-attack-target")
                 } else {
@@ -775,50 +794,74 @@ internal class ProductionBattleInputDriver(
                     )
                 }
             }
+
             tacticalInputReady && !state.authoredRouteHoldFire &&
-                state.battleCommandOpen && state.manualAttackInput != null -> {
+                    state.battleCommandOpen && state.manualAttackInput != null -> {
                 val attack = state.manualAttackInput
                 pendingPhysicalAttackInput = attack
                 pointer(attack.commandScreenX, attack.commandScreenY, "$scenario:player-command-attack")
             }
+
             tacticalInputReady && state.battleCommandOpen ->
                 pointer(state.commandWaitScreenX, state.commandWaitScreenY, "$scenario:player-command-wait")
+
             tacticalInputReady && !state.collocation && state.manualMoveInput != null &&
-                productionManualMoveAllowed(
-                    state.scenario,
-                    state.guidedAuthoredRoute,
-                    state.playerMoveCommitted,
-                    manualMoveAttempts,
-                    manualMoveAttemptLimit,
-                ) -> {
+                    productionManualMoveAllowed(
+                        state.scenario,
+                        state.guidedAuthoredRoute,
+                        state.playerMoveCommitted,
+                        manualMoveAttempts,
+                        manualMoveAttemptLimit,
+                    ) -> {
                 val move = state.manualMoveInput
                 manualMoveAttempts++
-                val sourceVisible = move.sourceScreenX in 1 until Gdx.graphics.width && move.sourceScreenY in 1 until Gdx.graphics.height
-                val destinationVisible = move.destinationScreenX in 1 until Gdx.graphics.width && move.destinationScreenY in 1 until Gdx.graphics.height
+                val sourceVisible =
+                    move.sourceScreenX in 1 until Gdx.graphics.width && move.sourceScreenY in 1 until Gdx.graphics.height
+                val destinationVisible =
+                    move.destinationScreenX in 1 until Gdx.graphics.width && move.destinationScreenY in 1 until Gdx.graphics.height
                 if (!sourceVisible || (state.selectedUnit && !destinationVisible)) {
                     val pointX = if (state.selectedUnit) move.destinationScreenX else move.sourceScreenX
                     val pointY = if (state.selectedUnit) move.destinationScreenY else move.sourceScreenY
-                    drag(640, 344, 640 + (640 - pointX).coerceIn(-300, 300), 344 + (344 - pointY).coerceIn(-220, 220), "$scenario:pan-to-player")
+                    drag(
+                        640,
+                        344,
+                        640 + (640 - pointX).coerceIn(-300, 300),
+                        344 + (344 - pointY).coerceIn(-220, 220),
+                        "$scenario:pan-to-player"
+                    )
                 } else if (state.selectedUnit) {
                     pointer(move.destinationScreenX, move.destinationScreenY, "$scenario:player-move-destination")
                 } else {
                     pointer(move.sourceScreenX, move.sourceScreenY, "$scenario:player-unit-select")
                 }
             }
+
             tacticalInputReady && !state.collocation && state.autoBattleOverlay == AutoBattleFlow.Overlay.PROMPT ->
                 when (productionAutoBattlePromptActionForScenario(
                     state.scenario, state.guidedAuthoredRoute, state.autoBattleChecked,
                 )) {
                     ProductionAutoBattlePromptAction.TOGGLE ->
-                        pointer(state.autoBattleToggleScreenX, state.autoBattleToggleScreenY, "$scenario:auto-battle-toggle")
+                        pointer(
+                            state.autoBattleToggleScreenX,
+                            state.autoBattleToggleScreenY,
+                            "$scenario:auto-battle-toggle"
+                        )
+
                     ProductionAutoBattlePromptAction.CONFIRM ->
-                        pointer(state.autoBattleConfirmScreenX, state.autoBattleConfirmScreenY, "$scenario:auto-battle-confirm")
+                        pointer(
+                            state.autoBattleConfirmScreenX,
+                            state.autoBattleConfirmScreenY,
+                            "$scenario:auto-battle-confirm"
+                        )
                 }
+
             tacticalInputReady && !state.collocation && state.battleMenuOpen &&
-                productionEndRoundAllowed(state.scenario, state.s01EligibleMineActionRemaining) ->
+                    productionEndRoundAllowed(state.scenario, state.s01EligibleMineActionRemaining) ->
                 pointer(state.menuEndRoundScreenX, state.menuEndRoundScreenY, "$scenario:end-round-menu-command")
+
             tacticalInputReady && !state.collocation ->
                 pointer(state.battleMenuButtonScreenX, state.battleMenuButtonScreenY, "$scenario:open-battle-menu")
+
             else -> Unit // Never synthesize Enter at COMPLETE/outcome boundaries.
         }
         nextInputAt = elapsed + inputIntervalSeconds
@@ -826,7 +869,8 @@ internal class ProductionBattleInputDriver(
 
     private fun key(code: Int, context: String) {
         val before = battleObservation()
-        val accepted = checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }.keyDown(code)
+        val accepted =
+            checkNotNull(Gdx.input.inputProcessor) { "no production input processor at $context" }.keyDown(code)
         recordInput(context, accepted, before, battleObservation())
     }
 
@@ -857,13 +901,13 @@ internal class ProductionBattleInputDriver(
     private fun battleObservation(): String {
         val state = checkNotNull(observeBattleState) { "battle input observation is unavailable" }.invoke()
         return "screen=BattleScreen;scenario=${state.scenario};playback=${state.playback};" +
-            "phase=${state.turnPhase};round=${state.round};battleMenuOpen=${state.battleMenuOpen};" +
-            "battleCommandOpen=${state.battleCommandOpen};targetSelectionOpen=${state.battleTargetSelectionOpen};" +
-            "magickListOpen=${state.magickListOpen};magicTargetSelection=${state.magicTargetSelection};" +
-            "manualMagic=${state.manualMagicInput != null};" +
-            "autoBattleOverlay=${state.autoBattleOverlay};autoBattleChecked=${state.autoBattleChecked};" +
-            "collocation=${state.collocation};rewardOpen=${state.rewardOpen};savePromptOpen=${state.savePromptOpen};" +
-            "losePromptOpen=${state.losePromptOpen};" +
-            "outcome=${state.outcome}"
+                "phase=${state.turnPhase};round=${state.round};battleMenuOpen=${state.battleMenuOpen};" +
+                "battleCommandOpen=${state.battleCommandOpen};targetSelectionOpen=${state.battleTargetSelectionOpen};" +
+                "magickListOpen=${state.magickListOpen};magicTargetSelection=${state.magicTargetSelection};" +
+                "manualMagic=${state.manualMagicInput != null};" +
+                "autoBattleOverlay=${state.autoBattleOverlay};autoBattleChecked=${state.autoBattleChecked};" +
+                "collocation=${state.collocation};rewardOpen=${state.rewardOpen};savePromptOpen=${state.savePromptOpen};" +
+                "losePromptOpen=${state.losePromptOpen};" +
+                "outcome=${state.outcome}"
     }
 }

@@ -1,4 +1,12 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.BattleActionSnapshot
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleAiScorer
+import com.jojo.game.domain.battle.BattleMovementPlanner
+import com.jojo.game.domain.battle.BattleProbabilityResolver
+import com.jojo.game.domain.battle.BattleRateGauge
 
 internal data class BattleAiCoordinatorEnvironment(
     val units: () -> Map<String, BattleUnit>,
@@ -84,6 +92,17 @@ internal object BattleAiCoordinator {
         return BattleAiScorer.estimatedAttackValue(attacker, target, createScoringEnvironment(env))
     }
 
+    /**
+     * 공개 메서드 `createScoringEnvironment`
+     *
+     * ### 파라미터
+    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleAiScoringEnvironment`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun createScoringEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiScoringEnvironment =
         BattleAiScoringEnvironment(
             units = { env.units().values },
@@ -96,6 +115,17 @@ internal object BattleAiCoordinator {
             basePhysicalDamageContext = env.basePhysicalDamageContext,
         )
 
+    /**
+     * 공개 메서드 `createDecisionEnvironment`
+     *
+     * ### 파라미터
+    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleAiDecisionEnvironment`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun createDecisionEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiDecisionEnvironment =
         BattleAiDecisionEnvironment(
             scoringEnv = createScoringEnvironment(env),
@@ -106,6 +136,17 @@ internal object BattleAiCoordinator {
             onRecordDiagnostic = { env.traceActions += it },
             hasDiagnosticEntry = { prefix -> env.traceActions.any { it.startsWith(prefix) } },
         )
+
+    /**
+     * 공개 메서드 `createControllerEnvironment`
+     *
+     * ### 파라미터
+    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleAiControllerEnvironment`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun createControllerEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiControllerEnvironment =
         BattleAiControllerEnvironment(
@@ -123,6 +164,17 @@ internal object BattleAiCoordinator {
             weather = env.weather,
             decisionEnv = createDecisionEnvironment(env),
         )
+
+    /**
+     * 공개 메서드 `createTurnEnvironment`
+     *
+     * ### 파라미터
+    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleAiTurnEnvironment`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun createTurnEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiTurnEnvironment =
         BattleAiTurnEnvironment(

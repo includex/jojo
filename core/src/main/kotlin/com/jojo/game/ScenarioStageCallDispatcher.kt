@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
 
 import com.badlogic.gdx.utils.JsonValue
 
@@ -29,6 +30,14 @@ internal data class ScenarioStageCallEnvironment(
 )
 
 internal object ScenarioStageCallDispatcher {
+    /**
+     * class  `Result`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     class Result(val value: Any?)
 
     private const val LOAD_BG_JUMP_OFFSET_GLOBAL = 4051
@@ -47,7 +56,7 @@ internal object ScenarioStageCallDispatcher {
         val battleContext = env.battleContext
         val moduleName = env.moduleName
 
-        val value: Any? = when (path) {
+        val value: Any = when (path) {
             "stage.loadBg" -> {
                 if (moduleName.startsWith("S_")) {
                     var mapIndex = args.intAt(0)
@@ -61,33 +70,63 @@ internal object ScenarioStageCallDispatcher {
                 } else stage.apply(ScenarioCommand.LoadBackground(args.intAt(0), args.intAt(1)))
                 0
             }
+
             "stage.setEventName" -> {
                 val text = args.firstOrNull().asText()
                 stage.apply(ScenarioCommand.SetEventName(text))
-                if (!env.stagePresentationSkipped && stage.battleDrawRequested) env.suspendForInfo(text, ScenarioInterpreter.ModalKind.EVENT, 1f)
+                if (!env.stagePresentationSkipped && stage.battleDrawRequested) env.suspendForInfo(
+                    text,
+                    ScenarioInterpreter.ModalKind.EVENT,
+                    1f
+                )
                 0
             }
+
             "stage.setStageName" -> {
                 val text = args.firstOrNull().asText()
                 stage.setStageName(text)
-                if (!env.stagePresentationSkipped && stage.battleDrawRequested) env.suspendForInfo(text, ScenarioInterpreter.ModalKind.EVENT, 1f)
+                if (!env.stagePresentationSkipped && stage.battleDrawRequested) env.suspendForInfo(
+                    text,
+                    ScenarioInterpreter.ModalKind.EVENT,
+                    1f
+                )
                 0
             }
-            "stage.clsUnit" -> { stage.clearUnits(); 0 }
-            "stage.setMenuVisible" -> { stage.setMenuVisible(args.firstOrNull().asBooleanValue()); 0 }
+
+            "stage.clsUnit" -> {
+                stage.clearUnits(); 0
+            }
+
+            "stage.setMenuVisible" -> {
+                stage.setMenuVisible(args.firstOrNull().asBooleanValue()); 0
+            }
+
             "stage.menuVisible" -> stage.menuVisible
             "stage.sceneIndex" -> stage.sceneIndex
-            "stage.incSceneIdx" -> { stage.incrementSceneIndex(); 0 }
+            "stage.incSceneIdx" -> {
+                stage.incrementSceneIndex(); 0
+            }
+
             "stage.addAmbition" -> {
                 if (moduleName.startsWith("R_")) env.suspendForAmbition(args.firstOrNull().asInt())
                 else stage.addAmbition(args.firstOrNull().asInt())
                 0
             }
-            "model.setAmbition" -> { stage.addAmbition(args.firstOrNull().asInt() - stage.ambition); 0 }
+
+            "model.setAmbition" -> {
+                stage.addAmbition(args.firstOrNull().asInt() - stage.ambition); 0
+            }
+
             "model.ambition" -> stage.ambition
-            "model.addMoney" -> { campaign.addMoney(args.firstOrNull().asInt()); 0 }
+            "model.addMoney" -> {
+                campaign.addMoney(args.firstOrNull().asInt()); 0
+            }
+
             "model.money" -> campaign.money
-            "model.setFace" -> { stage.setFace(args.firstOrNull().asInt()); 0 }
+            "model.setFace" -> {
+                stage.setFace(args.firstOrNull().asInt()); 0
+            }
+
             "model.random" -> env.nextModelRandom().also { rnd ->
                 env.randomTrace += ScenarioInterpreter.RandomTrace(
                     module = moduleName,
@@ -98,13 +137,24 @@ internal object ScenarioStageCallDispatcher {
                 )
                 if (env.stopAfterRandomTraceCount?.let { env.randomTrace.size >= it } == true) env.onEnd()
             }
-            "model.initLocalVar" -> { stage.resetLocalVariables(); 0 }
-            "model.unitJoin" -> { stage.joinUnit(args.firstOrNull().asInt()); 0 }
-            "stage.setWinCondition" -> { stage.setWinCondition(args.firstOrNull().asText()); 0 }
+
+            "model.initLocalVar" -> {
+                stage.resetLocalVariables(); 0
+            }
+
+            "model.unitJoin" -> {
+                stage.joinUnit(args.firstOrNull().asInt()); 0
+            }
+
+            "stage.setWinCondition" -> {
+                stage.setWinCondition(args.firstOrNull().asText()); 0
+            }
+
             "stage.showWinCondition" -> {
                 env.suspendForWinCondition(args.firstOrNull().asText())
                 0
             }
+
             "stage.bottomTxt" -> {
                 val text = args.firstOrNull().asText()
                 if (moduleName.startsWith("R_")) {
@@ -117,6 +167,7 @@ internal object ScenarioStageCallDispatcher {
                 } else stage.setBottomText(text)
                 0
             }
+
             "stage.setGlobalData" -> {
                 stage.setBattleGlobalData(
                     args.firstOrNull().asInt(),
@@ -128,25 +179,49 @@ internal object ScenarioStageCallDispatcher {
                 )
                 0
             }
-            "stage.initFight" -> { stage.initFight(); 0 }
-            "stage.startOper" -> { stage.startOperation(); 0 }
-            "stage.setMaxRound" -> { stage.setMaxRound(args.intAt(0), battleContext.enabledFeatures); 0 }
+
+            "stage.initFight" -> {
+                stage.initFight(); 0
+            }
+
+            "stage.startOper" -> {
+                stage.startOperation(); 0
+            }
+
+            "stage.setMaxRound" -> {
+                stage.setMaxRound(args.intAt(0), battleContext.enabledFeatures); 0
+            }
+
             "stage.startFight" -> ScenarioFightDispatcher.startFight(stage, args, env.suspendForExternalFightCommand)
-            "stage.bgSound" -> { stage.setBackgroundSound(args.firstOrNull().asInt()); 0 }
+            "stage.bgSound" -> {
+                stage.setBackgroundSound(args.firstOrNull().asInt()); 0
+            }
+
             "stage.sectionName" -> {
                 stage.setSection(args.intAt(0), args.getOrNull(1).asText())
                 if (moduleName.startsWith("R_")) env.suspendForSection(args.intAt(0), args.getOrNull(1).asText())
                 0
             }
+
             "stage.showHead" -> {
                 stage.showHead(args.intAt(0), args.intAt(1), args.intAt(2)).let { duration ->
                     if (duration > 0f) env.suspendFor(duration)
                 }
                 0
             }
-            "stage.effectSound" -> { stage.effectSound(args.intAt(0), args.getOrNull(1)?.asInt() ?: 1); 0 }
-            "stage.delay" -> { env.suspendFor(args.firstOrNull().asInt() * 0.1f); 0 }
-            "stage.draw" -> { stage.drawBattle(); 0 }
+
+            "stage.effectSound" -> {
+                stage.effectSound(args.intAt(0), args.getOrNull(1)?.asInt() ?: 1); 0
+            }
+
+            "stage.delay" -> {
+                env.suspendFor(args.firstOrNull().asInt() * 0.1f); 0
+            }
+
+            "stage.draw" -> {
+                stage.drawBattle(); 0
+            }
+
             "stage.info" -> {
                 val text = args.firstOrNull().asText()
                 val delay = (args.getOrNull(1)?.asInt() ?: 1).coerceAtLeast(0).toFloat()
@@ -156,11 +231,39 @@ internal object ScenarioStageCallDispatcher {
                 else env.suspendForInfo(text, ScenarioInterpreter.ModalKind.INFO, delay)
                 0
             }
-            "stage.infoTransfer" -> { stage.infoTransfer(args.intAt(0), args.getOrNull(1).asText(), gvars[4054].asInt()); 0 }
-            "stage.setJoinBattle" -> { stage.setJoinBattle(args.intAt(0), args.intAt(1), args.getOrNull(2).asList(), args.getOrNull(3).asList()); 0 }
-            "stage.setBattlePos" -> { stage.setBattlePositions(args.firstOrNull().asList()); 0 }
-            "stage.setJoinEquip" -> { stage.setJoinEquip(args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3), args.intAt(4), args.intAt(5)); 0 }
-            "stage.ending" -> { stage.ending(args.intAt(0)); 0 }
+
+            "stage.infoTransfer" -> {
+                stage.infoTransfer(args.intAt(0), args.getOrNull(1).asText(), gvars[4054].asInt()); 0
+            }
+
+            "stage.setJoinBattle" -> {
+                stage.setJoinBattle(
+                    args.intAt(0),
+                    args.intAt(1),
+                    args.getOrNull(2).asList(),
+                    args.getOrNull(3).asList()
+                ); 0
+            }
+
+            "stage.setBattlePos" -> {
+                stage.setBattlePositions(args.firstOrNull().asList()); 0
+            }
+
+            "stage.setJoinEquip" -> {
+                stage.setJoinEquip(
+                    args.intAt(0),
+                    args.intAt(1),
+                    args.intAt(2),
+                    args.intAt(3),
+                    args.intAt(4),
+                    args.intAt(5)
+                ); 0
+            }
+
+            "stage.ending" -> {
+                stage.ending(args.intAt(0)); 0
+            }
+
             "stage.reward" -> {
                 stage.reward(
                     bonusMoney = args.getOrNull(0).asInt(),
@@ -170,14 +273,25 @@ internal object ScenarioStageCallDispatcher {
                 env.onSetState(PlaybackState.MODAL)
                 0
             }
-            "stage.lose" -> { stage.lose(); 0 }
-            "stage.end" -> { stage.endBattle(); 0 }
+
+            "stage.lose" -> {
+                stage.lose(); 0
+            }
+
+            "stage.end" -> {
+                stage.endBattle(); 0
+            }
+
             "stage.jumpScene" -> {
                 stage.jumpScene(args.intAt(0))
                 env.onEnd()
                 0
             }
-            "stage.itemVars" -> { stage.addItemVariables(args.getOrNull(0).asList(), args.getOrNull(1).asList()); 0 }
+
+            "stage.itemVars" -> {
+                stage.addItemVariables(args.getOrNull(0).asList(), args.getOrNull(1).asList()); 0
+            }
+
             "stage.getItem" -> {
                 val itemId = args.intAt(0)
                 val supplied = args.getOrNull(1).asInt()
@@ -202,7 +316,11 @@ internal object ScenarioStageCallDispatcher {
                 }
                 0
             }
-            "stage.varOper" -> { ScenarioConditionEvaluator.applyStageVarOperation(args, env.conditionEnvironment()); 0 }
+
+            "stage.varOper" -> {
+                ScenarioConditionEvaluator.applyStageVarOperation(args, env.conditionEnvironment()); 0
+            }
+
             "stage.varTest" -> ScenarioConditionEvaluator.testStageVariables(args, env.conditionEnvironment())
             "stage.video" -> 0
             "stage.ask" -> env.pendingAskResult ?: 0
@@ -217,7 +335,11 @@ internal object ScenarioStageCallDispatcher {
             "stage.isInPos" -> ScenarioConditionEvaluator.isInPosition(args, env.conditionEnvironment())
             "stage.isInRect" -> ScenarioConditionEvaluator.isInRectangle(args, env.conditionEnvironment())
             "stage.totalRectUnit" -> ScenarioConditionEvaluator.totalRectangleUnits(args, env.conditionEnvironment())
-            "stage.totalUnit" -> ScenarioConditionEvaluator.totalUnits(args.firstOrNull().asInt(), env.conditionEnvironment())
+            "stage.totalUnit" -> ScenarioConditionEvaluator.totalUnits(
+                args.firstOrNull().asInt(),
+                env.conditionEnvironment()
+            )
+
             "stage.unitStateTest" -> ScenarioConditionEvaluator.unitStateTest(args, env.conditionEnvironment())
             else -> return null
         }

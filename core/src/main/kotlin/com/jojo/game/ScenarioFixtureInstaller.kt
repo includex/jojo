@@ -6,6 +6,17 @@ package com.jojo.game
  */
 internal object ScenarioFixtureInstaller {
 
+    /**
+     * 공개 메서드 `installHallFixture`
+     *
+     * ### 파라미터
+    - `interpreter` (`ScenarioInterpreter`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun installHallFixture(interpreter: ScenarioInterpreter) {
         installHallFixture(
             stage = interpreter.stage,
@@ -20,6 +31,17 @@ internal object ScenarioFixtureInstaller {
             onStateChange = { interpreter.state = it },
         )
     }
+
+    /**
+     * 공개 메서드 `installPalaceFixture`
+     *
+     * ### 파라미터
+    - `interpreter` (`ScenarioInterpreter`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun installPalaceFixture(interpreter: ScenarioInterpreter) {
         installPalaceFixture(
@@ -36,6 +58,17 @@ internal object ScenarioFixtureInstaller {
         )
     }
 
+    /**
+     * 공개 메서드 `installSectionFixture`
+     *
+     * ### 파라미터
+    - `interpreter` (`ScenarioInterpreter`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun installSectionFixture(interpreter: ScenarioInterpreter) {
         interpreter.dialogueCoordinator.reset()
         interpreter.choiceCoordinator.reset()
@@ -46,6 +79,18 @@ internal object ScenarioFixtureInstaller {
             modalController = interpreter.modalController,
         )
     }
+
+    /**
+     * 공개 메서드 `installOverlayFixture`
+     *
+     * ### 파라미터
+    - `interpreter` (`ScenarioInterpreter`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `kind` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun installOverlayFixture(interpreter: ScenarioInterpreter, kind: String) {
         interpreter.dialogueCoordinator.reset()
@@ -153,9 +198,11 @@ internal object ScenarioFixtureInstaller {
                 stage.getItem(3, 2)
                 modalController.setModalFixture("얻었다 단창 Lv0", ScenarioInterpreter.ModalKind.INFO, 5f)
             }
+
             "get-item-property" -> {
                 modalController.setModalFixture(stage.getItem(150, 2), ScenarioInterpreter.ModalKind.INFO, 5f)
             }
+
             "choice" -> setChoice(Choice(listOf("바로 이게 제가 바라는 거예요", "이건 너무 이른 것 같아"), 0), 0, false)
             "ask" -> setChoice(Choice(listOf("예", "비"), null), 0, true)
             "command", "menu", "save", "save-confirm", "item-equipment", "item-property", "item-discard-confirm", "equip", "unit-list", "unit-list-select", "unit-list-close", "equip-confirm", "equip-confirm-unload", "exclusive", "exclusive-tab1", "magic", "feats", "feats-help", "buy", "sell", "forces", "property", "terrain", "treasure", "helper", "skip-open" -> {
@@ -164,13 +211,20 @@ internal object ScenarioFixtureInstaller {
                 stage.setMenuVisible(true)
                 onStateChange(PlaybackState.COMPLETE)
             }
-            "map-info" -> modalController.setModalFixture("조조가 수저우 도겸과 전투를 벌였을 때,", ScenarioInterpreter.ModalKind.MAP_INFO, 5f)
+
+            "map-info" -> modalController.setModalFixture(
+                "조조가 수저우 도겸과 전투를 벌였을 때,",
+                ScenarioInterpreter.ModalKind.MAP_INFO,
+                5f
+            )
+
             "ambition" -> {
                 stage.apply(ScenarioCommand.SetEventName("조조가 군대를 일으키다"))
                 stage.setStageName("사수관 조조군 주진영")
                 modalController.suspendForAmbition(5)
                 modalController.setAmbitionFixture(2.2f, false, 60f)
             }
+
             else -> error("Unknown Hall overlay fixture: $kind")
         }
     }

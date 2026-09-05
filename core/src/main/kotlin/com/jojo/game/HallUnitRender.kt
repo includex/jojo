@@ -7,13 +7,43 @@ package com.jojo.game
  * Runtime sampling is authoritative here: the generated horizontal clips
  * select alternate Pmapobj2 sheets, rows 1/2, and a negative node scale.
  */
+/**
+ * data class  `HallUnitSpriteFrame`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class HallUnitSpriteFrame(
     val textureAssetId: Int,
     val row: Int,
     val flipX: Boolean,
 )
 
+/**
+ * object  `HallUnitRender`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 object HallUnitRender {
+    /**
+     * 공개 메서드 `frame`
+     *
+     * ### 파라미터
+    - `mapAvatar` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `action` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `direction` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `elapsedSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `HallUnitSpriteFrame`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun frame(mapAvatar: Int, action: Int, direction: Int, elapsedSeconds: Float): HallUnitSpriteFrame {
         val normalizedDirection = direction.takeIf { it in 0..3 } ?: 0
         val row = when (action) {
@@ -37,7 +67,16 @@ object HallUnitRender {
 
     /** Deterministic actual-game logger for the four HallUnit._move2 signs. */
     fun walkingRenderEventLog(): String {
+        /**
+         * data class  `Path`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Path(val direction: Int, val x: Int, val y: Int, val dx: Int, val dy: Int)
+
         val paths = listOf(Path(1, 45, 48, 1, 0), Path(3, 51, 48, -1, 0), Path(2, 45, 48, 0, 1), Path(0, 45, 54, 0, -1))
         var sequence = 0
         return buildString {
@@ -48,9 +87,23 @@ object HallUnitRender {
                     val selected = frame(0, 20, path.direction, time)
                     val x = (gridX - gridY + 42) * 16f - 41.28f
                     val y = 1073.28f - (gridX + gridY) * 6.88f - 55.04f
-                    append("{\"sequence\":${sequence++},\"frame\":$tick,\"timestamp\":${"%.2f".format(java.util.Locale.ROOT, time)},")
+                    append(
+                        "{\"sequence\":${sequence++},\"frame\":$tick,\"timestamp\":${
+                            "%.2f".format(
+                                java.util.Locale.ROOT,
+                                time
+                            )
+                        },"
+                    )
                     append("\"phase\":\"hall-street-walk\",\"layer\":\"HallLayer\",\"nodePath\":\"Canvas/Layer/map/pmapobj/walk-${path.direction}/anime\",")
-                    append("\"drawType\":\"sprite\",\"x\":${"%.3f".format(java.util.Locale.ROOT, x)},\"y\":${"%.3f".format(java.util.Locale.ROOT, y)},\"w\":82.560,\"h\":110.080,")
+                    append(
+                        "\"drawType\":\"sprite\",\"x\":${
+                            "%.3f".format(
+                                java.util.Locale.ROOT,
+                                x
+                            )
+                        },\"y\":${"%.3f".format(java.util.Locale.ROOT, y)},\"w\":82.560,\"h\":110.080,"
+                    )
                     val textureIndex = if (path.direction == 0 || path.direction == 3) 1 else 0
                     append("\"assetFrameId\":\"Game/Pmapobj2/${selected.textureAssetId}#t=$textureIndex;row=${selected.row};flipX=${selected.flipX}\",")
                     append("\"opacity\":1,\"blend\":[770,771],\"visible\":true,\"text\":\"grid=$gridX,$gridY;dir=${path.direction};action=20\"}\n")
@@ -69,15 +122,42 @@ object HallUnitRender {
                 // HallUnit.setAction restarts the newly selected directional
                 // clip at the corner (t=.08), independent of move wall time.
                 val clipTime = if (sample.direction == 2) time - .08f else time
-                val selected = HallUnitRender.frame(0, 20, sample.direction, clipTime.coerceAtLeast(0f))
+                val selected = frame(0, 20, sample.direction, clipTime.coerceAtLeast(0f))
                 val x = (sample.x - sample.y + 42f) * 16f - 41.28f
                 val y = 1073.28f - (sample.x + sample.y) * 6.88f - 55.04f
                 val localX = ((x + 41.28f) - 640f) / 1.72f
                 val localY = ((y + 55.04f) - 344f) / 1.72f
-                fun number(value: Float) = "%.4f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.').ifEmpty { "0" }
-                append("{\"sequence\":$frame,\"frame\":$frame,\"timestamp\":${"%.2f".format(java.util.Locale.ROOT, time)},")
+
+                /**
+                 * 공개 메서드 `number`
+                 *
+                 * ### 파라미터
+                - `value` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+                 *
+                 * ### 응답 스펙
+                 * - 반환 타입: `Unit`
+                 * - 반환값: 동작 결과의 도메인 값입니다.
+                 */
+
+                fun number(value: Float) =
+                    "%.4f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.').ifEmpty { "0" }
+                append(
+                    "{\"sequence\":$frame,\"frame\":$frame,\"timestamp\":${
+                        "%.2f".format(
+                            java.util.Locale.ROOT,
+                            time
+                        )
+                    },"
+                )
                 append("\"phase\":\"hall-street-walk\",\"layer\":\"HallLayer\",\"nodePath\":\"Canvas/Layer/map/pmapobj/walk-${sample.direction}/anime\",\"drawType\":\"sprite\",")
-                append("\"x\":${"%.3f".format(java.util.Locale.ROOT, x)},\"y\":${"%.3f".format(java.util.Locale.ROOT, y)},\"w\":82.56,\"h\":110.08,")
+                append(
+                    "\"x\":${"%.3f".format(java.util.Locale.ROOT, x)},\"y\":${
+                        "%.3f".format(
+                            java.util.Locale.ROOT,
+                            y
+                        )
+                    },\"w\":82.56,\"h\":110.08,"
+                )
                 append("\"assetFrameId\":\"Game/Pmapobj2/${selected.textureAssetId}#t=0;row=${selected.row};flipX=${selected.flipX}\",\"opacity\":1,\"blend\":[770,771],\"visible\":true,")
                 append("\"text\":\"local=${number(localX)},${number(localY)};z=${number(sample.zIndex)};dir=${sample.direction};action=20\"}\n")
             }

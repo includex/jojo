@@ -1,4 +1,7 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattlePropertyResolver
 
 internal data class BattleTacticalActionEnvironment(
     val outcome: () -> BattleOutcome?,
@@ -30,7 +33,9 @@ internal object BattleTacticalActionExecutor {
         val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
         if (!attacker.visible || !target.visible) return TacticalActionResult.Rejected("아직 등장하지 않은 유닛입니다.")
         if (attacker.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected("현재 진영의 유닛만 조작할 수 있습니다.")
-        if (BattleStatus.PARALYSIS in attacker.statuses || BattleStatus.CONFUSION in attacker.statuses) return TacticalActionResult.Rejected("행동할 수 없는 상태입니다.")
+        if (BattleStatus.PARALYSIS in attacker.statuses || BattleStatus.CONFUSION in attacker.statuses) return TacticalActionResult.Rejected(
+            "행동할 수 없는 상태입니다."
+        )
         if (env.areAllied(attacker, target)) return TacticalActionResult.Rejected("아군을 공격할 수 없습니다.")
         if (attacker.hasActed) return TacticalActionResult.Rejected("이미 행동한 유닛입니다.")
         val offset = target.tileX - attacker.tileX to target.tileY - attacker.tileY

@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.battle.*
 
 /** Renderer-independent `_jiesuan` plan. Logical values remain lossless. */
 data class BattleSettlementPlan(
@@ -14,6 +16,7 @@ data class BattleSettlementPlan(
 ) {
     /** True when model capture retained every required source payload. */
     val sourceDataComplete: Boolean get() = pendingIntegrations.isEmpty()
+
     /**
      * Compatibility gate consumed by the current renderer. Authored subflows
      * remain false until its next integration teaches BattleScreen to execute
@@ -23,6 +26,14 @@ data class BattleSettlementPlan(
 }
 
 sealed interface SettlementAuthoredSubflowPlan {
+    /**
+     * data class  `LocalAura`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class LocalAura(
         val casterId: String,
         val skillId: Int,
@@ -30,6 +41,14 @@ sealed interface SettlementAuthoredSubflowPlan {
         val steps: List<SettlementAuraStep>,
         val nestedSettlement: BattleSettlementPlan,
     ) : SettlementAuthoredSubflowPlan
+
+    /**
+     * data class  `Growth`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     data class Growth(
         val unitId: String,
@@ -40,33 +59,181 @@ sealed interface SettlementAuthoredSubflowPlan {
 }
 
 sealed interface SettlementAuraStep {
+    /**
+     * data class  `Focus`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Focus(val seconds: Float) : SettlementAuraStep
+
+    /**
+     * data class  `Sound`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Sound(val soundIndex: Int) : SettlementAuraStep
+
+    /**
+     * data class  `Info2`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Info2(val skillId: Int) : SettlementAuraStep
+
+    /**
+     * data class  `ActionFinished`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class ActionFinished(val actionId: Int) : SettlementAuraStep
+
+    /**
+     * data class  `PlayMeff`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class PlayMeff(val semanticName: String, val targetIds: List<String>) : SettlementAuraStep
     data object NestedSettlement : SettlementAuraStep
     data object DefaultAction : SettlementAuraStep
 }
 
 sealed interface SettlementGrowthStep {
+    /**
+     * data class  `InfoValues`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class InfoValues(val grants: List<SettlementGrowthGrant>) : SettlementGrowthStep
+
+    /**
+     * data class  `AbilityLevelUp`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class AbilityLevelUp(val attribute: BattleAttribute) : SettlementGrowthStep
     data object UnitLevelUpActionFinished : SettlementGrowthStep
     data object UnitLevelUpInfo : SettlementGrowthStep
+
+    /**
+     * data class  `LearnedMagicInfo`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class LearnedMagicInfo(val magicId: Int) : SettlementGrowthStep
+
+    /**
+     * data class  `EquipmentLevelUpAction`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class EquipmentLevelUpAction(val result: CampaignEquipmentExperienceResult) : SettlementGrowthStep
+
+    /**
+     * data class  `EquipmentLevelUpInfo`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class EquipmentLevelUpInfo(val result: CampaignEquipmentExperienceResult) : SettlementGrowthStep
+
+    /**
+     * data class  `ItemUpgradeCallback`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class ItemUpgradeCallback(val result: CampaignEquipmentExperienceResult) : SettlementGrowthStep
     data object DefaultAction : SettlementGrowthStep
 }
 
+/**
+ * enum class  `SettlementPendingKind`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class SettlementPendingKind { LOCAL_AURA, EXPERIENCE_AND_LEVEL_UP }
+
+/**
+ * data class  `SettlementPendingIntegration`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class SettlementPendingIntegration(val kind: SettlementPendingKind, val unitIds: List<String>)
 
+/**
+ * enum class  `SettlementInfoKind`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class SettlementInfoKind { HP, MP }
+
+/**
+ * enum class  `SettlementInfoPanel`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class SettlementInfoPanel { MINE, OTHER }
+
+/**
+ * enum class  `SettlementStateChangeKind`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class SettlementStateChangeKind { ADD, REMOVE, ROUND_UPDATE, LIFT }
+
+/**
+ * data class  `SettlementInfoDelta`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class SettlementInfoDelta(
     val kind: SettlementInfoKind,
@@ -77,6 +244,14 @@ data class SettlementInfoDelta(
     val tickSeconds: Float get() = tickCount * .2f
 }
 
+/**
+ * data class  `SettlementStateChange`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class SettlementStateChange(
     val sourceStatusIndex: Int,
     val kind: SettlementStateChangeKind,
@@ -86,16 +261,26 @@ data class SettlementStateChange(
     val liftAfter: Int? = null,
 ) {
     /** stateExInfo `meff{slot}`; removal always uses MEFF0. */
-    val meffSlot: Int get() = when {
-        kind == SettlementStateChangeKind.REMOVE -> 0
-        kind == SettlementStateChangeKind.LIFT -> when {
-            (liftAfter ?: 0) < 0 -> 0
-            (liftAfter ?: 0) > 0 -> 2
+    val meffSlot: Int
+        get() = when {
+            kind == SettlementStateChangeKind.REMOVE -> 0
+            kind == SettlementStateChangeKind.LIFT -> when {
+                (liftAfter ?: 0) < 0 -> 0
+                (liftAfter ?: 0) > 0 -> 2
+                else -> 1
+            }
+
             else -> 1
         }
-        else -> 1
-    }
 }
+
+/**
+ * data class  `SettlementUnitPlan`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class SettlementUnitPlan(
     val unitId: String,
@@ -113,13 +298,14 @@ data class SettlementUnitPlan(
     val infoCloseSeconds: Float = if (infoDeltas.isEmpty()) 0f else .3f,
 ) {
     /** Excludes authored level-up subflows and the later state-MEFF buckets. */
-    val infoBarrierSeconds: Float get() {
-        val raw = preInfoDelaySeconds.toDouble() +
-            infoDeltas.sumOf { it.tickSeconds.toDouble() } + infoCloseSeconds.toDouble()
-        // Keep authored tenths stable instead of exposing accumulated Float
-        // noise (for example 1.6000001) to timeline gates and trace output.
-        return (kotlin.math.round(raw * 1_000.0) / 1_000.0).toFloat()
-    }
+    val infoBarrierSeconds: Float
+        get() {
+            val raw = preInfoDelaySeconds.toDouble() +
+                    infoDeltas.sumOf { it.tickSeconds.toDouble() } + infoCloseSeconds.toDouble()
+            // Keep authored tenths stable instead of exposing accumulated Float
+            // noise (for example 1.6000001) to timeline gates and trace output.
+            return (kotlin.math.round(raw * 1_000.0) / 1_000.0).toFloat()
+        }
 }
 
 /** Symbolic bucket key; the renderer resolves the actual GAME_CFG meff ID. */
@@ -128,7 +314,25 @@ data class SettlementMeffKey(
     val meffSlot: Int,
     val actualMeffId: Int? = null,
 )
+
+/**
+ * data class  `SettlementMeffTarget`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class SettlementMeffTarget(val unitId: String, val state: SettlementStateChange)
+
+/**
+ * data class  `SettlementMeffBucket`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class SettlementMeffBucket(
     val key: SettlementMeffKey,
     val targets: List<SettlementMeffTarget>,
@@ -136,6 +340,14 @@ data class SettlementMeffBucket(
     val simultaneousTargets: Boolean = true,
     val callbackTargetUnitId: String = targets.last().unitId,
 )
+
+/**
+ * object  `BattleSettlementPlanner`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 object BattleSettlementPlanner {
     fun plan(
@@ -189,12 +401,16 @@ object BattleSettlementPlanner {
         val plans = settlement.changes.map { change ->
             val unit = requireNotNull(unitsById[change.unitId]) { "settlement unit is unavailable: ${change.unitId}" }
             val infos = buildList {
-                if (change.hitPointsBefore != change.hitPointsAfter) add(SettlementInfoDelta(
-                    SettlementInfoKind.HP, change.hitPointsBefore, change.hitPointsAfter,
-                ))
-                if (change.magicPointsBefore != change.magicPointsAfter) add(SettlementInfoDelta(
-                    SettlementInfoKind.MP, change.magicPointsBefore, change.magicPointsAfter,
-                ))
+                if (change.hitPointsBefore != change.hitPointsAfter) add(
+                    SettlementInfoDelta(
+                        SettlementInfoKind.HP, change.hitPointsBefore, change.hitPointsAfter,
+                    )
+                )
+                if (change.magicPointsBefore != change.magicPointsAfter) add(
+                    SettlementInfoDelta(
+                        SettlementInfoKind.MP, change.magicPointsBefore, change.magicPointsAfter,
+                    )
+                )
             }
             val states = buildList {
                 val statusOrder = linkedSetOf<BattleStatus>().apply {
@@ -204,39 +420,45 @@ object BattleSettlementPlanner {
                 statusOrder.forEach { status ->
                     val before = change.statusesBefore[status]
                     val after = change.statusesAfter[status]
-                    if (before != after) add(SettlementStateChange(
-                        sourceStatusIndex = status.sourceIndex,
-                        kind = when {
-                            before == null -> SettlementStateChangeKind.ADD
-                            after == null -> SettlementStateChangeKind.REMOVE
-                            else -> SettlementStateChangeKind.ROUND_UPDATE
-                        },
-                        roundBefore = before,
-                        roundAfter = after,
-                    ))
+                    if (before != after) add(
+                        SettlementStateChange(
+                            sourceStatusIndex = status.sourceIndex,
+                            kind = when {
+                                before == null -> SettlementStateChangeKind.ADD
+                                after == null -> SettlementStateChangeKind.REMOVE
+                                else -> SettlementStateChangeKind.ROUND_UPDATE
+                            },
+                            roundBefore = before,
+                            roundAfter = after,
+                        )
+                    )
                 }
                 BattleAttribute.entries.forEach { attribute ->
                     val before = change.attributeLiftsBefore[attribute] ?: 0
                     val after = change.attributeLiftsAfter[attribute] ?: 0
-                    if (before != after) add(SettlementStateChange(
-                        sourceStatusIndex = attribute.ordinal,
-                        kind = SettlementStateChangeKind.LIFT,
-                        liftBefore = before,
-                        liftAfter = after,
-                    ))
+                    if (before != after) add(
+                        SettlementStateChange(
+                            sourceStatusIndex = attribute.ordinal,
+                            kind = SettlementStateChangeKind.LIFT,
+                            liftBefore = before,
+                            liftAfter = after,
+                        )
+                    )
                 }
                 if (change.actionCompleteBefore != change.actionCompleteAfter ||
                     change.actionStatusRoundBefore != change.actionStatusRoundAfter
-                ) add(SettlementStateChange(
-                    sourceStatusIndex = 14,
-                    kind = when {
-                        !change.actionCompleteBefore && change.actionCompleteAfter -> SettlementStateChangeKind.ADD
-                        change.actionCompleteBefore && !change.actionCompleteAfter -> SettlementStateChangeKind.REMOVE
-                        else -> SettlementStateChangeKind.ROUND_UPDATE
-                    },
-                    roundBefore = change.actionStatusRoundBefore,
-                    roundAfter = change.actionStatusRoundAfter,
-                ))
+                ) add(
+                    SettlementStateChange(
+                        sourceStatusIndex = 14,
+                        kind = when {
+                            !change.actionCompleteBefore && change.actionCompleteAfter -> SettlementStateChangeKind.ADD
+                            change.actionCompleteBefore && !change.actionCompleteAfter -> SettlementStateChangeKind.REMOVE
+                            else -> SettlementStateChangeKind.ROUND_UPDATE
+                        },
+                        roundBefore = change.actionStatusRoundBefore,
+                        roundAfter = change.actionStatusRoundAfter,
+                    )
+                )
             }
             val beforeFaction = effectiveFaction(unit.baseFaction, change.statusesBefore)
             val afterFaction = effectiveFaction(unit.baseFaction, change.statusesAfter)
@@ -254,10 +476,19 @@ object BattleSettlementPlanner {
         }
 
         // Linked insertion order matches `_jiesuan`'s first-seen meff order.
+        /**
+         * data class  `PendingBucket`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class PendingBucket(
             val key: SettlementMeffKey,
             val targets: MutableList<SettlementMeffTarget> = mutableListOf(),
         )
+
         val buckets = linkedMapOf<Any, PendingBucket>()
         plans.forEach { unit ->
             // Original `_jiesuan` visually emits at most one state meff per
@@ -289,7 +520,12 @@ object BattleSettlementPlanner {
         when (subflow) {
             is SettlementSubflow.LocalAura -> {
                 val nested = planInternal(
-                    CampSettlement(settlement.stage, settlement.faction, subflow.nestedChanges, subflowsCaptured = true),
+                    CampSettlement(
+                        settlement.stage,
+                        settlement.faction,
+                        subflow.nestedChanges,
+                        subflowsCaptured = true
+                    ),
                     unitsById,
                     resolveMeffId,
                     discoverPending = false,
@@ -310,6 +546,7 @@ object BattleSettlementPlanner {
                     nested,
                 )
             }
+
             is SettlementSubflow.Growth -> SettlementAuthoredSubflowPlan.Growth(
                 subflow.unitId,
                 subflow.grants,
@@ -339,29 +576,33 @@ object BattleSettlementPlanner {
         val unresolvedGrowth = settlement.subflows.filterIsInstance<SettlementSubflow.Growth>()
             .filter { flow -> flow.grants.any { it.unitResult == null && it.equipmentResult == null } }
             .map { it.unitId }
-        if (unresolvedGrowth.isNotEmpty()) add(SettlementPendingIntegration(
-            SettlementPendingKind.EXPERIENCE_AND_LEVEL_UP,
-            unresolvedGrowth,
-        ))
+        if (unresolvedGrowth.isNotEmpty()) add(
+            SettlementPendingIntegration(
+                SettlementPendingKind.EXPERIENCE_AND_LEVEL_UP,
+                unresolvedGrowth,
+            )
+        )
         if (!settlement.subflowsCaptured && settlement.stage == CampSettlementStage.START_STATE &&
             settlement.faction in setOf(Faction.PLAYER, Faction.ENEMY)
         ) {
             val playerSide = settlement.faction.isPlayerSide()
             val ids = units.filter { unit ->
                 unit.isPlayerSide() == playerSide &&
-                    unit.skills.keys.any { it in setOf(103, 208, 209, 210) }
+                        unit.skills.keys.any { it in setOf(103, 208, 209, 210) }
             }.map { it.id }
             if (ids.isNotEmpty()) add(SettlementPendingIntegration(SettlementPendingKind.LOCAL_AURA, ids))
         }
         if (!settlement.subflowsCaptured && settlement.stage == CampSettlementStage.END_RESTORE) {
             val ids = units.filter { unit ->
                 unit.effectiveFaction() == settlement.faction &&
-                    unit.skills.keys.any { it in setOf(149, 150, 151) }
+                        unit.skills.keys.any { it in setOf(149, 150, 151) }
             }.map { it.id }
-            if (ids.isNotEmpty()) add(SettlementPendingIntegration(
-                SettlementPendingKind.EXPERIENCE_AND_LEVEL_UP,
-                ids,
-            ))
+            if (ids.isNotEmpty()) add(
+                SettlementPendingIntegration(
+                    SettlementPendingKind.EXPERIENCE_AND_LEVEL_UP,
+                    ids,
+                )
+            )
         }
     }
 
@@ -370,10 +611,11 @@ object BattleSettlementPlanner {
         else if (base.isPlayerSide()) Faction.REINFORCEMENTS else Faction.FRIEND
 }
 
-val BattleStatus.sourceIndex: Int get() = when (this) {
-    BattleStatus.PARALYSIS -> 7
-    BattleStatus.SILENCE -> 8
-    BattleStatus.CONFUSION -> 9
-    BattleStatus.POISON -> 10
-    BattleStatus.LOST -> 13
-}
+val BattleStatus.sourceIndex: Int
+    get() = when (this) {
+        BattleStatus.PARALYSIS -> 7
+        BattleStatus.SILENCE -> 8
+        BattleStatus.CONFUSION -> 9
+        BattleStatus.POISON -> 10
+        BattleStatus.LOST -> 13
+    }

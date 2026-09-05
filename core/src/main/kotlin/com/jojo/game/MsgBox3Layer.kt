@@ -11,6 +11,14 @@ import kotlin.math.min
  * JavaScript's Number/edit-box path accepts fractional and NaN values even
  * though both normal callers provide integer limits.
  */
+/**
+ * class  `MsgBox3Layer`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class MsgBox3Layer(
     val count: Double,
     titleTemplate: String,
@@ -25,6 +33,17 @@ class MsgBox3Layer(
     var editText: String = "1"
         private set
     val title: String = formatOne(titleTemplate, count)
+
+    /**
+     * 공개 메서드 `textChanged`
+     *
+     * ### 파라미터
+    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun textChanged(text: String) {
         val parsed = jsNumber(text)

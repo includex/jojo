@@ -4,6 +4,17 @@ import com.jojo.game.GameDataCatalog
 
 /** Composes independent catalog checks while preserving the established marker order. */
 internal class ScenarioBatchVerificationSuite {
+/**
+ * 공개 메서드 `verify`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `List<String>`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun verify(): List<String> {
         val scenarioResult = ScenarioCatalogVerifier().verify()
         val gameData = GameDataCatalog.load()

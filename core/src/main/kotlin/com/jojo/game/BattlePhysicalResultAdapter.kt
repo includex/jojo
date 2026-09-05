@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
 
 /**
  * Lossless bridge from [Battle]'s eager physical result to the renderer's
@@ -46,4 +48,4 @@ internal fun PhysicalAttackTargetResult.hitCallbackEconomyDelta(
     targetIsPlayerSide: Boolean,
 ): Pair<Int, Int> =
     (playerMoneyDelta - if (targetIsPlayerSide) moneyShieldSpent else 0) to
-        (enemyMoneyDelta - if (targetIsPlayerSide) 0 else moneyShieldSpent)
+            (enemyMoneyDelta - if (targetIsPlayerSide) 0 else moneyShieldSpent)

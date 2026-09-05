@@ -5,6 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import javax.imageio.ImageIO
 
+/**
+ * class  `MagicEffectTimelineTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class MagicEffectTimelineTest {
     @Test
     fun `every decoded effect schedules source hit frame or exact finish fallback`() {

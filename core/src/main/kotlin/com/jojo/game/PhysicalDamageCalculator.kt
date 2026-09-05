@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 import kotlin.math.abs
 
@@ -45,10 +46,11 @@ internal object PhysicalDamageCalculator {
         context: BasePhysicalDamageContext,
     ): Int {
         val attack = BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) *
-            context.attackTerrainImpact / 100
+                context.attackTerrainImpact / 100
         val targetDefense = when (context.defenseRule) {
             PhysicalDefenseRule.ATTACKER_AWARE ->
                 BattleAttributeCalculator.defenseAgainst(attacker, target, BattleAttribute.DEFENSE)
+
             PhysicalDefenseRule.INTRINSIC ->
                 BattleAttributeCalculator.effective(target, BattleAttribute.DEFENSE)
         }
@@ -63,25 +65,74 @@ internal object PhysicalDamageCalculator {
         return maxOf(minimum, damage)
     }
 
+    /**
+     * 공개 메서드 `armorPiercingMinimumDamage`
+     *
+     * ### 파라미터
+    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `currentDamage` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun armorPiercingMinimumDamage(attacker: BattleUnit, target: BattleUnit, currentDamage: Int): Int {
         val percent = effect(attacker, 174) ?: return currentDamage
         return maxOf(currentDamage, percent * target.maxHitPoints / 100)
     }
 
+    /**
+     * 공개 메서드 `cappedPhysicalDamage`
+     *
+     * ### 파라미터
+    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `currentDamage` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun cappedPhysicalDamage(target: BattleUnit, currentDamage: Int): Int =
         effect(target, 242)?.let { minOf(currentDamage, it) } ?: currentDamage
+
+    /**
+     * 공개 메서드 `physicalMinimumDamage`
+     *
+     * ### 파라미터
+    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `visibleFamousPlayerCount` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun physicalMinimumDamage(attacker: BattleUnit, visibleFamousPlayerCount: Int): Int {
         if (attacker.isPlayerSide() || attacker.armType == 1) return 1
         return maxOf(1, attacker.maxHitPoints * minOf(7, visibleFamousPlayerCount) / 100)
     }
 
+    /**
+     * 공개 메서드 `physicalArmRestraint`
+     *
+     * ### 파라미터
+    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun physicalArmRestraint(attacker: BattleUnit, target: BattleUnit): Int {
         if (hasSkill(attacker, 316)) return 130
         if (hasSkill(target, 316)) return 70
         return (attacker.armRestraints[target.armId] ?: 100) +
-            (effect(attacker, 133) ?: 0) -
-            (effect(target, 133) ?: 0)
+                (effect(attacker, 133) ?: 0) -
+                (effect(target, 133) ?: 0)
     }
 
     fun physicalFlatSkillDamage(

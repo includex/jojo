@@ -1,10 +1,7 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputAdapter
-import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.ScreenAdapter
+import com.badlogic.gdx.*
 
 internal data class CampaignE2eBattlePreparationState(
     val returnScenario: String,
@@ -42,6 +39,7 @@ class BattlePreparationScreen(
         captureState == "battle-view-fixture" -> BattlePreparationFixture.BattleView
         captureState?.removeSuffix("-fixture")?.startsWith("start-battle-sort-") == true ->
             BattlePreparationFixture.BattleSort(captureState.removeSuffix("-fixture"))
+
         else -> BattlePreparationFixture.Standard
     }
     private val battleSort = StartBattleSortRoute()
@@ -80,7 +78,30 @@ class BattlePreparationScreen(
         game.captureFrameIfRequested()
     }
 
+    /**
+     * 공개 메서드 `renderEventLog`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun renderEventLog(): String = traceRecorder.renderEvents(viewState())
+
+    /**
+     * 공개 메서드 `compositionTrace`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun compositionTrace(): String = traceRecorder.composition(viewState())
 
     override fun resize(width: Int, height: Int) = renderer.resize(width, height)
@@ -162,9 +183,33 @@ class BattlePreparationScreen(
 }
 
 internal object BattlePreparationInputConnection {
+    /**
+     * 공개 메서드 `install`
+     *
+     * ### 파라미터
+    - `input` (`Input`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `processor` (`InputProcessor`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun install(input: Input, processor: InputProcessor) {
         input.inputProcessor = processor
     }
+
+    /**
+     * 공개 메서드 `release`
+     *
+     * ### 파라미터
+    - `input` (`Input`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `processor` (`InputProcessor`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun release(input: Input, processor: InputProcessor) {
         if (input.inputProcessor === processor) input.inputProcessor = null

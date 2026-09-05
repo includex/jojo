@@ -1,4 +1,15 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.campaign.CampaignEquipmentSlot
+
+/**
+ * data class  `BattleTurnSettlementEnvironment`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class BattleTurnSettlementEnvironment(
     val units: () -> Collection<BattleUnit>,
@@ -17,8 +28,24 @@ data class BattleTurnSettlementEnvironment(
     val onEquipmentUpgrade: (CampaignEquipmentExperienceResult) -> Unit,
 )
 
+/**
+ * object  `BattleTurnSettlementService`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 object BattleTurnSettlementService {
     private const val ENABLED_FEATURE_ZDBHSW = 32
+
+    /**
+     * data class  `UnitTurnSnapshot`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     data class UnitTurnSnapshot(
         val hp: Int,
@@ -28,6 +55,17 @@ object BattleTurnSettlementService {
         val actionComplete: Boolean,
         val actionStatusRound: Int,
     )
+
+    /**
+     * 공개 메서드 `turnSnapshot`
+     *
+     * ### 파라미터
+    - `units` (`Collection<BattleUnit>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Map<String, UnitTurnSnapshot>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun turnSnapshot(units: Collection<BattleUnit>): Map<String, UnitTurnSnapshot> =
         units.associate { unit ->
@@ -48,8 +86,8 @@ object BattleTurnSettlementService {
         before.mapNotNull { (id, old) ->
             val unit = presentationUnit(id) ?: return@mapNotNull null
             val changed = old.hp != unit.hitPoints || old.mp != unit.magicPoints ||
-                old.statuses != unit.statuses || old.lifts != unit.attributeLifts ||
-                old.actionComplete != unit.hasActed || old.actionStatusRound != unit.actionStatusRound
+                    old.statuses != unit.statuses || old.lifts != unit.attributeLifts ||
+                    old.actionComplete != unit.hasActed || old.actionStatusRound != unit.actionStatusRound
             if (!changed) return@mapNotNull null
             BattleUnitTurnChange(
                 unitId = id,
@@ -146,12 +184,37 @@ object BattleTurnSettlementService {
             if (unit.hitPoints <= 0) return@forEach
 
             val caster = unit
+
+            /**
+             * 공개 메서드 `effect`
+             *
+             * ### 파라미터
+            - `skillId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun effect(skillId: Int) = caster.skills[skillId]?.and(255)?.takeIf { it != 255 }
+
+            /**
+             * 공개 메서드 `nearby`
+             *
+             * ### 파라미터
+            - 입력 파라미터: 없음
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `List<BattleUnit>`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun nearby(): List<BattleUnit> = env.infantryOffsets.mapNotNull { (dx, dy) ->
                 allUnits.firstOrNull { target ->
                     target.tileX == caster.tileX + dx && target.tileY == caster.tileY + dy
                 }
             }.filter { it.isPlayerSide() == processedSide }.distinctBy { it.id }
+
             fun record(
                 skillId: Int,
                 value: Int,
@@ -180,7 +243,12 @@ object BattleTurnSettlementService {
                 }
                 record(103, value, targetOrder = targets) {
                     targets.forEach { target ->
-                        listOf(BattleStatus.PARALYSIS, BattleStatus.SILENCE, BattleStatus.CONFUSION, BattleStatus.POISON)
+                        listOf(
+                            BattleStatus.PARALYSIS,
+                            BattleStatus.SILENCE,
+                            BattleStatus.CONFUSION,
+                            BattleStatus.POISON
+                        )
                             .forEach(target.statuses::remove)
                     }
                 }
@@ -229,32 +297,70 @@ object BattleTurnSettlementService {
             val grants = buildList {
                 unit.skills[149]?.and(255)?.takeIf { it != 255 }?.let { amount ->
                     when (val resolution = env.onRestoreUnitExperience(unit, amount)) {
-                        RestoreGrowthResolution.Unavailable -> add(SettlementGrowthGrant(SettlementGrowthKind.UNIT_EXP, amount))
+                        RestoreGrowthResolution.Unavailable -> add(
+                            SettlementGrowthGrant(
+                                SettlementGrowthKind.UNIT_EXP,
+                                amount
+                            )
+                        )
+
                         RestoreGrowthResolution.NotApplicable -> Unit
                         is RestoreGrowthResolution.Applied -> {
                             unit.level = resolution.value.level
-                            if (resolution.value.gained > 0) add(SettlementGrowthGrant(SettlementGrowthKind.UNIT_EXP, amount, unitResult = resolution.value))
+                            if (resolution.value.gained > 0) add(
+                                SettlementGrowthGrant(
+                                    SettlementGrowthKind.UNIT_EXP,
+                                    amount,
+                                    unitResult = resolution.value
+                                )
+                            )
                         }
                     }
                 }
                 unit.skills[150]?.and(255)?.takeIf { it != 255 }?.let { amount ->
-                    when (val resolution = env.onRestoreEquipmentExperience(unit, amount, CampaignEquipmentSlot.WEAPON)) {
-                        RestoreGrowthResolution.Unavailable -> add(SettlementGrowthGrant(SettlementGrowthKind.WEAPON_EXP, amount))
+                    when (val resolution =
+                        env.onRestoreEquipmentExperience(unit, amount, CampaignEquipmentSlot.WEAPON)) {
+                        RestoreGrowthResolution.Unavailable -> add(
+                            SettlementGrowthGrant(
+                                SettlementGrowthKind.WEAPON_EXP,
+                                amount
+                            )
+                        )
+
                         RestoreGrowthResolution.NotApplicable -> Unit
                         is RestoreGrowthResolution.Applied -> {
                             val result = resolution.value
-                            if (result.gained > 0) add(SettlementGrowthGrant(SettlementGrowthKind.WEAPON_EXP, amount, equipmentResult = result))
+                            if (result.gained > 0) add(
+                                SettlementGrowthGrant(
+                                    SettlementGrowthKind.WEAPON_EXP,
+                                    amount,
+                                    equipmentResult = result
+                                )
+                            )
                             if (result.leveledUp) env.onEquipmentUpgrade(result)
                         }
                     }
                 }
                 unit.skills[151]?.and(255)?.takeIf { it != 255 }?.let { amount ->
-                    when (val resolution = env.onRestoreEquipmentExperience(unit, amount, CampaignEquipmentSlot.ARMOR)) {
-                        RestoreGrowthResolution.Unavailable -> add(SettlementGrowthGrant(SettlementGrowthKind.ARMOR_EXP, amount))
+                    when (val resolution =
+                        env.onRestoreEquipmentExperience(unit, amount, CampaignEquipmentSlot.ARMOR)) {
+                        RestoreGrowthResolution.Unavailable -> add(
+                            SettlementGrowthGrant(
+                                SettlementGrowthKind.ARMOR_EXP,
+                                amount
+                            )
+                        )
+
                         RestoreGrowthResolution.NotApplicable -> Unit
                         is RestoreGrowthResolution.Applied -> {
                             val result = resolution.value
-                            if (result.gained > 0) add(SettlementGrowthGrant(SettlementGrowthKind.ARMOR_EXP, amount, equipmentResult = result))
+                            if (result.gained > 0) add(
+                                SettlementGrowthGrant(
+                                    SettlementGrowthKind.ARMOR_EXP,
+                                    amount,
+                                    equipmentResult = result
+                                )
+                            )
                             if (result.leveledUp) env.onEquipmentUpgrade(result)
                         }
                     }

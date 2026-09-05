@@ -15,6 +15,17 @@ internal class BattleOutcomeCoordinator(
     var scriptedOutcome: BattleOutcome? = null
         private set
 
+    /**
+     * 공개 메서드 `outcome`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleOutcome?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun outcome(): BattleOutcome? {
         scriptedOutcome?.let { return it }
         // BATTLE_UNIT_FALG.HIDE changes rendering/targeting, not isExist().
@@ -50,6 +61,17 @@ internal class BattleOutcomeCoordinator(
      * Mirrors a ScenarioStage result without clearing an outcome on ordinary
      * scene1 passes which have not called reward/lose.
      */
+    /**
+     * 공개 메서드 `syncScriptedOutcome`
+     *
+     * ### 파라미터
+    - `value` (`BattleOutcome?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun syncScriptedOutcome(value: BattleOutcome?) {
         value?.let { scriptedOutcome = it }
     }

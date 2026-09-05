@@ -8,5 +8,5 @@ object ScenarioCompletionRoute {
         endedByScript: Boolean,
         sceneJumpTarget: Int?,
     ): Boolean = state == PlaybackState.COMPLETE &&
-        (endedByScript || sceneJumpTarget != null || !menuVisible)
+            (endedByScript || sceneJumpTarget != null || !menuVisible)
 }

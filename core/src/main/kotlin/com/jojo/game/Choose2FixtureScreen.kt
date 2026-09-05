@@ -22,6 +22,7 @@ class Choose2FixtureScreen(private val game: JojoGame, private val state: String
     private val textures = mutableListOf<Texture>()
     private fun texture(path: String): Texture? = Gdx.files.internal(path).takeIf { it.exists() }
         ?.let(::Texture)?.also { textures += it }
+
     private val background = texture("maps/71.jpg")
     private val bg2 = texture("maps/ui/choose2/bg2.png")
     private val box5Texture = texture("maps/ui/choose2/box5.png")
@@ -84,16 +85,33 @@ class Choose2FixtureScreen(private val game: JojoGame, private val state: String
         game.captureFrameIfRequested()
     }
 
+    /**
+     * 공개 메서드 `renderEventLog`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun renderEventLog(): String {
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
-        fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, text: String = "") =
-            log.draw(phase, "HallLayer", path, type, x, y, w, h, asset,
+        fun draw(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = ""
+        ) =
+            log.draw(
+                phase, "HallLayer", path, type, x, y, w, h, asset,
                 blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
-                text = text)
-        draw("Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
-            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>")
+                text = text
+            )
+        draw(
+            "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
+        )
         if (!model.attached()) return log.jsonl()
         draw("Canvas/Layer/scrollview", "sprite", 255.453f, 64.5f, 1017f, 249f, "bg2")
         draw("Canvas/Layer/scrollview/box5", "sliced-sprite", 255.453f, 64.5f, 1017f, 249f, "box5")
@@ -114,5 +132,7 @@ class Choose2FixtureScreen(private val game: JojoGame, private val state: String
         textures.distinct().forEach(Texture::dispose)
     }
 
-    private companion object { const val TOUCH_END = 2 }
+    private companion object {
+        const val TOUCH_END = 2
+    }
 }

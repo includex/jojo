@@ -1,6 +1,6 @@
 package com.jojo.game
 
-import java.util.ArrayDeque
+import java.util.*
 
 /**
  * Manages modal presentations (INFO, SECTION, MAP_INFO, AMBITION, WIN_CONDITION)
@@ -32,6 +32,17 @@ internal class ScenarioModalController(
     internal var modalRemainingSeconds = 0f
     internal var modalPostTypingDelaySeconds = 1f
 
+    /**
+     * 공개 메서드 `reset`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun reset() {
         currentModalText = null
         currentModalKind = null
@@ -46,11 +57,28 @@ internal class ScenarioModalController(
         modalPostTypingDelaySeconds = 1f
     }
 
+    /**
+     * 공개 메서드 `update`
+     *
+     * ### 파라미터
+    - `delta` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `autoCloseUi` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun update(delta: Float, autoCloseUi: Boolean) {
         if (currentModalKind == ScenarioInterpreter.ModalKind.AMBITION) {
             ambitionElapsedSeconds += delta.coerceAtLeast(0f)
         }
-        if (modalRemainingSeconds > 0f && ScenarioInterpreter.modalMayAutoClose(currentModalKind, currentModalText, autoCloseUi)) {
+        if (modalRemainingSeconds > 0f && ScenarioInterpreter.modalMayAutoClose(
+                currentModalKind,
+                currentModalText,
+                autoCloseUi
+            )
+        ) {
             modalRemainingSeconds -= delta.coerceAtLeast(0f)
             if (modalRemainingSeconds <= 0f) resumeModal()
         }
@@ -122,6 +150,18 @@ internal class ScenarioModalController(
         onStateChange(PlaybackState.MODAL)
     }
 
+    /**
+     * 공개 메서드 `suspendForSection`
+     *
+     * ### 파라미터
+    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun suspendForSection(index: Int, name: String) {
         val digits = listOf("십", "일", "2", "삼", "넷", "다섯", "육", "칠", "팔", "구")
         var value = index
@@ -167,6 +207,19 @@ internal class ScenarioModalController(
         return pages.ifEmpty { listOf("") }
     }
 
+    /**
+     * 공개 메서드 `setSectionFixture`
+     *
+     * ### 파라미터
+    - `chapter` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `nextText` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun setSectionFixture(chapter: String, nextText: String, remainingSeconds: Float) {
         currentModalText = chapter
         currentModalKind = ScenarioInterpreter.ModalKind.SECTION
@@ -175,6 +228,19 @@ internal class ScenarioModalController(
         modalRemainingSeconds = remainingSeconds
         onStateChange(PlaybackState.MODAL)
     }
+
+    /**
+     * 공개 메서드 `setModalFixture`
+     *
+     * ### 파라미터
+    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `kind` (`ScenarioInterpreter.ModalKind`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun setModalFixture(text: String, kind: ScenarioInterpreter.ModalKind, remainingSeconds: Float) {
         currentModalText = text
@@ -185,6 +251,19 @@ internal class ScenarioModalController(
         modalRemainingSeconds = remainingSeconds
         onStateChange(PlaybackState.MODAL)
     }
+
+    /**
+     * 공개 메서드 `setAmbitionFixture`
+     *
+     * ### 파라미터
+    - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `indicatorEnabled` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun setAmbitionFixture(elapsed: Float, indicatorEnabled: Boolean, remainingSeconds: Float) {
         ambitionElapsedSeconds = elapsed

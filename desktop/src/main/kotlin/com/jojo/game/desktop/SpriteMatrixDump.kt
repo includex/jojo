@@ -10,6 +10,17 @@ import com.jojo.game.GameDataCatalog
 /** One-process counterpart to the source Cocos AnimationState frame dump. */
 object SpriteMatrixDump {
     @JvmStatic
+/**
+ * 공개 메서드 `main`
+ *
+ * ### 파라미터
+- `args` (`Array<String>`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun main(args: Array<String>) {
         val profileIds = args.firstOrNull { it.startsWith("--profiles=") }
             ?.substringAfter('=')
@@ -17,6 +28,17 @@ object SpriteMatrixDump {
             ?.filter(String::isNotBlank)
             ?.map(String::toInt)
             .orEmpty()
+/**
+ * 공개 메서드 `value`
+ *
+ * ### 파라미터
+- `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `String`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
         fun value(name: String): String = args.firstOrNull { it.startsWith("--$name=") }
             ?.substringAfter('=') ?: error("--$name is required")
         val cases = args.firstOrNull { it.startsWith("--cases=") }

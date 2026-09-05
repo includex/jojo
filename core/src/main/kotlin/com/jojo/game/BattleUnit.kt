@@ -11,6 +11,17 @@ enum class BattleStatus {
     PARALYSIS, SILENCE, CONFUSION, POISON, LOST;
 
     companion object {
+        /**
+         * 공개 메서드 `fromSourceIndex`
+         *
+         * ### 파라미터
+        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `BattleStatus?`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun fromSourceIndex(index: Int): BattleStatus? = when (index) {
             7 -> PARALYSIS
             8 -> SILENCE
@@ -24,6 +35,15 @@ enum class BattleStatus {
 
 /** Original BATTLE_UNIT_STATUS2 0..5: temporary ability lift/down states. */
 enum class BattleAttribute { ATTACK, DEFENSE, SPIRIT, CRITICAL, MORALE, MOVEMENT }
+
+/**
+ * enum class  `BattleWeather`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class BattleWeather { CLEAR, CLOUDY, WINDY, HEAVY_RAIN, SNOW }
 
 fun BattleStatus.label(): String = when (this) {
@@ -42,6 +62,14 @@ fun BattleAttribute.label(): String = when (this) {
     BattleAttribute.MORALE -> "사기"
     BattleAttribute.MOVEMENT -> "이동력"
 }
+
+/**
+ * data class  `BattleUnit`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class BattleUnit(
     val id: String,
@@ -113,7 +141,10 @@ data class BattleUnit(
     /** Unit.retireMessage(), used only by BAI_TUI unitHide. */
     val retireMessage: String? = null,
     /** Unit.getCritTxt data; BattleUnit.checkCrit exposes it on alternating criticals. */
-    val criticalSpeech: GameDataCatalog.CriticalSpeechProfile = GameDataCatalog.CriticalSpeechProfile(emptyList(), false),
+    val criticalSpeech: GameDataCatalog.CriticalSpeechProfile = GameDataCatalog.CriticalSpeechProfile(
+        emptyList(),
+        false
+    ),
     var criticalSpeechChecks: Int = 0,
     /** BATTLE_UNIT_FALG.DEATH_MSG, independently mutable through retreatTxt(). */
     var deathMessageEnabled: Boolean = faction == Faction.PLAYER,
@@ -146,6 +177,19 @@ data class BattleUnit(
      * Moves an attribute's DOWN/NORMAL/UP value only one step toward the
      * requested lift, so an opposite request first neutralizes the current lift.
      */
+    /**
+     * 공개 메서드 `applyAttributeLift`
+     *
+     * ### 파라미터
+    - `attribute` (`BattleAttribute`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `requested` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `rounds` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun applyAttributeLift(attribute: BattleAttribute, requested: Int, rounds: Int): Int {
         val current = (attributeLifts[attribute] ?: 0).coerceIn(-1, 1)
         val target = requested.coerceIn(-1, 1)
@@ -195,6 +239,18 @@ data class BattleUnit(
      * posts-skill and magic caches.  Deliberately retain tactical location,
      * current HP/MP, statuses, turn state and the currently loaded avatar.
      */
+    /**
+     * 공개 메서드 `refreshPostsDerivedState`
+     *
+     * ### 파라미터
+    - `source` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `refreshAbilityPhase` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun refreshPostsDerivedState(source: BattleUnit, refreshAbilityPhase: Boolean) {
         posts = source.posts
         armId = source.armId
@@ -241,8 +297,50 @@ data class BattleUnit(
         it.refreshStatus(statuses, attributeLifts)
     }
 
+    /** Removes one abnormal state and keeps the unit's presentation projection synchronized. */
+    fun cureStatus(status: BattleStatus): Boolean {
+        if (statuses.remove(status) == null) return false
+        presentation.refreshStatus(statuses, attributeLifts)
+        return true
+    }
+
+    /** Clears every abnormal state and keeps the unit's presentation projection synchronized. */
+    fun cureAllStatuses(): Boolean {
+        if (statuses.isEmpty()) return false
+        statuses.clear()
+        presentation.refreshStatus(statuses, attributeLifts)
+        return true
+    }
+
+    /** Restores the mutable combat state required when a retained unit rejoins battle. */
+    fun resetAfterRetreat() {
+        setHpcur(maxHitPoints)
+        setMpcur(maxMagicPoints)
+        statuses.clear()
+        attributeLifts.clear()
+        attributeLiftRounds.clear()
+        hasMoved = false
+        presentation.refreshStatus(statuses, attributeLifts)
+    }
+
+    /** Replaces status and attribute-lift state as one memento restoration command. */
+    fun restoreStatusState(
+        restoredStatuses: Map<BattleStatus, Int>,
+        restoredAttributeLifts: Map<BattleAttribute, Int>,
+        restoredAttributeLiftRounds: Map<BattleAttribute, Int>,
+    ) {
+        statuses.clear()
+        statuses.putAll(restoredStatuses)
+        attributeLifts.clear()
+        attributeLifts.putAll(restoredAttributeLifts)
+        attributeLiftRounds.clear()
+        attributeLiftRounds.putAll(restoredAttributeLiftRounds)
+        presentation.refreshStatus(statuses, attributeLifts)
+    }
+
     /** Direct Kotlin implementation of BattleUnit.addHpcur(t, e=0). */
-    fun addHpcur(value: Int, keepAlive: Boolean = false) = setHpcur((hitPoints + value).let { if (keepAlive) maxOf(1, it) else it })
+    fun addHpcur(value: Int, keepAlive: Boolean = false) =
+        setHpcur((hitPoints + value).let { if (keepAlive) maxOf(1, it) else it })
 
     /** Direct Kotlin implementation of BattleUnit.addMpcur(t). */
     fun addMpcur(value: Int) = setMpcur(magicPoints + value)
@@ -260,5 +358,7 @@ data class BattleUnit(
     }
 
     /** BattleUnit.setCurMp clamps to [0, mp]. */
-    fun setCurMp(value: Int) { magicPoints = value.coerceIn(0, maxMagicPoints) }
+    fun setCurMp(value: Int) {
+        magicPoints = value.coerceIn(0, maxMagicPoints)
+    }
 }

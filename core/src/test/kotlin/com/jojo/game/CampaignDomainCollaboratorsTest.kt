@@ -1,4 +1,11 @@
 package com.jojo.game
+import com.jojo.game.infrastructure.data.CampaignStore
+import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.campaign.CampaignInventory
+import com.jojo.game.domain.campaign.CampaignRoster
+import com.jojo.game.domain.campaign.CampaignEquipmentProgression
+import com.jojo.game.domain.campaign.CampaignEquipmentRepository
+import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -6,6 +13,14 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+
+/**
+ * class  `CampaignDomainCollaboratorsTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 class CampaignDomainCollaboratorsTest {
     private val data = GameDataCatalog.load()

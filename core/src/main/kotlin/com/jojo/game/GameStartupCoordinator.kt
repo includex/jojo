@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
 
 /**
  * Coordinates campaign bootstrap and the final application entry point.
@@ -13,6 +14,17 @@ internal class GameStartupCoordinator(
     private val showScenario: (String) -> Unit,
     private val savedScenario: () -> String,
 ) {
+    /**
+     * 공개 메서드 `start`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun start() {
         if (configuration.yingchuanEntryFlowTracePath != null) campaignState.reset()
         if (routeCaptureFixture()) return
@@ -35,8 +47,9 @@ internal class GameStartupCoordinator(
         configuration.scenarioRun.globals.forEach { (id, value) -> campaignState.globalVariables[id] = value }
         when {
             configuration.verification.battle ||
-                configuration.verification.scriptedBattle ||
-                configuration.entryPoint == GameEntryPoint.BATTLE -> showBattle()
+                    configuration.verification.scriptedBattle ||
+                    configuration.entryPoint == GameEntryPoint.BATTLE -> showBattle()
+
             configuration.entryPoint == GameEntryPoint.TITLE -> showTitle()
             else -> {
                 val scenario = if (!configuration.verification.scenario &&
@@ -63,6 +76,7 @@ internal class GameStartupCoordinator(
                         ?.let(prelude::selectChoice)
                     prelude.confirmChoice()
                 }
+
                 PlaybackState.DELAY -> prelude.skipDelay()
                 PlaybackState.MODAL -> prelude.resumeModal()
                 PlaybackState.COMPLETE -> Unit

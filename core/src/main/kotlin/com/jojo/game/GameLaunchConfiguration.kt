@@ -31,6 +31,14 @@ data class ScenarioRunConfiguration(
     val stopAfterRandomTraceCount: Int? = null,
 )
 
+/**
+ * data class  `VerificationConfiguration`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class VerificationConfiguration(
     val scenario: Boolean = false,
     val battle: Boolean = false,
@@ -38,6 +46,14 @@ data class VerificationConfiguration(
     val alternateBranch: Boolean = false,
     val scriptedBattle: Boolean = false,
 )
+
+/**
+ * data class  `RenderCaptureConfiguration`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 data class RenderCaptureConfiguration(
     val screenshotPath: String? = null,

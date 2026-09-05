@@ -14,6 +14,17 @@ internal data class ScenarioCatalogVerificationResult(
 
 /** Boots and drains every campaign scenario against packaged game resources. */
 internal class ScenarioCatalogVerifier {
+/**
+ * 공개 메서드 `verify`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `ScenarioCatalogVerificationResult`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun verify(): ScenarioCatalogVerificationResult {
         val modules = ScenarioCatalog.rModuleNames()
         check(modules.isNotEmpty()) { "R 시나리오가 번들에 없습니다." }

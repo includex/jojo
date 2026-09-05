@@ -5,9 +5,32 @@ import com.badlogic.gdx.utils.JsonReader
 
 /** Original HallLayer Pmap grid and its stable weighted A* implementation. */
 data class HallPathGrid(val rows: List<IntArray>) {
+    /**
+     * 공개 메서드 `blocked`
+     *
+     * ### 파라미터
+    - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun blocked(x: Int, y: Int): Boolean = rows.getOrNull(y)?.getOrNull(x) != 0
 
     companion object {
+        /**
+         * 공개 메서드 `loadOrNull`
+         *
+         * ### 파라미터
+        - `sceneIndex` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `HallPathGrid?`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun loadOrNull(sceneIndex: Int): HallPathGrid? = runCatching {
             val files = Gdx.files ?: return null
             val handle = files.internal("maps/pmaps/$sceneIndex.json")
@@ -19,6 +42,14 @@ data class HallPathGrid(val rows: List<IntArray>) {
         }.getOrNull()
     }
 }
+
+/**
+ * object  `HallPathfinder`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 object HallPathfinder {
     private data class SearchNode(

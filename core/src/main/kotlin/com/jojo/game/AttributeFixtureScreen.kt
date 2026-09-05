@@ -30,15 +30,32 @@ class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
         game.captureFrameIfRequested()
     }
 
+    /**
+     * 공개 메서드 `renderEventLog`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun renderEventLog(): String {
-        val l = RenderEventLog(); val phase = "hall-attribute-stable"
-        fun d(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-              asset: String? = null, text: String = "") = l.draw(
+        val l = RenderEventLog()
+        val phase = "hall-attribute-stable"
+        fun d(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = ""
+        ) = l.draw(
             phase, "HallLayer", path, type, x, y, w, h, asset,
             blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
-            text = text)
-        d("Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
-            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>")
+            text = text
+        )
+        d(
+            "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
+        )
         d("Canvas/Layer/scrollview/box2", "tiled-sprite", 1064.605f, 355f, 394f, 413f, "box5")
         val rows = listOf("武力" to "98", "智力" to "76", "統率" to "91", "兵力" to "12000")
         rows.forEachIndexed { index, (name, value) ->
@@ -52,5 +69,7 @@ class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
     }
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
-    override fun dispose() { batch.dispose(); background.dispose(); panel.dispose() }
+    override fun dispose() {
+        batch.dispose(); background.dispose(); panel.dispose()
+    }
 }

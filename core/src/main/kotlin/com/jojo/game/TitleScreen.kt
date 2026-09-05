@@ -79,6 +79,7 @@ class TitleScreen(
                 keycode == Input.Keys.ESCAPE && mode == TitleMode.LOGIN -> Gdx.app.exit()
                 keycode == Input.Keys.ESCAPE && mode == TitleMode.LOAD && loadLayer.pendingSlot() != null ->
                     loadLayer.onConfirm(1)
+
                 keycode == Input.Keys.ESCAPE -> closeOverlay()
                 isConfirmKey(keycode) && mode == TitleMode.LOGIN -> activate(TitleInteraction.MainAction.NEW_GAME)
                 isConfirmKey(keycode) && mode == TitleMode.SETTING -> closeOverlay()
@@ -145,6 +146,7 @@ class TitleScreen(
                 val slot = loadLayer.view().rows.getOrNull(action.index)?.index ?: return
                 loadLayer.onRowTouch(slot, LoadGameLayer.TOUCH_END)
             }
+
             null -> Unit
         }
     }

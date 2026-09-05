@@ -7,10 +7,26 @@ package com.jojo.game
  * payload apart from widgets makes its source table projection testable and
  * lets the desktop screen render the same 28 terrain rows later.
  */
+/**
+ * class  `TerrainLayer`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class TerrainLayer(
     private val terrain: List<Terrain>,
     private val arms: List<Arm>,
 ) {
+    /**
+     * data class  `Terrain`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Terrain(
         val id: Int,
         val name: String,
@@ -20,6 +36,14 @@ class TerrainLayer(
         val magic: Int = 0,
     )
 
+    /**
+     * data class  `Arm`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Arm(
         val id: Int,
         val name: String,
@@ -27,7 +51,23 @@ class TerrainLayer(
         val terrainExpend: Map<Int, Int> = emptyMap(),
     )
 
+    /**
+     * enum class  `Tab`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class Tab { RISE, EXPEND }
+
+    /**
+     * data class  `Cell`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     data class Cell(
         val terrainId: Int,
@@ -39,7 +79,24 @@ class TerrainLayer(
         val values: List<Value>,
     )
 
+    /**
+     * data class  `Value`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Value(val armId: Int, val armName: String, val text: String, val grade: Int? = null)
+
+    /**
+     * data class  `Panel`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Panel(val tab: Tab, val rows: List<Cell>)
 
     private val initialized = mutableSetOf<Tab>()
@@ -53,11 +110,27 @@ class TerrainLayer(
         return panels.getOrPut(tab) {
             initialized += tab
             when (tab) {
-                Tab.RISE -> Panel(tab, terrain.take(TERRAIN_LIMIT).mapIndexed { index, source -> riseCell(source, index) })
-                Tab.EXPEND -> Panel(tab, terrain.take(TERRAIN_LIMIT).mapIndexed { index, source -> expendCell(source, index) })
+                Tab.RISE -> Panel(
+                    tab,
+                    terrain.take(TERRAIN_LIMIT).mapIndexed { index, source -> riseCell(source, index) })
+
+                Tab.EXPEND -> Panel(
+                    tab,
+                    terrain.take(TERRAIN_LIMIT).mapIndexed { index, source -> expendCell(source, index) })
             }
         }
     }
+
+    /**
+     * 공개 메서드 `isInitialized`
+     *
+     * ### 파라미터
+    - `tab` (`Tab`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun isInitialized(tab: Tab): Boolean = tab in initialized
 
@@ -109,6 +182,7 @@ object TerrainLayerInput {
     const val PANEL_Y = 100f
     const val PANEL_WIDTH = 1021f
     const val PANEL_HEIGHT = 600f
+
     sealed interface Action {
         data object Rise : Action
         data object Expend : Action
@@ -134,9 +208,22 @@ object TerrainLayerSpriteLayout {
     const val PANEL_X = TerrainLayerInput.PANEL_X
     const val PANEL_Y = TerrainLayerInput.PANEL_Y
     const val ICON_X = PANEL_X + 17f
+
     // Source item icon: 48px sprite at scale 1.4.
     const val ICON_SIZE = 67f
     const val FIRST_ROW_BASELINE_Y = PANEL_Y + 488f
     const val ROW_STEP = 75f
+
+    /**
+     * 공개 메서드 `iconY`
+     *
+     * ### 파라미터
+    - `row` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Float`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun iconY(row: Int): Float = FIRST_ROW_BASELINE_Y - row * ROW_STEP - 57f
 }

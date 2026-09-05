@@ -5,9 +5,28 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+/**
+ * class  `BattleTurnSettlementServiceTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleTurnSettlementServiceTest {
 
     @Test
+/**
+ * 공개 메서드 `advanceToNextCampCyclesThroughAllFourFactions`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun advanceToNextCampCyclesThroughAllFourFactions() {
         var camp = Faction.PLAYER
         val round = 1
@@ -30,6 +49,17 @@ class BattleTurnSettlementServiceTest {
     }
 
     @Test
+/**
+ * 공개 메서드 `advanceRoundIncrementsRoundOnlyForReinforcements`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun advanceRoundIncrementsRoundOnlyForReinforcements() {
         val (newRound, advance) = BattleRoundCoordinator.advanceRound(Faction.REINFORCEMENTS, 3)
         assertEquals(4, newRound)
@@ -38,6 +68,17 @@ class BattleTurnSettlementServiceTest {
     }
 
     @Test
+/**
+ * 공개 메서드 `turnSnapshotAndChangesDetectsHpAndStatusModifications`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Unit`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun turnSnapshotAndChangesDetectsHpAndStatusModifications() {
         val unit = BattleUnit(
             id = "u1",

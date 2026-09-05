@@ -29,11 +29,56 @@ internal class RenderArtifactService(
     private val mapFilter get() = configuration.mapFilter
     private val mapSampler get() = configuration.mapSampler
     private val mapSampleOffset get() = configuration.mapSampleOffset
+
+    /**
+     * 공개 메서드 `hasFrameCaptureRequest`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun hasFrameCaptureRequest(): Boolean = screenshotPath != null || rawCapturePath != null
+
+    /**
+     * 공개 메서드 `hasRenderEventLogRequest`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun hasRenderEventLogRequest(): Boolean = renderEventLogPath != null
 
+    /**
+     * 공개 메서드 `requestedMapTextureDumpPath`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun requestedMapTextureDumpPath(): String? = mapTextureDumpPath
+
+    /**
+     * 공개 메서드 `requestedMapDither`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun requestedMapDither(): Boolean? = when (mapDither) {
         null -> null
@@ -42,6 +87,17 @@ internal class RenderArtifactService(
         else -> error("--map-dither must be enabled or disabled")
     }
 
+    /**
+     * 공개 메서드 `requestedMapFilter`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture.TextureFilter?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun requestedMapFilter(): Texture.TextureFilter? = when (mapFilter) {
         null -> null
         "linear" -> Texture.TextureFilter.Linear
@@ -49,15 +105,59 @@ internal class RenderArtifactService(
         else -> error("--map-filter must be linear or nearest")
     }
 
+    /**
+     * 공개 메서드 `requestedCocos8MapSampler`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun requestedCocos8MapSampler(): Boolean = when (mapSampler) {
         null, "cocos8", "frag8" -> true
         "linear" -> false
         else -> error("--map-sampler must be linear, cocos8, or frag8")
     }
 
+    /**
+     * 공개 메서드 `requestedFragmentCoordinateMapSampler`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun requestedFragmentCoordinateMapSampler(): Boolean = mapSampler == null || mapSampler == "frag8"
 
+    /**
+     * 공개 메서드 `requestedMapSampleOffset`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Pair<Float, Float>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun requestedMapSampleOffset(): Pair<Float, Float> = mapSampleOffset ?: (0f to 0f)
+
+    /**
+     * 공개 메서드 `writeRenderEventLogIfRequested`
+     *
+     * ### 파라미터
+    - `screen` (`Screen?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun writeRenderEventLogIfRequested(screen: Screen?): Boolean {
         val path = renderEventLogPath ?: return false
@@ -67,6 +167,17 @@ internal class RenderArtifactService(
         Gdx.app.exit()
         return true
     }
+
+    /**
+     * 공개 메서드 `captureFrameIfRequested`
+     *
+     * ### 파라미터
+    - `screen` (`Screen?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun captureFrameIfRequested(screen: Screen?): Boolean {
         val path = screenshotPath ?: return false
@@ -83,6 +194,17 @@ internal class RenderArtifactService(
         return true
     }
 
+    /**
+     * 공개 메서드 `writeMapQuadCandidateSidecar`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun writeMapQuadCandidateSidecar() {
         val png = screenshotPath ?: return
         if (captureState != "map-only") return
@@ -92,7 +214,28 @@ internal class RenderArtifactService(
         )
     }
 
-    fun writeCaptureStack(requested: String, requestedPresent: Boolean, dialogue: Boolean, choice: Boolean, modalCount: Int) {
+    /**
+     * 공개 메서드 `writeCaptureStack`
+     *
+     * ### 파라미터
+    - `requested` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `requestedPresent` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `dialogue` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `choice` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `modalCount` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
+    fun writeCaptureStack(
+        requested: String,
+        requestedPresent: Boolean,
+        dialogue: Boolean,
+        choice: Boolean,
+        modalCount: Int
+    ) {
         val png = screenshotPath ?: return
         val overlayCount = (if (dialogue) 1 else 0) + (if (choice) 1 else 0) + modalCount
         Gdx.files.absolute(png.removeSuffix(".png") + "-stack.json").writeString(
@@ -160,7 +303,17 @@ private fun Screen?.renderEventLog(): String = when (this) {
     is GenericListFixtureScreen -> renderEventLog()
     is BattleScreen -> renderEventLog()
     else -> RenderEventLog().apply {
-        draw("state", this@renderEventLog?.javaClass?.simpleName ?: "none", "Canvas", "none", 0f, 0f, 0f, 0f, visible = false)
+        draw(
+            "state",
+            this@renderEventLog?.javaClass?.simpleName ?: "none",
+            "Canvas",
+            "none",
+            0f,
+            0f,
+            0f,
+            0f,
+            visible = false
+        )
     }.jsonl()
 }
 

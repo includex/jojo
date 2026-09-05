@@ -7,13 +7,45 @@ object TerrainLayerRenderEvents {
     private const val root = "Canvas/Layer/bg"
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
+    /**
+     * 공개 메서드 `jsonl`
+     *
+     * ### 파라미터
+    - `terrain` (`TerrainLayer`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun jsonl(terrain: TerrainLayer): String {
         val log = RenderEventLog()
         val panel = terrain.select(TerrainLayer.Tab.RISE)
-        fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, text: String = "", blend: Any = listOf(770, 771), opacity: Float = 1f) =
-            log.draw(phase, if (path == "Canvas/Layer/Panel_cancel") "HallLayer" else layer,
-                path, type, x, y, w, h, asset, opacity, blend, true, text)
+        fun draw(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = "", blend: Any = listOf(770, 771), opacity: Float = 1f
+        ) =
+            log.draw(
+                phase, if (path == "Canvas/Layer/Panel_cancel") "HallLayer" else layer,
+                path, type, x, y, w, h, asset, opacity, blend, true, text
+            )
+
+        /**
+         * 공개 메서드 `label`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
             draw(path, "label", x, y, w, h, text = text, blend = alphaBlend)
 
@@ -29,19 +61,39 @@ object TerrainLayerRenderEvents {
             val item = if (even) "item0" else "item1"
             val base = "$root/panel/scrollview0/view/content/$item"
             val rowY = 527.398f - rowIndex * 75f
-            draw(base, "sliced-sprite", 289.538f, rowY, 993.1f, 75f,
-                if (even) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2")
+            draw(
+                base, "sliced-sprite", 289.538f, rowY, 993.1f, 75f,
+                if (even) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2"
+            )
             // The ninth item is clipped by the viewport; only its background
             // and partly intersecting terrain-name label submit a draw.
             if (rowIndex < 8) {
-                draw("$base/icon", "sprite", if (even) 292.488f else 292.919f, rowY + 3.9f, 67.2f, 67.2f, row.iconIndex.toString())
+                draw(
+                    "$base/icon",
+                    "sprite",
+                    if (even) 292.488f else 292.919f,
+                    rowY + 3.9f,
+                    67.2f,
+                    67.2f,
+                    row.iconIndex.toString()
+                )
             }
             val nameWidth = 31.14f * row.terrainName.length
-            label("$base/label", if (even) 376.088f else 375.651f,
-                rowY + if (even) 34.82f else 34.598f, nameWidth, 45.36f, row.terrainName)
+            label(
+                "$base/label", if (even) 376.088f else 375.651f,
+                rowY + if (even) 34.82f else 34.598f, nameWidth, 45.36f, row.terrainName
+            )
             if (rowIndex >= 8) return@forEachIndexed
             row.enabledSkills.forEachIndexed { index, _ ->
-                draw("$base/skill/skill_$index", "sprite", 369.088f + index * 33f, rowY + 6.5f, 30f, 30f, "${index + 1}-1")
+                draw(
+                    "$base/skill/skill_$index",
+                    "sprite",
+                    369.088f + index * 33f,
+                    rowY + 6.5f,
+                    30f,
+                    30f,
+                    "${index + 1}-1"
+                )
             }
             row.values.forEachIndexed { index, value ->
                 val narrow = value.text == "○"
@@ -56,8 +108,10 @@ object TerrainLayerRenderEvents {
             }
         }
 
-        val lineXs = listOf(505.588f, 564.788f, 624.288f, 684.788f, 745.288f, 804.788f,
-            865.488f, 924.888f, 984.388f, 1044.488f, 1103.888f, 1103.888f, 1164.588f, 1223.588f)
+        val lineXs = listOf(
+            505.588f, 564.788f, 624.288f, 684.788f, 745.288f, 804.788f,
+            865.488f, 924.888f, 984.388f, 1044.488f, 1103.888f, 1103.888f, 1164.588f, 1223.588f
+        )
         lineXs.forEach { draw("$root/panel/vline", "sprite", it, 189.448f, 6f, 448.6f, "vline") }
 
         val headers = listOf(
@@ -73,7 +127,14 @@ object TerrainLayerRenderEvents {
             val y = if (index in setOf(0, 1, 7, 13)) 602.358f else 602.183f
             val width = if (name == "button") 223f else 60f
             draw("$root/panel/$name/Background", "sliced-sprite", x, y, width, 40f, "box4")
-            label("$root/panel/$name/Background/Label", if (name == "button") x + 61.5f else x - 20f, y, 100f, 40f, text)
+            label(
+                "$root/panel/$name/Background/Label",
+                if (name == "button") x + 61.5f else x - 20f,
+                y,
+                100f,
+                40f,
+                text
+            )
         }
         val footer = listOf(
             listOf("button0", "지형 효과", 285.436f, 110.1f, 196.7f, 61.8f, 301.386f, 121f, 164.8f, 40f),
@@ -81,9 +142,25 @@ object TerrainLayerRenderEvents {
             listOf("button2", "확인", 1164.786f, 111f, 120f, 60f, 1174.786f, 121f, 100f, 40f),
         )
         footer.forEach { values ->
-            val name=values[0] as String; val text=values[1] as String
-            draw("$root/$name/Background", "sliced-sprite", values[2] as Float, values[3] as Float, values[4] as Float, values[5] as Float, "box3")
-            label("$root/$name/Background/Label", values[6] as Float, values[7] as Float, values[8] as Float, values[9] as Float, text)
+            val name = values[0] as String
+            val text = values[1] as String
+            draw(
+                "$root/$name/Background",
+                "sliced-sprite",
+                values[2] as Float,
+                values[3] as Float,
+                values[4] as Float,
+                values[5] as Float,
+                "box3"
+            )
+            label(
+                "$root/$name/Background/Label",
+                values[6] as Float,
+                values[7] as Float,
+                values[8] as Float,
+                values[9] as Float,
+                text
+            )
         }
         return log.jsonl()
     }

@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
 
 internal data class AttackStatusBatch(
     val statuses: Set<BattleStatus>,
@@ -34,6 +36,19 @@ internal object PhysicalTargetResolver {
     /** BattleUnit.getAtkStatus plus attacker's random supplementary lists. */
     fun rollAttackStatusBatch(attacker: BattleUnit, random100: () -> Int): AttackStatusBatch {
         val statuses = linkedSetOf<BattleStatus>()
+
+        /**
+         * 공개 메서드 `chance`
+         *
+         * ### 파라미터
+        - `skillId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `status` (`BattleStatus`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun chance(skillId: Int, status: BattleStatus) {
             attacker.skills[skillId]?.and(255)?.takeIf { it != 255 }?.let { rate ->
                 if (random100() < rate) statuses += status
@@ -246,16 +261,20 @@ internal object PhysicalTargetResolver {
         val localStatusSettlement = if (n > 0 &&
             (statuses.statuses.isNotEmpty() || statuses.downAttributes.isNotEmpty())
         ) {
-            MagicLocalSettlement(listOf(MagicLocalSettlementEntry(
-                targetId = target.id,
-                statusesBefore = statusesBefore,
-                statusesAfter = target.statuses.toMap(),
-                attributeLiftsBefore = liftsBefore,
-                attributeLiftsAfter = target.attributeLifts.toMap(),
-                hasStatesPayload = true,
-                attributeLiftRoundsBefore = liftRoundsBefore,
-                attributeLiftRoundsAfter = target.attributeLiftRounds.toMap(),
-            )))
+            MagicLocalSettlement(
+                listOf(
+                    MagicLocalSettlementEntry(
+                        targetId = target.id,
+                        statusesBefore = statusesBefore,
+                        statusesAfter = target.statuses.toMap(),
+                        attributeLiftsBefore = liftsBefore,
+                        attributeLiftsAfter = target.attributeLifts.toMap(),
+                        hasStatesPayload = true,
+                        attributeLiftRoundsBefore = liftRoundsBefore,
+                        attributeLiftRoundsAfter = target.attributeLiftRounds.toMap(),
+                    )
+                )
+            )
         } else MagicLocalSettlement(emptyList())
 
         return PhysicalAttackTargetResult(

@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.utils.JsonValue
 
@@ -48,7 +49,8 @@ internal class ScenarioStatementExecutor(
                     val args = evalArguments(valueNode.field("args"), frame)
                     choiceCoordinator.startChoice(
                         choice = Choice(
-                            args.firstOrNull().asText().lineSequence().map(String::trim).filter(String::isNotEmpty).toList(),
+                            args.firstOrNull().asText().lineSequence().map(String::trim).filter(String::isNotEmpty)
+                                .toList(),
                             args.getOrNull(1)?.asInt()?.takeIf { it >= 0 },
                         ),
                         node = valueNode,
@@ -61,6 +63,7 @@ internal class ScenarioStatementExecutor(
                     statement.field("targets").children().forEach { assign(it, value, frame) }
                 }
             }
+
             "AugAssign" -> {
                 val target = statement.field("target")
                 val current = eval(target, frame).asInt()
@@ -74,18 +77,24 @@ internal class ScenarioStatementExecutor(
                 }
                 assign(target, result, frame)
             }
+
             "If" -> {
                 val ask = ScenarioChoiceCoordinator.findStageAsk(statement.field("test"))
                 if (ask != null && choiceCoordinator.pendingAskResult == null) {
                     choiceCoordinator.startAsk(ask, statement, frame, moduleName)
                     return
                 }
-                val selected = if (evalBoolean(statement.field("test"), frame)) statement.field("body") else statement.field("orelse")
+                val selected = if (evalBoolean(
+                        statement.field("test"),
+                        frame
+                    )
+                ) statement.field("body") else statement.field("orelse")
                 val statements = selected.children().toList()
                 if (statements.isNotEmpty()) callStack.frames.addLast(
                     Frame(RuntimeFunction("<if>", statements, emptyMap()), 0, frame.locals, frame.sourceFunction),
                 )
             }
+
             "For" -> executeFor(statement, frame, eval, assign, callStack)
             "Return" -> callStack.frames.removeLast()
         }

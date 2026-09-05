@@ -8,8 +8,32 @@ package com.jojo.game
  * route follow the recovered callback instead of treating HHJS as an
  * immediate end-turn command.
  */
+/**
+ * class  `AutoBattleFlow`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class AutoBattleFlow(initialStored: Boolean = false) {
+    /**
+     * enum class  `Overlay`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class Overlay { NONE, PROMPT, TUOGUAN }
+
+    /**
+     * data class  `View`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     data class View(
         val overlay: Overlay,
@@ -25,10 +49,32 @@ class AutoBattleFlow(initialStored: Boolean = false) {
     private var collocation = false
     private var endRoundRequests = 0
 
+    /**
+     * 공개 메서드 `openEndRoundPrompt`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun openEndRoundPrompt() {
         checked = stored
         overlay = Overlay.PROMPT
     }
+
+    /**
+     * 공개 메서드 `toggle`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun toggle() {
         if (overlay == Overlay.PROMPT) checked = !checked
@@ -58,6 +104,18 @@ class AutoBattleFlow(initialStored: Boolean = false) {
         return true
     }
 
+    /**
+     * 공개 메서드 `installFixture`
+     *
+     * ### 파라미터
+    - `target` (`Overlay`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `checked` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun installFixture(target: Overlay, checked: Boolean = false) {
         stored = checked
         when (target) {
@@ -71,7 +129,20 @@ class AutoBattleFlow(initialStored: Boolean = false) {
         }
     }
 
+    /**
+     * 공개 메서드 `view`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun view() = View(overlay, checked, stored, collocation, endRoundRequests)
 
-    companion object { const val TOUCH_END = 2 }
+    companion object {
+        const val TOUCH_END = 2
+    }
 }

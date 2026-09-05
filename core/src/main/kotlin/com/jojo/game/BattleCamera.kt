@@ -10,12 +10,36 @@ internal object SourceBattleMapGeometry {
     private const val initialMapCenterX = 640f
     private const val initialMapCenterY = 864f
 
+    /**
+     * 공개 메서드 `boardLeft`
+     *
+     * ### 파라미터
+    - `mapTilesWide` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `cameraDeltaX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Float`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun boardLeft(mapTilesWide: Int, cameraDeltaX: Float): Float =
         initialMapCenterX - mapTilesWide * renderedTile / 2f + cameraDeltaX
 
     /** Bottom edge of source row zero; source Y increases down the map. */
     fun boardBottom(mapTilesHigh: Int, cameraDeltaY: Float): Float =
         initialMapCenterY + mapTilesHigh * renderedTile / 2f - renderedTile + cameraDeltaY
+
+    /**
+     * 공개 메서드 `mapBottom`
+     *
+     * ### 파라미터
+    - `mapTilesHigh` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `cameraDeltaY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Float`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun mapBottom(mapTilesHigh: Int, cameraDeltaY: Float): Float =
         initialMapCenterY - mapTilesHigh * renderedTile / 2f + cameraDeltaY
@@ -29,7 +53,7 @@ internal object SourceBattleMapGeometry {
         cameraDeltaY: Float,
     ): Pair<Float, Float> =
         boardLeft(mapTilesWide, cameraDeltaX) + tileX * renderedTile + renderedTile / 2f to
-            boardBottom(mapTilesHigh, cameraDeltaY) - tileY * renderedTile + renderedTile / 2f
+                boardBottom(mapTilesHigh, cameraDeltaY) - tileY * renderedTile + renderedTile / 2f
 }
 
 /** Source BattleScreen ScrollView follow contract (_contains/centerUnit). */
@@ -47,14 +71,41 @@ class BattleCamera(
     private var viewportHeight = viewportHeight
     var x = 0f; private set
     var y = 0f; private set
+
     /** Observable equivalent of BattleScreen's synchronous MAP_SCROLLING dispatch. */
     var mapScrollingDispatchCount: Int = 0
         private set
-    fun reset() { x = 0f; y = 0f }
+
+    /**
+     * 공개 메서드 `reset`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
+    fun reset() {
+        x = 0f; y = 0f
+    }
 
     /** Absolute ScrollView.content.position recorded by the source trace. */
     val contentX: Float get() = initialContentX() + x
     val contentY: Float get() = initialContentY() + y
+
+    /**
+     * 공개 메서드 `configureViewport`
+     *
+     * ### 파라미터
+    - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun configureViewport(width: Float, height: Float) {
         viewportWidth = width
@@ -76,15 +127,33 @@ class BattleCamera(
      * centerUnit invocation while avoiding a synthetic camera transition when
      * the unit was already inside the 96 px edge band.
      */
+    /**
+     * 공개 메서드 `ensureVisible`
+     *
+     * ### 파라미터
+    - `worldX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `worldY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun ensureVisible(worldX: Float, worldY: Float): Boolean {
         val beforeX = contentX
         val beforeY = contentY
         val safeInset = edgeMargin + unitHalfSize
         var outside = false
-        if (worldX < safeInset) { x += safeInset - worldX; outside = true }
-        else if (worldX > viewportWidth - safeInset) { x -= worldX - (viewportWidth - safeInset); outside = true }
-        if (worldY < safeInset) { y += safeInset - worldY; outside = true }
-        else if (worldY > viewportHeight - safeInset) { y -= worldY - (viewportHeight - safeInset); outside = true }
+        if (worldX < safeInset) {
+            x += safeInset - worldX; outside = true
+        } else if (worldX > viewportWidth - safeInset) {
+            x -= worldX - (viewportWidth - safeInset); outside = true
+        }
+        if (worldY < safeInset) {
+            y += safeInset - worldY; outside = true
+        } else if (worldY > viewportHeight - safeInset) {
+            y -= worldY - (viewportHeight - safeInset); outside = true
+        }
         clamp()
         // Source dispatches MAP_SCROLLING whenever `_contains` enters its
         // edge branch, even when ScrollView clamping leaves content.position
@@ -111,7 +180,7 @@ class BattleCamera(
         val localX = if (authoredX) tileX * 96f + 48f - mapWidth / 2f else 0f
         val localY = if (authoredY) mapHeight / 2f - (tileY * 96f + 48f) else 0f
         return localX + contentX + viewportWidth / 2f to
-            localY + contentY + viewportHeight / 2f
+                localY + contentY + viewportHeight / 2f
     }
 
     /** Exact source BattleScreen.center(tileX,tileY), including equal-position dispatches. */
@@ -153,11 +222,12 @@ internal object BattleSlotLayout {
     const val enemyEnd = enemyBlockCount * enemyBlockLength
 
     /** Maps a camp-local instance to its stable slot while preserving the sparse friend range. */
-    fun slotFor(faction: ScenarioUnitFaction, instanceId: Int, enemyBlockStart: Int = enemyStart): Int = when (faction) {
-        ScenarioUnitFaction.MINE -> instanceId
-        ScenarioUnitFaction.FRIEND -> friendEnd + instanceId
-        ScenarioUnitFaction.ENEMY -> enemyBlockStart + instanceId
-    }
+    fun slotFor(faction: ScenarioUnitFaction, instanceId: Int, enemyBlockStart: Int = enemyStart): Int =
+        when (faction) {
+            ScenarioUnitFaction.MINE -> instanceId
+            ScenarioUnitFaction.FRIEND -> friendEnd + instanceId
+            ScenarioUnitFaction.ENEMY -> enemyBlockStart + instanceId
+        }
 
     /** Game IDs use a camp-local offset while retaining every stable battle slot. */
     fun battleId(faction: ScenarioUnitFaction, battleSlot: Int): String = when (faction) {
@@ -165,6 +235,18 @@ internal object BattleSlotLayout {
         ScenarioUnitFaction.FRIEND -> "friend-${battleSlot - friendEnd}"
         ScenarioUnitFaction.ENEMY -> "enemy-${battleSlot - enemyStart}"
     }
+
+    /**
+     * 공개 메서드 `stageKey`
+     *
+     * ### 파라미터
+    - `faction` (`ScenarioUnitFaction`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `battleSlot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun stageKey(faction: ScenarioUnitFaction, battleSlot: Int): String =
         "${faction.name}:${battleId(faction, battleSlot).substringAfter('-')}"
@@ -179,6 +261,17 @@ internal object BattleSlotLayout {
             Faction.ENEMY, Faction.REINFORCEMENTS -> enemyStart + local
         }
     }
+
+    /**
+     * 공개 메서드 `rangeFor`
+     *
+     * ### 파라미터
+    - `camp` (`Faction`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `IntRange`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun rangeFor(camp: Faction): IntRange = when (camp) {
         Faction.PLAYER -> 0 until mineCount

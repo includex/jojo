@@ -64,6 +64,17 @@ internal data class FightPresentationView(
     val mine: FightFighterView,
     val enemy: FightFighterView,
 ) {
+    /**
+     * 공개 메서드 `fighterAt`
+     *
+     * ### 파라미터
+    - `slot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `FightFighterView`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun fighterAt(slot: Int): FightFighterView = when (slot) {
         mine.slot -> mine
         enemy.slot -> enemy

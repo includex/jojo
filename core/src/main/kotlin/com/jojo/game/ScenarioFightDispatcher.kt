@@ -39,16 +39,19 @@ internal object ScenarioFightDispatcher {
                 )
                 suspendExternal()
             }
+
             "fight.showStart" -> {
                 stage.enqueueFightCommand(ScenarioFightCommand.ShowStart(fightId))
                 suspendExternal()
             }
+
             "fight.setAction" -> {
                 stage.enqueueFightCommand(
                     ScenarioFightCommand.SetAction(fightId, args.firstOrNull().asBooleanValue(), args.intAt(1)),
                 )
                 suspendExternal()
             }
+
             "fight.say" -> {
                 stage.enqueueFightCommand(
                     ScenarioFightCommand.Say(
@@ -60,6 +63,7 @@ internal object ScenarioFightDispatcher {
                 )
                 suspendExternal()
             }
+
             "fight.attack2" -> {
                 stage.enqueueFightCommand(
                     ScenarioFightCommand.Attack2(
@@ -71,6 +75,7 @@ internal object ScenarioFightDispatcher {
                 )
                 suspendExternal()
             }
+
             "fight.attack1" -> {
                 stage.enqueueFightCommand(
                     ScenarioFightCommand.Attack1(
@@ -82,15 +87,18 @@ internal object ScenarioFightDispatcher {
                 )
                 suspendExternal()
             }
+
             "fight.death" -> {
                 stage.enqueueFightCommand(
                     ScenarioFightCommand.Death(fightId, enemy = args.firstOrNull().asBooleanValue()),
                 )
                 suspendExternal()
             }
+
             "fight.end" -> {
                 stage.enqueueFightCommand(ScenarioFightCommand.End(fightId))
             }
+
             else -> return false
         }
         return true

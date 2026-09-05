@@ -1,22 +1,24 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
+
+import com.jojo.game.infrastructure.data.BattleTerrainLoader
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.campaign.CampaignEquipmentSlot
+import com.jojo.game.domain.battle.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.ScreenAdapter
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Pixmap
-import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Json
@@ -29,6 +31,14 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
  * Gameplay rules live in [Battle]; this class owns input, presentation timing,
  * overlays, and LibGDX resources while those responsibilities are extracted.
  */
+/**
+ * class  `BattleScreen`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleScreen(
     private val game: JojoGame,
     private val verifyMode: Boolean,
@@ -38,6 +48,7 @@ class BattleScreen(
     private val campaign: CampaignState,
 ) : ScreenAdapter() {
     private enum class ResultFlow { NONE, LOSE_SCENE, WIN_SAVE_PROMPT }
+
     /** `Battle.fire`'s ordered `BattleScreen.areas` SpriteFrames. */
     private enum class SelectAreaFrame(val assetName: String) {
         RED("range-red"),
@@ -56,6 +67,7 @@ class BattleScreen(
     private var itemUpgradeRouteInstalled = false
     private var postBattleSceneStarted = false
     private var initialPlayerCampScriptStarted = false
+
     /** Original BattleScreen keeps curCamp=UNKNOW until scene0 and the first scene1 startOper complete. */
     private var bootstrapPhase = if (verifyMode || scriptedBattleVerifyMode) {
         BattleBootstrapPhase.COMPLETE
@@ -63,11 +75,13 @@ class BattleScreen(
         BattleBootstrapPhase.SCENE0
     }
     private var naturalOutcomeScriptStarted = false
+
     /** Monotonic trace marker for a source callback that enters scene1 after victory. */
     private var resultScene1Observed = false
     private var battleRouteCompleted = false
     private var victorySaveAnswerPressed: Int? = null
     private var postBattleSaveLayer = false
+
     /** InfoLayer's transparent full-screen Panel_cancel is committed on TOUCH_END. */
     private var battleInfoPanelPressed = false
     private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
@@ -116,11 +130,11 @@ class BattleScreen(
     private val miniMapLayer = MiniMapLayer(setting = 0)
     private var miniMapReady = false
     private var miniMapRouteInstalled = false
-    private var miniMapButtonPressed = false
     private var roundRouteInstalled = false
     private var roundRouteCallbackCount = 0
     private var loseSceneFlow: LoseSceneFlow? = null
     private var losePressedAnswer: Int? = null
+
     /** Runtime-only isolated composition observation; no rendering behavior changes. */
     fun compositionTrace(): String {
         val unitRecords = battle.units.values.filter { it.visible }.joinToString(",") { u ->
@@ -137,7 +151,8 @@ class BattleScreen(
             val generatedFrameName = (row shl 24) or (1 shl 16) or 12336
             val atlasJson = if (atlasUuid == null) "null" else "\"$atlasUuid\""
             val actionJson = scripted?.action?.toString() ?: "null"
-            val material = if (sourceScenario == "S_00" && scripted?.action == 4) "hight-light/u_value=1" else "SpriteBatch/source-over"
+            val material =
+                if (sourceScenario == "S_00" && scripted?.action == 4) "hight-light/u_value=1" else "SpriteBatch/source-over"
             "{\"address\":\"candidate/unit/${u.id}\",\"frame\":\"$generatedFrameName\",\"runtimeGeneratedFrame\":true,\"textureUuid\":$atlasJson,\"frameRect\":[0,${selected.sourceY},${selected.sourceWidth},${selected.sourceHeight}],\"asset\":${u.characterId ?: -1},\"tile\":[${u.tileX},${u.tileY}],\"action\":$actionJson,\"material\":\"$material\",\"sourceLocalPosition\":[${sourceX},${sourceY}],\"sourceChildPosition\":[0,0],\"sourceChildScale\":[${if (selected.flipX) -1 else 1},1],\"flipX\":${selected.flipX},\"flipY\":false,\"z\":${u.tileY + 1}}"
         }
         val maskRecords = battle.units.values.filter { it.visible }.mapNotNull { u ->
@@ -147,7 +162,7 @@ class BattleScreen(
                 else -> null
             }
         }.joinToString(",")
-        val weather = battle.weather.name
+        battle.weather.name
         val optionalMasks = if (maskRecords.isEmpty()) "" else ",$maskRecords"
         val captureState = game.requestedCaptureState()
         // Keep the trace bound to the same isolation/full-scene map branch as
@@ -174,10 +189,14 @@ class BattleScreen(
                     ?.let(GameDataCatalog::sayLayerUnitName)
                     ?.replace("\\", "\\\\")?.replace("\"", "\\\"")
                     ?.let { "\"$it\"" } ?: "null"
-                val textJson = dialogueReveal.visibleText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-                val remainingJson = dialogue.text.removePrefix(dialogueReveal.visibleText).replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+                val textJson =
+                    dialogueReveal.visibleText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+                val remainingJson =
+                    dialogue.text.removePrefix(dialogueReveal.visibleText).replace("\\", "\\\\").replace("\"", "\\\"")
+                        .replace("\n", "\\n")
                 ",{\"address\":\"Battle/Canvas/Layer\",\"kind\":\"SayLayer\",\"active\":true,\"speaker\":$speakerJson,\"speakerName\":$speakerNameJson,\"sourceStrings\":[\"&${dialogue.speakerId}\",\"${dialogue.text}\"],\"typewriterActive\":${!dialogueReveal.isComplete},\"timeline\":\"scene0-opening-first-glyph\",\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/Panel_cancel\",\"kind\":\"Panel\",\"active\":true,\"size\":[1488.3720930232557,800],\"opacity\":0},{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"DialoguePanel\",\"active\":true,\"position\":[0,50],\"size\":[1030,260],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/face\",\"kind\":\"Head\",\"active\":true,\"position\":[416.432,0],\"size\":[96,120],\"scale\":[2,2],\"renderedSize\":[192,240],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/bg2\",\"kind\":\"DialoguePanelBody\",\"active\":true,\"position\":[-100.536,-12],\"size\":[796,212],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/bg2/richtext\",\"kind\":\"RichText\",\"active\":true,\"text\":\"$textJson\",\"remainingText\":\"$remainingJson\",\"fontSize\":36,\"lineHeight\":42,\"maxWidth\":728,\"position\":[-370.945,46.734],\"size\":[728,52.92],\"anchor\":[0,1],\"opacity\":255}"
             } ?: ",{\"address\":\"Battle/Canvas/Layer\",\"kind\":\"SayLayer\",\"active\":false}"
+
             "dialogue-1" -> scriptRuntime.currentDialogue?.let { dialogue ->
                 val speakerJson = dialogue.speakerId?.let { "\"$it\"" } ?: "null"
                 val speakerNameJson = dialogue.speakerId?.toIntOrNull()
@@ -185,12 +204,16 @@ class BattleScreen(
                     ?.let(GameDataCatalog::sayLayerUnitName)
                     ?.replace("\\", "\\\\")?.replace("\"", "\\\"")
                     ?.let { "\"$it\"" } ?: "null"
-                val textJson = dialogueReveal.visibleText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+                val textJson =
+                    dialogueReveal.visibleText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
                 ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"SayLayer\",\"active\":true,\"speaker\":$speakerJson,\"speakerName\":$speakerNameJson,\"sourceStrings\":[\"&${dialogue.speakerId}\",\"${dialogue.text}\"],\"timeline\":\"dialogue-step-1\",\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/text\",\"kind\":\"DialogueText\",\"text\":\"$textJson\",\"visible\":true,\"fontSize\":36,\"lineHeight\":42,\"maxWidth\":728,\"position\":[-370.945,46.734],\"size\":[728,52.92],\"anchor\":[0,1],\"opacity\":255},{\"address\":\"Battle/Canvas/Layer/bg0/bg2\",\"frame\":\"U_select_11-1\",\"asset\":\"maps/ui/dialogue-panel.png\",\"renderMode\":\"Simple/stretch\",\"opacity\":255,\"material\":\"SpriteBatch/linear\"}"
             } ?: ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"SayLayer\",\"active\":false}"
+
             "battle-action-6-f0" -> actionAnimation?.let { action ->
                 ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/action\",\"kind\":\"BRAnime\",\"action\":${action.sourceAction},\"direction\":${action.direction},\"active\":${animationClock() < action.endsAt},\"timeline\":\"attack6-f0\"}"
-            } ?: ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/action\",\"kind\":\"BRAnime\",\"active\":false,\"timeline\":\"attack6-f0\"}"
+            }
+                ?: ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/action\",\"kind\":\"BRAnime\",\"active\":false,\"timeline\":\"attack6-f0\"}"
+
             "win-condition-modal" -> ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"WinConBoxLayer\",\"active\":$winConditionOpen,\"timeline\":\"open\",\"modal\":${winConditionLayer != null},\"opacity\":255}"
             "enemy-turn" -> battle.traceAiPlannerAtCurrentPoint(474, aiFlags = 1)?.let { plan ->
                 val targetJson = plan.targetId?.let { "\"$it\"" } ?: "null"
@@ -198,24 +221,49 @@ class BattleScreen(
                 val valueJson = plan.value?.toString() ?: "null"
                 val actionValueJson = plan.actionValue?.toString() ?: "null"
                 ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/enemy-planner#${plan.characterId}\",\"kind\":\"Battle._ai/current-point\",\"active\":true,\"sourceCharacterId\":${plan.characterId},\"ai\":${plan.ai},\"x\":${plan.x},\"y\":${plan.y},\"value\":$valueJson,\"actionValue\":$actionValueJson,\"targetId\":$targetJson,\"magicId\":$magicJson,\"timeline\":\"enemy-turn-planner\"}"
-            } ?: ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/enemy-planner#474\",\"kind\":\"Battle._ai/current-point\",\"active\":false,\"timeline\":\"enemy-turn-planner\"}"
+            }
+                ?: ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/enemy-planner#474\",\"kind\":\"Battle._ai/current-point\",\"active\":false,\"timeline\":\"enemy-turn-planner\"}"
+
             "lose-result" -> ",{\"address\":\"Lose/Canvas/Logo_8-1\",\"kind\":\"LoseScene\",\"active\":${resultFlow == ResultFlow.LOSE_SCENE},\"frame\":\"Logo_8-1\",\"asset\":\"Logo/Logo_8-1\",\"frameRect\":[0,0,640,400],\"timeline\":\"Battle.lose->endProcess\"}"
             "win-result" -> ",{\"address\":\"Battle/Canvas/Layer/bg0\",\"kind\":\"MsgBox\",\"active\":${resultFlow == ResultFlow.WIN_SAVE_PROMPT},\"frame\":\"box3\",\"timeline\":\"Battle.enemyHide->endProcess\"},{\"address\":\"Battle/Canvas/Layer/bg0/label\",\"kind\":\"Label\",\"text\":\"게임 저장하시겠습니까?\",\"timeline\":\"save-prompt\"}"
             else -> ""
         }
         val miniMarkers = listOf(
-            "img5" to Pair(0f, -42f), "img5" to Pair(-6f, -48f), "img5" to Pair(12f, -42f), "img5" to Pair(-18f, -36f), "img5" to Pair(12f, -36f),
-            "img9" to Pair(-6f, -6f), "img9" to Pair(0f, -6f), "img9" to Pair(-24f, -36f), "img9" to Pair(-6f, -30f), "img9" to Pair(0f, -30f), "img9" to Pair(12f, -30f), "img9" to Pair(-6f, -24f), "img9" to Pair(0f, -24f), "img9" to Pair(-30f, 0f), "img9" to Pair(-30f, -6f), "img9" to Pair(-18f, -6f), "img9" to Pair(-12f, 0f), "img9" to Pair(12f, 0f), "img9" to Pair(12f, -12f),
-        ).mapIndexed { index, (frame, point) -> val uuid = if (frame == "img5") "1ff0ac4a-8fe9-4b8e-a5f7-374a5440571a" else "98825d51-e8ff-4a12-9906-a4372e913cdd"; "{\"address\":\"Battle/Canvas/Layer/bg/map/tiled#$index\",\"frame\":\"$frame\",\"asset\":\"maps/ui/battle-smlmap-$frame.png\",\"assetUuid\":\"$uuid\",\"frameRect\":[1,1,10,10],\"localPosition\":[${point.first},${point.second}],\"parentScale\":[2,2],\"opacity\":168,\"z\":0,\"material\":\"SpriteBatch/linear\"}" }.joinToString(",")
-        val naturalSay = if (returnScenario == "R_00") ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/New Node\",\"frame\":\"Mark_10-1\",\"asset\":\"maps/ui/battle-say.png\",\"assetUuid\":\"6e23f416-6258-4c79-9ac4-e89fc8b8df4f\",\"frameRect\":[702,2,24,24],\"localPosition\":[-96,-288],\"parentScale\":[2,2],\"opacity\":255,\"z\":1000,\"timeline\":\"SHOW_SAY(active)\",\"material\":\"SpriteBatch/linear\"}" else ""
+            "img5" to Pair(0f, -42f),
+            "img5" to Pair(-6f, -48f),
+            "img5" to Pair(12f, -42f),
+            "img5" to Pair(-18f, -36f),
+            "img5" to Pair(12f, -36f),
+            "img9" to Pair(-6f, -6f),
+            "img9" to Pair(0f, -6f),
+            "img9" to Pair(-24f, -36f),
+            "img9" to Pair(-6f, -30f),
+            "img9" to Pair(0f, -30f),
+            "img9" to Pair(12f, -30f),
+            "img9" to Pair(-6f, -24f),
+            "img9" to Pair(0f, -24f),
+            "img9" to Pair(-30f, 0f),
+            "img9" to Pair(-30f, -6f),
+            "img9" to Pair(-18f, -6f),
+            "img9" to Pair(-12f, 0f),
+            "img9" to Pair(12f, 0f),
+            "img9" to Pair(12f, -12f),
+        ).mapIndexed { index, (frame, point) ->
+            val uuid =
+                if (frame == "img5") "1ff0ac4a-8fe9-4b8e-a5f7-374a5440571a" else "98825d51-e8ff-4a12-9906-a4372e913cdd"; "{\"address\":\"Battle/Canvas/Layer/bg/map/tiled#$index\",\"frame\":\"$frame\",\"asset\":\"maps/ui/battle-smlmap-$frame.png\",\"assetUuid\":\"$uuid\",\"frameRect\":[1,1,10,10],\"localPosition\":[${point.first},${point.second}],\"parentScale\":[2,2],\"opacity\":168,\"z\":0,\"material\":\"SpriteBatch/linear\"}"
+        }.joinToString(",")
+        val naturalSay =
+            if (returnScenario == "R_00") ",{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/New Node\",\"frame\":\"Mark_10-1\",\"asset\":\"maps/ui/battle-say.png\",\"assetUuid\":\"6e23f416-6258-4c79-9ac4-e89fc8b8df4f\",\"frameRect\":[702,2,24,24],\"localPosition\":[-96,-288],\"parentScale\":[2,2],\"opacity\":255,\"z\":1000,\"timeline\":\"SHOW_SAY(active)\",\"material\":\"SpriteBatch/linear\"}" else ""
         return "{\"state\":\"R_00/natural-battle/t=stable\",\"scenarioKey\":\"$scenarioKey\",\"oracle\":\"isolated-libgdx-runtime\",\"animationClock\":${animationClock()},\"visualAnimationClock\":$elapsed,\"records\":[{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map\",\"frame\":null,\"asset\":\"4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg\",\"uv\":\"0,1,1,1,0,0,1,0\",\"draw\":[-320,$tracedMapBottom,1920,1920],\"material\":\"SpriteBatch/linear\"},{\"address\":\"Battle/Canvas/Layer/bg/map\",\"frame\":\"Smlmap_1-1\",\"asset\":\"maps/ui/battle-smlmap-1.jpg\",\"assetUuid\":\"28fcaf09-66e0-4d64-b968-438f0b7db258\",\"frameRect\":[0,0,120,120],\"position\":[1610.3721,678],\"scale\":[2,2],\"opacity\":168,\"z\":0,\"material\":\"SpriteBatch/linear\"},{\"address\":\"Battle/Canvas/Layer/bg/weather\",\"frame\":\"weather_0\",\"asset\":\"maps/ui/battle-menu/weather_0.png\",\"frameRect\":[270,2,72,72],\"position\":[1492.3721,560],\"scale\":[0.8,0.8],\"opacity\":127,\"z\":0,\"material\":\"SpriteBatch/linear\"},{\"address\":\"Battle/Canvas/Layer/ScrollView/view/content/map/unit/info/bar2/sprite\",\"frame\":\"Mark_3-1\",\"asset\":\"maps/marks/3.png#45bb9e80\",\"material\":\"SpriteBatch/linear\"},$miniMarkers$naturalSay,$unitRecords$optionalMasks$scenarioRecords],\"modal\":${battleMenuOpen},\"effectCount\":${magicEffectAnimations.size}}"
     }
+
     // Cocos uses a 1280×800 design canvas with SHOW_ALL.  On our 1.86:1
     // desktop window its visible world widens to 1488×800, rather than
     // shrinking the battle into a 1280×688 FitViewport.
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val shapes = ShapeRenderer()
     private val batch = SpriteBatch()
+
     /** Cocos WebGL's observed 8-bit rounded bilinear map sampler. */
     private val cocos8MapSampler = lazy {
         ShaderProgram(
@@ -256,6 +304,7 @@ void main() {
 }"""
         ).also { check(it.isCompiled) { "Cocos8 map shader failed: ${it.log}" } }
     }
+
     /** Original `unkown_effect/hight-light`, used by BattleUnit action 4. */
     private val cocosHighlightSampler = lazy {
         ShaderProgram(
@@ -279,6 +328,7 @@ void main() {
 }""",
         ).also { check(it.isCompiled) { "Cocos highlight shader failed: ${it.log}" } }
     }
+
     /** Exact fragment equation from internal `builtin-2d-gray-sprite`. */
     private val cocosGraySampler = lazy {
         ShaderProgram(
@@ -316,12 +366,15 @@ void main() {
     private var yingchuanEntryFlowSawInit = false
     private var yingchuanEntryFlowWritten = false
     private val fullTraceRandom = fullTraceConfig?.let { SourceRandomStreams(it.toolSeed, it.mathSeed) }
-    private val fullTraceRecorder = fullTraceConfig?.let { FullBattleTraceRecorder(it, requireNotNull(fullTraceRandom)) }
+    private val fullTraceRecorder =
+        fullTraceConfig?.let { FullBattleTraceRecorder(it, requireNotNull(fullTraceRandom)) }
+
     /** Last accepted production input, retained in each frame for deadlock diagnosis. */
     private var lastFullBattleInput: String? = null
     private var lastFullBattleMenuTap: String? = null
     private val fullTraceDeadline = fullTraceConfig?.let { FullBattleTraceDeadline(it.maxSimulationSeconds) }
     private var fullTraceFinished = false
+
     /**
      * The source recorder snapshots the current RAF before applying its
      * three-terminal-frame completion check.  Keep the finish request until
@@ -330,11 +383,14 @@ void main() {
      */
     private var fullTraceFinishAfterFrame: String? = null
     private val gameDataCatalog = GameDataCatalog.load()
+
     /** Battle.js constructs this overlay before BattleScreen.loadGame. */
     private val battleInitLayer = BattleInitLayer()
+
     /** `MenuLayer.DX → TerrainLayer`; data is the original GAME_CFG projection. */
     private val terrainLayer by lazy { gameDataCatalog.terrainLayer() }
     private val propertyLayer by lazy { PropertyLayer.fromCatalog(gameDataCatalog, campaign.inventory.items) }
+
     /** MenuLayer.BW → TreasureLayer: definitions come from the full source item table. */
     private val treasureLayer by lazy {
         TreasureLayer(
@@ -346,13 +402,15 @@ void main() {
     }
     private val battleSprites = BattleSpriteTimeline.load()
     private val magicEffects = MagicEffectCatalog.load()
+
     /** Live UnitInfoLayer DynamicAtlas crops remain independently demand-loaded. */
     private val unitInfoAssets = BattleUnitInfoAssets()
+
     // `loadBg` pauses before BG_INDEX is published. Build the native map
     // resources from its pending request, while ScenarioStage exposes the
     // new index only when the source callback actually resumes the AST.
     private val loadedBattleMapIndex = scriptRuntime.requestedBattleBackgroundMapIndex
-    private val terrainGrid = BattleTerrainGrid.load(loadedBattleMapIndex).also { grid ->
+    private val terrainGrid = BattleTerrainLoader.load(loadedBattleMapIndex).also { grid ->
         grid.resetOverlays()
         grid.applyObjectOverlays(scriptRuntime.stage.mapObjects.values)
         grid.applyFires(scriptRuntime.stage.fires.values)
@@ -365,7 +423,8 @@ void main() {
             // Only gate objects occupy a physical map tile.  Types 0..3 are
             // terrain overlays (fire/river/etc.) in BattleScreen.setObject2;
             // treating every one as a wall made scripted maps impassable.
-            scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId > 3 }.mapTo(linkedSetOf()) { it.x to it.y },
+            scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId > 3 }
+                .mapTo(linkedSetOf()) { it.x to it.y },
             gameDataCatalog,
             terrainGrid,
             scriptRuntime.stage.enemyMasterInstanceId,
@@ -385,6 +444,7 @@ void main() {
         else state.setMaxRounds(scenarioMaxRound())
         scriptRuntime.stage.setBattleMovePathResolver(state::scriptedMovePath)
     }
+
     /** Commands emitted by stage.startFight/FightLayer, consumed strictly FIFO. */
     private val pendingFightCommands = ArrayDeque<ScenarioFightCommand>()
     private val fightSprites by lazy { FightSpriteTimeline.load() }
@@ -400,17 +460,22 @@ void main() {
     private var activeFightCommand: ScenarioFightCommand? = null
     private var fightCommandSequence = 0L
     private var fightOverlayActive = false
+
     // BattleScreen._loadBg(t) loads Game/HM/HM_(t + 1)-1.  Mmap is exclusive
     // to HallLayer and produced the game's incorrect city backgrounds.
     private val mapFile = battleMapFile(loadedBattleMapIndex + 1)
+
     /** Source unitDeath never lets retained Stage proxies respawn a dead BattleUnit. */
     private val materializedBattleUnitIds = battle.units.keys.toMutableSet()
+
     private data class ScriptUnitBaseline(
         val x: Int, val y: Int, val visible: Boolean, val ai: Int,
         val targetId: Int, val targetX: Int, val targetY: Int,
     )
+
     /** Values before the current scene1 invocation; unchanged proxies must not overwrite tactical state. */
     private var scriptUnitBaseline: Map<Int, ScriptUnitBaseline>? = null
+
     /** BattleUnit.move2 schedules centerUnit at movement ticks, not on every sync/render call. */
     private val scriptedMovementCameraCursors = mutableMapOf<Int, MovementCameraTickCursor>()
     private val mapTexture: Texture? = sourceMapRawTexture() ?: mapFile
@@ -421,6 +486,7 @@ void main() {
             it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
             it.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
         }
+
     /**
      * Isolated raw-parity experiment: Cocos FBO-read Texture2D rows are
      * bottom-left.  Pixmap's upload buffer is filled with rows reversed so
@@ -429,13 +495,21 @@ void main() {
     private fun sourceMapRawTexture(): Texture? {
         dumpDecodedMapTexture()
         if (game.requestedCaptureState() != "map-only") return null
-        val raw = java.io.File("/Users/ain/workspace/jojo/.verification-work/natural-battle-capture/captures/source-map-texture.rgba")
+        val raw =
+            java.io.File("/Users/ain/workspace/jojo/.verification-work/natural-battle-capture/captures/source-map-texture.rgba")
         if (!raw.isFile || raw.length() != 960L * 960L * 4L) return null
-        val bytes = raw.readBytes(); val pixmap = Pixmap(960, 960, Pixmap.Format.RGBA8888)
-        val dst = pixmap.pixels; val stride = 960 * 4
+        val bytes = raw.readBytes()
+        val pixmap = Pixmap(960, 960, Pixmap.Format.RGBA8888)
+        val dst = pixmap.pixels
+        val stride = 960 * 4
         for (y in 0 until 960) dst.put(bytes, y * stride, stride)
         dst.flip()
-        return Texture(pixmap).also { texture -> pixmap.dispose(); texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear); texture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge) }
+        return Texture(pixmap).also { texture ->
+            pixmap.dispose(); texture.setFilter(
+            Texture.TextureFilter.Linear,
+            Texture.TextureFilter.Linear
+        ); texture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
+        }
     }
 
     /**
@@ -454,7 +528,10 @@ void main() {
             val bytes = ByteArray(buffer.remaining())
             buffer.get(bytes)
             java.io.File(output).apply { parentFile?.mkdirs(); writeBytes(bytes) }
-            Gdx.app.log("JojoGame", "MAP_TEXTURE_DECODE_DUMP: $output ${pixmap.width}x${pixmap.height} bytes=${bytes.size}")
+            Gdx.app.log(
+                "JojoGame",
+                "MAP_TEXTURE_DECODE_DUMP: $output ${pixmap.width}x${pixmap.height} bytes=${bytes.size}"
+            )
         } finally {
             pixmap.dispose()
         }
@@ -472,8 +549,19 @@ void main() {
         battle.units.values.forEach(::unitTexture)
         scriptRuntime.completeBattleBackgroundLoad()
     }
+
     private val dynamicTextures = BattleDynamicTextureRepository()
     private val hudAssets = BattleHudAssets()
+    private val battleMapRenderer by lazy {
+        BattleMapRenderer(
+            batch = batch,
+            font = font,
+            assets = BattleMapRendererAssets(
+                selectionTextures = hudAssets.selectAreaTextures,
+                cursorTexture = hudAssets.battleCursorTexture,
+            ),
+        )
+    }
     private val captureReferenceAssets = BattleCaptureReferenceAssets()
     private val fightRenderer by lazy {
         BattleFightRenderer(
@@ -488,6 +576,7 @@ void main() {
             grayShader = { cocosGraySampler.value },
         )
     }
+
     /** CreateAnime2 begins at zero for each newly attached object node. */
     private val fireAnimationStartedAt = mutableMapOf<Pair<Int, Int>, Float>()
     private val mapObjectAnimationStartedAt = mutableMapOf<Triple<Int, Int, Int>, Float>()
@@ -507,7 +596,9 @@ void main() {
         append(gameDataCatalog.allRetreatTexts().joinToString())
         append(gameDataCatalog.allBattleNames().joinToString())
         append(gameDataCatalog.terrainLayer().select(TerrainLayer.Tab.RISE).rows.joinToString { it.terrainName })
-        append(gameDataCatalog.terrainLayer().select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
+        append(
+            gameDataCatalog.terrainLayer()
+                .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
         Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
         // UnitInfoLayer's serialized labels are not all guaranteed to occur
@@ -525,21 +616,146 @@ void main() {
         append("보물 도감 발견되지 않음 지금까지 발견한 보물 종료 부대 정보 일람 무장명 부대 속성 레벨 체력 공격 방어 정신 폭발 사기 폐쇄 창고 일람 이름 속성 경험치 소지자 무기 방어구 보조")
         append("모든 부대의 명령을 종료하시겠습니까? 자동 전투 위임 예 아니오 취소")
     })
-    private val helperGlyphLayout = GlyphLayout()
+
     /** SayLayer's serialized cc.Label/cc.RichText uses the Cocos default Arial 36px. */
     private val dialogueFont: BitmapFont = KoreanFont.create(36, buildString {
         append(gameDataCatalog.allUnitNames().joinToString())
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
     })
     private val itemUpgradeFont: BitmapFont = KoreanFont.create(36, "단검유비장비Lv공격력방어력정신력 -> 0123456789")
+    private val battleRewardOverlayRenderer by lazy {
+        BattleRewardOverlayRenderer(
+            batch = batch,
+            shapes = shapes,
+            titleFont = rewardTitleFont,
+            bodyFont = font,
+            sectionTitleFont = sectionTitleFont,
+            assets = BattleRewardOverlayAssets(
+                rewardItemTexture = overlayAssets.rewardItemTexture,
+                winConditionBoxPatch = overlayAssets.winConditionBoxPatch,
+                sectionBackgroundTexture = overlayAssets.sectionBackgroundTexture,
+            ),
+        )
+    }
+    private val battleAutoOverlayRenderer by lazy {
+        BattleAutoOverlayRenderer(
+            batch = batch,
+            labelFont = itemUpgradeFont,
+            assets = BattleAutoOverlayAssets(
+                unitInfoLogo = unitInfoAssets.unitInfoLogo,
+                unitInfoBox = unitInfoAssets.unitInfoBox3,
+                toggle = hudAssets.autoBattleToggle,
+                checkmark = hudAssets.autoBattleCheckmark,
+                banner = hudAssets.autoBattleBanner,
+                plate = hudAssets.autoBattlePlate,
+            ),
+        )
+    }
+    private val battleTerrainOverlayRenderer by lazy {
+        BattleTerrainOverlayRenderer(
+            batch = batch,
+            font = font,
+            assets = BattleTerrainOverlayAssets(
+                background = overlayAssets.terrainLayerBackgroundTexture,
+                panel = overlayAssets.terrainLayerPanelPatch,
+                rowEven = overlayAssets.terrainLayerRowEvenPatch,
+                rowOdd = overlayAssets.terrainLayerRowOddPatch,
+                verticalLine = overlayAssets.terrainLayerVlinePatch,
+            ),
+        )
+    }
+    private val battleSettingsOverlayRenderer by lazy {
+        BattleSettingsOverlayRenderer(
+            batch = batch,
+            font = font,
+            assets = BattleSettingsOverlayAssets(
+                background = overlayAssets.terrainLayerBackgroundTexture,
+                panel = overlayAssets.terrainLayerPanelPatch,
+            ),
+        )
+    }
+    private val battleUnitInfoOverlayRenderer by lazy {
+        BattleUnitInfoOverlayRenderer(
+            batch = batch,
+            shapes = shapes,
+            font = font,
+            assets = BattleUnitInfoOverlayAssets(
+                logo = unitInfoAssets.unitInfoLogo,
+                box1 = unitInfoAssets.unitInfoBox1,
+                box2 = unitInfoAssets.unitInfoBox2,
+                box3 = unitInfoAssets.unitInfoBox3,
+                background = unitInfoAssets.unitInfoBg,
+                verticalLine = unitInfoAssets.unitInfoVline2,
+                face = unitInfoAssets.unitInfoFace,
+                progress = unitInfoAssets.unitInfoProgress,
+                mark2 = unitInfoAssets.unitInfoMark2,
+                mark3 = unitInfoAssets.unitInfoMark3,
+                mark6 = unitInfoAssets.unitInfoMark6,
+            ),
+        )
+    }
+    private val battleHelperOverlayRenderer by lazy {
+        BattleHelperOverlayRenderer(
+            batch = batch,
+            font = font,
+            glyphLayout = GlyphLayout(),
+            assets = BattleHelperOverlayAssets(
+                background = overlayAssets.terrainLayerBackgroundTexture,
+                header = overlayAssets.terrainLayerPanelPatch,
+                scroll = overlayAssets.winConditionScrollPatch ?: overlayAssets.terrainLayerPanelPatch,
+            ),
+        )
+    }
+    private val battleSaveLoadOverlayRenderer by lazy {
+        BattleSaveLoadOverlayRenderer(
+            batch = batch,
+            font = font,
+            assets = BattleSaveLoadOverlayAssets(
+                background = overlayAssets.terrainLayerBackgroundTexture,
+                panel = overlayAssets.terrainLayerPanelPatch,
+                rowEven = overlayAssets.terrainLayerRowEvenPatch,
+                rowOdd = overlayAssets.terrainLayerRowOddPatch,
+            ),
+        )
+    }
+    private val battleForcesOverlayRenderer by lazy {
+        BattleForcesOverlayRenderer(
+            batch = batch,
+            font = font,
+            assets = BattleForcesOverlayAssets(
+                background = overlayAssets.terrainLayerBackgroundTexture,
+                panel = overlayAssets.terrainLayerPanelPatch,
+                rowEven = overlayAssets.terrainLayerRowEvenPatch,
+                rowOdd = overlayAssets.terrainLayerRowOddPatch,
+                verticalLine = overlayAssets.terrainLayerVlinePatch,
+            ),
+        )
+    }
+    private val battlePropertyOverlayRenderer by lazy {
+        BattlePropertyOverlayRenderer(
+            batch = batch,
+            font = font,
+            assets = BattlePropertyOverlayAssets(
+                background = overlayAssets.terrainLayerBackgroundTexture,
+                panel = overlayAssets.terrainLayerPanelPatch,
+                rowEven = overlayAssets.terrainLayerRowEvenPatch,
+                rowOdd = overlayAssets.terrainLayerRowOddPatch,
+                verticalLine = overlayAssets.terrainLayerVlinePatch,
+            ),
+        )
+    }
     private var eventMessage = "턴 종료로 라운드와 이벤트를 확인하세요"
+
     /** Source MenuLayer, opened through Canvas/Layer/menu_button. */
     private var battleMenuOpen = false
+
     /** Source MenuLayer onCreate state; renderer consumes its capped progress/buttons/weather. */
     private var battleMenuLayer: MenuLayer? = null
+
     /** Cocos starts Weather_n's AnimationClip when MenuLayer is created. */
     private var battleMenuOpenedAt = 0f
     private var battleMenuPressedIndex: Int? = null
+
     /** BattleScreen.END_ROUND -> MsgBox4 -> optional TuoGuanLayer. */
     private val autoBattlePreferences by lazy { game.preferences("jojo-auto-battle") }
     private val autoBattleFlow by lazy {
@@ -552,27 +768,41 @@ void main() {
     private var autoBattlePressedTag: Int? = null
     private var autoBattleTogglePressed = false
     private var autoBattlePanelPressed = false
+
     /** TerrainLayer owns input above both map and MenuLayer until button2/ESC. */
     private var terrainLayerOpen = false
     private var propertyLayerOpen = false
     private var treasureLayerOpen = false
+
     /** TreasureLayer ScrollView state and the source clickItem → ItemLayer payload. */
     private var treasureScrollRow = 0
     private var treasureSelectedId: Int? = null
+
     /** MenuLayer.CD → SaveLayer; repository maps directly to numbered Manager slots. */
     private val saveLayer by lazy {
         SaveLayer(object : SaveLayer.Repository {
             override fun load(index: Int): String? = game.savedCampaignSlot(index)
-            override fun save(index: Int) { game.saveCampaign(index) }
+            override fun save(index: Int) {
+                game.saveCampaign(index)
+            }
         })
     }
     private var saveLayerOpen = false
     private var saveScrollRow = 0
     private var savePressedSlot: Int? = null
     private var saveConfirmPressed: Int? = null
-    private val settingLayer by lazy { SettingLayer(object : SettingLayer.Store { private val p=settingsPreferences; override fun getInt(key:String,default:Int)=p.getInteger(key,default); override fun putInt(key:String,value:Int){p.putInteger(key,value).flush()} }, featureEnvironment = { game.settingFeatureEnvironment("Battle") }) }
-    private var settingLayerOpen=false
+    private val settingLayer by lazy {
+        SettingLayer(object : SettingLayer.Store {
+            private val p = settingsPreferences
+            override fun getInt(key: String, default: Int) = p.getInteger(key, default)
+            override fun putInt(key: String, value: Int) {
+                p.putInteger(key, value).flush()
+            }
+        }, featureEnvironment = { game.settingFeatureEnvironment("Battle") })
+    }
+    private var settingLayerOpen = false
     private var settingPress: Pair<Float, Float>? = null
+
     /** MenuLayer.DD → LoadGameLayer; separate state so SaveLayer is untouched. */
     private val loadGameLayer by lazy {
         LoadGameLayer(object : LoadGameLayer.Repository {
@@ -581,13 +811,15 @@ void main() {
             override fun savePage(page: Int) = game.saveLoadPage(page)
             override fun featureEnabled(name: String) = name == "ZDBHSW"
             override fun versionCode() = 1
-            override fun restore(index: Int, raw: String, route: LoadGameLayer.RestoreRoute) = game.restoreCampaignSlot(index, raw, route)
+            override fun restore(index: Int, raw: String, route: LoadGameLayer.RestoreRoute) =
+                game.restoreCampaignSlot(index, raw, route)
         })
     }
     private var loadGameLayerOpen = false
     private var loadScrollRow = 0
     private var loadPressedSlot: Int? = null
     private var loadConfirmPressed: Int? = null
+
     /** MenuLayer.WJYL → ForcesListLayer. */
     private var forcesLayer: ForcesListLayer? = null
     private var forcesPressedRow: Int? = null
@@ -624,20 +856,27 @@ void main() {
     }
     private var propertyScrollRow = 0
     private var propertySelectedId: Int? = null
+
     /** ScrollView content offset expressed as source TerrainLayer row index. */
     private var terrainScrollRow = 0
+
     /** Global/scene/HelperLayer, opened by MenuLayer.HELP. */
     private var helperLayer: HelperLayer? = null
     private var helperButtonPressed = false
+
     /** MenuLayer.SLTJ dispatches WIN_CONDITION, which opens WinConBoxLayer. */
     private var winConditionOpen = false
     private var scriptWinConditions: WinConditionsLayer? = null
+
     /** Stateful, source-order implementation of the modal instantiated by MenuLayer.SLTJ. */
     private var winConditionLayer: WinConBoxLayer? = null
+
     /** A Cocos button listener receives TOUCH_END only after a press began on its node. */
     private var winConditionButtonPressed = false
+
     /** BattleScreen._noActionIndex, advanced by MenuLayer button11. */
     private var noActionIndex = 0
+
     /** ScrollView content translation used by source centerUnit/_contains. */
     // StageLayer.loadBg sizes the ScrollView content from the loaded map.
     // Keeping BattleCamera at S_00's 20x20 default clamps production drags
@@ -647,9 +886,8 @@ void main() {
         mapWidth = terrainGrid.width * 96f,
         mapHeight = terrainGrid.height * 96f,
     )
-    private var battleDragLast: Vector2? = null
-    private var battleTouchStart: Vector2? = null
-    private var battleTouchMoved = false
+    private val battleInputRouter = BattleInputRouter()
+
     /** Source `_state_meff` clip begins whenever its selected texture pair changes. */
     private val battleStateAnimationStarts = mutableMapOf<String, Pair<List<Int>, Float>>()
     private var elapsed = 0f
@@ -658,10 +896,13 @@ void main() {
     private var fullTraceTerminalFrames = 0
     private var fullTraceMapObjectRevision = 0
     private var fullTraceMapObjectSignature: String? = null
+
     /** Next append-only ScenarioStage.setObjects call not yet written to the trace. */
     private var fullTraceMapObjectsCallCursor = 0
+
     /** BattleScreen pauses its unit/effect AnimationStates while SayLayer owns input. */
     private var battleElapsed = 0f
+
     /**
      * Dialogue instance whose source `_resetPos` side effect was applied.
      * SayLayer performs this once when it consumes each `&unitId` marker,
@@ -669,29 +910,36 @@ void main() {
      */
     private var positionedDialogueRevision = -1L
     private var actionAnimation: UnitActionAnimation? = null
+
     /**
      * End of the finite playAtkAnime callback started by stage.attackAction.
      * This is deliberately separate from [actionAnimation]: unit.setAction
      * is callback-free and may leave a looping pose alive across startOper.
      */
     private var scriptedAttackCallbackEndsAt = Float.NEGATIVE_INFINITY
+
     /** BattleUnit.move2's currently running start-inclusive route. */
     private var movementAnimation: UnitMoveAnimation? = null
+
     /** TPGJ owns a separate .08s victim move while the hurt clip is running. */
     private val backMoveAnimations = mutableMapOf<String, BackMoveAnimation>()
+
     /** BattleScreen resumes scene/event processing only after attack animations finish. */
     private var pendingBattleScriptPassesAfterAction = 0
     private var pendingBattleActionCommitted = false
     private var pendingBattleSettlementActorId: String? = null
     private var pendingBattleCompletedScriptPasses = 0
+
     /** Target-side SHOU_GONG_JI3 (anime32) reactions keyed by battle unit. */
     private val hitReactionAnimations = mutableMapOf<String, UnitActionAnimation>()
+
     /** Source unitHide(DEATH) starts only after SHOU_GONG_JI3 completes. */
     private val deathAnimations = mutableMapOf<String, UnitActionAnimation>()
     private val pendingDeathAnimations = linkedMapOf<String, PendingDeathAnimation>()
     private var postActionDeathsStarted = false
     private var activeUnitDeath: ActiveUnitDeath? = null
     private var unitDeathAwaitingDialogue: PendingDeathAnimation? = null
+
     /** Lifecycle-owned unitDeath barrier (state, restore, or round script). */
     private var turnDeathCheckpoint: BattleTurnController.DeathCheckpoint? = null
     private var turnDeathStage = TurnDeathStage.NONE
@@ -701,32 +949,42 @@ void main() {
     private var activeScriptedHide: ActiveScriptedHide? = null
     private var scriptedHideAwaitingDialogue: PendingScriptedHide? = null
     private var activeScriptedShow: ActiveScriptedShow? = null
+
     /** One `loadUnitPicture` completion edge for BattleUnit.setPosts. */
     private var activeScriptedUnitPosts: ActiveScriptedUnitPosts? = null
+
     /** BattleUnit._avatar remains old until loadAvatar's async completion. */
     private val loadedBattleAvatarIds = mutableMapOf<String, Int>()
     private var activeMapPresentation: ActiveMapPresentation? = null
     private var activeScriptPresentation: ActiveScriptPresentation? = null
     private var activeScriptedUnitAction: ActiveScriptedUnitAction? = null
+
     /** Harm-number animation values visible from the attack `hit` event onward. */
     private val harmNumberAnimations = mutableMapOf<String, HarmNumberAnimation>()
+
     /** Source HP presentation begins at the authored hit event. */
     private val healthTimeline = BattleHealthPresentation()
+
     /** Keeps post-hit HP visible while source ZDSY is awaiting its callback. */
     private val healthTimelineHoldUntil = mutableMapOf<String, Float>()
+
     /** Live-model writes owned by authored Animation callbacks, ordered by source time. */
     private val timedBattleMutations = mutableListOf<TimedBattleMutation>()
+
     /** _attack6 counterattack starts only after the first target reaction completes. */
     private var queuedCounterPresentation: CounterPresentation? = null
     private var queuedFollowUpPresentation: FollowUpPresentation? = null
     private var queuedCounterFollowUpPresentation: CounterFollowUpPresentation? = null
+
     /** Source `_attack2` invocations remaining after the currently visible pass. */
     private var queuedPhysicalPresentation: PhysicalPassPresentationQueue? = null
     private var queuedMagicPresentation: MagicPassPresentationQueue? = null
     private var pendingCriticalSpeechAction: PendingCriticalSpeechAction? = null
     private var activeCounterMagicPresentation: ActiveCounterMagicPresentation? = null
+
     /** Persistent BattleUnit.setAction() state; source keeps it until action 0 replaces it. */
     private val scriptedUnitVisuals = mutableMapOf<String, ScriptedUnitVisual>()
+
     /** One entry per `_magicProcess → playMeff` group (CLLJ has two). */
     private val magicEffectAnimations = mutableListOf<MagicEffectAnimation>()
     private var selectedUnitId: String? = null
@@ -736,6 +994,7 @@ void main() {
     private var pendingBattleCommandUnit: String? = null
     private var pendingBattleCommandScriptStarted = false
     private var pendingBattleCommandMoveProvenance: String? = null
+
     /** Source `_ai2` awaits one actor's move/action callbacks before sorting the next. */
     private var activeAiCamp: Faction? = null
     private val emptyAiCampFrameBarrier = EmptyAiCampFrameBarrier()
@@ -752,8 +1011,9 @@ void main() {
     private var campaignE2ePlayerMoveCommitted = false
     private var campaignE2eCommittedPlayerMove: String? = null
     private val authoredMechanicRoute = AuthoredMechanicRouteTracker(sourceScenario)
-    private var menuHudButtonPressed = false
+
     private enum class AiPresentationStage { FOCUS_DELAY, MOVING, ACTION_DELAY, ACTION, COMPLETE }
+
     private var aiPresentationStage = AiPresentationStage.COMPLETE
     private var aiPresentationStageStartedAt = 0f
     private var aiTurnMoves = 0
@@ -763,6 +1023,7 @@ void main() {
     private var selectedMagicIndex = 0
     private var propertyMode = false
     private var selectedPropertyIndex = 0
+
     /** Source RoundLayer lives only while BattleTurnController awaits its callback. */
     private var activeRoundLayer: RoundLayer? = null
     private var activeRoundLayerElapsed = 0f
@@ -806,6 +1067,7 @@ void main() {
             },
         )
     }
+
     /** Opening scene commands have completed before the first capture frame. */
     private var presentationReady = false
     private val actionCapture = requestedActionCapture()
@@ -813,18 +1075,23 @@ void main() {
     private val cutsceneAttackCapture = game.requestedCaptureState() == "yingchuan-attack"
     private val cutscenePostHitCapture = game.requestedCaptureState() == "yingchuan-action4"
     private val cutscene477Capture = game.requestedCaptureState() == "yingchuan-477"
+
     /** Actual S_00 BattleScreen -> Stage.say -> SayLayer blend/order route. */
     private val battleDialogueBlendRoute = game.requestedCaptureState() == "battle-dialogue-blending-fixture"
     private val battleInitRoute = game.requestedCaptureState() == "battle-init-fixture"
+
     /** Actual menu_button -> MenuLayer button6 -> TerrainLayer route. */
     private val battleTerrainRoute = game.requestedCaptureState() == "battle-terrain-layer-fixture"
+
     /** Actual BattleScreen menu_button -> MenuLayer id14 open state. */
     private val battleMenuRoute = game.requestedCaptureState() == "battle-menu-fixture"
+
     /** Source-harness dialogue input count: `yingchuan-dialogue-1` is the first fully revealed say. */
     private val dialogueStepCapture = game.requestedCaptureState()
         ?.removePrefix("yingchuan-dialogue-")
         ?.takeIf { game.requestedCaptureState()?.startsWith("yingchuan-dialogue-") == true }
         ?.toIntOrNull()
+
     /**
      * Cumulative SayLayer composition oracle.  These states never draw a
      * source-frame texture: they exercise the ordinary Kotlin panel, portrait
@@ -833,12 +1100,24 @@ void main() {
     private val dialogueComponentStage = game.requestedCaptureState()
         ?.removePrefix("yingchuan-dialogue-components-")
         ?.takeIf { game.requestedCaptureState()?.startsWith("yingchuan-dialogue-components-") == true }
+
     /** Matches the original verifier's map-only diagnostic: no map children or HUD. */
     private val mapOnlyCapture = game.requestedCaptureState() == "map-only"
+
     /** Read-only counterpart to the source Control._process selection fixture. */
     private val selectionOverlayCapture = game.requestedCaptureState() == "yingchuan-selection"
+
     /** Source menu-route captures dismiss 474's opening SayLayer before opening a modal. */
-    private val modalRenderCapture = game.requestedCaptureState() in setOf("yingchuan-terrain", "yingchuan-property", "yingchuan-treasure", "yingchuan-setting", "yingchuan-save", "yingchuan-load", "yingchuan-forces")
+    private val modalRenderCapture = game.requestedCaptureState() in setOf(
+        "yingchuan-terrain",
+        "yingchuan-property",
+        "yingchuan-treasure",
+        "yingchuan-setting",
+        "yingchuan-save",
+        "yingchuan-load",
+        "yingchuan-forces"
+    )
+
     /** Set only after S_00's own opening delay reaches its first say. */
     private var cutsceneAttackStartedAt: Float? = null
     private var cutscene477StartedAt: Float? = null
@@ -906,21 +1185,31 @@ void main() {
             battleEdit2 = BattleEditLayer2(battle.weather.ordinal, battle.round, canApplyRound = true).also { edit ->
                 when (route) {
                     BattleEditLayer2Route.INITIAL -> Unit
-                    BattleEditLayer2Route.WEATHER -> { edit.openWeatherPanel(); edit.selectWeather(3) }
-                    BattleEditLayer2Route.ROUND -> { edit.textChanged("8"); edit.editingDidEnd() }
+                    BattleEditLayer2Route.WEATHER -> {
+                        edit.openWeatherPanel(); edit.selectWeather(3)
+                    }
+
+                    BattleEditLayer2Route.ROUND -> {
+                        edit.textChanged("8"); edit.editingDidEnd()
+                    }
+
                     BattleEditLayer2Route.APPLY -> {
                         edit.selectWeather(3); edit.textChanged("8"); edit.editingDidEnd()
-                        edit.touchButton(0).forEach { effect -> when (effect) {
-                            is BattleEditLayer2.Effect.SetWeather -> battle.applyEditedWeather(effect.value)
-                            is BattleEditLayer2.Effect.SetRound -> battle.applyEditedRound(effect.value)
-                            else -> Unit
-                        } }
+                        edit.touchButton(0).forEach { effect ->
+                            when (effect) {
+                                is BattleEditLayer2.Effect.SetWeather -> battle.applyEditedWeather(effect.value)
+                                is BattleEditLayer2.Effect.SetRound -> battle.applyEditedRound(effect.value)
+                                else -> Unit
+                            }
+                        }
                     }
+
                     BattleEditLayer2Route.CHILD, BattleEditLayer2Route.CHILD_SCENE, BattleEditLayer2Route.REGISTER -> {
                         battleEdit3Open = edit.touchButton(2).contains(BattleEditLayer2.Effect.OpenGlobalEditor)
                         battleEdit3ScenePanelOpen = route == BattleEditLayer2Route.CHILD_SCENE
                         if (route == BattleEditLayer2Route.REGISTER) {
-                            battleRegisterRoute = BattleRegisterRoute().also { secret -> repeat(6) { secret.titleTouchEnd() } }
+                            battleRegisterRoute =
+                                BattleRegisterRoute().also { secret -> repeat(6) { secret.titleTouchEnd() } }
                             check(requireNotNull(battleRegisterRoute).view().registerAttached)
                         }
                     }
@@ -929,13 +1218,19 @@ void main() {
         }
         when (game.requestedCaptureState()) {
             "yingchuan-reward-basic-route", "yingchuan-reward-card1-route", "yingchuan-reward-card2-route" -> {
-                val cards = if (game.requestedCaptureState() == "yingchuan-reward-basic-route") emptyList() else listOf(150, 0, 151, 0)
+                val cards = if (game.requestedCaptureState() == "yingchuan-reward-basic-route") emptyList() else listOf(
+                    150,
+                    0,
+                    151,
+                    0
+                )
                 scriptRuntime.stage.reward(items = cards)
                 scriptRuntime.stage.scriptedBattleOutcome?.let(battle::setScriptedOutcome)
                 openRewardRequestIfNeeded()
                 if (game.requestedCaptureState() != "yingchuan-reward-basic-route") advanceRewardFlow()
                 if (game.requestedCaptureState() == "yingchuan-reward-card2-route") advanceRewardFlow()
             }
+
             else -> Unit
         }
         // Deterministic visual-regression state: mirrors opening
@@ -955,8 +1250,14 @@ void main() {
             }
         }
         if (mineUnitInfoRoute) {
-            val unit=requireNotNull(battle.units.values.firstOrNull { it.characterId==210&&it.visible })
-            mineUnitInfoLayer=MineUnitInfoLayer().also { it.onCreate(unit,gameDataCatalog.postsName(unit.posts),unit.name.replace(Regex("\\d+$"),"")) }
+            val unit = requireNotNull(battle.units.values.firstOrNull { it.characterId == 210 && it.visible })
+            mineUnitInfoLayer = MineUnitInfoLayer().also {
+                it.onCreate(
+                    unit,
+                    gameDataCatalog.postsName(unit.posts),
+                    unit.name.replace(Regex("\\d+$"), "")
+                )
+            }
         }
         if (game.requestedCaptureState() == "yingchuan-helper") openHelperLayer()
         if (game.requestedCaptureState() == "yingchuan-terrain") {
@@ -1008,6 +1309,7 @@ void main() {
                 // ordinary idle action.
                 battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitVisuals.remove(it.id) }
             }
+
             "battle-win-condition-full-fixture" -> {
                 battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitVisuals.remove(it.id) }
                 scriptRuntime.suspendForWinCondition("장보와 장량을\n격퇴하십시오.")
@@ -1029,7 +1331,10 @@ void main() {
             // Source loss marks its own Battle state then enters `_endProcess`.
             // Setting the real Battle max-round contract makes outcome() use
             // the same loss branch without injecting an output record.
-            "lose-result" -> { battle.setMaxRounds(1); resultFlow = ResultFlow.LOSE_SCENE }
+            "lose-result" -> {
+                battle.setMaxRounds(1); resultFlow = ResultFlow.LOSE_SCENE
+            }
+
             LOSE_RESTART_ROUTE_STATE -> {
                 battle.setMaxRounds(1)
                 enterLoseScene()
@@ -1079,45 +1384,103 @@ void main() {
             // its sampled frame could not be assessed from the framebuffer.
             battle.units.values.firstOrNull { it.tileX == 10 && it.tileY == 14 }?.let { unit ->
                 check(attackTexture(unit) != null) { "S_00 action capture source avatar has no Unit_atk atlas: ${unit.characterId}" }
-                Gdx.app.log("JojoGame", "ACTION_CAPTURE_UNIT: id=${unit.characterId}, avatar=${battleAvatarId(unit)}, action=${capture.action}, sample=${capture.sample}")
+                Gdx.app.log(
+                    "JojoGame",
+                    "ACTION_CAPTURE_UNIT: id=${unit.characterId}, avatar=${battleAvatarId(unit)}, action=${capture.action}, sample=${capture.sample}"
+                )
                 actionAnimation = sourceActionAnimation(unit.id, capture.action, 2, 1f - capture.sample)
             }
         }
         Gdx.input.inputProcessor = object : InputAdapter() {
+            private fun inputSurface(): BattleInputSurface = BattleInputSurface(
+                dialogue = BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) ==
+                        BattleInteractiveInput.Route.DIALOGUE,
+                settlementInfo = settlementInfo2Overlay != null,
+                roundLayer = activeRoundLayer != null,
+                resultPrompt = resultFlow == ResultFlow.WIN_SAVE_PROMPT,
+                modalInfo = scriptRuntime.state == PlaybackState.MODAL &&
+                        scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO,
+                loseScene = loseSceneFlow != null,
+                command = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
+                usePropertyDetail = usePropertyDetail != null,
+                useProperty = usePropertyLayer != null,
+                magicInfo = magickInfoLayer != null,
+                magicList = magickListLayer != null,
+                jiqi = jiqiLayer != null,
+                reward = rewardFlow != null,
+                itemUpgrade = itemUpgradeFlow != null,
+                scriptWinConditions = scriptWinConditions != null,
+                unitInfo = unitInfoLayer != null,
+                forces = forcesLayer != null,
+                helper = helperLayer != null,
+                setting = settingLayerOpen,
+                save = saveLayerOpen,
+                load = loadGameLayerOpen,
+                treasure = treasureLayerOpen,
+                property = propertyLayerOpen,
+                terrain = terrainLayerOpen,
+                winCondition = winConditionOpen,
+                autoPrompt = autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.PROMPT,
+                autoTuoGuan = autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.TUOGUAN,
+                choice = scriptRuntime.state == PlaybackState.CHOICE,
+                battleMenu = battleMenuOpen,
+                miniMap = !battleMenuOpen,
+                menuHud = true,
+                interactiveRoute = BattleInteractiveInput.route(scriptRuntime.state, turnController.phase),
+                hitRegions = listOf(
+                    BattleInputHitRegion(BattleInputTarget.MENU_HUD, 1353.9535f, 8f, 1413.9535f, 68f),
+                    BattleInputHitRegion(
+                        BattleInputTarget.MINI_MAP,
+                        if (miniMapLayer.shown) 1174.372f else 1418.372f,
+                        730f,
+                        if (miniMapLayer.shown) 1244.372f else 1488.372f,
+                        800f,
+                    ),
+                ),
+            )
+
             override fun keyDown(keycode: Int): Boolean {
+                val keyboardIntent = battleInputRouter.keyDown(keycode, inputSurface())
                 // SayLayer is the newest script modal. It must receive input
                 // before an older presentation overlay which is completing in
                 // an adjacent render frame.
-                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) ==
-                    BattleInteractiveInput.Route.DIALOGUE
-                ) {
+                if (keyboardIntent.capture == BattleInputCapture.DIALOGUE) {
                     if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) advanceBattleDialogue()
                     return true
                 }
-                if (settlementInfo2Overlay != null && keycode in setOf(Input.Keys.ENTER, Input.Keys.SPACE, Input.Keys.ESCAPE)) {
+                if (keyboardIntent.capture == BattleInputCapture.SETTLEMENT_INFO && keycode in setOf(
+                        Input.Keys.ENTER,
+                        Input.Keys.SPACE,
+                        Input.Keys.ESCAPE
+                    )
+                ) {
                     closeSettlementInfo2()
                     return true
                 }
-                if (activeRoundLayer != null) return true
-                if (loseSceneFlow != null) return true
-                if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) return true
+                if (keyboardIntent.capture == BattleInputCapture.ROUND) return true
+                if (keyboardIntent.capture == BattleInputCapture.LOSE) return true
+                if (keyboardIntent.capture == BattleInputCapture.RESULT) return true
                 // HelperLayer.js has no keyboard listener.  Its modal blocks
                 // map input, while only button0's TOUCH_END can remove it.
-                if (helperLayer != null) return true
-                if (settingLayerOpen) { if (keycode == Input.Keys.ESCAPE) closeSettingLayer(); return true }
-                if (saveLayerOpen) { if (keycode == Input.Keys.ESCAPE) closeSaveLayer(); return true }
-                if (forcesLayer != null) return true
-                if (unitInfoLayer != null) return true
-                if (loadGameLayerOpen) return true // LoadGameLayer has only TOUCH_END handlers.
-                rewardFlow?.let {
+                if (keyboardIntent.capture == BattleInputCapture.HELPER) return true
+                if (keyboardIntent.capture == BattleInputCapture.SETTING) {
+                    if (keycode == Input.Keys.ESCAPE) closeSettingLayer(); return true
+                }
+                if (keyboardIntent.capture == BattleInputCapture.SAVE) {
+                    if (keycode == Input.Keys.ESCAPE) closeSaveLayer(); return true
+                }
+                if (keyboardIntent.capture == BattleInputCapture.FORCES) return true
+                if (keyboardIntent.capture == BattleInputCapture.UNIT_INFO) return true
+                if (keyboardIntent.capture == BattleInputCapture.LOAD) return true // LoadGameLayer has only TOUCH_END handlers.
+                if (keyboardIntent.capture == BattleInputCapture.REWARD) {
                     if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) advanceRewardFlow()
                     return true
                 }
-                itemUpgradeFlow?.let {
+                if (keyboardIntent.capture == BattleInputCapture.ITEM_UPGRADE) {
                     if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) closeItemUpgrade()
                     return true
                 }
-                if (treasureLayerOpen) {
+                if (keyboardIntent.capture == BattleInputCapture.TREASURE) {
                     when (keycode) {
                         Input.Keys.ESCAPE -> treasureLayerOpen = false
                         Input.Keys.UP -> treasureScrollRow = (treasureScrollRow - 1).coerceAtLeast(0)
@@ -1125,7 +1488,7 @@ void main() {
                     }
                     return true
                 }
-                if (propertyLayerOpen) {
+                if (keyboardIntent.capture == BattleInputCapture.PROPERTY) {
                     when (keycode) {
                         Input.Keys.ESCAPE -> propertyLayerOpen = false
                         Input.Keys.NUM_1 -> propertyLayer.select(PropertyLayer.Tab.WEAPON)
@@ -1137,7 +1500,7 @@ void main() {
                     }
                     return true
                 }
-                if (terrainLayerOpen) {
+                if (keyboardIntent.capture == BattleInputCapture.TERRAIN) {
                     when (keycode) {
                         Input.Keys.ESCAPE -> terrainLayerOpen = false
                         Input.Keys.NUM_1 -> terrainLayer.select(TerrainLayer.Tab.RISE)
@@ -1147,7 +1510,7 @@ void main() {
                     }
                     return true
                 }
-                if (scriptRuntime.state == PlaybackState.CHOICE) {
+                if (keyboardIntent.capture == BattleInputCapture.CHOICE) {
                     when (keycode) {
                         Input.Keys.UP -> scriptRuntime.selectPrevious()
                         Input.Keys.DOWN -> scriptRuntime.selectNext()
@@ -1158,9 +1521,7 @@ void main() {
                 // Script DELAY/MODAL is BattleScreen.pause(), not idle player
                 // time.  Swallow the key here so Enter/Space cannot end the
                 // turn while a source coroutine is still suspended.
-                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) !=
-                    BattleInteractiveInput.Route.PLAYER_INPUT
-                ) return true
+                if (keyboardIntent.capture == BattleInputCapture.SCRIPT_PAUSED) return true
                 when (keycode) {
                     Input.Keys.ESCAPE -> if (usePropertyDetail != null) {
                         usePropertyDetail = null
@@ -1170,15 +1531,18 @@ void main() {
                         usePropertyLayer = null
                         return true
                     } else game.showScenario(returnScenario)
+
                     Input.Keys.T, Input.Keys.SPACE, Input.Keys.ENTER -> {
                         if (battle.outcome() == null) endTurn() else continueAfterOutcome()
                     }
+
                     Input.Keys.M -> {
                         val unit = selectedUnitId?.let { battle.units[it] }
                         if (unit?.magic?.isNotEmpty() == true) {
                             openMagickList(unit)
                         } else eventMessage = "선택한 유닛은 사용할 수 있는 전략이 없습니다."
                     }
+
                     Input.Keys.B -> {
                         val unit = selectedUnitId?.let { battle.units[it] }
                         val properties = usableProperties()
@@ -1191,20 +1555,19 @@ void main() {
             }
 
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                val pointerIntent = battleInputRouter.pointerDown(world.x, world.y, inputSurface())
                 // Match the keyboard ownership rule: a live SayLayer is never
                 // allowed to sit behind a callback-owned card for pointer input.
-                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) ==
-                    BattleInteractiveInput.Route.DIALOGUE
-                ) {
+                if (pointerIntent.capture == BattleInputCapture.DIALOGUE) {
                     advanceBattleDialogue()
                     return true
                 }
-                if (settlementInfo2Overlay != null) {
+                if (pointerIntent.capture == BattleInputCapture.SETTLEMENT_INFO) {
                     closeSettlementInfo2()
                     return true
                 }
-                if (activeRoundLayer != null) return true
-                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                if (pointerIntent.capture == BattleInputCapture.ROUND) return true
                 if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) {
                     victorySaveAnswerPressed = victorySaveAnswerAt(world.x, world.y)
                     return true
@@ -1216,7 +1579,8 @@ void main() {
                     return true
                 }
                 loseSceneFlow?.let { flow ->
-                    losePressedAnswer = if (flow.state == LoseSceneFlow.State.PROMPT) loseAnswerAt(world.x, world.y) else null
+                    losePressedAnswer =
+                        if (flow.state == LoseSceneFlow.State.PROMPT) loseAnswerAt(world.x, world.y) else null
                     return true
                 }
                 if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) {
@@ -1246,19 +1610,26 @@ void main() {
                 itemUpgradeFlow?.let { closeItemUpgrade(); return true }
                 scriptWinConditions?.let { return true }
                 unitInfoLayer?.let {
-                    unitInfoPressed=when { world.x in 700.71f..810.71f && world.y in 17.207f..67.207f -> 9; world.x in 970f..1140f && world.y in 35f..95f -> 5; world.x in 1140f..1280f && world.y in 35f..95f -> 6; world.x in 760f..870f && world.y in 35f..95f -> 7; world.x in 80f..850f && world.y in 650f..720f -> ((world.x-80f)/150f).toInt(); else -> null };return true
+                    unitInfoPressed = when {
+                        world.x in 700.71f..810.71f && world.y in 17.207f..67.207f -> 9; world.x in 970f..1140f && world.y in 35f..95f -> 5; world.x in 1140f..1280f && world.y in 35f..95f -> 6; world.x in 760f..870f && world.y in 35f..95f -> 7; world.x in 80f..850f && world.y in 650f..720f -> ((world.x - 80f) / 150f).toInt(); else -> null
+                    }; return true
                 }
                 forcesLayer?.let { layer ->
                     forcesClosePressed = world.x in 1135f..1310f && world.y in 88f..145f
-                    forcesPressedTab = if (layer.view().tabsVisible && world.y in 88f..145f) when { world.x in 215f..345f -> 0; world.x in 360f..495f -> 1; else -> null } else null
-                    forcesPressedRow = if (!forcesClosePressed && forcesPressedTab == null && world.x in 170f..1318f && world.y in 150f..614f) ((614f-world.y)/60f).toInt() else null
+                    forcesPressedTab = if (layer.view().tabsVisible && world.y in 88f..145f) when {
+                        world.x in 215f..345f -> 0; world.x in 360f..495f -> 1; else -> null
+                    } else null
+                    forcesPressedRow =
+                        if (!forcesClosePressed && forcesPressedTab == null && world.x in 170f..1318f && world.y in 150f..614f) ((614f - world.y) / 60f).toInt() else null
                     return true
                 }
                 if (helperLayer != null) {
                     helperButtonPressed = world.x in 1172.451f..1320.051f && world.y in 33.187f..89.187f
                     return true
                 }
-                if(settingLayerOpen){settingPress=world.x to world.y;return true}
+                if (settingLayerOpen) {
+                    settingPress = world.x to world.y; return true
+                }
                 if (saveLayerOpen) {
                     saveConfirmPressed = saveConfirmAt(world.x, world.y)
                     savePressedSlot = if (saveConfirmPressed == null) saveSlotAt(world.x, world.y) else null
@@ -1269,8 +1640,12 @@ void main() {
                     loadPressedSlot = if (loadConfirmPressed == null) loadSlotAt(world.x, world.y) else null
                     return true
                 }
-                if (treasureLayerOpen) { handleTreasureLayerTap(world.x, world.y); return true }
-                if (propertyLayerOpen) { handlePropertyLayerTap(world.x, world.y); return true }
+                if (treasureLayerOpen) {
+                    handleTreasureLayerTap(world.x, world.y); return true
+                }
+                if (propertyLayerOpen) {
+                    handlePropertyLayerTap(world.x, world.y); return true
+                }
                 if (terrainLayerOpen) {
                     handleTerrainLayerTap(world.x, world.y)
                     return true
@@ -1289,10 +1664,12 @@ void main() {
                         autoBattlePanelPressed = autoBattlePressedTag == null && !autoBattleTogglePressed
                         return true
                     }
+
                     AutoBattleFlow.Overlay.TUOGUAN -> {
                         autoBattlePanelPressed = true
                         return true
                     }
+
                     AutoBattleFlow.Overlay.NONE -> Unit
                 }
                 if (scriptRuntime.state == PlaybackState.CHOICE) {
@@ -1305,18 +1682,20 @@ void main() {
                 if (BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) !=
                     BattleInteractiveInput.Route.PLAYER_INPUT
                 ) return true
-                if (!battleMenuOpen && miniMapButtonAt(world.x, world.y)) {
-                    miniMapButtonPressed = true
+                if (pointerIntent.capture == BattleInputCapture.MINI_MAP) {
                     return true
                 }
-                if (battleMenuOpen) {
+                if (pointerIntent.capture == BattleInputCapture.BATTLE_MENU) {
                     battleMenuPressedIndex = menuIndexAt(world.x, world.y)
                     return true
                 }
                 if (settingLayerOpen) {
-                    val world=viewport.unproject(Vector2(screenX.toFloat(),screenY.toFloat()))
-                    val pressed=settingPress; settingPress=null
-                    if(pressed!=null && kotlin.math.abs(pressed.first-world.x)<20f && kotlin.math.abs(pressed.second-world.y)<20f) handleSettingTap(world.x,world.y)
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val pressed = settingPress; settingPress = null
+                    if (pressed != null && kotlin.math.abs(pressed.first - world.x) < 20f && kotlin.math.abs(pressed.second - world.y) < 20f) handleSettingTap(
+                        world.x,
+                        world.y
+                    )
                     return true
                 }
                 if (saveLayerOpen) {
@@ -1340,41 +1719,33 @@ void main() {
                         // SaveLayer._temp's MsgBox is represented by its pendingSlot;
                         // the next tap on the explicit confirmation buttons resolves it.
                     } else if (pressed == null && (
-                        world.x !in 278f..1210f ||
-                            (world.x in 1046f..1194f && world.y in 100f..156f)
-                        )) closeSaveLayer()
+                                world.x !in 278f..1210f ||
+                                        (world.x in 1046f..1194f && world.y in 100f..156f)
+                                )
+                    ) closeSaveLayer()
                     return true
                 }
                 // Canvas/Layer/menu_button is the lower-right circular icon;
                 // the top-right hand belongs to a separate Battle HUD tool.
-                if (world.x in 1353.9535f..1413.9535f && world.y in 8f..68f) {
-                    menuHudButtonPressed = true
+                if (pointerIntent.capture == BattleInputCapture.MENU_HUD) {
                     return true
                 }
-                battleDragLast = Vector2(world.x, world.y)
-                battleTouchStart = Vector2(world.x, world.y)
-                battleTouchMoved = false
                 return true
             }
 
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-                val previous = battleDragLast ?: return false
-                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.phase) !=
-                    BattleInteractiveInput.Route.PLAYER_INPUT || battleMenuOpen
-                ) return false
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                if (battleTouchStart?.dst(world)?.let { it > 2f } == true) battleTouchMoved = true
-                battleCamera.pan(world.x - previous.x, world.y - previous.y)
-                previous.set(world)
+                val intent = battleInputRouter.pointerDragged(world.x, world.y, inputSurface())
+                if (!intent.moved) return false
+                battleCamera.pan(intent.deltaX, intent.deltaY)
                 return true
             }
 
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                val mapTouchPending = battleDragLast != null
-                val mapTouchMoved = battleTouchMoved
-                battleDragLast = null
-                battleTouchStart = null
-                battleTouchMoved = false
+                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                val pointerIntent = battleInputRouter.pointerUp(world.x, world.y, inputSurface())
+                val mapTouchPending = pointerIntent.pressedCapture == BattleInputCapture.MAP
+                val mapTouchMoved = pointerIntent.moved
                 if (activeRoundLayer != null) return true
                 if (battleInfoPanelPressed) {
                     battleInfoPanelPressed = false
@@ -1392,10 +1763,8 @@ void main() {
                     }
                     return true
                 }
-                if (menuHudButtonPressed) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    menuHudButtonPressed = false
-                    if (world.x in 1353.9535f..1413.9535f && world.y in 8f..68f) openBattleMenu()
+                if (pointerIntent.pressedCapture == BattleInputCapture.MENU_HUD) {
+                    if (pointerIntent.releasedTarget == BattleInputTarget.MENU_HUD) openBattleMenu()
                     return true
                 }
                 if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) {
@@ -1420,7 +1789,8 @@ void main() {
                     return true
                 }
                 usePropertyDetail?.let {
-                    if (usePropertyDetailSuppressRelease) usePropertyDetailSuppressRelease = false else usePropertyDetail = null
+                    if (usePropertyDetailSuppressRelease) usePropertyDetailSuppressRelease =
+                        false else usePropertyDetail = null
                     return true
                 }
                 usePropertyLayer?.let { layer ->
@@ -1437,27 +1807,31 @@ void main() {
                     return true
                 }
                 magickInfoLayer?.let { layer ->
-                    if (magickInfoSuppressRelease) { magickInfoSuppressRelease = false; return true }
+                    if (magickInfoSuppressRelease) {
+                        magickInfoSuppressRelease = false; return true
+                    }
                     layer.close(MagicUiList.TOUCH_END)
                     if (!layer.attached) magickInfoLayer = null
                     return true
                 }
                 magickListLayer?.let { layer ->
-                    val world=viewport.unproject(Vector2(screenX.toFloat(),screenY.toFloat()))
-                    val released=magickRowAt(world.x,world.y)
-                    if(magickCancelPressed&&magickCancelAt(world.x,world.y))layer.cancel(MagicUiList.TOUCH_END)
-                    else if(released!=null&&released==magickPressedRow) {
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val released = magickRowAt(world.x, world.y)
+                    if (magickCancelPressed && magickCancelAt(world.x, world.y)) layer.cancel(MagicUiList.TOUCH_END)
+                    else if (released != null && released == magickPressedRow) {
                         layer.end(released)
-                        if(!layer.attached) {
+                        if (!layer.attached) {
                             layer.rows.getOrNull(released)?.let(::selectMagick)
-                            if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCompleted(true)
-                            magickListLayer=null
+                            if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCompleted(
+                                true
+                            )
+                            magickListLayer = null
                         }
                     }
-                    magickPressedRow=null;magickCancelPressed=false
-                    if(!layer.attached) {
+                    magickPressedRow = null; magickCancelPressed = false
+                    if (!layer.attached) {
                         if (released == null && battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCancelled()
-                        magickListLayer=null
+                        magickListLayer = null
                     }
                     return true
                 }
@@ -1472,21 +1846,40 @@ void main() {
                     return true
                 }
                 unitInfoLayer?.let { layer ->
-                    val world=viewport.unproject(Vector2(screenX.toFloat(),screenY.toFloat()))
-                    val released=when { world.x in 700.71f..810.71f&&world.y in 17.207f..67.207f->9;world.x in 970f..1140f&&world.y in 35f..95f->5;world.x in 1140f..1280f&&world.y in 35f..95f->6;world.x in 760f..870f&&world.y in 35f..95f->7;world.x in 80f..850f&&world.y in 650f..720f->((world.x-80f)/150f).toInt();else->null}
-                    if(released!=null&&released==unitInfoPressed) {
-                        if (released == 9) jiqiLayer = BattleUnitInfoJiqiRoute.open(layer, listOf(85,57,39,95,24,22,99,48), UnitInfoLayer.TOUCH_END)
-                        else layer.onButton(released,UnitInfoLayer.TOUCH_END)
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val released = when {
+                        world.x in 700.71f..810.71f && world.y in 17.207f..67.207f -> 9; world.x in 970f..1140f && world.y in 35f..95f -> 5; world.x in 1140f..1280f && world.y in 35f..95f -> 6; world.x in 760f..870f && world.y in 35f..95f -> 7; world.x in 80f..850f && world.y in 650f..720f -> ((world.x - 80f) / 150f).toInt(); else -> null
                     }
-                    unitInfoPressed=null;if(!layer.ref().attached)unitInfoLayer=null;return true
+                    if (released != null && released == unitInfoPressed) {
+                        if (released == 9) jiqiLayer = BattleUnitInfoJiqiRoute.open(
+                            layer,
+                            listOf(85, 57, 39, 95, 24, 22, 99, 48),
+                            UnitInfoLayer.TOUCH_END
+                        )
+                        else layer.onButton(released, UnitInfoLayer.TOUCH_END)
+                    }
+                    unitInfoPressed = null; if (!layer.ref().attached) unitInfoLayer = null; return true
                 }
                 forcesLayer?.let { layer ->
-                    val world=viewport.unproject(Vector2(screenX.toFloat(),screenY.toFloat()))
-                    val tab=if(layer.view().tabsVisible && world.y in 88f..145f) when { world.x in 215f..345f -> 0; world.x in 360f..495f -> 1; else -> null } else null
-                    if(forcesClosePressed && world.x in 1135f..1310f && world.y in 88f..145f) { layer.onClose(ForcesListLayer.TOUCH_END); forcesLayer=null }
-                    else if(tab!=null && tab==forcesPressedTab) layer.changeSel(tab)
-                    else { val row=if(world.x in 170f..1318f && world.y in 150f..614f) ((614f-world.y)/60f).toInt() else null; if(row!=null && row==forcesPressedRow) layer.onRowTouch(row,ForcesListLayer.TOUCH_END)?.let { u -> selectedUnitId=battle.units.values.firstOrNull { it.characterId==u.id }?.id; openUnitInfoLayer(u.id); eventMessage="${u.name} · ${u.post} · Lv${u.level} · HP ${u.hp}/${u.maxHp}" } }
-                    forcesPressedRow=null;forcesPressedTab=null;forcesClosePressed=false;return true
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val tab = if (layer.view().tabsVisible && world.y in 88f..145f) when {
+                        world.x in 215f..345f -> 0; world.x in 360f..495f -> 1; else -> null
+                    } else null
+                    if (forcesClosePressed && world.x in 1135f..1310f && world.y in 88f..145f) {
+                        layer.onClose(ForcesListLayer.TOUCH_END); forcesLayer = null
+                    } else if (tab != null && tab == forcesPressedTab) layer.changeSel(tab)
+                    else {
+                        val row =
+                            if (world.x in 170f..1318f && world.y in 150f..614f) ((614f - world.y) / 60f).toInt() else null; if (row != null && row == forcesPressedRow) layer.onRowTouch(
+                            row,
+                            ForcesListLayer.TOUCH_END
+                        )?.let { u ->
+                            selectedUnitId =
+                                battle.units.values.firstOrNull { it.characterId == u.id }?.id; openUnitInfoLayer(u.id); eventMessage =
+                            "${u.name} · ${u.post} · Lv${u.level} · HP ${u.hp}/${u.maxHp}"
+                        }
+                    }
+                    forcesPressedRow = null; forcesPressedTab = null; forcesClosePressed = false; return true
                 }
                 if (loadGameLayerOpen) {
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
@@ -1497,7 +1890,8 @@ void main() {
                         if (!loadGameLayer.view().attached) loadGameLayerOpen = false
                         return true
                     }
-                    val slot = loadSlotAt(world.x, world.y); val pressed = loadPressedSlot; loadPressedSlot = null
+                    val slot = loadSlotAt(world.x, world.y)
+                    val pressed = loadPressedSlot; loadPressedSlot = null
                     if (pressed != null && pressed == slot) loadGameLayer.onRowTouch(pressed, LoadGameLayer.TOUCH_END)
                     else if (pressed == null && (world.x !in 278f..1210f || (world.x in 1051f..1199f && world.y in 110f..170f))) closeLoadGameLayer()
                     return true
@@ -1517,33 +1911,42 @@ void main() {
                         val released = autoBattlePromptButtonAt(world.x, world.y)
                         when {
                             autoBattleTogglePressed && autoBattleToggleAt(world.x, world.y) -> autoBattleFlow.toggle()
-                            autoBattlePressedTag != null && autoBattlePressedTag == released -> answerAutoBattle(autoBattlePressedTag!!)
-                            autoBattlePanelPressed && released == null && !autoBattleToggleAt(world.x, world.y) -> answerAutoBattle(1)
+                            autoBattlePressedTag != null && autoBattlePressedTag == released -> answerAutoBattle(
+                                autoBattlePressedTag!!
+                            )
+
+                            autoBattlePanelPressed && released == null && !autoBattleToggleAt(
+                                world.x,
+                                world.y
+                            ) -> answerAutoBattle(1)
                         }
                         autoBattlePressedTag = null; autoBattleTogglePressed = false; autoBattlePanelPressed = false
                         return true
                     }
+
                     AutoBattleFlow.Overlay.TUOGUAN -> {
                         if (autoBattlePanelPressed) autoBattleFlow.cancelTuoGuan(AutoBattleFlow.TOUCH_END)
                         autoBattlePanelPressed = false
                         return true
                     }
+
                     AutoBattleFlow.Overlay.NONE -> Unit
                 }
                 if (battleMenuOpen) {
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val released = menuIndexAt(world.x, world.y)
                     val pressed = battleMenuPressedIndex
-                    lastFullBattleMenuTap = "${pressed ?: -1}/${released ?: -1}@${FullBattleTraceRecorder.number(world.x)},${FullBattleTraceRecorder.number(world.y)}"
+                    lastFullBattleMenuTap =
+                        "${pressed ?: -1}/${released ?: -1}@${FullBattleTraceRecorder.number(world.x)},${
+                            FullBattleTraceRecorder.number(world.y)
+                        }"
                     battleMenuPressedIndex = null
                     if (pressed != null && pressed == released) handleBattleMenuTap(pressed)
                     else if (pressed == null) closeBattleMenu()
                     return true
                 }
-                if (miniMapButtonPressed) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-                    if (miniMapButtonAt(world.x, world.y)) miniMapLayer.touch(MiniMapLayer.TOUCH_END)
-                    miniMapButtonPressed = false
+                if (pointerIntent.pressedCapture == BattleInputCapture.MINI_MAP) {
+                    if (pointerIntent.releasedTarget == BattleInputTarget.MINI_MAP) miniMapLayer.touch(MiniMapLayer.TOUCH_END)
                     return true
                 }
                 if (mapTouchPending && !mapTouchMoved &&
@@ -1564,7 +1967,6 @@ void main() {
                 val layer = winConditionLayer ?: return false
                 // addTouchEventListener(button, callback, 2): it never
                 // invokes close on TOUCH_START or a release off the button.
-                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 if (winConditionButtonPressed && world.x in 957.134f..1213.834f && world.y in 88.204f..148.204f) {
                     layer.onButtonTouch(WinConBoxLayer.TOUCH_END)
                 }
@@ -1573,9 +1975,15 @@ void main() {
             }
 
             override fun scrolled(amountX: Float, amountY: Float): Boolean {
-                if (treasureLayerOpen) { treasureScrollRow = (treasureScrollRow + amountY.toInt()).coerceAtLeast(0); return true }
-                if (saveLayerOpen) { saveScrollRow = (saveScrollRow + amountY.toInt()).coerceAtLeast(0); return true }
-                if (propertyLayerOpen) { propertyScrollRow = (propertyScrollRow + amountY.toInt()).coerceAtLeast(0); return true }
+                if (treasureLayerOpen) {
+                    treasureScrollRow = (treasureScrollRow + amountY.toInt()).coerceAtLeast(0); return true
+                }
+                if (saveLayerOpen) {
+                    saveScrollRow = (saveScrollRow + amountY.toInt()).coerceAtLeast(0); return true
+                }
+                if (propertyLayerOpen) {
+                    propertyScrollRow = (propertyScrollRow + amountY.toInt()).coerceAtLeast(0); return true
+                }
                 if (!terrainLayerOpen) return false
                 terrainScrollRow = (terrainScrollRow + amountY.toInt()).coerceAtLeast(0)
                 return true
@@ -1619,15 +2027,19 @@ void main() {
     private fun fullTraceFightCommandObservation(command: ScenarioFightCommand): String = when (command) {
         is ScenarioFightCommand.Start ->
             "transition:fight:start:${command.firstUnitId}:${command.secondUnitId}:${command.backgroundIndex}"
+
         is ScenarioFightCommand.ShowUnit ->
             "transition:fight:showUnit:${command.mine}:${command.text}:${command.entryAction}"
+
         is ScenarioFightCommand.ShowStart -> "transition:fight:showStart:"
         is ScenarioFightCommand.SetAction -> "transition:fight:setAction:${command.mine}:${command.action}"
         is ScenarioFightCommand.Say -> "transition:fight:say:${command.mine}:${command.text}:${command.flag}"
         is ScenarioFightCommand.Attack2 ->
             "transition:fight:attack2:${command.mine}:${command.style}:${command.defended}"
+
         is ScenarioFightCommand.Attack1 ->
             "transition:fight:attack1:${command.mine}:${command.style}:${command.critical}"
+
         is ScenarioFightCommand.Death -> "transition:fight:death:${command.enemy}"
         is ScenarioFightCommand.End -> "transition:fight:end:"
     }
@@ -1689,7 +2101,8 @@ void main() {
         elapsed += delta
         completeBattleBackgroundLoadIfReady()
         if (yingchuanEntryFlowTracePath != null && battleInitLayer.view().attached &&
-            !scriptRuntime.stage.battleDrawRequested && scriptRuntime.state == PlaybackState.DELAY) {
+            !scriptRuntime.stage.battleDrawRequested && scriptRuntime.state == PlaybackState.DELAY
+        ) {
             yingchuanEntryFlowSawInit = true
         }
         completePendingBattleCommand()
@@ -1700,10 +2113,12 @@ void main() {
         // attacks. Resume its AST only after the same visible interval.
         val scriptStateBeforeUpdate = scriptRuntime.state
         val scriptedMovementActiveBeforeUpdate = scriptRuntime.stage.units.values.any { it.moveDuration > 0f }
-        scriptRuntime.update(delta, autoCloseUi = settingsPreferences.getInteger(
-            SettingLayer.GAME_SETTING,
-            SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-        ) and SettingLayer.AUTO_CLOSE != 0)
+        scriptRuntime.update(
+            delta, autoCloseUi = settingsPreferences.getInteger(
+                SettingLayer.GAME_SETTING,
+                SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+            ) and SettingLayer.AUTO_CLOSE != 0
+        )
         // scene1 is resumed by dialogue/info/reward callbacks as well as by
         // runBattleScript().  A non-annihilation objective (S_12's Cao Cao
         // escape route, for example) calls reward/end only after such a
@@ -1814,14 +2229,17 @@ void main() {
                     pendingBattleCompletedScriptPasses = 1
                     runBattleScript()
                 }
+
                 pendingBattleCompletedScriptPasses == 1 && !postActionDeathsStarted -> {
                     if (retainActualDyingUnits()) startPendingDeathAnimations()
                     else finishManualUnitDeathCallbacks()
                 }
+
                 pendingBattleCompletedScriptPasses == 1 && !combatPresentationBusy() -> {
                     pendingBattleCompletedScriptPasses = 2
                     runBattleScript()
                 }
+
                 pendingBattleCompletedScriptPasses == 2 -> finishManualUnitDeathCallbacks()
             }
         }
@@ -1942,18 +2360,26 @@ void main() {
                 val unit = battle.units[animation.unitId]
                 Gdx.app.log(
                     "JojoGame",
-                    "ACTION_CAPTURE_FRAME: elapsed=$elapsed, sourceY=${battleSpriteFrame(animation.sourceAction, animation.direction, animationClock() - animation.startedAt)?.sourceY}, active=${animationClock() < animation.endsAt}, " +
-                        "unit=${unit?.characterId}, tile=${unit?.tileX},${unit?.tileY}, visible=${unit?.visible}, " +
-                        "screen=${unit?.let { boardLeft + it.tileX * boardTile }},${unit?.let { tileBottom(it.tileY) }}",
+                    "ACTION_CAPTURE_FRAME: elapsed=$elapsed, sourceY=${
+                        battleSpriteFrame(
+                            animation.sourceAction,
+                            animation.direction,
+                            animationClock() - animation.startedAt
+                        )?.sourceY
+                    }, active=${animationClock() < animation.endsAt}, " +
+                            "unit=${unit?.characterId}, tile=${unit?.tileX},${unit?.tileY}, visible=${unit?.visible}, " +
+                            "screen=${unit?.let { boardLeft + it.tileX * boardTile }},${unit?.let { tileBottom(it.tileY) }}",
                 )
             }
         }
         audio.sync(scriptRuntime.stage)
         scriptRuntime.stage.consumeShowWinCondition()?.let { text ->
-            scriptWinConditions = WinConditionsLayer().also { layer -> layer.onCreate(text, scenarioMaxRound()) {
-                scriptWinConditions = null
-                if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal()
-            } }
+            scriptWinConditions = WinConditionsLayer().also { layer ->
+                layer.onCreate(text, scenarioMaxRound()) {
+                    scriptWinConditions = null
+                    if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal()
+                }
+            }
         }
         driveFullBattleTrace()
         recordFullBattleMapObjectsCalls()
@@ -1968,11 +2394,11 @@ void main() {
             // handler once, revealing the current line without advancing it.
             if (battleDialogueBlendRoute) dialogueReveal.revealAllIfPending()
             val autoCloseEnabled = !verifyMode && !scriptedBattleVerifyMode &&
-                !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest() &&
-                settingsPreferences.getInteger(
-                    SettingLayer.GAME_SETTING,
-                    SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-                ) and SettingLayer.AUTO_CLOSE != 0
+                    !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest() &&
+                    settingsPreferences.getInteger(
+                        SettingLayer.GAME_SETTING,
+                        SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+                    ) and SettingLayer.AUTO_CLOSE != 0
             if (sayAutoClose.update(dialogueReveal.isComplete, autoCloseEnabled, delta)) {
                 advanceBattleDialogue()
             }
@@ -2062,7 +2488,8 @@ void main() {
             return
         }
         if (battleTerrainRoute) {
-            drawTerrainLayer()
+            batch.projectionMatrix = viewport.camera.combined
+            battleTerrainOverlayRenderer.draw(battleTerrainOverlayView())
             if (elapsed > .25f) game.writeRenderEventLogIfRequested()
             return
         }
@@ -2103,22 +2530,46 @@ void main() {
         }
         if (battleInitRoute) {
             drawBattleHudChrome()
-            drawRewardSection()
+            drawRewardSectionOverlay()
             if (game.writeRenderEventLogIfRequested()) return
             return
         }
         if (!mapOnlyCapture) {
             drawBattleHudChrome()
             if (battleMenuOpen) drawBattleMenu()
-            if (helperLayer != null) drawHelperLayer()
-            if (terrainLayerOpen) drawTerrainLayer()
-            if (propertyLayerOpen) drawPropertyLayer()
+            helperOverlayView()?.let { view ->
+                batch.projectionMatrix = viewport.camera.combined
+                battleHelperOverlayRenderer.draw(view)
+            }
+            if (terrainLayerOpen) {
+                batch.projectionMatrix = viewport.camera.combined
+                battleTerrainOverlayRenderer.draw(battleTerrainOverlayView())
+            }
+            battlePropertyOverlayView()?.let { view ->
+                batch.projectionMatrix = viewport.camera.combined
+                battlePropertyOverlayRenderer.draw(view)
+            }
             if (treasureLayerOpen) drawTreasureLayer()
-            if (saveLayerOpen) drawSaveLayer()
-            if (settingLayerOpen) drawSettingLayer()
-            if (loadGameLayerOpen) drawLoadGameLayer()
-            if (forcesLayer != null) drawForcesListLayer()
-            if (unitInfoLayer != null) drawUnitInfoLayer()
+            battleSaveLoadOverlayView(BattleSaveLoadOverlayKind.SAVE)?.let { view ->
+                batch.projectionMatrix = viewport.camera.combined
+                battleSaveLoadOverlayRenderer.draw(view)
+            }
+            if (settingLayerOpen) {
+                batch.projectionMatrix = viewport.camera.combined
+                battleSettingsOverlayRenderer.draw(battleSettingsOverlayView())
+            }
+            battleSaveLoadOverlayView(BattleSaveLoadOverlayKind.LOAD)?.let { view ->
+                batch.projectionMatrix = viewport.camera.combined
+                battleSaveLoadOverlayRenderer.draw(view)
+            }
+            battleForcesOverlayView()?.let { view ->
+                batch.projectionMatrix = viewport.camera.combined
+                battleForcesOverlayRenderer.draw(view)
+            }
+            battleUnitInfoOverlayView()?.let { view ->
+                batch.projectionMatrix = viewport.camera.combined
+                battleUnitInfoOverlayRenderer.draw(view)
+            }
             if (jiqiLayer != null) drawJiqiLayer()
             if (magickListLayer != null) drawMagickListLayer()
             if (magickInfoLayer != null) drawBattleMagicInfoLayer()
@@ -2144,14 +2595,17 @@ void main() {
                 drawScriptChoice()
                 drawScriptInfoLayer()
             }
-            drawAutoBattleOverlay()
+            batch.projectionMatrix = viewport.camera.combined
+            battleAutoOverlayRenderer.draw(battleAutoOverlayView())
             if (winConditionOpen) drawWinConditionBox()
             if (resultFlow == ResultFlow.WIN_SAVE_PROMPT) drawSavePrompt()
             scriptWinConditions?.let { drawScriptWinConditions(it) }
-            rewardFlow?.let(::drawBattleReward)
-            if (rewardRouteState != null) drawRewardSection()
+            if (rewardFlow != null || rewardRouteState != null) {
+                batch.projectionMatrix = viewport.camera.combined
+                battleRewardOverlayRenderer.draw(battleRewardOverlayView())
+            }
             itemUpgradeFlow?.let(::drawItemUpgrade)
-            if (itemUpgradeRouteState != null) drawRewardSection()
+            if (itemUpgradeRouteState != null) drawRewardSectionOverlay()
         }
         // battleCharacterRouteState returned immediately above after writing
         // its own event log, so including it here was an unreachable branch.
@@ -2191,7 +2645,12 @@ void main() {
             val dialogue = scriptRuntime.currentDialogue
             val profile = dialogue?.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
             val speakerName = profile?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty()
-            Gdx.app.log("JojoGame", "DIALOGUE_CAPTURE_STATE: speaker=${dialogue?.speakerId} name=$speakerName text=${dialogue?.text} face=${profile?.face} head=${profile?.face?.plus(8)}")
+            Gdx.app.log(
+                "JojoGame",
+                "DIALOGUE_CAPTURE_STATE: speaker=${dialogue?.speakerId} name=$speakerName text=${dialogue?.text} face=${profile?.face} head=${
+                    profile?.face?.plus(8)
+                }"
+            )
             val speakerUnit = dialogue?.speakerId?.toIntOrNull()?.let { characterId ->
                 (battle.units.values + battle.pendingPresentationUnits())
                     .firstOrNull { it.characterId == characterId && it.visible }
@@ -2202,7 +2661,7 @@ void main() {
             Gdx.app.log(
                 "JojoGame",
                 "DIALOGUE_LAYOUT_CAPTURE: revision=${scriptRuntime.dialogueRevision} camera=${battleCamera.x},${battleCamera.y} " +
-                    "visual=$speakerVisual centerY=$speakerCenterY panelY=$panelY",
+                        "visual=$speakerVisual centerY=$speakerCenterY panelY=$panelY",
             )
             Gdx.app.log("JojoGame", "DIALOGUE_CAPTURE_UNITS: " + battle.units.values.joinToString(";") { unit ->
                 "${unit.id}/${unit.characterId}@${unit.tileX},${unit.tileY}/d${unit.direction}/v${unit.visible}"
@@ -2224,10 +2683,10 @@ void main() {
             Gdx.app.log(
                 "JojoGame",
                 "SELECTION_CAPTURE_STATE: unit=${selected?.characterId}@${selected?.tileX},${selected?.tileY} " +
-                    "move=${count(SelectAreaFrame.BLUE) + count(SelectAreaFrame.GREEN)} " +
-                    "moveFrame=${if (count(SelectAreaFrame.BLUE) > 0) "blue" else "green"} " +
-                    "attack=${count(SelectAreaFrame.RED_BOX)} " +
-                    "cursor=$cursorRendered",
+                        "move=${count(SelectAreaFrame.BLUE) + count(SelectAreaFrame.GREEN)} " +
+                        "moveFrame=${if (count(SelectAreaFrame.BLUE) > 0) "blue" else "green"} " +
+                        "attack=${count(SelectAreaFrame.RED_BOX)} " +
+                        "cursor=$cursorRendered",
             )
         }
         if (elapsed > captureAt) {
@@ -2243,6 +2702,7 @@ void main() {
                     choice = false,
                     modalCount = 0,
                 )
+
                 "yingchuan-win-condition" -> game.writeCaptureStack(
                     requested = "WinConBoxLayer",
                     requestedPresent = winConditionOpen && winConditionLayer != null,
@@ -2276,7 +2736,10 @@ void main() {
             check(battle.units.values.any { unit -> unit.characterId != null && unitTexture(unit) != null }) {
                 "$sourceScenario 원본 유닛 스프라이트를 찾을 수 없습니다."
             }
-            Gdx.app.log("JojoGame", "VERIFY_SCRIPTED_BATTLE_OK: $sourceScenario ${battle.units.size} source units rendered into tactical state")
+            Gdx.app.log(
+                "JojoGame",
+                "VERIFY_SCRIPTED_BATTLE_OK: $sourceScenario ${battle.units.size} source units rendered into tactical state"
+            )
             Gdx.app.exit()
         }
     }
@@ -2386,32 +2849,72 @@ void main() {
     /** Live FightLayer renderer state, in source prefab slot order (0, 1). */
     private fun fullTraceFightJson(): String {
         if (!fightOverlayActive) return "null"
+        /**
+         * 공개 메서드 `slotUnit`
+         *
+         * ### 파라미터
+        - `slot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `FightUnitPresentation`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun slotUnit(slot: Int): FightUnitPresentation =
             if (fightPresentation.mineIndex == slot) fightPresentation.mine else fightPresentation.enemy
+
+        /**
+         * 공개 메서드 `fighterJson`
+         *
+         * ### 파라미터
+        - `fighter` (`FightUnitPresentation`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun fighterJson(fighter: FightUnitPresentation): String {
             val action = fighter.action
             val pose = action?.let { fightSprites.pose(it, fighter.actionElapsedSeconds) } ?: FightActionPose()
             return "[${fighter.characterId ?: "null"},${fighter.created},${action ?: "null"}," +
-                "${FullBattleTraceRecorder.number(fighter.actionElapsedSeconds)}," +
-                "${FullBattleTraceRecorder.number(fighter.parentX)},${FullBattleTraceRecorder.number(fighter.parentScaleX)}," +
-                "${FullBattleTraceRecorder.number(pose.childX)},${FullBattleTraceRecorder.number(pose.childY)}," +
-                "${FullBattleTraceRecorder.number(pose.childScaleX)},${FullBattleTraceRecorder.number(pose.opacity)}," +
-                "${fighter.zIndex},${fighter.dead}]"
+                    "${FullBattleTraceRecorder.number(fighter.actionElapsedSeconds)}," +
+                    "${FullBattleTraceRecorder.number(fighter.parentX)},${FullBattleTraceRecorder.number(fighter.parentScaleX)}," +
+                    "${FullBattleTraceRecorder.number(pose.childX)},${FullBattleTraceRecorder.number(pose.childY)}," +
+                    "${FullBattleTraceRecorder.number(pose.childScaleX)},${FullBattleTraceRecorder.number(pose.opacity)}," +
+                    "${fighter.zIndex},${fighter.dead}]"
         }
+
+        /**
+         * 공개 메서드 `speechJson`
+         *
+         * ### 파라미터
+        - `fighter` (`FightUnitPresentation`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun speechJson(fighter: FightUnitPresentation): String {
             val side = if (fighter === fightPresentation.mine) FightSide.MINE else FightSide.ENEMY
             val speech = fightPresentation.speech(side)
             return "[${speech.active},\"${FullBattleTraceRecorder.escape(speech.renderedText)}\"]"
         }
+
         val slot0 = slotUnit(0)
         val slot1 = slotUnit(1)
         val introOpacity = if (fightPresentation.introBackgroundActive) 1f - fightPresentation.startCrossFade else 0f
         val duelOpacity = if (fightPresentation.duelBackgroundActive) fightPresentation.startCrossFade else 0f
         return "{\"mineIndex\":${fightPresentation.mineIndex},\"enemyIndex\":${fightPresentation.enemyIndex}," +
-            "\"backgrounds\":[[${fightPresentation.introBackgroundActive},${FullBattleTraceRecorder.number(introOpacity)}]," +
-            "[${fightPresentation.duelBackgroundActive},${FullBattleTraceRecorder.number(duelOpacity)}]]," +
-            "\"units\":[${fighterJson(slot0)},${fighterJson(slot1)}]," +
-            "\"speeches\":[${speechJson(slot0)},${speechJson(slot1)}]}"
+                "\"backgrounds\":[[${fightPresentation.introBackgroundActive},${
+                    FullBattleTraceRecorder.number(
+                        introOpacity
+                    )
+                }]," +
+                "[${fightPresentation.duelBackgroundActive},${FullBattleTraceRecorder.number(duelOpacity)}]]," +
+                "\"units\":[${fighterJson(slot0)},${fighterJson(slot1)}]," +
+                "\"speeches\":[${speechJson(slot0)},${speechJson(slot1)}]}"
     }
 
     private fun recordFullBattleTraceFrame(
@@ -2425,52 +2928,69 @@ void main() {
         // hurt/death/hidden callbacks run. Excluding presentationUnits made
         // real anime23 episodes look like game-side omissions in the order
         // report even though the live death driver was executing them.
-        val unitsJson = battle.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id })).joinToString(",") { unit ->
-            val move = movementAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
-            val moveSample = move?.let { BattleUnitMoveTimeline.sample(it.path, it.timeline, animationClock() - it.startedAt) }
-            val active = actionAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
-                ?: hitReactionAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
-                ?: deathAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
-            val scripted = scriptedUnitVisuals[unit.id]
-            val action = if (move != null) 20 else active?.sourceAction ?: scripted?.action ?: defaultPresentationAction(unit).action
-            val direction = moveSample?.direction ?: active?.direction ?: unit.direction
-            val startedAt = move?.startedAt ?: active?.startedAt ?: scripted?.startedAt ?: battleElapsed
-            val animationTime = (animationClock() - startedAt).coerceAtLeast(0f)
-            val sprite = battleSpriteFrame(action, direction, animationTime, loop = move != null)
-            val characterId = unit.characterId ?: -1
-            val internalIndex = unit.id.substringAfterLast('-').toIntOrNull() ?: -1
-            val rates = (0..7).joinToString(",") { (unit.rateAccumulators[it] ?: 0).toString() }
-            val skills = listOf(7, 43, 197, 262, 276).joinToString(",") { "[$it,${unit.skills[it]?.and(255) ?: 255}]" }
-            val attackOffsets = unit.attackOffsets.joinToString(",") { (x, y) -> "[$x,$y]" }
-            // Canonical source BATTLE_UNIT_STATUS2 slots. Source lift values
-            // are DOWN=0, NORMAL=1, UP=2; persistent states use DOWN when set.
-            val statuses = (0..14).joinToString(",") { sourceIndex ->
-                when (sourceIndex) {
-                    in 0..5 -> ((unit.attributeLifts[BattleAttribute.entries[sourceIndex]] ?: 0) + 1).coerceIn(0, 2)
-                    7 -> if (BattleStatus.PARALYSIS in unit.statuses) 0 else 1
-                    8 -> if (BattleStatus.SILENCE in unit.statuses) 0 else 1
-                    9 -> if (BattleStatus.CONFUSION in unit.statuses) 0 else 1
-                    10 -> if (BattleStatus.POISON in unit.statuses) 0 else 1
-                    13 -> if (BattleStatus.LOST in unit.statuses) 0 else 1
-                    14 -> if (unit.hasActed) 0 else 1
-                    else -> 1
-                }.toString()
+        val unitsJson = battle.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
+            .joinToString(",") { unit ->
+                val move = movementAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
+                val moveSample =
+                    move?.let { BattleUnitMoveTimeline.sample(it.path, it.timeline, animationClock() - it.startedAt) }
+                val active = actionAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
+                    ?: hitReactionAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
+                    ?: deathAnimations[unit.id]?.takeIf { animationClock() in it.startedAt..<it.endsAt }
+                val scripted = scriptedUnitVisuals[unit.id]
+                val action = if (move != null) 20 else active?.sourceAction ?: scripted?.action
+                ?: defaultPresentationAction(unit).action
+                val direction = moveSample?.direction ?: active?.direction ?: unit.direction
+                val startedAt = move?.startedAt ?: active?.startedAt ?: scripted?.startedAt ?: battleElapsed
+                val animationTime = (animationClock() - startedAt).coerceAtLeast(0f)
+                val sprite = battleSpriteFrame(action, direction, animationTime, loop = move != null)
+                val characterId = unit.characterId ?: -1
+                val internalIndex = unit.id.substringAfterLast('-').toIntOrNull() ?: -1
+                val rates = (0..7).joinToString(",") { (unit.rateAccumulators[it] ?: 0).toString() }
+                val skills =
+                    listOf(7, 43, 197, 262, 276).joinToString(",") { "[$it,${unit.skills[it]?.and(255) ?: 255}]" }
+                val attackOffsets = unit.attackOffsets.joinToString(",") { (x, y) -> "[$x,$y]" }
+                // Canonical source BATTLE_UNIT_STATUS2 slots. Source lift values
+                // are DOWN=0, NORMAL=1, UP=2; persistent states use DOWN when set.
+                val statuses = (0..14).joinToString(",") { sourceIndex ->
+                    when (sourceIndex) {
+                        in 0..5 -> ((unit.attributeLifts[BattleAttribute.entries[sourceIndex]] ?: 0) + 1).coerceIn(0, 2)
+                        7 -> if (BattleStatus.PARALYSIS in unit.statuses) 0 else 1
+                        8 -> if (BattleStatus.SILENCE in unit.statuses) 0 else 1
+                        9 -> if (BattleStatus.CONFUSION in unit.statuses) 0 else 1
+                        10 -> if (BattleStatus.POISON in unit.statuses) 0 else 1
+                        13 -> if (BattleStatus.LOST in unit.statuses) 0 else 1
+                        14 -> if (unit.hasActed) 0 else 1
+                        else -> 1
+                    }.toString()
+                }
+                val statusRounds = (0..14).joinToString(",") { sourceIndex ->
+                    when (sourceIndex) {
+                        in 0..5 -> unit.attributeLiftRounds[BattleAttribute.entries[sourceIndex]] ?: 0
+                        7 -> unit.statuses[BattleStatus.PARALYSIS] ?: 0
+                        8 -> unit.statuses[BattleStatus.SILENCE] ?: 0
+                        9 -> unit.statuses[BattleStatus.CONFUSION] ?: 0
+                        10 -> unit.statuses[BattleStatus.POISON] ?: 0
+                        13 -> unit.statuses[BattleStatus.LOST] ?: 0
+                        14 -> unit.actionStatusRound
+                        else -> 0
+                    }.toString()
+                }
+                val visual = visualTile(unit)
+                "[$internalIndex,$characterId,${unit.type().ordinal},${unit.tileX},${unit.tileY},${unit.hitPoints},${unit.magicPoints},$direction,$action,${if (unit.visible) 1 else 0},1,${if (unit.hasActed) 1 else 0},${unit.ai},${unit.aiValue},\"anime${action}_$direction\",${
+                    FullBattleTraceRecorder.number(
+                        animationTime
+                    )
+                },${sprite?.let { "[0,${it.sourceY},${it.sourceWidth},${it.sourceHeight}]" } ?: "null"},{\"abilities\":[${unit.attack},${unit.defense},${unit.spirit},${unit.critical},${unit.morale}],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience},\"growth\":{\"abilities\":[${unit.attack},${unit.defense},${unit.spirit},${unit.critical},${unit.morale}],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience}},\"attackOffsets\":[$attackOffsets],\"terrain\":${
+                    unit.terrainImpacts[terrainGrid.terrainAt(
+                        unit.tileX,
+                        unit.tileY
+                    )] ?: 100
+                },\"rates\":[$rates],\"skills\":[$skills],\"statuses\":[$statuses],\"statusRounds\":[$statusRounds],\"visual\":[${
+                    FullBattleTraceRecorder.number(
+                        visual.first
+                    )
+                },${FullBattleTraceRecorder.number(visual.second)}]}]"
             }
-            val statusRounds = (0..14).joinToString(",") { sourceIndex ->
-                when (sourceIndex) {
-                    in 0..5 -> unit.attributeLiftRounds[BattleAttribute.entries[sourceIndex]] ?: 0
-                    7 -> unit.statuses[BattleStatus.PARALYSIS] ?: 0
-                    8 -> unit.statuses[BattleStatus.SILENCE] ?: 0
-                    9 -> unit.statuses[BattleStatus.CONFUSION] ?: 0
-                    10 -> unit.statuses[BattleStatus.POISON] ?: 0
-                    13 -> unit.statuses[BattleStatus.LOST] ?: 0
-                    14 -> unit.actionStatusRound
-                    else -> 0
-                }.toString()
-            }
-            val visual = visualTile(unit)
-            "[$internalIndex,$characterId,${unit.type().ordinal},${unit.tileX},${unit.tileY},${unit.hitPoints},${unit.magicPoints},$direction,$action,${if (unit.visible) 1 else 0},1,${if (unit.hasActed) 1 else 0},${unit.ai},${unit.aiValue},\"anime${action}_$direction\",${FullBattleTraceRecorder.number(animationTime)},${sprite?.let { "[0,${it.sourceY},${it.sourceWidth},${it.sourceHeight}]" } ?: "null"},{\"abilities\":[${unit.attack},${unit.defense},${unit.spirit},${unit.critical},${unit.morale}],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience},\"growth\":{\"abilities\":[${unit.attack},${unit.defense},${unit.spirit},${unit.critical},${unit.morale}],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience}},\"attackOffsets\":[$attackOffsets],\"terrain\":${unit.terrainImpacts[terrainGrid.terrainAt(unit.tileX, unit.tileY)] ?: 100},\"rates\":[$rates],\"skills\":[$skills],\"statuses\":[$statuses],\"statusRounds\":[$statusRounds],\"visual\":[${FullBattleTraceRecorder.number(visual.first)},${FullBattleTraceRecorder.number(visual.second)}]}]"
-        }
         val actions = battle.traceActions.joinToString(",") { "\"${FullBattleTraceRecorder.escape(it)}\"" }
         // Keep the adjudication inputs beside each frame.  A terminal result
         // during scene0 is otherwise ambiguous: it can mean a real defeat,
@@ -2490,7 +3010,7 @@ void main() {
         val traceOutcome = battle.outcome().takeIf { bootstrapComplete }
         val dialogueSourceText = scriptRuntime.currentDialogueSourceText
         val dialogueIdentity = dialogueSourceText?.let { sourceText ->
-            "${scriptRuntime.dialogueLifecycleRevision}:${java.lang.Integer.toHexString(sourceText.hashCode())}"
+            "${scriptRuntime.dialogueLifecycleRevision}:${Integer.toHexString(sourceText.hashCode())}"
         }.orEmpty()
         val dialogueSpeakerId = scriptRuntime.currentDialogue?.speakerId.orEmpty()
         val dialogueText = dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }
@@ -2498,19 +3018,68 @@ void main() {
         val (mapObjectRevision, mapObjectsJson) = fullTraceMapObjectsJson()
         val fightJson = fullTraceFightJson()
         val bootstrapBusy = if (bootstrapComplete) emptyList() else bootstrapPresentationBusyReasons()
-        val observationJson = observation?.let {
-            ",\"observation\":\"${FullBattleTraceRecorder.escape(it)}\""
-        }.orEmpty()
-        // `end` remains the tactical outcome flag for existing consumers.
-        // Keep the source lifecycle separate so audits can distinguish an
-        // outcome that starts result handling from stage.end()/lose().
         val scriptedOutcome = scriptRuntime.stage.scriptedBattleOutcome?.name
         val modalKind = scriptRuntime.currentModalKind?.name
-        val resultLifecycleJson = ",\"scriptEnded\":${scriptRuntime.stage.battleEndedByScript},\"scriptedOutcome\":${scriptedOutcome?.let { "\"$it\"" } ?: "null"},\"resultFlow\":\"$resultFlow\",\"modalKind\":${modalKind?.let { "\"$it\"" } ?: "null"}" +
-            ",\"resultCallbacks\":{\"pendingScriptPasses\":$pendingBattleScriptPassesAfterAction,\"pendingAiDeathPass\":$pendingAiUnitDeathScriptPass,\"postActionDeaths\":$postActionDeathsStarted,\"pendingAiResolution\":${pendingAiResolution != null},\"activeAiCamp\":${activeAiCamp?.let { "\"$it\"" } ?: "null"},\"roundLayer\":${activeRoundLayer != null},\"turnSettlement\":${activeTurnSettlement != null},\"combatPresentation\":${combatPresentationBusy()}}"
-        val driverState = "{\"selectedUnit\":${selectedUnitId?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"commandPhase\":\"${battleCommandFlow.phase}\",\"lastInput\":${lastFullBattleInput?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"menuTap\":${lastFullBattleMenuTap?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"eventMessage\":\"${FullBattleTraceRecorder.escape(eventMessage)}\",\"autoOverlay\":\"${autoBattleFlow.view().overlay}\"}"
-        val row = "{\"f\":$frame,\"t\":${FullBattleTraceRecorder.number(elapsed)},\"dt\":${FullBattleTraceRecorder.number(delta)},\"round\":${battle.round},\"camp\":$traceCamp,\"maxRounds\":${battle.maxRounds},\"playerCount\":$playerCount,\"friendCount\":$friendCount,\"enemyCount\":$enemyCount,\"paused\":${scriptRuntime.state != PlaybackState.COMPLETE},\"end\":${traceOutcome != null},\"collocation\":${autoBattleFlow.view().collocation},\"dialogue\":${if (scriptRuntime.state == PlaybackState.DIALOGUE) 1 else 0},\"dialogueRevision\":${scriptRuntime.dialogueLifecycleRevision},\"dialogueIdentity\":\"${FullBattleTraceRecorder.escape(dialogueIdentity)}\",\"dialogueSpeakerId\":\"${FullBattleTraceRecorder.escape(dialogueSpeakerId)}\",\"dialogueText\":\"${FullBattleTraceRecorder.escape(dialogueText)}\",\"phase\":\"${turnController.phase}\",\"script\":\"${scriptRuntime.state}\",\"bootstrapBusy\":[${bootstrapBusy.joinToString(",") { "\"$it\"" }}],\"camera\":[${FullBattleTraceRecorder.number(battleCamera.contentX)},${FullBattleTraceRecorder.number(battleCamera.contentY)}],\"mapObjectRevision\":$mapObjectRevision,\"mapObjects\":$mapObjectsJson,\"fight\":$fightJson,\"aiPresentation\":$aiPresentation,\"actions\":[$actions],\"units\":[$unitsJson],\"driver\":$driverState$observationJson}"
-        recorder.addFrame(row.dropLast(1) + resultLifecycleJson + "}")
+        val driverState =
+            "{\"selectedUnit\":${selectedUnitId?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"commandPhase\":\"${battleCommandFlow.phase}\",\"lastInput\":${
+                lastFullBattleInput?.let {
+                    "\"${
+                        FullBattleTraceRecorder.escape(it)
+                    }\""
+                } ?: "null"
+            },\"menuTap\":${lastFullBattleMenuTap?.let { "\"${FullBattleTraceRecorder.escape(it)}\"" } ?: "null"},\"eventMessage\":\"${
+                FullBattleTraceRecorder.escape(
+                    eventMessage
+                )
+            }\",\"autoOverlay\":\"${autoBattleFlow.view().overlay}\"}"
+        recorder.addFrame(
+            BattleEvidenceRecorder.frame(
+                BattleEvidenceView(
+                    frame = frame,
+                    elapsed = elapsed,
+                    delta = delta,
+                    round = battle.round,
+                    camp = traceCamp,
+                    maxRounds = battle.maxRounds,
+                    playerCount = playerCount,
+                    friendCount = friendCount,
+                    enemyCount = enemyCount,
+                    paused = scriptRuntime.state != PlaybackState.COMPLETE,
+                    ended = traceOutcome != null,
+                    collocation = autoBattleFlow.view().collocation,
+                    dialogue = scriptRuntime.state == PlaybackState.DIALOGUE,
+                    dialogueRevision = scriptRuntime.dialogueLifecycleRevision,
+                    dialogueIdentity = dialogueIdentity,
+                    dialogueSpeakerId = dialogueSpeakerId,
+                    dialogueText = dialogueText,
+                    phase = turnController.phase.toString(),
+                    script = scriptRuntime.state.toString(),
+                    bootstrapBusy = bootstrapBusy,
+                    cameraX = battleCamera.contentX,
+                    cameraY = battleCamera.contentY,
+                    mapObjectRevision = mapObjectRevision,
+                    mapObjectsJson = mapObjectsJson,
+                    fightJson = fightJson,
+                    aiPresentationJson = aiPresentation,
+                    actionsJson = actions,
+                    unitsJson = unitsJson,
+                    driverJson = driverState,
+                    observation = observation,
+                    scriptEnded = scriptRuntime.stage.battleEndedByScript,
+                    scriptedOutcome = scriptedOutcome,
+                    resultFlow = resultFlow.toString(),
+                    modalKind = modalKind,
+                    pendingScriptPasses = pendingBattleScriptPassesAfterAction,
+                    pendingAiDeathPass = pendingAiUnitDeathScriptPass,
+                    postActionDeaths = postActionDeathsStarted,
+                    pendingAiResolution = pendingAiResolution != null,
+                    activeAiCamp = activeAiCamp?.toString(),
+                    roundLayer = activeRoundLayer != null,
+                    turnSettlement = activeTurnSettlement != null,
+                    combatPresentation = combatPresentationBusy(),
+                )
+            )
+        )
     }
 
     private fun finishFullBattleTrace(reason: String) {
@@ -2524,10 +3093,25 @@ void main() {
         val mapName = mapFile?.path().orEmpty()
         // Evidence comes from the live runtime objects used by this battle;
         // the batch verifier must not accept the requested CLI label alone.
-        val scenarioEvidence = "{\"requestedScenario\":\"${FullBattleTraceRecorder.escape(fullTraceConfig?.scenario ?: sourceScenario)}\",\"expectedScript\":\"${FullBattleTraceRecorder.escape(expectedScript)}\",\"loadedScript\":\"${FullBattleTraceRecorder.escape(expectedScript)}\",\"route\":\"JojoGame.showBattleSandbox\",\"seededUnitIds\":[${campaign.roster.battleRoster.joinToString(",")}],\"loadBgCalls\":[{\"mapIndex\":$loadedBattleMapIndex}],\"loadedMap\":{\"mapIndex\":$loadedBattleMapIndex,\"textureName\":\"${FullBattleTraceRecorder.escape(mapName)}\",\"width\":${terrainGrid.width},\"height\":${terrainGrid.height}}}"
-        val summary = "{\"scenario\":\"${FullBattleTraceRecorder.escape(sourceScenario)}\",\"gameScenario\":$scenarioEvidence,\"round\":${battle.round},\"camp\":$camp,\"end\":${outcome != null},\"frameCount\":${recorder.recordedRowCount},\"outcome\":${outcome?.let { "\"$it\"" } ?: "null"}}"
+        val scenarioEvidence =
+            "{\"requestedScenario\":\"${FullBattleTraceRecorder.escape(fullTraceConfig?.scenario ?: sourceScenario)}\",\"expectedScript\":\"${
+                FullBattleTraceRecorder.escape(expectedScript)
+            }\",\"loadedScript\":\"${FullBattleTraceRecorder.escape(expectedScript)}\",\"route\":\"JojoGame.showBattleSandbox\",\"seededUnitIds\":[${
+                campaign.roster.battleRoster.joinToString(
+                    ","
+                )
+            }],\"loadBgCalls\":[{\"mapIndex\":$loadedBattleMapIndex}],\"loadedMap\":{\"mapIndex\":$loadedBattleMapIndex,\"textureName\":\"${
+                FullBattleTraceRecorder.escape(
+                    mapName
+                )
+            }\",\"width\":${terrainGrid.width},\"height\":${terrainGrid.height}}}"
+        val summary =
+            "{\"scenario\":\"${FullBattleTraceRecorder.escape(sourceScenario)}\",\"gameScenario\":$scenarioEvidence,\"round\":${battle.round},\"camp\":$camp,\"end\":${outcome != null},\"frameCount\":${recorder.recordedRowCount},\"outcome\":${outcome?.let { "\"$it\"" } ?: "null"}}"
         recorder.write(reason, summary)
-        Gdx.app.log("JojoGame", "FULL_BATTLE_TRACE: ${fullTraceConfig?.outputPath}; frames=${recorder.recordedRowCount}; reason=$reason")
+        Gdx.app.log(
+            "JojoGame",
+            "FULL_BATTLE_TRACE: ${fullTraceConfig?.outputPath}; frames=${recorder.recordedRowCount}; reason=$reason"
+        )
         if (fullTraceConfig?.exitOnFinish != false) Gdx.app.exit()
     }
 
@@ -2539,17 +3123,45 @@ void main() {
 
     /** Read-only observation for the desktop campaign E2E driver. */
     internal fun campaignE2eState(): CampaignE2eBattleState {
+        /**
+         * 공개 메서드 `screenPoint`
+         *
+         * ### 파라미터
+        - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Pair<Int, Int>`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun screenPoint(x: Int, y: Int): Pair<Int, Int> {
-            val projected = viewport.project(Vector2(
-                boardLeft + x * boardTile + boardTile / 2f,
-                tileBottom(y) + boardTile / 2f,
-            ))
+            val projected = viewport.project(
+                Vector2(
+                    boardLeft + x * boardTile + boardTile / 2f,
+                    tileBottom(y) + boardTile / 2f,
+                )
+            )
             return projected.x.toInt() to (Gdx.graphics.height - projected.y).toInt()
         }
+
+        /**
+         * 공개 메서드 `projectWorldPoint`
+         *
+         * ### 파라미터
+        - `worldX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `worldY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Pair<Int, Int>`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun projectWorldPoint(worldX: Float, worldY: Float): Pair<Int, Int> {
             val projected = viewport.project(Vector2(worldX, worldY))
             return projected.x.toInt() to (Gdx.graphics.height - projected.y).toInt()
         }
+
         val autoView = autoBattleFlow.view()
         return BattleCampaignE2eAdapter.computeState(
             BattleCampaignE2eAdapter.ProjectionContext(
@@ -2622,9 +3234,10 @@ void main() {
         val actor = actorId ?: return
         val target = targetId ?: return
         val animation = actionAnimation ?: return
-        val hitAt = animation.startedAt + requireNotNull(battleSprites.hitTime(animation.sourceAction, animation.direction)) {
-            "원본 BRAnime anime${animation.sourceAction} 방향 ${animation.direction}에 hit 이벤트가 없습니다"
-        }
+        val hitAt =
+            animation.startedAt + requireNotNull(battleSprites.hitTime(animation.sourceAction, animation.direction)) {
+                "원본 BRAnime anime${animation.sourceAction} 방향 ${animation.direction}에 hit 이벤트가 없습니다"
+            }
         val targetUnit = battle.presentationUnit(target) ?: return
         val before = healthBeforeAction[target] ?: targetUnit.hitPoints
         val deferredMutation = battle.pendingActionTransaction?.takeIf { it.actorId == actor }
@@ -2667,11 +3280,13 @@ void main() {
         // attack action itself begins.
         scheduleBattleMutation(hitAt) {
             battle.presentationUnit(target)?.let(::focusCameraOn)
-            audio.playBattleEffect(when {
-                !attack.hit -> 30 // BLOCK_QING
-                attack.critical -> 36 // HARM_ZHONG
-                else -> 35 // HARM_QING
-            })
+            audio.playBattleEffect(
+                when {
+                    !attack.hit -> 30 // BLOCK_QING
+                    attack.critical -> 36 // HARM_ZHONG
+                    else -> 35 // HARM_QING
+                }
+            )
             if (attack.hit) {
                 deferredMutation?.commitVitals(
                     target,
@@ -2727,7 +3342,7 @@ void main() {
             durationFor = { id -> requireSourceActionDuration(32, battleDirection(id, actor)) },
         )
         val primaryHit = hitSequence.first()
-        val reactionDuration = primaryHit.endsAt - primaryHit.startsAt
+        primaryHit.endsAt - primaryHit.startsAt
         // `_attack2` returns the attacker to default only after the final
         // sequential `_attack3` reaction. For a single target this is earlier
         // than anime21/anime25's natural FINISHED event; for CTGJ it can be
@@ -2767,7 +3382,8 @@ void main() {
                 splashAfter,
                 splashHit.startsAt,
             )
-            harmNumberAnimations[splashHit.targetId] = HarmNumberAnimation(splashHit.damage, true, splashHit.startsAt, splashHit.endsAt)
+            harmNumberAnimations[splashHit.targetId] =
+                HarmNumberAnimation(splashHit.damage, true, splashHit.startsAt, splashHit.endsAt)
         }
         val areaEndsAt = hitSequence.last().endsAt
         if ((attack.followUpDamage > 0 || attack.followUpMpShieldDamage > 0) && firstTo > 0) {
@@ -2881,7 +3497,8 @@ void main() {
                 val value = if (change.mpAdd != 0) change.mpAdd else change.hpAdd
                 if (value != 0) {
                     val duration = requireSourceActionDuration(if (change.mpAdd != 0) 3 else 32, unit.direction)
-                    harmNumberAnimations[change.unitId] = HarmNumberAnimation(value, change.mpAdd == 0, effectAt, effectAt + duration)
+                    harmNumberAnimations[change.unitId] =
+                        HarmNumberAnimation(value, change.mpAdd == 0, effectAt, effectAt + duration)
                 }
             }
             // `_magicProcess` awaits target `l`, then caster `o`, and only
@@ -3009,14 +3626,21 @@ void main() {
         actionAnimation = preparation
         val effect = magicEffects.effect(queue.effectId)
         val effectAnimation = effect?.let {
-            MagicEffectAnimation(queue.effectId, pass.map(MagicTarget::targetId), preparation.endsAt, preparation.endsAt + it.duration)
+            MagicEffectAnimation(
+                queue.effectId,
+                pass.map(MagicTarget::targetId),
+                preparation.endsAt,
+                preparation.endsAt + it.duration
+            )
                 .also(magicEffectAnimations::add)
         }
         val passResult = queue.result.copy(
             targets = pass,
             passes = listOf(pass),
             criticalSpeeches = listOf(speech),
-            localSettlements = listOf(queue.result.localSettlements.getOrNull(index) ?: MagicLocalSettlement(emptyList())),
+            localSettlements = listOf(
+                queue.result.localSettlements.getOrNull(index) ?: MagicLocalSettlement(emptyList())
+            ),
         )
         scheduleMagicPresentation(
             passResult, caster.id, queue.profile, queue.visualHp, queue.visualMp,
@@ -3154,9 +3778,11 @@ void main() {
             }
             scheduleBattleMutation(cursor) {
                 battle.presentationUnit(result.targetId)?.let(::focusCameraOn)
-                audio.playBattleEffect(if (guard) {
-                    if (pass.critical) 31 else 30
-                } else if (pass.critical) 36 else 35)
+                audio.playBattleEffect(
+                    if (guard) {
+                        if (pass.critical) 31 else 30
+                    } else if (pass.critical) 36 else 35
+                )
                 battle.pendingActionTransaction?.commitVitals(
                     result.targetId,
                     hp = hpAfterHarm.takeIf { result.damage > 0 },
@@ -3258,7 +3884,8 @@ void main() {
         val attacker = battle.presentationUnit(queued.attackerId) ?: return
         val target = battle.presentationUnit(queued.targetId) ?: return
         val direction = battleDirection(attacker.id, target.id)
-        val sourceAction = BattleAttackSequence.selectAttackAction(critical = queued.critical, attackDelay = attacker.attackDelay)
+        val sourceAction =
+            BattleAttackSequence.selectAttackAction(critical = queued.critical, attackDelay = attacker.attackDelay)
         val animation = sourceActionAnimation(attacker.id, sourceAction, direction, queued.startsAt)
         actionAnimation = animation
         val hitAt = animation.startedAt + requireNotNull(battleSprites.hitTime(sourceAction, direction)) {
@@ -3286,7 +3913,8 @@ void main() {
             (queued.targetHpBefore - queued.harm).coerceAtLeast(0), hitAt,
         )
         // Presentation harm numbers choose MP_ADD over HP_ADD when both occur.
-        harmNumberAnimations[target.id] = HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, hitAt, hitAt + reactionDuration)
+        harmNumberAnimations[target.id] =
+            HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, hitAt, hitAt + reactionDuration)
         if ((queued.counterDamage > 0 || queued.counterMpShieldDamage > 0) && queued.targetHpBefore - queued.harm > 0) {
             queuedCounterPresentation = CounterPresentation(
                 attackerId = target.id,
@@ -3310,7 +3938,8 @@ void main() {
         val attacker = battle.presentationUnit(queued.attackerId) ?: return
         val target = battle.presentationUnit(queued.targetId) ?: return
         val direction = battleDirection(attacker.id, target.id)
-        val sourceAction = BattleAttackSequence.selectAttackAction(critical = queued.critical, attackDelay = attacker.attackDelay)
+        val sourceAction =
+            BattleAttackSequence.selectAttackAction(critical = queued.critical, attackDelay = attacker.attackDelay)
         val animation = sourceActionAnimation(attacker.id, sourceAction, direction, queued.startsAt)
         actionAnimation = animation
         val hitAt = animation.startedAt + requireNotNull(battleSprites.hitTime(sourceAction, direction)) {
@@ -3335,7 +3964,8 @@ void main() {
             battle.pendingActionTransaction?.commitNextHitSideEffect()
         }
         if (queued.harm > 0) healthTimeline.schedule(target.id, queued.targetHpBefore, firstTo, hitAt)
-        harmNumberAnimations[target.id] = HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, hitAt, hitAt + reactionDuration)
+        harmNumberAnimations[target.id] =
+            HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, hitAt, hitAt + reactionDuration)
         if ((queued.followUpDamage > 0 || queued.followUpMpShieldDamage > 0) && firstTo > 0) {
             queuedCounterFollowUpPresentation = CounterFollowUpPresentation(
                 attackerId = attacker.id,
@@ -3384,7 +4014,8 @@ void main() {
             target.id, queued.targetHpBefore,
             (queued.targetHpBefore - queued.harm).coerceAtLeast(0), hitAt,
         )
-        harmNumberAnimations[target.id] = HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, hitAt, hitAt + reactionDuration)
+        harmNumberAnimations[target.id] =
+            HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, hitAt, hitAt + reactionDuration)
     }
 
     private fun scheduleBattleMutation(at: Float, mutation: () -> Unit) {
@@ -3417,7 +4048,7 @@ void main() {
         battle.pendingPresentationUnits()
             .filter {
                 it.hitPoints > 0 && it.id !in hitReactionAnimations &&
-                    it.id !in deathAnimations && it.id !in pendingDeathAnimations
+                        it.id !in deathAnimations && it.id !in pendingDeathAnimations
             }
             .map { it.id }
             .forEach(battle::clearPresentationUnit)
@@ -3472,10 +4103,12 @@ void main() {
                     completeTurnDeathCheckpoint(checkpoint)
                 }
             }
+
             TurnDeathStage.POST_SCRIPT -> {
                 clearTurnDeathBarrier()
                 completeTurnDeathCheckpoint(checkpoint)
             }
+
             else -> Unit
         }
     }
@@ -3547,6 +4180,7 @@ void main() {
                 val unit = battle.presentationUnit(operation.unitId)
                 if (unit == null) 0.0 else requireSourceActionDuration(actionId, unit.direction).toDouble()
             }
+
             is TurnSettlementOp.UnitInfo -> operation.plan.infoBarrierSeconds.toDouble()
             is TurnSettlementOp.GrowthInfo -> {
                 val ticks = operation.grants.sumOf { grant ->
@@ -3555,6 +4189,7 @@ void main() {
                 }
                 (.1f + ticks * .2f + .3f).toDouble()
             }
+
             is TurnSettlementOp.Meff -> operation.effectId.let(magicEffects::effect)?.duration?.toDouble() ?: 0.0
             is TurnSettlementOp.Info2 -> {
                 val autoClose = operation.text.length < 10 || settingsPreferences.getInteger(
@@ -3563,6 +4198,7 @@ void main() {
                 ) and SettingLayer.AUTO_CLOSE != 0
                 if (autoClose) operation.text.length * .04 + 1.0 else Double.POSITIVE_INFINITY
             }
+
             is TurnSettlementOp.ItemUpgrade -> Double.POSITIVE_INFINITY
             is TurnSettlementOp.Sound,
             is TurnSettlementOp.HideState,
@@ -3574,40 +4210,91 @@ void main() {
     private fun settlementOperations(plan: BattleSettlementPlan): List<TurnSettlementOp> = buildList {
         plan.authoredSubflows.forEach { subflow ->
             when (subflow) {
-                is SettlementAuthoredSubflowPlan.LocalAura -> subflow.steps.forEach { step -> when (step) {
-                    is SettlementAuraStep.Focus -> add(TurnSettlementOp.Focus(subflow.casterId, step.seconds, forceCenter = true))
-                    is SettlementAuraStep.Sound -> add(TurnSettlementOp.Sound(step.soundIndex))
-                    is SettlementAuraStep.Info2 -> add(TurnSettlementOp.Info2(
-                        gameDataCatalog.skillName(step.skillId).ifBlank { "특기 ${step.skillId}" },
-                    ))
-                    is SettlementAuraStep.ActionFinished -> add(TurnSettlementOp.Actions(subflow.casterId, listOf(step.actionId)))
-                    is SettlementAuraStep.PlayMeff -> gameDataCatalog.namedMeff(step.semanticName)?.let { effectId ->
-                        add(TurnSettlementOp.Meff(effectId, step.targetIds))
-                    } ?: error("GAME_CFG.meff.${step.semanticName} is missing")
-                    SettlementAuraStep.NestedSettlement -> addAll(settlementOperations(subflow.nestedSettlement))
-                    SettlementAuraStep.DefaultAction -> add(TurnSettlementOp.Default(subflow.casterId))
-                } }
-                is SettlementAuthoredSubflowPlan.Growth -> subflow.steps.forEach { step -> when (step) {
-                    is SettlementGrowthStep.InfoValues -> add(TurnSettlementOp.GrowthInfo(subflow.unitId, step.grants))
-                    is SettlementGrowthStep.AbilityLevelUp -> add(TurnSettlementOp.Info2("${step.attribute.name} 상승"))
-                    SettlementGrowthStep.UnitLevelUpActionFinished -> add(TurnSettlementOp.Actions(subflow.unitId, listOf(11)))
-                    SettlementGrowthStep.UnitLevelUpInfo -> {
-                        val unit = battle.presentationUnit(subflow.unitId)
-                        add(TurnSettlementOp.Info2("${unit?.name.orEmpty()} 승격하여${unit?.level ?: 0}레벨"))
+                is SettlementAuthoredSubflowPlan.LocalAura -> subflow.steps.forEach { step ->
+                    when (step) {
+                        is SettlementAuraStep.Focus -> add(
+                            TurnSettlementOp.Focus(
+                                subflow.casterId,
+                                step.seconds,
+                                forceCenter = true
+                            )
+                        )
+
+                        is SettlementAuraStep.Sound -> add(TurnSettlementOp.Sound(step.soundIndex))
+                        is SettlementAuraStep.Info2 -> add(
+                            TurnSettlementOp.Info2(
+                                gameDataCatalog.skillName(step.skillId).ifBlank { "특기 ${step.skillId}" },
+                            )
+                        )
+
+                        is SettlementAuraStep.ActionFinished -> add(
+                            TurnSettlementOp.Actions(
+                                subflow.casterId,
+                                listOf(step.actionId)
+                            )
+                        )
+
+                        is SettlementAuraStep.PlayMeff -> gameDataCatalog.namedMeff(step.semanticName)
+                            ?.let { effectId ->
+                                add(TurnSettlementOp.Meff(effectId, step.targetIds))
+                            } ?: error("GAME_CFG.meff.${step.semanticName} is missing")
+
+                        SettlementAuraStep.NestedSettlement -> addAll(settlementOperations(subflow.nestedSettlement))
+                        SettlementAuraStep.DefaultAction -> add(TurnSettlementOp.Default(subflow.casterId))
                     }
-                    is SettlementGrowthStep.LearnedMagicInfo -> add(TurnSettlementOp.Info2(
-                        "법술 「${gameDataCatalog.magicProfile(step.magicId)?.name ?: step.magicId}」！",
-                    ))
-                    is SettlementGrowthStep.EquipmentLevelUpAction -> add(TurnSettlementOp.Actions(
-                        subflow.unitId,
-                        if (step.result.slot == CampaignEquipmentSlot.WEAPON) listOf(12, 7) else listOf(12, 33),
-                    ))
-                    is SettlementGrowthStep.EquipmentLevelUpInfo -> add(TurnSettlementOp.Info2(
-                        if (step.result.slot == CampaignEquipmentSlot.WEAPON) "무기레벨 상승!" else "보구레벨 상승!",
-                    ))
-                    is SettlementGrowthStep.ItemUpgradeCallback -> add(TurnSettlementOp.ItemUpgrade(subflow.unitId, step.result))
-                    SettlementGrowthStep.DefaultAction -> add(TurnSettlementOp.Default(subflow.unitId))
-                } }
+                }
+
+                is SettlementAuthoredSubflowPlan.Growth -> subflow.steps.forEach { step ->
+                    when (step) {
+                        is SettlementGrowthStep.InfoValues -> add(
+                            TurnSettlementOp.GrowthInfo(
+                                subflow.unitId,
+                                step.grants
+                            )
+                        )
+
+                        is SettlementGrowthStep.AbilityLevelUp -> add(TurnSettlementOp.Info2("${step.attribute.name} 상승"))
+                        SettlementGrowthStep.UnitLevelUpActionFinished -> add(
+                            TurnSettlementOp.Actions(
+                                subflow.unitId,
+                                listOf(11)
+                            )
+                        )
+
+                        SettlementGrowthStep.UnitLevelUpInfo -> {
+                            val unit = battle.presentationUnit(subflow.unitId)
+                            add(TurnSettlementOp.Info2("${unit?.name.orEmpty()} 승격하여${unit?.level ?: 0}레벨"))
+                        }
+
+                        is SettlementGrowthStep.LearnedMagicInfo -> add(
+                            TurnSettlementOp.Info2(
+                                "법술 「${gameDataCatalog.magicProfile(step.magicId)?.name ?: step.magicId}」！",
+                            )
+                        )
+
+                        is SettlementGrowthStep.EquipmentLevelUpAction -> add(
+                            TurnSettlementOp.Actions(
+                                subflow.unitId,
+                                if (step.result.slot == CampaignEquipmentSlot.WEAPON) listOf(12, 7) else listOf(12, 33),
+                            )
+                        )
+
+                        is SettlementGrowthStep.EquipmentLevelUpInfo -> add(
+                            TurnSettlementOp.Info2(
+                                if (step.result.slot == CampaignEquipmentSlot.WEAPON) "무기레벨 상승!" else "보구레벨 상승!",
+                            )
+                        )
+
+                        is SettlementGrowthStep.ItemUpgradeCallback -> add(
+                            TurnSettlementOp.ItemUpgrade(
+                                subflow.unitId,
+                                step.result
+                            )
+                        )
+
+                        SettlementGrowthStep.DefaultAction -> add(TurnSettlementOp.Default(subflow.unitId))
+                    }
+                }
             }
         }
         // `_jiesuan` iterates each info row serially: center this unit, hide
@@ -3627,7 +4314,13 @@ void main() {
             }
         }
         plan.meffBuckets.forEach { bucket ->
-            bucket.key.actualMeffId?.let { add(TurnSettlementOp.Meff(it, bucket.targets.map { target -> target.unitId })) }
+            bucket.key.actualMeffId?.let {
+                add(
+                    TurnSettlementOp.Meff(
+                        it,
+                        bucket.targets.map { target -> target.unitId })
+                )
+            }
         }
         val refreshIds = plan.units.map { it.unitId }
         if (refreshIds.isNotEmpty()) add(TurnSettlementOp.Refresh(refreshIds))
@@ -3651,7 +4344,8 @@ void main() {
             if (operation is TurnSettlementOp.Actions && active.actionIndex + 1 < operation.actionIds.size) {
                 active.actionIndex++
                 val unit = battle.presentationUnit(operation.unitId) ?: return advanceSettlementOperation(active)
-                actionAnimation = sourceActionAnimation(unit.id, operation.actionIds[active.actionIndex], unit.direction, now)
+                actionAnimation =
+                    sourceActionAnimation(unit.id, operation.actionIds[active.actionIndex], unit.direction, now)
                 active.waitUntil = requireNotNull(actionAnimation).endsAt
                 return
             }
@@ -3665,19 +4359,22 @@ void main() {
         Gdx.app.log(
             "BattleSettlement",
             "t=$now stage=${active.plan.stage} " +
-                "op=${active.operationIndex}/${active.operations.size}:${operation.javaClass.simpleName}",
+                    "op=${active.operationIndex}/${active.operations.size}:${operation.javaClass.simpleName}",
         )
 
         when (operation) {
             is TurnSettlementOp.Focus -> {
-                battle.presentationUnit(operation.unitId)?.let { focusCameraOn(it, forceCenter = operation.forceCenter) }
+                battle.presentationUnit(operation.unitId)
+                    ?.let { focusCameraOn(it, forceCenter = operation.forceCenter) }
                 if (operation.seconds <= 0f) return advanceSettlementOperation(active)
                 active.waitUntil = now + operation.seconds
             }
+
             is TurnSettlementOp.Sound -> {
                 audio.playBattleEffect(operation.soundIndex)
                 return advanceSettlementOperation(active)
             }
+
             is TurnSettlementOp.Info2 -> {
                 val autoClose = operation.text.length < 10 || settingsPreferences.getInteger(
                     SettingLayer.GAME_SETTING,
@@ -3687,12 +4384,14 @@ void main() {
                 settlementInfo2Overlay = SettlementInfo2Overlay(operation.text, now, now + duration)
                 active.waitUntil = now + duration
             }
+
             is TurnSettlementOp.Actions -> {
                 active.actionIndex = 0
                 val unit = battle.presentationUnit(operation.unitId) ?: return advanceSettlementOperation(active)
                 actionAnimation = sourceActionAnimation(unit.id, operation.actionIds.first(), unit.direction, now)
                 active.waitUntil = requireNotNull(actionAnimation).endsAt
             }
+
             is TurnSettlementOp.UnitInfo -> {
                 val unit = battle.presentationUnit(operation.plan.unitId) ?: return advanceSettlementOperation(active)
                 settlementInfoOverlay = SettlementInfoOverlay(
@@ -3702,11 +4401,17 @@ void main() {
                 var cursor = now + operation.plan.preInfoDelaySeconds
                 operation.plan.infoDeltas.forEach { delta ->
                     cursor += delta.tickSeconds
-                    if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(unit.id, delta.before, delta.after, cursor)
+                    if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(
+                        unit.id,
+                        delta.before,
+                        delta.after,
+                        cursor
+                    )
                 }
                 healthTimelineHoldUntil[unit.id] = now + operation.plan.infoBarrierSeconds
                 active.waitUntil = now + operation.plan.infoBarrierSeconds
             }
+
             is TurnSettlementOp.GrowthInfo -> {
                 val unit = battle.presentationUnit(operation.unitId) ?: return advanceSettlementOperation(active)
                 settlementInfoOverlay = SettlementInfoOverlay(
@@ -3718,6 +4423,7 @@ void main() {
                 }
                 active.waitUntil = now + .1f + ticks * .2f + .3f
             }
+
             is TurnSettlementOp.Meff -> {
                 val effect = magicEffects.effect(operation.effectId) ?: return advanceSettlementOperation(active)
                 val targets = operation.targetIds.filter { battle.presentationUnit(it) != null }
@@ -3725,6 +4431,7 @@ void main() {
                 magicEffectAnimations += MagicEffectAnimation(operation.effectId, targets, now, now + effect.duration)
                 active.waitUntil = now + effect.duration
             }
+
             is TurnSettlementOp.ItemUpgrade -> {
                 battle.consumeEquipmentUpgrade()?.let { queued ->
                     check(queued == operation.result) { "settlement item-upgrade queue order mismatch" }
@@ -3732,17 +4439,22 @@ void main() {
                 openSettlementItemUpgrade(operation.result)
                 active.waitUntil = Float.POSITIVE_INFINITY
             }
+
             is TurnSettlementOp.HideState -> {
                 operation.unitIds.forEach { battle.presentationUnit(it)?.presentation?.setStateAnimationVisible(false) }
                 return advanceSettlementOperation(active)
             }
+
             is TurnSettlementOp.Refresh -> {
-                operation.unitIds.forEach { id -> battle.presentationUnit(id)?.let {
-                    it.presentation.refreshStatus(it.statuses, it.attributeLifts)
-                    defaultPresentationAction(it)
-                } }
+                operation.unitIds.forEach { id ->
+                    battle.presentationUnit(id)?.let {
+                        it.presentation.refreshStatus(it.statuses, it.attributeLifts)
+                        defaultPresentationAction(it)
+                    }
+                }
                 return advanceSettlementOperation(active)
             }
+
             is TurnSettlementOp.Default -> {
                 battle.presentationUnit(operation.unitId)?.let(::defaultPresentationAction)
                 return advanceSettlementOperation(active)
@@ -4116,6 +4828,7 @@ void main() {
                     if (scriptRuntime.state == PlaybackState.MODAL) return
                     activeScriptPresentation = null
                 }
+
                 ScriptPresentationPhase.ITEM_ACTION -> {
                     if (now < active.endsAt) return
                     active.battleUnitId?.let {
@@ -4128,6 +4841,7 @@ void main() {
                     active.endsAt = now + .8f
                     return
                 }
+
                 ScriptPresentationPhase.ITEM_ICON -> {
                     if (now < active.endsAt) return
                     val request = active.request as ScenarioScriptPresentationRequest.GetItem
@@ -4135,6 +4849,7 @@ void main() {
                     scriptRuntime.presentExternalBattleInfo(request.completionMessage)
                     return
                 }
+
                 ScriptPresentationPhase.TIMED -> {
                     if (now < active.endsAt) return
                     if (active.request is ScenarioScriptPresentationRequest.UnitHighlight) unitInfoLayer = null
@@ -4152,6 +4867,7 @@ void main() {
                     request, ScriptPresentationPhase.TIMED, now, now + request.durationSeconds,
                 )
             }
+
             is ScenarioScriptPresentationRequest.UnitHighlight -> {
                 val unit = scriptBattleUnit(request.unitId)
                 if (unit == null) {
@@ -4164,12 +4880,15 @@ void main() {
                     request, ScriptPresentationPhase.TIMED, now, now + request.durationSeconds, unit.id,
                 )
             }
+
             is ScenarioScriptPresentationRequest.MapObjects -> {
-                request.objects.lastOrNull()?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
+                request.objects.lastOrNull()
+                    ?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
                 activeScriptPresentation = ActiveScriptPresentation(
                     request, ScriptPresentationPhase.TIMED, now, now + request.durationSeconds,
                 )
             }
+
             is ScenarioScriptPresentationRequest.GetItem -> {
                 val unit = scriptItemUnit(request.unitSelector)
                 if (unit == null) {
@@ -4183,6 +4902,7 @@ void main() {
                     request, ScriptPresentationPhase.ITEM_ACTION, now, now + duration, unit.id,
                 )
             }
+
             is ScenarioScriptPresentationRequest.UnitStatusSettlement -> {
                 val characterId = request.values.asSequence()
                     .mapNotNull { (it["unit"] as? ScenarioInterpreter.UnitReference)?.id }
@@ -4193,7 +4913,7 @@ void main() {
                     val hp = kotlin.math.abs((change["hp"] as? Number)?.toInt() ?: 0)
                     val mp = kotlin.math.abs((change["mp"] as? Number)?.toInt() ?: 0)
                     minOf(maxOf(hp, mp), 5) * .2f +
-                        if (change.containsKey("status") || change.containsKey("hStatus")) .6f else 0f
+                            if (change.containsKey("status") || change.containsKey("hStatus")) .6f else 0f
                 }?.coerceAtLeast(request.minimumDurationSeconds) ?: request.minimumDurationSeconds
                 activeScriptPresentation = ActiveScriptPresentation(
                     request, ScriptPresentationPhase.TIMED, now, now + duration, unit?.id,
@@ -4225,6 +4945,7 @@ void main() {
             1026 -> units.firstOrNull { it.type().isEnemySide() }
             1027 -> units.firstOrNull { isScriptMineMaster(it.id) }
                 ?: units.firstOrNull { it.isPlayerSide() }
+
             else -> liveScriptBattleUnit(selector, visibleOnly = true)
         }
     }
@@ -4247,7 +4968,7 @@ void main() {
         hitReactionAnimations.entries
             .filter {
                 now >= it.value.endsAt && !isPresentationNeededByQueuedExchange(it.key) &&
-                    battle.presentationUnit(it.key)?.hitPoints?.let { hp -> hp > 0 } != false
+                        battle.presentationUnit(it.key)?.hitPoints?.let { hp -> hp > 0 } != false
             }
             .map { it.key }
             .forEach(battle::clearPresentationUnit)
@@ -4277,14 +4998,14 @@ void main() {
     private fun isPresentationNeededByQueuedExchange(id: String): Boolean =
         queuedPhysicalPresentation?.passes?.drop(queuedPhysicalPresentation?.nextPassIndex ?: 0)
             ?.any { pass -> pass.attackerId == id || pass.targets.any { it.targetId == id } } == true ||
-        queuedPhysicalPresentation?.let { queue ->
-            queue.counterMagic != null && (queue.counterCasterId == id || queue.counterTargetId == id)
-        } == true ||
-        activeCounterMagicPresentation?.unitIds?.contains(id) == true ||
-        queuedFollowUpPresentation?.targetId == id ||
-            queuedCounterPresentation?.targetId == id ||
-            queuedCounterFollowUpPresentation?.targetId == id ||
-            deathAnimations[id]?.let { animationClock() < it.endsAt } == true
+                queuedPhysicalPresentation?.let { queue ->
+                    queue.counterMagic != null && (queue.counterCasterId == id || queue.counterTargetId == id)
+                } == true ||
+                activeCounterMagicPresentation?.unitIds?.contains(id) == true ||
+                queuedFollowUpPresentation?.targetId == id ||
+                queuedCounterPresentation?.targetId == id ||
+                queuedCounterFollowUpPresentation?.targetId == id ||
+                deathAnimations[id]?.let { animationClock() < it.endsAt } == true
 
     private fun completeTurnScriptIfReady() {
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
@@ -4314,6 +5035,7 @@ void main() {
                 focusFirstCampCameraUnit(Faction.PLAYER)
                 runBattleScript(contextCampOverride = -1)
             }
+
             BattleBootstrapPhase.INITIAL_SCENE1 -> {
                 // Initial startOper belongs to _execControlScript(true)'s
                 // callback. S_00's round-one scene1 does not call it itself;
@@ -4322,6 +5044,7 @@ void main() {
                 bootstrapPhase = BattleBootstrapPhase.COMPLETE
                 turnController.completeBootstrap()
             }
+
             BattleBootstrapPhase.COMPLETE -> Unit
         }
     }
@@ -4407,7 +5130,8 @@ void main() {
                 AiPresentationStage.FOCUS_DELAY
             }
             aiPresentationStageStartedAt = animationClock()
-            eventMessage = "${camp.label()}: ${battle.presentationUnit(resolution.actorId)?.name ?: resolution.actorId} 행동"
+            eventMessage =
+                "${camp.label()}: ${battle.presentationUnit(resolution.actorId)?.name ?: resolution.actorId} 행동"
         }
         return result
     }
@@ -4415,23 +5139,23 @@ void main() {
     private fun combatPresentationBusy(): Boolean {
         val now = animationClock()
         return (scriptRuntime.state == PlaybackState.MODAL &&
-            scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO) ||
-            movementAnimation?.let { now < it.endsAt } == true ||
-            actionAnimation?.let { now < it.endsAt } == true ||
-            hitReactionAnimations.values.any { now < it.endsAt } ||
-            deathAnimations.values.any { now < it.endsAt } ||
-            pendingDeathAnimations.isNotEmpty() || activeUnitDeath != null || unitDeathAwaitingDialogue != null ||
-            activeScriptedHide != null || scriptedHideAwaitingDialogue != null || activeScriptedShow != null ||
-            activeScriptPresentation != null || activeScriptedUnitAction != null ||
-            magicEffectAnimations.any { now < it.endsAt } ||
-            queuedMagicPresentation != null ||
-            activeCounterMagicPresentation?.let { now < it.endsAt } == true ||
-            queuedPhysicalPresentation != null ||
-            queuedFollowUpPresentation != null ||
-            queuedCounterPresentation != null ||
-            queuedCounterFollowUpPresentation != null ||
-            pendingCriticalSpeechAction != null ||
-            activeTurnSettlement != null
+                scriptRuntime.currentModalKind == ScenarioInterpreter.ModalKind.INFO) ||
+                movementAnimation?.let { now < it.endsAt } == true ||
+                actionAnimation?.let { now < it.endsAt } == true ||
+                hitReactionAnimations.values.any { now < it.endsAt } ||
+                deathAnimations.values.any { now < it.endsAt } ||
+                pendingDeathAnimations.isNotEmpty() || activeUnitDeath != null || unitDeathAwaitingDialogue != null ||
+                activeScriptedHide != null || scriptedHideAwaitingDialogue != null || activeScriptedShow != null ||
+                activeScriptPresentation != null || activeScriptedUnitAction != null ||
+                magicEffectAnimations.any { now < it.endsAt } ||
+                queuedMagicPresentation != null ||
+                activeCounterMagicPresentation?.let { now < it.endsAt } == true ||
+                queuedPhysicalPresentation != null ||
+                queuedFollowUpPresentation != null ||
+                queuedCounterPresentation != null ||
+                queuedCounterFollowUpPresentation != null ||
+                pendingCriticalSpeechAction != null ||
+                activeTurnSettlement != null
     }
 
     /**
@@ -4443,15 +5167,15 @@ void main() {
      */
     private fun outcomeCallbacksPending(): Boolean =
         pendingBattleScriptPassesAfterAction > 0 ||
-            pendingAiUnitDeathScriptPass > 0 ||
-            postActionDeathsStarted ||
-            pendingAiResolution != null ||
-            activeAiCamp != null ||
-            // The round card owns a scheduled continuation callback. Starting
-            // another result script before it closes can put a SayLayer behind
-            // the card, leaving the dialogue unable to receive its input.
-            activeRoundLayer != null ||
-            activeTurnSettlement != null
+                pendingAiUnitDeathScriptPass > 0 ||
+                postActionDeathsStarted ||
+                pendingAiResolution != null ||
+                activeAiCamp != null ||
+                // The round card owns a scheduled continuation callback. Starting
+                // another result script before it closes can put a SayLayer behind
+                // the card, leaving the dialogue unable to receive its input.
+                activeRoundLayer != null ||
+                activeTurnSettlement != null
 
     /** Drive the same move -> action -> next `_ai2` callback chain as Cocos. */
     private fun driveVisibleAiTurn() {
@@ -4481,7 +5205,8 @@ void main() {
                     val next = pendingAiResolution
                     if (consecutiveNoResultFrameGate.shouldYieldBefore(
                             nextIsNoResult = next != null && next.path.size < 2 && next.result == null,
-                        )) return
+                        )
+                    ) return
                     continue
                 }
                 val total = AiTurnResult(aiTurnMoves, aiTurnAttacks, aiTurnHolds)
@@ -4522,6 +5247,7 @@ void main() {
                     aiPresentationStageStartedAt = animationClock()
                     continue
                 }
+
                 AiPresentationStage.MOVING -> {
                     if (movementAnimation?.let { animationClock() < it.endsAt } == true) return
                     val finalDirection = movementAnimation?.timeline?.segments?.lastOrNull()?.direction
@@ -4532,13 +5258,16 @@ void main() {
                     // (S_22 unit 115 is the first production example).
                     movementAnimation = null
                     battle.pendingActionTransaction?.commitMovement(commitActionState = resolution.result == null)
-                    finalDirection?.let { direction -> battle.presentationUnit(resolution.actorId)?.direction = direction }
+                    finalDirection?.let { direction ->
+                        battle.presentationUnit(resolution.actorId)?.direction = direction
+                    }
                     if (camp == Faction.PLAYER && resolution.path.size >= 2 &&
                         (resolution.fromX != resolution.toX || resolution.fromY != resolution.toY)
                     ) {
                         campaignE2ePlayerMoveCommitted = true
                         val actor = battle.presentationUnit(resolution.actorId)?.characterId ?: -1
-                        campaignE2eCommittedPlayerMove = "$actor:${resolution.fromX},${resolution.fromY}->${resolution.toX},${resolution.toY}"
+                        campaignE2eCommittedPlayerMove =
+                            "$actor:${resolution.fromX},${resolution.fromY}->${resolution.toX},${resolution.toY}"
                     }
                     val needsMoveCallbackScript = camp == Faction.PLAYER
                     if (needsMoveCallbackScript && !pendingAiPlayerMoveScriptStarted) {
@@ -4566,12 +5295,14 @@ void main() {
                         finishScriptEndedAiTurn()
                         return
                     }
-                    aiPresentationStage = if (resolution.result is TacticalActionResult.Attack) AiPresentationStage.ACTION_DELAY
-                    else if (resolution.result != null) AiPresentationStage.ACTION
-                    else AiPresentationStage.COMPLETE
+                    aiPresentationStage =
+                        if (resolution.result is TacticalActionResult.Attack) AiPresentationStage.ACTION_DELAY
+                        else if (resolution.result != null) AiPresentationStage.ACTION
+                        else AiPresentationStage.COMPLETE
                     aiPresentationStageStartedAt = animationClock()
                     continue
                 }
+
                 AiPresentationStage.ACTION_DELAY -> {
                     if (camp == Faction.PLAYER && !pendingAiPlayerMoveScriptStarted) {
                         pendingAiPlayerMoveScriptStarted = true
@@ -4582,6 +5313,7 @@ void main() {
                     aiPresentationStage = AiPresentationStage.ACTION
                     continue
                 }
+
                 AiPresentationStage.ACTION -> {
                     if (!pendingAiActionStarted) {
                         pendingAiActionStarted = true
@@ -4619,6 +5351,7 @@ void main() {
                     aiPresentationStage = AiPresentationStage.COMPLETE
                     continue
                 }
+
                 AiPresentationStage.COMPLETE -> {
                     val completedNoResult = resolution.path.size < 2 && resolution.result == null
                     if (camp == Faction.PLAYER && !pendingAiPlayerMoveScriptStarted) {
@@ -4631,7 +5364,7 @@ void main() {
                     if (committedPlayerMoveFrameBarrier.yieldCompletionFrame(
                             isPlayer = camp == Faction.PLAYER,
                             moved = resolution.path.size >= 2 &&
-                                (resolution.fromX != resolution.toX || resolution.fromY != resolution.toY),
+                                    (resolution.fromX != resolution.toX || resolution.fromY != resolution.toY),
                         )
                     ) return
                     if (scriptRuntime.state != PlaybackState.COMPLETE) return
@@ -4703,7 +5436,10 @@ void main() {
         if (selected == null) {
             if (clicked?.visible == true && clicked.type() == battle.activeFaction && !clicked.hasActed) {
                 selectedUnitId = clicked.id
-                battleCommandFlow.beginMove(clicked.id, BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction))
+                battleCommandFlow.beginMove(
+                    clicked.id,
+                    BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
+                )
                 selectedMagicIndex = 0
                 propertyMode = false
                 eventMessage = "${clicked.name} 선택 · 빈 칸으로 이동, 인접 적을 공격"
@@ -4728,29 +5464,46 @@ void main() {
                 eventMessage = result.reason
                 return
             }
-            applyAction(result, selected.name, selected.id, targetId = clicked.id, healthBeforeAction = healthBeforeAction)
+            applyAction(
+                result,
+                selected.name,
+                selected.id,
+                targetId = clicked.id,
+                healthBeforeAction = healthBeforeAction
+            )
             battleCommandFlow.childCompleted(true)
             return
         }
         when {
             propertyMode && clicked != null && unitsAreAllied(selected, clicked) &&
-                kotlin.math.abs(clicked.tileX - selected.tileX) + kotlin.math.abs(clicked.tileY - selected.tileY) <= 1 -> {
+                    kotlin.math.abs(clicked.tileX - selected.tileX) + kotlin.math.abs(clicked.tileY - selected.tileY) <= 1 -> {
                 val healthBeforeAction = battle.units.mapValues { it.value.hitPoints }
                 propertyMode = false
                 val result = usableProperties().getOrNull(selectedPropertyIndex)
                     ?.let { battle.usePropertyForPresentation(selected.id, clicked.id, it.id) }
                     ?: TacticalActionResult.Rejected("사용 가능한 소비 아이템이 없습니다.")
-                applyAction(result, selected.name, selected.id, targetId = clicked.id, healthBeforeAction = healthBeforeAction)
+                applyAction(
+                    result,
+                    selected.name,
+                    selected.id,
+                    targetId = clicked.id,
+                    healthBeforeAction = healthBeforeAction
+                )
             }
+
             propertyMode -> eventMessage = "아이템은 자신 또는 인접 아군에게 사용해야 합니다."
             clicked?.id == selected.id -> openBattleCommand(selected)
             clicked != null && clicked.type() == selected.type() && !clicked.hasActed -> {
                 selectedUnitId = clicked.id
-                battleCommandFlow.beginMove(clicked.id, BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction))
+                battleCommandFlow.beginMove(
+                    clicked.id,
+                    BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
+                )
                 selectedMagicIndex = 0
                 propertyMode = false
                 eventMessage = "${clicked.name} 선택"
             }
+
             clicked != null -> {
                 val healthBeforeAction = battle.units.mapValues { it.value.hitPoints }
                 var magicId: Int? = null
@@ -4774,6 +5527,7 @@ void main() {
                     battleCommandFlow.childCompleted(true)
                 }
             }
+
             else -> moveSelectedForCommand(selected, x, y)
         }
     }
@@ -4782,13 +5536,14 @@ void main() {
         var mask = 0
         if (battle.units.values.any { target ->
                 target.visible && !unitsAreAllied(unit, target) &&
-                    (unit.attackAllScreen || (target.tileX - unit.tileX to target.tileY - unit.tileY) in unit.attackOffsets)
+                        (unit.attackAllScreen || (target.tileX - unit.tileX to target.tileY - unit.tileY) in unit.attackOffsets)
             }) mask = mask or BattleCommandFlow.ATTACK_BIT
-        if (unit.magic.isNotEmpty() && BattleStatus.SILENCE !in unit.statuses) mask = mask or BattleCommandFlow.MAGICK_BIT
+        if (unit.magic.isNotEmpty() && BattleStatus.SILENCE !in unit.statuses) mask =
+            mask or BattleCommandFlow.MAGICK_BIT
         if (usableProperties().isNotEmpty()) mask = mask or BattleCommandFlow.PROPERTY_BIT
         if (battle.units.values.any { other ->
                 other !== unit && other.visible && unitsAreAllied(unit, other) && other.armId == unit.armId &&
-                    kotlin.math.abs(other.tileX - unit.tileX) + kotlin.math.abs(other.tileY - unit.tileY) == 1
+                        kotlin.math.abs(other.tileX - unit.tileX) + kotlin.math.abs(other.tileY - unit.tileY) == 1
             }) mask = mask or BattleCommandFlow.SWAP_BIT
         // checkCanSiege also requires the source unit's canSiegle flag and a
         // second force able to cover its target. The current BattleUnit model
@@ -4838,6 +5593,7 @@ void main() {
                     completeMoveScriptCommand(unit.id)
                 }
             }
+
             is TacticalActionResult.Rejected -> eventMessage = result.reason
             else -> Unit
         }
@@ -4905,17 +5661,20 @@ void main() {
                 BattleCommandFlow.Command.SIEGE -> eventMessage = "포위 공격 대상을 선택하세요."
                 else -> Unit
             }
+
             is BattleCommandFlow.Result.Commit -> {
                 selected.markActionComplete()
                 selectedUnitId = null
                 eventMessage = "${selected.name} 대기"
             }
+
             is BattleCommandFlow.Result.Rollback -> {
                 selected.tileX = result.pose.x; selected.tileY = result.pose.y
                 selected.direction = result.pose.direction; selected.hasMoved = false
                 selectedUnitId = null
                 eventMessage = "명령 선택을 취소했습니다."
             }
+
             BattleCommandFlow.Result.Ignored -> Unit
         }
     }
@@ -4981,6 +5740,7 @@ void main() {
                     animationClock(), animationClock() + 1.5f, sourceAction = 1,
                 )
             }
+
             else -> null
         }
         magicEffectAnimations.clear()
@@ -5011,7 +5771,13 @@ void main() {
                 MagicEffectAnimation(effectId, firstPass.map(MagicTarget::targetId), startedAt, startedAt + it.duration)
                     .also(magicEffectAnimations::add)
             }
-            scheduleMagicPresentation(firstResult, casterId, profile, healthBeforeAction, effectAnimations = listOfNotNull(firstEffect))
+            scheduleMagicPresentation(
+                firstResult,
+                casterId,
+                profile,
+                healthBeforeAction,
+                effectAnimations = listOfNotNull(firstEffect)
+            )
             if (magic.passes.size > 1) {
                 val visualHp = healthBeforeAction.toMutableMap()
                 val deferred = battle.pendingActionTransaction
@@ -5115,9 +5881,11 @@ void main() {
                 }
                 if (scriptRuntime.state == PlaybackState.DIALOGUE ||
                     scriptRuntime.state == PlaybackState.CHOICE ||
-                    scriptRuntime.state == PlaybackState.MODAL) return
+                    scriptRuntime.state == PlaybackState.MODAL
+                ) return
                 openVictorySavePrompt()
             }
+
             BattleOutcome.ENEMY_VICTORY -> enterLoseScene()
             null -> Unit
         }
@@ -5174,7 +5942,8 @@ void main() {
             val id = pair.firstOrNull() ?: return@forEach
             if (id >= 255) return@forEach
             val supplied = pair.getOrNull(1) ?: 1
-            val level = if (supplied < 0) (campaign.averageJoinedLevel() / 10).coerceIn(0, 8) + 1 else supplied.coerceAtLeast(1)
+            val level =
+                if (supplied < 0) (campaign.averageJoinedLevel() / 10).coerceIn(0, 8) + 1 else supplied.coerceAtLeast(1)
             campaign.inventory.addItem(id, count = 1, level = level)
             campaign.inventory.discoverTreasure(id, gameDataCatalog)
         }
@@ -5218,33 +5987,53 @@ void main() {
                 syncScriptedUnits()
                 openRewardRequestIfNeeded()
             }
+
             NaturalBattleTransition.CompletionAction.START_SCENE2 -> continueAfterOutcome()
         }
     }
 
     private fun settlementAnimatedValues(overlay: SettlementInfoOverlay): Map<Int, Int> {
         val values = buildList {
-            overlay.deltas.forEach { delta -> add(InfoBaseValueAnimation.Value(
-                if (delta.kind == SettlementInfoKind.HP) 0 else 1,
-                delta.before, delta.after,
-                battle.presentationUnit(overlay.unitId)?.let {
-                    if (delta.kind == SettlementInfoKind.HP) it.maxHitPoints else it.maxMagicPoints
-                } ?: delta.after.coerceAtLeast(1),
-            )) }
-            overlay.grants.forEach { grant -> when (grant.kind) {
-                SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let { result ->
-                    add(InfoBaseValueAnimation.Value(2, result.oldExperience, result.oldExperience + result.gained,
-                        (result.oldExperience + result.gained).coerceAtLeast(1)))
+            overlay.deltas.forEach { delta ->
+                add(
+                    InfoBaseValueAnimation.Value(
+                        if (delta.kind == SettlementInfoKind.HP) 0 else 1,
+                    delta.before, delta.after,
+                    battle.presentationUnit(overlay.unitId)?.let {
+                        if (delta.kind == SettlementInfoKind.HP) it.maxHitPoints else it.maxMagicPoints
+                    } ?: delta.after.coerceAtLeast(1),
+                ))
+            }
+            overlay.grants.forEach { grant ->
+                when (grant.kind) {
+                    SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let { result ->
+                        add(
+                            InfoBaseValueAnimation.Value(
+                                2, result.oldExperience, result.oldExperience + result.gained,
+                                (result.oldExperience + result.gained).coerceAtLeast(1)
+                            )
+                        )
+                    }
+
+                    SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let { result ->
+                        add(
+                            InfoBaseValueAnimation.Value(
+                                3, result.oldExperience, result.oldExperience + result.gained,
+                                (result.oldExperience + result.gained).coerceAtLeast(1)
+                            )
+                        )
+                    }
+
+                    SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let { result ->
+                        add(
+                            InfoBaseValueAnimation.Value(
+                                4, result.oldExperience, result.oldExperience + result.gained,
+                                (result.oldExperience + result.gained).coerceAtLeast(1)
+                            )
+                        )
+                    }
                 }
-                SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let { result ->
-                    add(InfoBaseValueAnimation.Value(3, result.oldExperience, result.oldExperience + result.gained,
-                        (result.oldExperience + result.gained).coerceAtLeast(1)))
-                }
-                SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let { result ->
-                    add(InfoBaseValueAnimation.Value(4, result.oldExperience, result.oldExperience + result.gained,
-                        (result.oldExperience + result.gained).coerceAtLeast(1)))
-                }
-            } }
+            }
         }
         val current = values.associate { it.index to it.source }.toMutableMap()
         if (values.isEmpty()) return current
@@ -5279,17 +6068,46 @@ void main() {
                     val max = if (index == 0) unit.maxHitPoints else unit.maxMagicPoints
                     add(Triple(delta.kind.name, values[index] ?: delta.before, max))
                 }
-                overlay.grants.forEach { grant -> when (grant.kind) {
-                    SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let { add(Triple("EXP", values[2] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1))) }
-                    SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let { add(Triple("WQ", values[3] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1))) }
-                    SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let { add(Triple("HJ", values[4] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1))) }
-                } }
+                overlay.grants.forEach { grant ->
+                    when (grant.kind) {
+                        SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let {
+                            add(
+                                Triple(
+                                    "EXP",
+                                    values[2] ?: it.oldExperience,
+                                    (it.oldExperience + it.gained).coerceAtLeast(1)
+                                )
+                            )
+                        }
+
+                        SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let {
+                            add(
+                                Triple(
+                                    "WQ",
+                                    values[3] ?: it.oldExperience,
+                                    (it.oldExperience + it.gained).coerceAtLeast(1)
+                                )
+                            )
+                        }
+
+                        SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let {
+                            add(
+                                Triple(
+                                    "HJ",
+                                    values[4] ?: it.oldExperience,
+                                    (it.oldExperience + it.gained).coerceAtLeast(1)
+                                )
+                            )
+                        }
+                    }
+                }
             }
             rows.forEachIndexed { index, (label, value, max) ->
                 val rowY = y + h - 70f - index * 48f
                 font.draw(batch, label, x + 16f, rowY)
                 batch.draw(unitInfoAssets.unitInfoProgress, x + 78f, rowY - 22f, 300f, 20f)
-                val bar = if (label == "MP") unitInfoAssets.unitInfoMark2 else if (label == "EXP") unitInfoAssets.unitInfoMark6 else unitInfoAssets.unitInfoMark3
+                val bar =
+                    if (label == "MP") unitInfoAssets.unitInfoMark2 else if (label == "EXP") unitInfoAssets.unitInfoMark6 else unitInfoAssets.unitInfoMark3
                 batch.draw(bar, x + 80f, rowY - 20f, 296f * value.coerceAtLeast(0) / max.coerceAtLeast(1), 16f)
                 font.draw(batch, "$value/$max", x + 390f, rowY)
             }
@@ -5334,6 +6152,7 @@ void main() {
                 )
                 shapes.end()
             }
+
             is ScenarioScriptPresentationRequest.UnitHighlight -> {
                 if ((elapsed / .3f).toInt() % 2 != 0) return
                 active.battleUnitId?.let(battle::presentationUnit)?.let { unit ->
@@ -5344,6 +6163,7 @@ void main() {
                     shapes.end()
                 }
             }
+
             is ScenarioScriptPresentationRequest.GetItem -> {
                 if (active.phase != ScriptPresentationPhase.ITEM_ICON) return
                 val unit = active.battleUnitId?.let(battle::presentationUnit) ?: return
@@ -5362,80 +6182,66 @@ void main() {
                 )
                 batch.end()
             }
+
             is ScenarioScriptPresentationRequest.MapObjects -> Unit
             is ScenarioScriptPresentationRequest.UnitStatusSettlement -> Unit
         }
     }
 
-    private fun drawBattleReward(flow: BattleRewardFlow) {
-        shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color = Color(0f, 0f, 0f, 50f / 255f)
-        shapes.rect(0f, 0f, viewport.worldWidth, 800f)
-        shapes.end()
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        fun labelPair(text: String, shadowX: Float, shadowBaseline: Float, x: Float, baseline: Float) {
-            rewardTitleFont.color = Color(.3f, .3f, .3f, 1f)
-            rewardTitleFont.draw(batch, text, shadowX, shadowBaseline)
-            rewardTitleFont.color = Color.WHITE
-            rewardTitleFont.draw(batch, text, x, baseline)
+    private fun battleRewardOverlayView(): BattleRewardOverlayView {
+        val flow = rewardFlow
+        val phase = flow?.phase?.let {
+            when (it) {
+                BattleRewardFlow.Phase.MONEY -> BattleRewardOverlayPhase.MONEY
+                BattleRewardFlow.Phase.ITEMS -> BattleRewardOverlayPhase.ITEMS
+                BattleRewardFlow.Phase.END -> BattleRewardOverlayPhase.END
+                BattleRewardFlow.Phase.COMPLETE -> BattleRewardOverlayPhase.COMPLETE
+            }
         }
-        when (flow.phase) {
-            BattleRewardFlow.Phase.MONEY -> {
-                labelPair("전투 종료", 527.747f, 615.617f, 519.916f, 627.594f)
-                labelPair("보상금", 282.777f, 399.692f, 274.533f, 405.6f)
-                labelPair(flow.reward.money.toString(), 967.617f, 399.007f, 958.035f, 405.6f)
-                val stars = (0 until 3).joinToString("  ") { if (flow.reward.flag and (1 shl it) != 0) "★" else "☆" }
-                labelPair(stars, 531.389f, 204.017f, 521.806f, 207.313f)
+        val items = flow?.let {
+            it.reward.itemIds.take(it.visibleItemCount).take(3).map { id ->
+                val profile = gameDataCatalog.equipmentProfile(id)
+                BattleRewardItemView(
+                    name = profile?.name ?: "아이템 $id",
+                    icon = profile?.icon?.let(dynamicTextures::itemIcon),
+                )
             }
-            BattleRewardFlow.Phase.ITEMS -> {
-                labelPair("전리품", 596.73f, 726.144f, 588.486f, 739.142f)
-                flow.reward.itemIds.take(flow.visibleItemCount).take(3).forEachIndexed { index, id ->
-                    val y = 433.5f - index * 157f
-                    overlayAssets.rewardItemTexture?.let { batch.draw(it, 499.686f, y, 489f, 101f) }
-                    overlayAssets.winConditionBoxPatch?.draw(batch, 499.686f, y, 489f, 101f)
-                    val profile = gameDataCatalog.equipmentProfile(id)
-                    profile?.icon?.let(dynamicTextures::itemIcon)?.let { batch.draw(it, 534.974f, y + 18.5f, 64f, 64f) }
-                    font.color = Color.WHITE
-                    font.draw(batch, profile?.name ?: "아이템 $id", 648.999f, y + 78.22f)
-                }
-            }
-            BattleRewardFlow.Phase.END -> {
-                labelPair("전투 종료", 527.747f, 488.023f, 519.916f, 500f)
-                labelPair(flow.reward.money.toString(), 658f, 322f, 650f, 330f)
-            }
-            BattleRewardFlow.Phase.COMPLETE -> Unit
-        }
-        batch.end()
+        }.orEmpty()
+        return BattleRewardOverlayView(
+            worldWidth = viewport.worldWidth,
+            worldHeight = 800f,
+            phase = phase,
+            money = flow?.reward?.money ?: 0,
+            stars = flow?.reward?.let { reward ->
+                (0 until 3).joinToString("  ") { if (reward.flag and (1 shl it) != 0) "★" else "☆" }
+            }.orEmpty(),
+            items = items,
+            sectionVisible = rewardRouteState != null,
+        )
     }
 
-    /**
-     * The source keeps SectionLayer attached above RewardLayer until the
-     * reward callback resumes scene2.  These are three real submissions
-     * (background, shadow label, foreground label), after the reward draws.
-     */
-    private fun drawRewardSection() {
+    /** Render the section layer through the reward renderer's immutable view. */
+    private fun drawRewardSectionOverlay() {
         batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        batch.color = Color.WHITE
-        overlayAssets.sectionBackgroundTexture?.let { batch.draw(it, 0f, 0f, 1488.3721f, 800f) }
-        sectionTitleFont.color = Color(0.28f, 0.28f, 0.28f, 1f)
-        sectionTitleFont.draw(batch, "영천의 전투", 431.986f, 478.2f)
-        sectionTitleFont.color = Color.WHITE
-        sectionTitleFont.draw(batch, "영천의 전투", 421.986f, 488.2f)
-        batch.color = Color.WHITE
-        batch.end()
+        battleRewardOverlayRenderer.draw(
+            BattleRewardOverlayView(
+                worldWidth = viewport.worldWidth,
+                worldHeight = 800f,
+                phase = null,
+                sectionVisible = true,
+            ),
+        )
     }
 
     private fun openEquipmentUpgradeIfNeeded() {
         if (itemUpgradeFlow != null) return
         if (activeTurnSettlement != null) return
         if (itemUpgradeRouteState == null && (
-                actionAnimation?.let { animationClock() < it.endsAt } == true ||
-                    movementAnimation?.let { animationClock() < it.endsAt } == true ||
-                    hitReactionAnimations.values.any { animationClock() < it.endsAt }
-            )) return
+                    actionAnimation?.let { animationClock() < it.endsAt } == true ||
+                            movementAnimation?.let { animationClock() < it.endsAt } == true ||
+                            hitReactionAnimations.values.any { animationClock() < it.endsAt }
+                    )
+        ) return
         val request = battle.consumeEquipmentUpgrade() ?: return
         val profile = gameDataCatalog.equipmentProfile(request.itemId) ?: return
         val owner = campaign.unitNames[request.unitId]
@@ -5485,12 +6291,14 @@ void main() {
         val oldLevel = 2
         val oldExp = gameDataCatalog.equipmentExperienceLimit(itemId, oldLevel) - 1
         val current = campaign.inventory.equipment[ownerId] ?: CampaignEquipment(2, oldLevel, 72, 1, 111)
-        campaign.inventory.setEquipment(ownerId, current.copy(
-            // StageLayer compact ID for source item 0 (단검): id-offset+2.
-            weapon = 2,
-            weaponLevel = oldLevel,
-            weaponExperience = oldExp,
-        ))
+        campaign.inventory.setEquipment(
+            ownerId, current.copy(
+                // StageLayer compact ID for source item 0 (단검): id-offset+2.
+                weapon = 2,
+                weaponLevel = oldLevel,
+                weaponExperience = oldExp,
+            )
+        )
         campaign.unitNames[ownerId] = "유비"
         battle.addEquipmentExperience(owner.id, target.id, 1)
         openEquipmentUpgradeIfNeeded()
@@ -5519,26 +6327,80 @@ void main() {
         shapes.end()
         batch.begin()
         batch.color = Color.WHITE
-        fun tiled(x:Float,y:Float,w:Float,h:Float) {
-            var yy=0f;while(yy<h){var xx=0f;while(xx<w){batch.draw(unitInfoAssets.unitInfoLogo,x+xx,y+yy,minOf(96f,w-xx),minOf(96f,h-yy));xx+=96f};yy+=96f}
+        /**
+         * 공개 메서드 `tiled`
+         *
+         * ### 파라미터
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun tiled(x: Float, y: Float, w: Float, h: Float) {
+            var yy = 0f; while (yy < h) {
+                var xx = 0f; while (xx < w) {
+                    batch.draw(
+                        unitInfoAssets.unitInfoLogo,
+                        x + xx,
+                        y + yy,
+                        minOf(96f, w - xx),
+                        minOf(96f, h - yy)
+                    ); xx += 96f
+                }; yy += 96f
+            }
         }
-        fun button(x:Float,y:Float,text:String){NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,x,y,238.8f,56.6f);font.color=Color.BLACK;font.draw(batch,text,x+8f,y+43f)}
-        tiled(453.686f,195f,581f,410f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,767.301f,487.229f,169.8f,50f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,768.224f,430.411f,160f,50f)
-        font.color=Color.BLACK
-        font.draw(batch,"전장 편집",669.431f,592f);font.draw(batch,"날씨: ",675.735f,530f)
-        font.draw(batch,edit.weatherLabel,817.601f,529f);font.draw(batch,"현재 턴:",618.435f,474f)
-        font.draw(batch,edit.roundText,770.224f,472f)
-        button(495.886f,207.8f,"수정");button(772.686f,207.8f,"취소")
-        button(495.886f,354.9f,"전역");button(495.886f,277.1f,"적군 체력 감소")
-        button(772.686f,354.9f,"적군 전멸");button(772.686f,277.1f,"아군 만피")
+
+        /**
+         * 공개 메서드 `button`
+         *
+         * ### 파라미터
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun button(x: Float, y: Float, text: String) {
+            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, 238.8f, 56.6f); font.color =
+                Color.BLACK; font.draw(batch, text, x + 8f, y + 43f)
+        }
+        tiled(453.686f, 195f, 581f, 410f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.301f, 487.229f, 169.8f, 50f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 768.224f, 430.411f, 160f, 50f)
+        font.color = Color.BLACK
+        font.draw(batch, "전장 편집", 669.431f, 592f); font.draw(batch, "날씨: ", 675.735f, 530f)
+        font.draw(batch, edit.weatherLabel, 817.601f, 529f); font.draw(batch, "현재 턴:", 618.435f, 474f)
+        font.draw(batch, edit.roundText, 770.224f, 472f)
+        button(495.886f, 207.8f, "수정"); button(772.686f, 207.8f, "취소")
+        button(495.886f, 354.9f, "전역"); button(495.886f, 277.1f, "적군 체력 감소")
+        button(772.686f, 354.9f, "적군 전멸"); button(772.686f, 277.1f, "아군 만피")
         batch.end()
         if (route == BattleEditLayer2Route.WEATHER) {
-            shapes.begin(ShapeRenderer.ShapeType.Filled);shapes.color=Color(0f,0f,0f,.392f);shapes.rect(0f,0f,1488.372f,800f);shapes.end()
-            batch.begin();batch.color=Color.WHITE
-            NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,767.878f,308.794f,169.8f,179.5f)
-            BattleEditLayer2.weatherNames.forEachIndexed{i,text->val y=463.854f-i*50f;NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,767.878f,y,169.8f,50f);font.draw(batch,text,800f,y+41f)}
+            shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
+                0f,
+                0f,
+                1488.372f,
+                800f
+            ); shapes.end()
+            batch.begin(); batch.color = Color.WHITE
+            NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.878f, 308.794f, 169.8f, 179.5f)
+            BattleEditLayer2.weatherNames.forEachIndexed { i, text ->
+                val y = 463.854f - i * 50f; NinePatch(
+                unitInfoAssets.unitInfoBox1,
+                3,
+                3,
+                3,
+                3
+            ).draw(batch, 767.878f, y, 169.8f, 50f); font.draw(batch, text, 800f, y + 41f)
+            }
             batch.end()
         }
         if ((route == BattleEditLayer2Route.CHILD || route == BattleEditLayer2Route.CHILD_SCENE || route == BattleEditLayer2Route.REGISTER) && battleEdit3Open) drawBattleEdit3Child()
@@ -5547,38 +6409,138 @@ void main() {
     }
 
     private fun drawBattleEdit3Child() {
-        shapes.begin(ShapeRenderer.ShapeType.Filled);shapes.color=Color(0f,0f,0f,.314f);shapes.rect(0f,0f,1488.372f,800f);shapes.end()
-        batch.begin();batch.color=Color.WHITE
-        var yy=0f;while(yy<410f){var xx=0f;while(xx<600f){batch.draw(unitInfoAssets.unitInfoLogo,444.186f+xx,195f+yy,minOf(96f,600f-xx),minOf(96f,410f-yy));xx+=96f};yy+=96f}
-        fun box(x:Float,y:Float,w:Float,h:Float)=NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,x,y,w,h)
-        fun btn(x:Float,y:Float,w:Float,h:Float,text:String){NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,x,y,w,h);font.draw(batch,text,x+18f,y+42f)}
-        box(715.31f,397f,225.2f,50f);box(715.31f,315f,225.2f,50f);box(714.91f,479f,250f,50f)
-        font.color=Color.BLACK;font.draw(batch,"전역 변수 편집",629.271f,596f);font.draw(batch,"야심:",625.117f,438f);font.draw(batch,"50",717.31f,439f)
-        font.draw(batch,"금전:",625.117f,356f);font.draw(batch,"0",717.31f,357f);font.draw(batch,"장면 이동:",544.957f,519f);font.draw(batch,"영천의 전투R",718.51f,520f)
-        btn(876.797f,212.983f,150.4f,58.5f,"수정");btn(719.152f,212.983f,150.4f,58.5f,"폐쇄");btn(487.035f,212.95f,221.5f,58.5f,"창고 비우기")
+        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .314f); shapes.rect(
+            0f,
+            0f,
+            1488.372f,
+            800f
+        ); shapes.end()
+        batch.begin(); batch.color = Color.WHITE
+        var yy = 0f; while (yy < 410f) {
+            var xx = 0f; while (xx < 600f) {
+                batch.draw(
+                    unitInfoAssets.unitInfoLogo,
+                    444.186f + xx,
+                    195f + yy,
+                    minOf(96f, 600f - xx),
+                    minOf(96f, 410f - yy)
+                ); xx += 96f
+            }; yy += 96f
+        }
+        /**
+         * 공개 메서드 `box`
+         *
+         * ### 파라미터
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun box(x: Float, y: Float, w: Float, h: Float) =
+            NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, x, y, w, h)
+
+        /**
+         * 공개 메서드 `btn`
+         *
+         * ### 파라미터
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun btn(x: Float, y: Float, w: Float, h: Float, text: String) {
+            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, w, h); font.draw(
+                batch,
+                text,
+                x + 18f,
+                y + 42f
+            )
+        }
+        box(715.31f, 397f, 225.2f, 50f); box(715.31f, 315f, 225.2f, 50f); box(714.91f, 479f, 250f, 50f)
+        font.color = Color.BLACK; font.draw(batch, "전역 변수 편집", 629.271f, 596f); font.draw(
+            batch,
+            "야심:",
+            625.117f,
+            438f
+        ); font.draw(batch, "50", 717.31f, 439f)
+        font.draw(batch, "금전:", 625.117f, 356f); font.draw(batch, "0", 717.31f, 357f); font.draw(
+            batch,
+            "장면 이동:",
+            544.957f,
+            519f
+        ); font.draw(batch, "영천의 전투R", 718.51f, 520f)
+        btn(876.797f, 212.983f, 150.4f, 58.5f, "수정"); btn(719.152f, 212.983f, 150.4f, 58.5f, "폐쇄"); btn(
+            487.035f,
+            212.95f,
+            221.5f,
+            58.5f,
+            "창고 비우기"
+        )
         batch.end()
     }
 
     private fun drawBattleEdit3ScenePanel() {
-        shapes.begin(ShapeRenderer.ShapeType.Filled);shapes.color=Color(0f,0f,0f,.392f);shapes.rect(0f,0f,1488.372f,800f);shapes.end()
-        batch.begin();batch.color=Color.WHITE
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,715.136f,298.894f,250f,179.5f)
-        val names=listOf("영천의 전투","사수관 전투","호로관 전투","동탁 추격전","청주 황건 토벌전","서주 복수전","복양의 전투","복양의 전투 2","복양의 전투 3","황제 구출 전투")
-        names.forEachIndexed { index, name -> val y=428.394f-index*50f;NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,715.136f,y,250f,50f);font.draw(batch,"$index $name",720.136f,y+41f) }
+        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
+            0f,
+            0f,
+            1488.372f,
+            800f
+        ); shapes.end()
+        batch.begin(); batch.color = Color.WHITE
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 715.136f, 298.894f, 250f, 179.5f)
+        val names = listOf(
+            "영천의 전투",
+            "사수관 전투",
+            "호로관 전투",
+            "동탁 추격전",
+            "청주 황건 토벌전",
+            "서주 복수전",
+            "복양의 전투",
+            "복양의 전투 2",
+            "복양의 전투 3",
+            "황제 구출 전투"
+        )
+        names.forEachIndexed { index, name ->
+            val y = 428.394f - index * 50f; NinePatch(
+            unitInfoAssets.unitInfoBox1,
+            3,
+            3,
+            3,
+            3
+        ).draw(batch, 715.136f, y, 250f, 50f); font.draw(batch, "$index $name", 720.136f, y + 41f)
+        }
         batch.end()
     }
 
     private fun drawBattleRegisterLayer() {
-        batch.begin();batch.color=Color.WHITE
-        for(ty in 0..4)for(tx in 0..8)batch.draw(unitInfoAssets.unitInfoLogo,344.186f+tx*96f,163.5f+ty*96f,96f,96f)
-        val box=NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3);val button=NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11)
-        box.draw(batch,344.186f,163.5f,800f,473f);box.draw(batch,355.686f,520f,773f,54f)
-        button.draw(batch,916.163f,180.272f,200f,50f);button.draw(batch,698.334f,180.272f,200f,50f)
-        font.color=Color.BLACK
-        font.draw(batch,"등록 코드 생성기",624.186f,628f)
-        font.draw(batch,"활성화 코드를 입력하세요",369.186f,563f)
-        font.draw(batch,"Label",360.186f,280f);font.draw(batch,"Label",360.186f,435f)
-        font.draw(batch,"생성 공유",939.408f,222f);font.draw(batch,"취소",748.334f,229f)
+        batch.begin(); batch.color = Color.WHITE
+        for (ty in 0..4) for (tx in 0..8) batch.draw(
+            unitInfoAssets.unitInfoLogo,
+            344.186f + tx * 96f,
+            163.5f + ty * 96f,
+            96f,
+            96f
+        )
+        val box = NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3)
+        val button = NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11)
+        box.draw(batch, 344.186f, 163.5f, 800f, 473f); box.draw(batch, 355.686f, 520f, 773f, 54f)
+        button.draw(batch, 916.163f, 180.272f, 200f, 50f); button.draw(batch, 698.334f, 180.272f, 200f, 50f)
+        font.color = Color.BLACK
+        font.draw(batch, "등록 코드 생성기", 624.186f, 628f)
+        font.draw(batch, "활성화 코드를 입력하세요", 369.186f, 563f)
+        font.draw(batch, "Label", 360.186f, 280f); font.draw(batch, "Label", 360.186f, 435f)
+        font.draw(batch, "생성 공유", 939.408f, 222f); font.draw(batch, "취소", 748.334f, 229f)
         batch.end()
     }
 
@@ -5593,7 +6555,13 @@ void main() {
         for (ty in 0..2) for (tx in 0..4) {
             val width = minOf(96f, 400f - tx * 96f)
             val height = minOf(96f, 259f - ty * 96f)
-            if (width > 0f && height > 0f) batch.draw(unitInfoAssets.unitInfoLogo, left + tx * 96f, bottom + ty * 96f, width, height)
+            if (width > 0f && height > 0f) batch.draw(
+                unitInfoAssets.unitInfoLogo,
+                left + tx * 96f,
+                bottom + ty * 96f,
+                width,
+                height
+            )
         }
         batch.draw(unitInfoAssets.unitInfoBox3, left, bottom, 400f, 259f)
         batch.draw(unitInfoAssets.unitInfoBox2, 551.222f, 451.34f, 70f, 70f)
@@ -5607,7 +6575,12 @@ void main() {
         itemUpgradeFont.draw(batch, flow.request.newLevel.toString(), 908.186f, 513f)
         itemUpgradeFont.draw(batch, flow.ownerName, 624.386f, 458f)
         itemUpgradeFont.draw(batch, "장비", 815.347f, 458f)
-        itemUpgradeFont.draw(batch, "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}", 554.836f, 403.7f)
+        itemUpgradeFont.draw(
+            batch,
+            "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}",
+            554.836f,
+            403.7f
+        )
         itemUpgradeFont.color = Color.WHITE
         batch.end()
     }
@@ -5615,44 +6588,93 @@ void main() {
     /**
      * Visible draw submissions for the real BattleScreen reward route.  Every
      * value is derived from the same battle/reward state and layout constants
-     * used by drawGrid, drawBattleHudChrome, drawBattleReward and
-     * drawRewardSection; no source JSONL is loaded or replayed.
+     * used by drawGrid, drawBattleHudChrome, and the reward overlay renderer;
+     * no source JSONL is loaded or replayed.
      */
     private fun writeYingchuanEntryFlowIfReady() {
         val output = yingchuanEntryFlowTracePath ?: return
         if (yingchuanEntryFlowWritten || !yingchuanEntryFlowSawInit) return
         if (!scriptRuntime.stage.battleDrawRequested || battleInitLayer.view().attached ||
-            scriptRuntime.state != PlaybackState.DIALOGUE || scriptRuntime.currentDialogue == null) return
+            scriptRuntime.state != PlaybackState.DIALOGUE || scriptRuntime.currentDialogue == null
+        ) return
 
         val json = Json()
+
+        /**
+         * 공개 메서드 `stateText`
+         *
+         * ### 파라미터
+        - `init` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun stateText(init: Boolean): String {
             val dialogue = if (init) "null" else "{\"name\":\"SayLayer\",\"active\":true}"
             val tailLayer = if (init) "BattleInitLayer" else "SayLayer"
             return "{\"scene\":\"Battle\",\"isDraw\":${!init},\"paused\":true,\"round\":${battle.round},\"camp\":-1," +
-                "\"battleInit\":$init,\"dialogue\":$dialogue,\"modal\":null," +
-                "\"layers\":[\"BattleScreen\",\"NoticeInfoLayer\",\"MiniMapLayer\",\"$tailLayer\"]}"
+                    "\"battleInit\":$init,\"dialogue\":$dialogue,\"modal\":null," +
+                    "\"layers\":[\"BattleScreen\",\"NoticeInfoLayer\",\"MiniMapLayer\",\"$tailLayer\"]}"
         }
-        val records = listOf("battle-init" to stateText(true), "dialogue" to stateText(false)).mapIndexed { sequence, (phase, text) ->
+
+        val records = listOf(
+            "battle-init" to stateText(true),
+            "dialogue" to stateText(false)
+        ).mapIndexed { sequence, (phase, text) ->
             "{\"sequence\":$sequence,\"frame\":$sequence,\"phase\":\"$phase\",\"layer\":\"BattleScreen/entry-flow\"," +
-                "\"nodePath\":\"BattleScreen/entry-flow\",\"drawType\":\"state\",\"x\":0,\"y\":0,\"w\":1,\"h\":1," +
-                "\"assetId\":\"none\",\"opacity\":1,\"blend\":\"normal\",\"visible\":true,\"text\":${json.toJson(text, String::class.java)}}"
+                    "\"nodePath\":\"BattleScreen/entry-flow\",\"drawType\":\"state\",\"x\":0,\"y\":0,\"w\":1,\"h\":1," +
+                    "\"assetId\":\"none\",\"opacity\":1,\"blend\":\"normal\",\"visible\":true,\"text\":${
+                        json.toJson(
+                            text,
+                            String::class.java
+                        )
+                    }}"
         }
         val file = Gdx.files.absolute(output)
         file.parent().mkdirs()
         file.writeString(records.joinToString("\n") + "\n", false)
         val stateOutput = output.removeSuffix(".jsonl") + ".state.json"
+
+        /**
+         * 공개 메서드 `quoted`
+         *
+         * ### 파라미터
+        - `value` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun quoted(value: String?): String = value?.let { json.toJson(it, String::class.java) } ?: "null"
         Gdx.files.absolute(stateOutput).writeString(
             "{\n  \"route\": \"actual-r00-ui-to-s00\",\n  \"input\": \"ScenarioScreen dialogue/choice input callbacks\"," +
-                "\n  \"scriptState\": ${quoted(scriptRuntime.state.name)},\n  \"speaker\": ${quoted(scriptRuntime.currentDialogue?.speakerId)}," +
-                "\n  \"text\": ${quoted(scriptRuntime.currentDialogue?.text)},\n  \"drawRequested\": ${scriptRuntime.stage.battleDrawRequested}," +
-                "\n  \"battleInitAttached\": ${battleInitLayer.view().attached},\n  \"modalKind\": ${quoted(scriptRuntime.currentModalKind?.name)}\n}\n",
+                    "\n  \"scriptState\": ${quoted(scriptRuntime.state.name)},\n  \"speaker\": ${quoted(scriptRuntime.currentDialogue?.speakerId)}," +
+                    "\n  \"text\": ${quoted(scriptRuntime.currentDialogue?.text)},\n  \"drawRequested\": ${scriptRuntime.stage.battleDrawRequested}," +
+                    "\n  \"battleInitAttached\": ${battleInitLayer.view().attached},\n  \"modalKind\": ${
+                        quoted(
+                            scriptRuntime.currentModalKind?.name
+                        )
+                    }\n}\n",
             false,
         )
         yingchuanEntryFlowWritten = true
         Gdx.app.log("JojoGame", "YINGCHUAN_ENTRY_FLOW_OK: $output")
         Gdx.app.exit()
     }
+
+    /**
+     * 공개 메서드 `renderEventLog`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun renderEventLog(): String {
         if (mineUnitInfoRoute) return MineUnitInfoRenderEvents.jsonl(requireNotNull(mineUnitInfoLayer).view())
@@ -5674,7 +6696,7 @@ void main() {
             return log.jsonl()
         }
         val route = rewardRouteState ?: itemUpgradeRouteState ?: winConditionRouteState
-            ?: if (battleInitRoute) "battle-init" else null
+        ?: if (battleInitRoute) "battle-init" else null
             ?: if (battleDialogueBlendRoute) "battle-dialogue-blending" else return RenderEventLog().jsonl()
         val phase = when {
             battleInitRoute -> "battle-init"
@@ -5684,9 +6706,11 @@ void main() {
             else -> route.removePrefix("yingchuan-")
         }
         val log = RenderEventLog()
-        fun draw(layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, opacity: Float = 1f, text: String = "",
-                 blend: Any = listOf(770, 771)) {
+        fun draw(
+            layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, opacity: Float = 1f, text: String = "",
+            blend: Any = listOf(770, 771)
+        ) {
             if (opacity <= 0f || x + w <= 0f || x >= 1488.3721f || y + h <= 0f || y >= 800f) return
             log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
         }
@@ -5702,13 +6726,34 @@ void main() {
         boardTile = 96f
         val visibleUnits = (battle.units.values + battle.pendingPresentationUnits().filter {
             it.hitPoints <= 0 || it.id in hitReactionAnimations ||
-                it.id in deathAnimations || it.id in pendingDeathAnimations
+                    it.id in deathAnimations || it.id in pendingDeathAnimations
         })
             .asSequence().filter { it.visible }
             .filter { !battleInitRoute }
             // Equal-z siblings retain source/script insertion order.
-            .sortedWith(if (battleDialogueBlendRoute) {
-                val order = listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
+            .sortedWith(
+                if (battleDialogueBlendRoute) {
+                val order = listOf(
+                    480,
+                    483,
+                    484,
+                    146,
+                    147,
+                    481,
+                    482,
+                    485,
+                    478,
+                    479,
+                    475,
+                    476,
+                    477,
+                    235,
+                    334,
+                    474,
+                    210,
+                    234,
+                    211
+                )
                 compareBy<BattleUnit> { order.indexOf(it.characterId).let { idx -> if (idx < 0) 999 else idx } }
             } else {
                 compareBy<BattleUnit> { visualTile(it).second }
@@ -5775,24 +6820,50 @@ void main() {
             val sayUnit = battle.units.values.firstOrNull { it.visible && it.characterId == 474 }
             sayUnit?.let { unit ->
                 val (visualX, visualY) = visualTile(unit)
-                draw("HallLayer", "Canvas/Layer/ScrollView/view/content/map/New Node", "sprite",
+                draw(
+                    "HallLayer", "Canvas/Layer/ScrollView/view/content/map/New Node", "sprite",
                     boardLeft + visualX * boardTile + boardTile * .75f,
                     tileBottom(visualY) + boardTile * .75f,
-                    48f, 48f, "Mark_10-1")
+                    48f, 48f, "Mark_10-1"
+                )
             }
         }
         draw("HallLayer", "Canvas/Layer/menu_button/Background", "sprite", 1353.9535f, 8f, 60f, 60f, "menu")
         if (battleInitRoute) {
             draw("BattleInitLayer", "Canvas/Layer/bg/button/Background", "sliced-sprite", .843f, .731f, 68f, 68f, "bg1")
-            draw("BattleInitLayer", "Canvas/Layer/bg/button/Background/tool11", "sprite", .043f, -.069f, 69.6f, 69.6f, "tool10")
+            draw(
+                "BattleInitLayer",
+                "Canvas/Layer/bg/button/Background/tool11",
+                "sprite",
+                .043f,
+                -.069f,
+                69.6f,
+                69.6f,
+                "tool10"
+            )
             draw("BattleInitLayer", "Canvas/Layer/bg/btn/Background", "sliced-sprite", 1418.372f, 730f, 70f, 70f, "bg1")
-            draw("BattleInitLayer", "Canvas/Layer/bg/btn/Background/tool11", "sprite", 1418.572f, 730.2f, 69.6f, 69.6f, "tool11")
-            draw("BattleInitLayer", "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.372f, 800f,
-                "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1")
-            draw("BattleInitLayer", "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-            draw("BattleInitLayer", "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
+            draw(
+                "BattleInitLayer",
+                "Canvas/Layer/bg/btn/Background/tool11",
+                "sprite",
+                1418.572f,
+                730.2f,
+                69.6f,
+                69.6f,
+                "tool11"
+            )
+            draw(
+                "BattleInitLayer", "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.372f, 800f,
+                "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1"
+            )
+            draw(
+                "BattleInitLayer", "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
+                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
+            draw(
+                "BattleInitLayer", "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
+                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
             return log.jsonl()
         }
         if (battleDialogueBlendRoute) {
@@ -5803,14 +6874,29 @@ void main() {
             // These submissions are the same live geometry and source-over
             // blend used by drawScriptDialogue. Exact source asset/path
             // identifiers are refined from the canonical actual-route log.
-            if (headId != null) draw("SayLayer", "Canvas/Layer/bg0/face", "sprite", 1064.618f, 330f, 192f, 240f, headId.toString())
+            if (headId != null) draw(
+                "SayLayer",
+                "Canvas/Layer/bg0/face",
+                "sprite",
+                1064.618f,
+                330f,
+                192f,
+                240f,
+                headId.toString()
+            )
             draw("SayLayer", "Canvas/Layer/bg0/bg2", "sprite", 245.65f, 332f, 796f, 212f, "U_select_11-1")
-            draw("SayLayer", "Canvas/Layer/bg0/bg2/richtext", "rich-text", 272.705f, 431.814f, 728f, 52.92f,
-                text = dialogueReveal.visibleText, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-            draw("SayLayer", "Canvas/Layer/bg0/bg2/richtext/RICHTEXT_CHILD", "label", 272.705f, 431.814f, 72.28f, 52.92f,
-                text = dialogueReveal.visibleText, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-            draw("SayLayer", "Canvas/Layer/bg0/label", "label", 304.804f, 485.639f, 97.42f, 49.36f,
-                text = speakerName, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
+            draw(
+                "SayLayer", "Canvas/Layer/bg0/bg2/richtext", "rich-text", 272.705f, 431.814f, 728f, 52.92f,
+                text = dialogueReveal.visibleText, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
+            draw(
+                "SayLayer", "Canvas/Layer/bg0/bg2/richtext/RICHTEXT_CHILD", "label", 272.705f, 431.814f, 72.28f, 52.92f,
+                text = dialogueReveal.visibleText, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
+            draw(
+                "SayLayer", "Canvas/Layer/bg0/label", "label", 304.804f, 485.639f, 97.42f, 49.36f,
+                text = speakerName, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
             return log.jsonl()
         }
         if (winConditionRouteState != null) {
@@ -5818,28 +6904,109 @@ void main() {
                 val text = requireNotNull(winConditionLayer).view().label
                 draw("WinConBoxLayer", "Canvas/Layer/bg0", "tiled-sprite", 249.686f, 65f, 989f, 670f, "Logo_9-1")
                 draw("WinConBoxLayer", "Canvas/Layer/bg0/box2", "tiled-sprite", 249.686f, 65f, 989f, 670f, "box3")
-                draw("WinConBoxLayer", "Canvas/Layer/bg0/Logo_3-1", "sprite", 280.574f, 588.927f, 106f, 124f, "Logo_3-1")
-                draw("WinConBoxLayer", "Canvas/Layer/bg0/scrollview/box3", "sliced-sprite", 406.686f, 170.5f, 803f, 543f, "box2")
-                draw("WinConBoxLayer", "Canvas/Layer/bg0/scrollview/view/content/item", "label", 409.359f, 520.887f, 803f, 191.36f,
-                    text = text, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-                draw("WinConBoxLayer", "Canvas/Layer/bg0/button/Background", "sliced-sprite", 957.134f, 88.204f, 256.7f, 60f, "box3")
-                draw("WinConBoxLayer", "Canvas/Layer/bg0/button/Background/Label", "label", 985.869f, 93.461f, 199.23f, 54.4f,
-                    text = "짐이 알겠다.", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
+                draw(
+                    "WinConBoxLayer",
+                    "Canvas/Layer/bg0/Logo_3-1",
+                    "sprite",
+                    280.574f,
+                    588.927f,
+                    106f,
+                    124f,
+                    "Logo_3-1"
+                )
+                draw(
+                    "WinConBoxLayer",
+                    "Canvas/Layer/bg0/scrollview/box3",
+                    "sliced-sprite",
+                    406.686f,
+                    170.5f,
+                    803f,
+                    543f,
+                    "box2"
+                )
+                draw(
+                    "WinConBoxLayer",
+                    "Canvas/Layer/bg0/scrollview/view/content/item",
+                    "label",
+                    409.359f,
+                    520.887f,
+                    803f,
+                    191.36f,
+                    text = text,
+                    blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                )
+                draw(
+                    "WinConBoxLayer",
+                    "Canvas/Layer/bg0/button/Background",
+                    "sliced-sprite",
+                    957.134f,
+                    88.204f,
+                    256.7f,
+                    60f,
+                    "box3"
+                )
+                draw(
+                    "WinConBoxLayer",
+                    "Canvas/Layer/bg0/button/Background/Label",
+                    "label",
+                    985.869f,
+                    93.461f,
+                    199.23f,
+                    54.4f,
+                    text = "짐이 알겠다.",
+                    blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                )
             } else {
                 val view = requireNotNull(scriptWinConditions).view()
                 val rich1 = view.first
                 val rich2 = view.second
                 val texts = listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 ${scenarioMaxRound()}")
                 val widths = listOf(367.43f, 537.49f, 537.49f, 531.39f)
-                draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 80f / 255f)
-                draw("HallLayer", "Canvas/Layer/richtext1", "rich-text", 39.467f, 260.08f, 537.49f, 511.2f,
-                    text = rich1, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-                texts.forEachIndexed { index, text -> draw("HallLayer", "Canvas/Layer/richtext1/RICHTEXT_CHILD", "label", 39.467f, 620.08f - index * 120f, widths[index], 151.2f,
-                    text = text, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")) }
-                draw("HallLayer", "Canvas/Layer/richtext2", "rich-text", 27.323f, 267.913f, 537.49f, 511.2f,
-                    text = rich2, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-                texts.forEachIndexed { index, text -> draw("HallLayer", "Canvas/Layer/richtext2/RICHTEXT_CHILD", "label", 27.323f, 627.913f - index * 120f, widths[index], 151.2f,
-                    text = text, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")) }
+                draw(
+                    "HallLayer",
+                    "Canvas/Layer/Panel_cancel",
+                    "sprite",
+                    0f,
+                    0f,
+                    1488.372f,
+                    800f,
+                    "default_sprite_splash",
+                    80f / 255f
+                )
+                draw(
+                    "HallLayer", "Canvas/Layer/richtext1", "rich-text", 39.467f, 260.08f, 537.49f, 511.2f,
+                    text = rich1, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                )
+                texts.forEachIndexed { index, text ->
+                    draw(
+                        "HallLayer",
+                        "Canvas/Layer/richtext1/RICHTEXT_CHILD",
+                        "label",
+                        39.467f,
+                        620.08f - index * 120f,
+                        widths[index],
+                        151.2f,
+                        text = text,
+                        blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                    )
+                }
+                draw(
+                    "HallLayer", "Canvas/Layer/richtext2", "rich-text", 27.323f, 267.913f, 537.49f, 511.2f,
+                    text = rich2, blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                )
+                texts.forEachIndexed { index, text ->
+                    draw(
+                        "HallLayer",
+                        "Canvas/Layer/richtext2/RICHTEXT_CHILD",
+                        "label",
+                        27.323f,
+                        627.913f - index * 120f,
+                        widths[index],
+                        151.2f,
+                        text = text,
+                        blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                    )
+                }
             }
             return log.jsonl()
         }
@@ -5850,25 +7017,45 @@ void main() {
         draw(chromeLayer, "Canvas/Layer/bg/btn/Background/tool11", "sprite", 1418.5721f, 730.2f, 69.6f, 69.6f, "tool11")
         if (itemUpgradeRouteState != null) {
             appendItemUpgradeRenderEvents(log, phase, requireNotNull(itemUpgradeFlow))
-            draw(chromeLayer, "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f,
-                "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1")
-            draw(chromeLayer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-            draw(chromeLayer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
-                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
+            draw(
+                chromeLayer, "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f,
+                "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1"
+            )
+            draw(
+                chromeLayer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
+                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
+            draw(
+                chromeLayer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
+                text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+            )
             return log.jsonl()
         }
-        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.3721f, 800f, "default_sprite_splash", 50f / 255f)
+        draw(
+            "HallLayer",
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.3721f,
+            800f,
+            "default_sprite_splash",
+            50f / 255f
+        )
 
         rewardFlow?.let { appendRewardRenderEvents(log, phase, it) }
         draw(
             "BattleScreen", "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f,
             "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1",
         )
-        draw("BattleScreen", "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
-            text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
-        draw("BattleScreen", "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
-            text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"))
+        draw(
+            "BattleScreen", "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f,
+            text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        )
+        draw(
+            "BattleScreen", "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f,
+            text = "영천의 전투", blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        )
         return log.jsonl()
     }
 
@@ -5876,48 +7063,102 @@ void main() {
         val layer = "ItemUpgradeLayer"
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun event(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                  asset: String? = null, text: String = "") =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, 1f,
-                if (type == "label") labels else sprites, true, text)
+        fun event(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = ""
+        ) =
+            log.draw(
+                phase, layer, path, type, x, y, w, h, asset, 1f,
+                if (type == "label") labels else sprites, true, text
+            )
         event("Canvas/Layer/bg", "tiled-sprite", 544.186f, 270.5f, 400f, 259f, "Logo_9-1")
         event("Canvas/Layer/bg/box3", "sliced-sprite", 544.186f, 270.5f, 400f, 259f, "box3")
         event("Canvas/Layer/bg/box2", "sliced-sprite", 551.222f, 451.34f, 70f, 70f, "box2")
-        event("Canvas/Layer/bg/box2/item", "sprite", 554.222f, 454.34f, 64f, 64f,
-            "${gameDataCatalog.equipmentProfile(flow.request.itemId)?.icon ?: 1}-1")
+        event(
+            "Canvas/Layer/bg/box2/item", "sprite", 554.222f, 454.34f, 64f, 64f,
+            "${gameDataCatalog.equipmentProfile(flow.request.itemId)?.icon ?: 1}-1"
+        )
         event("Canvas/Layer/bg/label0", "label", 628.186f, 470.8f, 69.2f, 50.4f, text = flow.itemName)
-        event("Canvas/Layer/bg/label1", "label", 908.186f, 470.8f, 22.25f, 50.4f, text = flow.request.newLevel.toString())
+        event(
+            "Canvas/Layer/bg/label1",
+            "label",
+            908.186f,
+            470.8f,
+            22.25f,
+            50.4f,
+            text = flow.request.newLevel.toString()
+        )
         event("Canvas/Layer/bg/label", "label", 861.186f, 470.8f, 42.25f, 50.4f, text = "Lv")
         event("Canvas/Layer/bg/label2", "label", 624.386f, 415.9f, 189.3f, 50.4f, text = flow.ownerName)
         event("Canvas/Layer/bg/label", "label", 815.347f, 415.934f, 69.2f, 50.4f, text = "장비")
         event("Canvas/Layer/bg/scrollview", "sliced-sprite", 553.136f, 281.5f, 379.5f, 130.4f, "box2")
-        event("Canvas/Layer/bg/scrollview/view/content/label", "label", 554.836f, 361.5f, 379.5f, 50.4f,
-            text = "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}")
+        event(
+            "Canvas/Layer/bg/scrollview/view/content/label", "label", 554.836f, 361.5f, 379.5f, 50.4f,
+            text = "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}"
+        )
     }
 
     private fun roundRenderEventLog(): String {
         val layer = activeRoundLayer ?: return RenderEventLog().jsonl()
         val mode = roundRouteState?.removePrefix("battle-round-")?.removeSuffix("-fixture") ?: "normal"
         val phase = "battle-round-$mode"
-        val log = RenderEventLog(); val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun sprite(path:String,x:Float,y:Float,w:Float,h:Float,asset:String,opacity:Float=1f) =
-            log.draw(phase,"HallLayer",path,"sprite",x,y,w,h,asset,opacity,listOf(770,771),true,"")
-        fun label(path:String,text:String,x:Float,y:Float,w:Float,h:Float) =
-            log.draw(phase,"HallLayer",path,"label",x,y,w,h,null,1f,labels,true,text)
-        sprite("Canvas/Layer/ScrollView/view/content/map",-320f,-96f,1920f,1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>")
-        sprite("Canvas/Layer/Panel_cancel",0f,0f,1488.372f,800f,"default_sprite_splash",80f/255f)
-        val view=layer.view
-        if(view.roundLabelsVisible) {
-            label("Canvas/Layer/label02","아군 단계",526.713f,380.09f,448.54f,151.2f)
-            label("Canvas/Layer/label01","아군 단계",519.916f,385.09f,448.54f,151.2f)
-            val width=if(view.roundText=="최종 턴")344.74f else 274.34f
-            val shadowX=if(view.roundText=="최종 턴")578.613f else 613.813f
-            label("Canvas/Layer/label12",view.roundText,shadowX,247.7f,width,151.2f)
-            label("Canvas/Layer/label11",view.roundText,shadowX-6.797f,252.7f,width,151.2f)
-        } else if(view.campLabelsVisible) {
-            label("Canvas/Layer/label22","적군 단계",526.713f,319.4f,448.54f,151.2f)
-            label("Canvas/Layer/label21","적군 단계",519.916f,324.4f,448.54f,151.2f)
+        val log = RenderEventLog()
+        val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+
+        /**
+         * 공개 메서드 `sprite`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun sprite(path: String, x: Float, y: Float, w: Float, h: Float, asset: String, opacity: Float = 1f) =
+            log.draw(phase, "HallLayer", path, "sprite", x, y, w, h, asset, opacity, listOf(770, 771), true, "")
+
+        /**
+         * 공개 메서드 `label`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float) =
+            log.draw(phase, "HallLayer", path, "label", x, y, w, h, null, 1f, labels, true, text)
+        sprite(
+            "Canvas/Layer/ScrollView/view/content/map", -320f, -96f, 1920f, 1920f,
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
+        )
+        sprite("Canvas/Layer/Panel_cancel", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 80f / 255f)
+        val view = layer.view
+        if (view.roundLabelsVisible) {
+            label("Canvas/Layer/label02", "아군 단계", 526.713f, 380.09f, 448.54f, 151.2f)
+            label("Canvas/Layer/label01", "아군 단계", 519.916f, 385.09f, 448.54f, 151.2f)
+            val width = if (view.roundText == "최종 턴") 344.74f else 274.34f
+            val shadowX = if (view.roundText == "최종 턴") 578.613f else 613.813f
+            label("Canvas/Layer/label12", view.roundText, shadowX, 247.7f, width, 151.2f)
+            label("Canvas/Layer/label11", view.roundText, shadowX - 6.797f, 252.7f, width, 151.2f)
+        } else if (view.campLabelsVisible) {
+            label("Canvas/Layer/label22", "적군 단계", 526.713f, 319.4f, 448.54f, 151.2f)
+            label("Canvas/Layer/label21", "적군 단계", 519.916f, 324.4f, 448.54f, 151.2f)
         }
         return log.jsonl()
     }
@@ -5929,133 +7170,449 @@ void main() {
             "battle-use-property-cancel-fixture" -> "battle-use-property-cancel"
             else -> "battle-use-property-list"
         }
-        val log = RenderEventLog(); val sprites = listOf(770,771); val labels = listOf("SRC_ALPHA","ONE_MINUS_SRC_ALPHA")
-        fun event(layer:String,path:String,type:String,x:Float,y:Float,w:Float,h:Float,asset:String?=null,text:String="",opacity:Float=1f) =
-            log.draw(phase,layer,path,type,x,y,w,h,asset,opacity,if(type=="label") labels else sprites,true,text)
-        fun sprite(path:String,type:String,x:Float,y:Float,w:Float,h:Float,asset:String,owner:String="UsePropertyLayer",opacity:Float=1f)=
-            event(owner,path,type,x,y,w,h,asset,opacity=opacity)
-        fun label(path:String,text:String,x:Float,y:Float,w:Float,h:Float=50.4f,owner:String="UsePropertyLayer")=
-            event(owner,path,"label",x,y,w,h,text=text)
-        sprite("Canvas/Layer/ScrollView/view/content/map","sprite",-320f,-96f,1920f,1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>","HallLayer")
+        val log = RenderEventLog()
+        val sprites = listOf(770, 771)
+        val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+
+        /**
+         * 공개 메서드 `event`
+         *
+         * ### 파라미터
+        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun event(
+            layer: String,
+            path: String,
+            type: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            asset: String? = null,
+            text: String = "",
+            opacity: Float = 1f
+        ) =
+            log.draw(
+                phase,
+                layer,
+                path,
+                type,
+                x,
+                y,
+                w,
+                h,
+                asset,
+                opacity,
+                if (type == "label") labels else sprites,
+                true,
+                text
+            )
+
+        /**
+         * 공개 메서드 `sprite`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `owner` (`String="UsePropertyLayer"`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun sprite(
+            path: String,
+            type: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            asset: String,
+            owner: String = "UsePropertyLayer",
+            opacity: Float = 1f
+        ) =
+            event(owner, path, type, x, y, w, h, asset, opacity = opacity)
+
+        /**
+         * 공개 메서드 `label`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float=50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `owner` (`String="UsePropertyLayer"`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun label(
+            path: String,
+            text: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float = 50.4f,
+            owner: String = "UsePropertyLayer"
+        ) =
+            event(owner, path, "label", x, y, w, h, text = text)
+        sprite(
+            "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>", "HallLayer"
+        )
         val list = usePropertyLayer ?: return log.jsonl()
-        sprite("Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash","HallLayer",40f/255f)
-        sprite("Canvas/Layer/bg","tiled-sprite",795.536f,390f,491f,410f,"Logo_9-1")
-        sprite("Canvas/Layer/bg/box3","sliced-sprite",795.536f,390f,491f,410f,"box1")
-        sprite("Canvas/Layer/bg/box2","sliced-sprite",799.536f,448f,483f,348f,"box2")
-        list.rows.forEachIndexed { index,item ->
-            val y=681f-index*112f; val path="Canvas/Layer/bg/box2/scrollview/view/content/item0"
-            sprite(path,"sliced-sprite",803.536f,y,475f,110f,"box3")
-            sprite("$path/box2","sliced-sprite",809.55f,y+5f,100f,100f,"box2")
-            sprite("$path/box2/icon","sprite",814.55f,y+10f,90f,90f,"Game/Item2/${item.icon}-1")
-            label("$path/label0",item.name,912.036f,y+56.8f,191.5f)
-            label("$path/label","효능: ",912.036f,y+4.8f,91.43f)
-            label("$path/label1",item.typeName,1015.631f,y+3.915f,135.88f)
-            label("$path/label","인벤토리: ",1108.272f,y+56.8f,160.63f)
-            label("$path/label2",item.count.toString(),1249.503f,y+56.8f,22.25f)
+        sprite(
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "default_sprite_splash",
+            "HallLayer",
+            40f / 255f
+        )
+        sprite("Canvas/Layer/bg", "tiled-sprite", 795.536f, 390f, 491f, 410f, "Logo_9-1")
+        sprite("Canvas/Layer/bg/box3", "sliced-sprite", 795.536f, 390f, 491f, 410f, "box1")
+        sprite("Canvas/Layer/bg/box2", "sliced-sprite", 799.536f, 448f, 483f, 348f, "box2")
+        list.rows.forEachIndexed { index, item ->
+            val y = 681f - index * 112f
+            val path = "Canvas/Layer/bg/box2/scrollview/view/content/item0"
+            sprite(path, "sliced-sprite", 803.536f, y, 475f, 110f, "box3")
+            sprite("$path/box2", "sliced-sprite", 809.55f, y + 5f, 100f, 100f, "box2")
+            sprite("$path/box2/icon", "sprite", 814.55f, y + 10f, 90f, 90f, "Game/Item2/${item.icon}-1")
+            label("$path/label0", item.name, 912.036f, y + 56.8f, 191.5f)
+            label("$path/label", "효능: ", 912.036f, y + 4.8f, 91.43f)
+            label("$path/label1", item.typeName, 1015.631f, y + 3.915f, 135.88f)
+            label("$path/label", "인벤토리: ", 1108.272f, y + 56.8f, 160.63f)
+            label("$path/label2", item.count.toString(), 1249.503f, y + 56.8f, 22.25f)
         }
-        sprite("Canvas/Layer/bg/button/Background","sliced-sprite",1131.145f,394.896f,150f,50f,"box3")
-        label("Canvas/Layer/bg/button/Background/Label","취소",1156.145f,403.896f,100f,40f)
-        val selected=usePropertyDetail ?: return log.jsonl()
-        val profile=gameDataCatalog.equipmentProfile(selected.id) ?: return log.jsonl()
-        sprite("Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash","HallLayer",.392f)
-        sprite("Canvas/Layer/bg1","tiled-sprite",253.186f,80f,982f,640f,"Logo_9-1")
-        sprite("Canvas/Layer/bg1/box2","sliced-sprite",253.186f,80f,982f,640f,"box3")
-        label("Canvas/Layer/bg1/label0",selected.name,420.186f,658.8f,203.1f)
-        sprite("Canvas/Layer/bg1/bg4","sliced-sprite",265.778f,564.802f,144f,144f,"box2")
-        sprite("Canvas/Layer/bg1/bg4/icon","sprite",273.778f,572.802f,128f,128f,"Game/Item2/${selected.icon}-1")
-        sprite("Canvas/Layer/bg1/bg0","sliced-sprite",420.536f,498.55f,343.5f,100.9f,"box1")
-        label("Canvas/Layer/bg1/bg0/label","속성:",432.137f,548.543f,80.31f)
-        label("Canvas/Layer/bg1/bg0/label0","아이템",522.525f,548.543f,103.8f)
-        label("Canvas/Layer/bg1/bg0/label","가격:",432.137f,503.543f,80.31f)
-        label("Canvas/Layer/bg1/bg0/label1",gameDataCatalog.purchasePrice(profile).toString(),522.525f,503.543f,66.74f)
-        sprite("Canvas/Layer/bg1/bg1","sliced-sprite",261.686f,92.5f,501f,377f,"box1")
-        sprite("Canvas/Layer/bg1/bg1/bg1","sprite",470.286f,447.7f,83.8f,40f,"bg1")
-        label("Canvas/Layer/bg1/bg1/bg1/label","효과",477.586f,442.5f,69.2f)
-        label("Canvas/Layer/bg1/bg1/scrollview/view/content/label",selected.typeName,265.686f,389.966f,493f,55.44f)
-        sprite("Canvas/Layer/bg1/bg2","sliced-sprite",770.186f,157.5f,448f,247f,"box2")
-        sprite("Canvas/Layer/bg1/bg2/bg1","sprite",943.336f,369.55f,89.7f,40.9f,"bg1")
-        label("Canvas/Layer/bg1/bg2/bg1/label","설명",953.586f,378.8f,69.2f)
-        label("Canvas/Layer/bg1/bg2/scrollview/view/content/label",profile.intro,774.186f,191.26f,440f,187.44f)
-        sprite("Canvas/Layer/bg1/bg3","sliced-sprite",770.186f,427f,448f,260f,"box1")
-        sprite("Canvas/Layer/bg1/bg3/bg1","sprite",871.686f,664.273f,245f,45f,"bg1")
-        label("Canvas/Layer/bg1/bg3/bg1/label","장착 가능한 부대입니다.",804.516f,661.573f,379.34f)
-        fun measuredWidth(value:String)=value.count{it!=' '}*27.68f+value.count{it==' '}*8.89f
+        sprite("Canvas/Layer/bg/button/Background", "sliced-sprite", 1131.145f, 394.896f, 150f, 50f, "box3")
+        label("Canvas/Layer/bg/button/Background/Label", "취소", 1156.145f, 403.896f, 100f, 40f)
+        val selected = usePropertyDetail ?: return log.jsonl()
+        val profile = gameDataCatalog.equipmentProfile(selected.id) ?: return log.jsonl()
+        sprite(
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "default_sprite_splash",
+            "HallLayer",
+            .392f
+        )
+        sprite("Canvas/Layer/bg1", "tiled-sprite", 253.186f, 80f, 982f, 640f, "Logo_9-1")
+        sprite("Canvas/Layer/bg1/box2", "sliced-sprite", 253.186f, 80f, 982f, 640f, "box3")
+        label("Canvas/Layer/bg1/label0", selected.name, 420.186f, 658.8f, 203.1f)
+        sprite("Canvas/Layer/bg1/bg4", "sliced-sprite", 265.778f, 564.802f, 144f, 144f, "box2")
+        sprite("Canvas/Layer/bg1/bg4/icon", "sprite", 273.778f, 572.802f, 128f, 128f, "Game/Item2/${selected.icon}-1")
+        sprite("Canvas/Layer/bg1/bg0", "sliced-sprite", 420.536f, 498.55f, 343.5f, 100.9f, "box1")
+        label("Canvas/Layer/bg1/bg0/label", "속성:", 432.137f, 548.543f, 80.31f)
+        label("Canvas/Layer/bg1/bg0/label0", "아이템", 522.525f, 548.543f, 103.8f)
+        label("Canvas/Layer/bg1/bg0/label", "가격:", 432.137f, 503.543f, 80.31f)
+        label(
+            "Canvas/Layer/bg1/bg0/label1",
+            gameDataCatalog.purchasePrice(profile).toString(),
+            522.525f,
+            503.543f,
+            66.74f
+        )
+        sprite("Canvas/Layer/bg1/bg1", "sliced-sprite", 261.686f, 92.5f, 501f, 377f, "box1")
+        sprite("Canvas/Layer/bg1/bg1/bg1", "sprite", 470.286f, 447.7f, 83.8f, 40f, "bg1")
+        label("Canvas/Layer/bg1/bg1/bg1/label", "효과", 477.586f, 442.5f, 69.2f)
+        label("Canvas/Layer/bg1/bg1/scrollview/view/content/label", selected.typeName, 265.686f, 389.966f, 493f, 55.44f)
+        sprite("Canvas/Layer/bg1/bg2", "sliced-sprite", 770.186f, 157.5f, 448f, 247f, "box2")
+        sprite("Canvas/Layer/bg1/bg2/bg1", "sprite", 943.336f, 369.55f, 89.7f, 40.9f, "bg1")
+        label("Canvas/Layer/bg1/bg2/bg1/label", "설명", 953.586f, 378.8f, 69.2f)
+        label("Canvas/Layer/bg1/bg2/scrollview/view/content/label", profile.intro, 774.186f, 191.26f, 440f, 187.44f)
+        sprite("Canvas/Layer/bg1/bg3", "sliced-sprite", 770.186f, 427f, 448f, 260f, "box1")
+        sprite("Canvas/Layer/bg1/bg3/bg1", "sprite", 871.686f, 664.273f, 245f, 45f, "bg1")
+        label("Canvas/Layer/bg1/bg3/bg1/label", "장착 가능한 부대입니다.", 804.516f, 661.573f, 379.34f)
+        /**
+         * 공개 메서드 `measuredWidth`
+         *
+         * ### 파라미터
+        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun measuredWidth(value: String) = value.count { it != ' ' } * 27.68f + value.count { it == ' ' } * 8.89f
         repeat(13) { row ->
-            val y=609.55f-row*52f; val path="Canvas/Layer/bg1/bg3/scrollview/view/content/item"
-            sprite(path,"sliced-sprite",772.186f,y,444f,50f,if(row%2==0)"885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2")
+            val y = 609.55f - row * 52f
+            val path = "Canvas/Layer/bg1/bg3/scrollview/view/content/item"
+            sprite(
+                path,
+                "sliced-sprite",
+                772.186f,
+                y,
+                444f,
+                50f,
+                if (row % 2 == 0) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2"
+            )
             repeat(3) { col ->
-                val value=gameDataCatalog.postsName(row*3+col); val width=measuredWidth(value)
-                val center=when(col){0->851.186f;1->994.186f;else->1138.186f}
-                label("$path/label$col",value,center-width/2f,y+4.84f,width,40.32f)
+                val value = gameDataCatalog.postsName(row * 3 + col)
+                val width = measuredWidth(value)
+                val center = when (col) {
+                    0 -> 851.186f; 1 -> 994.186f; else -> 1138.186f
+                }
+                label("$path/label$col", value, center - width / 2f, y + 4.84f, width, 40.32f)
             }
         }
-        sprite("Canvas/Layer/bg1/button1/Background","sliced-sprite",1065.827f,97.824f,150f,50f,"box3")
-        label("Canvas/Layer/bg1/button1/Background/Label","확인",1090.827f,104.824f,100f,40f)
+        sprite("Canvas/Layer/bg1/button1/Background", "sliced-sprite", 1065.827f, 97.824f, 150f, 50f, "box3")
+        label("Canvas/Layer/bg1/button1/Background/Label", "확인", 1090.827f, 104.824f, 100f, 40f)
         return log.jsonl()
     }
 
     private fun magickRenderEventLog(): String {
-        val list=magickListLayer?:return RenderEventLog().jsonl()
-        val phase=if(magickRouteState=="battle-magick-detail-fixture")"battle-magick-list-detail" else "battle-magick-list-list"
-        val log=RenderEventLog();val sprites=listOf(770,771);val labels=listOf("SRC_ALPHA","ONE_MINUS_SRC_ALPHA")
-        fun draw(layer:String,path:String,type:String,x:Float,y:Float,w:Float,h:Float,asset:String?=null,text:String="",opacity:Float=1f)=
-            log.draw(phase,layer,path,type,x,y,w,h,asset,opacity,if(type=="label")labels else sprites,true,text)
-        fun sprite(path:String,type:String,x:Float,y:Float,w:Float,h:Float,asset:String,layer:String="MagickListLayer",opacity:Float=1f)=draw(layer,path,type,x,y,w,h,asset,opacity=opacity)
-        fun label(path:String,text:String,x:Float,y:Float,w:Float,h:Float=50.4f)=draw("MagickListLayer",path,"label",x,y,w,h,text=text)
-        sprite("Canvas/Layer/ScrollView/view/content/map","sprite",-320f,-96f,1920f,1920f,"assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>","HallLayer")
-        sprite("Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash","HallLayer",.157f)
-        sprite("Canvas/Layer/bg0","tiled-sprite",474.186f,90.5f,540f,619f,"Logo_9-1")
-        sprite("Canvas/Layer/bg0/bg","tiled-sprite",474.186f,90.5f,540f,619f,"box3")
-        label("Canvas/Layer/bg0/label0","허자장",495.586f,652.8f,173f)
-        label("Canvas/Layer/bg0/label","MP",681.186f,652.807f,60f)
-        sprite("Canvas/Layer/bg0/progressBar0","sliced-sprite",741.186f,661.207f,204f,24f,"default_progressbar_bg")
-        sprite("Canvas/Layer/bg0/progressBar0/bar","sliced-sprite",743.186f,663.207f,82.759f,20f,"Mark_1-1")
-        sprite("Canvas/Layer/bg0/progressBar1/bar","sliced-sprite",743.186f,663.207f,82.759f,20f,"Mark_2-1")
-        label("Canvas/Layer/bg0/progressBar1/label","24/58",793.136f,653.8f,100.1f)
-        sprite("Canvas/Layer/bg0/box2","sliced-sprite",478.186f,150.5f,532f,499f,"box2")
-        val widths=listOf(218.71f,138.4f,103.8f,69.2f,69.2f,149.51f,69.2f,103.8f,69.2f,149.51f)
-        list.rows.take(10).forEachIndexed{index,magic->
-            val col=index%2;val line=index/2;val x=480.186f+264f*col;val y=505.5f-142f*line;val lx=x+92f
-            val root="Canvas/Layer/bg0/box2/scrollview/view/content/item"
-            sprite(root,"sliced-sprite",x,y,262f,140f,"box3")
-            sprite("$root/skill_0","sprite",x+5.073f,y+57.383f,76.8f,76.8f,"Game/Magic/${magic.icon+1}-1")
-            label("$root/label0",magic.name,lx,y+86.8f,widths[index])
-            label("$root/label","MP：",lx,y+45.8f,94.6f)
-            val costWidth=if(magic.cost<10)22.25f else 44.49f
-            label("$root/label2",magic.cost.toString(),x+175.879f,y+45.8f,costWidth)
+        val list = magickListLayer ?: return RenderEventLog().jsonl()
+        val phase =
+            if (magickRouteState == "battle-magick-detail-fixture") "battle-magick-list-detail" else "battle-magick-list-list"
+        val log = RenderEventLog()
+        val sprites = listOf(770, 771)
+        val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+
+        /**
+         * 공개 메서드 `draw`
+         *
+         * ### 파라미터
+        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun draw(
+            layer: String,
+            path: String,
+            type: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            asset: String? = null,
+            text: String = "",
+            opacity: Float = 1f
+        ) =
+            log.draw(
+                phase,
+                layer,
+                path,
+                type,
+                x,
+                y,
+                w,
+                h,
+                asset,
+                opacity,
+                if (type == "label") labels else sprites,
+                true,
+                text
+            )
+
+        /**
+         * 공개 메서드 `sprite`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `layer` (`String="MagickListLayer"`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun sprite(
+            path: String,
+            type: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            asset: String,
+            layer: String = "MagickListLayer",
+            opacity: Float = 1f
+        ) = draw(layer, path, type, x, y, w, h, asset, opacity = opacity)
+
+        /**
+         * 공개 메서드 `label`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float=50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
+            draw("MagickListLayer", path, "label", x, y, w, h, text = text)
+        sprite(
+            "Canvas/Layer/ScrollView/view/content/map",
+            "sprite",
+            -320f,
+            -96f,
+            1920f,
+            1920f,
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>",
+            "HallLayer"
+        )
+        sprite(
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "default_sprite_splash",
+            "HallLayer",
+            .157f
+        )
+        sprite("Canvas/Layer/bg0", "tiled-sprite", 474.186f, 90.5f, 540f, 619f, "Logo_9-1")
+        sprite("Canvas/Layer/bg0/bg", "tiled-sprite", 474.186f, 90.5f, 540f, 619f, "box3")
+        label("Canvas/Layer/bg0/label0", "허자장", 495.586f, 652.8f, 173f)
+        label("Canvas/Layer/bg0/label", "MP", 681.186f, 652.807f, 60f)
+        sprite(
+            "Canvas/Layer/bg0/progressBar0",
+            "sliced-sprite",
+            741.186f,
+            661.207f,
+            204f,
+            24f,
+            "default_progressbar_bg"
+        )
+        sprite("Canvas/Layer/bg0/progressBar0/bar", "sliced-sprite", 743.186f, 663.207f, 82.759f, 20f, "Mark_1-1")
+        sprite("Canvas/Layer/bg0/progressBar1/bar", "sliced-sprite", 743.186f, 663.207f, 82.759f, 20f, "Mark_2-1")
+        label("Canvas/Layer/bg0/progressBar1/label", "24/58", 793.136f, 653.8f, 100.1f)
+        sprite("Canvas/Layer/bg0/box2", "sliced-sprite", 478.186f, 150.5f, 532f, 499f, "box2")
+        val widths = listOf(218.71f, 138.4f, 103.8f, 69.2f, 69.2f, 149.51f, 69.2f, 103.8f, 69.2f, 149.51f)
+        list.rows.take(10).forEachIndexed { index, magic ->
+            val col = index % 2
+            val line = index / 2
+            val x = 480.186f + 264f * col
+            val y = 505.5f - 142f * line
+            val lx = x + 92f
+            val root = "Canvas/Layer/bg0/box2/scrollview/view/content/item"
+            sprite(root, "sliced-sprite", x, y, 262f, 140f, "box3")
+            sprite("$root/skill_0", "sprite", x + 5.073f, y + 57.383f, 76.8f, 76.8f, "Game/Magic/${magic.icon + 1}-1")
+            label("$root/label0", magic.name, lx, y + 86.8f, widths[index])
+            label("$root/label", "MP：", lx, y + 45.8f, 94.6f)
+            val costWidth = if (magic.cost < 10) 22.25f else 44.49f
+            label("$root/label2", magic.cost.toString(), x + 175.879f, y + 45.8f, costWidth)
             // The source prefab uses this label for every battle magic row;
             // null power would be rendered as "없음" instead of the fixture's 0.28.
-            if(index<8) {
-                label("$root/label","피해 계수: ",x+2.097f,y+4.8f,171.74f)
-                label("$root/label1",magic.power?.let{(it/100f).toString()}?:"없음",x+179.637f,y+4.8f,77.85f)
+            if (index < 8) {
+                label("$root/label", "피해 계수: ", x + 2.097f, y + 4.8f, 171.74f)
+                label(
+                    "$root/label1",
+                    magic.power?.let { (it / 100f).toString() } ?: "없음",
+                    x + 179.637f,
+                    y + 4.8f,
+                    77.85f
+                )
             }
         }
-        sprite("Canvas/Layer/bg0/button/Background","sliced-sprite",775.892f,97.683f,180f,50f,"box3")
-        label("Canvas/Layer/bg0/button/Background/Label","취소",815.892f,105.683f,100f,40f)
-        magickInfoLayer?.magic?.let{magic->
-            sprite("Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash","HallLayer",.392f)
-            sprite("Canvas/Layer/bg1","tiled-sprite",452.686f,130f,583f,540f,"Logo_9-1")
-            sprite("Canvas/Layer/bg1/box2","sliced-sprite",452.686f,130f,583f,540f,"box3")
-            label("Canvas/Layer/bg1/label",magic.name,577.509f,604.008f,218.71f)
-            sprite("Canvas/Layer/bg1/skill_0","sprite",478.186f,562f,80f,80f,"Game/Magic/${magic.icon+1}-1")
-            sprite("Canvas/Layer/bg1/bg0","sliced-sprite",465.636f,434f,340.3f,100f,"box1")
-            label("Canvas/Layer/bg1/bg0/label","위력:",476.336f,479.826f,80.31f)
-            label("Canvas/Layer/bg1/bg0/label0","${magic.power?:0}%",566.719f,480.13f,80.06f)
-            label("Canvas/Layer/bg1/bg0/label","MP 소모:",470.776f,436.826f,151.43f)
-            label("Canvas/Layer/bg1/bg0/label1",magic.cost.toString(),627.053f,436.675f,22.25f)
-            sprite("Canvas/Layer/bg1/bg1","sliced-sprite",465.636f,147f,340.3f,274f,"box2")
-            label("Canvas/Layer/bg1/bg1/scrollview/view/content/label",magic.intro,470.786f,187.114f,330f,231.44f)
-            sprite("Canvas/Layer/bg1/bg2","sliced-sprite",814.213f,436.061f,200f,200f,"box1")
-            sprite("Canvas/Layer/bg1/bg2/bg","sliced-sprite",830.713f,614.117f,167f,40f,"bg1")
-            label("Canvas/Layer/bg1/bg2/bg/label","가능 범위",839.654f,611.005f,149.51f)
-            sprite("Canvas/Layer/bg1/bg2/img","sprite",834.213f,450.755f,160f,160f,"Game/Hitarea/${magic.hit+1}-1")
-            sprite("Canvas/Layer/bg1/bg3","sliced-sprite",814.213f,204.673f,200f,200f,"box1")
-            sprite("Canvas/Layer/bg1/bg3/bg","sliced-sprite",831.713f,384.673f,165f,40f,"bg1")
-            label("Canvas/Layer/bg1/bg3/bg/label","영향 범위",839.654f,381.561f,149.51f)
-            sprite("Canvas/Layer/bg1/bg3/img","sprite",834.213f,219.367f,160f,160f,"Game/Effarea/${magic.eff+1}-1")
-            sprite("Canvas/Layer/bg1/button/Background","sliced-sprite",874.764f,144.022f,147.6f,50f,"box3")
-            label("Canvas/Layer/bg1/button/Background/Label","확인",898.564f,152.022f,100f,40f)
+        sprite("Canvas/Layer/bg0/button/Background", "sliced-sprite", 775.892f, 97.683f, 180f, 50f, "box3")
+        label("Canvas/Layer/bg0/button/Background/Label", "취소", 815.892f, 105.683f, 100f, 40f)
+        magickInfoLayer?.magic?.let { magic ->
+            sprite(
+                "Canvas/Layer/Panel_cancel",
+                "sprite",
+                0f,
+                0f,
+                1488.372f,
+                800f,
+                "default_sprite_splash",
+                "HallLayer",
+                .392f
+            )
+            sprite("Canvas/Layer/bg1", "tiled-sprite", 452.686f, 130f, 583f, 540f, "Logo_9-1")
+            sprite("Canvas/Layer/bg1/box2", "sliced-sprite", 452.686f, 130f, 583f, 540f, "box3")
+            label("Canvas/Layer/bg1/label", magic.name, 577.509f, 604.008f, 218.71f)
+            sprite("Canvas/Layer/bg1/skill_0", "sprite", 478.186f, 562f, 80f, 80f, "Game/Magic/${magic.icon + 1}-1")
+            sprite("Canvas/Layer/bg1/bg0", "sliced-sprite", 465.636f, 434f, 340.3f, 100f, "box1")
+            label("Canvas/Layer/bg1/bg0/label", "위력:", 476.336f, 479.826f, 80.31f)
+            label("Canvas/Layer/bg1/bg0/label0", "${magic.power ?: 0}%", 566.719f, 480.13f, 80.06f)
+            label("Canvas/Layer/bg1/bg0/label", "MP 소모:", 470.776f, 436.826f, 151.43f)
+            label("Canvas/Layer/bg1/bg0/label1", magic.cost.toString(), 627.053f, 436.675f, 22.25f)
+            sprite("Canvas/Layer/bg1/bg1", "sliced-sprite", 465.636f, 147f, 340.3f, 274f, "box2")
+            label("Canvas/Layer/bg1/bg1/scrollview/view/content/label", magic.intro, 470.786f, 187.114f, 330f, 231.44f)
+            sprite("Canvas/Layer/bg1/bg2", "sliced-sprite", 814.213f, 436.061f, 200f, 200f, "box1")
+            sprite("Canvas/Layer/bg1/bg2/bg", "sliced-sprite", 830.713f, 614.117f, 167f, 40f, "bg1")
+            label("Canvas/Layer/bg1/bg2/bg/label", "가능 범위", 839.654f, 611.005f, 149.51f)
+            sprite(
+                "Canvas/Layer/bg1/bg2/img",
+                "sprite",
+                834.213f,
+                450.755f,
+                160f,
+                160f,
+                "Game/Hitarea/${magic.hit + 1}-1"
+            )
+            sprite("Canvas/Layer/bg1/bg3", "sliced-sprite", 814.213f, 204.673f, 200f, 200f, "box1")
+            sprite("Canvas/Layer/bg1/bg3/bg", "sliced-sprite", 831.713f, 384.673f, 165f, 40f, "bg1")
+            label("Canvas/Layer/bg1/bg3/bg/label", "영향 범위", 839.654f, 381.561f, 149.51f)
+            sprite(
+                "Canvas/Layer/bg1/bg3/img",
+                "sprite",
+                834.213f,
+                219.367f,
+                160f,
+                160f,
+                "Game/Effarea/${magic.eff + 1}-1"
+            )
+            sprite("Canvas/Layer/bg1/button/Background", "sliced-sprite", 874.764f, 144.022f, 147.6f, 50f, "box3")
+            label("Canvas/Layer/bg1/button/Background/Label", "확인", 898.564f, 152.022f, 100f, 40f)
         }
         return log.jsonl()
     }
@@ -6065,13 +7622,29 @@ void main() {
         val log = RenderEventLog()
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, text: String = "", opacity: Float = 1f, owner: String = "JiQiLayer") =
-            log.draw("battle-jiqi-stable", owner, path, type, x, y, w, h, asset, opacity,
-                if (type == "label") labels else sprites, true, text)
-        draw("Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>", owner = "HallLayer")
-        draw("Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", opacity = .157f, owner = "HallLayer")
+        fun draw(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = "", opacity: Float = 1f, owner: String = "JiQiLayer"
+        ) =
+            log.draw(
+                "battle-jiqi-stable", owner, path, type, x, y, w, h, asset, opacity,
+                if (type == "label") labels else sprites, true, text
+            )
+        draw(
+            "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>", owner = "HallLayer"
+        )
+        draw(
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "default_sprite_splash",
+            opacity = .157f,
+            owner = "HallLayer"
+        )
         draw("Canvas/Layer/bg", "tiled-sprite", 405.686f, 234.5f, 677f, 331f, "Logo_9-1")
         draw("Canvas/Layer/bg/box3", "sliced-sprite", 405.686f, 234.5f, 677f, 331f, "box3")
         listOf(
@@ -6081,9 +7654,27 @@ void main() {
             Triple("이중 타격률:", floatArrayOf(424.571f, 297.8f, 195.23f), "label"),
         ).forEach { (text, p, node) -> draw("Canvas/Layer/bg/$node", "label", p[0], p[1], p[2], 50.4f, text = text) }
         val left = listOf(487.8f, 424.8f, 360.8f, 297.8f)
-        left.forEachIndexed { index, y -> draw("Canvas/Layer/bg/label$index", "label", 625.186f, y, 44.49f, 50.4f, text = layer.rates[index].toString()) }
+        left.forEachIndexed { index, y ->
+            draw(
+                "Canvas/Layer/bg/label$index",
+                "label",
+                625.186f,
+                y,
+                44.49f,
+                50.4f,
+                text = layer.rates[index].toString()
+            )
+        }
         listOf(7 to 306.8f, 6 to 366.8f, 5 to 427.8f).forEach { (index, y) ->
-            draw("Canvas/Layer/bg/label$index", "label", 978.186f, y, 44.49f, 50.4f, text = layer.rates[index].toString())
+            draw(
+                "Canvas/Layer/bg/label$index",
+                "label",
+                978.186f,
+                y,
+                44.49f,
+                50.4f,
+                text = layer.rates[index].toString()
+            )
         }
         draw("Canvas/Layer/bg/label", "label", 753.016f, 487.8f, 206.34f, 50.4f, text = "마법 명중률: ")
         draw("Canvas/Layer/bg/label4", "label", 978.186f, 487.8f, 44.49f, 50.4f, text = layer.rates[4].toString())
@@ -6094,9 +7685,27 @@ void main() {
     }
 
     private fun appendRewardRenderEvents(log: RenderEventLog, phase: String, flow: BattleRewardFlow) {
+        /**
+         * 공개 메서드 `label`
+         *
+         * ### 파라미터
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
-            log.draw(phase, "BattleScreen", path, "label", x, y, w, h, opacity = 1f,
-                blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), visible = true, text = text)
+            log.draw(
+                phase, "BattleScreen", path, "label", x, y, w, h, opacity = 1f,
+                blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), visible = true, text = text
+            )
         when (flow.phase) {
             BattleRewardFlow.Phase.MONEY -> {
                 label("Canvas/Layer/bg0/label", 527.747f, 464.417f, 448.54f, 151.2f, "전투 종료")
@@ -6110,37 +7719,93 @@ void main() {
                 label("Canvas/Layer/bg0/label12", 531.389f, 52.817f, 444.76f, 151.2f, stars)
                 label("Canvas/Layer/bg0/label11", 521.806f, 56.113f, 444.76f, 151.2f, stars)
             }
+
             BattleRewardFlow.Phase.ITEMS -> {
                 label("Canvas/Layer/bg1/label", 596.73f, 574.944f, 311.4f, 151.2f, "전리품")
                 label("Canvas/Layer/bg1/label", 588.486f, 587.942f, 311.4f, 151.2f, "전리품")
                 flow.reward.itemIds.take(flow.visibleItemCount).take(3).forEachIndexed { index, id ->
                     val y = 433.5f - index * 157f
                     val root = "Canvas/Layer/bg1/item$index"
-                    log.draw(phase, "BattleScreen", root, "tiled-sprite", 499.686f, y, 489f, 101f,
-                        "Mark_47-1", visible = true)
-                    log.draw(phase, "BattleScreen", "$root/box3", "sliced-sprite", 499.686f, y, 489f, 101f,
-                        "box3", visible = true)
+                    log.draw(
+                        phase, "BattleScreen", root, "tiled-sprite", 499.686f, y, 489f, 101f,
+                        "Mark_47-1", visible = true
+                    )
+                    log.draw(
+                        phase, "BattleScreen", "$root/box3", "sliced-sprite", 499.686f, y, 489f, 101f,
+                        "box3", visible = true
+                    )
                     val profile = gameDataCatalog.equipmentProfile(id)
-                    log.draw(phase, "BattleScreen", "$root/icon", "sprite", 534.974f, y + 18.5f, 64f, 64f,
-                        "${profile?.icon ?: id}-1", visible = true)
+                    log.draw(
+                        phase, "BattleScreen", "$root/icon", "sprite", 534.974f, y + 18.5f, 64f, 64f,
+                        "${profile?.icon ?: id}-1", visible = true
+                    )
                     label("$root/label", 648.999f, y + 22.78f, 164.46f, 55.44f, profile?.name ?: "아이템 $id")
                 }
             }
+
             BattleRewardFlow.Phase.END, BattleRewardFlow.Phase.COMPLETE -> Unit
         }
     }
 
     private fun installBattleCharacterRoute() {
         battleCharacterRouteInstalled = true
-        fun unit(characterId: Int) = battle.units.values.firstOrNull { it.characterId == characterId && battleAvatarId(it) != null }
-            ?: error("battle-character fixture requires source unit $characterId")
-        fun state(unit: BattleUnit, camp: BattleCharacterCamp, maxHp: Int, hp: Int) = BattleCharacterPresentation(unit.id, camp, maxHp, hp)
-        fun sample(unit: BattleUnit, value: BattleCharacterPresentation, x: Float, y: Float, asset: String,
-                   time: Float = .1f, width: Float = 96f, height: Float = 96f,
-                   offsetX: Float = 0f, offsetY: Float = 0f, harmRect: FloatArray? = null,
-                   frameDirection: Int = 3) =
-            BattleCharacterRouteSample(unit, value, x, y, time, asset, width, height, offsetX, offsetY, harmRect, frameDirection)
-        val u210 = unit(210); val u211 = unit(211); val u234 = unit(234); val u235 = unit(235)
+        /**
+         * 공개 메서드 `unit`
+         *
+         * ### 파라미터
+        - `characterId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun unit(characterId: Int) =
+            battle.units.values.firstOrNull { it.characterId == characterId && battleAvatarId(it) != null }
+                ?: error("battle-character fixture requires source unit $characterId")
+
+        /**
+         * 공개 메서드 `state`
+         *
+         * ### 파라미터
+        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `camp` (`BattleCharacterCamp`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `maxHp` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `hp` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun state(unit: BattleUnit, camp: BattleCharacterCamp, maxHp: Int, hp: Int) =
+            BattleCharacterPresentation(unit.id, camp, maxHp, hp)
+
+        fun sample(
+            unit: BattleUnit, value: BattleCharacterPresentation, x: Float, y: Float, asset: String,
+            time: Float = .1f, width: Float = 96f, height: Float = 96f,
+            offsetX: Float = 0f, offsetY: Float = 0f, harmRect: FloatArray? = null,
+            frameDirection: Int = 3
+        ) =
+            BattleCharacterRouteSample(
+                unit,
+                value,
+                x,
+                y,
+                time,
+                asset,
+                width,
+                height,
+                offsetX,
+                offsetY,
+                harmRect,
+                frameDirection
+            )
+
+        val u210 = unit(210)
+        val u211 = unit(211)
+        val u234 = unit(234)
+        val u235 = unit(235)
         val mov11 = "assets/Game/native/19/19ac1287-4d09-45f4-bf9a-f5eb8b21795c.89d84.png#33632304"
         val mov20 = "assets/Game/native/3f/3f8fbf89-4dd0-4d0b-88e0-9c7927fe5693.3f9c2.png#67186736"
         battleCharacterRouteSamples = when (requireNotNull(battleCharacterRouteState)) {
@@ -6154,47 +7819,112 @@ void main() {
                 sample(u234, state(u234, BattleCharacterCamp.ENEMY, 96, 43), 832f, 96f, mov20),
                 sample(u211, state(u211, BattleCharacterCamp.FRIEND, 119, 71), 544f, 0f, mov11, frameDirection = 0),
             )
+
             BattleCharacterStrictState.OUTLINE_HIGHLIGHT -> listOf(
-                sample(u210, state(u210, BattleCharacterCamp.MINE, 119, 119).also { it.beginAttack() }, 640f, 96f,
-                    "assets/Game/native/dc/dcad67fe-5825-49d1-b6e2-ce5356f376e4.b8507.png#134234176", width = 128f, height = 128f, offsetX = 16f),
-                sample(u211, state(u211, BattleCharacterCamp.MINE, 119, 119).also { it.beginAttack(); it.animationMaterialEvent(116) }, 544f, 0f,
-                    "assets/Game/native/dc/dcad67fe-5825-49d1-b6e2-ce5356f376e4.b8507.png#134234176", width = 128f, height = 128f, offsetX = 16f),
+                sample(
+                    u210,
+                    state(u210, BattleCharacterCamp.MINE, 119, 119).also { it.beginAttack() },
+                    640f,
+                    96f,
+                    "assets/Game/native/dc/dcad67fe-5825-49d1-b6e2-ce5356f376e4.b8507.png#134234176",
+                    width = 128f,
+                    height = 128f,
+                    offsetX = 16f
+                ),
+                sample(
+                    u211,
+                    state(u211, BattleCharacterCamp.MINE, 119, 119).also {
+                        it.beginAttack(); it.animationMaterialEvent(116)
+                    },
+                    544f,
+                    0f,
+                    "assets/Game/native/dc/dcad67fe-5825-49d1-b6e2-ce5356f376e4.b8507.png#134234176",
+                    width = 128f,
+                    height = 128f,
+                    offsetX = 16f
+                ),
             )
-            BattleCharacterStrictState.HIT_IMPACT -> listOf(sample(u210,
-                state(u210, BattleCharacterCamp.ENEMY, 119, 113).also { it.hitImpact(30); it.animationMaterialEvent(110) },
-                640f, 96f, "50475056", offsetX = 16f, harmRect = floatArrayOf(611.3f, 159.76f, 57.4f, 64.48f)))
-            BattleCharacterStrictState.CLEANUP -> listOf(sample(u210,
-                state(u210, BattleCharacterCamp.ENEMY, 119, 113).also { it.hitImpact(30); it.finishHit() }, 640f, 96f, mov11, frameDirection = 0))
-            BattleCharacterStrictState.DEATH_ACTION -> listOf(sample(u210,
-                state(u210, BattleCharacterCamp.ENEMY, 119, 119).also { it.beginHide(BattleHideType.SI_WANG) },
-                640f, 96f, "assets/Game/native/19/19ac1287-4d09-45f4-bf9a-f5eb8b21795c.89d84.png#151072816"))
-            BattleCharacterStrictState.DEATH_HIDDEN -> listOf(sample(u210,
-                state(u210, BattleCharacterCamp.ENEMY, 119, 119).also { it.beginHide(BattleHideType.SI_WANG); it.finishHide() },
-                640f, 96f, mov11))
+
+            BattleCharacterStrictState.HIT_IMPACT -> listOf(
+                sample(
+                    u210,
+                    state(u210, BattleCharacterCamp.ENEMY, 119, 113).also {
+                        it.hitImpact(30); it.animationMaterialEvent(
+                        110
+                    )
+                    },
+                    640f, 96f, "50475056", offsetX = 16f, harmRect = floatArrayOf(611.3f, 159.76f, 57.4f, 64.48f)
+                )
+            )
+
+            BattleCharacterStrictState.CLEANUP -> listOf(
+                sample(
+                    u210,
+                state(u210, BattleCharacterCamp.ENEMY, 119, 113).also { it.hitImpact(30); it.finishHit() },
+                640f,
+                96f,
+                mov11,
+                frameDirection = 0
+            )
+            )
+
+            BattleCharacterStrictState.DEATH_ACTION -> listOf(
+                sample(
+                    u210,
+                    state(u210, BattleCharacterCamp.ENEMY, 119, 119).also { it.beginHide(BattleHideType.SI_WANG) },
+                    640f, 96f, "assets/Game/native/19/19ac1287-4d09-45f4-bf9a-f5eb8b21795c.89d84.png#151072816"
+                )
+            )
+
+            BattleCharacterStrictState.DEATH_HIDDEN -> listOf(
+                sample(
+                    u210,
+                    state(
+                        u210,
+                        BattleCharacterCamp.ENEMY,
+                        119,
+                        119
+                    ).also { it.beginHide(BattleHideType.SI_WANG); it.finishHide() },
+                    640f, 96f, mov11
+                )
+            )
         }
     }
 
     private fun battleCharacterFrame(sample: BattleCharacterRouteSample): UnitSpriteFrame =
-        battleSpriteFrame(sample.state.action, sample.frameDirection, sample.frameTime, loop = sample.state.action == 0) ?: idleSpriteFrame(sample.unit)
+        battleSpriteFrame(sample.state.action, sample.frameDirection, sample.frameTime, loop = sample.state.action == 0)
+            ?: idleSpriteFrame(sample.unit)
 
     private fun battleCharacterCommands(sample: BattleCharacterRouteSample): List<BattleCharacterDrawEvent> {
         val frame = battleCharacterFrame(sample)
-        return BattleCharacterStateRenderer.commands(sample.state, sample.unitLeft, sample.unitBottom, sample.assetFrameId,
+        return BattleCharacterStateRenderer.commands(
+            sample.state, sample.unitLeft, sample.unitBottom, sample.assetFrameId,
             avatarWidth = sample.avatarWidth, avatarHeight = sample.avatarHeight,
             avatarOffsetX = sample.avatarOffsetX, avatarOffsetY = sample.avatarOffsetY,
             avatarSourceRect = listOf(0, frame.sourceY, frame.sourceWidth, frame.sourceHeight),
-            avatarFlipX = frame.flipX, avatarFlipY = false).map { event ->
-                if (event.drawType == "label" && sample.harmRect != null) event.copy(
-                    x = sample.harmRect[0], y = sample.harmRect[1], width = sample.harmRect[2], height = sample.harmRect[3],
-                    blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"),
-                ) else event
-            }
+            avatarFlipX = frame.flipX, avatarFlipY = false
+        ).map { event ->
+            if (event.drawType == "label" && sample.harmRect != null) event.copy(
+                x = sample.harmRect[0], y = sample.harmRect[1], width = sample.harmRect[2], height = sample.harmRect[3],
+                blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"),
+            ) else event
+        }
     }
 
     private fun battleCharacterRouteRenderEventLog(): String {
         val events = buildList {
-            add(BattleCharacterDrawEvent("Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
-                "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>", materialId = "builtin-2d-sprite (Instance)"))
+            add(
+                BattleCharacterDrawEvent(
+                    "Canvas/Layer/ScrollView/view/content/map",
+                    "sprite",
+                    -320f,
+                    -96f,
+                    1920f,
+                    1920f,
+                    "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>",
+                    materialId = "builtin-2d-sprite (Instance)"
+                )
+            )
             battleCharacterRouteSamples.forEach { addAll(battleCharacterCommands(it)) }
         }
         return BattleCharacterStateRenderer.jsonl(requireNotNull(battleCharacterRouteState), events)
@@ -6202,27 +7932,95 @@ void main() {
 
     private fun drawBattleCharacterRoute() {
         battleCharacterRouteSamples.forEach { sample ->
-            val frame = battleCharacterFrame(sample); val commands = battleCharacterCommands(sample)
+            val frame = battleCharacterFrame(sample)
+            val commands = battleCharacterCommands(sample)
             val avatar = commands.firstOrNull() ?: return@forEach
-            val texture = when (frame.source) { UnitSpriteSource.ATTACK -> attackTexture(sample.unit) ?: unitTexture(sample.unit); UnitSpriteSource.SPECIAL -> specialTexture(sample.unit) ?: unitTexture(sample.unit); UnitSpriteSource.MOVEMENT -> unitTexture(sample.unit) }
+            val texture = when (frame.source) {
+                UnitSpriteSource.ATTACK -> attackTexture(sample.unit)
+                    ?: unitTexture(sample.unit); UnitSpriteSource.SPECIAL -> specialTexture(sample.unit) ?: unitTexture(
+                    sample.unit
+                ); UnitSpriteSource.MOVEMENT -> unitTexture(sample.unit)
+            }
             texture?.let { atlas ->
-                fun spriteAt(x: Float, y: Float) = batch.draw(atlas, x, y, avatar.width, avatar.height, 0,
+                /**
+                 * 공개 메서드 `spriteAt`
+                 *
+                 * ### 파라미터
+                - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+                - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+                 *
+                 * ### 응답 스펙
+                 * - 반환 타입: `Unit`
+                 * - 반환값: 동작 결과의 도메인 값입니다.
+                 */
+
+                fun spriteAt(x: Float, y: Float) = batch.draw(
+                    atlas, x, y, avatar.width, avatar.height, 0,
                     if (frame.sourceY + frame.sourceHeight > atlas.height) 0 else frame.sourceY,
-                    minOf(frame.sourceWidth, atlas.width), minOf(frame.sourceHeight, atlas.height), frame.flipX, false)
+                    minOf(frame.sourceWidth, atlas.width), minOf(frame.sourceHeight, atlas.height), frame.flipX, false
+                )
                 when (sample.state.material) {
-                    BattleCharacterMaterial.HIGHLIGHT -> { batch.flush(); batch.shader = cocosHighlightSampler.value; cocosHighlightSampler.value.setUniformf("u_value", sample.state.materialValue ?: 0f); spriteAt(avatar.x, avatar.y); batch.flush(); batch.shader = null }
-                    BattleCharacterMaterial.OUTLINE -> { batch.color = Color.CYAN; listOf(-2f to 0f, 2f to 0f, 0f to -2f, 0f to 2f).forEach { (dx, dy) -> spriteAt(avatar.x + dx, avatar.y + dy) }; batch.color = Color.WHITE; spriteAt(avatar.x, avatar.y) }
+                    BattleCharacterMaterial.HIGHLIGHT -> {
+                        batch.flush(); batch.shader =
+                            cocosHighlightSampler.value; cocosHighlightSampler.value.setUniformf(
+                            "u_value",
+                            sample.state.materialValue ?: 0f
+                        ); spriteAt(avatar.x, avatar.y); batch.flush(); batch.shader = null
+                    }
+
+                    BattleCharacterMaterial.OUTLINE -> {
+                        batch.color = Color.CYAN; listOf(
+                            -2f to 0f,
+                            2f to 0f,
+                            0f to -2f,
+                            0f to 2f
+                        ).forEach { (dx, dy) -> spriteAt(avatar.x + dx, avatar.y + dy) }; batch.color =
+                            Color.WHITE; spriteAt(avatar.x, avatar.y)
+                    }
+
                     else -> spriteAt(avatar.x, avatar.y)
                 }
             }
-            commands.drop(1).forEach { command -> when (command.drawType) {
-                "sliced-sprite" -> when (sample.state.camp) { BattleCharacterCamp.MINE -> hudAssets.mineHpBarTexture; BattleCharacterCamp.FRIEND -> hudAssets.friendHpBarTexture; BattleCharacterCamp.ENEMY -> hudAssets.enemyHpBarTexture; BattleCharacterCamp.FAMOUS_ENEMY -> hudAssets.famousEnemyHpBarTexture }?.let { batch.draw(it, command.x, command.y, command.width, command.height) }
-                "label" -> {
-                    val outline = command.outlineRgb ?: 0; font.data.setScale(.5f); font.color = Color((outline shr 16 and 255) / 255f, (outline shr 8 and 255) / 255f, (outline and 255) / 255f, 1f)
-                    val baseline = command.y + command.height; listOf(-1f to 0f, 1f to 0f, 0f to -1f, 0f to 1f).forEach { (dx, dy) -> font.draw(batch, command.text.orEmpty(), command.x + dx, baseline + dy) }
-                    val rgb = command.colorRgb ?: 0xffffff; font.color = Color((rgb shr 16 and 255) / 255f, (rgb shr 8 and 255) / 255f, (rgb and 255) / 255f, 1f); font.draw(batch, command.text.orEmpty(), command.x, baseline); font.data.setScale(1f); font.color = Color.WHITE
+            commands.drop(1).forEach { command ->
+                when (command.drawType) {
+                    "sliced-sprite" -> when (sample.state.camp) {
+                        BattleCharacterCamp.MINE -> hudAssets.mineHpBarTexture; BattleCharacterCamp.FRIEND -> hudAssets.friendHpBarTexture; BattleCharacterCamp.ENEMY -> hudAssets.enemyHpBarTexture; BattleCharacterCamp.FAMOUS_ENEMY -> hudAssets.famousEnemyHpBarTexture
+                    }?.let { batch.draw(it, command.x, command.y, command.width, command.height) }
+
+                    "label" -> {
+                        val outline = command.outlineRgb ?: 0; font.data.setScale(.5f); font.color = Color(
+                            (outline shr 16 and 255) / 255f,
+                            (outline shr 8 and 255) / 255f,
+                            (outline and 255) / 255f,
+                            1f
+                        )
+                        val baseline = command.y + command.height; listOf(
+                            -1f to 0f,
+                            1f to 0f,
+                            0f to -1f,
+                            0f to 1f
+                        ).forEach { (dx, dy) ->
+                            font.draw(
+                                batch,
+                                command.text.orEmpty(),
+                                command.x + dx,
+                                baseline + dy
+                            )
+                        }
+                        val rgb = command.colorRgb ?: 0xffffff; font.color = Color(
+                            (rgb shr 16 and 255) / 255f,
+                            (rgb shr 8 and 255) / 255f,
+                            (rgb and 255) / 255f,
+                            1f
+                        ); font.draw(
+                            batch,
+                            command.text.orEmpty(),
+                            command.x,
+                            baseline
+                        ); font.data.setScale(1f); font.color = Color.WHITE
+                    }
                 }
-            } }
+            }
         }
     }
 
@@ -6240,6 +8038,18 @@ void main() {
 
     private fun fightPresentationView(): FightPresentationView {
         val snapshot = fightPresentation.renderSnapshot()
+
+        /**
+         * 공개 메서드 `identity`
+         *
+         * ### 파라미터
+        - `fighter` (`FightFighterSnapshot`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `FightUnitRenderIdentity`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun identity(fighter: FightFighterSnapshot): FightUnitRenderIdentity {
             val characterId = fighter.characterId
                 ?: return FightUnitRenderIdentity(
@@ -6329,7 +8139,11 @@ void main() {
                 cocos8MapSampler.value.setUniformf("u_texSize", texture.width.toFloat(), texture.height.toFloat())
                 cocos8MapSampler.value.setUniformi("u_fragmentCoordinates", if (useFragmentCoordinates) 1 else 0)
                 if (useFragmentCoordinates) {
-                    cocos8MapSampler.value.setUniformf("u_framebufferSize", Gdx.graphics.backBufferWidth.toFloat(), Gdx.graphics.backBufferHeight.toFloat())
+                    cocos8MapSampler.value.setUniformf(
+                        "u_framebufferSize",
+                        Gdx.graphics.backBufferWidth.toFloat(),
+                        Gdx.graphics.backBufferHeight.toFloat()
+                    )
                     // Cocos's map-only camera projects framebuffer origin to
                     // world (0,0); ExtendViewport's widened logical bounds
                     // must not be mistaken for that source screen origin.
@@ -6338,7 +8152,8 @@ void main() {
                     // drawing buffer.  Desktop logical-window dimensions can
                     // differ fractionally on HiDPI, so use the same physical
                     // framebuffer ratio for this pixel-centre diagnostic.
-                    val framebufferWorldWidth = viewport.worldHeight * Gdx.graphics.backBufferWidth.toFloat() / Gdx.graphics.backBufferHeight.toFloat()
+                    val framebufferWorldWidth =
+                        viewport.worldHeight * Gdx.graphics.backBufferWidth.toFloat() / Gdx.graphics.backBufferHeight.toFloat()
                     cocos8MapSampler.value.setUniformf("u_worldSize", framebufferWorldWidth, viewport.worldHeight)
                     cocos8MapSampler.value.setUniformf("u_mapOrigin", mapLeft, mapBottom)
                     cocos8MapSampler.value.setUniformf("u_mapSize", mapWidth, mapHeight)
@@ -6364,9 +8179,11 @@ void main() {
                 batch.color = Color.WHITE
                 // Source SpriteFrames crop [1,1,10,10] from each 12px image
                 // and the parent scale produces a 16px submitted quad.
-                MiniMapRenderEvents.yingchuanMarkers.forEach { item -> hudAssets.naturalMiniMapMarkerTextures[item.asset]?.let { marker ->
-                    batch.draw(marker, item.x + miniOffset, item.y, 16f, 16f, 1, 1, 10, 10, false, false)
-                } }
+                MiniMapRenderEvents.yingchuanMarkers.forEach { item ->
+                    hudAssets.naturalMiniMapMarkerTextures[item.asset]?.let { marker ->
+                        batch.draw(marker, item.x + miniOffset, item.y, 16f, 16f, 1, 1, 10, 10, false, false)
+                    }
+                }
             }
             hudAssets.naturalWeatherTexture?.let { texture ->
                 batch.color = Color(1f, 1f, 1f, 127f / 255f)
@@ -6403,31 +8220,80 @@ void main() {
         val selectAreaTiles = selectableAreaTiles()
         val visibleUnits = (battle.units.values + battle.pendingPresentationUnits().filter {
             it.hitPoints <= 0 || it.id in hitReactionAnimations ||
-                it.id in deathAnimations || it.id in pendingDeathAnimations
+                    it.id in deathAnimations || it.id in pendingDeathAnimations
         })
             .asSequence()
             .filter { it.visible }
             // BattleUnit.setPos assigns zIndex = sourceY + 1.  Drawing in
             // this order preserves the original overlap rule (larger source
             // y is in front) when actors occupy adjacent visual space.
-            .sortedWith(if (battleDialogueBlendRoute) {
-                val order = listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
+            .sortedWith(
+                if (battleDialogueBlendRoute) {
+                val order = listOf(
+                    480,
+                    483,
+                    484,
+                    146,
+                    147,
+                    481,
+                    482,
+                    485,
+                    478,
+                    479,
+                    475,
+                    476,
+                    477,
+                    235,
+                    334,
+                    474,
+                    210,
+                    234,
+                    211
+                )
                 compareBy<BattleUnit> { order.indexOf(it.characterId).let { idx -> if (idx < 0) 999 else idx } }
             } else {
                 compareBy<BattleUnit> { it.tileY }
             })
             .toList()
-        drawSelectableTiles(selectAreaTiles)
-        drawBattleCursor()
+        val mapView = battleMapView(selectAreaTiles, visibleUnits)
+        battleMapRenderer.drawSelection(mapView)
         // BattleScreen._setObject(0) calls CreateAnime2(U_select_20, 48, 8,
         // gutter=0, start=0, count=4): contiguous 48px rows held for eight
         // 24fps ticks. Each attached node owns an independent loop clock.
         hudAssets.fireTexture?.let { texture ->
+            /**
+             * 공개 메서드 `drawSelectObject`
+             *
+             * ### 파라미터
+            - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `startRow` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `count` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `startedAt` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun drawSelectObject(x: Int, y: Int, startRow: Int, count: Int, startedAt: Float) {
                 val row = BattleObjectAnimationTimeline.row(mapObjectAnimationClock() - startedAt, startRow, count)
                 val sourceY = BattleObjectAnimationTimeline.sourceY(row)
-                batch.draw(texture, boardLeft + x * boardTile, tileBottom(y), boardTile, boardTile, 0, sourceY, 48, 48, false, false)
+                batch.draw(
+                    texture,
+                    boardLeft + x * boardTile,
+                    tileBottom(y),
+                    boardTile,
+                    boardTile,
+                    0,
+                    sourceY,
+                    48,
+                    48,
+                    false,
+                    false
+                )
             }
+
             val enabledFires = scriptRuntime.stage.fires.values.filter { it.enabled }
             val enabledFireKeys = enabledFires.mapTo(linkedSetOf()) { it.x to it.y }
             fireAnimationStartedAt.keys.retainAll(enabledFireKeys)
@@ -6443,17 +8309,23 @@ void main() {
             val enabledObjectKeys = enabledObjects.mapTo(linkedSetOf()) { Triple(it.objectId, it.x, it.y) }
             mapObjectAnimationStartedAt.keys.retainAll(enabledObjectKeys)
             enabledObjects.forEach { objectState ->
-                    val (startRow, count) = when (objectState.objectId) {
-                        0 -> 0 to 4
-                        1 -> 4 to 2
-                        else -> 6 to 2
-                    }
-                    val key = Triple(objectState.objectId, objectState.x, objectState.y)
-                    drawSelectObject(objectState.x, objectState.y, startRow, count, mapObjectAnimationStartedAt.getOrPut(key, ::mapObjectAnimationClock))
+                val (startRow, count) = when (objectState.objectId) {
+                    0 -> 0 to 4
+                    1 -> 4 to 2
+                    else -> 6 to 2
                 }
+                val key = Triple(objectState.objectId, objectState.x, objectState.y)
+                drawSelectObject(
+                    objectState.x,
+                    objectState.y,
+                    startRow,
+                    count,
+                    mapObjectAnimationStartedAt.getOrPut(key, ::mapObjectAnimationClock)
+                )
+            }
         }
         font.color = Color.WHITE
-        drawMoveTerrainImpacts()
+        battleMapRenderer.drawTerrainImpacts(mapView)
         visibleUnits.forEach { unit ->
             // Prefab child order is status -> unit -> info, so the six
             // ability lift/down icons are behind the avatar.
@@ -6492,27 +8364,27 @@ void main() {
                     cocosHighlightSampler.value.setUniformf("u_value", 1f)
                 }
                 drawWithTerrainMask(unit, drawX, drawY, size) {
-                batch.draw(
-                    texture,
-                    drawX,
-                    drawY,
-                    size,
-                    size,
-                    0,
-                    // Both the original Cocos SpriteFrame.rect and LibGDX's
-                    // source rectangle are bottom-origin.  Asset extraction
-                    // preserves the source atlas verbatim, so no y conversion
-                    // belongs in the runtime renderer.
-                    // Battle.CreateAnime resets an out-of-range generated
-                    // row to zero (`G + w > texture.height && (G = 0)`).
-                    // Clamping to the final row is visually different for
-                    // the shorter Unit_* atlases.
-                    if (frame.sourceY + frame.sourceHeight > texture.height) 0 else frame.sourceY,
-                    minOf(frame.sourceWidth, texture.width),
-                    minOf(frame.sourceHeight, texture.height),
-                    frame.flipX || (action?.kind == UnitAnimationKind.ATTACK && action.direction == 1),
-                    false,
-                )
+                    batch.draw(
+                        texture,
+                        drawX,
+                        drawY,
+                        size,
+                        size,
+                        0,
+                        // Both the original Cocos SpriteFrame.rect and LibGDX's
+                        // source rectangle are bottom-origin.  Asset extraction
+                        // preserves the source atlas verbatim, so no y conversion
+                        // belongs in the runtime renderer.
+                        // Battle.CreateAnime resets an out-of-range generated
+                        // row to zero (`G + w > texture.height && (G = 0)`).
+                        // Clamping to the final row is visually different for
+                        // the shorter Unit_* atlases.
+                        if (frame.sourceY + frame.sourceHeight > texture.height) 0 else frame.sourceY,
+                        minOf(frame.sourceWidth, texture.width),
+                        minOf(frame.sourceHeight, texture.height),
+                        frame.flipX || (action?.kind == UnitAnimationKind.ATTACK && action.direction == 1),
+                        false,
+                    )
                 }
                 if (sourceHighlight) {
                     batch.flush()
@@ -6522,7 +8394,7 @@ void main() {
             drawUnitInfoBarInline(unit)
             drawUnitStateAnimation(unit)
         }
-        drawHarmNumbers(visibleUnits)
+        battleMapRenderer.drawHarmNumbers(mapView)
         // BattleScreen's SHOW_SAY handler parents qipao to map at the speaking
         // BattleUnit node position + (24,24) Cocos-local pixels. In the
         // scaled map this is +48,+48 from the unit centre. The source map's
@@ -6560,13 +8432,25 @@ void main() {
      * while its normal avatar child is 48×48; map rendering scales both ×2.
      */
     private fun drawWithTerrainMask(unit: BattleUnit, x: Float, y: Float, size: Float, draw: () -> Unit) {
-        val mask = when (terrainGrid.terrainAt(unit.tileX, unit.tileY)) { 10 -> hudAssets.terrainMask19; 1 -> hudAssets.terrainMask21; else -> null }
-        if (mask == null) { draw(); return }
+        val mask = when (terrainGrid.terrainAt(unit.tileX, unit.tileY)) {
+            10 -> hudAssets.terrainMask19; 1 -> hudAssets.terrainMask21; else -> null
+        }
+        if (mask == null) {
+            draw(); return
+        }
         batch.flush(); Gdx.gl.glEnable(GL20.GL_STENCIL_TEST); Gdx.gl.glClear(GL20.GL_STENCIL_BUFFER_BIT)
-        Gdx.gl.glColorMask(false, false, false, false); Gdx.gl.glStencilFunc(GL20.GL_ALWAYS, 1, 0xff); Gdx.gl.glStencilOp(GL20.GL_REPLACE, GL20.GL_REPLACE, GL20.GL_REPLACE)
+        Gdx.gl.glColorMask(false, false, false, false); Gdx.gl.glStencilFunc(
+            GL20.GL_ALWAYS,
+            1,
+            0xff
+        ); Gdx.gl.glStencilOp(GL20.GL_REPLACE, GL20.GL_REPLACE, GL20.GL_REPLACE)
         val maskSize = boardTile * (80f / 48f)
         batch.draw(mask, x + (size - maskSize) / 2f, y + (size - maskSize) / 2f, maskSize, maskSize); batch.flush()
-        Gdx.gl.glColorMask(true, true, true, true); Gdx.gl.glStencilFunc(GL20.GL_EQUAL, 1, 0xff); Gdx.gl.glStencilOp(GL20.GL_KEEP, GL20.GL_KEEP, GL20.GL_KEEP)
+        Gdx.gl.glColorMask(true, true, true, true); Gdx.gl.glStencilFunc(GL20.GL_EQUAL, 1, 0xff); Gdx.gl.glStencilOp(
+            GL20.GL_KEEP,
+            GL20.GL_KEEP,
+            GL20.GL_KEEP
+        )
         draw(); batch.flush(); Gdx.gl.glDisable(GL20.GL_STENCIL_TEST)
     }
 
@@ -6633,28 +8517,32 @@ void main() {
     /** Faithful BattleScreen.meff strip playback, including frame alpha and offsets. */
     private fun drawMagicEffect() {
         magicEffectAnimations.filter { animationClock() in it.startedAt..<it.endsAt }.forEach { animation ->
-        val effect = magicEffects.effect(animation.effectId) ?: return@forEach
-        val frame = effect.frameAt(animationClock() - animation.startedAt) ?: return@forEach
-        if (frame.sourceIndex < 0) return@forEach
-        val texture = dynamicTextures.effect(animation.effectId) ?: return@forEach
-        batch.color = Color(1f, 1f, 1f, ((frame.alpha + 24).coerceIn(0, 32) / 32f))
-        animation.targetIds.mapNotNull(battle::presentationUnit).filter { it.visible }.forEach { target ->
-            val width = effect.frameWidth / 48f * boardTile
-            val height = effect.frameHeight / 48f * boardTile
-            batch.draw(
-                texture,
-                boardLeft + target.tileX * boardTile + (boardTile - width) / 2 + frame.offsetX / 48f * boardTile,
-                tileBottom(target.tileY) + (boardTile - height) / 2 - frame.offsetY / 48f * boardTile,
-                width,
-                height,
-                0,
-                (frame.sourceIndex * effect.frameHeight).coerceAtMost((texture.height - effect.frameHeight).coerceAtLeast(0)),
-                minOf(effect.frameWidth, texture.width),
-                minOf(effect.frameHeight, texture.height),
-                false,
-                false,
-            )
-        }
+            val effect = magicEffects.effect(animation.effectId) ?: return@forEach
+            val frame = effect.frameAt(animationClock() - animation.startedAt) ?: return@forEach
+            if (frame.sourceIndex < 0) return@forEach
+            val texture = dynamicTextures.effect(animation.effectId) ?: return@forEach
+            batch.color = Color(1f, 1f, 1f, ((frame.alpha + 24).coerceIn(0, 32) / 32f))
+            animation.targetIds.mapNotNull(battle::presentationUnit).filter { it.visible }.forEach { target ->
+                val width = effect.frameWidth / 48f * boardTile
+                val height = effect.frameHeight / 48f * boardTile
+                batch.draw(
+                    texture,
+                    boardLeft + target.tileX * boardTile + (boardTile - width) / 2 + frame.offsetX / 48f * boardTile,
+                    tileBottom(target.tileY) + (boardTile - height) / 2 - frame.offsetY / 48f * boardTile,
+                    width,
+                    height,
+                    0,
+                    (frame.sourceIndex * effect.frameHeight).coerceAtMost(
+                        (texture.height - effect.frameHeight).coerceAtLeast(
+                            0
+                        )
+                    ),
+                    minOf(effect.frameWidth, texture.width),
+                    minOf(effect.frameHeight, texture.height),
+                    false,
+                    false,
+                )
+            }
         }
         batch.color = Color.WHITE
     }
@@ -6662,45 +8550,28 @@ void main() {
     /** BattleUnit.createInfoNode's always-visible bar2, without debug names. */
     /** The HP sprite is a child of each unit and follows its actor draw. */
     private fun drawUnitInfoBarInline(unit: BattleUnit) {
-            // unitHide first clears other child nodes before starting anime24.
-            if (deathAnimations[unit.id]?.let { animationClock() in it.startedAt..<it.endsAt } == true) return
-            // The authored S_00 cut-scene leaves the struck 235 actor drawn
-            // for its highlight/death frame, while BattleUnit's source HP
-            // ratio is already zero, so its child bar contributes no pixels.
-            if (!battleDialogueBlendRoute && sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4) return
-            val (visualX, visualY) = visualTile(unit)
-            val shownHp = healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints)
-            val ratio = (shownHp.toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
-            val width = 88f
-            val x = boardLeft + visualX * boardTile + (boardTile - width) / 2
-            val y = tileBottom(visualY) - 1f
-            val texture = when (unit.type()) {
-                Faction.PLAYER -> hudAssets.mineHpBarTexture
-                Faction.FRIEND -> hudAssets.friendHpBarTexture
-                Faction.ENEMY -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
-                Faction.REINFORCEMENTS -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
-            }
-            texture?.let {
-                batch.color = Color.WHITE
-                batch.draw(it, x, y, width * ratio, 6f)
-            }
-    }
-
-    /** A 24px bold HP/MP harm number above the target. */
-    private fun drawHarmNumbers(visibleUnits: List<BattleUnit>) {
-        val now = animationClock()
-        harmNumberAnimations.forEach { (unitId, animation) ->
-            if (now < animation.startedAt || now >= animation.endsAt) return@forEach
-            val unit = visibleUnits.firstOrNull { it.id == unitId } ?: return@forEach
-            val (visualX, visualY) = visualTile(unit)
-            font.data.setScale(0.5f)
-            font.color = if (animation.isHp) Color.WHITE else Color(224f / 255f, 224f / 255f, 0f, 1f)
-            // Harm-number presentation writes String(Math.abs(value)) for both
-            // HP_ADD and MP_ADD; a negative HP delta is not a minus-sign UI.
-            font.draw(batch, kotlin.math.abs(animation.amount).toString(), boardLeft + visualX * boardTile, tileBottom(visualY) + boardTile + 24f)
-            font.data.setScale(1f)
+        // unitHide first clears other child nodes before starting anime24.
+        if (deathAnimations[unit.id]?.let { animationClock() in it.startedAt..<it.endsAt } == true) return
+        // The authored S_00 cut-scene leaves the struck 235 actor drawn
+        // for its highlight/death frame, while BattleUnit's source HP
+        // ratio is already zero, so its child bar contributes no pixels.
+        if (!battleDialogueBlendRoute && sourceScenario == "S_00" && scriptedUnitVisuals[unit.id]?.action == 4) return
+        val (visualX, visualY) = visualTile(unit)
+        val shownHp = healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints)
+        val ratio = (shownHp.toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
+        val width = 88f
+        val x = boardLeft + visualX * boardTile + (boardTile - width) / 2
+        val y = tileBottom(visualY) - 1f
+        val texture = when (unit.type()) {
+            Faction.PLAYER -> hudAssets.mineHpBarTexture
+            Faction.FRIEND -> hudAssets.friendHpBarTexture
+            Faction.ENEMY -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
+            Faction.REINFORCEMENTS -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
         }
-        font.color = Color.WHITE
+        texture?.let {
+            batch.color = Color.WHITE
+            batch.draw(it, x, y, width * ratio, 6f)
+        }
     }
 
     /** Source BattleScreen coordinates use y=0 at the top of the Hexzmap. */
@@ -6714,9 +8585,11 @@ void main() {
                 AiPresentationStage.FOCUS_DELAY -> return resolution.moveArea
                     .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.GREEN) }
+
                 AiPresentationStage.ACTION_DELAY -> return resolution.actionArea
                     .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
+
                 else -> Unit
             }
         }
@@ -6733,16 +8606,17 @@ void main() {
                 // modeled, so do not invent a fourth visual here.
                 ?.map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
                 .orEmpty()
+
             propertyMode -> {
                 val range = listOf(0 to 0, 1 to 0, -1 to 0, 0 to 1, 0 to -1)
-                .map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
-                .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
-                // `showUsePropertyRange` calls `_showHitArea(..., true,
-                // false)`: include-self plus the hit flag resolves to RED.
-                // Its later GREEN_BOX target effect is cursor-relative and
-                // requires the source effect-area data, which this compact
-                // item preview does not yet model.
-                .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
+                    .map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
+                    .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
+                    // `showUsePropertyRange` calls `_showHitArea(..., true,
+                    // false)`: include-self plus the hit flag resolves to RED.
+                    // Its later GREEN_BOX target effect is cursor-relative and
+                    // requires the source effect-area data, which this compact
+                    // item preview does not yet model.
+                    .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
                 // The source then calls `selectUnit(targets, 1)`, placing a
                 // GREEN_BOX above every selectable allied target.  The game
                 // resolves the target on click rather than moving a separate
@@ -6784,61 +8658,39 @@ void main() {
         }
     }
 
-    /** Draws the original `U_select` frames below the fire and actor layers. */
-    private fun drawSelectableTiles(tiles: List<SelectAreaTile>) {
-        tiles.forEach { tile ->
-            hudAssets.selectAreaTextures[tile.frame.assetName]?.let { texture ->
-                batch.color = Color.WHITE
-                batch.draw(
-                    texture,
-                    boardLeft + tile.x * boardTile,
-                    tileBottom(tile.y),
-                    boardTile,
-                    boardTile,
-                )
+    private fun battleMapView(
+        selectionTiles: List<SelectAreaTile>,
+        visibleUnits: List<BattleUnit>,
+    ): BattleMapView {
+        val selected = selectedUnitId?.let(battle.units::get)
+        val terrainImpacts = if (magicMode || propertyMode || selected == null) {
+            emptyList()
+        } else {
+            battle.reachableTiles(selected.id).keys.map { (x, y) ->
+                BattleMapTerrainImpact(x, y, selected.terrainImpacts[terrainGrid.terrainAt(x, y)] ?: 100)
             }
         }
-        batch.color = Color.WHITE
-    }
-
-    /** Mirrors BattleScreen.cursorVisible while a player unit is selected. */
-    private fun drawBattleCursor() {
-        val selected = selectedUnitId?.let(battle.units::get) ?: return
-        hudAssets.battleCursorTexture?.let { texture ->
-            batch.color = Color.WHITE
-            batch.draw(
-                texture,
-                boardLeft + selected.tileX * boardTile,
-                tileBottom(selected.tileY),
-                boardTile,
-                boardTile,
-            )
+        val now = animationClock()
+        val harmNumbers = harmNumberAnimations.mapNotNull { (unitId, animation) ->
+            if (now < animation.startedAt || now >= animation.endsAt) return@mapNotNull null
+            val unit = visibleUnits.firstOrNull { it.id == unitId } ?: return@mapNotNull null
+            val (visualX, visualY) = visualTile(unit)
+            BattleMapHarmNumber(visualX, visualY, animation.amount, animation.isHp)
         }
-        batch.color = Color.WHITE
+        return BattleMapView(
+            boardLeft = boardLeft,
+            boardBottom = boardBottom,
+            tileSize = boardTile,
+            selectionTiles = selectionTiles.map { BattleMapSelection(it.x, it.y, it.frame.assetName) },
+            cursor = selected?.let { BattleMapCursor(it.tileX, it.tileY) },
+            terrainImpacts = terrainImpacts,
+            harmNumbers = harmNumbers,
+        )
     }
 
     /** Battle's player and allied camps share the source `areAllied` target set. */
     private fun unitsAreAllied(left: BattleUnit, right: BattleUnit): Boolean =
         left.isPlayerSide() == right.isPlayerSide()
-
-    /** _showMoveArea prints BattleUnit.terrainImpact on every available tile. */
-    private fun drawMoveTerrainImpacts() {
-        if (magicMode || propertyMode) return
-        val selected = selectedUnitId?.let(battle.units::get) ?: return
-        val reachable = battle.reachableTiles(selected.id)
-        if (reachable.isEmpty()) return
-        // `_showMoveArea` creates a 12px cc.Label under map.node. The map
-        // itself is scaled ×2 in Battle.fire, therefore its framebuffer
-        // glyphs are 24px—not the old 12px direct-screen approximation.
-        font.data.setScale(24f / 26f)
-        font.color = Color(0.94f, 0.97f, 1f, 0.9f)
-        reachable.keys.forEach { (x, y) ->
-            val impact = selected.terrainImpacts[terrainGrid.terrainAt(x, y)] ?: 100
-            font.draw(batch, impact.toString(), boardLeft + x * boardTile + 3f, tileBottom(y) + 23f)
-        }
-        font.data.setScale(1f)
-        font.color = Color.WHITE
-    }
 
     private fun drawHud() {
         batch.projectionMatrix = viewport.camera.combined
@@ -6846,7 +8698,12 @@ void main() {
         font.color = Color(1f, 0.85f, 0.48f, 1f)
         font.draw(batch, "원본 전술 전투 · $sourceScenario", 80f, 680f)
         font.color = Color.WHITE
-        font.draw(batch, "라운드 ${battle.round} · ${battle.activeFaction.label()} 차례 · ${battle.weather.label()}", 80f, 638f)
+        font.draw(
+            batch,
+            "라운드 ${battle.round} · ${battle.activeFaction.label()} 차례 · ${battle.weather.label()}",
+            80f,
+            638f
+        )
         font.draw(batch, eventMessage, 80f, 94f)
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
         font.draw(batch, "클릭: 선택/이동/공격 · M: 전략 · B: 아이템 · T: 턴 종료 · Esc: 돌아가기", 520f, 52f)
@@ -6909,7 +8766,12 @@ void main() {
         // Cocos color [0,0,0,255].
         dialogueFont.color = Color.BLACK
         dialogueFont.data.setScale(30f / 36f)
-        dialogueFont.draw(batch, menu?.battleName ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex), 124f, 69f)
+        dialogueFont.draw(
+            batch,
+            menu?.battleName ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
+            124f,
+            69f
+        )
         dialogueFont.draw(batch, "턴 수", 430f, 69f)
         dialogueFont.draw(batch, "${menu?.round ?: battle.round} / ${menu?.maxRound ?: scenarioMaxRound()}", 692f, 69f)
         // The prefab's weather is the animated bg/weather Sprite (a 72px
@@ -6935,191 +8797,14 @@ void main() {
         batch.end()
     }
 
-    /**
-     * Desktop rendering of the original `Global/scene/TerrainLayer` prefab.
-     * The source has a 1021×600 bg, two 196/223px tab buttons and a
-     * `Panel_cancel`; its ScrollViews show two alternating item prefabs.
-     * We retain the content geometry, tab ownership and scrolling while using
-     * the game's bitmap font instead of Cocos DynamicAtlas labels.
-     */
-    private fun drawTerrainLayer() {
-        // TerrainLayer/bg is authored at x=40.6 relative to the original
-        // Canvas centre (744.186), placing its left edge at 274.236.  The
-        // previous 234 value incorrectly used a 1280-wide canvas centre.
-        val panelX = 274f
-        val panelY = 100f
-        val panelW = 1021f
-        val panelH = 600f
-        val tab = terrainLayer.selected ?: TerrainLayer.Tab.RISE
-        val panel = terrainLayer.select(tab)
-        // The source item prefabs are 75px high in a 415px ScrollView.
-        // Six rows are visible (the sixth is clipped at its bottom edge).
-        val visibleRows = 6
-        val first = terrainScrollRow.coerceIn(0, (panel.rows.size - visibleRows).coerceAtLeast(0))
-        terrainScrollRow = first
-
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        batch.color = Color.WHITE
-        // Logo_9 is a tiled Cocos Sprite, not a stretched 96px image.
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            val tile = 96f
-            var ty = panelY
-            while (ty < panelY + panelH) {
-                var tx = panelX
-                while (tx < panelX + panelW) {
-                    batch.draw(texture, tx, ty, minOf(tile, panelX + panelW - tx), minOf(tile, panelY + panelH - ty))
-                    tx += tile
-                }
-                ty += tile
-            }
-        }
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, panelX + 14f, panelY + 84f, panelW - 28f, 460f)
-        // button0/1/2 in the source prefab are 196.7×60, 222.7×60 and
-        // 120×60 respectively.  Draw them after bg so their nine-patches are
-        // not hidden by the tiled Logo_9 background.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 285f, 111f, 197f, 60f)
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 491f, 111f, 223f, 60f)
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 1165f, 111f, 120f, 60f)
-        // TerrainLayer's authored labels are black over the pale Logo_9
-        // background (unlike the ordinary battle HUD labels).
-        font.color = Color.BLACK
-        val titleScale = 40f / 26f
-        val terrainNameScale = 36f / 26f
-        val valueScale = 50f / 26f
-        font.data.setScale(titleScale)
-        font.draw(batch, "지형 정보 일람", panelX + 10f, panelY + 586f)
-        // Cocos' system font is appreciably narrower than KoreanFont.  Keep
-        // the 40px title scale, but use the base glyph scale for labels that
-        // must fit inside the authored 53px table columns and 60px buttons.
-        font.data.setScale(1.4f)
-        font.draw(batch, "지형 효과", 304f, 147f)
-        font.draw(batch, "기동력 소모", 516f, 147f)
-        font.draw(batch, "확인", 1207f, 147f)
-        val columnWidth = 53f
-        // TerrainLayer places the arm names in the top row of the table;
-        // the bottom buttons change panels rather than acting as top tabs.
-        font.color = Color.BLACK
-        font.data.setScale(1f)
-        font.draw(batch, "이름", panelX + 90f, panelY + 529f)
-        panel.rows.firstOrNull()?.values?.forEachIndexed { armIndex, value ->
-            // TerrainLayer.onCreate explicitly assigns NAME.substring(0, 2)
-            // to each of the thirteen header buttons.
-            font.draw(batch, value.armName.take(2), panelX + 252f + armIndex * columnWidth, panelY + 529f)
-        }
-        font.data.setScale(valueScale)
-        panel.rows.drop(first).take(visibleRows).forEachIndexed { rowIndex, row ->
-            val y = panelY + 488f - rowIndex * 75f
-            (if (rowIndex % 2 == 0) overlayAssets.terrainLayerRowEvenPatch else overlayAssets.terrainLayerRowOddPatch)
-                ?.draw(batch, panelX + 18f, y - 59f, panelW - 36f, 75f)
-            // Source item prefab: icon is a 48px SpriteFrame scaled 1.4;
-            // its resource lookup uses `_initPanel*`'s incrementing `i`,
-            // represented by Cell.iconIndex, never a translated terrain ID.
-            dynamicTextures.terrainIcon(row.iconIndex)?.let { icon ->
-                batch.color = Color.WHITE
-                batch.draw(icon, TerrainLayerSpriteLayout.ICON_X, TerrainLayerSpriteLayout.iconY(rowIndex), TerrainLayerSpriteLayout.ICON_SIZE, TerrainLayerSpriteLayout.ICON_SIZE)
-            }
-            font.data.setScale(terrainNameScale)
-            font.color = if (rowIndex % 2 == 0) Color(1f, 0.94f, 0.78f, 1f) else Color(0.86f, 0.86f, 0.86f, 1f)
-            font.draw(batch, row.terrainName, panelX + 104f, y + 12f)
-            font.data.setScale(valueScale)
-            row.enabledSkills.forEachIndexed { bit, enabled ->
-                font.color = if (enabled) Color(1f, 0.82f, 0.20f, 1f) else Color(0.35f, 0.35f, 0.35f, 1f)
-                font.draw(batch, if (enabled) "●" else "○", panelX + 172f + bit * 20f, y)
-            }
-            row.values.forEachIndexed { armIndex, value ->
-                font.color = when (value.grade) {
-                    0 -> Color(0.94f, 0.56f, 0.13f, 1f)
-                    1 -> Color(0.94f, 0.38f, 0f, 1f)
-                    2 -> Color(0f, 0.56f, 0f, 1f)
-                    3 -> Color(0f, 0f, 0.63f, 1f)
-                    4 -> Color(0.44f, 0.25f, 0.5f, 1f)
-                    else -> Color(0.78f, 0.78f, 0.78f, 1f)
-                }
-                font.draw(batch, value.text, panelX + 252f + armIndex * columnWidth, y)
-            }
-        }
-        (0..13).forEach { index ->
-            overlayAssets.terrainLayerVlinePatch?.draw(batch, panelX + 244f + index * columnWidth, panelY + 96f, 6f, 414f)
-        }
-        font.data.setScale(1f)
-        font.color = Color.WHITE
-        batch.end()
-    }
-
-    /** Game of PropertyLayer prefab: four toggles, pooled scroll rows, close button. */
-    private fun drawPropertyLayer() {
-        val x = 247f; val y = 48f; val w = 994f; val h = 706f
-        // Captured PropertyLayer labels are all Cocos system-font 40px.
-        val sourceLabelScale = 40f / 26f
-        val rows = propertyLayer.rows()
-        val visibleRows = 7
-        val first = propertyScrollRow.coerceIn(0, (rows.size - visibleRows).coerceAtLeast(0)); propertyScrollRow = first
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        batch.color = Color.WHITE
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            val tile = 96f
-            var ty = y
-            while (ty < y + h) {
-                var tx = x
-                while (tx < x + w) {
-                    batch.draw(texture, tx, ty, minOf(tile, x + w - tx), minOf(tile, y + h - ty))
-                    tx += tile
-                }
-                ty += tile
-            }
-        }
-        // Source panel0 is 990×524 (centre 744.186,379); its five title0
-        // prefabs are independent 60px header frames above the scroll body.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 249f, 117f, 990f, 524f)
-        listOf(
-            floatArrayOf(251.2f, 637.9f, 376.9f),
-            floatArrayOf(628.6f, 638f, 195.1f),
-            floatArrayOf(824.7f, 638f, 106.9f),
-            floatArrayOf(931.4f, 638f, 101.2f),
-            floatArrayOf(1032f, 638f, 206.4f),
-        ).forEach { (headerX, headerY, headerWidth) ->
-            overlayAssets.terrainLayerPanelPatch?.draw(batch, headerX, headerY, headerWidth, 60f)
-        }
-        font.color = Color.BLACK
-        font.data.setScale(sourceLabelScale)
-        font.draw(batch, "창고 일람", x + 430f, 740f)
-        val columns = listOf(
-            "이름" to 400f, "속성" to 687f, "레벨" to 838f,
-            "경험치" to 930f, "소지자" to 1083f,
-        )
-        columns.forEach { (label, cx) -> font.draw(batch, label, cx, 680f) }
-        val columnLines = listOf(628.468f, 823.971f, 930.065f, 1032.026f)
-        columnLines.forEach { lineX -> overlayAssets.terrainLayerVlinePatch?.draw(batch, lineX, 122.75f, 6f, 515.38f) }
-        rows.drop(first).take(visibleRows).forEachIndexed { rowIndex, row ->
-            val rowY = y + 540f - rowIndex * 72f
-            (if (rowIndex % 2 == 0) overlayAssets.terrainLayerRowEvenPatch else overlayAssets.terrainLayerRowOddPatch)
-                ?.draw(batch, x + 9f, rowY - 59f, w - 18f, 72f)
-            val selected = row.item.id == propertySelectedId
-            font.color = if (selected) Color(0.05f, 0.35f, 0.95f, 1f) else Color.BLACK
-            dynamicTextures.itemIcon(row.item.icon)?.let { batch.draw(it, x + 22f, rowY - 47f, 48f, 48f) }
-            font.draw(batch, row.labels.joinToString("     "), x + 86f, rowY)
-        }
-        font.data.setScale(sourceLabelScale)
-        val labels = listOf("무기", "방어구", "보조", "아이템")
-        PropertyLayer.Tab.entries.forEachIndexed { index, tab ->
-            font.color = if (tab == propertyLayer.selected) Color(0.05f, 0.48f, 0.94f, 1f) else Color(0.2f, 0.2f, 0.2f, 1f)
-            font.draw(batch, if (tab == propertyLayer.selected) "●" else "○", x + 28f + index * 146f, y + 30f)
-            font.color = Color.BLACK
-            font.draw(batch, labels[index], x + 56f + index * 146f, y + 30f)
-        }
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, x + w - 158f, y + 10f, 140f, 54f)
-        font.color = Color.BLACK
-        font.draw(batch, "확인", x + w - 116f, y + 30f)
-        font.color = Color.WHITE; font.data.setScale(1f); batch.end()
-    }
-
     private fun handlePropertyLayerTap(px: Float, py: Float) {
-        val x=247f; val y=48f
-        if (px !in x..x+994 || py !in y..y+706) return
-        if (py in y+10..y+64) {
-            if (px in x + 820f..x + 976f) { propertyLayerOpen = false; return }
+        val x = 247f
+        val y = 48f
+        if (px !in x..x + 994 || py !in y..y + 706) return
+        if (py in y + 10..y + 64) {
+            if (px in x + 820f..x + 976f) {
+                propertyLayerOpen = false; return
+            }
             when (((px - (x + 12f)) / 146f).toInt()) {
                 0 -> propertyLayer.select(PropertyLayer.Tab.WEAPON)
                 1 -> propertyLayer.select(PropertyLayer.Tab.ARMOR)
@@ -7129,12 +8814,18 @@ void main() {
             propertyScrollRow = 0
             return
         }
-        if(py in y+72..y+602) { val row=((y+566-py)/72f).toInt()+propertyScrollRow; propertyLayer.rows().getOrNull(row)?.let { propertySelectedId=it.item.id } }
+        if (py in y + 72..y + 602) {
+            val row = ((y + 566 - py) / 72f).toInt() + propertyScrollRow; propertyLayer.rows().getOrNull(row)
+                ?.let { propertySelectedId = it.item.id }
+        }
     }
 
     private fun drawTreasureLayer() {
         // TreasureLayer/bg1: centre=(744.186,400), size=970×632.
-        val x = 259f; val y = 84f; val width = 970f; val height = 632f
+        val x = 259f
+        val y = 84f
+        val width = 970f
+        val height = 632f
         // TreasureLayer's title, card labels, footer and button use 40px
         // Cocos system labels in the captured prefab.
         val sourceLabelScale = 40f / 26f
@@ -7179,196 +8870,83 @@ void main() {
         }
         font.data.setScale(sourceLabelScale)
         font.color = Color.BLACK
-        font.draw(batch, "지금까지 발견한 보물 ${rows.count { it.discovered }.toString().padStart(2, '0')} / ${rows.size}", x + 7f, 141f)
+        font.draw(
+            batch,
+            "지금까지 발견한 보물 ${rows.count { it.discovered }.toString().padStart(2, '0')} / ${rows.size}",
+            x + 7f,
+            141f
+        )
         overlayAssets.terrainLayerPanelPatch?.draw(batch, 1071f, 91f, 151f, 52f)
         font.draw(batch, "종료", 1100f, 119f)
         font.color = Color.WHITE; font.data.setScale(1f); batch.end()
     }
 
-    /** SaveLayer bg1 list plus the source MsgBox confirmation state. */
-    private fun drawSaveLayer() {
-        // SaveLayer/bg1: centre=(744.186,400), size=932×634.
-        val x=278f; val y=83f; val w=932f; val h=634f; val rows=saveLayer.view().rows
-        // Every live SaveLayer cc.Label in the captured prefab is Arial 40.
-        val sourceLabelScale=40f/26f
-        val first=saveScrollRow.coerceIn(0,(rows.size-8).coerceAtLeast(0)); saveScrollRow=first
-        batch.projectionMatrix=viewport.camera.combined; batch.begin(); batch.color=Color.WHITE
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            var ty=y; while(ty<y+h) { var tx=x; while(tx<x+w) { batch.draw(texture,tx,ty,minOf(96f,x+w-tx),minOf(96f,y+h-ty)); tx+=96f }; ty+=96f }
-        }
-        // box2 / scrollview: centre=(743.186,386.534), size=912×428.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch,287f,173f,912f,428f)
-        font.color=Color.BLACK; font.data.setScale(sourceLabelScale); font.draw(batch,"진행 상황 유지",288f,703f)
-        font.draw(batch,"어떤 진행 상황을 저장할지 선택해 주세요.",288f,651f)
-        rows.drop(first).take(8).forEachIndexed { i,row ->
-            val rowY=y+505f-i*52f
-            (if(i%2==0) overlayAssets.terrainLayerRowEvenPatch else overlayAssets.terrainLayerRowOddPatch)?.draw(batch,289f,rowY-42f,908f,52f)
-            font.color=Color.BLACK; font.draw(batch,row.number,295f,rowY); font.draw(batch,row.stage,478f,rowY); font.draw(batch,row.name,578f,rowY)
-        }
-        // The tip label belongs to `bg1`, not to the scroll panel: source
-        // world-left is ~132 while the modal body starts at ~278.
-        font.draw(batch,"따뜻한 알림: 오래된 저장 파일일수록 앞에 표시됩니다.",130f,143f)
-        overlayAssets.terrainLayerPanelPatch?.draw(batch,1046f,104f,148f,56f)
-        font.draw(batch,"취소",1080f,132f)
-        saveLayer.pendingSlot()?.let { index -> font.draw(batch,"진행도 No.${index+1}: 저장할 수 있나요?",500f,430f); font.draw(batch,"저장",620f,320f); font.draw(batch,"됐어",820f,320f) }
-        if (saveLayer.completionTipOpen()) { font.draw(batch,"저장 완료.",680f,430f); font.draw(batch,"확인",620f,320f) }
-        font.color=Color.WHITE; font.data.setScale(1f); batch.end()
-    }
-
     private fun saveSlotAt(px: Float, py: Float): Int? {
-        if (px !in 289f..1197f || py !in 182f..600f || saveLayer.pendingSlot()!=null || saveLayer.completionTipOpen()) return null
-        val row=((608f-py)/52f).toInt()+saveScrollRow
+        if (px !in 289f..1197f || py !in 182f..600f || saveLayer.pendingSlot() != null || saveLayer.completionTipOpen()) return null
+        val row = ((608f - py) / 52f).toInt() + saveScrollRow
         return saveLayer.view().rows.getOrNull(row)?.index
     }
+
     /** 0 is MsgBox's OK (`저장`), 1 is cancel (`됐어`). */
     private fun saveConfirmAt(px: Float, py: Float): Int? = when {
         px in 570f..720f && py in 305f..353f -> 0
         px in 770f..920f && py in 305f..353f -> 1
         else -> null
     }
+
     private fun closeSaveLayer() {
         saveLayer.onCancel(SaveLayer.TOUCH_END)
-        saveLayerOpen=false; savePressedSlot=null; saveConfirmPressed=null
+        saveLayerOpen = false; savePressedSlot = null; saveConfirmPressed = null
         if (postBattleSaveLayer) finishVictoryRoute()
     }
 
-    private fun drawSettingLayer() {
-        // SettingLayer/bg is the authored 1097×718 Logo_9 node centred at
-        // (744.186, 400), so its lower-left is (195.686, 41).  Keeping the
-        // modal at the old 1094×776 approximation made it spill off screen.
-        val v = settingLayer.view(); val x = 196f; val y = 41f; val w = 1097f; val h = 718f
-        batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            var ty = y
-            while (ty < y + h) {
-                var tx = x
-                while (tx < x + w) {
-                    batch.draw(texture, tx, ty, minOf(96f, x + w - tx), minOf(96f, y + h - ty))
-                    tx += 96f
-                }
-                ty += 96f
-            }
-        }
-        // `scrollview` / box2: centre=(744.186,408), size=1081×596.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 204f, 110f, 1081f, 596f)
-        // The source content owns all four box1 panels, including the game
-        // speed panel which may be visually covered by SayLayer.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 793f, 520f, 480f, 100f)
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 793f, 388f, 480f, 100f)
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 793f, 256f, 480f, 100f)
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 793f, 81f, 480f, 142f)
-        val sourceLabelScale = 40f / 26f
-        font.color = Color.BLACK; font.data.setScale(sourceLabelScale)
-        font.draw(batch, "환경 설정", 201f, 748f)
-        font.draw(batch, "클릭하여 설정해 주세요. 설정 완료 후 [확인]을 선택해 주세요.", 205f, 690f)
-        val options = listOf("배경 음악 듣기" to 0, "효과음 듣기" to 1, "전투시 전장 축소 이미지가 자동으로 표시됩니다" to 2, "대화창 자동 닫음" to 3, "체력 바가 유닛 위에 있습니다" to 4)
-        options.forEachIndexed { index, (label, bit) ->
-            font.color = if (v.flags and (1 shl bit) != 0) Color(0.1f, .85f, .2f, 1f) else Color.DARK_GRAY
-            font.draw(batch, if (v.flags and (1 shl bit) != 0) "✓" else "■", x + 28f, 643f - index * 65f)
-            font.color = Color.BLACK; font.draw(batch, label, x + 65f, 643f - index * 65f)
-        }
-        fun radios(title: String, labels: List<String>, selected: Int, baseY: Float) {
-            font.color = Color.BLACK; font.draw(batch, title, 822f, baseY + 45f)
-            labels.forEachIndexed { index, label -> font.color = if (selected == index) Color(0.05f,.48f,.94f,1f) else Color.DARK_GRAY; font.draw(batch, if(selected==index) "●" else "○", 816f + index * 145f, baseY); font.color=Color.BLACK; font.draw(batch,label,846f+index*145f,baseY) }
-        }
-        radios("텍스트 속도", listOf("느림", "중간", "빠름"), v.msgSpeed, 574f)
-        radios("정보 설명", listOf("자세히", "보통", "요약"), v.notifyLevel, 310f)
-        font.color=Color.BLACK; font.draw(batch,"대화창 색상",846f,198f)
-        // The source presents four tiled background choices.  Tint the
-        // extracted authored surface so the choices remain distinguishable
-        // even where no standalone SpriteFrame was exported.
-        val swatchColors=listOf(Color(1f,1f,1f,1f),Color(.85f,.85f,.85f,1f),Color(.73f,.73f,.78f,1f),Color(.88f,.84f,.72f,1f))
-        swatchColors.forEachIndexed { index, tint ->
-            val sx=816f+index*105f; overlayAssets.terrainLayerPanelPatch?.draw(batch,sx,91f,96f,72f)
-            overlayAssets.terrainLayerBackgroundTexture?.let { texture -> batch.color=tint;batch.draw(texture,sx+5f,96f,86f,62f);batch.color=Color.WHITE }
-            font.color=if(v.background==index)Color(.08f,.45f,.95f,1f) else Color.DARK_GRAY
-            font.draw(batch,if(v.background==index)"●" else "○",sx+36f,108f)
-        }
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 1130f, 47f, 156f, 56f); font.draw(batch,"확인",1158f,75f)
-        font.color=Color.WHITE; font.data.setScale(1f); batch.end()
-    }
     /** Input regions follow the source-prefab positions used by drawSettingLayer. */
-    private fun handleSettingTap(x:Float,y:Float){
-        val panelX=196f; val panelY=41f
-        if(x !in panelX..panelX+1097f || y !in panelY..panelY+718f) return
+    private fun handleSettingTap(x: Float, y: Float) {
+        val panelX = 196f
+        val panelY = 41f
+        if (x !in panelX..panelX + 1097f || y !in panelY..panelY + 718f) return
         // button0 / 확인
-        if(x in 1130f..1286f && y in 47f..103f){closeSettingLayer();return}
+        if (x in 1130f..1286f && y in 47f..103f) {
+            closeSettingLayer(); return
+        }
         // Five checkboxes at x=225, baselines 643, 578, 513, 448, 383.
-        if(x in panelX+18f..panelX+530f && y in 360f..665f){
-            val row=((663f-y)/65f).toInt().coerceIn(0,4)
-            val bit=listOf(0,1,2,3,4)[row]; val v=settingLayer.view()
-            settingLayer.check(bit,v.flags and (1 shl bit)==0);return
+        if (x in panelX + 18f..panelX + 530f && y in 360f..665f) {
+            val row = ((663f - y) / 65f).toInt().coerceIn(0, 4)
+            val bit = listOf(0, 1, 2, 3, 4)[row]
+            val v = settingLayer.view()
+            settingLayer.check(bit, v.flags and (1 shl bit) == 0); return
         }
         // The two three-way groups retain their painted radio positions.
-        if(x in 793f..1273f && y in 535f..605f){settingLayer.check2(0,((x-816f)/145f).toInt().coerceIn(0,2));return}
-        if(x in 793f..1273f && y in 271f..341f){settingLayer.check2(2,((x-816f)/145f).toInt().coerceIn(0,2));return}
-        if(y in 81f..170f && x in 793f..1273f){settingLayer.selectBackground(((x-816f)/105f).toInt().coerceIn(0,3));return}
-        if(y in 120f..165f && x in 230f..570f)settingLayer.onSlider((x-230f)/340f)
-    }
-    private fun closeSettingLayer(){settingLayer.close(SettingLayer.TOUCH_END);settingLayerOpen=false}
-
-    /** LoadGameLayer prefab: bg1 / 908×424 scrollview / button0 cancel. */
-    private fun drawLoadGameLayer() {
-        // Source bg1: centre=(744.186,400), size=932×605.
-        val x=278f; val y=97.5f; val w=932f; val h=605f; val rows=loadGameLayer.view().rows
-        // LoadGameLayer uses the same 40px Cocos system labels as SaveLayer.
-        val sourceLabelScale=40f/26f
-        val first=loadScrollRow.coerceIn(0,(rows.size-8).coerceAtLeast(0)); loadScrollRow=first
-        batch.projectionMatrix=viewport.camera.combined; batch.begin(); batch.color=Color.WHITE
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            var ty=y; while(ty<y+h) { var tx=x; while(tx<x+w) { batch.draw(texture,tx,ty,minOf(96f,x+w-tx),minOf(96f,y+h-ty)); tx+=96f }; ty+=96f }
+        if (x in 793f..1273f && y in 535f..605f) {
+            settingLayer.check2(0, ((x - 816f) / 145f).toInt().coerceIn(0, 2)); return
         }
-        // Source box2/scrollview centre=(743.186,388), size=912×428.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch,287f,174f,912f,428f)
-        font.color=Color.BLACK; font.data.setScale(sourceLabelScale); font.draw(batch,"진행도 불러오기",288f,688f)
-        font.draw(batch,"읽을 진행 상황을 선택해 주세요. 최신 저장 파일이 가장 위에 있습니다.",288f,640f)
-        rows.drop(first).take(8).forEachIndexed { i,row -> val rowY=574f-i*52f; (if(i%2==0) overlayAssets.terrainLayerRowEvenPatch else overlayAssets.terrainLayerRowOddPatch)?.draw(batch,289f,rowY-42f,908f,52f); font.color=Color.BLACK; font.draw(batch,row.number,295f,rowY); font.draw(batch,row.stage,478f,rowY); font.draw(batch,row.name,578f,rowY) }
-        overlayAssets.terrainLayerPanelPatch?.draw(batch,1051f,110f,148f,60f); font.draw(batch,"취소",1082f,148f)
-        loadGameLayer.view().notice?.let { font.color=Color(.8f,.15f,.15f,1f); font.draw(batch,it,500f,240f) }
-        loadGameLayer.view().confirmation?.let { c -> font.color=Color.BLACK; font.draw(batch,c.message,500f,430f); font.draw(batch,"불러오기",590f,320f); font.draw(batch,"취소",820f,320f) }
-        font.color=Color.WHITE; font.data.setScale(1f); batch.end()
+        if (x in 793f..1273f && y in 271f..341f) {
+            settingLayer.check2(2, ((x - 816f) / 145f).toInt().coerceIn(0, 2)); return
+        }
+        if (y in 81f..170f && x in 793f..1273f) {
+            settingLayer.selectBackground(((x - 816f) / 105f).toInt().coerceIn(0, 3)); return
+        }
+        if (y in 120f..165f && x in 230f..570f) settingLayer.onSlider((x - 230f) / 340f)
     }
+
+    private fun closeSettingLayer() {
+        settingLayer.close(SettingLayer.TOUCH_END); settingLayerOpen = false
+    }
+
     private fun loadSlotAt(px: Float, py: Float): Int? {
-        if (px !in 289f..1197f || py !in 184f..600f || loadGameLayer.pendingSlot()!=null) return null
-        val row=((600f-py)/52f).toInt()+loadScrollRow
+        if (px !in 289f..1197f || py !in 184f..600f || loadGameLayer.pendingSlot() != null) return null
+        val row = ((600f - py) / 52f).toInt() + loadScrollRow
         return loadGameLayer.view().rows.getOrNull(row)?.index
     }
 
-    /** ForcesListLayer prefab: box2 1149×527, 60px alternating item rows. */
-    private fun drawForcesListLayer() {
-        val view=forcesLayer?.view()?:return
-        // Source root `bg1`: centre=(744.186,400), size=1157×641.
-        // Its inner `box2` is 1149×527, centred at y=403.
-        val x=165.686f; val y=79.5f; val w=1157f; val h=641f
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
-        // `box1`/`box2` are alpha-only edge frames.  The source places them
-        // over Logo_9, so retain the tiled backing rather than exposing map
-        // pixels through their transparent centres.
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            var ty=y; while(ty<y+h) { var tx=x; while(tx<x+w) { batch.draw(texture,tx,ty,minOf(96f,x+w-tx),minOf(96f,y+h-ty)); tx+=96f }; ty+=96f }
-        }
-        // Source box2: centre=(744.186,403), size=1149×527.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch,170f,139.5f,1149f,527f)
-        val sourceLabelScale=40f/26f
-        font.color=Color.BLACK;font.data.setScale(sourceLabelScale);font.draw(batch,"부대 정보 일람",x+455f,706f)
-        val headers=listOf("무장명","부대 속성","레벨","체력","체력","공격","방어","정신","폭발","사기")
-        val offsets=listOf(25f,160f,325f,405f,555f,665f,760f,855f,950f,1045f)
-        font.data.setScale(sourceLabelScale); headers.forEachIndexed{i,label->font.draw(batch,label,x+offsets[i],646f)}
-        val lines=listOf(130f,285f,390f,540f,645f,745f,840f,935f,1030f)
-        lines.forEach { overlayAssets.terrainLayerVlinePatch?.draw(batch,x+it,139.5f,6f,527f) }
-        view.rows.take(5).forEachIndexed { i,row ->
-            val rowY=574.85f-i*62f; (if(i%2==0) overlayAssets.terrainLayerRowEvenPatch else overlayAssets.terrainLayerRowOddPatch)?.draw(batch,171.5f,rowY-30f,1145f,60f)
-            val u=row.unit; font.color=Color.BLACK; font.data.setScale(sourceLabelScale)
-            val values=listOf(u.name,u.post,u.level.toString(),"${u.hp}/${u.maxHp}","${u.mp}/${u.maxMp}",u.attack.toString(),u.defense.toString(),u.spirit.toString(),u.critical.toString(),u.morale.toString())
-            // Cocos labels are vertically centred in the 60px item prefab;
-            // LibGDX's baseline needs a 10px lift to land on the same pixels.
-            values.forEachIndexed { column, value -> font.draw(batch,value,x+offsets[column],rowY + 10f) }
-        }
-        if(view.tabsVisible) { font.data.setScale(.7f); font.color=if(view.selectedTab==0)Color(0.05f,.48f,.94f,1f) else Color.DARK_GRAY; font.draw(batch,if(view.selectedTab==0)"● 아군" else "○ 아군",x+72f,y+28f);font.color=if(view.selectedTab==1)Color(0.05f,.48f,.94f,1f) else Color.DARK_GRAY;font.draw(batch,if(view.selectedTab==1)"● 적군" else "○ 적군",x+220f,y+28f) }
-        overlayAssets.terrainLayerPanelPatch?.draw(batch,x+w-185f,y+10f,170f,55f);font.color=Color.BLACK;font.draw(batch,"폐쇄",x+w-130f,y+30f);font.color=Color.WHITE;font.data.setScale(1f);batch.end()
+    private fun loadConfirmAt(px: Float, py: Float): Int? = when {
+        px in 570f..720f && py in 305f..353f -> 0; px in 770f..920f && py in 305f..353f -> 1; else -> null
     }
-    private fun loadConfirmAt(px: Float, py: Float): Int? = when { px in 570f..720f && py in 305f..353f -> 0; px in 770f..920f && py in 305f..353f -> 1; else -> null }
-    private fun closeLoadGameLayer() { loadGameLayer.onCancel(LoadGameLayer.TOUCH_END); loadGameLayerOpen=false; loadPressedSlot=null; loadConfirmPressed=null }
+
+    private fun closeLoadGameLayer() {
+        loadGameLayer.onCancel(LoadGameLayer.TOUCH_END); loadGameLayerOpen = false; loadPressedSlot =
+            null; loadConfirmPressed = null
+    }
 
     /** TreasureLayer Panel_cancel/button7 close and discovered-row clickItem routing. */
     private fun handleTreasureLayerTap(px: Float, py: Float) {
@@ -7431,12 +9009,16 @@ void main() {
                 saveLayer.onCreate(savedPage = 0)
                 saveLayerOpen = true
             }
+
             2 -> { // DD: LoadGameLayer.onCreate → SAVE_PAGE → _refPage
                 loadScrollRow = 0
                 loadGameLayer.onCreate()
                 loadGameLayerOpen = true
             }
-            3 -> { settingLayer.onCreate(); settingLayerOpen=true } // XTSZ → SettingLayer
+
+            3 -> {
+                settingLayer.onCreate(); settingLayerOpen = true
+            } // XTSZ → SettingLayer
             4 -> openForcesListLayer() // WJYL: SHOW_CHARACTER_LIST → ForcesListLayer
             5 -> { // DJYL: PropertyLayer
                 propertyLayer.select(PropertyLayer.Tab.WEAPON) // PropertyLayer.onCreate → _currentSel(0)
@@ -7444,16 +9026,19 @@ void main() {
                 propertySelectedId = null
                 propertyLayerOpen = true
             }
+
             6 -> { // DX: TerrainLayer
                 terrainLayer.select(TerrainLayer.Tab.RISE) // TerrainLayer.onCreate → sel(0)
                 terrainScrollRow = 0
                 terrainLayerOpen = true
             }
+
             7 -> { // BW → TreasureLayer; onCreate always starts at ScrollView top.
                 treasureScrollRow = 0
                 treasureSelectedId = null
                 treasureLayerOpen = true
             }
+
             8 -> if (battle.outcome() == null) autoBattleFlow.openEndRoundPrompt() // HHJS: END_ROUND -> MsgBox4
             9 -> openWinConditionBox() // SLTJ: BattleScreen WIN_CONDITION → WinConBoxLayer
             10 -> Unit // XDT is intentionally a no-op in the original switch.
@@ -7467,6 +9052,148 @@ void main() {
         battleMenuLayer = MenuLayer().also { it.onCreate(menuCreateData()) }
         battleMenuOpenedAt = elapsed
         battleMenuOpen = true
+    }
+
+    private fun battleAutoOverlayView(): BattleAutoOverlayView {
+        val state = autoBattleFlow.view()
+        val overlay = when (state.overlay) {
+            AutoBattleFlow.Overlay.NONE -> BattleAutoOverlayKind.NONE
+            AutoBattleFlow.Overlay.PROMPT -> BattleAutoOverlayKind.PROMPT
+            AutoBattleFlow.Overlay.TUOGUAN -> BattleAutoOverlayKind.TUOGUAN
+        }
+        return BattleAutoOverlayView(overlay = overlay, checked = state.checked)
+    }
+
+    private fun battleTerrainOverlayView(): BattleTerrainOverlayView {
+        val panel = terrainLayer.select(terrainLayer.selected ?: TerrainLayer.Tab.RISE)
+        val visibleRows = 6
+        val first = terrainScrollRow.coerceIn(0, (panel.rows.size - visibleRows).coerceAtLeast(0))
+        terrainScrollRow = first
+        return BattleTerrainOverlayView(
+            armNames = panel.rows.firstOrNull()?.values.orEmpty().map { it.armName.take(2) },
+            rows = panel.rows.drop(first).take(visibleRows).map { row ->
+                BattleTerrainRowView(
+                    terrainName = row.terrainName,
+                    icon = dynamicTextures.terrainIcon(row.iconIndex),
+                    enabledSkills = row.enabledSkills.toList(),
+                    values = row.values.map { BattleTerrainValueView(it.text, it.grade) },
+                )
+            },
+        )
+    }
+
+    private fun battleSettingsOverlayView(): BattleSettingsOverlayView {
+        val state = settingLayer.view()
+        return BattleSettingsOverlayView(
+            flags = state.flags,
+            msgSpeed = state.msgSpeed,
+            notifyLevel = state.notifyLevel,
+            background = state.background,
+        )
+    }
+
+    private fun battleUnitInfoOverlayView(): BattleUnitInfoOverlayView? {
+        val state = unitInfoLayer?.ref() ?: return null
+        val unit = state.unit
+        return BattleUnitInfoOverlayView(
+            tab = state.tab,
+            unit = BattleUnitInfoUnitView(
+                name = unit.name,
+                post = unit.post,
+                level = unit.level,
+                hp = unit.hp,
+                maxHp = unit.maxHp,
+                mp = unit.mp,
+                maxMp = unit.maxMp,
+                attack = unit.attack,
+                defense = unit.defense,
+                spirit = unit.spirit,
+                critical = unit.critical,
+                morale = unit.morale,
+            ),
+            buttons = state.buttons.toList(),
+            magicRows = state.magicRows.toList(),
+        )
+    }
+
+    private fun helperOverlayView(): BattleHelperOverlayView? {
+        val state = helperLayer?.view() ?: return null
+        return BattleHelperOverlayView(
+            richText = state.richText,
+            buttonText = state.prefab.buttonText,
+        )
+    }
+
+    private fun battleSaveLoadOverlayView(kind: BattleSaveLoadOverlayKind): BattleSaveLoadOverlayView? {
+        if (kind == BattleSaveLoadOverlayKind.SAVE && saveLayerOpen) {
+            val state = saveLayer.view()
+            val first = saveScrollRow.coerceIn(0, (state.rows.size - 8).coerceAtLeast(0))
+            saveScrollRow = first
+            return BattleSaveLoadOverlayView(
+                kind = BattleSaveLoadOverlayKind.SAVE,
+                rows = state.rows.map { BattleSaveLoadRowView(it.number, it.stage, it.name) },
+                firstRow = first,
+                pendingSave = saveLayer.pendingSlot() != null,
+                saveConfirmation = saveLayer.pendingPrompt(),
+                saveCompletionTip = saveLayer.completionTipOpen(),
+            )
+        }
+        if (kind == BattleSaveLoadOverlayKind.LOAD && loadGameLayerOpen) {
+            val state = loadGameLayer.view()
+            val first = loadScrollRow.coerceIn(0, (state.rows.size - 8).coerceAtLeast(0))
+            loadScrollRow = first
+            return BattleSaveLoadOverlayView(
+                kind = BattleSaveLoadOverlayKind.LOAD,
+                rows = state.rows.map { BattleSaveLoadRowView(it.number, it.stage, it.name) },
+                firstRow = first,
+                loadConfirmation = state.confirmation?.message,
+                loadNotice = state.notice,
+            )
+        }
+        return null
+    }
+
+    private fun battleForcesOverlayView(): BattleForcesOverlayView? {
+        val state = forcesLayer?.view() ?: return null
+        return BattleForcesOverlayView(
+            selectedTab = state.selectedTab,
+            tabsVisible = state.tabsVisible,
+            rows = state.rows.map { row ->
+                val unit = row.unit
+                BattleForcesRowView(
+                    values = listOf(
+                        unit.name,
+                        unit.post,
+                        unit.level.toString(),
+                        "${unit.hp}/${unit.maxHp}",
+                        "${unit.mp}/${unit.maxMp}",
+                        unit.attack.toString(),
+                        unit.defense.toString(),
+                        unit.spirit.toString(),
+                        unit.critical.toString(),
+                        unit.morale.toString(),
+                    ),
+                )
+            },
+        )
+    }
+
+    private fun battlePropertyOverlayView(): BattlePropertyOverlayView? {
+        if (!propertyLayerOpen) return null
+        val rows = propertyLayer.rows()
+        val first = propertyScrollRow.coerceIn(0, (rows.size - 7).coerceAtLeast(0))
+        propertyScrollRow = first
+        return BattlePropertyOverlayView(
+            selectedTab = propertyLayer.selected.ordinal,
+            firstRow = first,
+            rows = rows.map { row ->
+                BattlePropertyRowView(
+                    icon = dynamicTextures.itemIcon(row.item.icon),
+                    label = row.labels.joinToString("     "),
+                    selected = row.item.id == propertySelectedId,
+                )
+            },
+        )
     }
 
     private fun autoBattlePromptButtonAt(x: Float, y: Float): Int? = when {
@@ -7516,76 +9243,121 @@ void main() {
         }
     }
 
-    /** Actual MsgBox4/TuoGuan draw path; exact captured nodes are refined by its event oracle. */
-    private fun drawAutoBattleOverlay() {
-        val view = autoBattleFlow.view()
-        if (view.overlay == AutoBattleFlow.Overlay.NONE) return
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin(); batch.color = Color.WHITE
-        when (view.overlay) {
-            AutoBattleFlow.Overlay.PROMPT -> {
-                // MsgBox4 inherits MsgBox and adds only the authored toggle row.
-                for (ty in 0..3) for (tx in 0..6) {
-                    val width = minOf(96f, 635f - tx * 96f)
-                    val height = minOf(96f, 296f - ty * 96f)
-                    if (width > 0f && height > 0f) batch.draw(unitInfoAssets.unitInfoLogo, 426.686f + tx * 96f, 252f + ty * 96f, width, height)
-                }
-                batch.draw(unitInfoAssets.unitInfoBox3, 426.686f, 252f, 635f, 296f)
-                batch.draw(unitInfoAssets.unitInfoLogo, 453.005f, 373.951f, 106f, 124f)
-                itemUpgradeFont.color = Color.WHITE
-                itemUpgradeFont.draw(batch, "모든 부대의 명령을 종료하시겠습니까?", 573.686f, 490f, 463f, Align.center, true)
-                batch.draw(hudAssets.autoBattleToggle, 518.416f, 281.197f, 28f, 28f)
-                if (view.checked) batch.draw(hudAssets.autoBattleCheckmark, 518.416f, 281.197f, 28f, 28f)
-                itemUpgradeFont.draw(batch, "위임", 567.257f, 313f, 73.2f, Align.center, false)
-                listOf(674.536f to "비", 844.536f to "예").forEach { (x, label) ->
-                    batch.draw(unitInfoAssets.unitInfoBox3, x, 270.197f, 150f, 50f)
-                    itemUpgradeFont.draw(batch, label, x + 25f, 310f, 100f, Align.center, false)
-                }
-            }
-            AutoBattleFlow.Overlay.TUOGUAN -> {
-                // The source prefab has no visible Panel_cancel sprite: only
-                // img2 (bottom banner) and img3 (centered instruction plate).
-                batch.draw(hudAssets.autoBattleBanner, 0f, 0f, 1488.372f, 264f)
-                batch.draw(hudAssets.autoBattlePlate, 613.686f, 25.894f, 261f, 83f)
-            }
-            AutoBattleFlow.Overlay.NONE -> Unit
-        }
-        batch.color = Color.WHITE; batch.end()
-    }
-
     private fun autoBattleRenderEventLog(): String {
         val log = RenderEventLog()
         val view = autoBattleFlow.view()
         val phase = autoBattleRouteState?.removeSuffix("-fixture") ?: "battle-auto-battle"
-        fun draw(layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, text: String = "") = log.draw(
+        fun draw(
+            layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = ""
+        ) = log.draw(
             phase, layer, path, type, x, y, w, h, asset,
             blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
             text = text,
         )
         when (view.overlay) {
             AutoBattleFlow.Overlay.PROMPT -> {
-                draw("HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
-                    "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>")
+                draw(
+                    "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
+                    "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
+                )
                 draw("MsgBox4", "Canvas/Layer/bg0", "tiled-sprite", 426.686f, 252f, 635f, 296f, "Logo_9-1")
                 draw("MsgBox4", "Canvas/Layer/bg0/box3", "sliced-sprite", 426.686f, 252f, 635f, 296f, "box3")
                 draw("MsgBox4", "Canvas/Layer/bg0/Logo_3-1", "sprite", 453.005f, 373.951f, 106f, 124f, "Logo_3-1")
-                draw("MsgBox4", "Canvas/Layer/bg0/label", "label", 573.686f, 335f, 463f, 190f, text = "모든 부대의 명령을 종료하시겠습니까?")
-                draw("MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/Background", "sprite", 518.416f, 281.197f, 28f, 28f, "default_toggle_normal")
-                if (view.checked) draw("MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/checkmark", "sprite", 518.416f, 281.197f, 28f, 28f, "assets/resources/native/73/73a0903d-d80e-4e3c-aa67-f999543c08f5.7661e.png#default_toggle_checkmark")
-                draw("MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/label", "label", 567.257f, 267.997f, 73.2f, 54.4f, text = "위임")
-                draw("MsgBox4", "Canvas/Layer/bg0/btns/button1/Background", "sliced-sprite", 674.536f, 270.197f, 150f, 50f, "box3")
-                draw("MsgBox4", "Canvas/Layer/bg0/btns/button1/Background/Label", "label", 699.536f, 278.042f, 100f, 40f, text = "비")
-                draw("MsgBox4", "Canvas/Layer/bg0/btns/button0/Background", "sliced-sprite", 844.536f, 270.197f, 150f, 50f, "box3")
-                draw("MsgBox4", "Canvas/Layer/bg0/btns/button0/Background/Label", "label", 869.536f, 278.042f, 100f, 40f, text = "예")
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/label",
+                    "label",
+                    573.686f,
+                    335f,
+                    463f,
+                    190f,
+                    text = "모든 부대의 명령을 종료하시겠습니까?"
+                )
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/tuoguan/Background",
+                    "sprite",
+                    518.416f,
+                    281.197f,
+                    28f,
+                    28f,
+                    "default_toggle_normal"
+                )
+                if (view.checked) draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/tuoguan/checkmark",
+                    "sprite",
+                    518.416f,
+                    281.197f,
+                    28f,
+                    28f,
+                    "assets/resources/native/73/73a0903d-d80e-4e3c-aa67-f999543c08f5.7661e.png#default_toggle_checkmark"
+                )
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/tuoguan/label",
+                    "label",
+                    567.257f,
+                    267.997f,
+                    73.2f,
+                    54.4f,
+                    text = "위임"
+                )
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/button1/Background",
+                    "sliced-sprite",
+                    674.536f,
+                    270.197f,
+                    150f,
+                    50f,
+                    "box3"
+                )
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/button1/Background/Label",
+                    "label",
+                    699.536f,
+                    278.042f,
+                    100f,
+                    40f,
+                    text = "비"
+                )
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/button0/Background",
+                    "sliced-sprite",
+                    844.536f,
+                    270.197f,
+                    150f,
+                    50f,
+                    "box3"
+                )
+                draw(
+                    "MsgBox4",
+                    "Canvas/Layer/bg0/btns/button0/Background/Label",
+                    "label",
+                    869.536f,
+                    278.042f,
+                    100f,
+                    40f,
+                    text = "예"
+                )
             }
+
             AutoBattleFlow.Overlay.TUOGUAN -> {
-                draw("HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
-                    "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>")
-                draw("HallLayer", "Canvas/Layer/img2", "sprite", 0f, 0f, 1488.372f, 264f,
-                    "assets/resources/native/21/2110e4bf-3344-42aa-b4ff-8183c4cb93f6.52abe.png#img2")
+                draw(
+                    "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
+                    "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
+                )
+                draw(
+                    "HallLayer", "Canvas/Layer/img2", "sprite", 0f, 0f, 1488.372f, 264f,
+                    "assets/resources/native/21/2110e4bf-3344-42aa-b4ff-8183c4cb93f6.52abe.png#img2"
+                )
                 draw("HallLayer", "Canvas/Layer/img2/img3", "sprite", 613.686f, 25.894f, 261f, 83f, "img3")
             }
+
             AutoBattleFlow.Overlay.NONE -> Unit
         }
         return log.jsonl()
@@ -7628,6 +9400,7 @@ void main() {
                     ?.takeIf { it.isNotBlank() }
                 return guide?.let { listOf(HelperLayer.Info(1, text = it)) }.orEmpty()
             }
+
             override fun replaceSpeInfo(text: String, flags: Int): String = SourceInfoText.replace(
                 text, flags,
                 unitName = { id -> gameDataCatalog.unitProfile(id)?.name.orEmpty() },
@@ -7636,18 +9409,42 @@ void main() {
                 // hexadecimal digits after C.  The R_00 shortcut guide uses
                 // C28 (red) and C3A (deep blue); retaining those authored
                 // colours prevents HelperLayer from flattening its RichText.
-                colors = List(0x3b) { index -> when (index) {
-                    0x28 -> "#c30000"
-                    0x3a -> "#0000ab"
-                    else -> ""
-                } },
+                colors = List(0x3b) { index ->
+                    when (index) {
+                        0x28 -> "#c30000"
+                        0x3a -> "#0000ab"
+                        else -> ""
+                    }
+                },
             )
         }
         helperLayer = HelperLayer(model).also { it.onCreate() }
     }
 
     private fun openForcesListLayer() {
+        /**
+         * 공개 메서드 `asSource`
+         *
+         * ### 파라미터
+        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `ForcesListLayer.Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun asSource(unit: BattleUnit): ForcesListLayer.Unit {
+            /**
+             * 공개 메서드 `liftStatus`
+             *
+             * ### 파라미터
+            - `attribute` (`BattleAttribute`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun liftStatus(attribute: BattleAttribute) = when {
                 (unit.attributeLifts[attribute] ?: 0) < 0 -> 0
                 (unit.attributeLifts[attribute] ?: 0) > 0 -> 1
@@ -7669,6 +9466,7 @@ void main() {
                 ),
             )
         }
+
         val mine = battle.units.values.filter { it.visible && it.isPlayerSide() }.map(::asSource)
         val enemy = battle.units.values.filter { it.visible && it.type().isEnemySide() }.map(::asSource)
         forcesLayer = ForcesListLayer().also { it.onCreate(mine, enemy, 1) }
@@ -7678,9 +9476,38 @@ void main() {
     /** ForcesListLayer._onClick → UnitInfoLayer({index, units, flag}). */
     private fun openUnitInfoLayer(selectedCharacterId: Int) {
         val source = battle.units.values.filter { it.visible }
-        fun row(u: BattleUnit)=UnitInfoLayer.Unit(u.characterId ?: 0,u.name,"부대",u.level,u.hitPoints,u.maxHitPoints,u.magicPoints,u.maxMagicPoints,u.attack,u.defense,u.spirit,u.critical,u.morale,u.magic.map { it.name })
-        val rows=source.map(::row); val index=rows.indexOfFirst { it.id==selectedCharacterId }.coerceAtLeast(0)
-        unitInfoLayer=UnitInfoLayer(rows, flag = UnitInfoLayer.BATTLE_FLAG, editEnabled = true).also { it.onCreate(index) }
+
+        /**
+         * 공개 메서드 `row`
+         *
+         * ### 파라미터
+        - `u` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun row(u: BattleUnit) = UnitInfoLayer.Unit(
+            u.characterId ?: 0,
+            u.name,
+            "부대",
+            u.level,
+            u.hitPoints,
+            u.maxHitPoints,
+            u.magicPoints,
+            u.maxMagicPoints,
+            u.attack,
+            u.defense,
+            u.spirit,
+            u.critical,
+            u.morale,
+            u.magic.map { it.name })
+
+        val rows = source.map(::row)
+        val index = rows.indexOfFirst { it.id == selectedCharacterId }.coerceAtLeast(0)
+        unitInfoLayer =
+            UnitInfoLayer(rows, flag = UnitInfoLayer.BATTLE_FLAG, editEnabled = true).also { it.onCreate(index) }
     }
 
     private fun toMagicUi(profile: GameDataCatalog.MagicProfile) = MagicUiList.Magic(
@@ -7707,7 +9534,7 @@ void main() {
             it.visible && it.isPlayerSide() && (!needsMagic || it.magic.isNotEmpty())
         }
         val unit = eligible.firstOrNull { it.faction == battle.activeFaction } ?: eligible.firstOrNull()
-            ?: error("Battle command actual route has no eligible allied unit")
+        ?: error("Battle command actual route has no eligible allied unit")
         // The source fixture's setDir(7) marks this authored ally manually
         // controllable. Mirror that state through the tactical faction used
         // by Battle.moveUnit's production validation.
@@ -7726,8 +9553,10 @@ void main() {
                 // S_00 tactician (책사, MP 42) with one visible 작열 row.
                 // Preserve the real CommandLayer transition while pinning the
                 // child content to that deterministic source state.
-                magickListLayer = MagicUiList(42, 42, listOf(MagicUiList.Magic(0, "작열", 6, 70, 1, 0, 0, "")), emptyMap())
+                magickListLayer =
+                    MagicUiList(42, 42, listOf(MagicUiList.Magic(0, "작열", 6, 70, 1, 0, 0, "")), emptyMap())
             }
+
             "battle-command-property-fixture" -> dispatchBattleCommand(2)
         }
     }
@@ -7735,23 +9564,57 @@ void main() {
     private fun drawBattleCommandLayer() {
         shapes.projectionMatrix = viewport.camera.combined
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color = Color(0f, 0f, 0f, BattleCommandRenderModel.DISMISS_DIM_OPACITY); shapes.rect(0f, 0f, 1488.372f, 800f)
+        shapes.color = Color(0f, 0f, 0f, BattleCommandRenderModel.DISMISS_DIM_OPACITY); shapes.rect(
+            0f,
+            0f,
+            1488.372f,
+            800f
+        )
         shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
         batch.color = Color(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
         for (ty in 0..3) for (tx in 0..4) {
-            val width = minOf(96f, 397.2f - tx * 96f); val height = minOf(96f, 322.5f - ty * 96f)
-            if (width > 0f && height > 0f) batch.draw(unitInfoAssets.unitInfoLogo, 736f + tx * 96f, 96f + ty * 96f, width, height)
+            val width = minOf(96f, 397.2f - tx * 96f)
+            val height = minOf(96f, 322.5f - ty * 96f)
+            if (width > 0f && height > 0f) batch.draw(
+                unitInfoAssets.unitInfoLogo,
+                736f + tx * 96f,
+                96f + ty * 96f,
+                width,
+                height
+            )
         }
-        batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 736f, 96f, 397.2f, 322.5f)
+        batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
+            batch,
+            736f,
+            96f,
+            397.2f,
+            322.5f
+        )
         val labels = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기", "취소")
         itemUpgradeFont.data.setScale(40f / 26f)
         battleCommandFlow.view().forEachIndexed { index, button ->
             val visual = BattleCommandRenderModel.visuals[index]
-            NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch, visual.x, visual.y, visual.width, visual.height)
-            itemUpgradeFont.color = if (button.interactable) Color.BLACK else Color(BattleCommandRenderModel.DISABLED_COMPONENT, BattleCommandRenderModel.DISABLED_COMPONENT, BattleCommandRenderModel.DISABLED_COMPONENT, 1f)
+            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
+                batch,
+                visual.x,
+                visual.y,
+                visual.width,
+                visual.height
+            )
+            itemUpgradeFont.color = if (button.interactable) Color.BLACK else Color(
+                BattleCommandRenderModel.DISABLED_COMPONENT,
+                BattleCommandRenderModel.DISABLED_COMPONENT,
+                BattleCommandRenderModel.DISABLED_COMPONENT,
+                1f
+            )
             itemUpgradeFont.draw(batch, labels[index], visual.labelX, visual.labelY + 40f, 100f, Align.center, false)
-            val iconColor = if (button.interactable) Color.WHITE else Color(BattleCommandRenderModel.DISABLED_COMPONENT, BattleCommandRenderModel.DISABLED_COMPONENT, BattleCommandRenderModel.DISABLED_COMPONENT, 1f)
+            val iconColor = if (button.interactable) Color.WHITE else Color(
+                BattleCommandRenderModel.DISABLED_COMPONENT,
+                BattleCommandRenderModel.DISABLED_COMPONENT,
+                BattleCommandRenderModel.DISABLED_COMPONENT,
+                1f
+            )
             visual.icons.forEach { icon ->
                 val iconIndex = icon.asset.removePrefix("command").toInt()
                 batch.color = iconColor
@@ -7763,73 +9626,243 @@ void main() {
     }
 
     private fun battleCommandRenderEventLog(): String {
-        val log = RenderEventLog(); val route = requireNotNull(battleCommandRouteState).removeSuffix("-fixture")
-        fun d(layer:String,path:String,type:String,x:Float,y:Float,w:Float,h:Float,asset:String?=null,opacity:Float=1f,text:String="") =
-            log.draw(route,layer,path,type,x,y,w,h,asset,opacity,
-                if(type=="label") listOf("SRC_ALPHA","ONE_MINUS_SRC_ALPHA") else listOf(770,771),text=text)
-        d("HallLayer","Canvas/Layer/ScrollView/view/content/map","sprite",-320f,-96f,1920f,1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>")
+        val log = RenderEventLog()
+        val route = requireNotNull(battleCommandRouteState).removeSuffix("-fixture")
+
+        /**
+         * 공개 메서드 `d`
+         *
+         * ### 파라미터
+        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun d(
+            layer: String,
+            path: String,
+            type: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            asset: String? = null,
+            opacity: Float = 1f,
+            text: String = ""
+        ) =
+            log.draw(
+                route, layer, path, type, x, y, w, h, asset, opacity,
+                if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771), text = text
+            )
+        d(
+            "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
+        )
         if (route.endsWith("cancel")) return log.jsonl()
         if (route.endsWith("magick")) {
-            d("HallLayer","Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash",40f/255f)
-            d("MagickListLayer","Canvas/Layer/bg0","tiled-sprite",474.186f,90.5f,540f,619f,"Logo_9-1")
-            d("MagickListLayer","Canvas/Layer/bg0/bg","tiled-sprite",474.186f,90.5f,540f,619f,"box3")
-            d("MagickListLayer","Canvas/Layer/bg0/label0","label",495.586f,652.8f,173f,50.4f,text="책사 ")
-            d("MagickListLayer","Canvas/Layer/bg0/label","label",681.186f,652.807f,60f,50.4f,text="MP")
-            d("MagickListLayer","Canvas/Layer/bg0/progressBar0","sliced-sprite",741.186f,661.207f,204f,24f,"default_progressbar_bg")
-            d("MagickListLayer","Canvas/Layer/bg0/progressBar0/bar","sliced-sprite",743.186f,663.207f,200f,20f,"Mark_1-1")
-            d("MagickListLayer","Canvas/Layer/bg0/progressBar1/bar","sliced-sprite",743.186f,663.207f,200f,20f,"Mark_2-1")
-            d("MagickListLayer","Canvas/Layer/bg0/progressBar1/label","label",793.136f,653.8f,100.1f,50.4f,text="42/42")
-            d("MagickListLayer","Canvas/Layer/bg0/box2","sliced-sprite",478.186f,150.5f,532f,499f,"box2")
-            val p="Canvas/Layer/bg0/box2/scrollview/view/content/item"
-            d("MagickListLayer",p,"sliced-sprite",480.186f,505.5f,262f,140f,"box3")
-            d("MagickListLayer","$p/skill_0","sprite",485.259f,562.883f,76.8f,76.8f,"1-1")
-            d("MagickListLayer","$p/label0","label",572.186f,592.3f,69.2f,50.4f,text="작열")
-            d("MagickListLayer","$p/label","label",572.186f,551.3f,94.6f,50.4f,text="MP：")
-            d("MagickListLayer","$p/label2","label",656.065f,551.3f,22.25f,50.4f,text="6")
-            d("MagickListLayer","$p/label","label",482.283f,510.3f,171.74f,50.4f,text="피해 계수: ")
-            d("MagickListLayer","$p/label1","label",659.823f,510.3f,55.61f,50.4f,text="0.7")
-            d("MagickListLayer","Canvas/Layer/bg0/button/Background","sliced-sprite",775.892f,97.683f,180f,50f,"box3")
-            d("MagickListLayer","Canvas/Layer/bg0/button/Background/Label","label",815.892f,105.683f,100f,40f,text="취소")
+            d(
+                "HallLayer",
+                "Canvas/Layer/Panel_cancel",
+                "sprite",
+                0f,
+                0f,
+                1488.372f,
+                800f,
+                "default_sprite_splash",
+                40f / 255f
+            )
+            d("MagickListLayer", "Canvas/Layer/bg0", "tiled-sprite", 474.186f, 90.5f, 540f, 619f, "Logo_9-1")
+            d("MagickListLayer", "Canvas/Layer/bg0/bg", "tiled-sprite", 474.186f, 90.5f, 540f, 619f, "box3")
+            d("MagickListLayer", "Canvas/Layer/bg0/label0", "label", 495.586f, 652.8f, 173f, 50.4f, text = "책사 ")
+            d("MagickListLayer", "Canvas/Layer/bg0/label", "label", 681.186f, 652.807f, 60f, 50.4f, text = "MP")
+            d(
+                "MagickListLayer",
+                "Canvas/Layer/bg0/progressBar0",
+                "sliced-sprite",
+                741.186f,
+                661.207f,
+                204f,
+                24f,
+                "default_progressbar_bg"
+            )
+            d(
+                "MagickListLayer",
+                "Canvas/Layer/bg0/progressBar0/bar",
+                "sliced-sprite",
+                743.186f,
+                663.207f,
+                200f,
+                20f,
+                "Mark_1-1"
+            )
+            d(
+                "MagickListLayer",
+                "Canvas/Layer/bg0/progressBar1/bar",
+                "sliced-sprite",
+                743.186f,
+                663.207f,
+                200f,
+                20f,
+                "Mark_2-1"
+            )
+            d(
+                "MagickListLayer",
+                "Canvas/Layer/bg0/progressBar1/label",
+                "label",
+                793.136f,
+                653.8f,
+                100.1f,
+                50.4f,
+                text = "42/42"
+            )
+            d("MagickListLayer", "Canvas/Layer/bg0/box2", "sliced-sprite", 478.186f, 150.5f, 532f, 499f, "box2")
+            val p = "Canvas/Layer/bg0/box2/scrollview/view/content/item"
+            d("MagickListLayer", p, "sliced-sprite", 480.186f, 505.5f, 262f, 140f, "box3")
+            d("MagickListLayer", "$p/skill_0", "sprite", 485.259f, 562.883f, 76.8f, 76.8f, "1-1")
+            d("MagickListLayer", "$p/label0", "label", 572.186f, 592.3f, 69.2f, 50.4f, text = "작열")
+            d("MagickListLayer", "$p/label", "label", 572.186f, 551.3f, 94.6f, 50.4f, text = "MP：")
+            d("MagickListLayer", "$p/label2", "label", 656.065f, 551.3f, 22.25f, 50.4f, text = "6")
+            d("MagickListLayer", "$p/label", "label", 482.283f, 510.3f, 171.74f, 50.4f, text = "피해 계수: ")
+            d("MagickListLayer", "$p/label1", "label", 659.823f, 510.3f, 55.61f, 50.4f, text = "0.7")
+            d(
+                "MagickListLayer",
+                "Canvas/Layer/bg0/button/Background",
+                "sliced-sprite",
+                775.892f,
+                97.683f,
+                180f,
+                50f,
+                "box3"
+            )
+            d(
+                "MagickListLayer",
+                "Canvas/Layer/bg0/button/Background/Label",
+                "label",
+                815.892f,
+                105.683f,
+                100f,
+                40f,
+                text = "취소"
+            )
             return log.jsonl()
         }
         if (route.endsWith("property")) {
-            d("HallLayer","Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash",40f/255f)
-            d("UsePropertyLayer","Canvas/Layer/bg","tiled-sprite",736f,96f,491f,410f,"Logo_9-1")
-            d("UsePropertyLayer","Canvas/Layer/bg/box3","sliced-sprite",736f,96f,491f,410f,"box1")
-            d("UsePropertyLayer","Canvas/Layer/bg/box2","sliced-sprite",740f,154f,483f,348f,"box2")
-            val rows=listOf(Triple("회복용 콩","88-1","3"),Triple("회복용 밀","89-1","2"))
-            rows.forEachIndexed { index,(name,asset,count) ->
-                val y=387f-index*112f;val p="Canvas/Layer/bg/box2/scrollview/view/content/item0"
-                d("UsePropertyLayer",p,"sliced-sprite",744f,y,475f,110f,"box3")
-                d("UsePropertyLayer","$p/box2","sliced-sprite",750.014f,y+5f,100f,100f,"box2")
-                d("UsePropertyLayer","$p/box2/icon","sprite",755.014f,y+10f,90f,90f,asset)
-                d("UsePropertyLayer","$p/label0","label",852.5f,y+56.8f,191.5f,50.4f,text=name)
-                d("UsePropertyLayer","$p/label","label",852.5f,y+4.8f,91.43f,50.4f,text="효능: ")
-                d("UsePropertyLayer","$p/label1","label",956.095f,y+3.915f,135.88f,50.4f,text="HP 회복")
-                d("UsePropertyLayer","$p/label","label",1048.736f,y+56.8f,160.63f,50.4f,text="인벤토리: ")
-                d("UsePropertyLayer","$p/label2","label",1189.967f,y+56.8f,22.25f,50.4f,text=count)
+            d(
+                "HallLayer",
+                "Canvas/Layer/Panel_cancel",
+                "sprite",
+                0f,
+                0f,
+                1488.372f,
+                800f,
+                "default_sprite_splash",
+                40f / 255f
+            )
+            d("UsePropertyLayer", "Canvas/Layer/bg", "tiled-sprite", 736f, 96f, 491f, 410f, "Logo_9-1")
+            d("UsePropertyLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 491f, 410f, "box1")
+            d("UsePropertyLayer", "Canvas/Layer/bg/box2", "sliced-sprite", 740f, 154f, 483f, 348f, "box2")
+            val rows = listOf(Triple("회복용 콩", "88-1", "3"), Triple("회복용 밀", "89-1", "2"))
+            rows.forEachIndexed { index, (name, asset, count) ->
+                val y = 387f - index * 112f
+                val p = "Canvas/Layer/bg/box2/scrollview/view/content/item0"
+                d("UsePropertyLayer", p, "sliced-sprite", 744f, y, 475f, 110f, "box3")
+                d("UsePropertyLayer", "$p/box2", "sliced-sprite", 750.014f, y + 5f, 100f, 100f, "box2")
+                d("UsePropertyLayer", "$p/box2/icon", "sprite", 755.014f, y + 10f, 90f, 90f, asset)
+                d("UsePropertyLayer", "$p/label0", "label", 852.5f, y + 56.8f, 191.5f, 50.4f, text = name)
+                d("UsePropertyLayer", "$p/label", "label", 852.5f, y + 4.8f, 91.43f, 50.4f, text = "효능: ")
+                d("UsePropertyLayer", "$p/label1", "label", 956.095f, y + 3.915f, 135.88f, 50.4f, text = "HP 회복")
+                d("UsePropertyLayer", "$p/label", "label", 1048.736f, y + 56.8f, 160.63f, 50.4f, text = "인벤토리: ")
+                d("UsePropertyLayer", "$p/label2", "label", 1189.967f, y + 56.8f, 22.25f, 50.4f, text = count)
             }
-            d("UsePropertyLayer","Canvas/Layer/bg/button/Background","sliced-sprite",1071.609f,100.896f,150f,50f,"box3")
-            d("UsePropertyLayer","Canvas/Layer/bg/button/Background/Label","label",1096.609f,109.896f,100f,40f,text="취소")
+            d(
+                "UsePropertyLayer",
+                "Canvas/Layer/bg/button/Background",
+                "sliced-sprite",
+                1071.609f,
+                100.896f,
+                150f,
+                50f,
+                "box3"
+            )
+            d(
+                "UsePropertyLayer",
+                "Canvas/Layer/bg/button/Background/Label",
+                "label",
+                1096.609f,
+                109.896f,
+                100f,
+                40f,
+                text = "취소"
+            )
             return log.jsonl()
         }
-        d("HallLayer","Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash",10f/255f)
-        d("CommandLayer","Canvas/Layer/bg","tiled-sprite",736f,96f,397.2f,322.5f,"Logo_9-1",200f/255f)
-        d("CommandLayer","Canvas/Layer/bg/box3","sliced-sprite",736f,96f,397.2f,322.5f,"box3")
-        val rects=listOf(floatArrayOf(743.6f,291.175f),floatArrayOf(871.6f,291.175f),floatArrayOf(1000.6f,291.175f),floatArrayOf(743.6f,165.42f),floatArrayOf(871.6f,165.42f),floatArrayOf(1000.6f,165.42f))
-        val labels=listOf("공격","마법","아이템","교환","포위 공격","대기")
-        val icons=listOf("command1","command2","command3","command5","command6","command4")
-        val icon0=listOf(floatArrayOf(749.6f,373.175f,32f,32f),floatArrayOf(875.6f,375.175f,32f,32f),floatArrayOf(1004.6f,377.175f,30f,30f),floatArrayOf(747.6f,253.42f,32f,28f),floatArrayOf(875.6f,249.42f,32f,32f),floatArrayOf(1004.6f,249.42f,32f,32f))
-        val icon1=listOf(floatArrayOf(825.6f,297.175f,32f,32f),floatArrayOf(953.6f,297.175f,32f,32f),floatArrayOf(1084.6f,297.175f,30f,30f),floatArrayOf(825.6f,171.42f,32f,28f),floatArrayOf(953.6f,171.42f,32f,32f),floatArrayOf(1082.6f,171.42f,32f,32f))
-        rects.forEachIndexed { i,r ->
-            val p="Canvas/Layer/bg/button$i/Background";d("CommandLayer",p,"sliced-sprite",r[0],r[1],120f,120f,"box3")
-            d("CommandLayer","$p/Label","label",r[0]+10f,r[1]+43f,100f,40f,text=labels[i])
-            icon0[i].let{d("CommandLayer","$p/img0","sprite",it[0],it[1],it[2],it[3],icons[i])}
-            icon1[i].let{d("CommandLayer","$p/img1","sprite",it[0],it[1],it[2],it[3],icons[i])}
+        d(
+            "HallLayer",
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "default_sprite_splash",
+            10f / 255f
+        )
+        d("CommandLayer", "Canvas/Layer/bg", "tiled-sprite", 736f, 96f, 397.2f, 322.5f, "Logo_9-1", 200f / 255f)
+        d("CommandLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 397.2f, 322.5f, "box3")
+        val rects = listOf(
+            floatArrayOf(743.6f, 291.175f),
+            floatArrayOf(871.6f, 291.175f),
+            floatArrayOf(1000.6f, 291.175f),
+            floatArrayOf(743.6f, 165.42f),
+            floatArrayOf(871.6f, 165.42f),
+            floatArrayOf(1000.6f, 165.42f)
+        )
+        val labels = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기")
+        val icons = listOf("command1", "command2", "command3", "command5", "command6", "command4")
+        val icon0 = listOf(
+            floatArrayOf(749.6f, 373.175f, 32f, 32f),
+            floatArrayOf(875.6f, 375.175f, 32f, 32f),
+            floatArrayOf(1004.6f, 377.175f, 30f, 30f),
+            floatArrayOf(747.6f, 253.42f, 32f, 28f),
+            floatArrayOf(875.6f, 249.42f, 32f, 32f),
+            floatArrayOf(1004.6f, 249.42f, 32f, 32f)
+        )
+        val icon1 = listOf(
+            floatArrayOf(825.6f, 297.175f, 32f, 32f),
+            floatArrayOf(953.6f, 297.175f, 32f, 32f),
+            floatArrayOf(1084.6f, 297.175f, 30f, 30f),
+            floatArrayOf(825.6f, 171.42f, 32f, 28f),
+            floatArrayOf(953.6f, 171.42f, 32f, 32f),
+            floatArrayOf(1082.6f, 171.42f, 32f, 32f)
+        )
+        rects.forEachIndexed { i, r ->
+            val p = "Canvas/Layer/bg/button$i/Background"; d(
+            "CommandLayer",
+            p,
+            "sliced-sprite",
+            r[0],
+            r[1],
+            120f,
+            120f,
+            "box3"
+        )
+            d("CommandLayer", "$p/Label", "label", r[0] + 10f, r[1] + 43f, 100f, 40f, text = labels[i])
+            icon0[i].let { d("CommandLayer", "$p/img0", "sprite", it[0], it[1], it[2], it[3], icons[i]) }
+            icon1[i].let { d("CommandLayer", "$p/img1", "sprite", it[0], it[1], it[2], it[3], icons[i]) }
         }
-        d("CommandLayer","Canvas/Layer/bg/button6/Background","sliced-sprite",842.65f,106.491f,181.9f,50f,"box3")
-        d("CommandLayer","Canvas/Layer/bg/button6/Background/Label","label",883.6f,114.491f,100f,40f,text="취소")
+        d("CommandLayer", "Canvas/Layer/bg/button6/Background", "sliced-sprite", 842.65f, 106.491f, 181.9f, 50f, "box3")
+        d("CommandLayer", "Canvas/Layer/bg/button6/Background/Label", "label", 883.6f, 114.491f, 100f, 40f, text = "취소")
         return log.jsonl()
     }
 
@@ -7845,7 +9878,11 @@ void main() {
     private fun installRoundRouteFixture() {
         roundRouteInstalled = true
         when (roundRouteState) {
-            "battle-round-final-fixture" -> showRoundCard(battle.maxRounds + 1, battle.maxRounds) { roundRouteCallbackCount++ }
+            "battle-round-final-fixture" -> showRoundCard(
+                battle.maxRounds + 1,
+                battle.maxRounds
+            ) { roundRouteCallbackCount++ }
+
             "battle-round-enemy-fixture" -> showRoundCard(null, battle.maxRounds) { roundRouteCallbackCount++ }
             else -> showRoundCard(3.coerceAtMost(battle.maxRounds), battle.maxRounds) { roundRouteCallbackCount++ }
         }
@@ -7902,25 +9939,45 @@ void main() {
     }
 
     private fun drawRoundLayer(layer: RoundLayer) {
-        shapes.projectionMatrix=viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled);shapes.color=Color(0f,0f,0f,80f/255f);shapes.rect(0f,0f,1488.372f,800f);shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin()
-        font.data.setScale(120f/26f)
-        fun text(value:String,x:Float,y:Float,width:Float,color:Color) {
-            font.color=color;font.draw(batch,value,x,y+125f,width,Align.center,false)
+        shapes.projectionMatrix = viewport.camera.combined
+        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, 80f / 255f); shapes.rect(
+            0f,
+            0f,
+            1488.372f,
+            800f
+        ); shapes.end()
+        batch.projectionMatrix = viewport.camera.combined; batch.begin()
+        font.data.setScale(120f / 26f)
+        /**
+         * 공개 메서드 `text`
+         *
+         * ### 파라미터
+        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `color` (`Color`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun text(value: String, x: Float, y: Float, width: Float, color: Color) {
+            font.color = color; font.draw(batch, value, x, y + 125f, width, Align.center, false)
         }
-        if(layer.view.roundLabelsVisible) {
-            text("아군 단계",526.713f,380.09f,448.54f,Color.RED)
-            text("아군 단계",519.916f,385.09f,448.54f,Color.WHITE)
-            val width=if(layer.view.roundText=="최종 턴")344.74f else 274.34f
-            val x=if(layer.view.roundText=="최종 턴")578.613f else 613.813f
-            text(layer.view.roundText,x,247.7f,width,Color(1f,.5f,.5f,1f))
-            text(layer.view.roundText,x-6.797f,252.7f,width,Color.WHITE)
+        if (layer.view.roundLabelsVisible) {
+            text("아군 단계", 526.713f, 380.09f, 448.54f, Color.RED)
+            text("아군 단계", 519.916f, 385.09f, 448.54f, Color.WHITE)
+            val width = if (layer.view.roundText == "최종 턴") 344.74f else 274.34f
+            val x = if (layer.view.roundText == "최종 턴") 578.613f else 613.813f
+            text(layer.view.roundText, x, 247.7f, width, Color(1f, .5f, .5f, 1f))
+            text(layer.view.roundText, x - 6.797f, 252.7f, width, Color.WHITE)
         } else {
-            text("적군 단계",526.713f,319.4f,448.54f,Color.RED)
-            text("적군 단계",519.916f,324.4f,448.54f,Color.WHITE)
+            text("적군 단계", 526.713f, 319.4f, 448.54f, Color.RED)
+            text("적군 단계", 519.916f, 324.4f, 448.54f, Color.WHITE)
         }
-        font.data.setScale(1f);font.color=Color.WHITE;batch.end()
+        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
     private fun propertyEffectName(profile: GameDataCatalog.EquipmentProfile): String = when (profile.itemType) {
@@ -7930,7 +9987,13 @@ void main() {
 
     private fun usePropertyRows(): List<UsePropertyLayer.Property> = usableProperties().mapNotNull { item ->
         gameDataCatalog.equipmentProfile(item.id)?.let { profile ->
-            UsePropertyLayer.Property(profile.id, profile.name, propertyEffectName(profile), campaign.inventory.items[profile.id] ?: 0, profile.icon)
+            UsePropertyLayer.Property(
+                profile.id,
+                profile.name,
+                propertyEffectName(profile),
+                campaign.inventory.items[profile.id] ?: 0,
+                profile.icon
+            )
         }
     }
 
@@ -7942,7 +10005,9 @@ void main() {
             rows,
             onSelect = { selected ->
                 if (selected != null) {
-                    if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCompleted(true)
+                    if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCompleted(
+                        true
+                    )
                     selectedPropertyIndex = usableProperties().indexOfFirst { it.id == selected.id }.coerceAtLeast(0)
                     propertyMode = true
                     eventMessage = "${selected.name} 선택 (${selected.count}개) · 자신 또는 인접 아군을 선택"
@@ -7983,9 +10048,11 @@ void main() {
                 usePropertyLayer?.touchStart(0)
                 usePropertyLayer?.update(UsePropertyLayer.LONG_PRESS_SECONDS)
             }
+
             "battle-use-property-select-fixture" -> {
                 usePropertyLayer?.touchStart(0); usePropertyLayer?.touchEnd(0); usePropertyLayer = null
             }
+
             "battle-use-property-cancel-fixture" -> {
                 usePropertyLayer?.closeTouchEnd(); usePropertyLayer = null
             }
@@ -8002,8 +10069,15 @@ void main() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
         val commandChild = battleCommandRouteState == "battle-command-property-fixture"
-        val ox = if (commandChild) -59.536f else 0f; val oy = if (commandChild) -294f else 0f
-        for (ty in 0..4) for (tx in 0..5) batch.draw(unitInfoAssets.unitInfoLogo, 795.536f + ox + tx * 96f, 390f + oy + ty * 96f, 96f, 96f)
+        val ox = if (commandChild) -59.536f else 0f
+        val oy = if (commandChild) -294f else 0f
+        for (ty in 0..4) for (tx in 0..5) batch.draw(
+            unitInfoAssets.unitInfoLogo,
+            795.536f + ox + tx * 96f,
+            390f + oy + ty * 96f,
+            96f,
+            96f
+        )
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 795.536f + ox, 390f + oy, 491f, 410f)
         NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 799.536f + ox, 448f + oy, 483f, 348f)
         font.data.setScale(40f / 26f); font.color = Color.BLACK
@@ -8027,24 +10101,36 @@ void main() {
         val item = usePropertyDetail ?: return
         val profile = gameDataCatalog.equipmentProfile(item.id) ?: return
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f,0f,0f,100f/255f); shapes.rect(0f,0f,1488.372f,800f); shapes.end()
+        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(
+            0f,
+            0f,
+            1488.372f,
+            800f
+        ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
-        for (ty in 0..6) for (tx in 0..10) batch.draw(unitInfoAssets.unitInfoLogo,253.186f+tx*96f,80f+ty*96f,96f,96f)
-        NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,253.186f,80f,982f,640f)
-        NinePatch(unitInfoAssets.unitInfoBox2,3,3,3,3).draw(batch,265.778f,564.802f,144f,144f)
-        dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it,273.778f,572.802f,128f,128f) }
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,420.536f,498.55f,343.5f,100.9f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,261.686f,92.5f,501f,377f)
-        NinePatch(unitInfoAssets.unitInfoBox2,3,3,3,3).draw(batch,770.186f,157.5f,448f,247f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,770.186f,427f,448f,260f)
-        NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,1065.827f,97.824f,150f,50f)
-        font.data.setScale(40f/26f); font.color=Color.BLACK
-        listOf(item.name to (420.186f to 701f), "속성:" to (432.137f to 591f), "아이템" to (522.525f to 591f),
+        for (ty in 0..6) for (tx in 0..10) batch.draw(
+            unitInfoAssets.unitInfoLogo,
+            253.186f + tx * 96f,
+            80f + ty * 96f,
+            96f,
+            96f
+        )
+        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 253.186f, 80f, 982f, 640f)
+        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 265.778f, 564.802f, 144f, 144f)
+        dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it, 273.778f, 572.802f, 128f, 128f) }
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 420.536f, 498.55f, 343.5f, 100.9f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 261.686f, 92.5f, 501f, 377f)
+        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 770.186f, 157.5f, 448f, 247f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 770.186f, 427f, 448f, 260f)
+        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 1065.827f, 97.824f, 150f, 50f)
+        font.data.setScale(40f / 26f); font.color = Color.BLACK
+        listOf(
+            item.name to (420.186f to 701f), "속성:" to (432.137f to 591f), "아이템" to (522.525f to 591f),
             "가격:" to (432.137f to 546f), gameDataCatalog.purchasePrice(profile).toString() to (522.525f to 546f),
             "효과" to (477.586f to 485f), item.typeName to (265.686f to 432f), "설명" to (953.586f to 421f),
             profile.intro to (774.186f to 376f), "장착 가능한 부대입니다." to (804.516f to 704f), "확인" to (1090.827f to 147f)
-        ).forEach { (text,pos) -> font.draw(batch,text,pos.first,pos.second) }
-        font.data.setScale(1f); font.color=Color.WHITE; batch.end()
+        ).forEach { (text, pos) -> font.draw(batch, text, pos.first, pos.second) }
+        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
     private fun selectMagick(selected: MagicUiList.Magic) {
@@ -8055,7 +10141,14 @@ void main() {
         val magic = unit.magic[index]
         if (magic.target == 2) {
             val hp = battle.units.mapValues { it.value.hitPoints }
-            applyAction(battle.castMagicForPresentation(unit.id, unit.id, magic.id), unit.name, unit.id, magic.id, unit.id, hp)
+            applyAction(
+                battle.castMagicForPresentation(unit.id, unit.id, magic.id),
+                unit.name,
+                unit.id,
+                magic.id,
+                unit.id,
+                hp
+            )
         } else {
             magicMode = true
             eventMessage = "${magic.name} 선택 · 범위 내 대상을 클릭"
@@ -8072,7 +10165,25 @@ void main() {
     }
 
     private fun fixtureMagics(): List<MagicUiList.Magic> =
-        listOf(39,40,41,43,44,45,46,47,48,49,50,51,52,53,54,55,56).mapNotNull(gameDataCatalog::magicProfile).map(::toMagicUi)
+        listOf(
+            39,
+            40,
+            41,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56
+        ).mapNotNull(gameDataCatalog::magicProfile).map(::toMagicUi)
 
     private fun installMagickRouteFixture() {
         magickRouteInstalled = true
@@ -8084,57 +10195,94 @@ void main() {
     }
 
     private fun drawMagickListLayer() {
-        val layer=magickListLayer?:return
-        shapes.projectionMatrix=viewport.camera.combined;shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color=Color(0f,0f,0f,40f/255f);shapes.rect(0f,0f,1488.372f,800f);shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
-        for(ty in 0..6)for(tx in 0..5)batch.draw(unitInfoAssets.unitInfoLogo,474.186f+tx*96f,90.5f+ty*96f,96f,96f)
-        NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,474.186f,90.5f,540f,619f)
-        NinePatch(unitInfoAssets.unitInfoBox2,3,3,3,3).draw(batch,478.186f,150.5f,532f,499f)
-        NinePatch(unitInfoAssets.unitInfoProgress,3,3,3,3).draw(batch,741.186f,661.207f,204f,24f)
-        shapes.projectionMatrix=viewport.camera.combined
+        val layer = magickListLayer ?: return
+        shapes.projectionMatrix = viewport.camera.combined; shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = Color(0f, 0f, 0f, 40f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
+        batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
+        for (ty in 0..6) for (tx in 0..5) batch.draw(
+            unitInfoAssets.unitInfoLogo,
+            474.186f + tx * 96f,
+            90.5f + ty * 96f,
+            96f,
+            96f
+        )
+        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 474.186f, 90.5f, 540f, 619f)
+        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 478.186f, 150.5f, 532f, 499f)
+        NinePatch(unitInfoAssets.unitInfoProgress, 3, 3, 3, 3).draw(batch, 741.186f, 661.207f, 204f, 24f)
+        shapes.projectionMatrix = viewport.camera.combined
         val mpFraction = layer.mp.toFloat() / layer.maxMp.coerceAtLeast(1)
         val previewFraction = if (layer.preview == 0f) mpFraction else layer.preview
-        dynamicTextures.battleDialog(BattleUiAssets.MP_CURRENT_MARK)?.let { batch.draw(it,743.186f,663.207f,200f * mpFraction,20f) }
-        dynamicTextures.battleDialog(BattleUiAssets.MP_MAX_MARK)?.let { batch.draw(it,743.186f,663.207f,200f * previewFraction,20f) }
-        font.data.setScale(40f/26f);font.color=Color.BLACK
-        font.draw(batch,selectedUnitId?.let(battle.units::get)?.name ?: "허자장",495.586f,695f);font.draw(batch,"MP",681.186f,695f)
-        font.draw(batch,"${layer.mp}/${layer.maxMp}",793.136f,696f)
-        layer.rows.take(10).forEachIndexed{index,magic->
-            val col=index%2;val line=index/2;val x=480.186f+col*264f;val y=505.5f-line*142f
-            NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,x,y,262f,140f)
+        dynamicTextures.battleDialog(BattleUiAssets.MP_CURRENT_MARK)
+            ?.let { batch.draw(it, 743.186f, 663.207f, 200f * mpFraction, 20f) }
+        dynamicTextures.battleDialog(BattleUiAssets.MP_MAX_MARK)
+            ?.let { batch.draw(it, 743.186f, 663.207f, 200f * previewFraction, 20f) }
+        font.data.setScale(40f / 26f); font.color = Color.BLACK
+        font.draw(batch, selectedUnitId?.let(battle.units::get)?.name ?: "허자장", 495.586f, 695f); font.draw(
+            batch,
+            "MP",
+            681.186f,
+            695f
+        )
+        font.draw(batch, "${layer.mp}/${layer.maxMp}", 793.136f, 696f)
+        layer.rows.take(10).forEachIndexed { index, magic ->
+            val col = index % 2
+            val line = index / 2
+            val x = 480.186f + col * 264f
+            val y = 505.5f - line * 142f
+            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, 262f, 140f)
             BattleDialogRenderContract.magicListIcon(magic, x, y).let { icon ->
-                dynamicTextures.battleDialog(icon.path)?.let { batch.draw(it,icon.x,icon.y,icon.width,icon.height) }
+                dynamicTextures.battleDialog(icon.path)?.let { batch.draw(it, icon.x, icon.y, icon.width, icon.height) }
             }
-            font.color=if(layer.enabled(index))Color.BLACK else Color(.5f,.5f,.5f,1f)
-            font.draw(batch,magic.name,x+92f,y+129f);font.draw(batch,"MP：",x+92f,y+88f)
-            font.draw(batch,magic.cost.toString(),x+176f,y+88f);font.draw(batch,"피해 계수: ",x+2f,y+47f)
-            font.draw(batch,(magic.power?:0).div(100f).toString(),x+180f,y+47f)
+            font.color = if (layer.enabled(index)) Color.BLACK else Color(.5f, .5f, .5f, 1f)
+            font.draw(batch, magic.name, x + 92f, y + 129f); font.draw(batch, "MP：", x + 92f, y + 88f)
+            font.draw(batch, magic.cost.toString(), x + 176f, y + 88f); font.draw(batch, "피해 계수: ", x + 2f, y + 47f)
+            font.draw(batch, (magic.power ?: 0).div(100f).toString(), x + 180f, y + 47f)
         }
-        font.color=Color.BLACK;NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,775.892f,97.683f,180f,50f)
-        font.draw(batch,"취소",815.892f,145f);font.data.setScale(1f);font.color=Color.WHITE;batch.end()
+        font.color = Color.BLACK; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
+            batch,
+            775.892f,
+            97.683f,
+            180f,
+            50f
+        )
+        font.draw(batch, "취소", 815.892f, 145f); font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
     private fun drawBattleMagicInfoLayer() {
-        val magic=magickInfoLayer?.magic?:return
-        shapes.projectionMatrix=viewport.camera.combined;shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color=Color(0f,0f,0f,100f/255f);shapes.rect(0f,0f,1488.372f,800f);shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
-        for(ty in 0..5)for(tx in 0..6)batch.draw(unitInfoAssets.unitInfoLogo,452.686f+tx*96f,130f+ty*96f,96f,96f)
-        NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,452.686f,130f,583f,540f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,465.636f,434f,340.3f,100f)
-        NinePatch(unitInfoAssets.unitInfoBox2,3,3,3,3).draw(batch,465.636f,147f,340.3f,274f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,814.213f,436.061f,200f,200f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,814.213f,204.673f,200f,200f)
-        NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,874.764f,144.022f,147.6f,50f)
+        val magic = magickInfoLayer?.magic ?: return
+        shapes.projectionMatrix = viewport.camera.combined; shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
+        batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
+        for (ty in 0..5) for (tx in 0..6) batch.draw(
+            unitInfoAssets.unitInfoLogo,
+            452.686f + tx * 96f,
+            130f + ty * 96f,
+            96f,
+            96f
+        )
+        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 452.686f, 130f, 583f, 540f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 465.636f, 434f, 340.3f, 100f)
+        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 465.636f, 147f, 340.3f, 274f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 814.213f, 436.061f, 200f, 200f)
+        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 814.213f, 204.673f, 200f, 200f)
+        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 874.764f, 144.022f, 147.6f, 50f)
         BattleDialogRenderContract.magicDetailSprites(magic).forEach { sprite ->
-            dynamicTextures.battleDialog(sprite.path)?.let { batch.draw(it,sprite.x,sprite.y,sprite.width,sprite.height) }
+            dynamicTextures.battleDialog(sprite.path)
+                ?.let { batch.draw(it, sprite.x, sprite.y, sprite.width, sprite.height) }
         }
-        font.data.setScale(40f/26f);font.color=Color.BLACK
-        listOf(magic.name to (577.509f to 646f),"위력:" to (476.336f to 522f),"${magic.power?:0}%" to (566.719f to 522f),
-            "MP 소모:" to (470.776f to 479f),magic.cost.toString() to (627.053f to 479f),magic.intro to (470.786f to 415f),
-            "가능 범위" to (839.654f to 653f),"영향 범위" to (839.654f to 424f),"확인" to (898.564f to 192f)).forEach{(t,p)->font.draw(batch,t,p.first,p.second)}
-        font.data.setScale(1f);font.color=Color.WHITE;batch.end()
+        font.data.setScale(40f / 26f); font.color = Color.BLACK
+        listOf(
+            magic.name to (577.509f to 646f),
+            "위력:" to (476.336f to 522f),
+            "${magic.power ?: 0}%" to (566.719f to 522f),
+            "MP 소모:" to (470.776f to 479f),
+            magic.cost.toString() to (627.053f to 479f),
+            magic.intro to (470.786f to 415f),
+            "가능 범위" to (839.654f to 653f),
+            "영향 범위" to (839.654f to 424f),
+            "확인" to (898.564f to 192f)
+        ).forEach { (t, p) -> font.draw(batch, t, p.first, p.second) }
+        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
     private fun installJiqiRouteFixture() {
@@ -8163,7 +10311,13 @@ void main() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.color = Color.WHITE
-        for (ty in 0..3) for (tx in 0..7) batch.draw(unitInfoAssets.unitInfoLogo, 405.686f + tx * 96f, 234.5f + ty * 96f, 96f, 96f)
+        for (ty in 0..3) for (tx in 0..7) batch.draw(
+            unitInfoAssets.unitInfoLogo,
+            405.686f + tx * 96f,
+            234.5f + ty * 96f,
+            96f,
+            96f
+        )
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 405.686f, 234.5f, 677f, 331f)
         font.data.setScale(40f / 26f); font.color = Color.BLACK
         labels.forEach { (text, x, y) -> font.draw(batch, text, x, y + 42f) }
@@ -8177,125 +10331,6 @@ void main() {
         }
         font.data.setScale(1f); font.color = Color.WHITE
         batch.end()
-    }
-
-    private fun drawUnitInfoLayer() {
-        val v=unitInfoLayer?.ref()?:return;val u=v.unit
-        shapes.projectionMatrix=viewport.camera.combined;shapes.begin(ShapeRenderer.ShapeType.Filled);shapes.color=Color(0f,0f,0f,.88f);shapes.rect(0f,0f,1488.3721f,800f);shapes.color=Color(.16f,.11f,.055f,1f);shapes.rect(197.186f,12f,1094f,776f);shapes.color=Color(.07f,.05f,.03f,1f);shapes.rect(821.986f,71.95f,457f,580.5f);shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
-        // Source root/Logo_9-1 is a tiled SpriteFrame.  Fixture `size` is
-        // the tiled node bounds, not a request to stretch one 96px frame.
-        // Keep native tile dimensions so the emblem cadence matches Cocos.
-        for (ty in 0..8) for (tx in 0..11)
-            batch.draw(unitInfoAssets.unitInfoLogo,197.186f + tx * 96f,12f + ty * 96f,96f,96f)
-        NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,821.986f,71.95f,457f,580.5f);NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,831.486f,431.2f,438f,197f)
-        NinePatch(unitInfoAssets.unitInfoBg,5,5,5,5).draw(batch,845.841f,606.745f,163.9f,41.2f)
-        batch.draw(unitInfoAssets.unitInfoVline2,821.986f,317.36f,457f,2f)
-        batch.draw(unitInfoAssets.unitInfoVline2,821.986f,203.52f,457f,2f)
-        // Source root/180: centre=(326.186,610.956), content 96×120,
-        // node scale=(2,2), hence the visual 192×240 bounds below.
-        batch.draw(unitInfoAssets.unitInfoFace,230.186f,490.956f,192f,240f)
-        // Prefab panels 1..4 are retained at their authored right-column
-        // positions; panel0 remains selected by _changeSel(0).
-        if(v.tab==1) NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,760f,130f,456f,581.4f)
-        if(v.tab==2) NinePatch(unitInfoAssets.unitInfoBox1,3,3,3,3).draw(batch,760f,130f,456f,571.5f)
-        if(v.tab==3) NinePatch(unitInfoAssets.unitInfoBox2,3,3,3,3).draw(batch,760f,130f,457f,576f)
-        if(v.tab==4) NinePatch(unitInfoAssets.unitInfoBox2,3,3,3,3).draw(batch,760f,130f,458.5f,576.5f)
-        // Source panel0 uses two progress bars and Mark_6/3/2 indicators.
-        batch.draw(unitInfoAssets.unitInfoProgress,315f,455f,254f,24f);batch.draw(unitInfoAssets.unitInfoProgress,315f,397f,254f,24f)
-        batch.draw(unitInfoAssets.unitInfoMark6,300f,463f,16f,16f);batch.draw(unitInfoAssets.unitInfoMark3,300f,405f,16f,16f);batch.draw(unitInfoAssets.unitInfoMark2,570f,405f,16f,16f)
-        listOf(175.737f to 342.65f,366.522f to 342.65f,147.295f to 281.471f,277.258f to 281.471f,407.258f to 281.471f).forEach { (x,y) -> NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,640f+x-65f,400f+y-30f,130f,60f) }
-        if (v.buttons.getOrElse(9) { false }) NinePatch(unitInfoAssets.unitInfoBox3,9,9,7,11).draw(batch,700.71f,17.207f,110f,50f)
-        font.data.setScale(.65f);font.color=Color.WHITE; font.draw(batch,"무장 정보",125f,750f);font.draw(batch,"${u.name}  ${u.post}  Lv${u.level}",150f,690f);font.draw(batch,"HP ${u.hp}/${u.maxHp}     MP ${u.mp}/${u.maxMp}",150f,650f);font.draw(batch,"공격 ${u.attack}  방어 ${u.defense}  정신 ${u.spirit}  폭발 ${u.critical}  사기 ${u.morale}",150f,610f);font.draw(batch,"기본   능력   장비   전략   특기",100f,685f);font.draw(batch,if(v.tab==3) "장비 / 전략" else "기본 능력치",150f,550f);v.magicRows.forEachIndexed { i,m -> font.draw(batch,m,790f,680f-i*50f) };font.draw(batch,"이전 무장",980f,75f);font.draw(batch,"다음 무장",1140f,75f);font.draw(batch,"확인",785f,75f);if(v.buttons.getOrElse(9){false})font.draw(batch,"기력 모으기",707f,54f);font.data.setScale(1f);batch.end()
-        if (v.tab == 0) {
-            // Literal panel0 label geometry from fresh UnitInfo fixture;
-            // panel origin is bg1-centre + [306.3,-37.8].
-            val labels=listOf("기본 능력" to (927.791f to 627.345f),"무력" to (848.106f to 573.7f),"지력" to (848.106f to 520.7f),"지휘" to (848.106f to 467.7f),"민첩성" to (1059.486f to 573.24f),"운기" to (1059.486f to 520.7f),"60" to (945.277f to 573.24f),"70" to (945.277f to 520.7f),"80" to (945.277f to 467.7f),"60" to (1155.034f to 573.24f),"60" to (1155.034f to 520.7f),"무장 소개" to (1050.486f to 404f),"인물 특기 일람" to (1050.486f to 290.16f),"없음" to (1050.986f to 262.719f),"출진 횟수 %d / 퇴각 횟수 %d" to (1050.486f to 101.526f))
-            batch.begin();font.data.setScale(40f / 26f);font.color=Color.BLACK;labels.forEach { (text,pos)->font.draw(batch,text,pos.first-220f,pos.second+20f,440f,Align.center,false)};font.data.setScale(1f);batch.end()
-        }
-    }
-
-    /** Prefab-faithful panel geometry and Cocos RichText colour runs. */
-    private fun drawHelperLayer() {
-        val view = helperLayer?.view() ?: return
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        batch.color = Color.WHITE
-        // HelperLayer's source bg2 is a pale patterned surface.  Reuse the
-        // same authored UI panel family rather than the previous brown fill.
-        overlayAssets.terrainLayerBackgroundTexture?.let { texture ->
-            val x=147.686f; val y=24.5f; val w=1193f; val h=751f
-            var ty=y; while(ty<y+h) { var tx=x; while(tx<x+w) { batch.draw(texture,tx,ty,minOf(96f,x+w-tx),minOf(96f,y+h-ty)); tx+=96f }; ty+=96f }
-        }
-        // HelperLayer/bg1 is a distinct 1193×60 header prefab.
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 147.686f, 715.5f, 1193f, 60f)
-        // HelperLayer's ScrollView has Cocos `box2` (20×20, 3px caps),
-        // not TerrainLayer's heavier `box4`.  The extracted WinCon box2 is
-        // the same authored shared frame and keeps its fine scroll border.
-        (overlayAssets.winConditionScrollPatch ?: overlayAssets.terrainLayerPanelPatch)?.draw(
-            batch, 163.686f, 99f, 1161f, 616f,
-        )
-        font.color = Color(0.56f, 0f, 0.62f, 1f); font.data.setScale(40f / 26f)
-        font.draw(batch, "역사 정보", 160f, 760f)
-        drawHelperRichText(view.richText, 165.686f, 690f, 1157f)
-        batch.end()
-        batch.begin()
-        overlayAssets.terrainLayerPanelPatch?.draw(batch, 1172.451f, 33.187f, 147.6f, 56f)
-        font.color = Color.BLACK; font.data.setScale(40f / 26f)
-        font.draw(batch, view.prefab.buttonText, 1204f, 71f)
-        font.data.setScale(1f); font.color = Color.WHITE
-        batch.end()
-    }
-
-    /**
-     * Small, deliberately local RichText renderer for HelperLayer.  The
-     * recovered scene only needs `<color=#rrggbb>` and `<br/>`; a stack is
-     * important because HelperLayer's blue type wrapper encloses the inline
-     * `[Cxx ...]` source substitutions.
-     */
-    private fun drawHelperRichText(richText: String, x: Float, topY: Float, width: Float) {
-        data class Run(val text: String, val color: Color)
-        val lines = mutableListOf<MutableList<Run>>()
-        var line = mutableListOf<Run>(); lines += line
-        val colors = ArrayDeque<Color>().apply { addLast(Color.BLACK) }
-        val tag = Regex("<color=(#[0-9a-fA-F]{6})>|</color>|<br\\s*/?>")
-        var cursor = 0
-        fun append(value: String) {
-            value.replace("&amp;", "&").split('\n').forEachIndexed { index, piece ->
-                if (piece.isNotEmpty()) line += Run(piece, Color(colors.last()))
-                if (index < value.count { it == '\n' }) { line = mutableListOf(); lines += line }
-            }
-        }
-        tag.findAll(richText).forEach { match ->
-            append(richText.substring(cursor, match.range.first))
-            when {
-                match.value.startsWith("<color=") -> colors.addLast(Color.valueOf(match.groupValues[1]))
-                match.value == "</color>" && colors.size > 1 -> colors.removeLast()
-                match.value.startsWith("<br") -> { line = mutableListOf(); lines += line }
-            }
-            cursor = match.range.last + 1
-        }
-        append(richText.substring(cursor))
-        font.data.setScale(40f / 26f)
-        val lineHeight = 50f
-        var lineIndex = 0
-        lines.forEach { runs ->
-            var pen = x
-            runs.forEach { run ->
-                font.color = run.color
-                run.text.forEach { glyph ->
-                    helperGlyphLayout.setText(font, glyph.toString())
-                    if (pen > x && pen + helperGlyphLayout.width > x + width) {
-                        lineIndex += 1
-                        pen = x
-                    }
-                    if (lineIndex < 12) font.draw(batch, glyph.toString(), pen, topY - lineIndex * lineHeight)
-                    pen += helperGlyphLayout.width
-                }
-            }
-            lineIndex += 1
-        }
-        font.color = Color.BLACK
     }
 
     /**
@@ -8334,13 +10369,15 @@ void main() {
             // Resolve against the live tactical roster just as source
             // BattleScreen.unit(index) does; a missing/hidden fixture unit
             // contributes no pair text but retains the section heading.
-            unitName = { index -> battle.units.values.firstOrNull {
-                // The source S_00 verifier has no deployed MINE index0;
-                // preserve that actual-route roster condition without
-                // changing normal campaign content.
-                !(winConditionRouteState != null && index == 0) &&
-                it.visible && it.id.substringAfterLast('-').toIntOrNull() == index
-            }?.name },
+            unitName = { index ->
+                battle.units.values.firstOrNull {
+                    // The source S_00 verifier has no deployed MINE index0;
+                    // preserve that actual-route roster condition without
+                    // changing normal campaign content.
+                    !(winConditionRouteState != null && index == 0) &&
+                            it.visible && it.id.substringAfterLast('-').toIntOrNull() == index
+                }?.name
+            },
             variable = { id -> (campaign.globalVariables[id] as? Number)?.toInt() ?: 0 },
         ).ifEmpty { "적군을 전멸시키십시오." }
     }
@@ -8445,7 +10482,13 @@ void main() {
         for (ty in 0..3) for (tx in 0..6) {
             val width = minOf(96f, 635f - tx * 96f)
             val height = minOf(96f, 296f - ty * 96f)
-            if (width > 0f && height > 0f) batch.draw(unitInfoAssets.unitInfoLogo, 426.686f + tx * 96f, 252f + ty * 96f, width, height)
+            if (width > 0f && height > 0f) batch.draw(
+                unitInfoAssets.unitInfoLogo,
+                426.686f + tx * 96f,
+                252f + ty * 96f,
+                width,
+                height
+            )
         }
         batch.draw(unitInfoAssets.unitInfoBox3, 426.686f, 252f, 635f, 296f)
         overlayAssets.winConditionLogoTexture?.let { batch.draw(it, 453.005f, 373.951f, 106f, 124f) }
@@ -8554,6 +10597,17 @@ void main() {
     }
 
     private fun recordSourceCameraCenter(tileX: Float, tileY: Float) {
+        /**
+         * 공개 메서드 `jsNumber`
+         *
+         * ### 파라미터
+        - `value` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun jsNumber(value: Float): String =
             if (value.isFinite() && value == value.toInt().toFloat()) value.toInt().toString() else value.toString()
         recordFullBattleTraceFrame(
@@ -8570,8 +10624,10 @@ void main() {
 
     private fun drawScriptDialogue(componentStage: String? = null) {
         val dialogue = scriptRuntime.currentDialogue ?: return
-        val includePortrait = componentStage == null || componentStage in setOf("portrait", "speaker", "text", "background", "characters")
-        val includeSpeaker = componentStage == null || componentStage in setOf("speaker", "text", "background", "characters")
+        val includePortrait =
+            componentStage == null || componentStage in setOf("portrait", "speaker", "text", "background", "characters")
+        val includeSpeaker =
+            componentStage == null || componentStage in setOf("speaker", "text", "background", "characters")
         val includeBody = componentStage == null || componentStage in setOf("text", "background", "characters")
         // SayLayer._resetPos first asks BattleScreen.centerUnit to minimally
         // scroll the speaker into the safe viewport, then converts the
@@ -8713,9 +10769,17 @@ void main() {
                     cocosTexture.drawHeight,
                 )
             } else {
-            dialogueFont.data.setScale(1f, .98f)
-            dialogueFont.draw(batch, dialogueReveal.visibleText, 278.705f, dialogueTextY - 0.58f, 728f, Align.left, true)
-            dialogueFont.data.setScale(1f)
+                dialogueFont.data.setScale(1f, .98f)
+                dialogueFont.draw(
+                    batch,
+                    dialogueReveal.visibleText,
+                    278.705f,
+                    dialogueTextY - 0.58f,
+                    728f,
+                    Align.left,
+                    true
+                )
+                dialogueFont.data.setScale(1f)
             }
         }
         batch.end()
@@ -8756,7 +10820,12 @@ void main() {
         font.draw(batch, "전술 선택", 94f, 234f)
         choice.options.forEachIndexed { index, option ->
             font.color = if (index == scriptRuntime.selectedChoice) Color(1f, 0.86f, 0.43f, 1f) else Color.WHITE
-            font.draw(batch, "${if (index == scriptRuntime.selectedChoice) "▶" else "  "} $option", 110f, 190f - index * 42f)
+            font.draw(
+                batch,
+                "${if (index == scriptRuntime.selectedChoice) "▶" else "  "} $option",
+                110f,
+                190f - index * 42f
+            )
         }
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
         font.draw(batch, "↑↓ 선택 · Enter / 클릭 확정", 850f, 72f)
@@ -8935,41 +11004,42 @@ void main() {
                 .firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
                 }?.apply {
-                val before = scriptUnitBaseline?.get(scripted.id)
-                // Source BattleUnit.move2 changes only its node position while
-                // the path action is running; setPos(_x/_y) is its final
-                // callback. ScenarioStage exposes that same boundary, and the
-                // tactical model must not publish the destination before it.
-                if (scripted.moveDuration <= 0f &&
-                    before != null && (scripted.x != before.x || scripted.y != before.y)
-                ) {
-                    // ScenarioStage.move has already run the source path and
-                    // findEmptyPos rules.  Re-resolving occupancy here moves
-                    // deliberately overlapping hidden actors (S_22's 318 and
-                    // 210) and can choose a second, non-source endpoint.
-                    tileX = scripted.x
-                    tileY = scripted.y
-                    // ScenarioStage.move ultimately invokes BattleUnit.move2
-                    // and its completion setPos, materializing both node
-                    // axes even when createBattleUnit omitted them.
-                    hasAuthoredTileX = true
-                    hasAuthoredTileY = true
+                    val before = scriptUnitBaseline?.get(scripted.id)
+                    // Source BattleUnit.move2 changes only its node position while
+                    // the path action is running; setPos(_x/_y) is its final
+                    // callback. ScenarioStage exposes that same boundary, and the
+                    // tactical model must not publish the destination before it.
+                    if (scripted.moveDuration <= 0f &&
+                        before != null && (scripted.x != before.x || scripted.y != before.y)
+                    ) {
+                        // ScenarioStage.move has already run the source path and
+                        // findEmptyPos rules.  Re-resolving occupancy here moves
+                        // deliberately overlapping hidden actors (S_22's 318 and
+                        // 210) and can choose a second, non-source endpoint.
+                        tileX = scripted.x
+                        tileY = scripted.y
+                        // ScenarioStage.move ultimately invokes BattleUnit.move2
+                        // and its completion setPos, materializing both node
+                        // axes even when createBattleUnit omitted them.
+                        hasAuthoredTileX = true
+                        hasAuthoredTileY = true
+                    }
+                    if (before == null || scripted.visible != before.visible) {
+                        visible = scripted.visible
+                        // Source createFriend/createEnemy materializes a unit but
+                        // does not call centerUnit.  Only an authored transition
+                        // from hidden to shown (`showUnit/showUnits`) focuses it.
+                        // Treating a missing baseline as a show event focused all
+                        // initial actors before the first frame and left S_00 at
+                        // camera (-64,-160), unlike the source camera (0,0).
+                        if (before != null && visible) focusCameraOn(this)
+                    }
+                    if (before == null || scripted.ai != before.ai) ai = scripted.ai
+                    if (before == null || scripted.aiTargetId != before.targetId) aiTargetCharacterId =
+                        scripted.aiTargetId
+                    if (before == null || scripted.aiTargetX != before.targetX) aiTargetX = scripted.aiTargetX
+                    if (before == null || scripted.aiTargetY != before.targetY) aiTargetY = scripted.aiTargetY
                 }
-                if (before == null || scripted.visible != before.visible) {
-                    visible = scripted.visible
-                    // Source createFriend/createEnemy materializes a unit but
-                    // does not call centerUnit.  Only an authored transition
-                    // from hidden to shown (`showUnit/showUnits`) focuses it.
-                    // Treating a missing baseline as a show event focused all
-                    // initial actors before the first frame and left S_00 at
-                    // camera (-64,-160), unlike the source camera (0,0).
-                    if (before != null && visible) focusCameraOn(this)
-                }
-                if (before == null || scripted.ai != before.ai) ai = scripted.ai
-                if (before == null || scripted.aiTargetId != before.targetId) aiTargetCharacterId = scripted.aiTargetId
-                if (before == null || scripted.aiTargetX != before.targetX) aiTargetX = scripted.aiTargetX
-                if (before == null || scripted.aiTargetY != before.targetY) aiTargetY = scripted.aiTargetY
-            }
         }
         scriptRuntime.stage.consumeScriptedUnitLevelChanges().forEach { change ->
             val scripted = scriptRuntime.stage.battleUnitForCharacterId(change.unitId) ?: return@forEach
@@ -9033,39 +11103,40 @@ void main() {
                 .firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
                 }?.let { unit ->
-                if (scripted.moveDuration > 0f) {
-                    unit.direction = scripted.direction
-                    scriptedUnitVisuals[unit.id] = ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed)
-                    scriptedMovementCameraCursors
-                        .getOrPut(scripted.id, ::MovementCameraTickCursor)
-                        .crossed(
-                            scripted.movePath,
-                            BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
-                            scripted.moveElapsed,
-                        )
-                        .forEach { sample ->
-                            focusCameraOnTile(sample.x, sample.y)
-                        }
-                } else if (scriptedUnitVisuals[unit.id]?.action == 20) {
-                    // updateAnimations reaches move2's final callFunc before
-                    // this synchronization pass. Consume the final scheduled
-                    // centerUnit tick before discarding the route cursor;
-                    // otherwise the camera changes one decision late (often
-                    // on the next AI actor's focus delay).
-                    scriptedMovementCameraCursors[scripted.id]
-                        ?.crossed(
-                            scripted.movePath,
-                            BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
-                            scripted.moveElapsed,
-                        )
-                        ?.forEach { sample ->
-                            focusCameraOnTile(sample.x, sample.y)
-                        }
-                    scriptedUnitVisuals.remove(unit.id)
-                    scriptedMovementCameraCursors.remove(scripted.id)
-                    unit.direction = scripted.direction
+                    if (scripted.moveDuration > 0f) {
+                        unit.direction = scripted.direction
+                        scriptedUnitVisuals[unit.id] =
+                            ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed)
+                        scriptedMovementCameraCursors
+                            .getOrPut(scripted.id, ::MovementCameraTickCursor)
+                            .crossed(
+                                scripted.movePath,
+                                BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
+                                scripted.moveElapsed,
+                            )
+                            .forEach { sample ->
+                                focusCameraOnTile(sample.x, sample.y)
+                            }
+                    } else if (scriptedUnitVisuals[unit.id]?.action == 20) {
+                        // updateAnimations reaches move2's final callFunc before
+                        // this synchronization pass. Consume the final scheduled
+                        // centerUnit tick before discarding the route cursor;
+                        // otherwise the camera changes one decision late (often
+                        // on the next AI actor's focus delay).
+                        scriptedMovementCameraCursors[scripted.id]
+                            ?.crossed(
+                                scripted.movePath,
+                                BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
+                                scripted.moveElapsed,
+                            )
+                            ?.forEach { sample ->
+                                focusCameraOnTile(sample.x, sample.y)
+                            }
+                        scriptedUnitVisuals.remove(unit.id)
+                        scriptedMovementCameraCursors.remove(scripted.id)
+                        unit.direction = scripted.direction
+                    }
                 }
-            }
         }
         applyScriptedAttacks()
         scriptRuntime.stage.consumeScriptedUnitActions().forEach { action ->
@@ -9273,8 +11344,9 @@ void main() {
 
     /** The recovered S scripts state the same limit shown by BattleScreen. */
     private fun scenarioMaxRound(): Int =
-        scriptRuntime.stage.battleMaxRounds.takeIf { it != 99 } ?: Regex("턴\\s*수가\\s*(\\d+)").find(scriptRuntime.stage.winCondition)
-            ?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 99
+        scriptRuntime.stage.battleMaxRounds.takeIf { it != 99 }
+            ?: Regex("턴\\s*수가\\s*(\\d+)").find(scriptRuntime.stage.winCondition)
+                ?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 99
 
     /** Model.fAvatarGroup, including the UNIT_ATTR_NAME2.S_AVATAR path. */
     private fun battleAvatarId(unit: BattleUnit): Int? {
@@ -9306,13 +11378,25 @@ void main() {
     }
 
     /** Duration is read from the same authored BRAnime clip as the source. */
-    private fun sourceActionAnimation(unitId: String, action: Int, direction: Int, startedAt: Float = animationClock()): UnitActionAnimation {
+    private fun sourceActionAnimation(
+        unitId: String,
+        action: Int,
+        direction: Int,
+        startedAt: Float = animationClock()
+    ): UnitActionAnimation {
         val duration = requireSourceActionDuration(action, direction)
         // BattleUnit.setAction2 calls setDirFast before playing the clip.
         // Persist the facing direction so the following default/death action
         // does not revert to the stale pre-attack pose.
         battle.presentationUnit(unitId)?.direction = direction
-        return UnitActionAnimation(unitId, UnitAnimationKind.ATTACK, direction, startedAt, startedAt + duration, sourceAction = action)
+        return UnitActionAnimation(
+            unitId,
+            UnitAnimationKind.ATTACK,
+            direction,
+            startedAt,
+            startedAt + duration,
+            sourceAction = action
+        )
     }
 
     /** `_attack3` changes the victim direction when the hit callback starts its clip. */
@@ -9364,15 +11448,17 @@ void main() {
 
     /** Presentation policy selects anime0 or wounded anime9. */
     private fun defaultPresentationAction(unit: BattleUnit): BattleUnitPresentationState.DefaultAction =
-        unit.presentation.defaultAction(BattleUnitPresentationState.DefaultActionInput(
-            visible = unit.visible,
-            hitPoints = unit.hitPoints,
-            maxHitPoints = unit.maxHitPoints,
-            famous = unit.famous,
-            hasActed = unit.hasActed,
-            poisoned = BattleStatus.POISON in unit.statuses,
-            paralyzed = BattleStatus.PARALYSIS in unit.statuses,
-        ))
+        unit.presentation.defaultAction(
+            BattleUnitPresentationState.DefaultActionInput(
+                visible = unit.visible,
+                hitPoints = unit.hitPoints,
+                maxHitPoints = unit.maxHitPoints,
+                famous = unit.famous,
+                hasActed = unit.hasActed,
+                poisoned = BattleStatus.POISON in unit.statuses,
+                paralyzed = BattleStatus.PARALYSIS in unit.statuses,
+            )
+        )
 
     private fun idleSpriteFrame(unit: BattleUnit): UnitSpriteFrame {
         // The frozen R_00 dialogue oracle records the two avatar-group 11
@@ -9415,21 +11501,27 @@ void main() {
             // groups in the same retained tree.
             0.433f + if (battleAvatarId(unit) == 11) 4f / 24f else 0f
         } else elapsed
-        return battleSpriteFrame(action.action, unit.direction, sampleTime + sourceAvatarLoadPhase(unit), loop = action.loop)
+        return battleSpriteFrame(
+            action.action,
+            unit.direction,
+            sampleTime + sourceAvatarLoadPhase(unit),
+            loop = action.loop
+        )
             ?: error("Missing BRAnime clip: action=${action.action} direction=${unit.direction}")
     }
 
     /** 235 is captured during attackAction's live special hit submission. */
-    private fun winConditionActualVisualFrame(unit: BattleUnit): UnitSpriteFrame? = if (winConditionRouteState != null) {
-        when (unit.characterId) {
-            // attackAction(474,235,1) has submitted special frame 3 while
-            // the source script is suspended on its subsequent dialogue.
-            235 -> UnitSpriteFrame(UnitSpriteSource.SPECIAL, 151, 48, 48, false)
-            // scene0 leaves 234 in looping weak action9 at its first frame.
-            234 -> UnitSpriteFrame(UnitSpriteSource.MOVEMENT, 451, 48, 48, false)
-            else -> null
-        }
-    } else null
+    private fun winConditionActualVisualFrame(unit: BattleUnit): UnitSpriteFrame? =
+        if (winConditionRouteState != null) {
+            when (unit.characterId) {
+                // attackAction(474,235,1) has submitted special frame 3 while
+                // the source script is suspended on its subsequent dialogue.
+                235 -> UnitSpriteFrame(UnitSpriteSource.SPECIAL, 151, 48, 48, false)
+                // scene0 leaves 234 in looping weak action9 at its first frame.
+                234 -> UnitSpriteFrame(UnitSpriteSource.MOVEMENT, 451, 48, 48, false)
+                else -> null
+            }
+        } else null
 
     /**
      * The source R_00 full-Battle observation is a state-addressed fixture,
@@ -9470,8 +11562,9 @@ void main() {
     /** BattleUnit.move2 restarts anime20 at every direction-segment boundary. */
     private fun movementVisualFrame(move: UnitMoveAnimation): UnitSpriteFrame {
         val elapsed = animationClock() - move.startedAt
-        val segment = move.timeline.segments.firstOrNull { elapsed >= it.startedAt && elapsed < it.startedAt + it.duration }
-            ?: move.timeline.segments.last()
+        val segment =
+            move.timeline.segments.firstOrNull { elapsed >= it.startedAt && elapsed < it.startedAt + it.duration }
+                ?: move.timeline.segments.last()
         return battleSpriteFrame(20, segment.direction, (elapsed - segment.startedAt).coerceAtLeast(0f), loop = true)
             ?: idleSpriteFrame(requireNotNull(battle.presentationUnit(move.unitId)))
     }
@@ -9485,7 +11578,8 @@ void main() {
         val move = movementAnimation ?: return
         val elapsed = (animationClock() - move.startedAt).coerceAtLeast(0f)
         val unit = battle.presentationUnit(move.unitId) ?: return
-        val current = BattleUnitMoveTimeline.sample(move.path, move.timeline, elapsed.coerceAtMost(move.timeline.idleAt))
+        val current =
+            BattleUnitMoveTimeline.sample(move.path, move.timeline, elapsed.coerceAtMost(move.timeline.idleAt))
         // The final callback may have handed direction ownership to scene1
         // earlier in this same render.  Still consume the last camera tick,
         // but never let an expired route overwrite a subsequent setDir.
@@ -9506,9 +11600,9 @@ void main() {
             ?.takeIf { animationClock() < it.endsAt }
             ?.let { animation ->
                 val fraction = ((animationClock() - animation.startedAt) /
-                    (animation.endsAt - animation.startedAt)).coerceIn(0f, 1f)
+                        (animation.endsAt - animation.startedAt)).coerceIn(0f, 1f)
                 return (animation.move.fromX + (animation.move.toX - animation.move.fromX) * fraction) to
-                    (animation.move.fromY + (animation.move.toY - animation.move.fromY) * fraction)
+                        (animation.move.fromY + (animation.move.toY - animation.move.fromY) * fraction)
             }
         movementAnimation
             ?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
@@ -9521,12 +11615,30 @@ void main() {
     }
 
     private fun scriptedVisualFrame(unit: BattleUnit, visual: ScriptedUnitVisual): UnitSpriteFrame =
-        battleSpriteFrame(visual.action, unit.direction, animationClock() - visual.startedAt, loop = visual.action == 9 || visual.action == 20)
+        battleSpriteFrame(
+            visual.action,
+            unit.direction,
+            animationClock() - visual.startedAt,
+            loop = visual.action == 9 || visual.action == 20
+        )
             ?: idleSpriteFrame(unit)
 
-    private fun battleSpriteFrame(action: Int, direction: Int, elapsed: Float, loop: Boolean = false): UnitSpriteFrame? =
+    private fun battleSpriteFrame(
+        action: Int,
+        direction: Int,
+        elapsed: Float,
+        loop: Boolean = false
+    ): UnitSpriteFrame? =
         battleSprites.frame(action, direction, elapsed, loop)?.let { frame ->
-            UnitSpriteFrame(frame.source, frame.sourceY, frame.sourceWidth, frame.sourceHeight, frame.flipX, frame.offsetX, frame.offsetY)
+            UnitSpriteFrame(
+                frame.source,
+                frame.sourceY,
+                frame.sourceWidth,
+                frame.sourceHeight,
+                frame.flipX,
+                frame.offsetX,
+                frame.offsetY
+            )
         }
 
     override fun dispose() {
@@ -9564,15 +11676,92 @@ void main() {
         )
         private const val ITEM_UPGRADE_ROUTE_STATE = "yingchuan-item-upgrade-panel-route"
         private const val LOSE_RESTART_ROUTE_STATE = "yingchuan-lose-restart"
-        data class IsolatedUnit(val control:Boolean, val exist:Boolean, val acted:Boolean)
-        data class IsolatedView(val paused:Boolean, val modal:Boolean, val action:Boolean, val events:List<String>)
-        class IsolatedContract(private val units:List<IsolatedUnit>, private val collocation:Boolean, private val round:Int) {
-            private var paused=false; private var modal=false; private val pending=mutableListOf<String>()
-            fun showWinCondition(text:String) { paused=true;modal=true;pending+="pause";pending+="layer:WinConditionsLayer:$text:$round" }
-            fun cancel(event:Int) { if(event==WinConditionsLayer.TOUCH_END&&modal){modal=false;paused=false;pending+="resume"} }
+
+        /**
+         * data class  `IsolatedUnit`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
+        data class IsolatedUnit(val control: Boolean, val exist: Boolean, val acted: Boolean)
+
+        /**
+         * data class  `IsolatedView`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
+        data class IsolatedView(val paused: Boolean, val modal: Boolean, val action: Boolean, val events: List<String>)
+
+        /**
+         * class  `IsolatedContract`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
+        class IsolatedContract(
+            private val units: List<IsolatedUnit>,
+            private val collocation: Boolean,
+            private val round: Int
+        ) {
+            private var paused = false
+            private var modal = false
+            private val pending = mutableListOf<String>()
+
+            /**
+             * 공개 메서드 `showWinCondition`
+             *
+             * ### 파라미터
+            - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
+            fun showWinCondition(text: String) {
+                paused = true; modal = true; pending += "pause"; pending += "layer:WinConditionsLayer:$text:$round"
+            }
+
+            /**
+             * 공개 메서드 `cancel`
+             *
+             * ### 파라미터
+            - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
+            fun cancel(event: Int) {
+                if (event == WinConditionsLayer.TOUCH_END && modal) {
+                    modal = false; paused = false; pending += "resume"
+                }
+            }
+
             /** Direct Kotlin implementation of recovered `nextNotOperUnit(BATTLE_CAMP.MINE)`. */
-            fun nextNotOperUnit(camp:Int)=!collocation&&camp==0&&units.any{it.control&&it.exist&&!it.acted}
-            fun view()=IsolatedView(paused,modal,nextNotOperUnit(0),pending.toList().also{pending.clear()})
+            fun nextNotOperUnit(camp: Int) =
+                !collocation && camp == 0 && units.any { it.control && it.exist && !it.acted }
+
+            /**
+             * 공개 메서드 `view`
+             *
+             * ### 파라미터
+            - 입력 파라미터: 없음
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
+            fun view() = IsolatedView(paused, modal, nextNotOperUnit(0), pending.toList().also { pending.clear() })
         }
     }
 }

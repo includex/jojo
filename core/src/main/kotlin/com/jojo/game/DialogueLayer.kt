@@ -8,7 +8,24 @@ class DialogueLayer(
     private val flag: Int = QI_PAO,
     private val onClose: () -> Unit = {},
 ) {
+    /**
+     * data class  `Page`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Page(val speakerId: Int, val text: String)
+
+    /**
+     * data class  `View`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class View(
         val attached: Boolean,
         val bubble: Int,
@@ -32,12 +49,27 @@ class DialogueLayer(
         private set
     val events = mutableListOf<String>()
 
-    init { nextPage() }
+    init {
+        nextPage()
+    }
+
+    /**
+     * 공개 메서드 `view`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `View`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun view(): View {
         val current = requireNotNull(page)
-        return View(attached, bubbleIndex and 1, bubbleAtTop,
-            current.speakerId, speakerName, renderedContent, content != target)
+        return View(
+            attached, bubbleIndex and 1, bubbleAtTop,
+            current.speakerId, speakerName, renderedContent, content != target
+        )
     }
 
     /** One source typewriter callback: one character, or one complete markup tag. */
@@ -58,6 +90,17 @@ class DialogueLayer(
         return true
     }
 
+    /**
+     * 공개 메서드 `completeTyping`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun completeTyping() {
         if (!attached || content == target) return
         content = target
@@ -75,9 +118,31 @@ class DialogueLayer(
         return true
     }
 
+    /**
+     * 공개 메서드 `skip`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun skip() {
         if (attached) close()
     }
+
+    /**
+     * 공개 메서드 `advance`
+     *
+     * ### 파라미터
+    - `seconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun advance(seconds: Float) {
         val remaining = autoCloseRemaining ?: return
@@ -141,6 +206,18 @@ class DialogueLayer(
             val pages = mutableListOf<Page>()
             var speaker: Int? = null
             val lines = mutableListOf<String>()
+
+            /**
+             * 공개 메서드 `flush`
+             *
+             * ### 파라미터
+            - 입력 파라미터: 없음
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Unit`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun flush() {
                 val id = speaker ?: return
                 while (lines.isNotEmpty()) {

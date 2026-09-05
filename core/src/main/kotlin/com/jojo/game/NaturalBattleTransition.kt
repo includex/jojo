@@ -2,6 +2,14 @@ package com.jojo.game
 
 /** Decisions shared by the normal BattleScreen route and its end-to-end transition test. */
 object NaturalBattleTransition {
+    /**
+     * enum class  `CompletionAction`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class CompletionAction { WAIT, RUN_SCENE1, START_SCENE2 }
 
     fun shouldStartInitialScene1(
@@ -11,7 +19,7 @@ object NaturalBattleTransition {
         scriptState: PlaybackState,
         alreadyStarted: Boolean,
     ): Boolean = !alreadyStarted && presentationReady && outcome == null &&
-        phase == BattleTurnController.Phase.PLAYER_INPUT && scriptState == PlaybackState.COMPLETE
+            phase == BattleTurnController.Phase.PLAYER_INPUT && scriptState == PlaybackState.COMPLETE
 
     fun completionAction(
         outcome: BattleOutcome?,
@@ -33,7 +41,7 @@ object NaturalBattleTransition {
         scriptState: PlaybackState,
         dialoguePresent: Boolean,
     ): Boolean = outcome == BattleOutcome.ENEMY_VICTORY &&
-        scriptState == PlaybackState.COMPLETE && !dialoguePresent
+            scriptState == PlaybackState.COMPLETE && !dialoguePresent
 
     /**
      * A result may be observed while BattleScreen is still waiting for a
@@ -56,7 +64,7 @@ object NaturalBattleTransition {
         scriptEnded: Boolean,
         endProcessStarted: Boolean,
     ): Boolean = scriptState == PlaybackState.COMPLETE && !callbackPending &&
-        (scriptEnded || endProcessStarted)
+            (scriptEnded || endProcessStarted)
 
     /**
      * Campaign traces normally flush from the victory save prompt.  A loss
@@ -71,5 +79,5 @@ object NaturalBattleTransition {
         callbackPending: Boolean,
         scriptEnded: Boolean,
     ): Boolean = !exitOnFinish && outcome == BattleOutcome.ENEMY_VICTORY && loseSceneActive &&
-        fullTraceTerminalReady(scriptState, callbackPending, scriptEnded, endProcessStarted = true)
+            fullTraceTerminalReady(scriptState, callbackPending, scriptEnded, endProcessStarted = true)
 }

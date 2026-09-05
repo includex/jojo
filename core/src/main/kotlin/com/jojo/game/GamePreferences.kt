@@ -16,11 +16,45 @@ internal class GamePreferenceProvider(
 ) {
     private val stores = linkedMapOf<String, Preferences>()
 
+    /**
+     * 공개 메서드 `get`
+     *
+     * ### 파라미터
+    - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Preferences`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun get(name: String): Preferences = stores.getOrPut(name) {
         if (automatedRun) InMemoryPreferences() else persistentStore(name)
     }
 
+    /**
+     * 공개 메서드 `campaign`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Preferences`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun campaign(): Preferences = get(GamePreferenceNamespaces.CAMPAIGN)
+
+    /**
+     * 공개 메서드 `settings`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Preferences`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun settings(): Preferences = get(GamePreferenceNamespaces.SETTINGS)
 }
 
@@ -60,6 +94,9 @@ internal class InMemoryPreferences : Preferences {
     override fun get(): Map<String, *> = values.toMap()
     override fun contains(key: String): Boolean = key in values
     override fun clear() = values.clear()
-    override fun remove(key: String) { values.remove(key) }
+    override fun remove(key: String) {
+        values.remove(key)
+    }
+
     override fun flush() = Unit
 }

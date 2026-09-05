@@ -5,6 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+/**
+ * class  `TitleInteractionTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class TitleInteractionTest {
     @Test fun `four authored button rectangles dispatch exact title routes`() {
         val events = mutableListOf<String>()
@@ -51,6 +59,14 @@ class TitleInteractionTest {
     }
 
     @Test fun `natural title settings pointer route mutates store and closes through production contracts`() {
+/**
+ * class  `Store`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
         class Store : SettingLayer.Store {
             val values = mutableMapOf<String, Int>()
             override fun getInt(key: String, default: Int) = values[key] ?: default

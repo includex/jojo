@@ -1,30 +1,19 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
 
-import java.util.ArrayDeque
-
+/** Composes the independently-owned presentation queues and campaign mutations. */
 internal class ScenarioStagePresentationCoordinator {
-    private val unitHideRequests = ArrayDeque<ScenarioUnitHideRequest>()
-    private var unitShowRequest: ScenarioUnitShowRequest? = null
-    private val unitPostsRequests = ArrayDeque<ScenarioUnitPostsRequest>()
-    var lastBattleUnitPostsRequiresPause: Boolean = false
-        private set
-    private var mapPresentationRequest: ScenarioMapPresentationRequest? = null
-    private val cameraCenterRequests = ArrayDeque<ScenarioCameraCenterRequest>()
-    private val scriptPresentationRequests = ArrayDeque<ScenarioScriptPresentationRequest>()
+    private val requests = ScenarioStagePresentationRequestQueue()
+    private val actions = ScenarioStageScriptedActions()
+    private val campaignChanges = ScenarioStageCampaignPresentationChanges()
 
-    val scriptedAttacks = mutableListOf<ScriptedAttackAction>()
-    val scriptedUnitActions = mutableListOf<ScriptedUnitAction>()
-    private val scriptedUnitLevelChanges = ArrayDeque<CampaignUnitLevelChange>()
-    private val scriptedUnitPostsChanges = ArrayDeque<CampaignUnitPostsChange>()
-    val scriptedUnitDirections = mutableListOf<Pair<Int, Int>>()
+    val scriptedAttacks: MutableList<ScriptedAttackAction> get() = actions.attacks
+    val scriptedUnitActions: MutableList<ScriptedUnitAction> get() = actions.unitActions
+    val scriptedUnitDirections: MutableList<Pair<Int, Int>> get() = actions.unitDirections
+    val lastBattleUnitPostsRequiresPause: Boolean get() = campaignChanges.lastBattleUnitPostsRequiresPause
 
-    fun requestUnitHide(unitId: Int, hideType: Int) {
-        unitHideRequests.addLast(ScenarioUnitHideRequest(unitId, hideType.coerceIn(0, 2)))
-    }
-
-    fun consumeUnitHideRequest(): ScenarioUnitHideRequest? =
-        if (unitHideRequests.isEmpty()) null else unitHideRequests.removeFirst()
-
+    fun requestUnitHide(unitId: Int, hideType: Int) = requests.requestUnitHide(unitId, hideType)
+    fun consumeUnitHideRequest(): ScenarioUnitHideRequest? = requests.consumeUnitHideRequest()
     fun requestRectUnitHide(
         x1: Int,
         y1: Int,
@@ -35,63 +24,20 @@ internal class ScenarioStagePresentationCoordinator {
         battleUnits: Map<String, ScenarioBattleUnit>,
         mineMasterInstanceId: Int,
         matchesAiCamp: (ScenarioBattleUnit, Int) -> Boolean,
-    ): Int {
-        val selected = battleUnits.entries
-            .filter { (_, unit) ->
-                !unit.hidden && matchesAiCamp(unit, camp) &&
-                    unit.x in minOf(x1, x2)..maxOf(x1, x2) &&
-                    unit.y in minOf(y1, y2)..maxOf(y1, y2)
-            }
-            .sortedWith(compareBy({ it.value.y }, { it.value.x }))
-        var effectiveHideType = hideType.coerceIn(0, 2)
-        selected.forEachIndexed { index, (_, unit) ->
-            val showsRetireMessage = effectiveHideType == 1
-            if (showsRetireMessage && unit.faction == ScenarioUnitFaction.MINE &&
-                unit.characterId == mineMasterInstanceId
-            ) effectiveHideType = 2
-            unitHideRequests.addLast(
-                ScenarioUnitHideRequest(
-                    unitId = unit.characterId,
-                    hideType = effectiveHideType,
-                    battleUnitId = unit.battleId,
-                    resumesScript = index == selected.lastIndex,
-                    showsRetireMessage = showsRetireMessage,
-                ),
-            )
-        }
-        return selected.size
-    }
+    ): Int =
+        requests.requestRectUnitHide(x1, y1, x2, y2, camp, hideType, battleUnits, mineMasterInstanceId, matchesAiCamp)
 
     fun completeUnitHide(
         request: ScenarioUnitHideRequest,
         battleUnits: Map<String, ScenarioBattleUnit>,
         unitProvider: (Int) -> TacticalUnit,
         setBattleUnitVisibility: (Int, Boolean) -> Unit,
-    ) {
-        val exact = request.battleUnitId
-        if (exact == null) {
-            setBattleUnitVisibility(request.unitId, false)
-            return
-        }
-        battleUnits.values.firstOrNull {
-            it.battleId == exact
-        }?.hidden = true
-        unitProvider(request.unitId).visible = battleUnits.values.any {
-            it.characterId == request.unitId && !it.hidden
-        }
-    }
+    ) = requests.completeUnitHide(request, battleUnits, unitProvider, setBattleUnitVisibility)
 
-    fun requestUnitShow(
-        request: ScenarioUnitShowRequest,
-        battleUnitForCharacterId: (Int) -> ScenarioBattleUnit?,
-    ) {
-        check(unitShowRequest == null) { "unit show callback is already pending" }
-        unitShowRequest = request
-        battleUnitForCharacterId(request.unitId)?.hidden = false
-    }
+    fun requestUnitShow(request: ScenarioUnitShowRequest, battleUnitForCharacterId: (Int) -> ScenarioBattleUnit?) =
+        requests.requestUnitShow(request, battleUnitForCharacterId)
 
-    fun consumeUnitShowRequest(): ScenarioUnitShowRequest? =
-        unitShowRequest.also { unitShowRequest = null }
+    fun consumeUnitShowRequest(): ScenarioUnitShowRequest? = requests.consumeUnitShowRequest()
 
     fun setBattleUnitPosts(
         unitId: Int,
@@ -102,22 +48,9 @@ internal class ScenarioStagePresentationCoordinator {
         campaign: CampaignState,
         unitProvider: (Int) -> TacticalUnit,
         battleUnitForCharacterId: (Int) -> ScenarioBattleUnit?,
-    ): CampaignUnitPostsChange? {
-        lastBattleUnitPostsRequiresPause = false
-        val oldPosts = campaign.unitAttribute(unitId, 17, data.unitProfile(unitId)?.posts ?: 0)
-        val change = campaign.setUnitPosts(unitId, posts, flags, data, enabledFeatures) ?: return null
-        unitProvider(unitId).posts = posts
-        scriptedUnitPostsChanges.addLast(change)
-        val battleUnit = battleUnitForCharacterId(unitId) ?: return change
-        val oldAvatar = battleAvatarId(battleUnit, oldPosts, data)
-        val newAvatar = battleAvatarId(battleUnit, posts, data)
-        if (oldAvatar != null && newAvatar != null && oldAvatar != newAvatar) {
-            val pausesScript = flags and 16 != 0
-            unitPostsRequests.addLast(ScenarioUnitPostsRequest(unitId, oldAvatar, newAvatar, pausesScript))
-            lastBattleUnitPostsRequiresPause = pausesScript
-        }
-        return change
-    }
+    ): CampaignUnitPostsChange? = campaignChanges.setBattleUnitPosts(
+        unitId, posts, flags, data, enabledFeatures, campaign, unitProvider, battleUnitForCharacterId,
+    )
 
     fun setModelUnitPosts(
         unitId: Int,
@@ -127,55 +60,25 @@ internal class ScenarioStagePresentationCoordinator {
         enabledFeatures: Int = 0,
         campaign: CampaignState,
         unitProvider: (Int) -> TacticalUnit,
-    ): CampaignUnitPostsChange? {
-        val change = campaign.setUnitPosts(unitId, posts, flags, data, enabledFeatures) ?: return null
-        unitProvider(unitId).posts = posts
-        scriptedUnitPostsChanges.addLast(change)
-        return change
-    }
+    ): CampaignUnitPostsChange? = campaignChanges.setModelUnitPosts(
+        unitId, posts, flags, data, enabledFeatures, campaign, unitProvider,
+    )
 
-    fun consumeUnitPostsRequest(): ScenarioUnitPostsRequest? =
-        if (unitPostsRequests.isEmpty()) null else unitPostsRequests.removeFirst()
-
-    private fun battleAvatarId(unit: ScenarioBattleUnit, posts: Int, data: GameDataCatalog): Int? {
-        val faction = when (unit.faction) {
-            ScenarioUnitFaction.MINE -> Faction.PLAYER
-            ScenarioUnitFaction.FRIEND -> Faction.FRIEND
-            ScenarioUnitFaction.ENEMY -> if (unit.reinforcement) Faction.REINFORCEMENTS else Faction.ENEMY
-        }
-        val armId = if (posts < 60) posts.floorDiv(3) else posts - 40
-        return BattleAvatarResolver.resolve(data, unit.characterId, posts, armId, faction)
-    }
-
-    fun requestMapPresentation(request: ScenarioMapPresentationRequest) {
-        check(mapPresentationRequest == null) { "map presentation callback is already pending" }
-        mapPresentationRequest = request
-    }
-
-    fun consumeMapPresentationRequest(): ScenarioMapPresentationRequest? =
-        mapPresentationRequest.also { mapPresentationRequest = null }
-
-    fun requestCameraCenter(x: Int, y: Int) {
-        cameraCenterRequests.addLast(ScenarioCameraCenterRequest(x, y))
-    }
-
-    fun consumeCameraCenterRequests(): List<ScenarioCameraCenterRequest> =
-        cameraCenterRequests.toList().also { cameraCenterRequests.clear() }
-
-    fun requestScriptPresentation(request: ScenarioScriptPresentationRequest) {
-        scriptPresentationRequests.addLast(request)
-    }
+    fun consumeUnitPostsRequest(): ScenarioUnitPostsRequest? = campaignChanges.consumeUnitPostsRequest()
+    fun requestMapPresentation(request: ScenarioMapPresentationRequest) = requests.requestMapPresentation(request)
+    fun consumeMapPresentationRequest(): ScenarioMapPresentationRequest? = requests.consumeMapPresentationRequest()
+    fun requestCameraCenter(x: Int, y: Int) = requests.requestCameraCenter(x, y)
+    fun consumeCameraCenterRequests(): List<ScenarioCameraCenterRequest> = requests.consumeCameraCenterRequests()
+    fun requestScriptPresentation(request: ScenarioScriptPresentationRequest) =
+        requests.requestScriptPresentation(request)
 
     fun consumeScriptPresentationRequest(): ScenarioScriptPresentationRequest? =
-        if (scriptPresentationRequests.isEmpty()) null else scriptPresentationRequests.removeFirst()
+        requests.consumeScriptPresentationRequest()
 
     fun consumeScriptPresentationRequests(): List<ScenarioScriptPresentationRequest> =
-        scriptPresentationRequests.toList().also { scriptPresentationRequests.clear() }
+        requests.consumeScriptPresentationRequests()
 
-    fun attackAction(attackerId: Int, targetId: Int, flag: Int) {
-        scriptedAttacks += ScriptedAttackAction(attackerId, targetId, flag)
-    }
-
+    fun attackAction(attackerId: Int, targetId: Int, flag: Int) = actions.attack(attackerId, targetId, flag)
     fun setScriptedUnitAction(
         unitId: Int,
         action: Int,
@@ -183,33 +86,19 @@ internal class ScenarioStagePresentationCoordinator {
         loop: Boolean = false,
         unitProvider: (Int) -> TacticalUnit,
         setUnitDirection: (Int, Int) -> Unit,
-    ) {
-        unitProvider(unitId).action = action
-        if (direction >= 0) setUnitDirection(unitId, direction)
-        scriptedUnitActions += ScriptedUnitAction(unitId, action, direction, loop)
-    }
+    ) = actions.setUnitAction(unitId, action, direction, loop, unitProvider, setUnitDirection)
 
-    fun consumeScriptedAttacks(): List<ScriptedAttackAction> =
-        scriptedAttacks.toList().also { scriptedAttacks.clear() }
-
-    fun consumeScriptedUnitActions(): List<ScriptedUnitAction> =
-        scriptedUnitActions.toList().also { scriptedUnitActions.clear() }
-
-    fun consumeScriptedUnitDirections(): List<Pair<Int, Int>> =
-        scriptedUnitDirections.toList().also { scriptedUnitDirections.clear() }
+    fun consumeScriptedAttacks(): List<ScriptedAttackAction> = actions.consumeAttacks()
+    fun consumeScriptedUnitActions(): List<ScriptedUnitAction> = actions.consumeUnitActions()
+    fun consumeScriptedUnitDirections(): List<Pair<Int, Int>> = actions.consumeUnitDirections()
 
     fun addUnitLevels(
         unitId: Int,
         delta: Int,
         registeredFeatures: Int = 0,
         campaign: CampaignState,
-    ): CampaignUnitLevelChange? =
-        campaign.addUnitLevels(unitId, delta, GameDataCatalog.load(), registeredFeatures)
-            ?.also(scriptedUnitLevelChanges::addLast)
+    ): CampaignUnitLevelChange? = campaignChanges.addUnitLevels(unitId, delta, registeredFeatures, campaign)
 
-    fun consumeScriptedUnitLevelChanges(): List<CampaignUnitLevelChange> =
-        scriptedUnitLevelChanges.toList().also { scriptedUnitLevelChanges.clear() }
-
-    fun consumeScriptedUnitPostsChanges(): List<CampaignUnitPostsChange> =
-        scriptedUnitPostsChanges.toList().also { scriptedUnitPostsChanges.clear() }
+    fun consumeScriptedUnitLevelChanges(): List<CampaignUnitLevelChange> = campaignChanges.consumeUnitLevelChanges()
+    fun consumeScriptedUnitPostsChanges(): List<CampaignUnitPostsChange> = campaignChanges.consumeUnitPostsChanges()
 }

@@ -88,9 +88,11 @@ internal class BattleHudAssets : Disposable {
     private fun menuTexture(name: String) = linearOptional("maps/ui/battle-menu/$name.png")
     private fun optional(path: String): Texture? =
         Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)
+
     private fun linearOptional(path: String): Texture? = optional(path)?.also {
         it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
     }
+
     private fun lazyTexture(path: String) = lazy { Texture(Gdx.files.internal(path)) }
 
     override fun dispose() {

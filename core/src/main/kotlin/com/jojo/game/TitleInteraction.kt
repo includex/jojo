@@ -2,23 +2,105 @@ package com.jojo.game
 
 /** Renderer-independent hit and route contract for the title scene. */
 object TitleInteraction {
+    /**
+     * enum class  `MainAction`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class MainAction { NEW_GAME, LOAD, SETTINGS, EXIT }
     sealed interface LoadAction {
         data object CloseOverlay : LoadAction
         data object ConfirmLoad : LoadAction
         data object CancelConfirmation : LoadAction
+
+        /**
+         * data class  `SelectVisualRow`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class SelectVisualRow(val index: Int) : LoadAction
     }
+
     sealed interface SettingAction {
+        /**
+         * data class  `Toggle`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Toggle(val bit: Int) : SettingAction
+
+        /**
+         * data class  `TextSpeed`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class TextSpeed(val index: Int) : SettingAction
+
+        /**
+         * data class  `NotifyLevel`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class NotifyLevel(val index: Int) : SettingAction
+
+        /**
+         * data class  `Background`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Background(val index: Int) : SettingAction
+
+        /**
+         * data class  `GameSpeed`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class GameSpeed(val progress: Float) : SettingAction
         data object Confirm : SettingAction
     }
 
+    /**
+     * data class  `Bounds`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Bounds(val left: Int, val bottom: Int, val right: Int, val top: Int) {
+        /**
+         * 공개 메서드 `contains`
+         *
+         * ### 파라미터
+        - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun contains(x: Int, y: Int) = x in left..right && y in bottom..top
     }
 
@@ -32,7 +114,32 @@ object TitleInteraction {
     private val confirmCancel = Bounds(475, 227, 632, 282)
     private val confirmLoad = Bounds(645, 227, 807, 282)
 
+    /**
+     * 공개 메서드 `mainActionAt`
+     *
+     * ### 파라미터
+    - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `MainAction?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun mainActionAt(x: Int, y: Int): MainAction? = mainButtons.firstOrNull { it.first.contains(x, y) }?.second
+
+    /**
+     * 공개 메서드 `loadActionAt`
+     *
+     * ### 파라미터
+    - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `confirmationOpen` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `LoadAction?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun loadActionAt(x: Int, y: Int, confirmationOpen: Boolean): LoadAction? {
         if (confirmationOpen) return when {
@@ -74,16 +181,83 @@ object TitleInteraction {
             layer.check(action.bit, !enabled)
             false
         }
-        is SettingAction.TextSpeed -> { layer.check2(0, action.index); false }
-        is SettingAction.NotifyLevel -> { layer.check2(2, action.index); false }
-        is SettingAction.Background -> { layer.selectBackground(action.index); false }
-        is SettingAction.GameSpeed -> { layer.onSlider(action.progress); false }
+
+        is SettingAction.TextSpeed -> {
+            layer.check2(0, action.index); false
+        }
+
+        is SettingAction.NotifyLevel -> {
+            layer.check2(2, action.index); false
+        }
+
+        is SettingAction.Background -> {
+            layer.selectBackground(action.index); false
+        }
+
+        is SettingAction.GameSpeed -> {
+            layer.onSlider(action.progress); false
+        }
     }
 
+    /**
+     * interface  `MainRoutes`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     interface MainRoutes {
+        /**
+         * 공개 메서드 `newGame`
+         *
+         * ### 파라미터
+        - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun newGame(moduleName: String)
+
+        /**
+         * 공개 메서드 `openLoad`
+         *
+         * ### 파라미터
+        - 입력 파라미터: 없음
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun openLoad()
+
+        /**
+         * 공개 메서드 `openSettings`
+         *
+         * ### 파라미터
+        - 입력 파라미터: 없음
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun openSettings()
+
+        /**
+         * 공개 메서드 `requestExit`
+         *
+         * ### 파라미터
+        - 입력 파라미터: 없음
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun requestExit()
     }
 

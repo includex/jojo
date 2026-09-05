@@ -1,4 +1,10 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.BattleActionSnapshot
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleAiScorer
+import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 internal data class BattleAiTurnEnvironment(
     val outcome: () -> BattleOutcome?,
@@ -64,31 +70,67 @@ internal object BattleAiTurnResolver {
         var currentHealthBefore: Map<String, Int> = emptyMap()
         var currentMoveArea: List<Pair<Int, Int>> = emptyList()
 
-        fun record(unit: BattleUnit, targetId: String? = null, magicId: Int? = null, result: TacticalActionResult? = null) {
+        /**
+         * 공개 메서드 `record`
+         *
+         * ### 파라미터
+        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `targetId` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `magicId` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `result` (`TacticalActionResult? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun record(
+            unit: BattleUnit,
+            targetId: String? = null,
+            magicId: Int? = null,
+            result: TacticalActionResult? = null
+        ) {
             val actionArea = when (result) {
                 is TacticalActionResult.Attack -> if (unit.attackAllScreen) {
-                    env.terrain?.let { grid -> (0 until grid.width).flatMap { x -> (0 until grid.height).map { y -> x to y } } }.orEmpty()
+                    env.terrain?.let { grid -> (0 until grid.width).flatMap { x -> (0 until grid.height).map { y -> x to y } } }
+                        .orEmpty()
                 } else (unit.attackOffsets + unit.attackEffectOffsets).map { (dx, dy) -> unit.tileX + dx to unit.tileY + dy }
+
                 is TacticalActionResult.Magic -> unit.magic.firstOrNull { it.id == magicId }
                     ?.hitArea?.offsets?.map { (dx, dy) -> unit.tileX + dx to unit.tileY + dy }.orEmpty()
+
                 else -> emptyList()
             }
-            env.setLastAiUnitResolution(AiUnitResolution(
-                actorId = unit.id,
-                fromX = currentFromX,
-                fromY = currentFromY,
-                toX = unit.tileX,
-                toY = unit.tileY,
-                path = env.lastMovePath(unit.id).takeIf { unit.tileX != currentFromX || unit.tileY != currentFromY }.orEmpty(),
-                targetId = targetId,
-                magicId = magicId,
-                result = result,
-                healthBeforeAction = currentHealthBefore,
-                moveArea = currentMoveArea,
-                actionArea = actionArea,
-            ))
+            env.setLastAiUnitResolution(
+                AiUnitResolution(
+                    actorId = unit.id,
+                    fromX = currentFromX,
+                    fromY = currentFromY,
+                    toX = unit.tileX,
+                    toY = unit.tileY,
+                    path = env.lastMovePath(unit.id).takeIf { unit.tileX != currentFromX || unit.tileY != currentFromY }
+                        .orEmpty(),
+                    targetId = targetId,
+                    magicId = magicId,
+                    result = result,
+                    healthBeforeAction = currentHealthBefore,
+                    moveArea = currentMoveArea,
+                    actionArea = actionArea,
+                )
+            )
             resolvedUnits++
         }
+
+        /**
+         * 공개 메서드 `hold`
+         *
+         * ### 파라미터
+        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
 
         fun hold(unit: BattleUnit) {
             unit.markActionComplete()
@@ -114,7 +156,32 @@ internal object BattleAiTurnResolver {
             val activeFaction = env.activeFaction()
             if (!tracedAiSort && round == 2 && activeFaction == Faction.ENEMY) {
                 env.traceActions += "sort-r2-enemy:" + remaining.joinToString(";") {
-                    "${it.characterId}=v${BattleAiScorer.aiSortValue(it, env.terrain, env.terrainResumeRates)},hp${it.hitPoints}/${it.maxHitPoints},arm${it.armType},remote${it.remoteAttack},mov${BattleAttributeCalculator.effectiveMovement(it)},def${BattleAttributeCalculator.effective(it, BattleAttribute.DEFENSE)},terrain${env.terrain?.terrainAt(it.tileX, it.tileY)},resume${env.terrainResumeRates[env.terrain?.terrainAt(it.tileX, it.tileY)] ?: 0},status${it.statuses}"
+                    "${it.characterId}=v${
+                        BattleAiScorer.aiSortValue(
+                            it,
+                            env.terrain,
+                            env.terrainResumeRates
+                        )
+                    },hp${it.hitPoints}/${it.maxHitPoints},arm${it.armType},remote${it.remoteAttack},mov${
+                        BattleAttributeCalculator.effectiveMovement(
+                            it
+                        )
+                    },def${
+                        BattleAttributeCalculator.effective(
+                            it,
+                            BattleAttribute.DEFENSE
+                        )
+                    },terrain${
+                        env.terrain?.terrainAt(
+                            it.tileX,
+                            it.tileY
+                        )
+                    },resume${
+                        env.terrainResumeRates[env.terrain?.terrainAt(
+                            it.tileX,
+                            it.tileY
+                        )] ?: 0
+                    },status${it.statuses}"
                 }
                 tracedAiSort = true
             }
@@ -146,6 +213,7 @@ internal object BattleAiTurnResolver {
                         unit.aiTargetY = retainedTarget.tileY
                     }
                 }
+
                 5 -> when {
                     retainedTarget == null -> unit.ai = 1
                     distance(unit, retainedTarget) < 3 -> unit.ai = 0
@@ -171,8 +239,13 @@ internal object BattleAiTurnResolver {
                 unit.aiValue = decision.actionValue
             }
             val traceFrom = "${unit.tileX},${unit.tileY}"
-            val diagnosticPoints = if (unit.characterId == 474 && round == 1) controllerResult.sourcePoints.joinToString(";") { "${it.x},${it.y}" } else ""
-            env.traceActions += "r$round/${activeFaction.name}/${unit.characterId}:$traceFrom->${decision.x},${decision.y}:target=${decision.targetId?.let(env.units()::get)?.characterId}:magic=${decision.magicId}:score=${decision.actionValue}:points=$diagnosticPoints"
+            val diagnosticPoints =
+                if (unit.characterId == 474 && round == 1) controllerResult.sourcePoints.joinToString(";") { "${it.x},${it.y}" } else ""
+            env.traceActions += "r$round/${activeFaction.name}/${unit.characterId}:$traceFrom->${decision.x},${decision.y}:target=${
+                decision.targetId?.let(
+                    env.units()::get
+                )?.characterId
+            }:magic=${decision.magicId}:score=${decision.actionValue}:points=$diagnosticPoints"
 
             if (decision.x != unit.tileX || decision.y != unit.tileY) {
                 if (env.moveUnit(unit.id, decision.x, decision.y) is TacticalActionResult.Success) moves++ else {
@@ -186,7 +259,8 @@ internal object BattleAiTurnResolver {
                 val bypassCondition = profile?.aiUse == 13
                 val magicResult = env.castMagic(unit.id, selected.id, decision.magicId, false, bypassCondition)
                 if (unit.characterId == 146 && round == 2) {
-                    val profileText = profile?.let { "id=${it.id},type=${it.type},target=${it.target},area=${it.effectAreaId},power=${it.power},harm=${it.harmType},category=${it.category},limit=${it.hitRateLimit}" }
+                    val profileText =
+                        profile?.let { "id=${it.id},type=${it.type},target=${it.target},area=${it.effectAreaId},power=${it.power},harm=${it.harmType},category=${it.category},limit=${it.hitRateLimit}" }
                     env.traceActions += "diagMagic146:profile=$profileText:targetArm=${selected.armId},magicHarm=${selected.magicHarmRate}:result=$magicResult"
                 }
                 if (magicResult is TacticalActionResult.Magic) {
@@ -214,9 +288,11 @@ internal object BattleAiTurnResolver {
             env.setStagedHitSideEffects(null)
             env.setStagedCompletionSideEffects(null)
             env.restoreRuntime(before)
-            env.setPendingActionTransaction(env.createActionTransaction(
-                lastResolution.actorId, before, afterResolution, hitSideEffects, completionSideEffects,
-            ))
+            env.setPendingActionTransaction(
+                env.createActionTransaction(
+                    lastResolution.actorId, before, afterResolution, hitSideEffects, completionSideEffects,
+                )
+            )
         } else if (deferMutations) {
             env.setStagedHitSideEffects(null)
             env.setStagedCompletionSideEffects(null)

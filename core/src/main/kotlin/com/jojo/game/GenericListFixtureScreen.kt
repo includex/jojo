@@ -15,6 +15,14 @@ import com.badlogic.gdx.utils.viewport.FitViewport
  * in the event stream (1488.372 x 800) while using the normal LibGDX
  * viewport for the visual smoke run.
  */
+/**
+ * class  `GenericListFixtureScreen`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()
@@ -33,15 +41,32 @@ class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
         game.captureFrameIfRequested()
     }
 
+    /**
+     * 공개 메서드 `renderEventLog`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun renderEventLog(): String {
-        val l = RenderEventLog(); val p = "hall-generic-list-stable"
-        fun d(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-              asset: String? = null, text: String = "", opacity: Float = 1f) = l.draw(
+        val l = RenderEventLog()
+        val p = "hall-generic-list-stable"
+        fun d(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = "", opacity: Float = 1f
+        ) = l.draw(
             p, "HallLayer", path, type, x, y, w, h, asset, opacity,
             if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
-            text = text)
-        d("Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
-            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>")
+            text = text
+        )
+        d(
+            "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
+        )
         d("Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", opacity = .392f)
         d("Canvas/Layer/Logo_12-1", "tiled-sprite", 163.186f, 76f, 1162f, 648f, "Logo_9-1")
         d("Canvas/Layer/Logo_12-1/box4", "sliced-sprite", 163.186f, 76f, 1162f, 648f, "box4")
@@ -64,7 +89,15 @@ class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
             d("$q/label3", "label", 688.406f, y + 7.8f, 179.72f, 54.4f, text = "undefined")
         }
         listOf(473.366f, 593.366f, 714.366f, 834.366f, 955.366f, 1075.366f, 1195.366f).forEachIndexed { i, x ->
-            d("Canvas/Layer/Logo_12-1/scrollview/vline", "sprite", x, if (i == 6) 155.94f else 152.94f, 6f, 439.1f, "vline")
+            d(
+                "Canvas/Layer/Logo_12-1/scrollview/vline",
+                "sprite",
+                x,
+                if (i == 6) 155.94f else 152.94f,
+                6f,
+                439.1f,
+                "vline"
+            )
         }
         d("Canvas/Layer/Logo_12-1/button1/Background", "sliced-sprite", 167.786f, 594f, 310.4f, 70f, "bg1")
         d("Canvas/Layer/Logo_12-1/button1/Background/box3", "sliced-sprite", 167.786f, 594f, 310.4f, 70f, "box3")
@@ -80,5 +113,7 @@ class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
     }
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
-    override fun dispose() { batch.dispose(); background.dispose(); panel.dispose() }
+    override fun dispose() {
+        batch.dispose(); background.dispose(); panel.dispose()
+    }
 }

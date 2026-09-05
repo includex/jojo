@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 /**
  * Pure Kotlin resolver for resolving the effect of a magic spell onto a single target unit,
@@ -18,11 +20,33 @@ internal object MagicTargetResolver {
         val liftsBefore = victim.attributeLifts.toMap()
         val liftRoundsBefore = victim.attributeLiftRounds.toMap()
 
+        /**
+         * 공개 메서드 `magicHarm`
+         *
+         * ### 파라미터
+        - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Int`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun magicHarm(value: Int): Int {
             var result = if (pass > 0) kotlin.math.floor(value * .9).toInt() else value
             if (magicCritical) result += kotlin.math.floor(result * .5).toInt()
             return result
         }
+
+        /**
+         * 공개 메서드 `wrap`
+         *
+         * ### 파라미터
+        - `result` (`MagicTarget`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Pair<MagicTarget, MagicLocalSettlementEntry?>`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
 
         fun wrap(result: MagicTarget): Pair<MagicTarget, MagicLocalSettlementEntry?> {
             val entry = if (result.hit) MagicLocalSettlementEntry(
@@ -48,27 +72,77 @@ internal object MagicTargetResolver {
             victim.setCurHp(victim.maxHitPoints)
             victim.statuses.clear()
             victim.presentation.refreshStatus(victim.statuses, victim.attributeLifts)
-            return wrap(MagicTarget(victim.id, damage = 0, healing = healing, hitRate = 100, hit = true, defeated = false))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    healing = healing,
+                    hitRate = 100,
+                    hit = true,
+                    defeated = false
+                )
+            )
         }
         if (magic.type == 26 || magic.type == 28) { // BAQI / SHUAIQI
             val lift = if (magic.type == 26) 1 else -1
-            val attributes = listOf(BattleAttribute.ATTACK, BattleAttribute.DEFENSE, BattleAttribute.SPIRIT, BattleAttribute.CRITICAL, BattleAttribute.MORALE)
+            val attributes = listOf(
+                BattleAttribute.ATTACK,
+                BattleAttribute.DEFENSE,
+                BattleAttribute.SPIRIT,
+                BattleAttribute.CRITICAL,
+                BattleAttribute.MORALE
+            )
                 .associateWith { attribute -> victim.applyAttributeLift(attribute, lift, 3) }
-            return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = true, defeated = false, attributes = attributes))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    hitRate = 100,
+                    hit = true,
+                    defeated = false,
+                    attributes = attributes
+                )
+            )
         }
         if (magic.type == 27) { // QIANGXING
             val applied = victim.applyAttributeLift(BattleAttribute.MOVEMENT, 1, 3)
-            return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = true, defeated = false, attribute = BattleAttribute.MOVEMENT, lift = applied))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    hitRate = 100,
+                    hit = true,
+                    defeated = false,
+                    attribute = BattleAttribute.MOVEMENT,
+                    lift = applied
+                )
+            )
         }
         if (magic.type == 6) { // XISHOU_MP
             val hitRate = env.probabilityResolver.magicHitRate(attacker, victim, magic)
             val hit = env.probabilityResolver.magicHit(attacker, victim, hitRate)
-            val base = maxOf(1, (BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level)
+            val base = maxOf(
+                1,
+                (BattleAttributeCalculator.effective(
+                    attacker,
+                    BattleAttribute.SPIRIT
+                ) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level
+            )
             val drained = if (hit) minOf(victim.magicPoints, maxOf(1, magicHarm(base * magic.power / 100))) else 0
             victim.addMpcur(-drained)
             val recovered = minOf(attacker.maxMagicPoints - attacker.magicPoints, drained)
             attacker.addMpcur(recovered)
-            return wrap(MagicTarget(victim.id, damage = 0, magicRecovery = recovered, magicDrain = drained, hitRate = hitRate, hit = hit, defeated = false))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    magicRecovery = recovered,
+                    magicDrain = drained,
+                    hitRate = hitRate,
+                    hit = hit,
+                    defeated = false
+                )
+            )
         }
         val status = MagicDamageCalculator.statusEffect(magic.category)
         var appliedStatus: BattleStatus? = null
@@ -81,7 +155,16 @@ internal object MagicTargetResolver {
                 appliedStatus = status
             }
             if (magic.harmType == 4) {
-                return wrap(MagicTarget(victim.id, damage = 0, status = appliedStatus, hitRate = hitRate, hit = hit, defeated = false))
+                return wrap(
+                    MagicTarget(
+                        victim.id,
+                        damage = 0,
+                        status = appliedStatus,
+                        hitRate = hitRate,
+                        hit = hit,
+                        defeated = false
+                    )
+                )
             }
         }
         val attributeChange = MagicDamageCalculator.attributeChange(magic.category)
@@ -98,7 +181,16 @@ internal object MagicTargetResolver {
                 2 -> mapOf(BattleAttribute.ATTACK to lift)
                 else -> mapOf(BattleAttribute.ATTACK to lift, BattleAttribute.SPIRIT to lift)
             }.mapValues { (attribute, value) -> victim.applyAttributeLift(attribute, value, 3) }
-            return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = true, defeated = false, attributes = attributes))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    hitRate = 100,
+                    hit = true,
+                    defeated = false,
+                    attributes = attributes
+                )
+            )
         }
         if (attributeChange != null) {
             val (attribute, lift) = attributeChange
@@ -108,17 +200,30 @@ internal object MagicTargetResolver {
             if (hit) {
                 appliedLift = victim.applyAttributeLift(attribute, lift, 3)
             }
-            return wrap(MagicTarget(
-                targetId = victim.id, damage = 0, hitRate = hitRate, hit = hit, defeated = false,
-                attribute = attribute.takeIf { hit }, lift = appliedLift,
-            ))
+            return wrap(
+                MagicTarget(
+                    targetId = victim.id, damage = 0, hitRate = hitRate, hit = hit, defeated = false,
+                    attribute = attribute.takeIf { hit }, lift = appliedLift,
+                )
+            )
         }
         if (magic.type == 19) {
-            val base = attacker.hitPoints * magic.power / 100 + if (magic.id == 39 || magic.id == 41) attacker.spirit / 10 else attacker.spirit / 2
-            val healingRate = MagicDamageCalculator.healingTerrainRate(attacker, magic, env.terrain, env.terrainMagicFlags)
+            val base =
+                attacker.hitPoints * magic.power / 100 + if (magic.id == 39 || magic.id == 41) attacker.spirit / 10 else attacker.spirit / 2
+            val healingRate =
+                MagicDamageCalculator.healingTerrainRate(attacker, magic, env.terrain, env.terrainMagicFlags)
             val healing = minOf(victim.maxHitPoints - victim.hitPoints, maxOf(0, magicHarm(base * healingRate / 100)))
             victim.addHpcur(healing)
-            return wrap(MagicTarget(victim.id, damage = 0, healing = healing, hitRate = 100, hit = true, defeated = false))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    healing = healing,
+                    hitRate = 100,
+                    hit = true,
+                    defeated = false
+                )
+            )
         }
         if (magic.type == 20 && magic.category == 24) { // MX
             val transferred = minOf(40, maxOf(0, victim.hitPoints - 1))
@@ -126,14 +231,32 @@ internal object MagicTargetResolver {
                 victim.addHpcur(-transferred, keepAlive = true)
                 val recovered = minOf(attacker.maxMagicPoints - attacker.magicPoints, transferred * 5 / 8)
                 attacker.addMpcur(recovered)
-                return wrap(MagicTarget(victim.id, damage = transferred, magicRecovery = recovered, hitRate = 100, hit = true, defeated = false))
+                return wrap(
+                    MagicTarget(
+                        victim.id,
+                        damage = transferred,
+                        magicRecovery = recovered,
+                        hitRate = 100,
+                        hit = true,
+                        defeated = false
+                    )
+                )
             }
             return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = false, defeated = false))
         }
         if (magic.type == 20) { // JMP
             val healing = minOf(victim.maxMagicPoints - victim.magicPoints, magicHarm(magic.expendMp))
             victim.addMpcur(healing)
-            return wrap(MagicTarget(victim.id, damage = 0, magicRecovery = healing, hitRate = 100, hit = true, defeated = false))
+            return wrap(
+                MagicTarget(
+                    victim.id,
+                    damage = 0,
+                    magicRecovery = healing,
+                    hitRate = 100,
+                    hit = true,
+                    defeated = false
+                )
+            )
         }
         val hitRate = env.probabilityResolver.magicHitRate(attacker, victim, magic)
         val hit = env.probabilityResolver.magicHit(attacker, victim, hitRate)
@@ -141,19 +264,39 @@ internal object MagicTargetResolver {
         val base = if (assassination) {
             victim.maxHitPoints * magic.power / 100
         } else {
-            maxOf(1, (BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level)
+            maxOf(
+                1,
+                (BattleAttributeCalculator.effective(
+                    attacker,
+                    BattleAttribute.SPIRIT
+                ) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level
+            )
         }
         val damage = if (hit) {
             if (assassination) maxOf(1, magicHarm(base))
             else {
                 var value = maxOf(1, base * magic.power / 100 * victim.magicHarmRate / 100)
                 value += MagicDamageCalculator.magicFlatSkillDamage(attacker, magic)
-                val flagBonus = attacker.skills[292]?.and(255)?.takeIf { it != 255 }?.let { env.probabilityResolver.flagRandom(0, 5) } ?: 0
-                value = maxOf(1, value * MagicDamageCalculator.magicSkillDamageRate(attacker, victim, magic, flagBonus) / 100)
+                val flagBonus = attacker.skills[292]?.and(255)?.takeIf { it != 255 }
+                    ?.let { env.probabilityResolver.flagRandom(0, 5) } ?: 0
+                value = maxOf(
+                    1,
+                    value * MagicDamageCalculator.magicSkillDamageRate(attacker, victim, magic, flagBonus) / 100
+                )
                 value = value * MagicDamageCalculator.magicWeatherRate(magic, env.weather()) / 100
-                value = value * MagicDamageCalculator.offensiveMagicTerrainRate(victim, magic, env.terrain, env.terrainMagicFlags) / 100
+                value = value * MagicDamageCalculator.offensiveMagicTerrainRate(
+                    victim,
+                    magic,
+                    env.terrain,
+                    env.terrainMagicFlags
+                ) / 100
                 val enemyMinimum = if (!attacker.isPlayerSide()) {
-                    maxOf(1, (minOf(7, env.units().count { it.visible && it.isPlayerSide() }) * attacker.maxMagicPoints) / 100)
+                    maxOf(
+                        1,
+                        (minOf(
+                            7,
+                            env.units().count { it.visible && it.isPlayerSide() }) * attacker.maxMagicPoints) / 100
+                    )
                 } else 1
                 magicHarm(maxOf(enemyMinimum, value))
             }
@@ -167,15 +310,17 @@ internal object MagicTargetResolver {
             env.onDefeat(victim.id)
             env.notifyUnitDefeated(attacker, victim)
         }
-        return wrap(MagicTarget(
-            targetId = victim.id,
-            damage = damage,
-            healing = 0,
-            hitRate = hitRate,
-            hit = hit,
-            defeated = defeated,
-            casterHealing = casterHealing,
-            status = appliedStatus,
-        ))
+        return wrap(
+            MagicTarget(
+                targetId = victim.id,
+                damage = damage,
+                healing = 0,
+                hitRate = hitRate,
+                hit = hit,
+                defeated = defeated,
+                casterHealing = casterHealing,
+                status = appliedStatus,
+            )
+        )
     }
 }

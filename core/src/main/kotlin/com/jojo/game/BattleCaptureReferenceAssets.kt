@@ -28,6 +28,17 @@ internal class BattleCaptureReferenceAssets : Disposable {
         lazy { load(frame) }
     }
 
+    /**
+     * 공개 메서드 `texture`
+     *
+     * ### 파라미터
+    - `frame` (`BattleCaptureReferenceFrame`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun texture(frame: BattleCaptureReferenceFrame): Texture? = frames.getValue(frame).value
 
     private fun load(frame: BattleCaptureReferenceFrame): Texture? =

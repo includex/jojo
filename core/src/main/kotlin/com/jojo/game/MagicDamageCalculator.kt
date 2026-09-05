@@ -1,10 +1,24 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 /**
  * Pure Kotlin formulas and modifiers for magic combat:
  * weather modifiers, terrain modifiers, skill damage rate/flat additions, and condition testing.
  */
 internal object MagicDamageCalculator {
+
+    /**
+     * 공개 메서드 `magicTerrainAllowed`
+     *
+     * ### 파라미터
+    - `magic` (`GameDataCatalog.MagicProfile`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun magicTerrainAllowed(magic: GameDataCatalog.MagicProfile, target: BattleUnit): Boolean = true
 
@@ -13,6 +27,17 @@ internal object MagicDamageCalculator {
         magic: GameDataCatalog.MagicProfile,
         weather: BattleWeather,
     ): String? {
+        /**
+         * 공개 메서드 `active`
+         *
+         * ### 파라미터
+        - `skill` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun active(skill: Int) = attacker.skills[skill]?.and(255)?.let { it != 255 } == true
         if (magic.condition in 2..5 && active(136)) return null // KYJZ: condition restriction bypass
         if (magic.condition == 1 && attacker.hitPoints < 40) return "HP가 40 미만이면 사용할 수 없는 전략입니다."
@@ -26,6 +51,18 @@ internal object MagicDamageCalculator {
         if (!weatherAllowed && !active(20)) return "현재 날씨에서는 사용할 수 없는 전략입니다."
         return if (magic.condition == 5) "이 전략의 특수 사용 조건을 충족하지 못했습니다." else null
     }
+
+    /**
+     * 공개 메서드 `magicWeatherRate`
+     *
+     * ### 파라미터
+    - `magic` (`GameDataCatalog.MagicProfile`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `weather` (`BattleWeather`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun magicWeatherRate(magic: GameDataCatalog.MagicProfile, weather: BattleWeather): Int {
         val allowed = when (magic.condition) {
@@ -63,9 +100,33 @@ internal object MagicDamageCalculator {
         return if (attacker.skills[19]?.and(255)?.let { it != 255 } == true) 85 else 0
     }
 
+    /**
+     * 공개 메서드 `magicFlatSkillDamage`
+     *
+     * ### 파라미터
+    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `magic` (`GameDataCatalog.MagicProfile`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun magicFlatSkillDamage(attacker: BattleUnit, magic: GameDataCatalog.MagicProfile): Int {
+        /**
+         * 공개 메서드 `effect`
+         *
+         * ### 파라미터
+        - `skill` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun effect(skill: Int) = attacker.skills[skill]?.and(255)?.takeIf { it != 255 }
-        var addition = effect(141)?.let { BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) * it / 100 } ?: 0
+        var addition =
+            effect(141)?.let { BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) * it / 100 } ?: 0
         if (magic.type == 0) addition += effect(107) ?: 0
         return addition
     }
@@ -76,6 +137,18 @@ internal object MagicDamageCalculator {
         magic: GameDataCatalog.MagicProfile,
         flagRandomBonus: Int = 0,
     ): Int {
+        /**
+         * 공개 메서드 `effect`
+         *
+         * ### 파라미터
+        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `skill` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun effect(unit: BattleUnit, skill: Int) = unit.skills[skill]?.and(255)?.takeIf { it != 255 }
         var rate = 100
         effect(attacker, 292)?.let { rate += 10 + flagRandomBonus }
@@ -92,6 +165,17 @@ internal object MagicDamageCalculator {
         return maxOf(1, rate)
     }
 
+    /**
+     * 공개 메서드 `statusEffect`
+     *
+     * ### 파라미터
+    - `category` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleStatus?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun statusEffect(category: Int): BattleStatus? = when (category) {
         8 -> BattleStatus.CONFUSION
         9 -> BattleStatus.POISON
@@ -99,6 +183,17 @@ internal object MagicDamageCalculator {
         11 -> BattleStatus.SILENCE
         else -> null
     }
+
+    /**
+     * 공개 메서드 `attributeChange`
+     *
+     * ### 파라미터
+    - `category` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Pair<BattleAttribute, Int>?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun attributeChange(category: Int): Pair<BattleAttribute, Int>? = when (category) {
         4 -> BattleAttribute.CRITICAL to -1

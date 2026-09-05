@@ -1,7 +1,8 @@
 package com.jojo.game
+import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.utils.JsonValue
-import java.util.ArrayDeque
+import java.util.*
 
 internal class ScenarioChoiceCoordinator(
     private val onStateChange: (PlaybackState) -> Unit,
@@ -27,6 +28,17 @@ internal class ScenarioChoiceCoordinator(
     var pendingAskResult: Int? = null
         private set
 
+    /**
+     * 공개 메서드 `reset`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun reset() {
         currentChoice = null
         selectedChoice = 0
@@ -41,24 +53,83 @@ internal class ScenarioChoiceCoordinator(
         pendingAskResult = null
     }
 
+    /**
+     * 공개 메서드 `setDirectChoice`
+     *
+     * ### 파라미터
+    - `choice` (`Choice?`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `selected` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `isAsk` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun setDirectChoice(choice: Choice?, selected: Int, isAsk: Boolean) {
         currentChoice = choice
         selectedChoice = selected
         isAskChoice = isAsk
     }
 
+    /**
+     * 공개 메서드 `selectPrevious`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun selectPrevious() {
         currentChoice?.options?.let { selectedChoice = Math.floorMod(selectedChoice - 1, it.size) }
     }
+
+    /**
+     * 공개 메서드 `selectNext`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun selectNext() {
         currentChoice?.options?.let { selectedChoice = Math.floorMod(selectedChoice + 1, it.size) }
     }
 
+    /**
+     * 공개 메서드 `selectChoice`
+     *
+     * ### 파라미터
+    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun selectChoice(index: Int) {
         val choice = currentChoice ?: return
         selectedChoice = index.coerceIn(0, choice.options.lastIndex)
     }
+
+    /**
+     * 공개 메서드 `setChoiceSource`
+     *
+     * ### 파라미터
+    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun setChoiceSource(node: JsonValue, frame: Frame, moduleName: String) {
         currentChoiceFunction = frame.sourceFunction
@@ -128,7 +199,12 @@ internal class ScenarioChoiceCoordinator(
             currentChoice = null
             val statements = selected.children().toList()
             if (statements.isNotEmpty()) frames.addLast(
-                Frame(RuntimeFunction("<if>", statements, emptyMap()), 0, sourceFrame.locals, sourceFrame.sourceFunction),
+                Frame(
+                    RuntimeFunction("<if>", statements, emptyMap()),
+                    0,
+                    sourceFrame.locals,
+                    sourceFrame.sourceFunction
+                ),
             )
             onResumeExecution()
             return
@@ -143,11 +219,35 @@ internal class ScenarioChoiceCoordinator(
     }
 
     companion object {
+        /**
+         * 공개 메서드 `isStageChoice`
+         *
+         * ### 파라미터
+        - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Boolean`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun isStageChoice(node: JsonValue): Boolean =
             node.typeName() == "Call" && node.field("func").expressionPath() == "stage.choice"
 
+        /**
+         * 공개 메서드 `findStageAsk`
+         *
+         * ### 파라미터
+        - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `JsonValue?`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun findStageAsk(node: JsonValue): JsonValue? {
-            if (node.get("type") != null && node.typeName() == "Call" && node.field("func").expressionPath() == "stage.ask") return node
+            if (node.get("type") != null && node.typeName() == "Call" && node.field("func")
+                    .expressionPath() == "stage.ask"
+            ) return node
             var child = node.child
             while (child != null) {
                 findStageAsk(child)?.let { return it }

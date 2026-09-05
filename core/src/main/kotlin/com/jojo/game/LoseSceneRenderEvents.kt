@@ -4,13 +4,30 @@ package com.jojo.game
 object LoseSceneRenderEvents {
     const val PHASE = "battle-lose-restart-prompt"
 
+    /**
+     * 공개 메서드 `append`
+     *
+     * ### 파라미터
+    - `log` (`RenderEventLog`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `flow` (`LoseSceneFlow`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `phase` (`String = PHASE`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun append(log: RenderEventLog, flow: LoseSceneFlow, phase: String = PHASE) {
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
-        fun draw(layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, text: String = "") =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, 1f,
-                if (type == "label") labels else sprites, true, text)
+        fun draw(
+            layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = ""
+        ) =
+            log.draw(
+                phase, layer, path, type, x, y, w, h, asset, 1f,
+                if (type == "label") labels else sprites, true, text
+            )
 
         draw(
             "HallLayer", "Canvas/Logo_8-1", "sprite", 0f, 0f, 1488.372f, 800f,
@@ -28,7 +45,16 @@ object LoseSceneRenderEvents {
             draw("Lose", "Canvas/Layer/bg0/btns/button$tag/Background", "sliced-sprite", x, 271.285f, 180f, 50f, "box3")
             val labelX = if (tag == 1) 557.336f else 757.586f
             val labelWidth = if (tag == 1) 168.1f else 169.4f
-            draw("Lose", "Canvas/Layer/bg0/btns/button$tag/Background/Label", "label", labelX, 279.085f, labelWidth, 40f, text = text)
+            draw(
+                "Lose",
+                "Canvas/Layer/bg0/btns/button$tag/Background/Label",
+                "label",
+                labelX,
+                279.085f,
+                labelWidth,
+                40f,
+                text = text
+            )
         }
     }
 }

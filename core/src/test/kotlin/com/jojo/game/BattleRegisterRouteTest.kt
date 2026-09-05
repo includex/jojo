@@ -5,6 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+/**
+ * class  `BattleRegisterRouteTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleRegisterRouteTest {
     @Test fun `six actual title touch ends attach Global139`() {
         val route = BattleRegisterRoute()

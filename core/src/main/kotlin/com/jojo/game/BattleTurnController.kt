@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
 
 /**
  * Source `_ai2` enters every authored camp, including an empty
@@ -9,9 +11,31 @@ package com.jojo.game
 internal class EmptyAiCampFrameBarrier {
     private var pending = false
 
+    /**
+     * 공개 메서드 `begin`
+     *
+     * ### 파라미터
+    - `hasActor` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun begin(hasActor: Boolean) {
         pending = !hasActor
     }
+
+    /**
+     * 공개 메서드 `yieldEntryFrame`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun yieldEntryFrame(): Boolean {
         if (!pending) return false
@@ -28,9 +52,32 @@ internal class EmptyAiCampFrameBarrier {
 internal class CommittedPlayerMoveFrameBarrier {
     private var exposed = false
 
+    /**
+     * 공개 메서드 `beginActor`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun beginActor() {
         exposed = false
     }
+
+    /**
+     * 공개 메서드 `yieldCompletionFrame`
+     *
+     * ### 파라미터
+    - `isPlayer` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `moved` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun yieldCompletionFrame(isPlayer: Boolean, moved: Boolean): Boolean {
         if (exposed || !isPlayer || !moved) return false
@@ -55,11 +102,11 @@ internal object CollocatedPlayerMoveScriptEnd {
         observedOutcome: BattleOutcome?,
     ): Boolean =
         camp == Faction.PLAYER &&
-            moveCallbackStarted &&
-            scriptState == PlaybackState.COMPLETE &&
-            battleEndedByScript &&
-            scriptedOutcome != null &&
-            observedOutcome != null
+                moveCallbackStarted &&
+                scriptState == PlaybackState.COMPLETE &&
+                battleEndedByScript &&
+                scriptedOutcome != null &&
+                observedOutcome != null
 }
 
 /**
@@ -71,6 +118,17 @@ internal object CollocatedPlayerMoveScriptEnd {
  */
 internal class ActionStatusFrameBarrier {
     private var settlementExposed = false
+
+    /**
+     * 공개 메서드 `beginActor`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun beginActor() {
         settlementExposed = false
@@ -84,6 +142,17 @@ internal class ActionStatusFrameBarrier {
      * are sampled in one game frame and the state edge is attributed to the
      * wrong episode.
      */
+    /**
+     * 공개 메서드 `yieldAfterCommit`
+     *
+     * ### 파라미터
+    - `hasAction` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun yieldAfterCommit(hasAction: Boolean): Boolean {
         if (settlementExposed || !hasAction) return false
         settlementExposed = true
@@ -106,9 +175,31 @@ internal class ActionStatusFrameBarrier {
 internal class CounterattackSettlementFrameBarrier {
     private var idleFramePending = false
 
+    /**
+     * 공개 메서드 `beginActor`
+     *
+     * ### 파라미터
+    - `hasPhysicalCounter` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun beginActor(hasPhysicalCounter: Boolean) {
         idleFramePending = hasPhysicalCounter
     }
+
+    /**
+     * 공개 메서드 `yieldIdleBeforeCommit`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun yieldIdleBeforeCommit(): Boolean {
         if (!idleFramePending) return false
@@ -121,7 +212,7 @@ internal class CounterattackSettlementFrameBarrier {
 internal fun TacticalActionResult?.hasPhysicalCounterPass(): Boolean =
     (this as? TacticalActionResult.Attack)?.physicalPasses?.any { pass ->
         pass.kind == PhysicalAttackPassKind.COUNTER ||
-            pass.kind == PhysicalAttackPassKind.COUNTER_FOLLOW_UP
+                pass.kind == PhysicalAttackPassKind.COUNTER_FOLLOW_UP
     } == true
 
 /**
@@ -148,6 +239,17 @@ internal class ScriptedMovementCampTransitionFrameBarrier {
         }
     }
 
+    /**
+     * 공개 메서드 `yieldBeforeCampTransition`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun yieldBeforeCampTransition(): Boolean {
         if (!completedMoveFramePending) return false
         completedMoveFramePending = false
@@ -163,13 +265,46 @@ internal class ScriptedMovementCampTransitionFrameBarrier {
 internal class ConsecutiveNoResultFrameGate {
     private var completedInCurrentRender = false
 
+    /**
+     * 공개 메서드 `beginRender`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun beginRender() {
         completedInCurrentRender = false
     }
 
+    /**
+     * 공개 메서드 `markCompleted`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun markCompleted() {
         completedInCurrentRender = true
     }
+
+    /**
+     * 공개 메서드 `shouldYieldBefore`
+     *
+     * ### 파라미터
+    - `nextIsNoResult` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun shouldYieldBefore(nextIsNoResult: Boolean): Boolean =
         completedInCurrentRender && nextIsNoResult
@@ -189,6 +324,14 @@ internal class ConsecutiveNoResultFrameGate {
  * complete* method is called. This is the same generator hand-off used by
  * the original Cocos layer and prevents future state becoming visible early.
  */
+/**
+ * class  `BattleTurnController`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleTurnController(
     private val battle: Battle,
     private val showCamp: (CampCard) -> Unit,
@@ -205,6 +348,14 @@ class BattleTurnController(
     private val onCampEvents: (TurnResult) -> Unit = {},
     initialPhase: Phase = Phase.PLAYER_INPUT,
 ) {
+    /**
+     * enum class  `Phase`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     enum class Phase {
         /** scene0 and the first scene1/startOper callback still own control. */
         BOOTSTRAP,
@@ -221,6 +372,14 @@ class BattleTurnController(
         WEATHER,
         FINISHED,
     }
+
+    /**
+     * enum class  `DeathCheckpoint`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     enum class DeathCheckpoint { CAMP_START, CAMP_RESTORE, ROUND_START }
 
@@ -244,6 +403,17 @@ class BattleTurnController(
      * Initial `_execControlScript(true)` enters Mine operation without the
      * ordinary `_setOper/_stateProcess/unitDeath` camp-start chain.
      */
+    /**
+     * 공개 메서드 `completeBootstrap`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun completeBootstrap() {
         check(phase == Phase.BOOTSTRAP) { "bootstrap completion outside bootstrap phase" }
         battle.prepareActiveCampOperation()
@@ -272,6 +442,17 @@ class BattleTurnController(
         beginCampState()
     }
 
+    /**
+     * 공개 메서드 `completeCampStatePresentation`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun completeCampStatePresentation() {
         check(phase == Phase.CAMP_STATE) { "state completion outside camp-state phase" }
         val fired = battle.runActiveCampEvents()
@@ -286,6 +467,17 @@ class BattleTurnController(
         phase = Phase.CAMP_DEATHS
         if (presentDeaths(DeathCheckpoint.CAMP_START)) completeCampDeathPresentation()
     }
+
+    /**
+     * 공개 메서드 `completeCampDeathPresentation`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun completeCampDeathPresentation() {
         check(phase == Phase.CAMP_DEATHS) { "death completion outside camp-death phase" }
@@ -313,11 +505,33 @@ class BattleTurnController(
      * `stage.end()`. The source does not run unit-hide or camp-restore after
      * that explicit boundary.
      */
+    /**
+     * 공개 메서드 `finishScriptEndedBattle`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun finishScriptEndedBattle() {
         check(phase == Phase.AI) { "script-end completion outside AI phase" }
         check(battle.outcome() != null) { "script ended without a battle outcome" }
         phase = Phase.FINISHED
     }
+
+    /**
+     * 공개 메서드 `completeCampRestorePresentation`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun completeCampRestorePresentation() {
         check(phase == Phase.CAMP_RESTORE) { "restore completion outside camp-restore phase" }
@@ -325,17 +539,50 @@ class BattleTurnController(
         if (presentDeaths(DeathCheckpoint.CAMP_RESTORE)) completeCampRestoreDeathPresentation()
     }
 
+    /**
+     * 공개 메서드 `completeCampRestoreDeathPresentation`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun completeCampRestoreDeathPresentation() {
         check(phase == Phase.CAMP_RESTORE_DEATHS) { "death completion outside restore-death phase" }
         if (finishIfBattleEnded()) return
         if (battle.activeFaction == Faction.REINFORCEMENTS) beginRoundBoundary() else enterNextCamp()
     }
 
+    /**
+     * 공개 메서드 `completeRoundScript`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun completeRoundScript() {
         check(phase == Phase.ROUND_SCRIPT) { "round script completion outside round-script phase" }
         phase = Phase.ROUND_DEATHS
         if (presentDeaths(DeathCheckpoint.ROUND_START)) completeRoundDeathPresentation()
     }
+
+    /**
+     * 공개 메서드 `completeRoundDeathPresentation`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun completeRoundDeathPresentation() {
         check(phase == Phase.ROUND_DEATHS) { "death completion outside round-death phase" }
@@ -346,6 +593,17 @@ class BattleTurnController(
         phase = Phase.WEATHER
         if (presentWeather(transition)) completeWeatherPresentation()
     }
+
+    /**
+     * 공개 메서드 `completeWeatherPresentation`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun completeWeatherPresentation() {
         check(phase == Phase.WEATHER) { "weather completion outside weather phase" }

@@ -17,6 +17,17 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
     private val batch = SpriteBatch()
     private val layout = GlyphLayout()
 
+    /**
+     * 공개 메서드 `render`
+     *
+     * ### 파라미터
+    - `state` (`BattlePreparationViewState`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun render(state: BattlePreparationViewState) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -49,10 +60,46 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         batch.end()
     }
 
+    /**
+     * 공개 메서드 `screenToWorld`
+     *
+     * ### 파라미터
+    - `screenX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `screenY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Pair<Float, Float>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun screenToWorld(screenX: Int, screenY: Int): Pair<Float, Float> =
         viewport.unproject(Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
 
+    /**
+     * 공개 메서드 `resize`
+     *
+     * ### 파라미터
+    - `width` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `height` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+
+    /**
+     * 공개 메서드 `dispose`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun dispose() = batch.dispose()
 
     private fun drawRoster(state: BattlePreparationViewState) {
@@ -66,8 +113,18 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
             }
             batch.color = Color.WHITE
             assets.rosterFont.color = Color.WHITE
-            assets.rosterFont.draw(batch, "Lv.", (168.744f + index % 6 * 133f) * SCALE, (669.555f - index / 6 * 144f) * SCALE + 14f)
-            right(assets.rosterFont, unit.level.toString(), (299.048f + index % 6 * 133f) * SCALE, (667.398f - index / 6 * 144f) * SCALE + 14f)
+            assets.rosterFont.draw(
+                batch,
+                "Lv.",
+                (168.744f + index % 6 * 133f) * SCALE,
+                (669.555f - index / 6 * 144f) * SCALE + 14f
+            )
+            right(
+                assets.rosterFont,
+                unit.level.toString(),
+                (299.048f + index % 6 * 133f) * SCALE,
+                (667.398f - index / 6 * 144f) * SCALE + 14f
+            )
             assets.rosterNameFont.color = Color.WHITE
             centered(assets.rosterNameFont, unit.name, cx, (625.287f - index / 6 * 144f) * SCALE + 13f)
         }
@@ -158,19 +215,29 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         assets.unitInfoBoxPatch?.draw(batch, 454.186f * SCALE, 509.642f * SCALE, 358f * SCALE, 144f * SCALE)
         assets.unitInfoBoxPatch?.draw(batch, 454.186f * SCALE, 339.359f * SCALE, 358f * SCALE, 144f * SCALE)
         assets.unitInfoBoxPatch?.draw(batch, 821.986f * SCALE, 71.95f * SCALE, 457f * SCALE, 580.5f * SCALE)
-        listOf(Triple(825.923f, 712.65f, "무장 열전"), Triple(1014.008f, 712.65f, "부대 특성"),
-            Triple(826.481f, 651.471f, "능력"), Triple(956.444f, 651.471f, "장비"), Triple(1086.444f, 651.471f, "마법"))
+        listOf(
+            Triple(825.923f, 712.65f, "무장 열전"), Triple(1014.008f, 712.65f, "부대 특성"),
+            Triple(826.481f, 651.471f, "능력"), Triple(956.444f, 651.471f, "장비"), Triple(1086.444f, 651.471f, "마법")
+        )
             .forEach { (x, y, text) ->
-                assets.unitInfoButtonPatch?.draw(batch, x * SCALE, y * SCALE, (if (text.length > 2) 190f else 130f) * SCALE, 60f * SCALE)
+                assets.unitInfoButtonPatch?.draw(
+                    batch,
+                    x * SCALE,
+                    y * SCALE,
+                    (if (text.length > 2) 190f else 130f) * SCALE,
+                    60f * SCALE
+                )
                 assets.font.color = Color.BLACK
                 assets.font.draw(batch, text, (x + 12f) * SCALE, (y + 43f) * SCALE)
             }
         assets.font.color = Color.BLACK
-        listOf("무장 정보" to (202.186f to 780f), "조조" to (455.186f to 716f), "부대 속성" to (475.267f to 670f),
+        listOf(
+            "무장 정보" to (202.186f to 780f), "조조" to (455.186f to 716f), "부대 속성" to (475.267f to 670f),
             "군웅        Lv     3" to (466.186f to 620f), "Exp                  0/100" to (466.186f to 561f),
             "상태" to (476.844f to 496f), "HP                 123/123" to (468.186f to 451f),
             "MP                 36/36" to (468.186f to 395f), "기본 능력" to (853.036f to 644f),
-            "무력 82       민첩성 80\n지력 92       운기 84\n지휘 98" to (848.106f to 588f))
+            "무력 82       민첩성 80\n지력 92       운기 84\n지휘 98" to (848.106f to 588f)
+        )
             .forEach { (text, point) -> assets.font.draw(batch, text, point.first * SCALE, point.second * SCALE) }
         batch.color = Color.WHITE
     }
@@ -204,12 +271,26 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
             while (dx < width - .01f) {
                 val drawnWidth = minOf(tileWidth, width - dx)
                 val sourceWidth = (drawnWidth / SCALE).toInt().coerceIn(1, texture.width)
-                batch.draw(texture, x + dx, y + dy, drawnWidth, drawnHeight, 0, 0, sourceWidth, sourceHeight, false, false)
+                batch.draw(
+                    texture,
+                    x + dx,
+                    y + dy,
+                    drawnWidth,
+                    drawnHeight,
+                    0,
+                    0,
+                    sourceWidth,
+                    sourceHeight,
+                    false,
+                    false
+                )
                 dx += tileWidth
             }
             dy += tileHeight
         }
     }
 
-    private companion object { const val SCALE = .86f }
+    private companion object {
+        const val SCALE = .86f
+    }
 }

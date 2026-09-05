@@ -7,6 +7,7 @@ package com.jojo.game
  */
 internal class AuthoredMechanicRouteTracker(private val scenario: String) {
     private data class Waypoint(val x1: Int, val y1: Int, val x2: Int, val y2: Int, val target: Pair<Int, Int>)
+
     private val s52Waypoints = listOf(
         Waypoint(3, 9, 6, 12, 4 to 10),
         Waypoint(8, 14, 11, 17, 9 to 15),
@@ -16,6 +17,17 @@ internal class AuthoredMechanicRouteTracker(private val scenario: String) {
         Waypoint(12, 0, 17, 2, 14 to 1),
     )
     private var waypointIndex = 0
+
+    /**
+     * 공개 메서드 `target`
+     *
+     * ### 파라미터
+    - `playerTiles` (`Collection<Pair<Int, Int>>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Pair<Int, Int>?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun target(playerTiles: Collection<Pair<Int, Int>>): Pair<Int, Int>? {
         if (scenario != "S_52") return null
@@ -54,9 +66,45 @@ internal fun s01SurvivalDestination(
     visibleEnemyTiles: Collection<Pair<Int, Int>>,
     alliedTiles: Collection<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
+    /**
+     * 공개 메서드 `distance`
+     *
+     * ### 파라미터
+    - `a` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `b` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distance(a: Pair<Int, Int>, b: Pair<Int, Int>) =
         kotlin.math.abs(a.first - b.first) + kotlin.math.abs(a.second - b.second)
+
+    /**
+     * 공개 메서드 `nearestEnemy`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun nearestEnemy(tile: Pair<Int, Int>) = visibleEnemyTiles.minOfOrNull { distance(tile, it) } ?: Int.MAX_VALUE
+
+    /**
+     * 공개 메서드 `nearestAlly`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun nearestAlly(tile: Pair<Int, Int>) = alliedTiles
         .filter { it != current }
         .minOfOrNull { distance(tile, it) } ?: Int.MAX_VALUE
@@ -106,7 +154,8 @@ internal fun s01CaoCaoSafeLeaderAttack(
     targetTile: Pair<Int, Int>,
 ): Boolean {
     if (targetCharacterId !in setOf(134, 131, 129)) return false
-    val distance = kotlin.math.abs(attackerTile.first - targetTile.first) + kotlin.math.abs(attackerTile.second - targetTile.second)
+    val distance =
+        kotlin.math.abs(attackerTile.first - targetTile.first) + kotlin.math.abs(attackerTile.second - targetTile.second)
     if (distance != 1) return false
     val counter = maxOf(1, ((targetAttack - attackerDefense) / 2) + 25 + targetLevel)
     return attackerHitPoints > counter * 2
@@ -122,7 +171,30 @@ internal fun s57GateDestination(
     current: Pair<Int, Int>,
     reachableLegalTiles: Collection<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
+    /**
+     * 공개 메서드 `inGate`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun inGate(tile: Pair<Int, Int>) = tile.first in 2..16 && tile.second in 11..23
+
+    /**
+     * 공개 메서드 `rectangleDistance`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun rectangleDistance(tile: Pair<Int, Int>): Int {
         val dx = when {
             tile.first < 2 -> 2 - tile.first
@@ -136,8 +208,21 @@ internal fun s57GateDestination(
         }
         return dx + dy
     }
+
+    /**
+     * 공개 메서드 `fromCurrent`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun fromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
+
     val tieBreak = compareBy<Pair<Int, Int>>(::fromCurrent).thenBy { it.first }.thenBy { it.second }
     val legal = reachableLegalTiles.distinct()
     legal.filter(::inGate).minWithOrNull(tieBreak)?.let { return it }
@@ -180,7 +265,7 @@ internal fun s57FirstRoomCriticalFinisherActive(
     expectedSourcePhysicalDamage: Int,
     sourceCanReachLeaderAttackTile: Boolean,
 ): Boolean = focusedLeaderHitPoints != null &&
-    expectedSourcePhysicalDamage >= focusedLeaderHitPoints && sourceCanReachLeaderAttackTile
+        expectedSourcePhysicalDamage >= focusedLeaderHitPoints && sourceCanReachLeaderAttackTile
 
 /**
  * A finisher is deliberately all-or-nothing: unlike the escort route, it
@@ -195,8 +280,31 @@ internal fun s57CriticalFinisherDestination(
     attackAllScreen: Boolean,
     attackOffsets: Set<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
+    /**
+     * 공개 메서드 `canAttack`
+     *
+     * ### 파라미터
+    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun canAttack(from: Pair<Int, Int>) = attackAllScreen ||
-        (focusTile.first - from.first to focusTile.second - from.second) in attackOffsets
+            (focusTile.first - from.first to focusTile.second - from.second) in attackOffsets
+
+    /**
+     * 공개 메서드 `distanceFromCurrent`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distanceFromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
     return reachableLegalTiles.distinct().asSequence()
@@ -216,12 +324,48 @@ internal fun s57EscortFocusDestination(
     attackAllScreen: Boolean,
     attackOffsets: Set<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
+    /**
+     * 공개 메서드 `canAttack`
+     *
+     * ### 파라미터
+    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun canAttack(from: Pair<Int, Int>) = attackAllScreen ||
-        (focusTile.first - from.first to focusTile.second - from.second) in attackOffsets
+            (focusTile.first - from.first to focusTile.second - from.second) in attackOffsets
+
+    /**
+     * 공개 메서드 `distanceToFocus`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distanceToFocus(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - focusTile.first) + kotlin.math.abs(tile.second - focusTile.second)
+
+    /**
+     * 공개 메서드 `distanceFromCurrent`
+     *
+     * ### 파라미터
+    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distanceFromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
+
     val progressOrder = compareBy<Pair<Int, Int>>(::distanceToFocus)
         .thenBy(::distanceFromCurrent).thenBy { it.first }.thenBy { it.second }
     val legal = reachableLegalTiles.distinct()
@@ -262,8 +406,32 @@ internal fun s57EscortAttackFrom(
     attackAllScreen: Boolean,
     attackOffsets: Set<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
+    /**
+     * 공개 메서드 `canAttack`
+     *
+     * ### 파라미터
+    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun canAttack(from: Pair<Int, Int>) = attackAllScreen ||
-        (guardTile.first - from.first to guardTile.second - from.second) in attackOffsets
+            (guardTile.first - from.first to guardTile.second - from.second) in attackOffsets
+
+    /**
+     * 공개 메서드 `distance`
+     *
+     * ### 파라미터
+    - `left` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `right` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distance(left: Pair<Int, Int>, right: Pair<Int, Int>) =
         kotlin.math.abs(left.first - right.first) + kotlin.math.abs(left.second - right.second)
     return (listOf(current) + reachableLegalTiles).distinct().asSequence().filter(::canAttack)
@@ -282,8 +450,33 @@ internal fun s57EscortFocusBlockerFallback(
     /** Per-guard bounded post-kill route evidence (this or next move reaches staging). */
     openedStagingReachableByGuard: Map<String, Collection<Pair<Int, Int>>>,
 ): S57EscortFocusBlockerFallback? {
+    /**
+     * 공개 메서드 `canAttack`
+     *
+     * ### 파라미터
+    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `target` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun canAttack(from: Pair<Int, Int>, target: Pair<Int, Int>) = attackAllScreen ||
-        (target.first - from.first to target.second - from.second) in attackOffsets
+            (target.first - from.first to target.second - from.second) in attackOffsets
+
+    /**
+     * 공개 메서드 `distance`
+     *
+     * ### 파라미터
+    - `left` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `right` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distance(left: Pair<Int, Int>, right: Pair<Int, Int>) =
         kotlin.math.abs(left.first - right.first) + kotlin.math.abs(left.second - right.second)
 
@@ -308,10 +501,10 @@ internal fun s57EscortFocusBlockerFallback(
             }
             val blocksProgress = legal.any { frontier ->
                 stagingTiles.minOf { staging -> distance(frontier, staging) } == closestStagingDistance &&
-                    stagingTiles.any { staging ->
-                        distance(frontier, guard.tile) == 1 &&
-                            distance(guard.tile, staging) < distance(frontier, staging)
-                    }
+                        stagingTiles.any { staging ->
+                            distance(frontier, guard.tile) == 1 &&
+                                    distance(guard.tile, staging) < distance(frontier, staging)
+                        }
             }
             // Do not infer a blocker from Manhattan distance alone. It is a
             // valid exception only when removing this exact guard lets this
@@ -359,4 +552,4 @@ internal fun waitForS57AuthoredAttrition(
     visiblePlayerCount: Int,
     visibleEnemySourceIds: Collection<Int>,
 ): Boolean = scenario == "S_57" && visiblePlayerCount >= 2 &&
-    visibleEnemySourceIds.any { it in setOf(166, 167, 168) }
+        visibleEnemySourceIds.any { it in setOf(166, 167, 168) }

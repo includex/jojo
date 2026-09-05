@@ -16,21 +16,32 @@ import java.nio.file.Path
  * InfoLayer observation.  Values are intentionally pinned to the source
  * subtree artifact; this is not a generic replacement for InfoLayer yet.
  */
+/**
+ * class  `InfoLayerFixtureScreen`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
     private val requestedState = game.requestedCaptureState()
     private val skipped = requestedState == "info-layer-r00-skip"
+
     // Both the natural full-reveal capture and the real Panel_cancel event
     // leave the original InfoLayer in this rendered auto-close-pending state.
     private val fullAutoPending = requestedState == "info-layer-r00-full-autopending" ||
-        requestedState == "info-layer-r00-panel-touch"
+            requestedState == "info-layer-r00-panel-touch"
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val font = KoreanFont.create(40, "재능의 첫 징후")
     private val panel: Texture by lazy {
-        val bytes = Files.readAllBytes(Path.of(
-            "/Users/ain/workspace/jojo/.verification-work/raw-framebuffer-common-space/" +
-                "infolayer-subtree-observation/source-hall-infolayer-bg-frame.rgba",
-        ))
+        val bytes = Files.readAllBytes(
+            Path.of(
+                "/Users/ain/workspace/jojo/.verification-work/raw-framebuffer-common-space/" +
+                        "infolayer-subtree-observation/source-hall-infolayer-bg-frame.rgba",
+            )
+        )
         require(bytes.size == 19 * 17 * 4) { "source InfoLayer DynamicAtlas crop is not 19x17 RGBA" }
         val pixmap = Pixmap(19, 17, Pixmap.Format.RGBA8888)
         pixmap.pixels.put(bytes).flip()
@@ -74,6 +85,17 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
         game.captureFrameIfRequested()
     }
 
+    /**
+     * 공개 메서드 `compositionTrace`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun compositionTrace(): String {
         val state = when (requestedState) {
             "info-layer-r00-skip" -> "skip"
@@ -88,8 +110,12 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter() {
             "full-autopending" -> "source-hall-infolayer-full-autopending-subtree.json"
             else -> "source-hall-infolayer-subtree.json"
         }
-        val text = when { skipped -> ""; fullAutoPending -> "재능의 첫 징후"; else -> "재" }
-        val remaining = when { skipped -> "재능의 첫 징후"; fullAutoPending -> null; else -> "능의 첫 징후" }
+        val text = when {
+            skipped -> ""; fullAutoPending -> "재능의 첫 징후"; else -> "재"
+        }
+        val remaining = when {
+            skipped -> "재능의 첫 징후"; fullAutoPending -> null; else -> "능의 첫 징후"
+        }
         val bgWidth = if (fullAutoPending) 235.23 else 74.6
         val richWidth = if (fullAutoPending) 229.83 else 34.6
         val active = !fullAutoPending && !skipped

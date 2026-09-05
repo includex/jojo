@@ -23,6 +23,7 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().setAction" -> {
                 env.unitReference(node, frame)?.let { unit ->
                     env.stage.setScriptedUnitAction(
@@ -31,12 +32,15 @@ internal object ScenarioUnitActionDispatcher {
                         direction = args.getOrNull(1)?.asInt() ?: -1,
                         loop = args.getOrNull(2)?.asBooleanValue() ?: false,
                     )
-                    if (env.externalBattlePresentation && args.intAt(0) > 0 && !(args.getOrNull(2)?.asBooleanValue() ?: false)) {
+                    if (env.externalBattlePresentation && args.intAt(0) > 0 && !(args.getOrNull(2)?.asBooleanValue()
+                            ?: false)
+                    ) {
                         env.suspendFor(Float.MAX_VALUE)
                     }
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().show" -> {
                 env.unitReference(node, frame)?.let { reference ->
                     val unit = env.stage.unit(reference.id)
@@ -56,6 +60,7 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().hide" -> {
                 env.unitReference(node, frame)?.let {
                     if (!env.stage.unit(it.id).visible) Unit
@@ -66,18 +71,28 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().setDir" -> {
                 env.unitReference(node, frame)?.let { env.stage.setUnitDirection(it.id, args.firstOrNull().asInt()) }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().setPosts" -> {
                 env.unitReference(node, frame)?.let { unit ->
                     val flags = args.getOrNull(1)?.asInt() ?: 19
-                    env.stage.setBattleUnitPosts(unit.id, args.firstOrNull().asInt(), flags, enabledFeatures = env.battleContext.enabledFeatures)
-                    if (env.externalBattlePresentation && env.stage.lastBattleUnitPostsRequiresPause) env.suspendFor(Float.MAX_VALUE)
+                    env.stage.setBattleUnitPosts(
+                        unit.id,
+                        args.firstOrNull().asInt(),
+                        flags,
+                        enabledFeatures = env.battleContext.enabledFeatures
+                    )
+                    if (env.externalBattlePresentation && env.stage.lastBattleUnitPostsRequiresPause) env.suspendFor(
+                        Float.MAX_VALUE
+                    )
                 }
                 return ScenarioHandledCall(null)
             }
+
             "model.unit().setPosts" -> {
                 env.unitReference(node, frame)?.let { unit ->
                     env.stage.setModelUnitPosts(
@@ -87,12 +102,14 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().addLv" -> {
                 env.unitReference(node, frame)?.let {
                     env.stage.addUnitLevels(it.id, args.firstOrNull().asInt(), env.battleContext.enabledFeatures)
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().setAI" -> {
                 env.unitReference(node, frame)?.let {
                     env.stage.setUnitAi(
@@ -105,12 +122,14 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().retreatTxt" -> {
                 env.unitReference(node, frame)?.let {
                     env.stage.setUnitRetreatTextEnabled(it.id, args.firstOrNull().asBooleanValue())
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit().heightLight" -> {
                 env.unitReference(node, frame)?.let {
                     if (env.externalBattlePresentation) {
@@ -120,6 +139,7 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.head().move" -> {
                 env.headReference(node, frame)?.let {
                     env.stage.moveHead(it.id, args.intAt(0), args.intAt(1)).let { duration ->
@@ -128,6 +148,7 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.head().hide" -> {
                 env.headReference(node, frame)?.let {
                     env.stage.hideHead(it.id).let { duration ->
@@ -136,6 +157,7 @@ internal object ScenarioUnitActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             else -> return null
         }
     }

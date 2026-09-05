@@ -6,6 +6,17 @@ import com.badlogic.gdx.utils.JsonValue
 
 /** Byte-oriented source for the game's packaged data tables. */
 internal fun interface GameDataResourceSource {
+    /**
+     * 공개 메서드 `read`
+     *
+     * ### 파라미터
+    - `fileName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `ByteArray`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun read(fileName: String): ByteArray
 }
 
@@ -48,6 +59,17 @@ internal class GameDataRepository(
     private val source: GameDataResourceSource,
     private val jsonReader: JsonReader = JsonReader(),
 ) {
+    /**
+     * 공개 메서드 `load`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `GameDataTableBundle`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun load(): GameDataTableBundle = GameDataTableBundle(
         units = arrayTable("unit.bin", "unit"),
         arms = arrayTable("arms.bin", "arms"),

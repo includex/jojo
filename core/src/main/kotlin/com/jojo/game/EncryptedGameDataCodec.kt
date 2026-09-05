@@ -6,6 +6,17 @@ import java.security.MessageDigest
 object EncryptedGameDataCodec {
     private const val KEY = "ccz65Sha08GeZ1Fu"
 
+    /**
+     * 공개 메서드 `decode`
+     *
+     * ### 파라미터
+    - `raw` (`ByteArray`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun decode(raw: ByteArray): String? = runCatching {
         val decrypted = ByteArray(raw.size) { index ->
             val shift = KEY[index % KEY.length].code % 8

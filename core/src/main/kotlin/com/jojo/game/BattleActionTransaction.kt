@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleActionSnapshot
+import com.jojo.game.domain.battle.*
 
 /**
  * Publishes a calculated action at animation lifecycle boundaries.
@@ -7,6 +9,14 @@ package com.jojo.game
  * the movement, hit, status, economy, or final state appropriate to the
  * presentation edge they have reached.
  */
+/**
+ * class  `BattleActionTransaction`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleActionTransaction internal constructor(
     val actorId: String,
     private val before: BattleActionSnapshot,
@@ -22,7 +32,29 @@ class BattleActionTransaction internal constructor(
     private var complete = false
     private var hitEffectsCommitted = 0
 
+    /**
+     * 공개 메서드 `initialHp`
+     *
+     * ### 파라미터
+    - `id` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun initialHp(id: String): Int? = before.states[id]?.hitPoints
+
+    /**
+     * 공개 메서드 `initialMp`
+     *
+     * ### 파라미터
+    - `id` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun initialMp(id: String): Int? = before.states[id]?.magicPoints
 
@@ -108,6 +140,17 @@ class BattleActionTransaction internal constructor(
         unit.attributeLiftRounds.putAll(attributeLiftRounds)
         unit.presentation.refreshStatus(unit.statuses, unit.attributeLifts)
     }
+
+    /**
+     * 공개 메서드 `commitNextHitSideEffect`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun commitNextHitSideEffect() {
         if (complete) return

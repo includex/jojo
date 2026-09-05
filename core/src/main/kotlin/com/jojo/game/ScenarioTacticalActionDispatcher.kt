@@ -32,27 +32,33 @@ internal object ScenarioTacticalActionDispatcher {
                 env.stage.addNearEvent(args.firstOrNull().asList(), args.getOrNull(1).asInt())
                 return ScenarioHandledCall(null)
             }
+
             "stage.center" -> {
                 env.stage.requestCameraCenter(args.intAt(0), args.intAt(1))
                 return ScenarioHandledCall(null)
             }
+
             "stage.setEnemyEquip" -> {
                 env.stage.setEnemyEquipment(args.firstOrNull().asInt(), args.drop(1))
                 return ScenarioHandledCall(null)
             }
+
             "stage.unitAttr" -> return ScenarioHandledCall(env.stage.unitAttribute(args.intAt(0), args.intAt(1)))
             "stage.setUnitAttr" -> {
                 env.stage.setUnitAttribute(args.intAt(0), args.intAt(1), args.intAt(2))
                 return ScenarioHandledCall(null)
             }
+
             "stage.setUnitAbility" -> {
                 env.stage.changeUnitAttribute(args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3))
                 return ScenarioHandledCall(null)
             }
+
             "stage.setFAvatar" -> {
                 env.stage.setUnitAttribute(args.intAt(0), 27, args.intAt(1))
                 return ScenarioHandledCall(null)
             }
+
             "stage.setUnitStatus" -> {
                 val values = env.stage.setUnitStatuses(args.firstOrNull().asList())
                 val presents = values.any { change ->
@@ -61,8 +67,8 @@ internal object ScenarioTacticalActionDispatcher {
                     val status = (change["status"] as? Number)?.toInt() ?: -1
                     val hiddenStatuses = change["hStatus"].asList()
                     (hp != 0 && kotlin.math.abs(hp) != 255) ||
-                        (mp != 0 && kotlin.math.abs(mp) != 255) ||
-                        status != -1 || hiddenStatuses.isNotEmpty()
+                            (mp != 0 && kotlin.math.abs(mp) != 255) ||
+                            status != -1 || hiddenStatuses.isNotEmpty()
                 }
                 if (env.externalBattlePresentation && presents) {
                     env.stage.requestScriptPresentation(ScenarioScriptPresentationRequest.UnitStatusSettlement(values))
@@ -70,9 +76,11 @@ internal object ScenarioTacticalActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.setFire" -> {
                 val enabled = args.firstOrNull().asBooleanValue()
-                val x = args.intAt(1); val y = args.intAt(2)
+                val x = args.intAt(1)
+                val y = args.intAt(2)
                 env.stage.setFire(enabled, x, y)
                 if (env.externalBattlePresentation && enabled && env.stage.battleDrawRequested) {
                     env.stage.requestMapPresentation(ScenarioMapPresentationRequest(x, y, 1f))
@@ -80,52 +88,90 @@ internal object ScenarioTacticalActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.setFires" -> {
                 val enabled = args.firstOrNull().asBooleanValue()
                 val positions = args.getOrNull(1).asList()
                 env.stage.setFires(enabled, positions)
                 val last = positions.lastOrNull().asList()
                 if (env.externalBattlePresentation && enabled && env.stage.battleDrawRequested && last.size >= 2) {
-                    env.stage.requestMapPresentation(ScenarioMapPresentationRequest(last[0].asInt(), last[1].asInt(), 1f))
+                    env.stage.requestMapPresentation(
+                        ScenarioMapPresentationRequest(
+                            last[0].asInt(),
+                            last[1].asInt(),
+                            1f
+                        )
+                    )
                     env.suspendFor(Float.MAX_VALUE)
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.playMagicMeff" -> {
-                val x = args.intAt(0); val y = args.intAt(1); val raw = args.intAt(2)
+                val x = args.intAt(0)
+                val y = args.intAt(1)
+                val raw = args.intAt(2)
                 if (env.externalBattlePresentation) {
                     val magicCallId = raw.takeIf { it >= 100 && it != 255 }?.minus(100)
-                    env.stage.requestMapPresentation(ScenarioMapPresentationRequest(x, y, if (magicCallId != null) 1.25f else 1f, magicCallId))
+                    env.stage.requestMapPresentation(
+                        ScenarioMapPresentationRequest(
+                            x,
+                            y,
+                            if (magicCallId != null) 1.25f else 1f,
+                            magicCallId
+                        )
+                    )
                     env.suspendFor(Float.MAX_VALUE)
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.attackAction" -> {
                 val flags = args.intAt(2)
                 env.stage.attackAction(args.intAt(0), args.intAt(1), flags)
                 env.suspendFor(BattlePhysicalPresentationTimeline.scriptedAttackDuration(flags))
                 return ScenarioHandledCall(null)
             }
+
             "stage.setObjects" -> {
                 val enabled = args.firstOrNull().asBooleanValue()
                 val terrain = args.getOrNull(1).asInt()
                 val positions = args.getOrNull(2).asList()
                 env.stage.setMapObjects(enabled, terrain, positions)
-                if (enqueueMapObjectsPresentation(env.stage, env.externalBattlePresentation, enabled, terrain, positions, true)) {
+                if (enqueueMapObjectsPresentation(
+                        env.stage,
+                        env.externalBattlePresentation,
+                        enabled,
+                        terrain,
+                        positions,
+                        true
+                    )
+                ) {
                     env.suspendFor(Float.MAX_VALUE)
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.setObject" -> {
                 val enabled = args.firstOrNull().asBooleanValue()
                 val terrain = args.getOrNull(1).asInt()
-                val positions = listOf(listOf(args.getOrNull(2).asInt(), args.getOrNull(3).asInt(), args.getOrNull(4).asInt()))
+                val positions =
+                    listOf(listOf(args.getOrNull(2).asInt(), args.getOrNull(3).asInt(), args.getOrNull(4).asInt()))
                 env.stage.setMapObjects(enabled = enabled, terrainId = terrain, positions = positions)
-                if (enqueueMapObjectsPresentation(env.stage, env.externalBattlePresentation, enabled, terrain, positions, true)) {
+                if (enqueueMapObjectsPresentation(
+                        env.stage,
+                        env.externalBattlePresentation,
+                        enabled,
+                        terrain,
+                        positions,
+                        true
+                    )
+                ) {
                     env.suspendFor(Float.MAX_VALUE)
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.heightLight" -> {
                 if (env.externalBattlePresentation) {
                     env.stage.requestScriptPresentation(
@@ -137,6 +183,7 @@ internal object ScenarioTacticalActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.countDir" -> return ScenarioHandledCall(env.stage.countDirection(args.intAt(0), args.intAt(1)))
             "stage.setAI" -> {
                 env.stage.setBattleAi(
@@ -152,6 +199,7 @@ internal object ScenarioTacticalActionDispatcher {
                 )
                 return ScenarioHandledCall(null)
             }
+
             "stage.resumeCtrl" -> return ScenarioHandledCall(Unit)
             "stage.setRectUnitHide" -> {
                 if (env.externalBattlePresentation) {
@@ -165,45 +213,65 @@ internal object ScenarioTacticalActionDispatcher {
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.showUnit" -> {
                 env.stage.apply(ScenarioCommand.ShowUnit(args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3)))
                 return ScenarioHandledCall(null)
             }
+
             "stage.createFriend" -> {
                 env.stage.createBattleUnits(ScenarioUnitFaction.FRIEND, args.firstOrNull().asList())
                 return ScenarioHandledCall(null)
             }
+
             "stage.createEnemy", "stage.createEnemy2" -> {
                 env.stage.createBattleUnits(ScenarioUnitFaction.ENEMY, args.firstOrNull().asList())
                 return ScenarioHandledCall(null)
             }
+
             "stage.createMine" -> {
                 env.stage.createBattleUnits(ScenarioUnitFaction.MINE, args.firstOrNull().asList())
                 return ScenarioHandledCall(null)
             }
+
             "stage.showUnits" -> {
                 args.firstOrNull().asList().forEach { values ->
                     val entry = values.asList()
-                    if (entry.size >= 3) env.stage.apply(ScenarioCommand.ShowUnit(entry[0].asInt(), entry[1].asInt(), entry[2].asInt(), entry.getOrNull(3).asInt()))
+                    if (entry.size >= 3) env.stage.apply(
+                        ScenarioCommand.ShowUnit(
+                            entry[0].asInt(),
+                            entry[1].asInt(),
+                            entry[2].asInt(),
+                            entry.getOrNull(3).asInt()
+                        )
+                    )
                 }
                 return ScenarioHandledCall(null)
             }
+
             "stage.unitsMove" -> {
                 val requests = args.firstOrNull().asList().mapNotNull { values ->
                     val entry = values.asList()
                     val unit = entry.firstOrNull() as? ScenarioInterpreter.UnitReference ?: return@mapNotNull null
                     if (entry.size >= 3) {
-                        ScenarioCommand.MoveUnit(unit.id, entry[1].asInt(), entry[2].asInt(), entry.getOrNull(3).asInt())
+                        ScenarioCommand.MoveUnit(
+                            unit.id,
+                            entry[1].asInt(),
+                            entry[2].asInt(),
+                            entry.getOrNull(3).asInt()
+                        )
                     } else null
                 }
                 val duration = env.stage.moveUnits(requests)
                 if (duration > 0f) env.suspendFor(duration)
                 return ScenarioHandledCall(null)
             }
+
             "stage.unit" -> {
                 val value = args.firstOrNull().asInt()
                 return ScenarioHandledCall(env.resolveStageUnitReference(value, args.getOrNull(1)?.asInt() ?: 0))
             }
+
             "stage.head" -> return ScenarioHandledCall(HeadReference(args.firstOrNull().asInt()))
             else -> return ScenarioUnitActionDispatcher.dispatch(path, node, args, frame, env)
         }

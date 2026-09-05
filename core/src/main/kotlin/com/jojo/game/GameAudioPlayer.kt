@@ -15,8 +15,20 @@ class GameAudioPlayer {
     private var playingBackgroundId: Int? = null
     private var background: Music? = null
     private val effects = mutableMapOf<Int, Sound>()
+
     /** Cocos keeps a playback handle even for one-shot effects so a later stage.effectSound(..., 0) can stop it. */
     private val activeEffects = mutableMapOf<Int, Long>()
+
+    /**
+     * 공개 메서드 `sync`
+     *
+     * ### 파라미터
+    - `stage` (`ScenarioStage`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun sync(stage: ScenarioStage) {
         if (!enabled) return
@@ -67,6 +79,17 @@ class GameAudioPlayer {
         soundId >= 100 -> "audio/Se_m_${(soundId - 100).toString().padStart(2, '0')}.mp3"
         else -> "audio/Se${soundId.toString().padStart(2, '0')}.mp3"
     }
+
+    /**
+     * 공개 메서드 `dispose`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun dispose() {
         background?.dispose()

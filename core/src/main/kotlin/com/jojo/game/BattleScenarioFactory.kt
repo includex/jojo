@@ -1,6 +1,29 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.campaign.CampaignEquipmentSlot
+
+/**
+ * object  `BattleScenarioFactory`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
 
 object BattleScenarioFactory {
+    /**
+     * 공개 메서드 `tutorialBattle`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Battle`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun tutorialBattle(): Battle = Battle(
         units = listOf(
             BattleUnit("cao-cao", "조조", Faction.PLAYER, 3, 3),
@@ -30,6 +53,20 @@ object BattleScenarioFactory {
         enabledFeatures: Int = 32,
     ): Battle {
         val scriptedByBattleId = units.associateBy { it.battleId }
+
+        /**
+         * 공개 메서드 `projectUnit`
+         *
+         * ### 파라미터
+        - `unit` (`ScenarioBattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `forcedLevel` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `forcedPosts` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `BattleUnit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun projectUnit(unit: ScenarioBattleUnit, forcedLevel: Int? = null, forcedPosts: Int? = null): BattleUnit {
             val persistentAttributes = campaign?.unitAttributes?.get(unit.characterId).orEmpty()
             // Scenario unit levels are zero-based script values, whereas the
@@ -54,9 +91,13 @@ object BattleScenarioFactory {
                 ?.asScriptValues().orEmpty()
             val effectiveEquipmentValues = listOf(
                 if (equippedValues.getOrElse(0) { 0 } > 1) equippedValues[0] else defaultEquipmentValues.getOrElse(0) { 1 },
-                if (equippedValues.getOrElse(0) { 0 } > 1) equippedValues.getOrElse(1) { 0 } else defaultEquipmentValues.getOrElse(1) { 1 },
+                if (equippedValues.getOrElse(0) { 0 } > 1) equippedValues.getOrElse(1) { 0 } else defaultEquipmentValues.getOrElse(
+                    1
+                ) { 1 },
                 if (equippedValues.getOrElse(2) { 0 } > 1) equippedValues[2] else defaultEquipmentValues.getOrElse(2) { 1 },
-                if (equippedValues.getOrElse(2) { 0 } > 1) equippedValues.getOrElse(3) { 0 } else defaultEquipmentValues.getOrElse(3) { 1 },
+                if (equippedValues.getOrElse(2) { 0 } > 1) equippedValues.getOrElse(3) { 0 } else defaultEquipmentValues.getOrElse(
+                    3
+                ) { 1 },
                 if (equippedValues.getOrElse(4) { 0 } > 1) equippedValues[4] else defaultEquipmentValues.getOrElse(4) { 1 },
             )
             // Battle units equip their post's default weapon and armor first;
@@ -70,14 +111,57 @@ object BattleScenarioFactory {
                 gameDataCatalog.skillsForUnit(unit.characterId, battleProfile?.posts ?: 0, campaign),
                 gameDataCatalog.equipmentSkills(effectiveEquipmentValues, battleProfile?.level ?: 1),
             ).orEmpty()
-            fun passive(base: Int, skillId: Int): Int = gameDataCatalog?.passiveAbility(base, skillId, resolvedSkills) ?: base
+
+            /**
+             * 공개 메서드 `passive`
+             *
+             * ### 파라미터
+            - `base` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `skillId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Int`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
+            fun passive(base: Int, skillId: Int): Int =
+                gameDataCatalog?.passiveAbility(base, skillId, resolvedSkills) ?: base
+
+            /**
+             * 공개 메서드 `divineFloor`
+             *
+             * ### 파라미터
+            - `base` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `sourceBase` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Int`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
             fun divineFloor(base: Int, sourceBase: Int): Int {
                 val growth = resolvedSkills[190]?.and(255)?.takeIf { it != 255 } ?: return base
                 // Unit._baseBility: original raw ability + SMFT × level is a
                 // lower bound before the ordinary passive ability modifiers.
                 return maxOf(base, sourceBase + growth * (battleProfile?.level ?: 1))
             }
-            fun ability(base: Int, sourceBase: Int, passiveSkill: Int): Int = passive(divineFloor(base, sourceBase), passiveSkill)
+
+            /**
+             * 공개 메서드 `ability`
+             *
+             * ### 파라미터
+            - `base` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `sourceBase` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+            - `passiveSkill` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+             *
+             * ### 응답 스펙
+             * - 반환 타입: `Int`
+             * - 반환값: 동작 결과의 도메인 값입니다.
+             */
+
+            fun ability(base: Int, sourceBase: Int, passiveSkill: Int): Int =
+                passive(divineFloor(base, sourceBase), passiveSkill)
+
             val baseMaxHitPoints = persistentAttributes[9] ?: battleProfile?.maxHitPoints ?: 100
             val baseMaxMagicPoints = persistentAttributes[10] ?: battleProfile?.maxMagicPoints ?: 0
             // Unit.hitarea(): YJGJ replaces the post's normal hit-area ID.
@@ -102,13 +186,13 @@ object BattleScenarioFactory {
                 if (xhcl != 255) gameDataCatalog?.allMagicProfiles()
                     ?.filter { magic ->
                         (xhcl and 1 != 0 && magic.type in 0..3) ||
-                            (xhcl and 2 != 0 && magic.type in 7..10) ||
-                            (xhcl and 4 != 0 && (magic.type in 7..10 || magic.type in 15..18)) ||
-                            (xhcl and 8 != 0 && magic.type == 19) ||
-                            (xhcl and 16 != 0 && (magic.type in 11..14 || magic.type == 27)) ||
-                            (xhcl and 32 != 0 && magic.type == 23) ||
-                            (xhcl and 64 != 0 && magic.type == 24) ||
-                            (xhcl and 128 != 0 && magic.type == 25)
+                                (xhcl and 2 != 0 && magic.type in 7..10) ||
+                                (xhcl and 4 != 0 && (magic.type in 7..10 || magic.type in 15..18)) ||
+                                (xhcl and 8 != 0 && magic.type == 19) ||
+                                (xhcl and 16 != 0 && (magic.type in 11..14 || magic.type == 27)) ||
+                                (xhcl and 32 != 0 && magic.type == 23) ||
+                                (xhcl and 64 != 0 && magic.type == 24) ||
+                                (xhcl and 128 != 0 && magic.type == 25)
                     }
                     ?.forEach { magic -> if (none { it.id == magic.id }) add(magic) }
             }.map { magic ->
@@ -155,10 +239,26 @@ object BattleScenarioFactory {
                 // the persisted base ability.  Keep the addition outside the
                 // Elvis expression; otherwise every campaign-backed unit
                 // silently loses its weapon/armor bonus.
-                attack = ability((persistentAttributes[2] ?: (battleProfile?.attack ?: 45)) + (equipment?.attack ?: 0), profile?.attack ?: 45, 65),
-                defense = ability((persistentAttributes[3] ?: (battleProfile?.defense ?: 25)) + (equipment?.defense ?: 0), profile?.defense ?: 25, 61),
-                spirit = ability((persistentAttributes[4] ?: (battleProfile?.spirit ?: 35)) + (equipment?.spirit ?: 0), profile?.spirit ?: 35, 68),
-                critical = ability(persistentAttributes[5] ?: battleProfile?.critical ?: 35, profile?.critical ?: 35, 54),
+                attack = ability(
+                    (persistentAttributes[2] ?: (battleProfile?.attack ?: 45)) + (equipment?.attack ?: 0),
+                    profile?.attack ?: 45,
+                    65
+                ),
+                defense = ability(
+                    (persistentAttributes[3] ?: (battleProfile?.defense ?: 25)) + (equipment?.defense ?: 0),
+                    profile?.defense ?: 25,
+                    61
+                ),
+                spirit = ability(
+                    (persistentAttributes[4] ?: (battleProfile?.spirit ?: 35)) + (equipment?.spirit ?: 0),
+                    profile?.spirit ?: 35,
+                    68
+                ),
+                critical = ability(
+                    persistentAttributes[5] ?: battleProfile?.critical ?: 35,
+                    profile?.critical ?: 35,
+                    54
+                ),
                 morale = ability(persistentAttributes[6] ?: battleProfile?.morale ?: 35, profile?.morale ?: 35, 73),
                 martial = profile?.attack ?: battleProfile?.attack ?: 45,
                 armId = arm?.id ?: 0,
@@ -167,14 +267,36 @@ object BattleScenarioFactory {
                 armMoveSound = arm?.moveSound ?: 0,
                 fastMove = arm?.fastMove ?: true,
                 attackDelay = arm?.attackDelay ?: false,
-                armRestraints = buildMap { (0 until 40).forEach { targetArm -> put(targetArm, arm?.restraintAgainst(targetArm) ?: 100) } },
-                terrainImpacts = buildMap { (0 until 30).forEach { terrainId -> put(terrainId, arm?.terrainImpact(terrainId) ?: 100) } },
-                terrainMovementCosts = buildMap { (0 until 30).forEach { terrainId -> put(terrainId, arm?.terrainMoveCost(terrainId) ?: 1) } },
+                armRestraints = buildMap {
+                    (0 until 40).forEach { targetArm ->
+                        put(
+                            targetArm,
+                            arm?.restraintAgainst(targetArm) ?: 100
+                        )
+                    }
+                },
+                terrainImpacts = buildMap {
+                    (0 until 30).forEach { terrainId ->
+                        put(
+                            terrainId,
+                            arm?.terrainImpact(terrainId) ?: 100
+                        )
+                    }
+                },
+                terrainMovementCosts = buildMap {
+                    (0 until 30).forEach { terrainId ->
+                        put(
+                            terrainId,
+                            arm?.terrainMoveCost(terrainId) ?: 1
+                        )
+                    }
+                },
                 magicHarmRate = arm?.magicHarmRate ?: 100,
                 attackOffsets = upgradedAttackHitArea?.offsets ?: setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1),
                 // Unit.effarea(): ZHUORE(0), or the CTGJ skill's effect
                 // area ID.  This is deliberately separate from hit-area.
-                attackEffectOffsets = gameDataCatalog?.effectAreaOffsets(resolvedSkills[32]?.and(255)?.takeIf { it != 255 } ?: 0).orEmpty(),
+                attackEffectOffsets = gameDataCatalog?.effectAreaOffsets(
+                    resolvedSkills[32]?.and(255)?.takeIf { it != 255 } ?: 0).orEmpty(),
                 attackEffectAreaId = resolvedSkills[32]?.and(255)?.takeIf { it != 255 } ?: 0,
                 attackAllScreen = upgradedAttackHitArea?.allScreen ?: false,
                 magic = learnedMagic,
@@ -204,15 +326,27 @@ object BattleScenarioFactory {
             initialWeather = initialWeather,
             weatherSchedule = weatherSchedule,
             weatherOffset = weatherOffset,
-            terrainMagicFlags = gameDataCatalog?.let { data -> buildMap {
-                (0..64).forEach { terrainId -> data.terrainMagicFlag(terrainId).takeIf { it != 0 }?.let { put(terrainId, it) } }
-            } }.orEmpty(),
-            terrainResumeRates = gameDataCatalog?.let { data -> buildMap {
-                (0..64).forEach { terrainId -> data.terrainResumeHp(terrainId).takeIf { it != 0 }?.let { put(terrainId, it) } }
-            } }.orEmpty(),
-            terrainResumeMp = gameDataCatalog?.let { data -> buildMap {
-                (0..64).forEach { terrainId -> data.terrainResumeMp(terrainId).takeIf { it != 0 }?.let { put(terrainId, it) } }
-            } }.orEmpty(),
+            terrainMagicFlags = gameDataCatalog?.let { data ->
+                buildMap {
+                    (0..64).forEach { terrainId ->
+                        data.terrainMagicFlag(terrainId).takeIf { it != 0 }?.let { put(terrainId, it) }
+                    }
+                }
+            }.orEmpty(),
+            terrainResumeRates = gameDataCatalog?.let { data ->
+                buildMap {
+                    (0..64).forEach { terrainId ->
+                        data.terrainResumeHp(terrainId).takeIf { it != 0 }?.let { put(terrainId, it) }
+                    }
+                }
+            }.orEmpty(),
+            terrainResumeMp = gameDataCatalog?.let { data ->
+                buildMap {
+                    (0..64).forEach { terrainId ->
+                        data.terrainResumeMp(terrainId).takeIf { it != 0 }?.let { put(terrainId, it) }
+                    }
+                }
+            }.orEmpty(),
             enabledFeatures = enabledFeatures,
             statusRoundFor = { status -> gameDataCatalog?.statusRound(status) ?: 3 },
             attributeStatusRoundFor = { attribute -> gameDataCatalog?.attributeStatusRound(attribute) ?: 3 },
@@ -225,16 +359,21 @@ object BattleScenarioFactory {
             propertyItems = gameDataCatalog?.battlePropertyItems().orEmpty()
                 .map { BattlePropertyItem(it.id, it.name, it.itemType, it.value) }
                 .associateBy { it.id },
-            consumeProperty = campaign?.let { state -> { itemId: Int -> state.inventory.consumeItem(itemId) } } ?: { false },
+            consumeProperty = campaign?.let { state -> { itemId: Int -> state.inventory.consumeItem(itemId) } }
+                ?: { false },
             zdsyGlobalValue = (campaign?.globalVariables?.get(4035) as? Number)?.toInt() ?: 0,
-            consumeAutomaticProperty = campaign?.let { state -> { itemId: Int -> state.inventory.consumeItem(itemId); Unit } } ?: {},
-            onPermanentProperty = campaign?.let { state -> { item: BattlePropertyItem, target: BattleUnit ->
-                target.characterId?.let { characterId -> when (item.itemType) {
-                    42 -> state.setUnitAttribute(characterId, 9, target.maxHitPoints)
-                    43 -> state.setUnitAttribute(characterId, 10, target.maxMagicPoints)
+            consumeAutomaticProperty = campaign?.let { state -> { itemId: Int -> state.inventory.consumeItem(itemId); Unit } }
+                ?: {},
+            onPermanentProperty = campaign?.let { state ->
+                { item: BattlePropertyItem, target: BattleUnit ->
+                    target.characterId?.let { characterId ->
+                        when (item.itemType) {
+                            42 -> state.setUnitAttribute(characterId, 9, target.maxHitPoints)
+                            43 -> state.setUnitAttribute(characterId, 10, target.maxMagicPoints)
+                        }
+                    }
                 }
-                }
-            } } ?: { _, _ -> },
+            } ?: { _, _ -> },
             // Unit EXP is settled for every resolved physical/magic target,
             // including non-lethal and zero-harm guard records (but not true
             // misses, which never enter source `_attack3`). Keep defeat notification independent
@@ -254,7 +393,11 @@ object BattleScenarioFactory {
                     )
                     growth.forEach { (attribute, perLevel) ->
                         val current = campaign.unitAttribute(characterId, attribute, defaults.getValue(attribute))
-                        campaign.setUnitAttribute(characterId, attribute, current + perLevel * (result.level - oldLevel))
+                        campaign.setUnitAttribute(
+                            characterId,
+                            attribute,
+                            current + perLevel * (result.level - oldLevel)
+                        )
                     }
                 }
                 result
@@ -265,9 +408,11 @@ object BattleScenarioFactory {
                 val scripted = scriptedByBattleId[live.id] ?: return@refresh
                 live.refreshLevelDerivedState(projectUnit(scripted, forcedLevel = live.level, forcedPosts = live.posts))
             },
-            onUnitRetreat = campaign?.let { state -> { unit: BattleUnit ->
-                unit.characterId?.let { state.setUnitAttribute(it, 15, unit.retreatCount) }
-            } } ?: {},
+            onUnitRetreat = campaign?.let { state ->
+                { unit: BattleUnit ->
+                    unit.characterId?.let { state.setUnitAttribute(it, 15, unit.retreatCount) }
+                }
+            } ?: {},
             onEquipmentExperienceAward = if (campaign != null && gameDataCatalog != null) { recipient, _, amount, kind ->
                 recipient.characterId
                     ?.takeIf { recipient.baseFaction.isPlayerSide() }
@@ -286,9 +431,12 @@ object BattleScenarioFactory {
                 unit.characterId?.let { id ->
                     val beforeMagic = gameDataCatalog.learnedMagicIds(unit.posts, unit.level).toSet()
                     val result = campaign.grantExperience(id, unit.level, amount, gameDataCatalog)
-                    RestoreGrowthResolution.Applied(result.copy(
-                        learnedMagicIds = gameDataCatalog.learnedMagicIds(unit.posts, result.level).filterNot(beforeMagic::contains),
-                    ))
+                    RestoreGrowthResolution.Applied(
+                        result.copy(
+                            learnedMagicIds = gameDataCatalog.learnedMagicIds(unit.posts, result.level)
+                                .filterNot(beforeMagic::contains),
+                        )
+                    )
                 } ?: RestoreGrowthResolution.Unavailable
             } else { _, _ -> RestoreGrowthResolution.Unavailable },
             onRestoreEquipmentExperience = if (campaign != null && gameDataCatalog != null) { unit, amount, slot ->

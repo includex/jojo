@@ -1,10 +1,24 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 
 internal object ScenarioLoader {
+
+    /**
+     * 공개 메서드 `load`
+     *
+     * ### 파라미터
+    - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `campaign` (`CampaignState = CampaignState(`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun load(moduleName: String, campaign: CampaignState = CampaignState()): ScenarioInterpreter {
         val resourceName = "scenario-ast/$moduleName.json"
@@ -33,8 +47,31 @@ internal object ScenarioLoader {
         return ScenarioInterpreter(moduleName, functions, campaign)
     }
 
+    /**
+     * 공개 메서드 `labelEntrypoints`
+     *
+     * ### 파라미터
+    - `statements` (`List<JsonValue>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Map<String, List<JsonValue>>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun labelEntrypoints(statements: List<JsonValue>): Map<String, List<JsonValue>> {
         val result = linkedMapOf<String, List<JsonValue>>()
+
+        /**
+         * 공개 메서드 `scan`
+         *
+         * ### 파라미터
+        - `block` (`List<JsonValue>`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun scan(block: List<JsonValue>) {
             block.forEachIndexed { index, statement ->
                 val call = statement.takeIf { it.typeName() == "Expr" }?.field("value")
@@ -48,6 +85,7 @@ internal object ScenarioLoader {
                         scan(statement.field("body").children().toList())
                         scan(statement.field("orelse").children().toList())
                     }
+
                     "For" -> scan(statement.field("body").children().toList())
                 }
             }

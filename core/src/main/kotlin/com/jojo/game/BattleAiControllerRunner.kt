@@ -1,4 +1,10 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleAiDecisionPlanner
+import com.jojo.game.domain.battle.BattleAiScorer
+import com.jojo.game.domain.battle.BattleMovementPlanner
+import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 internal data class BattleAiControllerEnvironment(
     val units: () -> Collection<BattleUnit>,
@@ -68,44 +74,85 @@ internal object BattleAiControllerRunner {
                     override fun setWithData(targetIndex: Int, x: Int, y: Int) {
                         data = ControlData(targetIndex, Control.Point(x, y))
                     }
+
                     override fun selectMovePoint(points: List<Control.Point>, pointHash: Set<Control.Point>): Int {
                         val capturedMovePoints = pointHash.mapTo(linkedSetOf()) { it.x to it.y }
                         val context = object : BattleControlContext {
                             override fun currentPoint() = Control.Point(unit.tileX, unit.tileY)
                             override fun isParalyzed() = BattleStatus.PARALYSIS in unit.statuses
-                            override fun isSurrounded() = env.movementOffsets.all { (dx, dy) -> env.unitAt(unit.tileX + dx, unit.tileY + dy) != null }
-                            override fun isMine() = unit.isPlayerSide()
-                            override fun setPersistentAi(ai: Int) { unit.ai = ai }
-                            override fun target(index: Int) = env.units().firstOrNull { it.visible && it.characterId == index }?.let {
-                                ControlTarget(index, Control.Point(it.tileX, it.tileY), it.isPlayerSide(), distance(unit, it))
+                            override fun isSurrounded() = env.movementOffsets.all { (dx, dy) ->
+                                env.unitAt(
+                                    unit.tileX + dx,
+                                    unit.tileY + dy
+                                ) != null
                             }
+
+                            override fun isMine() = unit.isPlayerSide()
+                            override fun setPersistentAi(ai: Int) {
+                                unit.ai = ai
+                            }
+
+                            override fun target(index: Int) =
+                                env.units().firstOrNull { it.visible && it.characterId == index }?.let {
+                                    ControlTarget(
+                                        index,
+                                        Control.Point(it.tileX, it.tileY),
+                                        it.isPlayerSide(),
+                                        distance(unit, it)
+                                    )
+                                }
+
                             override fun hasAttackTargets(targetIndex: Int?): Boolean {
-                                val candidates = if (targetIndex == null) opponents else opponents.filter { it.characterId == targetIndex }
+                                val candidates =
+                                    if (targetIndex == null) opponents else opponents.filter { it.characterId == targetIndex }
                                 return linkedSetOf(unit.tileX to unit.tileY).apply { addAll(env.reachableTiles(unit.id).keys) }
                                     .any { (x, y) -> candidates.any { BattleAiScorer.canAttackFrom(unit, x, y, it) } }
                             }
+
                             override fun exhaustedRetreat(): ControlTransition? {
                                 val weakThreshold = unit.maxHitPoints * (if (unit.famous) 4 else 2) / 10
                                 if (unit.hitPoints >= weakThreshold) return null
                                 val resume = points.asSequence()
-                                    .filter { point -> (env.terrainResumeRates[env.terrain?.terrainAt(point.x, point.y)] ?: 0) > 0 }
+                                    .filter { point ->
+                                        (env.terrainResumeRates[env.terrain?.terrainAt(point.x, point.y)] ?: 0) > 0
+                                    }
                                     .filter { point -> env.unitAt(point.x, point.y)?.let { it.id == unit.id } != false }
-                                    .maxByOrNull { point -> env.terrainResumeRates[env.terrain?.terrainAt(point.x, point.y)] ?: 0 }
-                                if (resume != null) return ControlTransition(ControlAi.MOVE_MAGIC, ControlData(-1, resume))
-                                val master = env.enemyMasterUnitId?.let { id -> env.units().firstOrNull { it.id == id } }
-                                    ?.takeIf { !unit.isPlayerSide() && it.visible && it.id != unit.id }
+                                    .maxByOrNull { point ->
+                                        env.terrainResumeRates[env.terrain?.terrainAt(
+                                            point.x,
+                                            point.y
+                                        )] ?: 0
+                                    }
+                                if (resume != null) return ControlTransition(
+                                    ControlAi.MOVE_MAGIC,
+                                    ControlData(-1, resume)
+                                )
+                                val master =
+                                    env.enemyMasterUnitId?.let { id -> env.units().firstOrNull { it.id == id } }
+                                        ?.takeIf { !unit.isPlayerSide() && it.visible && it.id != unit.id }
                                 val friend = env.units().asSequence()
                                     .filter { it.visible && it.id != unit.id && env.areAllied(it, unit) }
                                     .minByOrNull { distance(unit, it) }
                                 return (master ?: friend)?.let { target ->
-                                    ControlTransition(ControlAi.RETREAT_TO, ControlData(-1, Control.Point(target.tileX, target.tileY)))
+                                    ControlTransition(
+                                        ControlAi.RETREAT_TO,
+                                        ControlData(-1, Control.Point(target.tileX, target.tileY))
+                                    )
                                 }
                             }
+
                             override fun nearestOpponent() = opponents.mapNotNull { opponent ->
-                                env.findMovementPath(unit, opponent.tileX, opponent.tileY, false, false, false)?.let { path -> opponent to path.size }
+                                env.findMovementPath(unit, opponent.tileX, opponent.tileY, false, false, false)
+                                    ?.let { path -> opponent to path.size }
                             }.minByOrNull { it.second }?.first?.let {
-                                ControlTarget(it.characterId ?: -1, Control.Point(it.tileX, it.tileY), it.isPlayerSide(), distance(unit, it))
+                                ControlTarget(
+                                    it.characterId ?: -1,
+                                    Control.Point(it.tileX, it.tileY),
+                                    it.isPlayerSide(),
+                                    distance(unit, it)
+                                )
                             }
+
                             override fun winRectCentre(): Control.Point? = null
                             override fun destinationPoint(target: Control.Point): Control.Point? {
                                 val targetPoint = target.x to target.y
@@ -119,28 +166,37 @@ internal object BattleAiControllerRunner {
                                     }
                                     ?.let { Control.Point(it.first, it.second) }
                             }
+
                             override fun nearPoint(target: Control.Point): Control.Point? {
-                                val route = env.findMovementPath(unit, target.x, target.y, true, false, true) ?: return null
+                                val route =
+                                    env.findMovementPath(unit, target.x, target.y, true, false, true) ?: return null
                                 val lastReachableIndex = route.indexOfFirst { it !in capturedMovePoints }
                                     .let { if (it < 0) route.lastIndex else it - 1 }
                                 for (index in lastReachableIndex downTo 1) {
-                                    env.findReachableEmptyPosition(unit, route[index], capturedMovePoints)?.let { point ->
-                                        return Control.Point(point.first, point.second)
-                                    }
+                                    env.findReachableEmptyPosition(unit, route[index], capturedMovePoints)
+                                        ?.let { point ->
+                                            return Control.Point(point.first, point.second)
+                                        }
                                 }
                                 return Control.Point(unit.tileX, unit.tileY)
                             }
+
                             override fun blockingEnemy(target: Control.Point): Int? {
-                                val route = env.findMovementPath(unit, target.x, target.y, true, true, false) ?: return null
+                                val route =
+                                    env.findMovementPath(unit, target.x, target.y, true, true, false) ?: return null
                                 return route.asSequence()
                                     .mapNotNull { point -> env.unitAt(point.first, point.second) }
                                     .firstOrNull { occupant -> !env.areAllied(occupant, unit) }
                                     ?.characterId
                             }
+
                             override fun chooseAi(mode: Int): Control.Result? {
                                 val controllerPoints = when (controllerAi) {
                                     ControlAi.HOLD -> listOf(Control.Point(unit.tileX, unit.tileY))
-                                    ControlAi.MOVE_ATTACK, ControlAi.MOVE_MAGIC, ControlAi.MOVE_ATTACK_UNIT -> listOf(data.target)
+                                    ControlAi.MOVE_ATTACK, ControlAi.MOVE_MAGIC, ControlAi.MOVE_ATTACK_UNIT -> listOf(
+                                        data.target
+                                    )
+
                                     else -> points
                                 }
                                 selectedByControl = BattleAiDecisionPlanner.chooseAiDecision(
@@ -153,13 +209,23 @@ internal object BattleAiControllerRunner {
                                     env = env.decisionEnv,
                                 )
                                 return selectedByControl?.let { choice ->
-                                    Control.Result(choice.x, choice.y, kind = if (choice.magicId == null) "attack" else "magic", value = choice.value)
+                                    Control.Result(
+                                        choice.x,
+                                        choice.y,
+                                        kind = if (choice.magicId == null) "attack" else "magic",
+                                        value = choice.value
+                                    )
                                 }
                             }
                         }
                         val step = controller.step(context, data)
                         step.transition?.let { transition ->
-                            controlManager.setControl(transition.ai, transition.data.targetIndex, transition.data.target.x, transition.data.target.y)
+                            controlManager.setControl(
+                                transition.ai,
+                                transition.data.targetIndex,
+                                transition.data.target.x,
+                                transition.data.target.y
+                            )
                         }
                         step.result?.let(controlManager::setResult)
                         return step.status

@@ -55,6 +55,17 @@ internal class TitleSceneAssets {
 
     val uiFont: BitmapFont = KoreanFont.create(34, UI_GLYPHS, fillColor = Color.WHITE)
 
+    /**
+     * 공개 메서드 `dispose`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun dispose() {
         loginBackground.dispose()
         loginButtons.forEach(Texture::dispose)
@@ -68,6 +79,7 @@ internal class TitleSceneAssets {
     }
 
     private companion object {
-        const val UI_GLYPHS = "진행도 불러오기읽을 상황을 선택해 주세요. 최신 저장 파일이 가장 위에 있습니다.취소환경 설정항목을 클릭하여 설정해 주세요. 설정 완료 후 [확인]을 선택해 주세요.배경 음악 듣기효과음 듣기전투 시 전장 축소 이미지가 자동으로 표시됩니다.대화창 자동 닫힘체력 바가 유닛 위에 있습니다텍스트 속도느림중빠르게게임 속도정보 설명자세히보통요약대화창 색상확인No.---전역영천의 전투불러올 수 있나요?0123456789:()제턴 "
+        const val UI_GLYPHS =
+            "진행도 불러오기읽을 상황을 선택해 주세요. 최신 저장 파일이 가장 위에 있습니다.취소환경 설정항목을 클릭하여 설정해 주세요. 설정 완료 후 [확인]을 선택해 주세요.배경 음악 듣기효과음 듣기전투 시 전장 축소 이미지가 자동으로 표시됩니다.대화창 자동 닫힘체력 바가 유닛 위에 있습니다텍스트 속도느림중빠르게게임 속도정보 설명자세히보통요약대화창 색상확인No.---전역영천의 전투불러올 수 있나요?0123456789:()제턴 "
     }
 }

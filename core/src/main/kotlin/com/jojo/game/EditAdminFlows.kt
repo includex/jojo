@@ -2,24 +2,106 @@ package com.jojo.game
 
 /** Pure roster contract recovered from Hall/scene/EditLayer4. */
 class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>) {
+    /**
+     * data class  `UnitRow`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class UnitRow(val id: Int, val name: String, val leave: Boolean)
     sealed interface Effect {
         data object OpenGlobalEditor : Effect
+
+        /**
+         * data class  `OpenUnitSelector`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class OpenUnitSelector(val names: List<String>) : Effect
+
+        /**
+         * data class  `AskJoin`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class AskJoin(val id: Int, val text: String) : Effect
+
+        /**
+         * data class  `Info`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Info(val text: String) : Effect
         data object Close : Effect
+
+        /**
+         * data class  `Join`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Join(val id: Int, val camp: Int = 0, val order: Int = 0) : Effect
+
+        /**
+         * data class  `Leave`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Leave(val id: Int, val camp: Int = 255, val order: Int = 0) : Effect
+
+        /**
+         * data class  `Toast`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class Toast(val text: String) : Effect
         data object Refresh : Effect
         data object OpenLearnUnitSkill : Effect
+
+        /**
+         * data class  `AskLeave`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
         data class AskLeave(val id: Int, val text: String) : Effect
     }
 
     private val joined = initial.associateByTo(linkedMapOf()) { it.id }
     var pendingUnitId: Int? = null
         private set
+
+    /**
+     * 공개 메서드 `button`
+     *
+     * ### 파라미터
+    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Effect>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun button(tag: Int): List<Effect> = when (tag) {
         0 -> listOf(Effect.OpenGlobalEditor)
@@ -31,9 +113,21 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
                 add(Effect.Join(id)); add(Effect.Toast("${unitNames[id]} 대열에 합류합니다")); add(Effect.Refresh)
             }
         }
+
         4 -> listOf(Effect.OpenLearnUnitSkill)
         else -> emptyList()
     }
+
+    /**
+     * 공개 메서드 `selectUnit`
+     *
+     * ### 파라미터
+    - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Effect>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun selectUnit(id: Int): List<Effect> {
         if (id < 0) return emptyList()
@@ -46,6 +140,17 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.AskJoin(id, prompt))
     }
 
+    /**
+     * 공개 메서드 `joinAnswer`
+     *
+     * ### 파라미터
+    - `answer` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Effect>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun joinAnswer(answer: Int): List<Effect> {
         val id = pendingUnitId ?: return emptyList()
         if (answer != 0) return emptyList()
@@ -53,11 +158,33 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.Join(id), Effect.Refresh)
     }
 
+    /**
+     * 공개 메서드 `tapRow`
+     *
+     * ### 파라미터
+    - `rowIndex` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Effect>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun tapRow(rowIndex: Int): List<Effect> {
         val row = joined.values.elementAt(rowIndex)
         pendingUnitId = row.id
         return listOf(Effect.AskLeave(row.id, "~하게 할까요?${row.name}떠나다?"))
     }
+
+    /**
+     * 공개 메서드 `leaveAnswer`
+     *
+     * ### 파라미터
+    - `answer` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<Effect>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun leaveAnswer(answer: Int): List<Effect> {
         val id = pendingUnitId ?: return emptyList()
@@ -67,47 +194,277 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.Leave(id), Effect.Toast("${row.name}팀을 떠났습니다"), Effect.Refresh)
     }
 
+    /**
+     * 공개 메서드 `rows`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<UnitRow>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun rows(): List<UnitRow> = joined.values.toList()
 }
 
+/**
+ * enum class  `EditRosterRoute`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class EditRosterRoute(val key: String) {
     DEFAULT("edit4-default"), SELECT("edit4-select");
+
     companion object {
+        /**
+         * 공개 메서드 `parse`
+         *
+         * ### 파라미터
+        - `state` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `EditRosterRoute?`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun parse(state: String?): EditRosterRoute? = entries.firstOrNull { "hall-${it.key}-fixture" == state }
     }
 }
 
 /** EDIT-gated HallMenu tag8 hand-off; kept separate from Helper's tag9 route. */
 class HallEditRosterRoute(private val editEnabled: Boolean) {
+    /**
+     * 공개 메서드 `touch`
+     *
+     * ### 파라미터
+    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun touch(tag: Int, touchEnd: Boolean): Boolean = touchEnd && editEnabled && tag == 8
 }
 
 /** Actual HallMenu button8 -> Hall15 renderer contract. SelectList adds no visible draws in its initial source frame. */
 object EditRosterRenderEvents {
     private val alpha = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+
+    /**
+     * 공개 메서드 `jsonl`
+     *
+     * ### 파라미터
+    - `route` (`EditRosterRoute`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun jsonl(route: EditRosterRoute): String {
-        val log=RenderEventLog();val phase="hall-${route.key}-stable"
-        fun d(layer:String,path:String,type:String,x:Float,y:Float,w:Float,h:Float,asset:String?=null,text:String="",opacity:Float=1f,blend:Any=listOf(770,771))=
-            log.draw(phase,layer,path,type,x,y,w,h,asset,opacity,blend,true,text)
-        d("HallLayer","Canvas/Layer/map","sprite",0f,0f,1488.372f,800f,"assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>")
-        d("HallLayer","Canvas/Layer/Panel_cancel","sprite",0f,0f,1488.372f,800f,"default_sprite_splash",opacity=.314f)
-        d("EditLayer4","Canvas/Layer/bg","tiled-sprite",420.686f,22.5f,647f,755f,"Logo_12-1")
-        d("EditLayer4","Canvas/Layer/bg/bg1","sprite",420.686f,728.75f,647f,48.7f,"bg1")
-        d("EditLayer4","Canvas/Layer/bg/bg1/label","label",692.286f,727.9f,103.8f,50.4f,text="편성소",blend=alpha)
-        val captions=listOf(Triple(floatArrayOf(434.336f,655f,135.7f,52f),floatArrayOf(450.286f,658.8f,103.8f,50.4f),"인덱스"),Triple(floatArrayOf(570.186f,655f,308f,52f),floatArrayOf(689.586f,658.465f,69.2f,50.4f),"이름"),Triple(floatArrayOf(878.686f,655f,175f,52f),floatArrayOf(931.586f,658.465f,69.2f,50.4f),"상태"))
-        captions.forEach { (box,label,text)->d("EditLayer4","Canvas/Layer/bg/caption","sliced-sprite",box[0],box[1],box[2],box[3],"box3");d("EditLayer4","Canvas/Layer/bg/caption/label","label",label[0],label[1],label[2],label[3],text=text,blend=alpha) }
-        d("EditLayer4","Canvas/Layer/bg/vline","sprite",874.186f,169.15f,6f,484.3f,"vline");d("EditLayer4","Canvas/Layer/bg/vline","sprite",567.186f,169.15f,6f,484.3f,"vline")
-        d("EditLayer4","Canvas/Layer/bg/scrollview0","sliced-sprite",433.686f,167f,621f,488f,"box5")
-        data class Row(val id:String,val name:String,val y:Float,val asset:String,val ix:Float,val nx:Float,val nw:Float)
-        listOf(Row("0","조조",595f,"bg2",491.061f,689.586f,69.2f),Row("157","허자장",535f,"885a69b4-08ed-4c78-8896-ffb04eb2bd20",468.816f,672.286f,103.8f),Row("181","병사 ",475f,"bg2",468.816f,684.031f,80.31f)).forEach { row ->
-            val p="Canvas/Layer/bg/scrollview0/view/content/item";d("EditLayer4",p,"sprite",440.186f,row.y,606f,60f,row.asset)
-            d("EditLayer4","$p/label0","label",row.ix,row.y+4.8f,if(row.id=="0")22.25f else 66.74f,50.4f,text=row.id,blend=alpha)
-            d("EditLayer4","$p/label1","label",row.nx,row.y+4.8f,row.nw,50.4f,text=row.name,blend=alpha)
-            d("EditLayer4","$p/label2","label",914.286f,row.y+4.8f,103.8f,50.4f,text="참전함",blend=alpha)
+        val log = RenderEventLog()
+        val phase = "hall-${route.key}-stable"
+
+        /**
+         * 공개 메서드 `d`
+         *
+         * ### 파라미터
+        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `blend` (`Any=listOf(770,771`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
+        fun d(
+            layer: String,
+            path: String,
+            type: String,
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            asset: String? = null,
+            text: String = "",
+            opacity: Float = 1f,
+            blend: Any = listOf(770, 771)
+        ) =
+            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
+        d(
+            "HallLayer",
+            "Canvas/Layer/map",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
+        )
+        d(
+            "HallLayer",
+            "Canvas/Layer/Panel_cancel",
+            "sprite",
+            0f,
+            0f,
+            1488.372f,
+            800f,
+            "default_sprite_splash",
+            opacity = .314f
+        )
+        d("EditLayer4", "Canvas/Layer/bg", "tiled-sprite", 420.686f, 22.5f, 647f, 755f, "Logo_12-1")
+        d("EditLayer4", "Canvas/Layer/bg/bg1", "sprite", 420.686f, 728.75f, 647f, 48.7f, "bg1")
+        d(
+            "EditLayer4",
+            "Canvas/Layer/bg/bg1/label",
+            "label",
+            692.286f,
+            727.9f,
+            103.8f,
+            50.4f,
+            text = "편성소",
+            blend = alpha
+        )
+        val captions = listOf(
+            Triple(
+                floatArrayOf(434.336f, 655f, 135.7f, 52f),
+                floatArrayOf(450.286f, 658.8f, 103.8f, 50.4f),
+                "인덱스"
+            ),
+            Triple(floatArrayOf(570.186f, 655f, 308f, 52f), floatArrayOf(689.586f, 658.465f, 69.2f, 50.4f), "이름"),
+            Triple(floatArrayOf(878.686f, 655f, 175f, 52f), floatArrayOf(931.586f, 658.465f, 69.2f, 50.4f), "상태")
+        )
+        captions.forEach { (box, label, text) ->
+            d(
+                "EditLayer4",
+                "Canvas/Layer/bg/caption",
+                "sliced-sprite",
+                box[0],
+                box[1],
+                box[2],
+                box[3],
+                "box3"
+            ); d(
+            "EditLayer4",
+            "Canvas/Layer/bg/caption/label",
+            "label",
+            label[0],
+            label[1],
+            label[2],
+            label[3],
+            text = text,
+            blend = alpha
+        )
         }
-        data class Button(val i:Int,val x:Float,val y:Float,val w:Float,val h:Float,val lx:Float,val ly:Float,val lw:Float,val lh:Float,val text:String)
-        listOf(Button(0,873.686f,35.1f,183f,55.8f,930.586f,37.8f,69.2f,50.4f,"편집"),Button(1,441.686f,35.1f,183f,55.8f,371.931f,37.8f,322.51f,50.4f,"무장으로 합류합니다"),Button(2,657.686f,35.1f,183f,55.8f,714.586f,37.8f,69.2f,50.4f,"폐쇄"),Button(3,441.186f,102f,408f,56f,335.656f,104.8f,619.06f,50.4f,"원클릭으로 앞의 26명 무장을 모두 얻기"),Button(4,873.686f,102.1f,183f,55.8f,890.431f,104.8f,149.51f,50.4f,"특성 수정")).forEach { b ->
-            val p="Canvas/Layer/bg/button${b.i}/Background";d("EditLayer4",p,"sliced-sprite",b.x,b.y,b.w,b.h,"box3");d("EditLayer4","$p/Label","label",b.lx,b.ly,b.lw,b.lh,text=b.text,blend=alpha)
+        d("EditLayer4", "Canvas/Layer/bg/vline", "sprite", 874.186f, 169.15f, 6f, 484.3f, "vline"); d(
+            "EditLayer4",
+            "Canvas/Layer/bg/vline",
+            "sprite",
+            567.186f,
+            169.15f,
+            6f,
+            484.3f,
+            "vline"
+        )
+        d("EditLayer4", "Canvas/Layer/bg/scrollview0", "sliced-sprite", 433.686f, 167f, 621f, 488f, "box5")
+        /**
+         * data class  `Row`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
+        data class Row(
+            val id: String,
+            val name: String,
+            val y: Float,
+            val asset: String,
+            val ix: Float,
+            val nx: Float,
+            val nw: Float
+        )
+        listOf(
+            Row("0", "조조", 595f, "bg2", 491.061f, 689.586f, 69.2f),
+            Row("157", "허자장", 535f, "885a69b4-08ed-4c78-8896-ffb04eb2bd20", 468.816f, 672.286f, 103.8f),
+            Row("181", "병사 ", 475f, "bg2", 468.816f, 684.031f, 80.31f)
+        ).forEach { row ->
+            val p = "Canvas/Layer/bg/scrollview0/view/content/item"; d(
+            "EditLayer4",
+            p,
+            "sprite",
+            440.186f,
+            row.y,
+            606f,
+            60f,
+            row.asset
+        )
+            d(
+                "EditLayer4",
+                "$p/label0",
+                "label",
+                row.ix,
+                row.y + 4.8f,
+                if (row.id == "0") 22.25f else 66.74f,
+                50.4f,
+                text = row.id,
+                blend = alpha
+            )
+            d("EditLayer4", "$p/label1", "label", row.nx, row.y + 4.8f, row.nw, 50.4f, text = row.name, blend = alpha)
+            d("EditLayer4", "$p/label2", "label", 914.286f, row.y + 4.8f, 103.8f, 50.4f, text = "참전함", blend = alpha)
+        }
+        /**
+         * data class  `Button`
+         *
+         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+         *
+         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+         */
+
+        data class Button(
+            val i: Int,
+            val x: Float,
+            val y: Float,
+            val w: Float,
+            val h: Float,
+            val lx: Float,
+            val ly: Float,
+            val lw: Float,
+            val lh: Float,
+            val text: String
+        )
+        listOf(
+            Button(0, 873.686f, 35.1f, 183f, 55.8f, 930.586f, 37.8f, 69.2f, 50.4f, "편집"),
+            Button(1, 441.686f, 35.1f, 183f, 55.8f, 371.931f, 37.8f, 322.51f, 50.4f, "무장으로 합류합니다"),
+            Button(2, 657.686f, 35.1f, 183f, 55.8f, 714.586f, 37.8f, 69.2f, 50.4f, "폐쇄"),
+            Button(3, 441.186f, 102f, 408f, 56f, 335.656f, 104.8f, 619.06f, 50.4f, "원클릭으로 앞의 26명 무장을 모두 얻기"),
+            Button(4, 873.686f, 102.1f, 183f, 55.8f, 890.431f, 104.8f, 149.51f, 50.4f, "특성 수정")
+        ).forEach { b ->
+            val p = "Canvas/Layer/bg/button${b.i}/Background"; d(
+            "EditLayer4",
+            p,
+            "sliced-sprite",
+            b.x,
+            b.y,
+            b.w,
+            b.h,
+            "box3"
+        ); d("EditLayer4", "$p/Label", "label", b.lx, b.ly, b.lw, b.lh, text = b.text, blend = alpha)
         }
         return log.jsonl()
     }

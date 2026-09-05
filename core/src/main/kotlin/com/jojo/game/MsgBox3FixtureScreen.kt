@@ -21,6 +21,7 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
     private val textures = mutableListOf<Texture>()
     private fun texture(path: String): Texture? = Gdx.files.internal(path).takeIf { it.exists() }
         ?.let(::Texture)?.also(textures::add)
+
     private val background = texture("maps/71.jpg")
     private val logo9 = texture("maps/ui/unit-info/logo9.png")
     private val bg1 = texture("maps/ui/input-box/bg1.png")
@@ -91,6 +92,17 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         font.draw(batch, "취소", 814.186f, 356f, 100f, Align.center, false)
     }
 
+    /**
+     * 공개 메서드 `renderEventLog`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun renderEventLog(): String = MsgBox3RenderEvents.jsonl(state, model)
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
@@ -101,18 +113,44 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
     }
 }
 
+/**
+ * object  `MsgBox3RenderEvents`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 object MsgBox3RenderEvents {
+    /**
+     * 공개 메서드 `jsonl`
+     *
+     * ### 파라미터
+    - `state` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `model` (`MsgBox3Layer`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun jsonl(state: String, model: MsgBox3Layer): String {
         if (!model.attached) return ""
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
-        fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-                 asset: String? = null, text: String = "", layer: String = "MsgBox3") =
-            log.draw(phase, layer, path, type, x, y, w, h, asset,
+        fun draw(
+            path: String, type: String, x: Float, y: Float, w: Float, h: Float,
+            asset: String? = null, text: String = "", layer: String = "MsgBox3"
+        ) =
+            log.draw(
+                phase, layer, path, type, x, y, w, h, asset,
                 blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
-                text = text)
-        draw("Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
-            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>", layer = "HallLayer")
+                text = text
+            )
+        draw(
+            "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>", layer = "HallLayer"
+        )
         draw("Canvas/Layer/bg0", "tiled-sprite", 477.336f, 285.8f, 533.7f, 228.4f, "Logo_9-1")
         draw("Canvas/Layer/bg0/bg1", "sprite", 477.336f, 464.2f, 533.7f, 50f, "bg1")
         draw("Canvas/Layer/bg0/bg1/label", "label", 482.336f, 464f, 287.91f, 50.4f, text = "수치를 입력하세요")
@@ -121,7 +159,15 @@ object MsgBox3RenderEvents {
         draw("Canvas/Layer/bg0/box1", "sliced-sprite", 776.886f, 386.5f, 222.6f, 61f, "box1")
         draw("Canvas/Layer/bg0/box1/editbox/TEXT_LABEL", "label", 785.786f, 392f, 206.8f, 50f, text = model.editText)
         draw("Canvas/Layer/bg0/button0/Background", "sliced-sprite", 524.186f, 312f, 200f, 50f, "box3")
-        draw("Canvas/Layer/bg0/button0/Background/Label", "label", 574.186f, 317.844f, 100f, 40f, text = model.confirmLabel)
+        draw(
+            "Canvas/Layer/bg0/button0/Background/Label",
+            "label",
+            574.186f,
+            317.844f,
+            100f,
+            40f,
+            text = model.confirmLabel
+        )
         draw("Canvas/Layer/bg0/button1/Background", "sliced-sprite", 764.186f, 312f, 200f, 50f, "box3")
         draw("Canvas/Layer/bg0/button1/Background/Label", "label", 814.186f, 317.844f, 100f, 40f, text = "취소")
         return log.jsonl()

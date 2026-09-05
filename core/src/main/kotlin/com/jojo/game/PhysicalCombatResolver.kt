@@ -1,4 +1,8 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleProbabilityResolver
+import com.jojo.game.domain.battle.BattleRateGauge
 
 internal data class PhysicalCombatEnvironment(
     val probabilityResolver: BattleProbabilityResolver,
@@ -47,10 +51,13 @@ internal object PhysicalCombatResolver {
         val hitRate = env.probabilityResolver.physicalHitRate(attacker, target)
         val hit = env.probabilityResolver.physicalHit(attacker, target, hitRate)
         val baseDamage = PhysicalDamageCalculator.basePhysicalDamage(
-            attacker, target, env.basePhysicalDamageContext(attacker, target, false, PhysicalDefenseRule.ATTACKER_AWARE),
+            attacker,
+            target,
+            env.basePhysicalDamageContext(attacker, target, false, PhysicalDefenseRule.ATTACKER_AWARE),
         )
         val critical = hit && criticalRoll &&
-            !(target.skills[49]?.and(255)?.let { it != 255 } == true && attacker.skills[227]?.and(255)?.let { it != 255 } != true)
+                !(target.skills[49]?.and(255)?.let { it != 255 } == true && attacker.skills[227]?.and(255)
+                    ?.let { it != 255 } != true)
         val xuShiDamage = if (damage == null) env.consumeXuShiDamage(attacker) else 0
         val specialDamage = if (hit && damage == null) env.mrspDamage(attacker, target) else null
         val resolvedDamage = if (hit) {
@@ -104,7 +111,7 @@ internal object PhysicalCombatResolver {
         if (attacker.hitPoints > 0 && !defeated && (plannedContinuousAttack || criticalFollowUp)) {
             val followUpCriticalRoll = env.probabilityResolver.criticalHit(attacker, target)
             val followUpHit = target.skills[47]?.and(255)?.let { it != 255 } != true &&
-                env.probabilityResolver.physicalHit(attacker, target, hitRate)
+                    env.probabilityResolver.physicalHit(attacker, target, hitRate)
             val followUpIsCritical = followUpHit && followUpCriticalRoll
             followUpCritical = followUpIsCritical
             val followUpSpecialDamage = if (followUpHit) env.mrspDamage(attacker, target) else null
@@ -115,7 +122,14 @@ internal object PhysicalCombatResolver {
                     baseDamage = baseDamage,
                     damageRateContext = env.physicalDamageRateContext(attacker, target),
                     flatContext = env.flatPhysicalDamageContext(attacker, false),
-                    criticalRateContext = env.physicalCriticalRateContext(attacker, target, followUpIsCritical, false, true, false),
+                    criticalRateContext = env.physicalCriticalRateContext(
+                        attacker,
+                        target,
+                        followUpIsCritical,
+                        false,
+                        true,
+                        false
+                    ),
                     visibleFamousPlayerCount = env.visibleFamousPlayerCount(),
                 )
             } else 0
@@ -148,8 +162,8 @@ internal object PhysicalCombatResolver {
         val counterMagic = target.skills[13]?.and(255)?.takeIf { it != 255 }
             ?.let { magicId -> env.castReactionMagic(target, attacker, magicId) }
         val canCounter = counterMagic == null && attacker.hitPoints > 0 && !defeated && target.visible &&
-            attacker.skills[226]?.and(255)?.let { it == 255 } != false && env.canAttack(target, attacker) &&
-            BattleStatus.PARALYSIS !in target.statuses && BattleStatus.CONFUSION !in target.statuses
+                attacker.skills[226]?.and(255)?.let { it == 255 } != false && env.canAttack(target, attacker) &&
+                BattleStatus.PARALYSIS !in target.statuses && BattleStatus.CONFUSION !in target.statuses
         var counterDamage = 0
         var counterFollowUpDamage = 0
         var counterMpShieldDamage = 0
@@ -163,7 +177,9 @@ internal object PhysicalCombatResolver {
             val counterCriticalRoll = env.probabilityResolver.criticalHit(target, attacker)
             val counterHit = env.probabilityResolver.physicalHit(target, attacker, counterHitRate)
             val counterBase = PhysicalDamageCalculator.basePhysicalDamage(
-                target, attacker, env.basePhysicalDamageContext(target, attacker, false, PhysicalDefenseRule.ATTACKER_AWARE),
+                target,
+                attacker,
+                env.basePhysicalDamageContext(target, attacker, false, PhysicalDefenseRule.ATTACKER_AWARE),
             )
             val counterCritical = counterHit && counterCriticalRoll
             counterCriticalResult = counterCritical
@@ -174,7 +190,14 @@ internal object PhysicalCombatResolver {
                     baseDamage = counterBase,
                     damageRateContext = env.physicalDamageRateContext(target, attacker),
                     flatContext = env.flatPhysicalDamageContext(target, false),
-                    criticalRateContext = env.physicalCriticalRateContext(target, attacker, counterCritical, true, false, false),
+                    criticalRateContext = env.physicalCriticalRateContext(
+                        target,
+                        attacker,
+                        counterCritical,
+                        true,
+                        false,
+                        false
+                    ),
                     visibleFamousPlayerCount = env.visibleFamousPlayerCount(),
                 )
             } else 0
@@ -203,7 +226,7 @@ internal object PhysicalCombatResolver {
 
             val forcedCounterFollowUp =
                 listOf(197, 43).any { target.skills[it]?.and(255)?.let { value -> value != 255 } == true } ||
-                    (counterCriticalRoll && target.skills[7]?.and(255)?.let { value -> value != 255 } == true)
+                        (counterCriticalRoll && target.skills[7]?.and(255)?.let { value -> value != 255 } == true)
             if (attacker.hitPoints > 0 && forcedCounterFollowUp) {
                 val secondCriticalRoll = env.probabilityResolver.criticalHit(target, attacker)
                 val secondHit = env.probabilityResolver.physicalHit(target, attacker, counterHitRate)
@@ -215,7 +238,14 @@ internal object PhysicalCombatResolver {
                         baseDamage = counterBase,
                         damageRateContext = env.physicalDamageRateContext(target, attacker),
                         flatContext = env.flatPhysicalDamageContext(target, false),
-                        criticalRateContext = env.physicalCriticalRateContext(target, attacker, secondCriticalRoll, true, true, false),
+                        criticalRateContext = env.physicalCriticalRateContext(
+                            target,
+                            attacker,
+                            secondCriticalRoll,
+                            true,
+                            true,
+                            false
+                        ),
                         visibleFamousPlayerCount = env.visibleFamousPlayerCount(),
                     )
                 } else 0
@@ -292,10 +322,13 @@ internal object PhysicalCombatResolver {
         val criticalRoll = env.probabilityResolver.criticalHit(attacker, target)
         val hit = env.probabilityResolver.physicalHit(attacker, target, hitRate)
         val base = PhysicalDamageCalculator.basePhysicalDamage(
-            attacker, target, env.basePhysicalDamageContext(attacker, target, false, PhysicalDefenseRule.ATTACKER_AWARE),
+            attacker,
+            target,
+            env.basePhysicalDamageContext(attacker, target, false, PhysicalDefenseRule.ATTACKER_AWARE),
         )
         val critical = hit && criticalRoll &&
-            !(target.skills[49]?.and(255)?.let { it != 255 } == true && attacker.skills[227]?.and(255)?.let { it != 255 } != true)
+                !(target.skills[49]?.and(255)?.let { it != 255 } == true && attacker.skills[227]?.and(255)
+                    ?.let { it != 255 } != true)
         val specialDamage = if (hit) env.mrspDamage(attacker, target) else null
         val damage = if (hit) {
             specialDamage ?: PhysicalDamageCalculator.calculatePhysicalDamage(

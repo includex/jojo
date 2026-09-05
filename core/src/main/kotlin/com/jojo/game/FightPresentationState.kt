@@ -13,6 +13,14 @@ enum class FightSide { MINE, ENEMY }
  * both transforms is essential: setting only the next action reproduces the
  * frames but makes a fighter jump or face the wrong way between actions.
  */
+/**
+ * data class  `FightUnitPresentation`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class FightUnitPresentation(
     var characterId: Int? = null,
     var created: Boolean = false,
@@ -34,6 +42,14 @@ data class FightUnitPresentation(
     }
 }
 
+/**
+ * data class  `FightSpeechPresentation`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class FightSpeechPresentation(
     var active: Boolean = false,
     var sourceText: String = "",
@@ -49,17 +65,78 @@ data class FightActionPose(
     val opacity: Float = 255f,
 )
 
+/**
+ * sealed class  `FightPresentationEvent`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 sealed class FightPresentationEvent {
+    /**
+     * data class  `CommandStarted`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class CommandStarted(val command: ScenarioFightCommand) : FightPresentationEvent()
+
+    /**
+     * data class  `ActionStarted`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class ActionStarted(val side: FightSide, val action: Int) : FightPresentationEvent()
+
+    /**
+     * data class  `TextChanged`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class TextChanged(val side: FightSide, val renderedText: String) : FightPresentationEvent()
+
+    /**
+     * data class  `Hit`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Hit(val attacker: FightSide, val defender: FightSide) : FightPresentationEvent()
+
+    /**
+     * data class  `Sound`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Sound(
         val side: FightSide,
         val action: Int,
         val value: String,
         val atActionSeconds: Float,
     ) : FightPresentationEvent()
+
+    /**
+     * data class  `CommandCompleted`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class CommandCompleted(val command: ScenarioFightCommand) : FightPresentationEvent()
 }
 
@@ -72,6 +149,14 @@ sealed class FightPresentationEvent {
  * fast-forwarded, so attack hit reactions and parallel animation callbacks
  * remain visible.
  */
+/**
+ * class  `FightPresentationState`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class FightPresentationState(
     private val actionDurations: Map<Int, Float> = SOURCE_ACTION_DURATIONS,
     private val actionHitTimes: Map<Int, Float> = SOURCE_ACTION_HIT_TIMES,
@@ -120,6 +205,17 @@ class FightPresentationState(
          * Markup is consumed as a group, while surrogate pairs remain two JS
          * UTF-16 substring steps, exactly as in the recovered implementation.
          */
+        /**
+         * 공개 메서드 `typingContents`
+         *
+         * ### 파라미터
+        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `List<String>`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun typingContents(text: String): List<String> {
             var remaining = text
             var content = ""
@@ -138,6 +234,17 @@ class FightPresentationState(
             } while (remaining.isNotEmpty())
             return result
         }
+
+        /**
+         * 공개 메서드 `renderedRichText`
+         *
+         * ### 파라미터
+        - `content` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
 
         fun renderedRichText(content: String): String =
             if ("<color=" in content) "$content</c>" else content
@@ -188,7 +295,30 @@ class FightPresentationState(
     private var nextMutation = 0
     private var mutationOrder = 0
 
+    /**
+     * 공개 메서드 `unit`
+     *
+     * ### 파라미터
+    - `side` (`FightSide`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `FightUnitPresentation`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun unit(side: FightSide): FightUnitPresentation = if (side == FightSide.MINE) mine else enemy
+
+    /**
+     * 공개 메서드 `speech`
+     *
+     * ### 파라미터
+    - `side` (`FightSide`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `FightSpeechPresentation`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun speech(side: FightSide): FightSpeechPresentation = if (side == FightSide.MINE) mineSpeech else enemySpeech
 
     /** Begin one command and return its source-faithful callback duration. */
@@ -237,6 +367,17 @@ class FightPresentationState(
      * Advance only the current command. Any excess time is intentionally not
      * applied to a future command; the AST owns the next-command boundary.
      */
+    /**
+     * 공개 메서드 `advance`
+     *
+     * ### 파라미터
+    - `deltaSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<FightPresentationEvent>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun advance(deltaSeconds: Float): List<FightPresentationEvent> {
         require(deltaSeconds >= 0f) { "deltaSeconds must be non-negative" }
         if (currentCommand == null) return emptyList()
@@ -265,6 +406,18 @@ class FightPresentationState(
         enemyIndex = if (mineIndex == 0) 1 else 0
         mine.characterId = if (mineIndex == 0) command.firstUnitId else command.secondUnitId
         enemy.characterId = if (enemyIndex == 0) command.firstUnitId else command.secondUnitId
+        /**
+         * 공개 메서드 `resetSlot`
+         *
+         * ### 파라미터
+        - `fighter` (`FightUnitPresentation`): 구현 기준으로 역할 및 허용 값 정의 필요
+        - `slot` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun resetSlot(fighter: FightUnitPresentation, slot: Int) {
             fighter.parentX = if (slot == 0) -200f else 200f
             fighter.parentScaleX = if (slot == 0) -4f else 4f

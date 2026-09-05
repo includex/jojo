@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.infrastructure.data.CampaignStore
 
 import com.badlogic.gdx.utils.JsonReader
 
@@ -10,18 +11,103 @@ import com.badlogic.gdx.utils.JsonReader
  * the actual CampaignStore transition, while this module owns source order,
  * slot paging and validation.
  */
+/**
+ * class  `LoadGameLayer`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class LoadGameLayer(private val repository: Repository) {
     /** Exact `_loadGame` scene branch: battle=2 is the post-battle Hall path. */
     enum class RestoreRoute { HALL, BATTLE, HALL_AFTER_BATTLE }
+
+    /**
+     * interface  `Repository`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     interface Repository {
+        /**
+         * 공개 메서드 `load`
+         *
+         * ### 파라미터
+        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `String?`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun load(index: Int): String?
+
+        /**
+         * 공개 메서드 `savedPage`
+         *
+         * ### 파라미터
+        - 입력 파라미터: 없음
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Int`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun savedPage(): Int
+
+        /**
+         * 공개 메서드 `savePage`
+         *
+         * ### 파라미터
+        - `page` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Unit`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun savePage(page: Int)
+
+        /**
+         * 공개 메서드 `featureEnabled`
+         *
+         * ### 파라미터
+        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Boolean`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun featureEnabled(name: String): Boolean
+
+        /**
+         * 공개 메서드 `versionCode`
+         *
+         * ### 파라미터
+        - 입력 파라미터: 없음
+         *
+         * ### 응답 스펙
+         * - 반환 타입: `Int`
+         * - 반환값: 동작 결과의 도메인 값입니다.
+         */
+
         fun versionCode(): Int
+
         /** Corresponds to Manager.resetGame + Model.loadGame + replaceScene. */
         fun restore(index: Int, raw: String, route: RestoreRoute): Boolean
     }
+
+    /**
+     * data class  `Row`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
 
     data class Row(
         val index: Int,
@@ -31,7 +117,25 @@ class LoadGameLayer(private val repository: Repository) {
         val name: String,
         val occupied: Boolean,
     )
+
+    /**
+     * data class  `Confirmation`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class Confirmation(val index: Int, val message: String)
+
+    /**
+     * data class  `View`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class View(
         val page: Int,
         val rows: List<Row>,
@@ -76,7 +180,8 @@ class LoadGameLayer(private val repository: Repository) {
         if (eventType != TOUCH_END || !attached || view()?.rows?.any { it.index == index } != true) return false
         pendingIndex = index
         val row = view().rows.first { it.index == index }
-        view = view().copy(confirmation = Confirmation(index, "진행도 No.${index + 1}:${row.name}불러올 수 있나요?"), notice = null)
+        view =
+            view().copy(confirmation = Confirmation(index, "진행도 No.${index + 1}:${row.name}불러올 수 있나요?"), notice = null)
         return true
     }
 
@@ -113,7 +218,30 @@ class LoadGameLayer(private val repository: Repository) {
         return true
     }
 
+    /**
+     * 공개 메서드 `view`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `View`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun view(): View = requireNotNull(view) { "LoadGameLayer.onCreate must run before access" }
+
+    /**
+     * 공개 메서드 `pendingSlot`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun pendingSlot(): Int? = pendingIndex
 
     private fun fail(notice: String): Boolean {
@@ -122,13 +250,24 @@ class LoadGameLayer(private val repository: Repository) {
     }
 
     private fun decodeRow(index: Int): Row {
-        val root = repository.load(index)?.takeIf { it.startsWith('{') }?.let { runCatching { JsonReader().parse(it) }.getOrNull() }
+        val root = repository.load(index)?.takeIf { it.startsWith('{') }
+            ?.let { runCatching { JsonReader().parse(it) }.getOrNull() }
         if (root == null) return Row(index, 0, number(index), "---", "---", false)
         val model = root.get("model")?.get("game") ?: root.get("model")
         val stage = model?.get("property2")?.get(1)?.asInt() ?: model?.getInt("stage", 0) ?: 0
-        return Row(index, root.getLong("time", 0), number(index), "전역${1 + (stage shr 1)}", root.getString("name", ""), true)
+        return Row(
+            index,
+            root.getLong("time", 0),
+            number(index),
+            "전역${1 + (stage shr 1)}",
+            root.getString("name", ""),
+            true
+        )
     }
 
     private fun number(index: Int) = "No.${(index + 1).toString().padStart(3, ' ')}"
-    companion object { const val TOUCH_END = 2 }
+
+    companion object {
+        const val TOUCH_END = 2
+    }
 }

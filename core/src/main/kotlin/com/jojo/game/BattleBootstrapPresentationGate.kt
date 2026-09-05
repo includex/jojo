@@ -8,6 +8,17 @@ internal data class BattleBootstrapCallbackState(
     val show: Boolean = false,
     val fight: Boolean = false,
 ) {
+    /**
+     * 공개 메서드 `blockingReasons`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<String>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun blockingReasons(): List<String> = buildList {
         if (move) add("move")
         if (attackAction) add("attackAction")

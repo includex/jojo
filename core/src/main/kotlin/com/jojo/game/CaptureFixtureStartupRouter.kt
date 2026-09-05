@@ -1,4 +1,5 @@
 package com.jojo.game
+import com.jojo.game.domain.campaign.*
 
 import com.badlogic.gdx.Screen
 
@@ -10,6 +11,17 @@ internal class CaptureFixtureStartupRouter(
     private val showScreen: (Screen) -> Unit,
     private val showBattlePreparation: (String, String, ScenarioJoinBattleLimit, Int) -> Unit,
 ) {
+    /**
+     * 공개 메서드 `route`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun route(): Boolean {
         when (captureState) {
             "hall-achievements-fixture" -> return show(AchievementsFixtureScreen(game))
@@ -32,7 +44,16 @@ internal class CaptureFixtureStartupRouter(
 
         if (captureState in HALL_FIXTURES) prepareHallFixtureCampaign()
         parseSpriteFixtureRequest(captureState)?.let {
-            return show(BattleSpriteFixtureScreen(game, it.characterId, it.action, it.direction, it.frameTick, it.faction))
+            return show(
+                BattleSpriteFixtureScreen(
+                    game,
+                    it.characterId,
+                    it.action,
+                    it.direction,
+                    it.frameTick,
+                    it.faction
+                )
+            )
         }
         if (captureState in INFO_LAYER_FIXTURES) return show(InfoLayerFixtureScreen(game))
         captureState?.removeSuffix("-fixture")?.takeIf { it in NOTICE_FIXTURES }?.let {

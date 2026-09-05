@@ -20,9 +20,11 @@ class BattleSpriteFixtureScreen(
     private val batch = SpriteBatch()
     private val gameDataCatalog = GameDataCatalog.load()
     private val timeline = BattleSpriteTimeline.load()
-    private val profile = requireNotNull(gameDataCatalog.unitProfile(characterId)) { "Unknown fixture character: $characterId" }
+    private val profile =
+        requireNotNull(gameDataCatalog.unitProfile(characterId)) { "Unknown fixture character: $characterId" }
     private val arm = requireNotNull(gameDataCatalog.armProfile(profile.armId))
-    private val avatar = requireNotNull(BattleAvatarResolver.resolve(gameDataCatalog, characterId, profile.posts, arm.id, faction))
+    private val avatar =
+        requireNotNull(BattleAvatarResolver.resolve(gameDataCatalog, characterId, profile.posts, arm.id, faction))
     private val frame = requireNotNull(timeline.frame(action, direction, frameTick / 24f)) {
         "Missing fixture animation: character=$characterId action=$action direction=$direction"
     }
@@ -63,5 +65,7 @@ class BattleSpriteFixtureScreen(
     }
 
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
-    override fun dispose() { texture.dispose(); batch.dispose() }
+    override fun dispose() {
+        texture.dispose(); batch.dispose()
+    }
 }

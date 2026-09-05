@@ -14,6 +14,17 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
     private val viewport = ScreenViewport(OrthographicCamera())
     private val batch = SpriteBatch()
 
+    /**
+     * 공개 메서드 `render`
+     *
+     * ### 파라미터
+    - `state` (`TitleViewState`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun render(state: TitleViewState) {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.05f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -37,7 +48,31 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         batch.end()
     }
 
+    /**
+     * 공개 메서드 `resize`
+     *
+     * ### 파라미터
+    - `width` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `height` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+
+    /**
+     * 공개 메서드 `dispose`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun dispose() = batch.dispose()
 
     private fun drawLogin() {
@@ -106,7 +141,8 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawLabelSource("환경 설정", 275.441f, 734f, 149.51f)
         assets.settingBox2Patch.draw(batch, 203.686f * SCALE, 110f * SCALE, 1081f * SCALE, 596f * SCALE)
         assets.uiFont.draw(batch, "항목을 클릭하여 설정해 주세요. 설정 완료 후 [확인]을 선택해 주세요.", 65.851f * SCALE, 650.189f * SCALE + 13f)
-        val toggleCenters = listOf(232.29f to 625f, 232.29f to 560f, 232.186f to 496f, 232.186f to 431f, 232.186f to 367f)
+        val toggleCenters =
+            listOf(232.29f to 625f, 232.29f to 560f, 232.186f to 496f, 232.186f to 431f, 232.186f to 367f)
         val labels = listOf("배경 음악 듣기", "효과음 듣기", "전투 시 전장 축소 이미지가 자동으로 표시됩니다.", "대화창 자동 닫힘", "체력 바가 유닛 위에 있습니다")
         toggleCenters.forEachIndexed { index, (cx, cy) ->
             drawSourceNode(assets.settingToggle, cx, cy, 28f, 28f)
@@ -138,7 +174,13 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
 
     private fun drawSettingPanel(cy: Float, title: String, titleCy: Float, titleWidth: Float) {
         assets.settingBox1Patch.draw(batch, (1033.186f - 239.85f) * SCALE, (cy - 50f) * SCALE, 412.54f, 86f)
-        batch.draw(assets.settingTitle, (914.428f - titleWidth / 2f) * SCALE, (titleCy - 25f) * SCALE, titleWidth * SCALE, 50f * SCALE)
+        batch.draw(
+            assets.settingTitle,
+            (914.428f - titleWidth / 2f) * SCALE,
+            (titleCy - 25f) * SCALE,
+            titleWidth * SCALE,
+            50f * SCALE
+        )
         drawLabelSource(title, 914.428f, titleCy, if (title == "텍스트 속도") 184.11f else 149.51f)
     }
 
@@ -170,8 +212,10 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         batch.color = Color(0f, 0f, 0f, view.blockerOpacity)
         batch.draw(assets.dimPixel, 0f, 0f, viewport.worldWidth, viewport.worldHeight)
         batch.color = Color.WHITE
-        if (view.imageVisible) batch.draw(assets.loadingSpinner, 605f, 309f, 35f, 35f, 70f, 70f, 1f, 1f,
-            (elapsed * 360f) % 360f, 0, 0, assets.loadingSpinner.width, assets.loadingSpinner.height, false, false)
+        if (view.imageVisible) batch.draw(
+            assets.loadingSpinner, 605f, 309f, 35f, 35f, 70f, 70f, 1f, 1f,
+            (elapsed * 360f) % 360f, 0, 0, assets.loadingSpinner.width, assets.loadingSpinner.height, false, false
+        )
     }
 
     private fun drawSourceNode(texture: Texture, cx: Float, cy: Float, width: Float, height: Float) =
@@ -194,12 +238,26 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
             while (dx < width - .01f) {
                 val drawnWidth = minOf(tileWidth, width - dx)
                 val sourceWidth = (drawnWidth / SCALE).toInt().coerceIn(1, texture.width)
-                batch.draw(texture, x + dx, y + dy, drawnWidth, drawnHeight, 0, 0, sourceWidth, sourceHeight, false, false)
+                batch.draw(
+                    texture,
+                    x + dx,
+                    y + dy,
+                    drawnWidth,
+                    drawnHeight,
+                    0,
+                    0,
+                    sourceWidth,
+                    sourceHeight,
+                    false,
+                    false
+                )
                 dx += tileWidth
             }
             dy += tileHeight
         }
     }
 
-    private companion object { const val SCALE = .86f }
+    private companion object {
+        const val SCALE = .86f
+    }
 }

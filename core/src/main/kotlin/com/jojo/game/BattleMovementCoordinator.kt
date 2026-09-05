@@ -1,4 +1,9 @@
 package com.jojo.game
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.BattleMovementPlanner
+import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 internal data class BattleMovementEnvironment(
     val units: () -> Map<String, BattleUnit>,
@@ -16,8 +21,34 @@ internal data class BattleMovementEnvironment(
 internal object BattleMovementCoordinator {
     private const val DEFAULT_TERRAIN_SIZE = 100
 
+    /**
+     * 공개 메서드 `distance`
+     *
+     * ### 파라미터
+    - `a` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `b` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun distance(a: BattleUnit, b: BattleUnit): Int =
         kotlin.math.abs(a.tileX - b.tileX) + kotlin.math.abs(a.tileY - b.tileY)
+
+    /**
+     * 공개 메서드 `facingDirection`
+     *
+     * ### 파라미터
+    - `fromX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `fromY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `toX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `toY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Int`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun facingDirection(fromX: Int, fromY: Int, toX: Int, toY: Int): Int {
         val dx = kotlin.math.abs(toX - fromX)
@@ -27,10 +58,22 @@ internal object BattleMovementCoordinator {
         } else if (fromX > toX) 3 else 1
     }
 
+    /**
+     * 공개 메서드 `isInsideDefaultTerrainBounds`
+     *
+     * ### 파라미터
+    - `point` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `terrain` (`BattleTerrainGrid?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Boolean`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun isInsideDefaultTerrainBounds(point: Pair<Int, Int>, terrain: BattleTerrainGrid?): Boolean =
         point.first >= 0 && point.second >= 0 &&
-            point.first < (terrain?.width ?: DEFAULT_TERRAIN_SIZE) &&
-            point.second < (terrain?.height ?: DEFAULT_TERRAIN_SIZE)
+                point.first < (terrain?.width ?: DEFAULT_TERRAIN_SIZE) &&
+                point.second < (terrain?.height ?: DEFAULT_TERRAIN_SIZE)
 
     fun backPosition(
         defender: BattleUnit,
@@ -57,6 +100,17 @@ internal object BattleMovementCoordinator {
         if (terrainId?.let { defender.terrainMovementCosts[it] ?: 255 } ?: 1 >= 255) return null
         return point
     }
+
+    /**
+     * 공개 메서드 `movementRules`
+     *
+     * ### 파라미터
+    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `BattleMovementPlanner.MovementRules`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun movementRules(unit: BattleUnit): BattleMovementPlanner.MovementRules {
         val ignoresTerrain = unit.skills[29]?.and(255)?.let { it != 255 } == true
@@ -126,7 +180,7 @@ internal object BattleMovementCoordinator {
     ): List<Pair<Int, Int>>? {
         val unit = presentationUnits.firstOrNull { it.characterId == characterId } ?: return null
         val clamped = targetX.coerceIn(0, (terrain?.width ?: 100) - 1) to
-            targetY.coerceIn(0, (terrain?.height ?: 100) - 1)
+                targetY.coerceIn(0, (terrain?.height ?: 100) - 1)
         val destination = planner.findScriptedDestination(unit, clamped) { isInsideDefaultTerrainBounds(it, terrain) }
         return destination?.let { findMovementPath(unit, it.first, it.second, planner) }
     }
@@ -179,7 +233,9 @@ internal object BattleMovementCoordinator {
         if (env.isBattleEnded()) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
         val unit = env.units()[id] ?: return TacticalActionResult.Rejected("유닛이 없습니다.")
         if (!unit.visible) return TacticalActionResult.Rejected("아직 등장하지 않은 유닛입니다.")
-        if (BattleStatus.PARALYSIS in unit.statuses || BattleStatus.CONFUSION in unit.statuses) return TacticalActionResult.Rejected("행동할 수 없는 상태입니다.")
+        if (BattleStatus.PARALYSIS in unit.statuses || BattleStatus.CONFUSION in unit.statuses) return TacticalActionResult.Rejected(
+            "행동할 수 없는 상태입니다."
+        )
         if (unit.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected("현재 진영의 유닛만 조작할 수 있습니다.")
         if (unit.hasActed) return TacticalActionResult.Rejected("이미 행동한 유닛입니다.")
         if (unit.hasMoved) return TacticalActionResult.Rejected("이미 이동한 유닛입니다.")
@@ -188,7 +244,11 @@ internal object BattleMovementCoordinator {
         }
         if (targetX to targetY in env.blockedTiles) return TacticalActionResult.Rejected("장애물이 있는 칸입니다.")
         if (env.unitAt(targetX, targetY) != null) return TacticalActionResult.Rejected("다른 유닛이 있는 칸입니다.")
-        val route = movePoints(unit, maxDistance ?: BattleAttributeCalculator.finalMovement(unit, env.weather()), env.movementPlanner)
+        val route = movePoints(
+            unit,
+            maxDistance ?: BattleAttributeCalculator.finalMovement(unit, env.weather()),
+            env.movementPlanner
+        )
         val destination = targetX to targetY
         if (destination !in route.points) return TacticalActionResult.Rejected("이동 범위를 벗어났습니다.")
         val path = route.pathTo(destination)
@@ -209,11 +269,16 @@ internal object BattleMovementCoordinator {
         goalY: Int,
         env: BattleMovementEnvironment,
     ): Boolean {
-        val candidates = movePoints(unit, BattleAttributeCalculator.finalMovement(unit, env.weather()), env.movementPlanner).points.keys
+        val candidates = movePoints(
+            unit,
+            BattleAttributeCalculator.finalMovement(unit, env.weather()),
+            env.movementPlanner
+        ).points.keys
             .asSequence()
             .filter { it != (unit.tileX to unit.tileY) }
             .sortedBy { kotlin.math.abs(goalX - it.first) + kotlin.math.abs(goalY - it.second) }
-        val target = candidates.firstOrNull { (x, y) -> (x to y) !in env.blockedTiles && env.unitAt(x, y) == null } ?: return false
+        val target = candidates.firstOrNull { (x, y) -> (x to y) !in env.blockedTiles && env.unitAt(x, y) == null }
+            ?: return false
         return moveUnit(unit.id, target.first, target.second, null, env) is TacticalActionResult.Success
     }
 }

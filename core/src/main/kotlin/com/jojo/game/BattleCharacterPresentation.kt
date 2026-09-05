@@ -1,6 +1,6 @@
 package com.jojo.game
 
-import java.util.Locale
+import java.util.*
 
 /** Source BattleScreen.unitHide mode used by the production character state. */
 enum class BattleHideType { CHE_LI, BAI_TUI, SI_WANG }
@@ -21,6 +21,14 @@ enum class BattleCharacterMaterial(val sourceId: String) {
     GRAY("gray"),
 }
 
+/**
+ * enum class  `BattleCharacterStrictState`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 enum class BattleCharacterStrictState(val route: String) {
     HP_CAMPS_PARTIAL("hp-camps-partial"),
     OUTLINE_HIGHLIGHT("outline-highlight"),
@@ -38,12 +46,28 @@ enum class BattleCharacterStrictState(val route: String) {
  * later drive this object from its authored BRAnime event times without
  * duplicating those contracts in its draw and trace paths.
  */
+/**
+ * class  `BattleCharacterPresentation`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class BattleCharacterPresentation(
     val unitId: String,
     val camp: BattleCharacterCamp,
     val maxHp: Int,
     hp: Int = maxHp,
 ) {
+    /**
+     * data class  `HarmLabel`
+     *
+     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+     *
+     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+     */
+
     data class HarmLabel(
         val value: Int,
         val isHp: Boolean,
@@ -99,13 +123,26 @@ class BattleCharacterPresentation(
                 material = BattleCharacterMaterial.DEFAULT
                 materialValue = null
             }
+
             value >= 100 -> {
                 material = BattleCharacterMaterial.HIGHLIGHT
                 materialValue = (value - 100) / 10f
             }
+
             else -> materialValue = value / 10f
         }
     }
+
+    /**
+     * 공개 메서드 `finishAttack`
+     *
+     * ### 파라미터
+    - 입력 파라미터: 없음
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun finishAttack() {
         action = STAND
@@ -165,6 +202,14 @@ class BattleCharacterPresentation(
  * Draw schema for parity states that the shared RenderEventLog cannot yet
  * express: material slot/value and label outline are deliberately explicit.
  */
+/**
+ * data class  `BattleCharacterDrawEvent`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 data class BattleCharacterDrawEvent(
     val nodePath: String,
     val drawType: String,
@@ -190,6 +235,14 @@ data class BattleCharacterDrawEvent(
     val zIndex: Int = 0,
 )
 
+/**
+ * object  `BattleCharacterStateRenderer`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 object BattleCharacterStateRenderer {
     private const val UNIT_PATH = "Canvas/Layer/ScrollView/view/content/map/unit"
 
@@ -209,66 +262,88 @@ object BattleCharacterStateRenderer {
         avatarFlipY: Boolean? = null,
     ): List<BattleCharacterDrawEvent> = buildList {
         if (!state.visible) return@buildList
-        add(BattleCharacterDrawEvent(
-            nodePath = "$UNIT_PATH/mask/node",
-            drawType = "sprite",
-            x = unitLeft + (96f - avatarWidth) / 2f + avatarOffsetX,
-            y = unitBottom + (96f - avatarHeight) / 2f + avatarOffsetY,
-            width = avatarWidth,
-            height = avatarHeight,
-            assetFrameId = avatarFrameId,
-            sourceRect = avatarSourceRect,
-            flipX = avatarFlipX,
-            flipY = avatarFlipY,
-            materialId = state.material.sourceId,
-            materialValue = state.materialValue,
-        ))
+        add(
+            BattleCharacterDrawEvent(
+                nodePath = "$UNIT_PATH/mask/node",
+                drawType = "sprite",
+                x = unitLeft + (96f - avatarWidth) / 2f + avatarOffsetX,
+                y = unitBottom + (96f - avatarHeight) / 2f + avatarOffsetY,
+                width = avatarWidth,
+                height = avatarHeight,
+                assetFrameId = avatarFrameId,
+                sourceRect = avatarSourceRect,
+                flipX = avatarFlipX,
+                flipY = avatarFlipY,
+                materialId = state.material.sourceId,
+                materialValue = state.materialValue,
+            )
+        )
         if (state.infoVisible && state.hpProgress > 0f) {
-            add(BattleCharacterDrawEvent(
-                nodePath = "$UNIT_PATH/info/bar2/sprite",
-                drawType = "sliced-sprite",
-                x = unitLeft + 4f,
-                y = unitBottom + if (barOnTop) 91f else -1f,
-                width = 88f * state.hpProgress,
-                height = 6f,
-                assetFrameId = state.camp.hpFrame,
-            ))
+            add(
+                BattleCharacterDrawEvent(
+                    nodePath = "$UNIT_PATH/info/bar2/sprite",
+                    drawType = "sliced-sprite",
+                    x = unitLeft + 4f,
+                    y = unitBottom + if (barOnTop) 91f else -1f,
+                    width = 88f * state.hpProgress,
+                    height = 6f,
+                    assetFrameId = state.camp.hpFrame,
+                )
+            )
         }
         state.harm?.let { label ->
             // A 48×24 local sibling under the map becomes a 96×48 draw quad.
             val x = unitLeft + if (label.isHp) 0f else 96f
-            add(BattleCharacterDrawEvent(
-                nodePath = "Canvas/Layer/ScrollView/view/content/map/harmNum",
-                drawType = "label",
-                x = x,
-                y = unitBottom + 72f,
-                width = 96f,
-                height = 48f,
-                text = label.value.toString(),
-                materialId = "Label/alpha",
-                colorRgb = label.colorRgb,
-                outlineRgb = label.outlineRgb,
-                outlineWidth = label.outlineWidth,
-                zIndex = label.zIndex,
-            ))
+            add(
+                BattleCharacterDrawEvent(
+                    nodePath = "Canvas/Layer/ScrollView/view/content/map/harmNum",
+                    drawType = "label",
+                    x = x,
+                    y = unitBottom + 72f,
+                    width = 96f,
+                    height = 48f,
+                    text = label.value.toString(),
+                    materialId = "Label/alpha",
+                    colorRgb = label.colorRgb,
+                    outlineRgb = label.outlineRgb,
+                    outlineWidth = label.outlineWidth,
+                    zIndex = label.zIndex,
+                )
+            )
         }
     }
+
+    /**
+     * 공개 메서드 `jsonl`
+     *
+     * ### 파라미터
+    - `route` (`BattleCharacterStrictState`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `events` (`List<BattleCharacterDrawEvent>`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun jsonl(route: BattleCharacterStrictState, events: List<BattleCharacterDrawEvent>): String =
         events.mapIndexed { sequence, event -> event.toJson(sequence, route.route) }
             .joinToString(separator = "\n", postfix = if (events.isEmpty()) "" else "\n")
 
     private fun BattleCharacterDrawEvent.toJson(sequence: Int, phase: String): String = "{" +
-        "\"sequence\":$sequence,\"frame\":0,\"timestamp\":0,\"phase\":\"battle-character-$phase\"," +
-        "\"layer\":\"HallLayer\",\"nodePath\":\"$nodePath\",\"drawType\":\"$drawType\"," +
-        "\"x\":${num(x)},\"y\":${num(y)},\"w\":${num(width)},\"h\":${num(height)}," +
-        "\"assetFrameId\":${assetFrameId?.let(::quote) ?: "null"},\"opacity\":${num(opacity)}," +
-        "\"sourceRect\":${sourceRect?.joinToString(prefix = "[", postfix = "]") ?: "null"}," +
-        "\"flipX\":${flipX ?: "null"},\"flipY\":${flipY ?: "null"}," +
-        "\"blend\":[${blend.joinToString { if (it is String) quote(it) else it.toString() }}],\"visible\":$visible,\"text\":${text?.let(::quote) ?: "null"}," +
-        "\"materialId\":${quote(materialId)},\"materialValue\":${materialValue?.let(::num) ?: "null"}," +
-        "\"colorRgb\":${colorRgb ?: "null"},\"outlineRgb\":${outlineRgb ?: "null"}," +
-        "\"outlineWidth\":${outlineWidth ?: "null"},\"zIndex\":$zIndex}"
+            "\"sequence\":$sequence,\"frame\":0,\"timestamp\":0,\"phase\":\"battle-character-$phase\"," +
+            "\"layer\":\"HallLayer\",\"nodePath\":\"$nodePath\",\"drawType\":\"$drawType\"," +
+            "\"x\":${num(x)},\"y\":${num(y)},\"w\":${num(width)},\"h\":${num(height)}," +
+            "\"assetFrameId\":${assetFrameId?.let(::quote) ?: "null"},\"opacity\":${num(opacity)}," +
+            "\"sourceRect\":${sourceRect?.joinToString(prefix = "[", postfix = "]") ?: "null"}," +
+            "\"flipX\":${flipX ?: "null"},\"flipY\":${flipY ?: "null"}," +
+            "\"blend\":[${blend.joinToString { if (it is String) quote(it) else it.toString() }}],\"visible\":$visible,\"text\":${
+                text?.let(
+                    ::quote
+                ) ?: "null"
+            }," +
+            "\"materialId\":${quote(materialId)},\"materialValue\":${materialValue?.let(::num) ?: "null"}," +
+            "\"colorRgb\":${colorRgb ?: "null"},\"outlineRgb\":${outlineRgb ?: "null"}," +
+            "\"outlineWidth\":${outlineWidth ?: "null"},\"zIndex\":$zIndex}"
 
     private fun num(value: Float) = String.format(Locale.US, "%.3f", value)
     private fun quote(value: String) = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""

@@ -2,7 +2,8 @@ package com.jojo.game.verification
 
 import com.badlogic.gdx.Gdx
 import com.jojo.game.BattleScenarioFactory
-import com.jojo.game.BattleTerrainGrid
+import com.jojo.game.domain.battle.BattleTerrainGrid
+import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.Faction
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.PlaybackState
@@ -18,6 +19,17 @@ internal data class BattleCatalogVerificationResult(
 
 /** Materializes every battle script and verifies its game-data projection. */
 internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
+/**
+ * 공개 메서드 `dataDiagnostics`
+ *
+ * ### 파라미터
+- 입력 파라미터: 없음
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `List<String>`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun dataDiagnostics(): List<String> {
         val magicProfiles = gameData.allMagicProfiles()
         return listOf(
@@ -36,6 +48,17 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
         )
     }
 
+/**
+ * 공개 메서드 `verify`
+ *
+ * ### 파라미터
+- `initialUnhandledCalls` (`Map<String, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `BattleCatalogVerificationResult`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
     fun verify(initialUnhandledCalls: Map<String, Int>): BattleCatalogVerificationResult {
         val modules = ScenarioCatalog.sModuleNames()
         val unhandledCalls = linkedMapOf<String, Int>().apply { putAll(initialUnhandledCalls) }
@@ -53,7 +76,7 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
             runtime.start("scene0")
             mergeUnhandled(unhandledCalls, runtime.unhandledCalls)
             if (runtime.stage.battleUnits.isNotEmpty()) initializedBattles++
-            val terrain = BattleTerrainGrid.load(runtime.stage.battleMapIndex)
+            val terrain = BattleTerrainLoader.load(runtime.stage.battleMapIndex)
             val tacticalState = BattleScenarioFactory.fromScriptedUnits(
                 runtime.stage.battleUnits.values,
                 runtime.stage.mapObjects.values.filter { it.enabled }.mapTo(linkedSetOf()) { it.x to it.y },
@@ -95,6 +118,19 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
                 val expectedHitArea = if ((mergedSkills[260]?.and(255) ?: 255) != rangeSkill) {
                     gameData.hitAreaProfile(sourceHitArea.upgradeId) ?: sourceHitArea
                 } else sourceHitArea
+/**
+ * 공개 메서드 `expectedAbility`
+ *
+ * ### 파라미터
+- `base` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+- `sourceBase` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+- `passiveSkill` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+ *
+ * ### 응답 스펙
+ * - 반환 타입: `Int`
+ * - 반환값: 동작 결과의 도메인 값입니다.
+ */
+
                 fun expectedAbility(base: Int, sourceBase: Int, passiveSkill: Int): Int {
                     val smft = mergedSkills[190]?.and(255)?.takeIf { it != 255 } ?: 0
                     return gameData.passiveAbility(

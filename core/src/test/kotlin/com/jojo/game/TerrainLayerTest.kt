@@ -6,6 +6,14 @@ import kotlin.test.assertFalse
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
+/**
+ * class  `TerrainLayerTest`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 class TerrainLayerTest {
     private val terrain = (0..28).map { id ->
         TerrainLayer.Terrain(id, "T$id", flag = if (id == 0) 0b0101 else 0, magic = if (id == 0) 0b1010 else 0)

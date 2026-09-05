@@ -9,6 +9,14 @@ import com.badlogic.gdx.utils.JsonValue
  * file. This avoids fragile line parsing and keeps the original .py files in
  * the application bundle as the source of truth.
  */
+/**
+ * object  `ScenarioMetadataReader`
+ *
+ * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
+ *
+ * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
+ */
+
 object ScenarioMetadataReader {
     /**
      * Returns the last authored HallLayer.setJoinBattle contract in an R
@@ -16,6 +24,17 @@ object ScenarioMetadataReader {
      * must reconstruct this production prerequisite instead of inventing a
      * generic 0..14 roster.
      */
+    /**
+     * 공개 메서드 `loadLastJoinBattleLimit`
+     *
+     * ### 파라미터
+    - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `ScenarioJoinBattleLimit?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun loadLastJoinBattleLimit(moduleName: String): ScenarioJoinBattleLimit? {
         val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
         return payload.get("ast").walk()
@@ -31,6 +50,18 @@ object ScenarioMetadataReader {
             }
             .lastOrNull()
     }
+
+    /**
+     * 공개 메서드 `loadFirstInteractiveSegment`
+     *
+     * ### 파라미터
+    - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `functionName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `ScenarioTimeline`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun loadFirstInteractiveSegment(moduleName: String, functionName: String): ScenarioTimeline {
         val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
@@ -62,20 +93,32 @@ object ScenarioMetadataReader {
         when (path) {
             "stage.loadBg" -> commands += ScenarioCommand.LoadBackground(args.intAt(0), args.intAt(1))
             "stage.setEventName" -> commands += ScenarioCommand.SetEventName(args.stringAt(0))
-            "stage.showUnit" -> commands += ScenarioCommand.ShowUnit(args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3))
+            "stage.showUnit" -> commands += ScenarioCommand.ShowUnit(
+                args.intAt(0),
+                args.intAt(1),
+                args.intAt(2),
+                args.intAt(3)
+            )
+
             "stage.showUnits" -> appendShowUnits(args.firstOrNull(), commands)
             "stage.unitsMove" -> appendUnitMoves(args.firstOrNull(), commands)
             "stage.unit().move" -> {
                 val unitId = expression.field("func").field("value").unitId()
                 commands += ScenarioCommand.MoveUnit(unitId, args.intAt(0), args.intAt(1), args.intAt(2))
             }
+
             "stage.unit().setAction" -> {
                 val unitId = expression.field("func").field("value").unitId()
                 commands += ScenarioCommand.SetUnitAction(unitId, args.intAt(0))
             }
+
             "stage.say" -> commands += ScenarioCommand.DialogueLine(toDialogue(args.stringAt(0)))
             "stage.choice" -> {
-                commands += ScenarioCommand.Choose(Choice(args.stringAt(0).lineSequence().map(String::trim).filter(String::isNotEmpty).toList()))
+                commands += ScenarioCommand.Choose(
+                    Choice(
+                        args.stringAt(0).lineSequence().map(String::trim).filter(String::isNotEmpty).toList()
+                    )
+                )
                 return true
             }
         }
@@ -88,7 +131,10 @@ object ScenarioMetadataReader {
             val values = entry.listValues()
             if (values.size >= 3) {
                 commands += ScenarioCommand.ShowUnit(
-                    values[0].asIntValue(), values[1].asIntValue(), values[2].asIntValue(), values.getOrNull(3)?.asIntValue() ?: 0
+                    values[0].asIntValue(),
+                    values[1].asIntValue(),
+                    values[2].asIntValue(),
+                    values.getOrNull(3)?.asIntValue() ?: 0
                 )
             }
         }
@@ -121,29 +167,37 @@ object ScenarioMetadataReader {
             item = item.next
         }
     }
+
     private fun JsonValue.walk(): Sequence<JsonValue> = sequence {
         yield(this@walk)
         children().forEach { child -> yieldAll(child.walk()) }
     }
+
     private fun JsonValue.expressionPath(): String? = when (typeName()) {
         "Name" -> field("id").asString()
         "Attribute" -> field("value").expressionPath()?.plus(".")?.plus(field("attr").asString())
         "Call" -> field("func").expressionPath()?.plus("()")
         else -> null
     }
+
     private fun JsonValue.unitId(): Int {
         check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { "stage.unit(id) 호출이 필요합니다." }
         return field("args").children().first().asIntValue()
     }
-    private fun JsonValue.listValues(): List<JsonValue> = if (typeName() == "List") field("elts").children().toList() else emptyList()
+
+    private fun JsonValue.listValues(): List<JsonValue> =
+        if (typeName() == "List") field("elts").children().toList() else emptyList()
+
     private fun JsonValue.intListValues(): List<Int> {
         check(typeName() == "List") { "setJoinBattle 명단은 정적 List여야 합니다: ${typeName()}" }
         return listValues().map { it.asIntValue() }
     }
+
     private fun JsonValue.asIntValue(): Int {
         check(typeName() == "Constant") { "정수 상수가 필요합니다: ${typeName()}" }
         return field("value").asString().toInt()
     }
+
     private fun List<JsonValue>.intAt(index: Int): Int = getOrNull(index)?.asIntValue() ?: error("인수 ${index}가 없습니다.")
     private fun List<JsonValue>.stringAt(index: Int): String {
         val value = getOrNull(index) ?: error("인수 ${index}가 없습니다.")

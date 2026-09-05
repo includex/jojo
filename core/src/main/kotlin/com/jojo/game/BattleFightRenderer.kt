@@ -23,6 +23,17 @@ internal class BattleFightRenderer(
     private val highlightShader: () -> ShaderProgram,
     private val grayShader: () -> ShaderProgram,
 ) {
+    /**
+     * 공개 메서드 `draw`
+     *
+     * ### 파라미터
+    - `view` (`FightPresentationView`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Unit`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun draw(view: FightPresentationView) {
         val centerX = viewport.worldWidth / 2f
         val centerY = 400f
@@ -44,7 +55,14 @@ internal class BattleFightRenderer(
             val slot0 = view.fighterAt(0)
             val slot1 = view.fighterAt(1)
             drawName(slot0, centerX - 434.932f, centerY + 266f, 260f, Align.left, Color(36f / 255f, 0f, 1f, 1f))
-            drawName(slot1, centerX + 44.9904f, centerY - 262f, 390f, Align.right, Color(227f / 255f, 3f / 255f, 3f / 255f, 1f))
+            drawName(
+                slot1,
+                centerX + 44.9904f,
+                centerY - 262f,
+                390f,
+                Align.right,
+                Color(227f / 255f, 3f / 255f, 3f / 255f, 1f)
+            )
             font.data.setScale(130f / 26f)
             font.color = Color.WHITE
             font.draw(batch, "VS", centerX - 86.71f, centerY + 70f, 173.42f, Align.center, false)
@@ -168,10 +186,12 @@ internal class BattleFightRenderer(
                 batch.shader = shader
                 shader.setUniformf("u_value", frame.materialValue)
             }
+
             BattleCharacterMaterial.GRAY -> {
                 batch.flush()
                 batch.shader = grayShader()
             }
+
             else -> {}
         }
         batch.draw(

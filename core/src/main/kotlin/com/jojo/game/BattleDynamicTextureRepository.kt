@@ -35,7 +35,29 @@ internal class BattleDynamicTextureRepository : Disposable {
             ?.also { unitTextures[avatarId] = it }
     }
 
+    /**
+     * 공개 메서드 `attack`
+     *
+     * ### 파라미터
+    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun attack(avatarId: Int): Texture? = action("atk", avatarId)
+
+    /**
+     * 공개 메서드 `special`
+     *
+     * ### 파라미터
+    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun special(avatarId: Int): Texture? = action("spc", avatarId)
 
@@ -51,12 +73,34 @@ internal class BattleDynamicTextureRepository : Disposable {
         },
     )
 
+    /**
+     * 공개 메서드 `effect`
+     *
+     * ### 파라미터
+    - `effectId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun effect(effectId: Int): Texture? {
         effectTextures[effectId]?.let { return it }
         val handle = Gdx.files.internal("maps/effects/${effectId + 1}.png")
         return handle.takeIf { it.exists() }?.let(::linearTexture)
             ?.also { effectTextures[effectId] = it }
     }
+
+    /**
+     * 공개 메서드 `head`
+     *
+     * ### 파라미터
+    - `faceId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun head(faceId: Int): Texture? {
         headTextures[faceId]?.let { return it }
@@ -69,6 +113,17 @@ internal class BattleDynamicTextureRepository : Disposable {
     fun battleDialog(path: String): Texture? = battleDialogTextures.getOrPut(path) {
         Gdx.files.internal(path).takeIf { it.exists() }?.let(::linearTexture)
     }
+
+    /**
+     * 공개 메서드 `richText`
+     *
+     * ### 파라미터
+    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `CocosRichTextTexture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun richText(text: String): CocosRichTextTexture? {
         if (text.isEmpty()) return null
@@ -91,6 +146,17 @@ internal class BattleDynamicTextureRepository : Disposable {
         ).also { richTextTextures[key] = it }
     }
 
+    /**
+     * 공개 메서드 `gate`
+     *
+     * ### 파라미터
+    - `objectId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun gate(objectId: Int): Texture? {
         val gateId = (objectId - 4) * 2 + 1
         gateTextures[gateId]?.let { return it }
@@ -98,13 +164,46 @@ internal class BattleDynamicTextureRepository : Disposable {
         return handle.takeIf { it.exists() }?.let(::Texture)?.also { gateTextures[gateId] = it }
     }
 
+    /**
+     * 공개 메서드 `terrainIcon`
+     *
+     * ### 파라미터
+    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun terrainIcon(index: Int): Texture? = indexedTexture(
         index, terrainIconTextures, "maps/terrain-icons/$index.png",
     )
 
+    /**
+     * 공개 메서드 `itemIcon`
+     *
+     * ### 파라미터
+    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `Texture?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun itemIcon(index: Int): Texture? = indexedTexture(
         index, itemIconTextures, "maps/item-icons/$index.png",
     )
+
+    /**
+     * 공개 메서드 `movementAtlasUuid`
+     *
+     * ### 파라미터
+    - `avatarId` (`Int?`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `String?`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun movementAtlasUuid(avatarId: Int?): String? = when (avatarId) {
         11 -> "19ac1287-4d09-45f4-bf9a-f5eb8b21795c"
@@ -149,11 +248,34 @@ internal class BattleDynamicTextureRepository : Disposable {
 
 /** Resource candidates are ordered exactly as the authored atlas fallback chain. */
 internal object BattleDynamicTexturePaths {
+    /**
+     * 공개 메서드 `movement`
+     *
+     * ### 파라미터
+    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<String>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
+
     fun movement(avatarId: Int): List<String> = listOf(
         "maps/units/mov2/$avatarId.png",
         "maps/units/mov/$avatarId.png",
         "maps/units/$avatarId.png",
     )
+
+    /**
+     * 공개 메서드 `action`
+     *
+     * ### 파라미터
+    - `kind` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
+    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
+     *
+     * ### 응답 스펙
+     * - 반환 타입: `List<String>`
+     * - 반환값: 동작 결과의 도메인 값입니다.
+     */
 
     fun action(kind: String, avatarId: Int): List<String> = listOf(
         "maps/units/${kind}2/$avatarId.png",
