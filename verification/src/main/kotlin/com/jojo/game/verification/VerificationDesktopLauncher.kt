@@ -39,23 +39,27 @@ internal data class VerificationDesktopLaunchOptions(
     val fullBattleTrace: FullBattleTraceConfig?,
     val yingchuanEntryFlowTracePath: String?,
 ) {
-    fun toGameConfiguration() = GameLaunchConfiguration(
-        entryPoint = when {
-            battle || fullBattleTrace != null -> GameEntryPoint.BATTLE
-            capture.state == null && yingchuanEntryFlowTracePath == null && !explicitScenario && scenarioRun == ScenarioRunConfiguration() -> GameEntryPoint.TITLE
-            else -> GameEntryPoint.SCENARIO
-        },
-        initialScenario = scenario,
-        battleReturnScenario = battleReturnScenario,
-        initialScenarioExplicit = explicitScenario,
-        scenarioRun = scenarioRun,
-        verification = verification,
-        capture = capture,
-        runtimeArtifactObserver = VerificationArtifactObserver(capture),
-        fullBattleTrace = fullBattleTrace,
-        yingchuanEntryFlowTracePath = yingchuanEntryFlowTracePath,
-        automatedRun = true,
-    )
+    fun toGameConfiguration(): GameLaunchConfiguration {
+        val artifactObserver = VerificationArtifactObserver(capture)
+        return GameLaunchConfiguration(
+            entryPoint = when {
+                battle || fullBattleTrace != null -> GameEntryPoint.BATTLE
+                capture.state == null && yingchuanEntryFlowTracePath == null && !explicitScenario && scenarioRun == ScenarioRunConfiguration() -> GameEntryPoint.TITLE
+                else -> GameEntryPoint.SCENARIO
+            },
+            initialScenario = scenario,
+            battleReturnScenario = battleReturnScenario,
+            initialScenarioExplicit = explicitScenario,
+            scenarioRun = scenarioRun,
+            verification = verification,
+            capture = capture,
+            runtimeArtifactObserver = artifactObserver,
+            runtimeScreenObserver = artifactObserver,
+            fullBattleTrace = fullBattleTrace,
+            yingchuanEntryFlowTracePath = yingchuanEntryFlowTracePath,
+            automatedRun = true,
+        )
+    }
 
     companion object {
         fun parse(args: Array<String>): VerificationDesktopLaunchOptions {

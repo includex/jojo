@@ -8,7 +8,7 @@ import com.jojo.game.presentation.title.TitleScreen
 
 /** Core-local bridge over presentation internals; only neutral probes cross module boundaries. */
 internal fun Screen?.runtimeProbe(): RuntimeScreenProbe = when (this) {
-    is TitleScreen -> TitleRuntimeProbe
+    is TitleScreen -> runtimeProbe()
     is ScenarioScreen -> runtimeProbe()
 
     is BattlePreparationScreen -> runtimeProbe()

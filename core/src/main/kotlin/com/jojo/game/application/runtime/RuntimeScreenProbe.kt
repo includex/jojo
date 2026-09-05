@@ -5,6 +5,7 @@ import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.application.scenario.ScenarioChoiceTrace
 import com.jojo.game.application.scenario.ScenarioRandomTrace
+import com.jojo.game.presentation.title.TitleViewState
 
 /**
  * Read-only application boundary for external diagnostics that need to drive
@@ -24,7 +25,10 @@ sealed interface RuntimeScreenProbe {
     val screenName: String
 }
 
-data object TitleRuntimeProbe : RuntimeScreenProbe {
+/** Immutable title presentation state for external runtime observers. */
+data class TitleRuntimeProbe(
+    val view: TitleViewState,
+) : RuntimeScreenProbe {
     override val screenName: String = "TitleScreen"
 }
 

@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.title.evidence
+package com.jojo.game.verification.title.evidence
 
 internal fun writeVersionOverlayEvents(context: LoginOptionalOverlayEventContext) {
     context.draw("Canvas/Layer/Panel_cancel", "sprite", 0.000000f, 0.000000f, 1279.999920f, 688.000000f, "default_sprite_splash", 0.392f, listOf(770, 771), "")

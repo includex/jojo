@@ -1,8 +1,8 @@
 package com.jojo.game.presentation.title
 
 
-/** Immutable scene snapshot shared by title drawing and render-event verification. */
-internal data class TitleViewState(
+/** Immutable title presentation snapshot exposed through the runtime observer port. */
+data class TitleViewState(
     val mode: TitleMode,
     val optionalOverlayRoute: LoginOptionalOverlayRoute?,
     val loadRows: List<TitleLoadRow> = emptyList(),
@@ -12,16 +12,16 @@ internal data class TitleViewState(
     val elapsedSeconds: Float = 0f,
 )
 
-internal enum class TitleMode { LOGIN, LOAD, SETTING }
+enum class TitleMode { LOGIN, LOAD, SETTING }
 
-internal data class TitleLoadRow(
+data class TitleLoadRow(
     val number: String,
     val stage: String,
     val name: String,
     val occupied: Boolean,
 )
 
-internal data class TitleSettingsView(
+data class TitleSettingsView(
     val flags: Int,
     val messageSpeed: Int,
     val notificationLevel: Int,
@@ -29,7 +29,7 @@ internal data class TitleSettingsView(
     val gameSpeed: Float,
 )
 
-internal data class TitleLoadingView(
+data class TitleLoadingView(
     val blockerOpacity: Float,
     val imageVisible: Boolean,
 )

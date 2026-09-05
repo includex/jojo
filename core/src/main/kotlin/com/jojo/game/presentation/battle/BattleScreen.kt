@@ -10,6 +10,8 @@ import com.jojo.game.application.scenario.ScenarioUnitReference
 import com.jojo.game.application.battle.BattleRewardFlow
 import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
 import com.jojo.game.application.runtime.BattleRuntimeProbeFactory
+import com.jojo.game.application.runtime.RuntimeBattleCommand
+import com.jojo.game.application.runtime.RuntimeBattleFrame
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
 import com.jojo.game.application.runtime.BattleRuntimeSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
@@ -2219,6 +2221,8 @@ void main() {
         if (itemUpgradeRouteState != null && !outcomePresentation.itemUpgradeRouteInstalled) installItemUpgradeRoute()
         val delta = rawDelta * (fullTraceConfig?.timeScale ?: 1f)
         elapsed += delta
+        game.runtimeBattleDriver()?.commands(RuntimeBattleFrame(delta, elapsed), runtimeProbe())
+            ?.forEach(::applyRuntimeBattleCommand)
         completeBattleBackgroundLoadIfReady()
         if (yingchuanEntryFlowTracePath != null && battleInitLayer.view().attached &&
             !scriptRuntime.stage.battleDrawRequested && scriptRuntime.state == PlaybackState.DELAY
@@ -2380,6 +2384,16 @@ void main() {
         unitPresentationStore.synchronize(battle.presentation.presentationUnits())
         if (battleRouteCompleted) return null
         return delta
+    }
+
+    private fun applyRuntimeBattleCommand(command: RuntimeBattleCommand) {
+        when (command) {
+            RuntimeBattleCommand.AdvanceDialogue -> advanceBattleDialogue()
+            is RuntimeBattleCommand.Tap -> handleTileClick(command.x.toInt(), command.y.toInt())
+            RuntimeBattleCommand.EndTurn -> if (!turnController.endPlayerTurn()) {
+                eventMessage = "턴 전환을 시작할 수 없습니다."
+            }
+        }
     }
 
     /** Routes a completed frame through its capture-specific or live battle renderer. */

@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.title.evidence
+package com.jojo.game.verification.title.evidence
 
 import com.jojo.game.RenderEventLog
 

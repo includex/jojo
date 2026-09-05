@@ -8,15 +8,20 @@ import com.badlogic.gdx.utils.ScreenUtils
 import com.jojo.game.RenderCaptureConfiguration
 import com.jojo.game.application.runtime.RuntimeArtifactEvent
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
+import com.jojo.game.application.runtime.RuntimeScreenObserver
+import com.jojo.game.application.runtime.RuntimeScreenProbe
+import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.battle.BattleScreen
 import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
 import com.jojo.game.presentation.scenario.ScenarioScreen
-import com.jojo.game.presentation.title.TitleScreen
+import com.jojo.game.verification.title.evidence.TitleRenderEventRecorder
 
 /** Verification-owned filesystem sink for renderer observations. */
 internal class VerificationArtifactObserver(
     private val output: RenderCaptureConfiguration,
-) : RuntimeArtifactObserver {
+) : RuntimeArtifactObserver, RuntimeScreenObserver {
+    private val titleEvents = TitleRenderEventRecorder()
+
     override val wantsFrame get() = output.screenshotPath != null || output.rawCapturePath != null
     override val wantsEventLog get() = output.renderEventLogPath != null
 
@@ -27,6 +32,17 @@ internal class VerificationArtifactObserver(
             is RuntimeArtifactEvent.MapSidecar -> writeMapSidecar(event.state)
             is RuntimeArtifactEvent.OverlayStack -> writeStack(event)
         }
+    }
+
+    /** Title capture policy belongs to the verification runtime, after the frame is rendered. */
+    override fun update(delta: Float, screen: RuntimeScreenProbe) {
+        val title = screen as? TitleRuntimeProbe ?: return
+        if (title.view.elapsedSeconds <= TITLE_ARTIFACT_DELAY_SECONDS) return
+        output.renderEventLogPath?.let { path ->
+            writeText(path, titleEvents.record(title.view, startItemFixture = output.state == START_ITEM_ROUTE))
+            return
+        }
+        if (wantsFrame) writeFrame(null)
     }
 
     private fun writeFrame(screen: Screen?) {
@@ -60,10 +76,14 @@ internal class VerificationArtifactObserver(
         Gdx.files.absolute(path).also { it.parent().mkdirs() }.writeString(text, false)
         Gdx.app.exit()
     }
+
+    private companion object {
+        const val TITLE_ARTIFACT_DELAY_SECONDS = 1f
+        const val START_ITEM_ROUTE = "start-item-fixture"
+    }
 }
 
 private fun Screen?.eventLog(): String = when (this) {
-    is TitleScreen -> renderEventLog()
     is ScenarioScreen -> renderEventLog()
     is BattleScreen -> renderEventLog()
     is BattlePreparationScreen -> renderEventLog()

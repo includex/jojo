@@ -46,19 +46,6 @@ class TitleInteractionTest {
         assertNull(TitleInteraction.loadActionAt(950, 120, true))
     }
 
-    @Test fun `start item production inventory keeps hidden cancel behind four ordered choices`() {
-        val rows = StartItemRenderEvents.jsonl().lineSequence().filter(String::isNotBlank).toList()
-        assertEquals(6, rows.size)
-        assertTrue(rows[0].contains("Canvas/bg"))
-        assertTrue(rows[1].contains("Canvas/Layer/Panel_cancel"))
-        assertTrue(rows[1].contains("\"opacity\":0"))
-        assertTrue(rows[1].contains("\"visible\":false"))
-        (0..3).forEach { index ->
-            assertTrue(rows[index + 2].contains("Canvas/Layer/bg1/button$index/Background"))
-            assertTrue(rows[index + 2].contains("U_select_12-1_$index"))
-        }
-    }
-
     @Test fun `natural title settings pointer route mutates store and closes through production contracts`() {
 /**
  * class  `Store`

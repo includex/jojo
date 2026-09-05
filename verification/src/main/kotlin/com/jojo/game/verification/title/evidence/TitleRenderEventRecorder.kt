@@ -1,7 +1,7 @@
-package com.jojo.game.presentation.title.evidence
+package com.jojo.game.verification.title.evidence
 
 import com.jojo.game.RenderEventLog
-import com.jojo.game.StartItemRenderEvents
+import com.jojo.game.verification.title.StartItemRenderEvents
 import com.jojo.game.presentation.title.TitleMode
 import com.jojo.game.presentation.title.TitleViewState
 

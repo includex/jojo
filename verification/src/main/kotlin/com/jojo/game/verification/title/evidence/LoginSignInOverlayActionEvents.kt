@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.title.evidence
+package com.jojo.game.verification.title.evidence
 
 internal fun writeSignInOverlayActions(context: LoginOptionalOverlayEventContext) {
     context.draw("Canvas/Layer/Logo_12-1/label", "label", 144.419800f, 28.793660f, 170.271400f, 46.784000f, null, 1f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), "행운 코인: 0")

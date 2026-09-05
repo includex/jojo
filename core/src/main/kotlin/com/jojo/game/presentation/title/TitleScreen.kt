@@ -4,15 +4,15 @@ import com.jojo.game.JojoGame
 import com.jojo.game.LoadGameLayer
 import com.jojo.game.LoginRegistrationCheckFlow
 import com.jojo.game.SettingLayer
+import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.title.assets.TitleSceneAssets
-import com.jojo.game.presentation.title.evidence.TitleRenderEventRecorder
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.ScreenAdapter
 
-/** Title lifecycle and input controller; drawing and verification are delegated snapshots. */
+/** Title lifecycle and input controller; external observers receive immutable snapshots. */
 class TitleScreen(
     private val game: JojoGame,
     initialSettingOpen: Boolean = false,
@@ -24,7 +24,6 @@ class TitleScreen(
 ) : ScreenAdapter() {
     private val assets = TitleSceneAssets()
     private val renderer = TitleSceneRenderer(assets)
-    private val eventRecorder = TitleRenderEventRecorder()
     private var elapsed = 0f
     private var mode = when {
         initialLoadOpen -> TitleMode.LOAD
@@ -62,15 +61,10 @@ class TitleScreen(
     override fun render(delta: Float) {
         elapsed += delta
         renderer.render(viewState())
-        if (elapsed > 1f && game.writeRenderEventLogIfRequested()) return
-        if (elapsed > 1f && game.captureFrameIfRequested()) return
     }
 
-    /** Public verification contract; event composition belongs to the recorder. */
-    fun renderEventLog(): String = eventRecorder.record(
-        viewState(),
-        startItemFixture = game.requestedCaptureState() == "start-item-fixture",
-    )
+    /** Core-local bridge for the neutral runtime observer port. */
+    internal fun runtimeProbe() = TitleRuntimeProbe(viewState())
 
     override fun resize(width: Int, height: Int) = renderer.resize(width, height)
 

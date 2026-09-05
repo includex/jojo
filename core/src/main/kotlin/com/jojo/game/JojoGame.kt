@@ -4,6 +4,7 @@ import com.jojo.game.domain.scenario.*
 import com.jojo.game.application.navigation.GameScreenNavigator
 import com.jojo.game.application.runtime.runtimeProbe
 import com.jojo.game.application.runtime.RuntimeArtifactEvent
+import com.jojo.game.application.runtime.RuntimeBattleDriver
 import com.jojo.game.infrastructure.data.CampaignStore
 import com.jojo.game.presentation.battle.BattleScreen
 
@@ -156,6 +157,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun hasRenderEventLogRequest(): Boolean = configuration.runtimeArtifactObserver?.wantsEventLog == true
     fun requestedFullBattleTrace(): FullBattleTraceConfig? = fullBattleTraceConfig
     fun requestedYingchuanEntryFlowTracePath(): String? = yingchuanEntryFlowTracePath
+    fun runtimeBattleDriver(): RuntimeBattleDriver? = configuration.runtimeBattleDriver
 
     /** Writes renderer metadata without framebuffer readback or PNG creation. */
     fun writeRenderEventLogIfRequested(): Boolean {

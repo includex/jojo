@@ -16,6 +16,7 @@ class CaptureFixtureStartupExtension : RuntimeStartupExtension {
         val state = request.state
         fun show(screen: com.badlogic.gdx.Screen): Boolean { request.showScreen(screen); return true }
         when (state) {
+            "start-item-fixture" -> return show(TitleScreen(request.game))
             "hall-achievements-fixture" -> return show(AchievementsFixtureScreen(request.game))
             "hall-attribute-fixture" -> return show(AttributeFixtureScreen(request.game))
             "hall-generic-list-fixture" -> return show(GenericListFixtureScreen(request.game))

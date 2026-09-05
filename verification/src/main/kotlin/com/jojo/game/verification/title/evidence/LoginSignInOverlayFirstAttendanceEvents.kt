@@ -1,4 +1,4 @@
-package com.jojo.game.presentation.title.evidence
+package com.jojo.game.verification.title.evidence
 
 internal fun writeSignInOverlayFirstAttendanceRows(context: LoginOptionalOverlayEventContext) {
     context.draw("Canvas/Layer/Logo_12-1/scrollview/view/content/item0", "sprite", 145.238520f, 544.380000f, 490.200000f, 68.800000f, "bg1", 1f, listOf(770, 771), "")

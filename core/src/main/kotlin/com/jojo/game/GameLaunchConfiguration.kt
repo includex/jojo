@@ -1,6 +1,7 @@
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
+import com.jojo.game.application.runtime.RuntimeBattleDriver
 import com.jojo.game.application.runtime.RuntimeScreenObserver
 
 /** The first application route selected before LibGDX creates a screen. */
@@ -79,5 +80,7 @@ data class GameLaunchConfiguration(
     val runtimeScreenObserver: RuntimeScreenObserver? = null,
     /** Optional neutral sink for immutable renderer artifact requests. */
     val runtimeArtifactObserver: RuntimeArtifactObserver? = null,
+    /** Optional neutral battle input driver supplied by an external runtime. */
+    val runtimeBattleDriver: RuntimeBattleDriver? = null,
     val automatedRun: Boolean = false,
 )
