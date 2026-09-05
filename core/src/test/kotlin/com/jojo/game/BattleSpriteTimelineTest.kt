@@ -1,5 +1,6 @@
 package com.jojo.game
 import com.jojo.game.presentation.battle.UnitSpriteSource
+import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 import com.jojo.game.presentation.battle.timeline.*
 
 import com.badlogic.gdx.utils.JsonReader

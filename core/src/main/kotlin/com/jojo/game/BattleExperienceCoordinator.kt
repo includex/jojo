@@ -1,5 +1,6 @@
 package com.jojo.game
 import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.battle.BattleEquipmentExperienceKind
 
 internal data class BattleExperienceEnvironment(
     val units: () -> Map<String, BattleUnit>,

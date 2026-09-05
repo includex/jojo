@@ -1,6 +1,8 @@
 package com.jojo.game
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.settlement.*
 import com.jojo.game.domain.campaign.*
+import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
 
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 
@@ -48,7 +50,7 @@ class BattleAuthoredSettlementSubflowTest {
             auras[3].nestedChanges.single().attributeLiftsAfter,
         )
 
-        val plan = BattleSettlementPlanner.plan(settlement, battle.units) { state -> 100 + state.sourceStatusIndex }
+        val plan = BattleSettlementPlanningAdapter.plan(settlement, battle.units) { state -> 100 + state.sourceStatusIndex }
         assertTrue(plan.sourceDataComplete)
         assertFalse(plan.fullyRepresented, "renderer must consume authoredSubflows before completing")
         val auraPlans = plan.authoredSubflows.filterIsInstance<SettlementAuthoredSubflowPlan.LocalAura>()
@@ -100,7 +102,7 @@ class BattleAuthoredSettlementSubflowTest {
         assertTrue(growth.grants[1].requiresItemUpgradeCallback)
         assertFalse(growth.grants[2].requiresItemUpgradeCallback)
 
-        val plan = BattleSettlementPlanner.plan(settlement, battle.units) { null }
+        val plan = BattleSettlementPlanningAdapter.plan(settlement, battle.units) { null }
         assertTrue(plan.sourceDataComplete)
         assertFalse(plan.fullyRepresented, "growth callbacks cannot be skipped by the current renderer")
         val steps = (plan.authoredSubflows.single() as SettlementAuthoredSubflowPlan.Growth).steps

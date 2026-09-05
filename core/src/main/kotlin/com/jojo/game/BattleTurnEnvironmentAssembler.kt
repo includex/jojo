@@ -1,5 +1,6 @@
 package com.jojo.game
 import com.jojo.game.domain.battle.Battlefield
+import com.jojo.game.application.battle.BattleTurnSettlementEnvironment
 
 /** Builds the environment for start/end-of-camp state settlement. */
 internal object BattleTurnEnvironmentAssembler {

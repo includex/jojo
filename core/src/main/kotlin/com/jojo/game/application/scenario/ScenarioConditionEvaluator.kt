@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.application.scenario
+
+import com.jojo.game.*
 
 internal data class ScenarioConditionEnvironment(
     val gvars: MutableMap<Int, Any?>,

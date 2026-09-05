@@ -1,4 +1,6 @@
 package com.jojo.game
+import com.jojo.game.domain.scenario.*
+import com.jojo.game.application.scenario.*
 
 /** Public source-first entry point used by the LibGDX game screens. */
 object ScenarioSource {

@@ -1,5 +1,7 @@
 package com.jojo.game
 import com.jojo.game.domain.battle.Battlefield
+import com.jojo.game.application.battle.BattleTurnSettlementService
+import com.jojo.game.domain.battle.settlement.*
 
 /** Owns camp settlement, round advancement, weather, and event lifecycle rules. */
 class BattleRoundLifecycleFacade internal constructor(

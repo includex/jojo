@@ -1,4 +1,6 @@
 package com.jojo.game.presentation.scenario
+import com.jojo.game.application.scenario.ScenarioInterpreter
+import com.jojo.game.domain.scenario.ScenarioCompletionRoute
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*

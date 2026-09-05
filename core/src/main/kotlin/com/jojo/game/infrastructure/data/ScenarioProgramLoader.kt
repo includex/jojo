@@ -1,4 +1,5 @@
 package com.jojo.game.infrastructure.data
+import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader

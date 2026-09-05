@@ -1,4 +1,7 @@
 package com.jojo.game.presentation.battle
+import com.jojo.game.application.scenario.ScenarioInterpreter
+import com.jojo.game.application.battle.BattleRewardFlow
+import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattlePropertyItem
@@ -13,6 +16,7 @@ import com.jojo.game.domain.battle.PhysicalAttackTargetResult
 import com.jojo.game.domain.battle.TacticalActionResult
 import com.jojo.game.domain.battle.isEnemySide
 import com.jojo.game.domain.battle.isPlayerSide
+import com.jojo.game.domain.battle.settlement.*
 import com.jojo.game.domain.campaign.CampaignEquipment
 import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
@@ -34,6 +38,8 @@ import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 import com.jojo.game.presentation.battle.evidence.*
+import com.jojo.game.presentation.battle.fight.*
+import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -4056,7 +4062,7 @@ void main() {
     private fun presentTurnSettlement(settlement: CampSettlement): Boolean {
         check(activeTurnSettlement == null) { "overlapping BattleScreen._jiesuan presentations" }
         val unitsById = (battle.units.values + battle.presentation.pendingPresentationUnits()).associateBy { it.id }
-        val plan = BattleSettlementPlanner.plan(settlement, unitsById) { state ->
+        val plan = BattleSettlementPlanningAdapter.plan(settlement, unitsById) { state ->
             gameDataCatalog.statusMeff(state.sourceStatusIndex, state.meffSlot)
         }
         if (!plan.sourceDataComplete) {
@@ -4093,7 +4099,7 @@ void main() {
     ): BattleSettlementPlan {
         val unitsById = (battle.units.values + battle.presentation.pendingPresentationUnits()).associateBy { it.id }
         val camp = battle.presentation.presentationUnit(casterId)?.effectiveFaction() ?: Faction.PLAYER
-        return BattleSettlementPlanner.planMagicLocal(settlement, camp, unitsById) { state ->
+        return BattleSettlementPlanningAdapter.planMagicLocal(settlement, camp, unitsById) { state ->
             gameDataCatalog.statusMeff(state.sourceStatusIndex, state.meffSlot)
         }
     }

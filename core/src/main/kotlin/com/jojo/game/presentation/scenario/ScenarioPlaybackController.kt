@@ -1,8 +1,8 @@
 package com.jojo.game.presentation.scenario
+import com.jojo.game.application.scenario.ScenarioInterpreter
 
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.SayLayerAutoClose
-import com.jojo.game.ScenarioInterpreter
 import com.jojo.game.ScenarioStage
 import com.jojo.game.SourceTextReveal
 

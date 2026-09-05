@@ -1,4 +1,5 @@
 package com.jojo.game.verification
+import com.jojo.game.application.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.jojo.game.BattleScenarioFactory
@@ -8,7 +9,6 @@ import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.ScenarioCatalog
-import com.jojo.game.ScenarioInterpreter
 import com.jojo.game.domain.scenario.ScenarioUnitFaction
 import com.jojo.game.domain.scenario.battleId
 

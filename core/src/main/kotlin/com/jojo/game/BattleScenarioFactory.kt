@@ -1,6 +1,7 @@
 package com.jojo.game
 
 import com.jojo.game.domain.scenario.*
+import com.jojo.game.domain.battle.settlement.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.*

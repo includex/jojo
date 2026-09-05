@@ -1,4 +1,5 @@
 package com.jojo.game.verification
+import com.jojo.game.application.scenario.*
 
 import com.jojo.game.BattleOutcome
 import com.jojo.game.BattleScenarioFactory
@@ -7,7 +8,6 @@ import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
-import com.jojo.game.ScenarioInterpreter
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.domain.battle.isEnemySide
 

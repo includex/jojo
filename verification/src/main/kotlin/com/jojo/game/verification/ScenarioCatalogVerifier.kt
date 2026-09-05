@@ -1,11 +1,11 @@
 package com.jojo.game.verification
+import com.jojo.game.application.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.jojo.game.EncryptedGameDataCodec
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.ScenarioCatalog
-import com.jojo.game.ScenarioInterpreter
 
 internal data class ScenarioCatalogVerificationResult(
     val marker: String,

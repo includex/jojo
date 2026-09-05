@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.fight
 
 import com.jojo.game.presentation.battle.*
 

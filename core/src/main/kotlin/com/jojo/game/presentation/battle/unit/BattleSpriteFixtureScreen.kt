@@ -1,4 +1,8 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.unit
+
+import com.jojo.game.GameDataCatalog
+import com.jojo.game.JojoGame
+import com.jojo.game.BattleAvatarResolver
 import com.jojo.game.domain.battle.*
 import com.jojo.game.presentation.battle.UnitSpriteSource
 

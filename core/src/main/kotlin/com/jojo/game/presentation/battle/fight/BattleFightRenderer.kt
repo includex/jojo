@@ -1,4 +1,6 @@
-package com.jojo.game
+package com.jojo.game.presentation.battle.fight
+
+import com.jojo.game.*
 import com.jojo.game.presentation.battle.UnitSpriteSource
 import com.jojo.game.presentation.battle.timeline.*
 

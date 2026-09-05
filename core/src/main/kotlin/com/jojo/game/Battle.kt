@@ -4,6 +4,7 @@ import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleActionSnapshot
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.settlement.*
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleAiScorer
 import com.jojo.game.domain.battle.BattleProbabilityResolver

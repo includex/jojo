@@ -1,5 +1,6 @@
 package com.jojo.game
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.settlement.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,7 +32,7 @@ class BattleSettlementPlannerTest {
         ))
 
         val plan = BattleSettlementPlanner.planMagicLocal(
-            local, Faction.PLAYER, mapOf(first.id to first, second.id to second),
+            local, Faction.PLAYER, snapshots(first, second),
         ) { state -> if (state.sourceStatusIndex == BattleStatus.POISON.sourceIndex) 77 else null }
 
         assertEquals(listOf("first", "second"), plan.units.map { it.unitId })
@@ -73,7 +74,7 @@ class BattleSettlementPlannerTest {
             ),
         )
 
-        val plan = BattleSettlementPlanner.plan(settlement, mapOf("first" to first, "second" to second)) { 77 }
+        val plan = BattleSettlementPlanner.plan(settlement, snapshots(first, second)) { 77 }
         val firstPlan = plan.units.first()
         assertEquals(Faction.REINFORCEMENTS, firstPlan.effectiveFactionBefore)
         assertEquals(Faction.PLAYER, firstPlan.effectiveFactionAfter)
@@ -113,7 +114,7 @@ class BattleSettlementPlannerTest {
 
         val start = BattleSettlementPlanner.plan(
             unchanged(CampSettlementStage.START_STATE),
-            mapOf(aura.id to aura, trainee.id to trainee),
+            snapshots(aura, trainee),
         ) { null }
         assertFalse(start.fullyRepresented)
         assertEquals(SettlementPendingKind.LOCAL_AURA, start.pendingIntegrations.single().kind)
@@ -121,10 +122,35 @@ class BattleSettlementPlannerTest {
 
         val restore = BattleSettlementPlanner.plan(
             unchanged(CampSettlementStage.END_RESTORE),
-            mapOf(aura.id to aura, trainee.id to trainee),
+            snapshots(aura, trainee),
         ) { null }
         assertFalse(restore.fullyRepresented)
         assertEquals(SettlementPendingKind.EXPERIENCE_AND_LEVEL_UP, restore.pendingIntegrations.single().kind)
         assertEquals(listOf(trainee.id), restore.pendingIntegrations.single().unitIds)
+    }
+
+    @Test
+    fun `pending aura lookup uses immutable effective faction snapshot`() {
+        val lostPlayer = BattleUnit(
+            "lost", "이탈", Faction.PLAYER, 0, 0,
+            skills = mapOf(103 to 1),
+            statuses = mutableMapOf(BattleStatus.LOST to 2),
+        )
+
+        val plan = BattleSettlementPlanner.plan(
+            CampSettlement(CampSettlementStage.START_STATE, Faction.ENEMY, emptyList()),
+            snapshots(lostPlayer),
+        ) { null }
+
+        assertEquals(listOf(lostPlayer.id), plan.pendingIntegrations.single().unitIds)
+    }
+
+    private fun snapshots(vararg units: BattleUnit): Map<String, SettlementUnitSnapshot> = units.associate { unit ->
+        unit.id to SettlementUnitSnapshot(
+            unit.id,
+            unit.baseFaction,
+            unit.skills.keys.toSet(),
+            BattleStatus.LOST in unit.statuses,
+        )
     }
 }

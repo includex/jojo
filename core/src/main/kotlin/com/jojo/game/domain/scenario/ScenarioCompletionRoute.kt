@@ -1,4 +1,4 @@
-package com.jojo.game
+package com.jojo.game.domain.scenario
 
 import com.jojo.game.domain.scenario.*
 
