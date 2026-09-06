@@ -1,158 +1,14 @@
 // Battle
 package com.jojo.game.presentation.battle
-import com.jojo.game.infrastructure.data.GameDataCatalog
-import com.jojo.game.infrastructure.data.ScenarioCatalog
-import com.jojo.game.presentation.shared.overlay.*
-import com.jojo.game.presentation.shared.KoreanFont
-import com.jojo.game.presentation.shared.InfoBaseValueAnimation
-
-import com.jojo.game.presentation.battle.overlay.*
-
-import com.jojo.game.presentation.scenario.overlay.*
-import com.jojo.game.presentation.shared.evidence.RenderEventLog
-
-import com.jojo.game.domain.battle.*
-import com.jojo.game.presentation.battle.assets.*
-import com.jojo.game.presentation.battle.bootstrap.BattleBootstrapCallbackState
-import com.jojo.game.presentation.battle.bootstrap.BattleInitLayer
-import com.jojo.game.presentation.battle.bootstrap.completeInitialBattleOperation
-import com.jojo.game.presentation.battle.input.*
-import com.jojo.game.presentation.battle.render.*
-import com.jojo.game.presentation.battle.route.BattlePresentationConfiguration
-import com.jojo.game.presentation.battle.evidence.*
-import com.jojo.game.presentation.battle.fixture.BattleCaptureFixtureCoordinator
-import com.jojo.game.presentation.battle.fixture.BattleCaptureFixtureConfiguration
-import com.jojo.game.presentation.battle.fixture.BattleCaptureRouteCoordinator
-import com.jojo.game.presentation.battle.fixture.BattleAutoBattleRouteFixtureController
-import com.jojo.game.presentation.battle.fixture.BattleCharacterRouteFixtureCoordinator
-import com.jojo.game.presentation.battle.fixture.BattleCharacterRouteFixturePort
-import com.jojo.game.presentation.battle.fixture.BattleCommandRouteFixtureController
-import com.jojo.game.presentation.battle.fixture.BattleItemUpgradeRouteFixtureController
-import com.jojo.game.presentation.battle.fixture.BattleJiqiRouteFixtureController
-import com.jojo.game.presentation.battle.fixture.BattleMagickRouteFixtureController
-import com.jojo.game.presentation.battle.fixture.BattleRouteFixtureController
-import com.jojo.game.presentation.battle.fixture.BattleUsePropertyRouteFixtureController
-import com.jojo.game.domain.battle.command.*
-import com.jojo.game.application.battle.*
-import com.jojo.game.domain.battle.turn.*
-import com.jojo.game.presentation.battle.edit.*
-import com.jojo.game.application.scenario.ScenarioInterpreter
-import com.jojo.game.application.scenario.ScenarioBattleScriptContext
-import com.jojo.game.application.battle.bootstrap.BattleBootstrapPhase
-import com.jojo.game.application.scenario.ScenarioModalKind
-import com.jojo.game.application.scenario.ScenarioUnitReference
-import com.jojo.game.application.battle.BattleRewardFlow
-import com.jojo.game.application.runtime.RuntimeBattleCommand
-import com.jojo.game.application.runtime.RuntimeBattleFrame
-import com.jojo.game.application.runtime.RuntimeBattleRoute
-import com.jojo.game.domain.battle.BattleObjectAnimationTimeline
-import com.jojo.game.domain.battle.BattleUnitMoveTimeline
-import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
-import com.jojo.game.application.runtime.RuntimeGridPoint
-import com.jojo.game.application.runtime.BattleVerificationRuntime
-import com.jojo.game.application.runtime.RuntimeBattleTraceDialogueInput
-import com.jojo.game.application.runtime.RuntimeBattleTraceFrameInput
-import com.jojo.game.*
-import com.jojo.game.domain.battle.BattleAttribute
-import com.jojo.game.domain.battle.BattlePropertyItem
-import com.jojo.game.domain.battle.BattleStatus
-import com.jojo.game.domain.battle.BattleTerrainGrid
-import com.jojo.game.domain.battle.BattleWeather
-import com.jojo.game.domain.battle.Faction
-import com.jojo.game.domain.battle.MagicLocalSettlement
-import com.jojo.game.domain.battle.MagicTarget
-import com.jojo.game.domain.battle.magic.BattleMagicProfile
-import com.jojo.game.domain.battle.PhysicalAttackPass
-import com.jojo.game.domain.battle.PhysicalAttackTargetResult
-import com.jojo.game.domain.battle.TacticalActionResult
-import com.jojo.game.domain.battle.isEnemySide
-import com.jojo.game.domain.battle.isPlayerSide
-import com.jojo.game.domain.battle.settlement.*
-import com.jojo.game.domain.campaign.CampaignEquipment
-import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
-import com.jojo.game.domain.campaign.CampaignEquipmentSlot
-import com.jojo.game.domain.campaign.CampaignState
-import com.jojo.game.domain.scenario.*
-import com.jojo.game.presentation.battle.timeline.BattleDeathPresentationTimeline
-import com.jojo.game.presentation.battle.timeline.BattleCharacterCamp
-import com.jojo.game.presentation.battle.timeline.BattleCharacterMaterial
-import com.jojo.game.presentation.battle.timeline.BattleCharacterStrictState
-import com.jojo.game.presentation.battle.timeline.BattleMagicPresentation
-import com.jojo.game.presentation.battle.timeline.BattlePhysicalPresentationTimeline
-import com.jojo.game.presentation.battle.timeline.UnitDeathPresentation
-import com.jojo.game.presentation.battle.timeline.hitCallbackEconomyDelta
-import com.jojo.game.presentation.battle.timeline.BackMoveAnimation
-import com.jojo.game.presentation.battle.timeline.BattleScreenHitReactionDirectionScheduler
-import com.jojo.game.presentation.battle.timeline.BattleScreenLoseCondition
-import com.jojo.game.presentation.battle.timeline.HarmNumberAnimation
-import com.jojo.game.presentation.battle.timeline.MagicEffectAnimation
-import com.jojo.game.presentation.battle.timeline.TimedBattleMutation
-import com.jojo.game.presentation.battle.timeline.UnitActionAnimation
-import com.jojo.game.presentation.battle.timeline.UnitAnimationKind
-import com.jojo.game.presentation.battle.timeline.UnitMoveAnimation
-import com.jojo.game.presentation.battle.combat.*
-import com.jojo.game.presentation.battle.settlement.BattleSettlementPresentationController
-import com.jojo.game.presentation.battle.settlement.BattleSettlementOperationCoordinator
-import com.jojo.game.presentation.battle.settlement.BattleSettlementOperationPort
-import com.jojo.game.presentation.battle.settlement.SettlementInfoView
-import com.jojo.game.presentation.battle.settlement.SettlementInfo2View
-import com.jojo.game.presentation.battle.settlement.TurnSettlementOp
-import com.jojo.game.presentation.battle.outcome.BattleOutcomePresentationCoordinator
-import com.jojo.game.presentation.battle.outcome.LoseSceneFlow
-import com.jojo.game.presentation.battle.outcome.LoseSceneRenderEvents
-import com.jojo.game.presentation.battle.script.ScriptPresentationTimeline
-import com.jojo.game.presentation.battle.script.ScriptedUnitPresentationLifecycle
-import com.jojo.game.presentation.battle.script.ScriptedUnitCallbackCoordinator
-import com.jojo.game.presentation.battle.script.ScriptedUnitTimedCoordinator
-import com.jojo.game.presentation.battle.script.ScriptedUnitActionCoordinator
-import com.jojo.game.presentation.battle.script.ScriptedPresentationCoordinator
-import com.jojo.game.presentation.battle.script.ScriptedUnitTargetSelector
-import com.jojo.game.presentation.battle.ai.AiPresentationCoordinator
-import com.jojo.game.presentation.battle.ai.AiPresentationState
-import com.jojo.game.presentation.battle.ai.AiPresentationStage
-import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
-import com.jojo.game.presentation.battle.unit.BattleUnitPresentationStore
-import com.jojo.game.presentation.battle.unit.BattleUnitPresentationState
-import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
-import com.jojo.game.presentation.battle.fight.*
-import com.jojo.game.presentation.battle.overlay.BattleHelperOverlayController
-import com.jojo.game.presentation.battle.overlay.BattleInformationOverlayController
-import com.jojo.game.presentation.battle.evidence.BattleFightTraceSerializer
-import com.jojo.game.presentation.battle.trace.BattleTraceUnitPresentationInput
-import com.jojo.game.presentation.battle.trace.BattleRuntimeScreenProbeInput
-import com.jojo.game.presentation.battle.trace.BattleRuntimeProbeCoordinator
-import com.jojo.game.presentation.battle.trace.BattleRuntimeProbePort
-import com.jojo.game.presentation.battle.trace.BattleRuntimeTraceCoordinator
-import com.jojo.game.presentation.battle.verification.BattleScreenVerificationCoordinator
-import com.jojo.game.presentation.battle.verification.BattleScreenVerificationInput
-import com.jojo.game.presentation.battle.overlay.ItemUpgradeFlow
-import com.jojo.game.presentation.shared.overlay.PropertyLayer
-import com.jojo.game.presentation.shared.overlay.TreasureLayer
-import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
-import com.jojo.game.presentation.shared.overlay.MagicInfoLayer
-import com.jojo.game.presentation.shared.overlay.MagicUiList
-import com.jojo.game.infrastructure.audio.GameAudioPlayer
-import com.jojo.game.presentation.battle.overlay.BattleSaveLoadOverlayController
-import com.jojo.game.presentation.battle.overlay.BattleSettingsOverlayController
-import com.jojo.game.presentation.battle.overlay.BattleTreasureOverlayView
-import com.jojo.game.presentation.battle.overlay.BattleForcesOverlayController
-import com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayController
-import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
-import com.jojo.game.presentation.battle.unit.BattleUnitSpriteFrameResolver
-import com.jojo.game.presentation.battle.unit.ScriptedUnitVisual
-import com.jojo.game.presentation.battle.unit.UnitSpriteFrame
-import com.jojo.game.presentation.battle.unit.UnitSpriteSource
-import com.jojo.game.presentation.battle.render.BattleGridMapSurface
-import com.jojo.game.presentation.battle.render.BattleGridMapSurfaceRenderer
-import com.jojo.game.presentation.battle.render.BattleGridRenderView
-import com.jojo.game.presentation.battle.render.BattleGridMiniMapMarker
-import com.jojo.game.presentation.battle.render.BattleGridMiniMapView
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.ScreenAdapter
-import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.NinePatch
@@ -165,6 +21,62 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Json
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import com.jojo.game.JojoGame
+import com.jojo.game.application.battle.*
+import com.jojo.game.application.battle.bootstrap.BattleBootstrapPhase
+import com.jojo.game.application.runtime.*
+import com.jojo.game.application.scenario.ScenarioBattleScriptContext
+import com.jojo.game.application.scenario.ScenarioInterpreter
+import com.jojo.game.application.scenario.ScenarioModalKind
+import com.jojo.game.application.scenario.ScenarioUnitReference
+import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.command.ControlScoring
+import com.jojo.game.domain.battle.magic.BattleMagicProfile
+import com.jojo.game.domain.battle.settlement.*
+import com.jojo.game.domain.battle.turn.BattleDeathCheckpoint
+import com.jojo.game.domain.battle.turn.BattleTurnPhase
+import com.jojo.game.domain.campaign.CampaignEquipment
+import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
+import com.jojo.game.domain.campaign.CampaignEquipmentSlot
+import com.jojo.game.domain.campaign.CampaignState
+import com.jojo.game.domain.scenario.*
+import com.jojo.game.infrastructure.audio.GameAudioPlayer
+import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.infrastructure.data.ScenarioCatalog
+import com.jojo.game.presentation.battle.ai.AiPresentationCoordinator
+import com.jojo.game.presentation.battle.ai.AiPresentationStage
+import com.jojo.game.presentation.battle.assets.*
+import com.jojo.game.presentation.battle.bootstrap.BattleBootstrapCallbackState
+import com.jojo.game.presentation.battle.bootstrap.BattleInitLayer
+import com.jojo.game.presentation.battle.bootstrap.completeInitialBattleOperation
+import com.jojo.game.presentation.battle.combat.*
+import com.jojo.game.presentation.battle.edit.BattleEditLayer2
+import com.jojo.game.presentation.battle.edit.BattleEditLayer2RenderEvents
+import com.jojo.game.presentation.battle.edit.BattleEditLayer2Route
+import com.jojo.game.presentation.battle.edit.BattleRegisterRoute
+import com.jojo.game.presentation.battle.evidence.*
+import com.jojo.game.presentation.battle.fight.*
+import com.jojo.game.presentation.battle.fixture.*
+import com.jojo.game.presentation.battle.input.*
+import com.jojo.game.presentation.battle.outcome.BattleOutcomePresentationCoordinator
+import com.jojo.game.presentation.battle.outcome.LoseSceneFlow
+import com.jojo.game.presentation.battle.outcome.LoseSceneRenderEvents
+import com.jojo.game.presentation.battle.overlay.*
+import com.jojo.game.presentation.battle.render.*
+import com.jojo.game.presentation.battle.route.BattlePresentationConfiguration
+import com.jojo.game.presentation.battle.script.*
+import com.jojo.game.presentation.battle.settlement.*
+import com.jojo.game.presentation.battle.timeline.*
+import com.jojo.game.presentation.battle.trace.*
+import com.jojo.game.presentation.battle.unit.*
+import com.jojo.game.presentation.battle.verification.BattleScreenVerificationCoordinator
+import com.jojo.game.presentation.battle.verification.BattleScreenVerificationInput
+import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
+import com.jojo.game.presentation.scenario.overlay.SourceTextReveal
+import com.jojo.game.presentation.shared.InfoBaseValueAnimation
+import com.jojo.game.presentation.shared.KoreanFont
+import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import com.jojo.game.presentation.shared.overlay.*
 
 /** 전투 화면: 입력·전장 렌더링·전술 행동·모달·시나리오 표현을 한 프레임 흐름으로 연결하는 최상위 조정자다. */
 
@@ -181,13 +93,11 @@ class BattleScreen(
         CampaignEquipmentSlot.ARMOR -> "방어력"
         CampaignEquipmentSlot.AUXILIARY -> "정신력"
     }
+
     private enum class SelectAreaFrame(val assetName: String) {
-        RED("range-red"),
-        GREEN("range-green"),
-        BLUE("range-blue"),
-        RED_BOX("range-red-box"),
-        GREEN_BOX("range-green-box"),
+        RED("range-red"), GREEN("range-green"), BLUE("range-blue"), RED_BOX("range-red-box"), GREEN_BOX("range-green-box"),
     }
+
     private data class SelectAreaTile(val x: Int, val y: Int, val frame: SelectAreaFrame)
 
     private var initialPlayerCampScriptStarted = false
@@ -229,76 +139,71 @@ class BattleScreen(
     private var roundRouteInstalled = false
     private var roundRouteCallbackCount = 0
     private var losePressedAnswer: Int? = null
-    fun compositionTrace(): String =
-        BattleCompositionEvidenceRecorder.record(compositionEvidenceView())
+    fun compositionTrace(): String = BattleCompositionEvidenceRecorder.record(compositionEvidenceView())
 
     /** 증거 화면 구성: 현재 전투·대화·경로 상태를 증거 투영기가 소비할 불변 입력으로 묶는다. */
-    private fun compositionEvidenceView(): BattleCompositionEvidenceView =
-        BattleCompositionEvidenceProjector.project(
-            BattleCompositionEvidenceProjectionInput(
-                animationClock = animationClock(),
-                visualAnimationClock = elapsed,
-                mapOnlyCapture = mapOnlyCapture,
-                sourceScenario = sourceScenario,
-                returnScenario = returnScenario,
-                battleMenuOpen = battleMenuOpen,
-                effectCount = magicEffectAnimations.size,
-                openingSayRoute = openingSayRoute,
-                dialogueOneRoute = dialogueOneRoute,
-                actionCapture = actionCapture?.let { capture ->
-                    BattleCompositionEvidenceActionCaptureInput(capture.action, capture.sample)
-                },
-                winModalRoute = winModalRoute,
-                enemyTurnRoute = enemyTurnRoute,
-                loseResultRoute = loseResultRoute,
-                winResultRoute = winResultRoute,
-                units = battle.units.values.map { unit ->
-                    compositionEvidenceUnitInput(unit)
-                },
-                terrainAt = terrainGrid::terrainAt,
-                dialogue = scriptRuntime.currentDialogue?.let { current ->
-                    BattleCompositionEvidenceDialogueInput(
-                        speakerId = current.speakerId,
-                        sourceText = current.text,
-                        visibleText = dialogueReveal.visibleText,
-                        typewriterComplete = dialogueReveal.isComplete,
+    private fun compositionEvidenceView(): BattleCompositionEvidenceView = BattleCompositionEvidenceProjector.project(
+        BattleCompositionEvidenceProjectionInput(
+            animationClock = animationClock(),
+            visualAnimationClock = elapsed,
+            mapOnlyCapture = mapOnlyCapture,
+            sourceScenario = sourceScenario,
+            returnScenario = returnScenario,
+            battleMenuOpen = battleMenuOpen,
+            effectCount = magicEffectAnimations.size,
+            openingSayRoute = openingSayRoute,
+            dialogueOneRoute = dialogueOneRoute,
+            actionCapture = actionCapture?.let { capture ->
+                BattleCompositionEvidenceActionCaptureInput(capture.action, capture.sample)
+            },
+            winModalRoute = winModalRoute,
+            enemyTurnRoute = enemyTurnRoute,
+            loseResultRoute = loseResultRoute,
+            winResultRoute = winResultRoute,
+            units = battle.units.values.map { unit ->
+                compositionEvidenceUnitInput(unit)
+            },
+            terrainAt = terrainGrid::terrainAt,
+            dialogue = scriptRuntime.currentDialogue?.let { current ->
+                BattleCompositionEvidenceDialogueInput(
+                    speakerId = current.speakerId,
+                    sourceText = current.text,
+                    visibleText = dialogueReveal.visibleText,
+                    typewriterComplete = dialogueReveal.isComplete,
+                )
+            },
+            speakerName = { speakerId ->
+                speakerId.toIntOrNull()?.let(gameDataCatalog::unitProfile)?.name?.let(GameDataCatalog::sayLayerUnitName)
+            },
+            action = actionAnimation?.let { action ->
+                BattleCompositionEvidenceActionInput(action.sourceAction, action.direction, action.endsAt)
+            },
+            winConditionOpen = winConditionOpen,
+            winConditionModal = winConditionLayer != null,
+            enemyPlanner = {
+                battle.ai.tracePlanner(474, aiFlags = 1)?.let { plan ->
+                    BattleCompositionEvidenceEnemyPlannerInput(
+                        characterId = plan.characterId,
+                        ai = plan.ai,
+                        x = plan.x,
+                        y = plan.y,
+                        value = plan.value,
+                        actionValue = plan.actionValue,
+                        targetId = plan.targetId,
+                        magicId = plan.magicId,
                     )
-                },
-                speakerName = { speakerId ->
-                    speakerId.toIntOrNull()
-                        ?.let(gameDataCatalog::unitProfile)
-                        ?.name
-                        ?.let(GameDataCatalog::sayLayerUnitName)
-                },
-                action = actionAnimation?.let { action ->
-                    BattleCompositionEvidenceActionInput(action.sourceAction, action.direction, action.endsAt)
-                },
-                winConditionOpen = winConditionOpen,
-                winConditionModal = winConditionLayer != null,
-                enemyPlanner = {
-                    battle.ai.tracePlanner(474, aiFlags = 1)?.let { plan ->
-                        BattleCompositionEvidenceEnemyPlannerInput(
-                            characterId = plan.characterId,
-                            ai = plan.ai,
-                            x = plan.x,
-                            y = plan.y,
-                            value = plan.value,
-                            actionValue = plan.actionValue,
-                            targetId = plan.targetId,
-                            magicId = plan.magicId,
-                        )
-                    }
-                },
-                loseActive = outcomePresentation.loseSceneActive,
-                winPromptActive = outcomePresentation.winPromptActive,
-            )
+                }
+            },
+            loseActive = outcomePresentation.loseSceneActive,
+            winPromptActive = outcomePresentation.winPromptActive,
         )
+    )
 
     /** 증거 유닛 구성: 현재 스프라이트·프레임 조회 결과에서 캡처에 필요한 유닛 값만 고정한다. */
     private fun compositionEvidenceUnitInput(unit: BattleUnit): BattleCompositionEvidenceUnitInput {
         val scripted = scriptedUnitPresentation.visual(unit.id)
-        val selected = scripted?.let { unitSpriteFrameResolver.scriptedFrame(unit, it) }
-            ?: unitSpriteFrameResolver.idleFrame(unit)
+        val selected =
+            scripted?.let { unitSpriteFrameResolver.scriptedFrame(unit, it) } ?: unitSpriteFrameResolver.idleFrame(unit)
         return BattleCompositionEvidenceUnitInput(
             id = unit.id,
             visible = unit.visible,
@@ -427,6 +332,7 @@ void main() {
         )
     }
     private val battleSprites = BattleSpriteTimeline.load()
+
     /** 유닛 frame 판정은 resolver에 위임하고, Screen은 현재 route·animation·unit 조회만 제공한다. */
     private val unitSpriteFrameResolver = BattleUnitSpriteFrameResolver(
         object : BattleUnitSpriteFrameResolver.Port {
@@ -451,14 +357,17 @@ void main() {
                     paralyzed = BattleStatus.PARALYSIS in unit.statuses,
                 ),
             )
+
             override fun transientAnimation(unitId: String): UnitActionAnimation? {
                 val now = animationClock()
                 return actionAnimation?.takeIf { now < it.endsAt && it.unitId == unitId }
                     ?: hitReactionAnimations[unitId]?.takeIf { now in it.startedAt..<it.endsAt }
                     ?: deathAnimations[unitId]?.takeIf { now in it.startedAt..<it.endsAt }
             }
+
             override fun movementAnimation(unitId: String): UnitMoveAnimation? =
                 movementAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unitId }
+
             override fun scriptedVisual(unitId: String): ScriptedUnitVisual? = scriptedUnitPresentation.visual(unitId)
             override fun presentationUnit(unitId: String): BattleUnit? = battle.presentation.presentationUnit(unitId)
             override fun timelineFrame(action: Int, direction: Int, elapsed: Float, loop: Boolean) =
@@ -514,18 +423,19 @@ void main() {
 
     private val mapFile = battleMapFile(loadedBattleMapIndex + 1)
     private val materializedBattleUnitIds = battle.units.keys.toMutableSet()
+
     private data class ScriptUnitBaseline(
         val x: Int, val y: Int, val visible: Boolean, val ai: Int,
         val targetId: Int, val targetX: Int, val targetY: Int,
     )
+
     private var scriptUnitBaseline: Map<Int, ScriptUnitBaseline>? = null
     private val scriptedMovementCameraCursors = mutableMapOf<Int, MovementCameraTickCursor>()
-    private val mapTexture: Texture? = mapFile
-        ?.let(::Texture)
-        ?.also {
+    private val mapTexture: Texture? = mapFile?.let(::Texture)?.also {
             it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
             it.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
         }
+
     /** 전장 배경 로드 완료: 지도 텍스처가 준비되면 유닛 텍스처를 선적하고 대기 중인 스크립트를 재개한다. */
     private fun completeBattleBackgroundLoadIfReady() {
         if (!scriptRuntime.hasPendingBattleBackgroundLoad || mapTexture == null) return
@@ -559,6 +469,7 @@ void main() {
     private val battleActorEffectRenderer by lazy {
         BattleActorEffectRenderer(batch, hudAssets) { cocosHighlightSampler.value }
     }
+
     /** Actor/effect renderer 입력은 live 상태를 이 Port로만 노출해 composer가 조립한다. */
     private val battleActorEffectViewComposer = BattleActorEffectViewComposer(
         object : BattleActorEffectViewComposer.Port {
@@ -597,18 +508,19 @@ void main() {
             override fun hpTexture(unit: BattleUnit): Texture? = when (unit.type()) {
                 Faction.PLAYER -> hudAssets.mineHpBarTexture
                 Faction.FRIEND -> hudAssets.friendHpBarTexture
-                Faction.ENEMY, Faction.REINFORCEMENTS ->
-                    if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
+                Faction.ENEMY, Faction.REINFORCEMENTS -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
             }
 
             override fun hpRatio(unit: BattleUnit, now: Float): Float =
-                (healthTimeline.shownHp(unit.id, now, unit.hitPoints).toFloat() /
-                    unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
+                (healthTimeline.shownHp(unit.id, now, unit.hitPoints)
+                    .toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
 
             override fun attributeStatuses(unit: BattleUnit) = unitPresentationStore.stateFor(unit).attributeStatusIcons
             override fun otherNodesVisible(unit: BattleUnit): Boolean = unit.otherNodesVisible
             override fun stateEffect(unit: BattleUnit) = unitPresentationStore.stateFor(unit).stateAnimation.current()
-            override fun stateTexture(textureIndex: Int): Texture? = hudAssets.battleStateTextures.getOrNull(textureIndex)
+            override fun stateTexture(textureIndex: Int): Texture? =
+                hudAssets.battleStateTextures.getOrNull(textureIndex)
+
             override fun magicEffectAnimations(): List<MagicEffectAnimation> = magicEffectAnimations.toList()
             override fun magicEffect(effectId: Int) = magicEffects.effect(effectId)
             override fun magicEffectTexture(effectId: Int): Texture? = dynamicTextures.effect(effectId)
@@ -645,7 +557,7 @@ void main() {
         append(gameDataCatalog.terrainLayer().select(TerrainLayer.Tab.RISE).rows.joinToString { it.terrainName })
         append(
             gameDataCatalog.terrainLayer()
-                .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
+            .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
         Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
         append("기본 능력 무력 지력 지휘 민첩성 운기 무장 소개 인물 특기 일람 없음 출진 횟수 퇴각 ★◎○△×●--")
@@ -922,12 +834,11 @@ void main() {
 
         override fun completeCheckpoint(checkpoint: BattleDeathPresentationTimeline.Checkpoint) {
             when (checkpoint) {
-                BattleDeathPresentationTimeline.Checkpoint.CAMP_START ->
-                    turnController.completeCampDeathPresentation()
-                BattleDeathPresentationTimeline.Checkpoint.CAMP_RESTORE ->
-                    turnController.completeCampRestoreDeathPresentation()
-                BattleDeathPresentationTimeline.Checkpoint.ROUND_START ->
-                    turnController.completeRoundDeathPresentation()
+                BattleDeathPresentationTimeline.Checkpoint.CAMP_START -> turnController.completeCampDeathPresentation()
+
+                BattleDeathPresentationTimeline.Checkpoint.CAMP_RESTORE -> turnController.completeCampRestoreDeathPresentation()
+
+                BattleDeathPresentationTimeline.Checkpoint.ROUND_START -> turnController.completeRoundDeathPresentation()
             }
         }
     })
@@ -940,10 +851,13 @@ void main() {
         override fun presentationUnit(unitId: String): BattleUnit? = battle.presentation.presentationUnit(unitId)
         override fun statusMeff(sourceStatusIndex: Int, meffSlot: Int): Int? =
             gameDataCatalog.statusMeff(sourceStatusIndex, meffSlot)
+
         override fun skillName(skillId: Int): String = gameDataCatalog.skillName(skillId)
         override fun magicName(magicId: Int): String? = gameDataCatalog.magicProfile(magicId)?.name
         override fun namedMeff(name: String): Int? = gameDataCatalog.namedMeff(name)
-        override fun actionDuration(actionId: Int, direction: Int): Float = requireSourceActionDuration(actionId, direction)
+        override fun actionDuration(actionId: Int, direction: Int): Float =
+            requireSourceActionDuration(actionId, direction)
+
         override fun meffDuration(effectId: Int): Float? = magicEffects.effect(effectId)?.duration
         override fun autoCloseInfo2(text: String): Boolean = text.length < 10 || settingsPreferences.getInteger(
             SettingLayer.GAME_SETTING,
@@ -967,33 +881,50 @@ void main() {
                     request.battleUnitId?.let { candidate.id == it }
                         ?: (candidate.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId)
                 }
+
             override fun showUnit(request: ScenarioUnitShowRequest): BattleUnit? =
                 (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId
                 }
+
             override fun postsUnit(request: ScenarioUnitPostsRequest): BattleUnit? = scriptBattleUnit(request.unitId)
             override fun isMineMaster(unitId: String) = isScriptMineMaster(unitId)
-            override fun focus(unit: BattleUnit) { focusCameraOn(unit) }
-            override fun sourceActionDuration(action: Int, direction: Int) = requireSourceActionDuration(action, direction)
+            override fun focus(unit: BattleUnit) {
+                focusCameraOn(unit)
+            }
+
+            override fun sourceActionDuration(action: Int, direction: Int) =
+                requireSourceActionDuration(action, direction)
+
             override fun beginHideModel(unit: BattleUnit, request: ScenarioUnitHideRequest, originalHp: Int) {
                 unit.retreatFlag = true
                 unit.otherNodesVisible = false
                 unit.setHpcur(0)
             }
+
             override fun registerHideAnimation(unit: BattleUnit, sourceAction: Int, startedAt: Float, endsAt: Float) {
                 deathAnimations[unit.id] = UnitActionAnimation(
                     unit.id, UnitAnimationKind.DEATH, unit.direction, startedAt, endsAt, sourceAction,
                 )
             }
-            override fun removeHideAnimation(unitId: String) { deathAnimations.remove(unitId) }
+
+            override fun removeHideAnimation(unitId: String) {
+                deathAnimations.remove(unitId)
+            }
+
             override fun completeHideModel(unit: BattleUnit, request: ScenarioUnitHideRequest, originalHp: Int) {
                 if (request.hideType != 0) battle.presentation.incrementUnitRetreat(unit)
                 unit.setHpcur(originalHp)
                 unit.visible = false
                 battle.presentation.completeScriptedUnitHide(unit.id)
             }
-            override fun completeUnitHide(request: ScenarioUnitHideRequest) = scriptRuntime.stage.completeUnitHide(request)
-            override fun prepareShow(unit: BattleUnit, request: ScenarioUnitShowRequest): ScriptedUnitCallbackCoordinator.ShowStart {
+
+            override fun completeUnitHide(request: ScenarioUnitHideRequest) =
+                scriptRuntime.stage.completeUnitHide(request)
+
+            override fun prepareShow(
+                unit: BattleUnit, request: ScenarioUnitShowRequest
+            ): ScriptedUnitCallbackCoordinator.ShowStart {
                 val restored = battle.presentation.restorePresentationUnit(unit.id) ?: unit
                 val requestedX = request.x.takeIf { it >= 0 } ?: restored.tileX
                 val requestedY = request.y.takeIf { it >= 0 } ?: restored.tileY
@@ -1025,6 +956,7 @@ void main() {
                 if (revive) scriptedUnitPresentation.setVisual(restored.id, ScriptedUnitVisual(46, startedAt))
                 return ScriptedUnitCallbackCoordinator.ShowStart(restored.id, duration)
             }
+
             override fun finishShow(unitId: String, request: ScenarioUnitShowRequest) {
                 battle.presentation.presentationUnit(unitId)?.let { unit ->
                     unit.otherNodesVisible = true
@@ -1032,9 +964,18 @@ void main() {
                     unitSpriteFrameResolver.defaultAction(unit)
                 }
             }
-            override fun setVisibleWhenShowUnitMissing(unitId: Int) = scriptRuntime.stage.setBattleUnitVisibility(unitId, true)
-            override fun setOldAvatar(unitId: String, avatarId: Int) { loadedBattleAvatarIds[unitId] = avatarId }
-            override fun publishLoadedAvatar(unitId: String, avatarId: Int) { loadedBattleAvatarIds[unitId] = avatarId }
+
+            override fun setVisibleWhenShowUnitMissing(unitId: Int) =
+                scriptRuntime.stage.setBattleUnitVisibility(unitId, true)
+
+            override fun setOldAvatar(unitId: String, avatarId: Int) {
+                loadedBattleAvatarIds[unitId] = avatarId
+            }
+
+            override fun publishLoadedAvatar(unitId: String, avatarId: Int) {
+                loadedBattleAvatarIds[unitId] = avatarId
+            }
+
             override fun resumeScript() = scriptRuntime.resumeExternalDelay()
         },
     )
@@ -1043,10 +984,14 @@ void main() {
         object : ScriptedUnitTimedCoordinator.Port {
             override fun now() = animationClock()
             override fun consumeMap() = scriptRuntime.stage.consumeMapPresentationRequest()
-            override fun focusMap(x: Int, y: Int) { focusCameraOnTile(x.toFloat(), y.toFloat(), forceCenter = true) }
+            override fun focusMap(x: Int, y: Int) {
+                focusCameraOnTile(x.toFloat(), y.toFloat(), forceCenter = true)
+            }
+
             override fun consumeCameraCenters() = scriptRuntime.stage.consumeCameraCenterRequests().map {
                 ScriptedUnitTimedCoordinator.CameraCenter(it.x, it.y)
             }
+
             override fun centerCamera(request: ScriptedUnitTimedCoordinator.CameraCenter) {
                 configureSourceCameraViewport()
                 battleCamera.centerTile(request.x, request.y, terrainGrid.width, terrainGrid.height)
@@ -1056,6 +1001,7 @@ void main() {
                     advanceFrame = false,
                 )
             }
+
             override fun resumeScript() = scriptRuntime.resumeExternalDelay()
         },
     )
@@ -1065,20 +1011,35 @@ void main() {
             override fun now() = animationClock()
             override fun consumeActions() = scriptRuntime.stage.consumeScriptedUnitActions()
             override fun unit(action: ScriptedUnitAction) = liveScriptBattleUnit(action.unitId)
-            override fun applyDirection(unit: BattleUnit, direction: Int) { unit.direction = direction }
-            override fun clearVisual(unitId: String) { scriptedUnitPresentation.clearVisual(unitId) }
+            override fun applyDirection(unit: BattleUnit, direction: Int) {
+                unit.direction = direction
+            }
+
+            override fun clearVisual(unitId: String) {
+                scriptedUnitPresentation.clearVisual(unitId)
+            }
+
             override fun setVisual(unitId: String, action: Int, startedAt: Float) {
                 scriptedUnitPresentation.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
             }
+
             override fun startSourceAction(unit: BattleUnit, action: Int) {
                 actionAnimation = sourceActionAnimation(unit.id, action, unit.direction)
             }
+
             override fun actionDuration(action: Int, direction: Int) = battleSprites.duration(action, direction)
-            override fun focus(unit: BattleUnit) { focusCameraOn(unit) }
-            override fun clearSourceAction(unitId: String) { if (actionAnimation?.unitId == unitId) actionAnimation = null }
+            override fun focus(unit: BattleUnit) {
+                focusCameraOn(unit)
+            }
+
+            override fun clearSourceAction(unitId: String) {
+                if (actionAnimation?.unitId == unitId) actionAnimation = null
+            }
+
             override fun defaultAction(unitId: String) {
                 battle.presentation.presentationUnit(unitId)?.let(unitSpriteFrameResolver::defaultAction)
             }
+
             override fun resumeScript() = scriptRuntime.resumeExternalDelay()
         },
     )
@@ -1095,38 +1056,66 @@ void main() {
             override fun now() = animationClock()
             override fun modalActive() = scriptRuntime.state == PlaybackState.MODAL
             override fun consumeRequest() = scriptRuntime.stage.consumeScriptPresentationRequest()
-            override fun clearVisual(unitId: String) { scriptedUnitPresentation.clearVisual(unitId) }
+            override fun clearVisual(unitId: String) {
+                scriptedUnitPresentation.clearVisual(unitId)
+            }
+
             override fun defaultAction(unitId: String) {
                 battle.presentation.presentationUnit(unitId)?.let(unitSpriteFrameResolver::defaultAction)
             }
-            override fun playGetItemSound() { audio.playBattleEffect(14) }
-            override fun presentItemMessage(message: String) { scriptRuntime.presentExternalBattleInfo(message) }
-            override fun dismissUnitInfo() { unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss) }
-            override fun resumeScript() { scriptRuntime.resumeExternalDelay() }
+
+            override fun playGetItemSound() {
+                audio.playBattleEffect(14)
+            }
+
+            override fun presentItemMessage(message: String) {
+                scriptRuntime.presentExternalBattleInfo(message)
+            }
+
+            override fun dismissUnitInfo() {
+                unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
+            }
+
+            override fun resumeScript() {
+                scriptRuntime.resumeExternalDelay()
+            }
+
             override fun focusRectangle(x1: Int, y1: Int, x2: Int, y2: Int) {
                 focusCameraOnTile((x1 + x2) / 2f, (y1 + y2) / 2f, forceCenter = true)
             }
+
             override fun unitTarget(unitId: Int) = scriptBattleUnit(unitId)?.let {
                 ScriptedPresentationCoordinator.Target(it.id, it.direction)
             }
+
             override fun focusUnit(unitId: String) {
-                (battle.units.values + battle.presentation.pendingPresentationUnits())
-                    .firstOrNull { it.id == unitId }?.let(::focusCameraOn)
+                (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.id == unitId }
+                    ?.let(::focusCameraOn)
             }
-            override fun openUnitInfo(unitId: Int) { openUnitInfoLayer(unitId) }
+
+            override fun openUnitInfo(unitId: Int) {
+                openUnitInfoLayer(unitId)
+            }
+
             override fun itemTarget(selector: Int) = scriptedUnitTargetSelector.select(selector)?.let {
                 ScriptedPresentationCoordinator.Target(it.id, it.direction)
             }
+
             override fun setVisual(unitId: String, action: Int, startedAt: Float) {
                 scriptedUnitPresentation.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
             }
-            override fun sourceActionDuration(action: Int, direction: Int) = requireSourceActionDuration(action, direction)
+
+            override fun sourceActionDuration(action: Int, direction: Int) =
+                requireSourceActionDuration(action, direction)
+
             override fun focusMapObjects(request: ScenarioScriptPresentationRequest.MapObjects) {
-                request.objects.lastOrNull()?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
+                request.objects.lastOrNull()
+                    ?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
             }
+
             override fun statusTarget(values: List<Map<String, Any?>>): ScriptedPresentationCoordinator.Target? =
-                values.asSequence().mapNotNull { (it["unit"] as? ScenarioUnitReference)?.id }
-                    .firstOrNull()?.let(::scriptBattleUnit)?.let {
+                values.asSequence().mapNotNull { (it["unit"] as? ScenarioUnitReference)?.id }.firstOrNull()
+                    ?.let(::scriptBattleUnit)?.let {
                         ScriptedPresentationCoordinator.Target(it.id, it.direction)
                     }
         },
@@ -1155,39 +1144,58 @@ void main() {
                 }
                 return resolved
             }
-            override fun resumeRewardModal() { if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal() }
-            override fun syncScriptedUnits() { this@BattleScreen.syncScriptedUnits() }
+
+            override fun resumeRewardModal() {
+                if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal()
+            }
+
+            override fun syncScriptedUnits() {
+                this@BattleScreen.syncScriptedUnits()
+            }
+
             override fun scene2Available() = "scene2" in scriptRuntime.functionNames
-            override fun startScene2() { scriptRuntime.start("scene2") }
+            override fun startScene2() {
+                scriptRuntime.start("scene2")
+            }
+
             override fun scriptIsBlocked() = scriptRuntime.state != PlaybackState.COMPLETE
             override fun scriptState() = scriptRuntime.state
-            override fun openSaveLayer() { saveLoadOverlay.openSave() }
+            override fun openSaveLayer() {
+                saveLoadOverlay.openSave()
+            }
+
             override fun nextScenario(): String = this@BattleScreen.nextScenario()
             override fun completeBattle(nextScenario: String) {
                 scriptRuntime.stage.sceneJumpStage?.let(game::setCampaignStage) ?: game.advanceCampaignStage()
                 game.completeBattle(returnScenario, nextScenario)
                 battleRouteCompleted = true
             }
-            override fun showNextScenario(nextScenario: String) { game.showNextScenario(nextScenario) }
+
+            override fun showNextScenario(nextScenario: String) {
+                game.showNextScenario(nextScenario)
+            }
+
             override fun finishTrace() {
                 if (battleTraceCoordinator?.exitOnFinish == false) battleTraceCoordinator.finish("battle-end")
             }
-            override fun showVictoryPrompt() { eventMessage = "게임 저장하시겠습니까?" }
+
+            override fun showVictoryPrompt() {
+                eventMessage = "게임 저장하시겠습니까?"
+            }
+
             override fun campaignEquipmentUpgrade(): BattleOutcomePresentationCoordinator.UpgradePresentation? {
                 val request = battle.experience.consumeEquipmentUpgrade() ?: return null
                 val profile = gameDataCatalog.equipmentProfile(request.itemId) ?: return null
-                val owner = campaign.unitNames[request.unitId]
-                    ?: gameDataCatalog.unitProfile(request.unitId)?.name.orEmpty()
+                val owner =
+                    campaign.unitNames[request.unitId] ?: gameDataCatalog.unitProfile(request.unitId)?.name.orEmpty()
                 return BattleOutcomePresentationCoordinator.UpgradePresentation(
                     request, owner, profile.name, request.slot.attributeLabel(),
                 )
             }
-            override fun equipmentUpgradeAllowed() = !settlementPresentation.isActive() &&
-                (itemUpgradeRouteState != null || (
-                    actionAnimation?.let { animationClock() < it.endsAt } != true &&
-                        movementAnimation?.let { animationClock() < it.endsAt } != true &&
-                        hitReactionAnimations.values.none { animationClock() < it.endsAt }
-                    ))
+
+            override fun equipmentUpgradeAllowed() =
+                !settlementPresentation.isActive() && (itemUpgradeRouteState != null || (actionAnimation?.let { animationClock() < it.endsAt } != true && movementAnimation?.let { animationClock() < it.endsAt } != true && hitReactionAnimations.values.none { animationClock() < it.endsAt }))
+
             override fun settlementUpgrade(request: CampaignEquipmentExperienceResult) =
                 BattleOutcomePresentationCoordinator.UpgradePresentation(
                     request,
@@ -1196,15 +1204,20 @@ void main() {
                         ?: error("settlement item profile is missing: ${request.itemId}"),
                     request.slot.attributeLabel(),
                 )
+
             override fun itemUpgradeCompleted() = Unit
-            override fun createLoseScene() = LoseSceneFlow(openLogin = game::showTitleScreen, endGame = { Gdx.app.exit() })
+            override fun createLoseScene() =
+                LoseSceneFlow(openLogin = game::showTitleScreen, endGame = { Gdx.app.exit() })
+
             override fun transitionBusy() = combatPresentationBusy() || outcomeCallbacksPending()
             override fun naturalTransitionAllowed() =
-                !verification.active && !game.hasFrameCaptureRequest() &&
-                    !game.hasRenderEventLogRequest()
+                !verification.active && !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()
+
             override fun routeCompleted() = battleRouteCompleted
             override fun battleEndedByScript() = scriptRuntime.stage.battleEndedByScript
-            override fun runNaturalScene1() { runBattleScript() }
+            override fun runNaturalScene1() {
+                runBattleScript()
+            }
         },
     )
     private val harmNumberAnimations = mutableMapOf<String, HarmNumberAnimation>()
@@ -1282,7 +1295,8 @@ void main() {
     )
     private var presentationReady = false
     private val actionCapture = captureFixtureConfiguration.actionSample
-    private val captureFixtureCoordinator = BattleCaptureFixtureCoordinator(captureFixtureConfiguration, presentationConfiguration)
+    private val captureFixtureCoordinator =
+        BattleCaptureFixtureCoordinator(captureFixtureConfiguration, presentationConfiguration)
     private val captureFixturePort = object : BattleCaptureFixtureCoordinator.Port {
         override fun advanceFixtureDialogue() = advanceCaptureFixtureDialogue()
         override fun advanceDialogueStep() = advanceBattleDialogue()
@@ -1329,12 +1343,14 @@ void main() {
     private var boardTile = 64f
     private var boardMaxX = 1
     private var boardMaxY = 1
-    internal fun animationClock(): Float = presentationConfiguration.animationClock(elapsed, battleElapsed, actionCaptureMode)
+    internal fun animationClock(): Float =
+        presentationConfiguration.animationClock(elapsed, battleElapsed, actionCaptureMode)
+
     private fun mapObjectAnimationClock(): Float = presentationConfiguration.mapObjectAnimationClock(elapsed)
     private fun stateEffectAnimationClock(): Float = presentationConfiguration.mapObjectAnimationClock(elapsed)
-    private fun battleMapFile(index: Int) = sequenceOf("png", "jpg", "webp")
-        .map { Gdx.files.internal("maps/battle-maps/$index.$it") }
-        .firstOrNull { it.exists() }
+    private fun battleMapFile(index: Int) =
+        sequenceOf("png", "jpg", "webp").map { Gdx.files.internal("maps/battle-maps/$index.$it") }
+            .firstOrNull { it.exists() }
 
     init {
         Gdx.app.log("JojoGame", "BATTLE_MAP_SOURCE: ${mapFile?.path()}")
@@ -1376,7 +1392,8 @@ void main() {
         }
         when (rewardRouteState) {
             RuntimeBattleRoute.REWARD_BASIC, RuntimeBattleRoute.REWARD_CARD1, RuntimeBattleRoute.REWARD_CARD2 -> {
-                val cards = if (rewardRouteState == RuntimeBattleRoute.REWARD_BASIC) emptyList() else listOf(150, 0, 151, 0)
+                val cards =
+                    if (rewardRouteState == RuntimeBattleRoute.REWARD_BASIC) emptyList() else listOf(150, 0, 151, 0)
                 scriptRuntime.stage.reward(items = cards)
                 scriptRuntime.stage.scriptedBattleOutcome?.let(battle::setScriptedOutcome)
                 outcomePresentation.openRewardRequestIfNeeded()
@@ -1399,9 +1416,7 @@ void main() {
             val unit = requireNotNull(battle.units.values.firstOrNull { it.characterId == 210 && it.visible })
             mineUnitInfoLayer = MineUnitInfoLayer().also {
                 it.onCreate(
-                    unit,
-                    gameDataCatalog.postsName(unit.posts),
-                    unit.name.replace(Regex("\\d+$"), "")
+                    unit, gameDataCatalog.postsName(unit.posts), unit.name.replace(Regex("\\d+$"), "")
                 )
             }
         }
@@ -1425,11 +1440,13 @@ void main() {
             RuntimeBattleRoute.WIN_COMPACT -> {
                 openBattleMenu()
                 handleBattleMenuTap(9)
-                battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
+                battle.units.values.firstOrNull { it.characterId == 235 }
+                    ?.let { scriptedUnitPresentation.clearVisual(it.id) }
             }
 
             RuntimeBattleRoute.WIN_FULL -> {
-                battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
+                battle.units.values.firstOrNull { it.characterId == 235 }
+                    ?.let { scriptedUnitPresentation.clearVisual(it.id) }
                 scriptRuntime.suspendForWinCondition("장보와 장량을\n격퇴하십시오.")
             }
 
@@ -1447,8 +1464,9 @@ void main() {
 
             loseRestartRoute -> {
                 battle.setMaxRounds(1)
-                    outcomePresentation.enterLoseScene()
+                outcomePresentation.enterLoseScene()
             }
+
             winResultRoute -> {
                 battle.units.values.filter { it.type().isEnemySide() }.forEach { it.visible = false }
                 outcomePresentation.openVictorySavePrompt()
@@ -1481,13 +1499,14 @@ void main() {
         }
         Gdx.input.inputProcessor = object : InputAdapter() {
             private fun inputSurface(): BattleInputSurface = BattleInputSurface(
-                dialogue = BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) ==
-                        BattleInteractiveInput.Route.DIALOGUE,
+                dialogue = BattleInteractiveInput.route(
+                    scriptRuntime.state,
+                    turnController.snapshot.phase
+                ) == BattleInteractiveInput.Route.DIALOGUE,
                 settlementInfo = settlementPresentation.info2View() != null,
                 roundLayer = activeRoundLayer != null,
                 resultPrompt = outcomePresentation.winPromptActive,
-                modalInfo = scriptRuntime.state == PlaybackState.MODAL &&
-                        scriptRuntime.currentModalKind == ScenarioModalKind.INFO,
+                modalInfo = scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO,
                 loseScene = outcomePresentation.loseSceneActive,
                 command = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
                 usePropertyDetail = usePropertyDetail != null,
@@ -1534,9 +1553,7 @@ void main() {
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.SETTLEMENT_INFO && keycode in setOf(
-                        Input.Keys.ENTER,
-                        Input.Keys.SPACE,
-                        Input.Keys.ESCAPE
+                        Input.Keys.ENTER, Input.Keys.SPACE, Input.Keys.ESCAPE
                     )
                 ) {
                     closeSettlementInfo2()
@@ -1551,7 +1568,11 @@ void main() {
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.SAVE) {
-                    if (keycode == Input.Keys.ESCAPE) handleSaveLoadEffect(saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Cancel).effect)
+                    if (keycode == Input.Keys.ESCAPE) handleSaveLoadEffect(
+                        saveLoadOverlay.dispatch(
+                            BattleSaveLoadOverlayController.Intent.Cancel
+                        ).effect
+                    )
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.FORCES) return true
@@ -1571,29 +1592,67 @@ void main() {
                     when (keycode) {
                         Input.Keys.ESCAPE -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
                         Input.Keys.UP -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(-1))
-                        Input.Keys.DOWN -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(1))
+                        Input.Keys.DOWN -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.Scroll(
+                                1
+                            )
+                        )
                     }
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.PROPERTY) {
                     when (keycode) {
                         Input.Keys.ESCAPE -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
-                        Input.Keys.NUM_1 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.WEAPON))
-                        Input.Keys.NUM_2 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.ARMOR))
-                        Input.Keys.NUM_3 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.AUXILIARY))
-                        Input.Keys.NUM_4, Input.Keys.TAB -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.PROPERTY))
+                        Input.Keys.NUM_1 -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.SelectPropertyTab(
+                                PropertyLayer.Tab.WEAPON
+                            )
+                        )
+
+                        Input.Keys.NUM_2 -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.SelectPropertyTab(
+                                PropertyLayer.Tab.ARMOR
+                            )
+                        )
+
+                        Input.Keys.NUM_3 -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.SelectPropertyTab(
+                                PropertyLayer.Tab.AUXILIARY
+                            )
+                        )
+
+                        Input.Keys.NUM_4, Input.Keys.TAB -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.SelectPropertyTab(PropertyLayer.Tab.PROPERTY)
+                        )
+
                         Input.Keys.UP -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(-1))
-                        Input.Keys.DOWN -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(1))
+                        Input.Keys.DOWN -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.Scroll(
+                                1
+                            )
+                        )
                     }
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.TERRAIN) {
                     when (keycode) {
                         Input.Keys.ESCAPE -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
-                        Input.Keys.NUM_1 -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectTerrainTab(TerrainLayer.Tab.RISE))
-                        Input.Keys.NUM_2, Input.Keys.TAB -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.SelectTerrainTab(TerrainLayer.Tab.EXPEND))
+                        Input.Keys.NUM_1 -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.SelectTerrainTab(
+                                TerrainLayer.Tab.RISE
+                            )
+                        )
+
+                        Input.Keys.NUM_2, Input.Keys.TAB -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.SelectTerrainTab(TerrainLayer.Tab.EXPEND)
+                        )
+
                         Input.Keys.UP -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(-1))
-                        Input.Keys.DOWN -> informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(1))
+                        Input.Keys.DOWN -> informationOverlay.dispatch(
+                            BattleInformationOverlayController.Intent.Scroll(
+                                1
+                            )
+                        )
                     }
                     return true
                 }
@@ -1654,9 +1713,7 @@ void main() {
                     outcomePresentation.victorySaveAnswerPressed = victorySaveAnswerAt(world.x, world.y)
                     return true
                 }
-                if (scriptRuntime.state == PlaybackState.MODAL &&
-                    scriptRuntime.currentModalKind == ScenarioModalKind.INFO
-                ) {
+                if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
                     battleInfoPanelPressed = true
                     return true
                 }
@@ -1688,15 +1745,49 @@ void main() {
                     return true
                 }
                 jiqiLayer?.let { jiqiPressed = true; return true }
-                if (outcomePresentation.rewardActive) { outcomePresentation.advanceRewardFlow(); return true }
-                if (outcomePresentation.itemUpgradeActive) { outcomePresentation.closeItemUpgrade(); return true }
+                if (outcomePresentation.rewardActive) {
+                    outcomePresentation.advanceRewardFlow(); return true
+                }
+                if (outcomePresentation.itemUpgradeActive) {
+                    outcomePresentation.closeItemUpgrade(); return true
+                }
                 scriptWinConditions?.let { return true }
-                if (unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
-                if (forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
-                if (helperOverlay.dispatch(BattleHelperOverlayController.Intent.PointerDown(world.x, world.y))) return true
-                if (settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
-                if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerDown(world.x, world.y)).consumed) return true
-                if (informationOverlay.dispatch(BattleInformationOverlayController.Intent.Tap(world.x, world.y)).consumed) return true
+                if (unitInfoOverlay.dispatch(
+                        BattleUnitInfoOverlayController.Intent.PointerDown(
+                            world.x, world.y
+                        )
+                    ).consumed
+                ) return true
+                if (forcesOverlay.dispatch(
+                        BattleForcesOverlayController.Intent.PointerDown(
+                            world.x, world.y
+                        )
+                    ).consumed
+                ) return true
+                if (helperOverlay.dispatch(
+                        BattleHelperOverlayController.Intent.PointerDown(
+                            world.x, world.y
+                        )
+                    )
+                ) return true
+                if (settingsOverlay.dispatch(
+                        BattleSettingsOverlayController.Intent.PointerDown(
+                            world.x, world.y
+                        )
+                    ).consumed
+                ) return true
+                if (saveLoadOverlay.dispatch(
+                        BattleSaveLoadOverlayController.Intent.PointerDown(
+                            world.x, world.y
+                        )
+                    ).consumed
+                ) return true
+                if (informationOverlay.dispatch(
+                        BattleInformationOverlayController.Intent.Tap(
+                            world.x, world.y
+                        )
+                    ).consumed
+                ) return true
                 if (winConditionOpen) {
                     winConditionButtonPressed = world.x in 957.134f..1213.834f && world.y in 88.204f..148.204f
                     return true
@@ -1720,8 +1811,10 @@ void main() {
                     confirmBattleChoice()
                     return true
                 }
-                if (BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) !=
-                    BattleInteractiveInput.Route.PLAYER_INPUT
+                if (BattleInteractiveInput.route(
+                        scriptRuntime.state,
+                        turnController.snapshot.phase
+                    ) != BattleInteractiveInput.Route.PLAYER_INPUT
                 ) return true
                 if (pointerIntent.capture == BattleInputCapture.MINI_MAP) {
                     return true
@@ -1752,9 +1845,7 @@ void main() {
                 if (activeRoundLayer != null) return true
                 if (battleInfoPanelPressed) {
                     battleInfoPanelPressed = false
-                    if (scriptRuntime.state == PlaybackState.MODAL &&
-                        scriptRuntime.currentModalKind == ScenarioModalKind.INFO
-                    ) {
+                    if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
                         if (!battleInfoReveal.revealAllIfPending()) {
                             scriptRuntime.resumeModal()
                             syncScriptedUnits()
@@ -1847,25 +1938,34 @@ void main() {
                     layer.cancel(WinConditionsLayer.TOUCH_END)
                     return true
                 }
-                val unitInfoResult = unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(world.x, world.y))
+                val unitInfoResult =
+                    unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(world.x, world.y))
                 if (unitInfoResult.consumed) {
                     handleUnitInfoOverlayEffect(unitInfoResult.effect)
                     return true
                 }
-                val forcesResult = forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerUp(world.x, world.y))
+                val forcesResult =
+                    forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerUp(world.x, world.y))
                 if (forcesResult.consumed) {
                     handleForcesOverlayEffect(forcesResult.effect)
                     return true
                 }
-                val settingsResult = settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerUp(world.x, world.y))
+                val settingsResult =
+                    settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerUp(world.x, world.y))
                 if (settingsResult.consumed) return true
-                val saveLoadResult = saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerUp(world.x, world.y))
+                val saveLoadResult =
+                    saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerUp(world.x, world.y))
                 if (saveLoadResult.consumed) {
                     handleSaveLoadEffect(saveLoadResult.effect)
                     return true
                 }
                 viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).let { world ->
-                    if (helperOverlay.dispatch(BattleHelperOverlayController.Intent.PointerUp(world.x, world.y))) return true
+                    if (helperOverlay.dispatch(
+                            BattleHelperOverlayController.Intent.PointerUp(
+                                world.x, world.y
+                            )
+                        )
+                    ) return true
                 }
                 when (autoBattleFlow.view().overlay) {
                     AutoBattleFlow.Overlay.PROMPT -> {
@@ -1878,8 +1978,7 @@ void main() {
                             )
 
                             autoBattlePanelPressed && released == null && !autoBattleToggleAt(
-                                world.x,
-                                world.y
+                                world.x, world.y
                             ) -> answerAutoBattle(1)
                         }
                         autoBattlePressedTag = null; autoBattleTogglePressed = false; autoBattlePanelPressed = false
@@ -1908,9 +2007,10 @@ void main() {
                     if (pointerIntent.releasedTarget == BattleInputTarget.MINI_MAP) miniMapLayer.touch(MiniMapLayer.TOUCH_END)
                     return true
                 }
-                if (mapTouchPending && !mapTouchMoved &&
-                    BattleInteractiveInput.route(scriptRuntime.state, turnController.snapshot.phase) ==
-                    BattleInteractiveInput.Route.PLAYER_INPUT
+                if (mapTouchPending && !mapTouchMoved && BattleInteractiveInput.route(
+                        scriptRuntime.state,
+                        turnController.snapshot.phase
+                    ) == BattleInteractiveInput.Route.PLAYER_INPUT
                 ) {
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val tile = BattleTileInput.tileAt(
@@ -1964,20 +2064,16 @@ void main() {
     }
 
     private fun fullTraceFightCommandObservation(command: ScenarioFightCommand): String = when (command) {
-        is ScenarioFightCommand.Start ->
-            "transition:fight:start:${command.firstUnitId}:${command.secondUnitId}:${command.backgroundIndex}"
+        is ScenarioFightCommand.Start -> "transition:fight:start:${command.firstUnitId}:${command.secondUnitId}:${command.backgroundIndex}"
 
-        is ScenarioFightCommand.ShowUnit ->
-            "transition:fight:showUnit:${command.mine}:${command.text}:${command.entryAction}"
+        is ScenarioFightCommand.ShowUnit -> "transition:fight:showUnit:${command.mine}:${command.text}:${command.entryAction}"
 
         is ScenarioFightCommand.ShowStart -> "transition:fight:showStart:"
         is ScenarioFightCommand.SetAction -> "transition:fight:setAction:${command.mine}:${command.action}"
         is ScenarioFightCommand.Say -> "transition:fight:say:${command.mine}:${command.text}:${command.flag}"
-        is ScenarioFightCommand.Attack2 ->
-            "transition:fight:attack2:${command.mine}:${command.style}:${command.defended}"
+        is ScenarioFightCommand.Attack2 -> "transition:fight:attack2:${command.mine}:${command.style}:${command.defended}"
 
-        is ScenarioFightCommand.Attack1 ->
-            "transition:fight:attack1:${command.mine}:${command.style}:${command.critical}"
+        is ScenarioFightCommand.Attack1 -> "transition:fight:attack1:${command.mine}:${command.style}:${command.critical}"
 
         is ScenarioFightCommand.Death -> "transition:fight:death:${command.enemy}"
         is ScenarioFightCommand.End -> "transition:fight:end:"
@@ -2003,6 +2099,7 @@ void main() {
             pendingFightCommands.addAll(scriptRuntime.stage.consumeFightCommands())
         }
     }
+
     private fun playFightSound(event: FightPresentationEvent.Sound) {
         val characterId = fightPresentation.unit(event.side).characterId
         val moveType = characterId?.let(::liveScriptBattleUnit)?.armMoveSound ?: -1
@@ -2041,9 +2138,7 @@ void main() {
         game.runtimeBattleDriver()?.commands(RuntimeBattleFrame(delta, elapsed), runtimeProbe())
             ?.forEach(::applyRuntimeBattleCommand)
         completeBattleBackgroundLoadIfReady()
-        if (yingchuanEntryFlowTracePath != null && battleInitLayer.view().attached &&
-            !scriptRuntime.stage.battleDrawRequested && scriptRuntime.state == PlaybackState.DELAY
-        ) {
+        if (yingchuanEntryFlowTracePath != null && battleInitLayer.view().attached && !scriptRuntime.stage.battleDrawRequested && scriptRuntime.state == PlaybackState.DELAY) {
             yingchuanEntryFlowSawInit = true
         }
         completePendingBattleCommand()
@@ -2059,9 +2154,7 @@ void main() {
             ) and SettingLayer.AUTO_CLOSE != 0
         )
         battle.syncScriptedOutcome(scriptRuntime.stage.scriptedBattleOutcome)
-        if (scriptRuntime.state == PlaybackState.MODAL &&
-            scriptRuntime.currentModalKind == ScenarioModalKind.INFO
-        ) {
+        if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
             scriptRuntime.currentModalText?.let { battleInfoReveal.update(it, delta) }
         } else {
             battleInfoReveal.reset()
@@ -2091,10 +2184,7 @@ void main() {
             completeTurnScriptIfReady()
         }
         deathTimeline.driveScriptBarrier()
-        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE &&
-            autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT &&
-            scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp
-        ) turnController.runCollocatedPlayerTurn()
+        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT && scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp) turnController.runCollocatedPlayerTurn()
         battleElapsed += delta
         driveMovementTicks()
         applyDueBattleMutations()
@@ -2115,19 +2205,9 @@ void main() {
         startQueuedMagicPassPresentation()
         resumeCriticalSpeechAction()
         aiPresentation.drive()
-        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE &&
-            dialogueStepCapture == null && !selectionOverlayCapture &&
-            !outcomePresentation.loseSceneActive && NaturalBattleTransition.resultScriptReadyForLoseScene(
+        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && dialogueStepCapture == null && !selectionOverlayCapture && !outcomePresentation.loseSceneActive && NaturalBattleTransition.resultScriptReadyForLoseScene(
                 battle.outcome(), scriptRuntime.state, scriptRuntime.currentDialogue != null,
-            ) &&
-            actionAnimation?.let { animationClock() < it.endsAt } != true &&
-            movementAnimation?.let { animationClock() < it.endsAt } != true &&
-            hitReactionAnimations.values.none { animationClock() < it.endsAt } &&
-            deathAnimations.values.none { animationClock() < it.endsAt } &&
-            !deathTimeline.isBusy() &&
-            !scriptedUnitCallbacks.hideBusy && !scriptedUnitCallbacks.showBusy
-            && !combatPresentationBusy()
-            && !outcomeCallbacksPending()
+            ) && actionAnimation?.let { animationClock() < it.endsAt } != true && movementAnimation?.let { animationClock() < it.endsAt } != true && hitReactionAnimations.values.none { animationClock() < it.endsAt } && deathAnimations.values.none { animationClock() < it.endsAt } && !deathTimeline.isBusy() && !scriptedUnitCallbacks.hideBusy && !scriptedUnitCallbacks.showBusy && !combatPresentationBusy() && !outcomeCallbacksPending()
         ) outcomePresentation.enterLoseScene()
         if (pendingBattleScriptPassesAfterAction > 0 && scriptRuntime.state == PlaybackState.COMPLETE) {
             if (!pendingBattleActionCommitted) {
@@ -2141,8 +2221,7 @@ void main() {
                 }
 
                 pendingBattleCompletedScriptPasses == 1 && !deathTimeline.startedPostActionDeaths() -> {
-                    if (deathTimeline.queuePostAction(collectDyingPresentationUnits()))
-                        Unit
+                    if (deathTimeline.queuePostAction(collectDyingPresentationUnits())) Unit
                     else finishManualUnitDeathCallbacks()
                 }
 
@@ -2172,22 +2251,23 @@ void main() {
             }
         }
     }
+
     private fun renderBattleRoutes(delta: Float) {
         if (renderDedicatedBattleRoute(delta)) return
         renderBattlefieldRoute(delta)
     }
+
     private fun renderDedicatedBattleRoute(delta: Float): Boolean {
         if (winConditionRouteState != null) {
-            battle.units.values.firstOrNull { it.characterId == 235 }?.let { scriptedUnitPresentation.clearVisual(it.id) }
+            battle.units.values.firstOrNull { it.characterId == 235 }
+                ?.let { scriptedUnitPresentation.clearVisual(it.id) }
         }
         dialogueComponentStage?.let { stage ->
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
             scriptRuntime.currentDialogue?.let { dialogueReveal.update(it.text, delta) }
             if (scriptRuntime.currentDialogue != null) {
-                if (stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_BACKGROUND ||
-                    stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_CHARACTERS
-                ) drawGrid()
+                if (stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_BACKGROUND || stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_CHARACTERS) drawGrid()
                 drawScriptDialogue(stage.name.removePrefix("DIALOGUE_COMPONENT_").lowercase())
             }
             if (elapsed > 6f) game.captureFrameIfRequested()
@@ -2214,13 +2294,15 @@ void main() {
                     "JojoGame",
                     "ACTION_CAPTURE_FRAME: elapsed=$elapsed, sourceY=${
                         unitSpriteFrameResolver.clipFrame(
-                            animation.sourceAction,
-                            animation.direction,
-                            animationClock() - animation.startedAt
+                            animation.sourceAction, animation.direction, animationClock() - animation.startedAt
                         )?.sourceY
-                    }, active=${animationClock() < animation.endsAt}, " +
-                            "unit=${unit?.characterId}, tile=${unit?.tileX},${unit?.tileY}, visible=${unit?.visible}, " +
-                            "screen=${unit?.let { boardLeft + it.tileX * boardTile }},${unit?.let { tileBottom(it.tileY) }}",
+                    }, active=${animationClock() < animation.endsAt}, " + "unit=${unit?.characterId}, tile=${unit?.tileX},${unit?.tileY}, visible=${unit?.visible}, " + "screen=${unit?.let { boardLeft + it.tileX * boardTile }},${
+                        unit?.let {
+                            tileBottom(
+                                it.tileY
+                            )
+                        }
+                    }",
                 )
             }
         }
@@ -2240,12 +2322,11 @@ void main() {
         scriptRuntime.currentDialogue?.let {
             dialogueReveal.update(it.text, delta)
             if (battleDialogueBlendRoute) dialogueReveal.revealAllIfPending()
-            val autoCloseEnabled = !verification.active &&
-                    !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest() &&
-                    settingsPreferences.getInteger(
-                        SettingLayer.GAME_SETTING,
-                        SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
-                    ) and SettingLayer.AUTO_CLOSE != 0
+            val autoCloseEnabled =
+                !verification.active && !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest() && settingsPreferences.getInteger(
+                    SettingLayer.GAME_SETTING,
+                    SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+                ) and SettingLayer.AUTO_CLOSE != 0
             if (sayAutoClose.update(dialogueReveal.isComplete, autoCloseEnabled, delta)) {
                 advanceBattleDialogue()
             }
@@ -2255,7 +2336,8 @@ void main() {
         viewport.apply()
         if (outcomePresentation.loseSceneActive) {
             drawLoseScene()
-            outcomePresentation.loseSceneFlow?.takeIf { it.state == LoseSceneFlow.State.PROMPT }?.let { drawLosePrompt() }
+            outcomePresentation.loseSceneFlow?.takeIf { it.state == LoseSceneFlow.State.PROMPT }
+                ?.let { drawLosePrompt() }
             if (loseRestartRoute && elapsed > 3.25f && game.writeRenderEventLogIfRequested()) return true
             game.captureFrameIfRequested()
             return true
@@ -2273,6 +2355,7 @@ void main() {
         }
         return false
     }
+
     private fun renderBattlefieldRoute(delta: Float) {
         val requestedDither = if (mapOnlyCapture) game.requestedMapDither() else null
         val priorDither = requestedDither?.let { Gdx.gl.glIsEnabled(GL20.GL_DITHER) }
@@ -2350,7 +2433,10 @@ void main() {
             activeRoundLayer?.let(::drawRoundLayer)
             drawSettlementOverlays()
             if (verification.usesTutorialBattle) drawHud()
-            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) == null && helperOverlay.view() == null && !forcesOverlay.isVisible() && !unitInfoOverlay.isVisible() && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE) {
+            if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(
+                    BattleSaveLoadOverlayController.Mode.SAVE
+                ) == null && helperOverlay.view() == null && !forcesOverlay.isVisible() && !unitInfoOverlay.isVisible() && jiqiLayer == null && magickListLayer == null && magickInfoLayer == null && usePropertyLayer == null && usePropertyDetail == null && activeRoundLayer == null && battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE
+            ) {
                 drawScriptDialogue()
                 drawScriptChoice()
                 drawScriptInfoLayer()
@@ -2367,19 +2453,8 @@ void main() {
             outcomePresentation.itemUpgradeFlow?.let(::drawItemUpgrade)
             if (itemUpgradeRouteState != null) drawRewardSectionOverlay()
         }
-        val dedicatedCaptureRoute = rewardRouteState != null ||
-            itemUpgradeRouteState != null ||
-            jiqiRouteFixture ||
-            magickRouteState != null ||
-            usePropertyRouteState != null ||
-            roundRouteState != null ||
-            winConditionRouteState != null ||
-            miniMapRouteState != null ||
-            autoBattleRouteState != null ||
-            battleCommandRouteState != null ||
-            otherUnitInfoRoute ||
-            mineUnitInfoRoute ||
-            (battleDialogueBlendRoute && scriptRuntime.currentDialogue != null && dialogueReveal.isComplete)
+        val dedicatedCaptureRoute =
+            rewardRouteState != null || itemUpgradeRouteState != null || jiqiRouteFixture || magickRouteState != null || usePropertyRouteState != null || roundRouteState != null || winConditionRouteState != null || miniMapRouteState != null || autoBattleRouteState != null || battleCommandRouteState != null || otherUnitInfoRoute || mineUnitInfoRoute || (battleDialogueBlendRoute && scriptRuntime.currentDialogue != null && dialogueReveal.isComplete)
         if (BattleCaptureRouteCoordinator.shouldWriteRenderEventLog(
                 BattleCaptureRouteCoordinator.RenderEventLogInput(elapsed, dedicatedCaptureRoute),
             ) && game.writeRenderEventLogIfRequested()
@@ -2403,16 +2478,14 @@ void main() {
                 }"
             )
             val speakerUnit = dialogue?.speakerId?.toIntOrNull()?.let { characterId ->
-                (battle.units.values + battle.presentation.pendingPresentationUnits())
-                    .firstOrNull { it.characterId == characterId && it.visible }
+                (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
             }
             val speakerVisual = speakerUnit?.let(::visualTile)
             val speakerCenterY = speakerVisual?.let { 1776f + battleCamera.y - it.second * 96f }
             val panelY = speakerCenterY?.let { if (it < viewport.worldHeight / 2f) it + 92f else it - 328f }
             Gdx.app.log(
                 "JojoGame",
-                "DIALOGUE_LAYOUT_CAPTURE: revision=${scriptRuntime.dialogueRevision} camera=${battleCamera.x},${battleCamera.y} " +
-                        "visual=$speakerVisual centerY=$speakerCenterY panelY=$panelY",
+                "DIALOGUE_LAYOUT_CAPTURE: revision=${scriptRuntime.dialogueRevision} camera=${battleCamera.x},${battleCamera.y} " + "visual=$speakerVisual centerY=$speakerCenterY panelY=$panelY",
             )
             Gdx.app.log("JojoGame", "DIALOGUE_CAPTURE_UNITS: " + battle.units.values.joinToString(";") { unit ->
                 "${unit.id}/${unit.characterId}@${unit.tileX},${unit.tileY}/d${unit.direction}/v${unit.visible}"
@@ -2427,11 +2500,13 @@ void main() {
             val cursorRendered = selected != null && hudAssets.battleCursorTexture != null
             Gdx.app.log(
                 "JojoGame",
-                "SELECTION_CAPTURE_STATE: unit=${selected?.characterId}@${selected?.tileX},${selected?.tileY} " +
-                        "move=${count(SelectAreaFrame.BLUE) + count(SelectAreaFrame.GREEN)} " +
-                        "moveFrame=${if (count(SelectAreaFrame.BLUE) > 0) "blue" else "green"} " +
-                        "attack=${count(SelectAreaFrame.RED_BOX)} " +
-                        "cursor=$cursorRendered",
+                "SELECTION_CAPTURE_STATE: unit=${selected?.characterId}@${selected?.tileX},${selected?.tileY} " + "move=${
+                    count(SelectAreaFrame.BLUE) + count(SelectAreaFrame.GREEN)
+                } " + "moveFrame=${if (count(SelectAreaFrame.BLUE) > 0) "blue" else "green"} " + "attack=${
+                    count(
+                        SelectAreaFrame.RED_BOX
+                    )
+                } " + "cursor=$cursorRendered",
             )
         }
         BattleCaptureRouteCoordinator.frameCaptureCommands(
@@ -2448,8 +2523,7 @@ void main() {
             ),
         ).forEach { command ->
             when (command) {
-                BattleCaptureRouteCoordinator.Command.WriteMapQuadCandidateSidecar ->
-                    game.writeMapQuadCandidateSidecar()
+                BattleCaptureRouteCoordinator.Command.WriteMapQuadCandidateSidecar -> game.writeMapQuadCandidateSidecar()
 
                 is BattleCaptureRouteCoordinator.Command.WriteCaptureStack -> game.writeCaptureStack(
                     requested = command.requested,
@@ -2459,8 +2533,7 @@ void main() {
                     modalCount = command.modalCount,
                 )
 
-                BattleCaptureRouteCoordinator.Command.CaptureFrame ->
-                    if (game.captureFrameIfRequested()) return
+                BattleCaptureRouteCoordinator.Command.CaptureFrame -> if (game.captureFrameIfRequested()) return
             }
         }
         BattleScreenVerificationCoordinator.validateAndFinish(
@@ -2487,8 +2560,9 @@ void main() {
         val traceCamp = if (bootstrapComplete) battle.activeFaction.ordinal else -1
         val traceOutcome = battle.outcome().takeIf { bootstrapComplete }
         val dialogueSourceText = scriptRuntime.currentDialogueSourceText
-        val dialogueText = dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }
-            ?.joinToString("\n") { it.text }.orEmpty()
+        val dialogueText =
+            dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }?.joinToString("\n") { it.text }
+                .orEmpty()
         val aiResolution = aiPresentation.resolution
         val aiTrace = aiResolution?.let { resolution ->
             val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
@@ -2499,46 +2573,67 @@ void main() {
                 battle.pendingActionTransaction != null,
             )
         }
-        val units = battle.presentation.presentationUnits()
-            .sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
-            .map { unit ->
-                coordinator.projectUnitPresentation(
-                    BattleTraceUnitPresentationInput(
-                        unit, animationClock(), movementAnimation, actionAnimation, hitReactionAnimations[unit.id],
-                        deathAnimations[unit.id], scriptedUnitPresentation.visual(unit.id),
-                        terrainGrid.terrainAt(unit.tileX, unit.tileY), visualTile(unit),
-                        unitSpriteFrameResolver.defaultAction(unit).action, battleElapsed,
-                    ),
-                    unitSpriteFrameResolver::clipFrame,
-                )
-            }
+        val units =
+            battle.presentation.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
+                .map { unit ->
+                    coordinator.projectUnitPresentation(
+                        BattleTraceUnitPresentationInput(
+                            unit, animationClock(), movementAnimation, actionAnimation, hitReactionAnimations[unit.id],
+                            deathAnimations[unit.id], scriptedUnitPresentation.visual(unit.id),
+                            terrainGrid.terrainAt(unit.tileX, unit.tileY), visualTile(unit),
+                            unitSpriteFrameResolver.defaultAction(unit).action, battleElapsed,
+                        ),
+                        unitSpriteFrameResolver::clipFrame,
+                    )
+                }
         coordinator.recordFrame(
             RuntimeBattleTraceFrameInput(
-                0L, elapsed, delta, battle.round, traceCamp, battle.maxRounds,
+                0L,
+                elapsed,
+                delta,
+                battle.round,
+                traceCamp,
+                battle.maxRounds,
                 battle.units.values.count { it.type() == Faction.PLAYER },
                 battle.units.values.count { it.type() == Faction.FRIEND },
                 battle.units.values.count { it.type().isEnemySide() },
-                scriptRuntime.state != PlaybackState.COMPLETE, traceOutcome != null,
+                scriptRuntime.state != PlaybackState.COMPLETE,
+                traceOutcome != null,
                 autoBattleFlow.view().collocation,
                 RuntimeBattleTraceDialogueInput(
                     scriptRuntime.state == PlaybackState.DIALOGUE, scriptRuntime.dialogueLifecycleRevision,
                     dialogueSourceText, scriptRuntime.currentDialogue?.speakerId.orEmpty(), dialogueText,
                 ),
-                turnController.snapshot.phase.toString(), scriptRuntime.state.toString(),
+                turnController.snapshot.phase.toString(),
+                scriptRuntime.state.toString(),
                 if (bootstrapComplete) emptyList() else bootstrapPresentationBusyReasons(),
-                battleCamera.contentX, battleCamera.contentY, 0, "null", battleTraceFightJson(),
-                aiTrace, battle.traceActions.toList(), units,
+                battleCamera.contentX,
+                battleCamera.contentY,
+                0,
+                "null",
+                battleTraceFightJson(),
+                aiTrace,
+                battle.traceActions.toList(),
+                units,
                 coordinator.driverInput(
                     selectedUnitId,
                     battleCommandFlow.phase.toString(),
                     eventMessage,
                     autoBattleFlow.view().overlay.toString(),
                 ),
-                observation, scriptRuntime.stage.battleEndedByScript, scriptRuntime.stage.scriptedBattleOutcome?.name,
-                outcomePresentation.resultFlow.toString(), scriptRuntime.currentModalKind?.name,
-                pendingBattleScriptPassesAfterAction, aiPresentation.unitDeathScriptPass, deathTimeline.startedPostActionDeaths(),
-                aiPresentation.resolution != null, aiPresentation.activeCamp?.toString(), activeRoundLayer != null,
-                settlementPresentation.isActive(), combatPresentationBusy(),
+                observation,
+                scriptRuntime.stage.battleEndedByScript,
+                scriptRuntime.stage.scriptedBattleOutcome?.name,
+                outcomePresentation.resultFlow.toString(),
+                scriptRuntime.currentModalKind?.name,
+                pendingBattleScriptPassesAfterAction,
+                aiPresentation.unitDeathScriptPass,
+                deathTimeline.startedPostActionDeaths(),
+                aiPresentation.resolution != null,
+                aiPresentation.activeCamp?.toString(),
+                activeRoundLayer != null,
+                settlementPresentation.isActive(),
+                combatPresentationBusy(),
             ),
             advanceFrame,
         )
@@ -2547,6 +2642,7 @@ void main() {
     internal fun recordFullBattleInput(context: String) {
         battleTraceCoordinator?.recordInput(context)
     }
+
     internal fun runtimeProbe(): BattleRuntimeScreenProbe {
         fun screenPoint(x: Int, y: Int): Pair<Int, Int> {
             val projected = viewport.project(
@@ -2566,25 +2662,49 @@ void main() {
         val autoView = autoBattleFlow.view()
         return BattleRuntimeProbeCoordinator.create(
             BattleRuntimeScreenProbeInput(
-                sourceScenario, scriptRuntime.state, battle.outcome(), bootstrapPhase == BattleBootstrapPhase.COMPLETE,
-                initialPlayerCampScriptStarted, resultScene1Observed || outcomePresentation.naturalOutcomeScriptStarted,
-                outcomePresentation.postBattleSceneStarted, outcomePresentation.rewardActive, scriptWinConditions != null,
-                outcomePresentation.winPromptActive, outcomePresentation.loseSceneFlow?.state == LoseSceneFlow.State.PROMPT,
-                projectWorldPointAt(844.186f, 296.285f), playerMoveCommitted, game.campaignStage(), turnController.snapshot.phase.name,
-                battleMenuOpen, battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
-                battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION, magickListLayer != null, magicMode,
-                projectWorldPointAt(1060.6f, 225.42f), projectWorldPointAt(15.13372f + 8f * 88f + 44f, 160.29f),
-                projectWorldPointAt(1383.9535f, 38f), projectWorldPointAt(579.4365f, 295.197f),
+                sourceScenario,
+                scriptRuntime.state,
+                battle.outcome(),
+                bootstrapPhase == BattleBootstrapPhase.COMPLETE,
+                initialPlayerCampScriptStarted,
+                resultScene1Observed || outcomePresentation.naturalOutcomeScriptStarted,
+                outcomePresentation.postBattleSceneStarted,
+                outcomePresentation.rewardActive,
+                scriptWinConditions != null,
+                outcomePresentation.winPromptActive,
+                outcomePresentation.loseSceneFlow?.state == LoseSceneFlow.State.PROMPT,
+                projectWorldPointAt(844.186f, 296.285f),
+                playerMoveCommitted,
+                game.campaignStage(),
+                turnController.snapshot.phase.name,
+                battleMenuOpen,
+                battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
+                battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION,
+                magickListLayer != null,
+                magicMode,
+                projectWorldPointAt(1060.6f, 225.42f),
+                projectWorldPointAt(15.13372f + 8f * 88f + 44f, 160.29f),
+                projectWorldPointAt(1383.9535f, 38f),
+                projectWorldPointAt(579.4365f, 295.197f),
                 projectWorldPointAt(919.536f, 295.197f),
-                autoView.overlay.name, autoView.checked, autoView.collocation, committedPlayerMove,
-                scriptRuntime.selectedChoice, selectedUnitId,
+                autoView.overlay.name,
+                autoView.checked,
+                autoView.collocation,
+                committedPlayerMove,
+                scriptRuntime.selectedChoice,
+                selectedUnitId,
             ),
             object : BattleRuntimeProbePort {
                 override val round get() = battle.round
                 override val activeFaction get() = battle.activeFaction
                 override fun units() = battle.units.values
                 override fun reachableTiles(unitId: String): Set<RuntimeGridPoint> =
-                    battle.movement.reachableTiles(unitId).keys.mapTo(linkedSetOf()) { RuntimeGridPoint(it.first, it.second) }
+                    battle.movement.reachableTiles(unitId).keys.mapTo(linkedSetOf()) {
+                        RuntimeGridPoint(
+                            it.first, it.second
+                        )
+                    }
+
                 override fun canEnterTilesIgnoringEnemyWithinMoves(
                     unitId: String,
                     ignoredEnemyId: String,
@@ -2595,12 +2715,15 @@ void main() {
                     unitId, ignoredEnemyId, start.x to start.y,
                     targetTiles.mapTo(linkedSetOf()) { it.x to it.y }, moves,
                 )
+
                 override fun physicalDamagePreview(attackerId: String, targetId: String) =
                     battle.combat.physicalDamagePreview(attackerId, targetId)
-                override fun screenPoint(tile: RuntimeGridPoint) = screenPoint(tile.x, tile.y)
-                    .let { RuntimeGridPoint(it.first, it.second) }
-                override fun projectWorldPoint(x: Float, y: Float) = projectWorldPointAt(x, y)
-                    .let { RuntimeGridPoint(it.first, it.second) }
+
+                override fun screenPoint(tile: RuntimeGridPoint) =
+                    screenPoint(tile.x, tile.y).let { RuntimeGridPoint(it.first, it.second) }
+
+                override fun projectWorldPoint(x: Float, y: Float) =
+                    projectWorldPointAt(x, y).let { RuntimeGridPoint(it.first, it.second) }
             },
         )
     }
@@ -2618,6 +2741,7 @@ void main() {
         selectedUnitId = null
         if (!turnController.endPlayerTurn()) eventMessage = "턴 전환을 시작할 수 없습니다."
     }
+
     private fun scheduleCombatPresentation(
         result: TacticalActionResult,
         actorId: String?,
@@ -2766,7 +2890,8 @@ void main() {
                 counterMpShieldDamage = attack.counterMpShieldDamage,
                 counterCritical = attack.counterCritical,
                 counterLifeStealHealing = attack.counterLifeStealHealing,
-                counterTargetHpBefore = healthBeforeAction[actor] ?: battle.presentation.presentationUnit(actor)?.hitPoints ?: 0,
+                counterTargetHpBefore = healthBeforeAction[actor]
+                    ?: battle.presentation.presentationUnit(actor)?.hitPoints ?: 0,
             )
 
             BattleFollowUpCounterDecision.COUNTER -> {
@@ -2789,6 +2914,7 @@ void main() {
             BattleFollowUpCounterDecision.NONE -> Unit
         }
     }
+
     private fun scheduleMagicPresentation(
         result: TacticalActionResult.Magic,
         casterId: String?,
@@ -2861,21 +2987,19 @@ void main() {
                 }
                 if (change.harmNumberValue != 0) {
                     val duration = requireSourceActionDuration(change.harmNumberAction, unit.direction)
-                    harmNumberAnimations[change.unitId] =
-                        HarmNumberAnimation(
-                            change.harmNumberValue,
-                            change.harmNumberIsHp,
-                            plan.effectAt,
-                            plan.effectAt + duration,
-                        )
+                    harmNumberAnimations[change.unitId] = HarmNumberAnimation(
+                        change.harmNumberValue,
+                        change.harmNumberIsHp,
+                        plan.effectAt,
+                        plan.effectAt + duration,
+                    )
                 }
             }
             visualHp.clear()
             visualHp.putAll(plan.nextVisualState.hitPoints)
             visualMp.clear()
             visualMp.putAll(plan.nextVisualState.magicPoints)
-            val localSettlement = result.localSettlements.getOrNull(passIndex)
-                ?: MagicLocalSettlement(emptyList())
+            val localSettlement = result.localSettlements.getOrNull(passIndex) ?: MagicLocalSettlement(emptyList())
             scheduleBattleMutation(effectEndsAt) {
                 localSettlement.entries.forEach { entry ->
                     deferredMutation?.commitStatuses(entry)
@@ -2997,12 +3121,8 @@ void main() {
         val effect = magicEffects.effect(queue.effectId)
         val effectAnimation = effect?.let {
             MagicEffectAnimation(
-                queue.effectId,
-                pass.map(MagicTarget::targetId),
-                preparation.endsAt,
-                preparation.endsAt + it.duration
-            )
-                .also(magicEffectAnimations::add)
+                queue.effectId, pass.map(MagicTarget::targetId), preparation.endsAt, preparation.endsAt + it.duration
+            ).also(magicEffectAnimations::add)
         }
         val passResult = queue.result.copy(
             targets = pass,
@@ -3128,6 +3248,7 @@ void main() {
             endsAt = completedAt,
         )
     }
+
     private fun schedulePhysicalPassTargets(
         pass: PhysicalAttackPass,
         animation: UnitActionAnimation,
@@ -3173,8 +3294,7 @@ void main() {
             val hpAfterHarm = targetPlan.targetHpAfterHarm
             val mpAfterHarm = targetPlan.targetMpAfterHarm
             val attackerHpAfterHealing = targetPlan.attackerHpAfterHealing
-            val (playerMoneyDelta, enemyMoneyDelta) =
-                result.hitCallbackEconomyDelta(target.isPlayerSide())
+            val (playerMoneyDelta, enemyMoneyDelta) = result.hitCallbackEconomyDelta(target.isPlayerSide())
             scheduleHitReaction(target.id, reactionDirection, cursor, reactionEndsAt, reactionAction)
             result.backMove?.let { move ->
                 val moveEndsAt = cursor + move.durationSeconds
@@ -3271,7 +3391,8 @@ void main() {
                     if (localPlan != null) startLocalSettlement(localPlan, localOperations)
                 }
             }
-            cursor = automaticEndsAt + settlementOperationCoordinator.localDuration(localOperations, settlementOperationPort)
+            cursor =
+                automaticEndsAt + settlementOperationCoordinator.localDuration(localOperations, settlementOperationPort)
         }
         actionAnimation = animation.copy(endsAt = cursor)
         return cursor
@@ -3461,17 +3582,17 @@ void main() {
     internal fun commitDeferredBattleAction(settlementActorId: String? = null) {
         settlementActorId?.let(battle.presentation::presentationUnit)?.let(::focusCameraOn)
         battle.pendingActionTransaction?.commitAll()
-        battle.presentation.pendingPresentationUnits()
-            .filter {
-                it.hitPoints > 0 && it.id !in hitReactionAnimations &&
-                        it.id !in deathAnimations && !deathTimeline.containsPending(it.id)
-            }
-            .map { it.id }
-            .forEach(battle.presentation::clearPresentationUnit)
+        battle.presentation.pendingPresentationUnits().filter {
+                it.hitPoints > 0 && it.id !in hitReactionAnimations && it.id !in deathAnimations && !deathTimeline.containsPending(
+                    it.id
+                )
+            }.map { it.id }.forEach(battle.presentation::clearPresentationUnit)
     }
+
     internal fun collectDyingPresentationUnits(): List<BattleDeathPresentationTimeline.DeathUnit> {
         syncScriptedUnits()
-        val dying = UnitDeathPresentation.sortedDying(battle.units.values + battle.presentation.pendingPresentationUnits())
+        val dying =
+            UnitDeathPresentation.sortedDying(battle.units.values + battle.presentation.pendingPresentationUnits())
         var hideType = 1
         return dying.map { unit ->
             val showRetireMessage = hideType == 1
@@ -3492,6 +3613,7 @@ void main() {
             )
         }
     }
+
     private fun presentTurnSettlement(settlement: CampSettlement): Boolean {
         check(!settlementPresentation.isActive()) { "overlapping BattleScreen._jiesuan presentations" }
         val operationPlan = settlementOperationCoordinator.turnSettlement(settlement, settlementOperationPort)
@@ -3505,10 +3627,12 @@ void main() {
             if (immediate) refreshSettlementUnits(plan)
         }
     }
+
     private fun presentMagicLocalSettlement(settlement: MagicLocalSettlement, casterId: String) {
         if (settlement.entries.isEmpty()) return
         check(!settlementPresentation.isActive()) { "overlapping BattleScreen._magicProcess settlement" }
-        val operationPlan = settlementOperationCoordinator.magicLocalSettlement(settlement, casterId, settlementOperationPort)
+        val operationPlan =
+            settlementOperationCoordinator.magicLocalSettlement(settlement, casterId, settlementOperationPort)
         val plan = operationPlan.settlementPlan
         val operations = operationPlan.operations
         if (operations.isEmpty()) {
@@ -3526,6 +3650,7 @@ void main() {
         }
         if (settlementPresentation.start(plan, operations, local = true)) refreshSettlementUnits(plan)
     }
+
     private fun driveSettlementPresentationController() {
         val now = animationClock()
         actionAnimation?.takeIf { it.endsAt <= now }?.let {
@@ -3548,8 +3673,9 @@ void main() {
         }
         settlementPresentation.tick(now, autoClose).forEach { effect ->
             when (effect) {
-                is BattleSettlementPresentationController.Effect.Focus ->
-                    battle.presentation.presentationUnit(effect.unitId)?.let { focusCameraOn(it, effect.forceCenter) }
+                is BattleSettlementPresentationController.Effect.Focus -> battle.presentation.presentationUnit(effect.unitId)
+                    ?.let { focusCameraOn(it, effect.forceCenter) }
+
                 is BattleSettlementPresentationController.Effect.Sound -> audio.playBattleEffect(effect.index)
                 is BattleSettlementPresentationController.Effect.Info2 -> Unit
                 is BattleSettlementPresentationController.Effect.Actions -> {
@@ -3557,27 +3683,36 @@ void main() {
                         actionAnimation = sourceActionAnimation(unit.id, effect.actionId, unit.direction, now)
                     } ?: settlementPresentation.actionCompleted()
                 }
+
                 is BattleSettlementPresentationController.Effect.UnitInfo -> {
                     battle.presentation.presentationUnit(effect.plan.unitId)?.let { unit ->
                         settlementPresentation.setInfoTitle(unit.name)
                         var cursor = now + effect.plan.preInfoDelaySeconds
                         effect.plan.infoDeltas.forEach { delta ->
                             cursor += delta.tickSeconds
-                            if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(unit.id, delta.before, delta.after, cursor)
+                            if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(
+                                unit.id, delta.before, delta.after, cursor
+                            )
                         }
                         healthTimelineHoldUntil[unit.id] = now + effect.plan.infoBarrierSeconds
                     }
                 }
-                is BattleSettlementPresentationController.Effect.GrowthInfo ->
-                    battle.presentation.presentationUnit(effect.unitId)?.let { settlementPresentation.setInfoTitle(it.name) }
+
+                is BattleSettlementPresentationController.Effect.GrowthInfo -> battle.presentation.presentationUnit(
+                    effect.unitId
+                )?.let { settlementPresentation.setInfoTitle(it.name) }
+
                 is BattleSettlementPresentationController.Effect.Meff -> {
                     val animation = magicEffects.effect(effect.effectId)
                     val targets = effect.targetIds.filter { battle.presentation.presentationUnit(it) != null }
                     if (animation == null || targets.isEmpty()) settlementPresentation.meffCompleted() else {
-                        magicEffectAnimations += MagicEffectAnimation(effect.effectId, targets, now, now + animation.duration)
+                        magicEffectAnimations += MagicEffectAnimation(
+                            effect.effectId, targets, now, now + animation.duration
+                        )
                         settlementMeffEndsAt = now + animation.duration
                     }
                 }
+
                 is BattleSettlementPresentationController.Effect.ItemUpgrade -> {
                     battle.experience.consumeEquipmentUpgrade()?.let { queued ->
                         check(queued == effect.result) { "settlement item-upgrade queue order mismatch" }
@@ -3585,14 +3720,20 @@ void main() {
                     settlementItemUpgradeStarted = true
                     outcomePresentation.openSettlementItemUpgrade(effect.result)
                 }
+
                 is BattleSettlementPresentationController.Effect.HideState -> effect.unitIds.forEach { id ->
-                    battle.presentation.presentationUnit(id)?.let { unitPresentationStore.stateFor(it).setStateAnimationVisible(false) }
+                    battle.presentation.presentationUnit(id)
+                        ?.let { unitPresentationStore.stateFor(it).setStateAnimationVisible(false) }
                 }
+
                 is BattleSettlementPresentationController.Effect.Refresh -> effect.unitIds.forEach { id ->
-                    battle.presentation.presentationUnit(id)?.let { unit -> unitPresentationStore.refresh(unit); unitSpriteFrameResolver.defaultAction(unit) }
+                    battle.presentation.presentationUnit(id)
+                        ?.let { unit -> unitPresentationStore.refresh(unit); unitSpriteFrameResolver.defaultAction(unit) }
                 }
-                is BattleSettlementPresentationController.Effect.Default ->
-                    battle.presentation.presentationUnit(effect.unitId)?.let(unitSpriteFrameResolver::defaultAction)
+
+                is BattleSettlementPresentationController.Effect.Default -> battle.presentation.presentationUnit(effect.unitId)
+                    ?.let(unitSpriteFrameResolver::defaultAction)
+
                 is BattleSettlementPresentationController.Effect.Finished -> {
                     refreshSettlementUnits(effect.plan)
                     if (!effect.local) when (effect.plan.stage) {
@@ -3634,37 +3775,27 @@ void main() {
             ?: units.firstOrNull { it.characterId == characterId && (!visibleOnly || it.visible) }
     }
 
-    private fun scriptBattleUnit(characterId: Int): BattleUnit? =
-        liveScriptBattleUnit(characterId, visibleOnly = true)
+    private fun scriptBattleUnit(characterId: Int): BattleUnit? = liveScriptBattleUnit(characterId, visibleOnly = true)
+
     private fun isScriptMineMaster(unitId: String): Boolean =
         scriptRuntime.stage.battleUnitForCharacterId(scriptRuntime.stage.mineMasterInstanceId)?.battleId == unitId
 
     private fun pruneCombatPresentation() {
         val now = animationClock()
-        val completedHitIds = hitReactionAnimations.entries
-            .filter { now >= it.value.endsAt }
-            .map { it.key }
-        hitReactionAnimations.entries
-            .filter {
-                now >= it.value.endsAt && !isPresentationNeededByQueuedExchange(it.key) &&
-                        battle.presentation.presentationUnit(it.key)?.hitPoints?.let { hp -> hp > 0 } != false
-            }
-            .map { it.key }
-            .forEach(battle.presentation::clearPresentationUnit)
+        val completedHitIds = hitReactionAnimations.entries.filter { now >= it.value.endsAt }.map { it.key }
+        hitReactionAnimations.entries.filter {
+                now >= it.value.endsAt && !isPresentationNeededByQueuedExchange(it.key) && battle.presentation.presentationUnit(
+                    it.key
+                )?.hitPoints?.let { hp -> hp > 0 } != false
+            }.map { it.key }.forEach(battle.presentation::clearPresentationUnit)
         hitReactionAnimations.entries.removeIf { now >= it.value.endsAt }
-        completedHitIds
-            .filter { healthTimelineHoldUntil[it]?.let { until -> now >= until } != false }
+        completedHitIds.filter { healthTimelineHoldUntil[it]?.let { until -> now >= until } != false }
             .forEach(healthTimeline::clear)
-        healthTimelineHoldUntil.entries
-            .filter { now >= it.value }
-            .map { it.key }
-            .forEach { id ->
+        healthTimelineHoldUntil.entries.filter { now >= it.value }.map { it.key }.forEach { id ->
                 healthTimeline.clear(id)
                 healthTimelineHoldUntil.remove(id)
             }
-        deathAnimations.entries
-            .filter { now >= it.value.endsAt }
-            .map { it.key }
+        deathAnimations.entries.filter { now >= it.value.endsAt }.map { it.key }
             .forEach(battle.presentation::clearPresentationUnit)
         deathAnimations.entries.removeIf { now >= it.value.endsAt }
         harmNumberAnimations.entries.removeIf { now >= it.value.endsAt }
@@ -3672,17 +3803,12 @@ void main() {
             activeCounterMagicPresentation = null
         }
     }
+
     private fun isPresentationNeededByQueuedExchange(id: String): Boolean =
         queuedPhysicalPresentation?.passes?.drop(queuedPhysicalPresentation?.nextPassIndex ?: 0)
-            ?.any { pass -> pass.attackerId == id || pass.targets.any { it.targetId == id } } == true ||
-                queuedPhysicalPresentation?.let { queue ->
-                    queue.counterMagic != null && (queue.counterCasterId == id || queue.counterTargetId == id)
-                } == true ||
-                activeCounterMagicPresentation?.unitIds?.contains(id) == true ||
-                queuedFollowUpPresentation?.targetId == id ||
-                queuedCounterPresentation?.targetId == id ||
-                queuedCounterFollowUpPresentation?.targetId == id ||
-                deathAnimations[id]?.let { animationClock() < it.endsAt } == true
+            ?.any { pass -> pass.attackerId == id || pass.targets.any { it.targetId == id } } == true || queuedPhysicalPresentation?.let { queue ->
+            queue.counterMagic != null && (queue.counterCasterId == id || queue.counterTargetId == id)
+        } == true || activeCounterMagicPresentation?.unitIds?.contains(id) == true || queuedFollowUpPresentation?.targetId == id || queuedCounterPresentation?.targetId == id || queuedCounterFollowUpPresentation?.targetId == id || deathAnimations[id]?.let { animationClock() < it.endsAt } == true
 
     private fun completeTurnScriptIfReady() {
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
@@ -3713,6 +3839,7 @@ void main() {
             BattleBootstrapPhase.COMPLETE -> Unit
         }
     }
+
     private fun bootstrapPresentationBusyReasons(): List<String> {
         val now = animationClock()
         return BattleBootstrapCallbackState(
@@ -3734,33 +3861,11 @@ void main() {
 
     internal fun combatPresentationBusy(): Boolean {
         val now = animationClock()
-        return (scriptRuntime.state == PlaybackState.MODAL &&
-                scriptRuntime.currentModalKind == ScenarioModalKind.INFO) ||
-                movementAnimation?.let { now < it.endsAt } == true ||
-                actionAnimation?.let { now < it.endsAt } == true ||
-                hitReactionAnimations.values.any { now < it.endsAt } ||
-                deathAnimations.values.any { now < it.endsAt } ||
-                deathTimeline.isBusy() ||
-                scriptedUnitCallbacks.hideBusy || scriptedUnitCallbacks.showBusy ||
-                scriptedUnitTimed.busy || scriptPresentationTimeline.isActive() || scriptedUnitActions.busy ||
-                magicEffectAnimations.any { now < it.endsAt } ||
-                queuedMagicPresentation != null ||
-                activeCounterMagicPresentation?.let { now < it.endsAt } == true ||
-                queuedPhysicalPresentation != null ||
-                queuedFollowUpPresentation != null ||
-                queuedCounterPresentation != null ||
-                queuedCounterFollowUpPresentation != null ||
-                pendingCriticalSpeechAction != null ||
-                settlementPresentation.isActive()
+        return (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) || movementAnimation?.let { now < it.endsAt } == true || actionAnimation?.let { now < it.endsAt } == true || hitReactionAnimations.values.any { now < it.endsAt } || deathAnimations.values.any { now < it.endsAt } || deathTimeline.isBusy() || scriptedUnitCallbacks.hideBusy || scriptedUnitCallbacks.showBusy || scriptedUnitTimed.busy || scriptPresentationTimeline.isActive() || scriptedUnitActions.busy || magicEffectAnimations.any { now < it.endsAt } || queuedMagicPresentation != null || activeCounterMagicPresentation?.let { now < it.endsAt } == true || queuedPhysicalPresentation != null || queuedFollowUpPresentation != null || queuedCounterPresentation != null || queuedCounterFollowUpPresentation != null || pendingCriticalSpeechAction != null || settlementPresentation.isActive()
     }
+
     private fun outcomeCallbacksPending(): Boolean =
-        pendingBattleScriptPassesAfterAction > 0 ||
-                aiPresentation.unitDeathScriptPass > 0 ||
-                deathTimeline.startedPostActionDeaths() ||
-                aiPresentation.resolution != null ||
-                aiPresentation.hasActiveCamp ||
-                activeRoundLayer != null ||
-                settlementPresentation.isActive()
+        pendingBattleScriptPassesAfterAction > 0 || aiPresentation.unitDeathScriptPass > 0 || deathTimeline.startedPostActionDeaths() || aiPresentation.resolution != null || aiPresentation.hasActiveCamp || activeRoundLayer != null || settlementPresentation.isActive()
 
     private fun handleTileClick(x: Int, y: Int) {
         if (movementAnimation?.let { animationClock() < it.endsAt } == true) return
@@ -3774,8 +3879,7 @@ void main() {
             if (clicked?.visible == true && clicked.type() == battle.activeFaction && !clicked.hasActed) {
                 selectedUnitId = clicked.id
                 battleCommandFlow.beginMove(
-                    clicked.id,
-                    BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
+                    clicked.id, BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
                 )
                 selectedMagicIndex = 0
                 propertyMode = false
@@ -3783,9 +3887,7 @@ void main() {
             }
             return
         }
-        if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION &&
-            battleCommandFlow.childCommand == BattleCommandFlow.Command.ATTACK
-        ) {
+        if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION && battleCommandFlow.childCommand == BattleCommandFlow.Command.ATTACK) {
             if (clicked == null || !clicked.visible || unitsAreAllied(selected, clicked)) {
                 eventMessage = "공격 대상을 선택하세요."
                 return
@@ -3797,29 +3899,23 @@ void main() {
                 return
             }
             applyAction(
-                result,
-                selected.name,
-                selected.id,
-                targetId = clicked.id,
-                healthBeforeAction = healthBeforeAction
+                result, selected.name, selected.id, targetId = clicked.id, healthBeforeAction = healthBeforeAction
             )
             battleCommandFlow.childCompleted(true)
             return
         }
         when {
-            propertyMode && clicked != null && unitsAreAllied(selected, clicked) &&
-                    kotlin.math.abs(clicked.tileX - selected.tileX) + kotlin.math.abs(clicked.tileY - selected.tileY) <= 1 -> {
+            propertyMode && clicked != null && unitsAreAllied(
+                selected,
+                clicked
+            ) && kotlin.math.abs(clicked.tileX - selected.tileX) + kotlin.math.abs(clicked.tileY - selected.tileY) <= 1 -> {
                 val healthBeforeAction = battle.units.mapValues { it.value.hitPoints }
                 propertyMode = false
                 val result = usableProperties().getOrNull(selectedPropertyIndex)
                     ?.let { battle.presentation.useProperty(selected.id, clicked.id, it.id) }
                     ?: TacticalActionResult.Rejected("사용 가능한 소비 아이템이 없습니다.")
                 applyAction(
-                    result,
-                    selected.name,
-                    selected.id,
-                    targetId = clicked.id,
-                    healthBeforeAction = healthBeforeAction
+                    result, selected.name, selected.id, targetId = clicked.id, healthBeforeAction = healthBeforeAction
                 )
             }
 
@@ -3828,8 +3924,7 @@ void main() {
             clicked != null && clicked.type() == selected.type() && !clicked.hasActed -> {
                 selectedUnitId = clicked.id
                 battleCommandFlow.beginMove(
-                    clicked.id,
-                    BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
+                    clicked.id, BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
                 )
                 selectedMagicIndex = 0
                 propertyMode = false
@@ -3844,13 +3939,10 @@ void main() {
                     selected.magic.getOrNull(selectedMagicIndex)?.let {
                         magicId = it.id
                         battle.presentation.castMagic(selected.id, clicked.id, it.id)
-                    }
-                        ?: TacticalActionResult.Rejected("사용할 수 있는 전략이 없습니다.")
+                    } ?: TacticalActionResult.Rejected("사용할 수 있는 전략이 없습니다.")
                 } else battle.presentation.attack(selected.id, clicked.id)
                 applyAction(result, selected.name, selected.id, magicId, clicked.id, healthBeforeAction)
-                if (result !is TacticalActionResult.Rejected &&
-                    battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION
-                ) {
+                if (result !is TacticalActionResult.Rejected && battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) {
                     battleCommandFlow.childCompleted(true)
                 }
             }
@@ -3862,24 +3954,28 @@ void main() {
     private fun battleCommandMask(unit: BattleUnit): Int {
         var mask = 0
         if (battle.units.values.any { target ->
-                target.visible && !unitsAreAllied(unit, target) &&
-                        (unit.attackAllScreen || (target.tileX - unit.tileX to target.tileY - unit.tileY) in unit.attackOffsets)
+                target.visible && !unitsAreAllied(
+                    unit,
+                    target
+                ) && (unit.attackAllScreen || (target.tileX - unit.tileX to target.tileY - unit.tileY) in unit.attackOffsets)
             }) mask = mask or BattleCommandFlow.ATTACK_BIT
         if (unit.magic.isNotEmpty() && BattleStatus.SILENCE !in unit.statuses) mask =
             mask or BattleCommandFlow.MAGICK_BIT
         if (usableProperties().isNotEmpty()) mask = mask or BattleCommandFlow.PROPERTY_BIT
         if (battle.units.values.any { other ->
-                other !== unit && other.visible && unitsAreAllied(unit, other) && other.armId == unit.armId &&
-                        kotlin.math.abs(other.tileX - unit.tileX) + kotlin.math.abs(other.tileY - unit.tileY) == 1
+                other !== unit && other.visible && unitsAreAllied(
+                    unit,
+                    other
+                ) && other.armId == unit.armId && kotlin.math.abs(other.tileX - unit.tileX) + kotlin.math.abs(other.tileY - unit.tileY) == 1
             }) mask = mask or BattleCommandFlow.SWAP_BIT
         return mask
     }
 
     private fun openBattleCommand(unit: BattleUnit) {
-        if (battleCommandFlow.phase == BattleCommandFlow.Phase.IDLE ||
-            battleCommandFlow.phase == BattleCommandFlow.Phase.COMMITTED ||
-            battleCommandFlow.phase == BattleCommandFlow.Phase.ROLLED_BACK
-        ) battleCommandFlow.beginMove(unit.id, BattleCommandFlow.UnitPose(unit.tileX, unit.tileY, unit.direction))
+        if (battleCommandFlow.phase == BattleCommandFlow.Phase.IDLE || battleCommandFlow.phase == BattleCommandFlow.Phase.COMMITTED || battleCommandFlow.phase == BattleCommandFlow.Phase.ROLLED_BACK) battleCommandFlow.beginMove(
+            unit.id,
+            BattleCommandFlow.UnitPose(unit.tileX, unit.tileY, unit.direction)
+        )
         if (battleCommandFlow.phase == BattleCommandFlow.Phase.MOVING) {
             battleCommandFlow.movementCompleted(
                 BattleCommandFlow.UnitPose(unit.tileX, unit.tileY, unit.direction),
@@ -3924,8 +4020,8 @@ void main() {
     private fun completePendingBattleCommand() {
         val unitId = pendingBattleCommandUnit ?: return
         if (movementAnimation?.let { animationClock() < it.endsAt } == true) return
-        val finalDirection = movementAnimation?.takeIf { it.unitId == unitId }
-            ?.timeline?.segments?.lastOrNull()?.direction
+        val finalDirection =
+            movementAnimation?.takeIf { it.unitId == unitId }?.timeline?.segments?.lastOrNull()?.direction
         movementAnimation = null
         commitDeferredBattleAction()
         finalDirection?.let { direction -> battle.presentation.presentationUnit(unitId)?.direction = direction }
@@ -4040,10 +4136,12 @@ void main() {
                 val sourceAction = BattleAttackSequence.selectAttackAction(visualCritical, delayed)
                 sourceActionAnimation(id, sourceAction, battleDirection(id, targetId))
             }
+
             is TacticalActionResult.Magic -> actorId?.let {
                 battle.presentation.presentationUnit(it)?.let { unit -> focusCameraOn(unit, forceCenter = true) }
                 sourceActionAnimation(it, if (result.critical) 50 else 5, battleDirection(it, targetId))
             }
+
             is TacticalActionResult.Item -> actorId?.let { id ->
                 targetId?.let(battle.presentation::presentationUnit)?.let(::focusCameraOn)
                 UnitActionAnimation(
@@ -4057,9 +4155,7 @@ void main() {
         magicEffectAnimations.clear()
         (result as? TacticalActionResult.Magic)?.let { magic ->
             actorId?.let { casterId ->
-                battle.pendingActionTransaction
-                    ?.takeIf { it.actorId == casterId }
-                    ?.let { deferred ->
+                battle.pendingActionTransaction?.takeIf { it.actorId == casterId }?.let { deferred ->
                         deferred.commitVitals(
                             casterId,
                             mp = deferred.initialMp(casterId)?.minus(magic.cost)?.coerceAtLeast(0),
@@ -4079,22 +4175,22 @@ void main() {
             )
             val startedAt = actionAnimation?.endsAt ?: animationClock()
             val firstEffect = effect?.let {
-                MagicEffectAnimation(effectId, firstPass.map(MagicTarget::targetId), startedAt, startedAt + it.duration)
-                    .also(magicEffectAnimations::add)
+                MagicEffectAnimation(
+                    effectId,
+                    firstPass.map(MagicTarget::targetId),
+                    startedAt,
+                    startedAt + it.duration
+                ).also(magicEffectAnimations::add)
             }
             scheduleMagicPresentation(
-                firstResult,
-                casterId,
-                profile,
-                healthBeforeAction,
-                effectAnimations = listOfNotNull(firstEffect)
+                firstResult, casterId, profile, healthBeforeAction, effectAnimations = listOfNotNull(firstEffect)
             )
             val unitVisualStates = combatPresentationUnitVisualStates()
             val deferred = battle.pendingActionTransaction
-            val visualMp = unitVisualStates.mapValues { (id, unit) -> deferred?.initialMp(id) ?: unit.magicPoints }
-                .toMutableMap()
-            visualMp[casterId] = ((deferred?.initialMp(casterId)
-                ?: unitVisualStates[casterId]?.magicPoints ?: 0) - magic.cost).coerceAtLeast(0)
+            val visualMp =
+                unitVisualStates.mapValues { (id, unit) -> deferred?.initialMp(id) ?: unit.magicPoints }.toMutableMap()
+            visualMp[casterId] = ((deferred?.initialMp(casterId) ?: unitVisualStates[casterId]?.magicPoints
+            ?: 0) - magic.cost).coerceAtLeast(0)
             BattleCombatPresentationQueueCoordinator.deferredMagicQueuePlan(
                 magic,
                 casterId,
@@ -4139,6 +4235,7 @@ void main() {
             deathTimeline.finishPostActionCallbacks()
         }
     }
+
     private fun resumeCriticalSpeechAction() {
         val pending = pendingCriticalSpeechAction ?: return
         if (scriptRuntime.state != PlaybackState.COMPLETE || scriptRuntime.currentDialogue != null) return
@@ -4160,6 +4257,7 @@ void main() {
         BattleOutcome.PLAYER_VICTORY -> "승리! Enter로 다음 시나리오 · Esc로 돌아가기"
         BattleOutcome.ENEMY_VICTORY -> "패배… Enter로 전투 재시작 · Esc로 돌아가기"
     }
+
     private fun visibleBattleOutcome(): BattleOutcome? =
         battle.outcome().takeIf { bootstrapPhase == BattleBootstrapPhase.COMPLETE }
 
@@ -4186,7 +4284,9 @@ void main() {
                     SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let { result ->
                         add(
                             InfoBaseValueAnimation.Value(
-                                2, result.oldExperience, result.oldExperience + result.gained,
+                                2,
+                                result.oldExperience,
+                                result.oldExperience + result.gained,
                                 (result.oldExperience + result.gained).coerceAtLeast(1)
                             )
                         )
@@ -4195,7 +4295,9 @@ void main() {
                     SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let { result ->
                         add(
                             InfoBaseValueAnimation.Value(
-                                3, result.oldExperience, result.oldExperience + result.gained,
+                                3,
+                                result.oldExperience,
+                                result.oldExperience + result.gained,
                                 (result.oldExperience + result.gained).coerceAtLeast(1)
                             )
                         )
@@ -4204,7 +4306,9 @@ void main() {
                     SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let { result ->
                         add(
                             InfoBaseValueAnimation.Value(
-                                4, result.oldExperience, result.oldExperience + result.gained,
+                                4,
+                                result.oldExperience,
+                                result.oldExperience + result.gained,
                                 (result.oldExperience + result.gained).coerceAtLeast(1)
                             )
                         )
@@ -4221,6 +4325,7 @@ void main() {
         }
         return current
     }
+
     private fun drawSettlementOverlays() {
         settlementPresentation.infoView()?.let { overlay ->
             val unit = battle.presentation.presentationUnit(overlay.unitId) ?: return@let
@@ -4258,9 +4363,7 @@ void main() {
                         SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let {
                             add(
                                 Triple(
-                                    "WQ",
-                                    values[3] ?: it.oldExperience,
-                                    (it.oldExperience + it.gained).coerceAtLeast(1)
+                                    "WQ", values[3] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1)
                                 )
                             )
                         }
@@ -4268,9 +4371,7 @@ void main() {
                         SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let {
                             add(
                                 Triple(
-                                    "HJ",
-                                    values[4] ?: it.oldExperience,
-                                    (it.oldExperience + it.gained).coerceAtLeast(1)
+                                    "HJ", values[4] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1)
                                 )
                             )
                         }
@@ -4394,6 +4495,7 @@ void main() {
             sectionVisible = rewardRouteState != null,
         )
     }
+
     private fun drawRewardSectionOverlay() {
         batch.projectionMatrix = viewport.camera.combined
         battleRewardOverlayRenderer.draw(
@@ -4405,6 +4507,7 @@ void main() {
             ),
         )
     }
+
     private fun installItemUpgradeRoute() {
         itemUpgradeRouteFixtureController.install(
             itemUpgradeRouteState,
@@ -4456,6 +4559,7 @@ void main() {
             },
         )
     }
+
     private fun drawBattleEdit2Route() {
         val route = battleEdit2RouteState ?: return
         val edit = battleEdit2 ?: return
@@ -4478,11 +4582,7 @@ void main() {
             var yy = 0f; while (yy < h) {
                 var xx = 0f; while (xx < w) {
                     batch.draw(
-                        unitInfoAssets.unitInfoLogo,
-                        x + xx,
-                        y + yy,
-                        minOf(96f, w - xx),
-                        minOf(96f, h - yy)
+                        unitInfoAssets.unitInfoLogo, x + xx, y + yy, minOf(96f, w - xx), minOf(96f, h - yy)
                     ); xx += 96f
                 }; yy += 96f
             }
@@ -4506,20 +4606,13 @@ void main() {
         batch.end()
         if (route == BattleEditLayer2Route.WEATHER) {
             shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
-                0f,
-                0f,
-                1488.372f,
-                800f
+                0f, 0f, 1488.372f, 800f
             ); shapes.end()
             batch.begin(); batch.color = Color.WHITE
             NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.878f, 308.794f, 169.8f, 179.5f)
             BattleEditLayer2.weatherNames.forEachIndexed { i, text ->
                 val y = 463.854f - i * 50f; NinePatch(
-                unitInfoAssets.unitInfoBox1,
-                3,
-                3,
-                3,
-                3
+                unitInfoAssets.unitInfoBox1, 3, 3, 3, 3
             ).draw(batch, 767.878f, y, 169.8f, 50f); font.draw(batch, text, 800f, y + 41f)
             }
             batch.end()
@@ -4531,20 +4624,13 @@ void main() {
 
     private fun drawBattleEdit3Child() {
         shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .314f); shapes.rect(
-            0f,
-            0f,
-            1488.372f,
-            800f
+            0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.begin(); batch.color = Color.WHITE
         var yy = 0f; while (yy < 410f) {
             var xx = 0f; while (xx < 600f) {
                 batch.draw(
-                    unitInfoAssets.unitInfoLogo,
-                    444.186f + xx,
-                    195f + yy,
-                    minOf(96f, 600f - xx),
-                    minOf(96f, 410f - yy)
+                    unitInfoAssets.unitInfoLogo, 444.186f + xx, 195f + yy, minOf(96f, 600f - xx), minOf(96f, 410f - yy)
                 ); xx += 96f
             }; yy += 96f
         }
@@ -4555,63 +4641,34 @@ void main() {
 
         fun btn(x: Float, y: Float, w: Float, h: Float, text: String) {
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, w, h); font.draw(
-                batch,
-                text,
-                x + 18f,
-                y + 42f
+                batch, text, x + 18f, y + 42f
             )
         }
         box(715.31f, 397f, 225.2f, 50f); box(715.31f, 315f, 225.2f, 50f); box(714.91f, 479f, 250f, 50f)
         font.color = Color.BLACK; font.draw(batch, "전역 변수 편집", 629.271f, 596f); font.draw(
-            batch,
-            "야심:",
-            625.117f,
-            438f
+            batch, "야심:", 625.117f, 438f
         ); font.draw(batch, "50", 717.31f, 439f)
         font.draw(batch, "금전:", 625.117f, 356f); font.draw(batch, "0", 717.31f, 357f); font.draw(
-            batch,
-            "장면 이동:",
-            544.957f,
-            519f
+            batch, "장면 이동:", 544.957f, 519f
         ); font.draw(batch, "영천의 전투R", 718.51f, 520f)
         btn(876.797f, 212.983f, 150.4f, 58.5f, "수정"); btn(719.152f, 212.983f, 150.4f, 58.5f, "폐쇄"); btn(
-            487.035f,
-            212.95f,
-            221.5f,
-            58.5f,
-            "창고 비우기"
+            487.035f, 212.95f, 221.5f, 58.5f, "창고 비우기"
         )
         batch.end()
     }
 
     private fun drawBattleEdit3ScenePanel() {
         shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
-            0f,
-            0f,
-            1488.372f,
-            800f
+            0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.begin(); batch.color = Color.WHITE
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 715.136f, 298.894f, 250f, 179.5f)
         val names = listOf(
-            "영천의 전투",
-            "사수관 전투",
-            "호로관 전투",
-            "동탁 추격전",
-            "청주 황건 토벌전",
-            "서주 복수전",
-            "복양의 전투",
-            "복양의 전투 2",
-            "복양의 전투 3",
-            "황제 구출 전투"
+            "영천의 전투", "사수관 전투", "호로관 전투", "동탁 추격전", "청주 황건 토벌전", "서주 복수전", "복양의 전투", "복양의 전투 2", "복양의 전투 3", "황제 구출 전투"
         )
         names.forEachIndexed { index, name ->
             val y = 428.394f - index * 50f; NinePatch(
-            unitInfoAssets.unitInfoBox1,
-            3,
-            3,
-            3,
-            3
+            unitInfoAssets.unitInfoBox1, 3, 3, 3, 3
         ).draw(batch, 715.136f, y, 250f, 50f); font.draw(batch, "$index $name", 720.136f, y + 41f)
         }
         batch.end()
@@ -4620,11 +4677,7 @@ void main() {
     private fun drawBattleRegisterLayer() {
         batch.begin(); batch.color = Color.WHITE
         for (ty in 0..4) for (tx in 0..8) batch.draw(
-            unitInfoAssets.unitInfoLogo,
-            344.186f + tx * 96f,
-            163.5f + ty * 96f,
-            96f,
-            96f
+            unitInfoAssets.unitInfoLogo, 344.186f + tx * 96f, 163.5f + ty * 96f, 96f, 96f
         )
         val box = NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3)
         val button = NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11)
@@ -4648,11 +4701,7 @@ void main() {
             val width = minOf(96f, 400f - tx * 96f)
             val height = minOf(96f, 259f - ty * 96f)
             if (width > 0f && height > 0f) batch.draw(
-                unitInfoAssets.unitInfoLogo,
-                left + tx * 96f,
-                bottom + ty * 96f,
-                width,
-                height
+                unitInfoAssets.unitInfoLogo, left + tx * 96f, bottom + ty * 96f, width, height
             )
         }
         batch.draw(unitInfoAssets.unitInfoBox3, left, bottom, 400f, 259f)
@@ -4668,20 +4717,16 @@ void main() {
         itemUpgradeFont.draw(batch, flow.ownerName, 624.386f, 458f)
         itemUpgradeFont.draw(batch, "장비", 815.347f, 458f)
         itemUpgradeFont.draw(
-            batch,
-            "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}",
-            554.836f,
-            403.7f
+            batch, "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}", 554.836f, 403.7f
         )
         itemUpgradeFont.color = Color.WHITE
         batch.end()
     }
+
     private fun writeYingchuanEntryFlowIfReady() {
         val output = yingchuanEntryFlowTracePath ?: return
         if (yingchuanEntryFlowWritten || !yingchuanEntryFlowSawInit) return
-        if (!scriptRuntime.stage.battleDrawRequested || battleInitLayer.view().attached ||
-            scriptRuntime.state != PlaybackState.DIALOGUE || scriptRuntime.currentDialogue == null
-        ) return
+        if (!scriptRuntime.stage.battleDrawRequested || battleInitLayer.view().attached || scriptRuntime.state != PlaybackState.DIALOGUE || scriptRuntime.currentDialogue == null) return
 
         val json = Json()
 
@@ -4689,23 +4734,17 @@ void main() {
         fun stateText(init: Boolean): String {
             val dialogue = if (init) "null" else "{\"name\":\"SayLayer\",\"active\":true}"
             val tailLayer = if (init) "BattleInitLayer" else "SayLayer"
-            return "{\"scene\":\"Battle\",\"isDraw\":${!init},\"paused\":true,\"round\":${battle.round},\"camp\":-1," +
-                    "\"battleInit\":$init,\"dialogue\":$dialogue,\"modal\":null," +
-                    "\"layers\":[\"BattleScreen\",\"NoticeInfoLayer\",\"MiniMapLayer\",\"$tailLayer\"]}"
+            return "{\"scene\":\"Battle\",\"isDraw\":${!init},\"paused\":true,\"round\":${battle.round},\"camp\":-1," + "\"battleInit\":$init,\"dialogue\":$dialogue,\"modal\":null," + "\"layers\":[\"BattleScreen\",\"NoticeInfoLayer\",\"MiniMapLayer\",\"$tailLayer\"]}"
         }
 
         val records = listOf(
-            "battle-init" to stateText(true),
-            "dialogue" to stateText(false)
+            "battle-init" to stateText(true), "dialogue" to stateText(false)
         ).mapIndexed { sequence, (phase, text) ->
-            "{\"sequence\":$sequence,\"frame\":$sequence,\"phase\":\"$phase\",\"layer\":\"BattleScreen/entry-flow\"," +
-                    "\"nodePath\":\"BattleScreen/entry-flow\",\"drawType\":\"state\",\"x\":0,\"y\":0,\"w\":1,\"h\":1," +
-                    "\"assetId\":\"none\",\"opacity\":1,\"blend\":\"normal\",\"visible\":true,\"text\":${
-                        json.toJson(
-                            text,
-                            String::class.java
-                        )
-                    }}"
+            "{\"sequence\":$sequence,\"frame\":$sequence,\"phase\":\"$phase\",\"layer\":\"BattleScreen/entry-flow\"," + "\"nodePath\":\"BattleScreen/entry-flow\",\"drawType\":\"state\",\"x\":0,\"y\":0,\"w\":1,\"h\":1," + "\"assetId\":\"none\",\"opacity\":1,\"blend\":\"normal\",\"visible\":true,\"text\":${
+                json.toJson(
+                    text, String::class.java
+                )
+            }}"
         }
         val file = Gdx.files.absolute(output)
         file.parent().mkdirs()
@@ -4715,14 +4754,19 @@ void main() {
 
         fun quoted(value: String?): String = value?.let { json.toJson(it, String::class.java) } ?: "null"
         Gdx.files.absolute(stateOutput).writeString(
-            "{\n  \"route\": \"actual-r00-ui-to-s00\",\n  \"input\": \"ScenarioScreen dialogue/choice input callbacks\"," +
-                    "\n  \"scriptState\": ${quoted(scriptRuntime.state.name)},\n  \"speaker\": ${quoted(scriptRuntime.currentDialogue?.speakerId)}," +
-                    "\n  \"text\": ${quoted(scriptRuntime.currentDialogue?.text)},\n  \"drawRequested\": ${scriptRuntime.stage.battleDrawRequested}," +
-                    "\n  \"battleInitAttached\": ${battleInitLayer.view().attached},\n  \"modalKind\": ${
-                        quoted(
-                            scriptRuntime.currentModalKind?.name
-                        )
-                    }\n}\n",
+            "{\n  \"route\": \"actual-r00-ui-to-s00\",\n  \"input\": \"ScenarioScreen dialogue/choice input callbacks\"," + "\n  \"scriptState\": ${
+                quoted(
+                    scriptRuntime.state.name
+                )
+            },\n  \"speaker\": ${quoted(scriptRuntime.currentDialogue?.speakerId)}," + "\n  \"text\": ${
+                quoted(
+                    scriptRuntime.currentDialogue?.text
+                )
+            },\n  \"drawRequested\": ${scriptRuntime.stage.battleDrawRequested}," + "\n  \"battleInitAttached\": ${battleInitLayer.view().attached},\n  \"modalKind\": ${
+                quoted(
+                    scriptRuntime.currentModalKind?.name
+                )
+            }\n}\n",
             false,
         )
         yingchuanEntryFlowWritten = true
@@ -4750,9 +4794,7 @@ void main() {
         }.jsonl()
 
         val winRoute = winConditionRouteState
-        if (rewardRouteState == null && itemUpgradeRouteState == null && winRoute == null &&
-            !battleInitRoute && !battleDialogueBlendRoute
-        ) return RenderEventLog().jsonl()
+        if (rewardRouteState == null && itemUpgradeRouteState == null && winRoute == null && !battleInitRoute && !battleDialogueBlendRoute) return RenderEventLog().jsonl()
         val phase = when {
             battleInitRoute -> "battle-init"
             battleDialogueBlendRoute -> "battle-dialogue-blending"
@@ -4797,7 +4839,11 @@ void main() {
             override fun roundView() = activeRoundLayer?.view
             override fun usePropertyView() = BattleUsePropertyRenderEventView(
                 route = usePropertyRouteState,
-                rows = usePropertyLayer?.rows?.map { BattleUsePropertyRowView(it.name, it.typeName, it.count, it.icon) },
+                rows = usePropertyLayer?.rows?.map {
+                    BattleUsePropertyRowView(
+                        it.name, it.typeName, it.count, it.icon
+                    )
+                },
                 detail = usePropertyDetail?.let { BattleUsePropertyDetailView(it.name, it.typeName, it.icon) },
                 profile = usePropertyDetail?.let { selected ->
                     gameDataCatalog.equipmentProfile(selected.id)?.let { profile ->
@@ -4815,7 +4861,9 @@ void main() {
                     })
                 },
                 detail = magickInfoLayer?.magic?.let { magic ->
-                    BattleMagickDetailView(magic.name, magic.cost, magic.power, magic.icon, magic.hit, magic.eff, magic.intro)
+                    BattleMagickDetailView(
+                        magic.name, magic.cost, magic.power, magic.icon, magic.hit, magic.eff, magic.intro
+                    )
                 },
             )
 
@@ -4826,18 +4874,20 @@ void main() {
     /** 전투 유닛 이벤트 입력: 진행 중인 애니메이션을 포함한 유닛 표시 상태를 값으로 고정한다. */
     private fun battleRenderEventUnitInputs(): List<BattleRenderEventProjectionUnitInput> {
         val visibleUnits = (battle.units.values + battle.presentation.pendingPresentationUnits().filter {
-            it.hitPoints <= 0 || it.id in hitReactionAnimations ||
-                it.id in deathAnimations || deathTimeline.containsPending(it.id)
-        }).asSequence()
-            .filter { it.visible }
-            .filter { !battleInitRoute }
-            .sortedWith(
+            it.hitPoints <= 0 || it.id in hitReactionAnimations || it.id in deathAnimations || deathTimeline.containsPending(
+                it.id
+            )
+        }).asSequence().filter { it.visible }.filter { !battleInitRoute }.sortedWith(
                 if (battleDialogueBlendRoute) {
-                    val order = listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
-                    compareBy<BattleUnit> { order.indexOf(it.characterId).let { index -> if (index < 0) 999 else index } }
-                } else compareBy<BattleUnit> { visualTile(it).second }
-            ).toList()
-        val dialogueOrder = listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
+                val order = listOf(
+                    480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211
+                )
+                compareBy<BattleUnit> {
+                    order.indexOf(it.characterId).let { index -> if (index < 0) 999 else index }
+                }
+            } else compareBy<BattleUnit> { visualTile(it).second }).toList()
+        val dialogueOrder =
+            listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
         return visibleUnits.map { unit ->
             val frame = unitSpriteFrameResolver.frame(unit)
             val (visualX, visualY) = visualTile(unit)
@@ -4859,8 +4909,8 @@ void main() {
                 offsetX = frame.offsetX,
                 offsetY = frame.offsetY,
                 healthRatio = if (healthVisible) {
-                    (healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints).toFloat() /
-                        unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
+                    (healthTimeline.shownHp(unit.id, animationClock(), unit.hitPoints)
+                        .toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
                 } else null,
                 healthBarAsset = if (healthVisible) when (unit.type()) {
                     Faction.PLAYER -> "Mark_5-1"
@@ -4893,10 +4943,17 @@ void main() {
     private fun battleWinConditionsRenderEventInput(
         route: BattleRenderEventProjectionWinRoute,
     ): BattleRenderEventProjectionWinConditionsInput? = when (route) {
-        BattleRenderEventProjectionWinRoute.COMPACT -> BattleRenderEventProjectionWinConditionsInput(requireNotNull(winConditionLayer).view().label, "")
+        BattleRenderEventProjectionWinRoute.COMPACT -> BattleRenderEventProjectionWinConditionsInput(
+            requireNotNull(
+                winConditionLayer
+            ).view().label, ""
+        )
+
         BattleRenderEventProjectionWinRoute.NONE -> null
         else -> requireNotNull(scriptWinConditions).view().let {
-            BattleRenderEventProjectionWinConditionsInput(it.first, it.second, listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 " + scenarioMaxRound()))
+            BattleRenderEventProjectionWinConditionsInput(
+                it.first, it.second, listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 " + scenarioMaxRound())
+            )
         }
     }
 
@@ -4911,20 +4968,29 @@ void main() {
     }
 
     /** 보상 이벤트 입력: 보상 공개 단계와 현재 노출된 항목만 캡처 값으로 고정한다. */
-    private fun rewardRenderEventInput(): BattleRenderEventProjectionRewardInput? = outcomePresentation.rewardFlow?.let { flow ->
-        when (flow.phase) {
-            BattleRewardFlow.Phase.MONEY -> BattleRenderEventProjectionRewardInput(BattleRenderEventProjectionRewardPhase.MONEY, flow.reward.money, flow.reward.flag)
-            BattleRewardFlow.Phase.ITEMS -> BattleRenderEventProjectionRewardInput(
-                BattleRenderEventProjectionRewardPhase.ITEMS,
-                items = flow.reward.itemIds.take(flow.visibleItemCount).take(3).map { id ->
-                    gameDataCatalog.equipmentProfile(id).let { profile ->
-                        BattleRenderEventProjectionRewardItemInput(profile?.icon ?: id, profile?.name ?: "아이템 " + id)
-                    }
-                },
-            )
-            BattleRewardFlow.Phase.END, BattleRewardFlow.Phase.COMPLETE -> BattleRenderEventProjectionRewardInput(BattleRenderEventProjectionRewardPhase.NONE)
+    private fun rewardRenderEventInput(): BattleRenderEventProjectionRewardInput? =
+        outcomePresentation.rewardFlow?.let { flow ->
+            when (flow.phase) {
+                BattleRewardFlow.Phase.MONEY -> BattleRenderEventProjectionRewardInput(
+                    BattleRenderEventProjectionRewardPhase.MONEY, flow.reward.money, flow.reward.flag
+                )
+
+                BattleRewardFlow.Phase.ITEMS -> BattleRenderEventProjectionRewardInput(
+                    BattleRenderEventProjectionRewardPhase.ITEMS,
+                    items = flow.reward.itemIds.take(flow.visibleItemCount).take(3).map { id ->
+                        gameDataCatalog.equipmentProfile(id).let { profile ->
+                            BattleRenderEventProjectionRewardItemInput(
+                                profile?.icon ?: id, profile?.name ?: "아이템 " + id
+                            )
+                        }
+                    },
+                )
+
+                BattleRewardFlow.Phase.END, BattleRewardFlow.Phase.COMPLETE -> BattleRenderEventProjectionRewardInput(
+                    BattleRenderEventProjectionRewardPhase.NONE
+                )
+            }
         }
-    }
 
     /** 라운드 입력을 coordinator가 기존 evidence recorder JSONL로 조립한다. */
     private fun roundRenderEventLog(): String = battleRenderEventEvidenceCoordinator().roundJsonl(roundRouteState)
@@ -4961,25 +5027,29 @@ void main() {
             texture?.let { atlas ->
 
                 fun spriteAt(x: Float, y: Float) = batch.draw(
-                    atlas, x, y, avatar.width, avatar.height, 0,
+                    atlas,
+                    x,
+                    y,
+                    avatar.width,
+                    avatar.height,
+                    0,
                     if (frame.sourceY + frame.sourceHeight > atlas.height) 0 else frame.sourceY,
-                    minOf(frame.sourceWidth, atlas.width), minOf(frame.sourceHeight, atlas.height), frame.flipX, false
+                    minOf(frame.sourceWidth, atlas.width),
+                    minOf(frame.sourceHeight, atlas.height),
+                    frame.flipX,
+                    false
                 )
                 when (sample.state.material) {
                     BattleCharacterMaterial.HIGHLIGHT -> {
                         batch.flush(); batch.shader =
                             cocosHighlightSampler.value; cocosHighlightSampler.value.setUniformf(
-                            "u_value",
-                            sample.state.materialValue ?: 0f
+                            "u_value", sample.state.materialValue ?: 0f
                         ); spriteAt(avatar.x, avatar.y); batch.flush(); batch.shader = null
                     }
 
                     BattleCharacterMaterial.OUTLINE -> {
                         batch.color = Color.CYAN; listOf(
-                            -2f to 0f,
-                            2f to 0f,
-                            0f to -2f,
-                            0f to 2f
+                            -2f to 0f, 2f to 0f, 0f to -2f, 0f to 2f
                         ).forEach { (dx, dy) -> spriteAt(avatar.x + dx, avatar.y + dy) }; batch.color =
                             Color.WHITE; spriteAt(avatar.x, avatar.y)
                     }
@@ -5001,28 +5071,16 @@ void main() {
                             1f
                         )
                         val baseline = command.y + command.height; listOf(
-                            -1f to 0f,
-                            1f to 0f,
-                            0f to -1f,
-                            0f to 1f
+                            -1f to 0f, 1f to 0f, 0f to -1f, 0f to 1f
                         ).forEach { (dx, dy) ->
                             font.draw(
-                                batch,
-                                command.text.orEmpty(),
-                                command.x + dx,
-                                baseline + dy
+                                batch, command.text.orEmpty(), command.x + dx, baseline + dy
                             )
                         }
                         val rgb = command.colorRgb ?: 0xffffff; font.color = Color(
-                            (rgb shr 16 and 255) / 255f,
-                            (rgb shr 8 and 255) / 255f,
-                            (rgb and 255) / 255f,
-                            1f
+                            (rgb shr 16 and 255) / 255f, (rgb shr 8 and 255) / 255f, (rgb and 255) / 255f, 1f
                         ); font.draw(
-                            batch,
-                            command.text.orEmpty(),
-                            command.x,
-                            baseline
+                            batch, command.text.orEmpty(), command.x, baseline
                         ); font.data.setScale(1f); font.color = Color.WHITE
                     }
                 }
@@ -5046,13 +5104,12 @@ void main() {
 
 
         fun identity(fighter: FightFighterSnapshot): FightUnitRenderIdentity {
-            val characterId = fighter.characterId
-                ?: return FightUnitRenderIdentity(
-                    name = null,
-                    introName = null,
-                    portraitFaceId = null,
-                    avatarId = null,
-                )
+            val characterId = fighter.characterId ?: return FightUnitRenderIdentity(
+                name = null,
+                introName = null,
+                portraitFaceId = null,
+                avatarId = null,
+            )
             val profile = gameDataCatalog.unitProfile(characterId)
             return FightUnitRenderIdentity(
                 name = profile?.name,
@@ -5075,8 +5132,10 @@ void main() {
     private fun drawGrid() {
         configureSourceCameraViewport()
         boardLeft = SourceBattleMapGeometry.boardLeft(terrainGrid.width, battleCamera.x)
-        boardBottom = if (rewardRouteState != null) 1264f + battleCamera.y else
-            SourceBattleMapGeometry.boardBottom(terrainGrid.height, battleCamera.y)
+        boardBottom = if (rewardRouteState != null) 1264f + battleCamera.y else SourceBattleMapGeometry.boardBottom(
+            terrainGrid.height,
+            battleCamera.y
+        )
         boardMaxX = (terrainGrid.width - 1).coerceAtLeast(1)
         boardMaxY = (terrainGrid.height - 1).coerceAtLeast(1)
         boardTile = 96f
@@ -5099,15 +5158,22 @@ void main() {
         drawMagicEffect()
         batch.end()
     }
+
     private fun battleGridMapSurfaceView(): BattleGridRenderView {
         val useCocos8Sampler = game.requestedCocos8MapSampler()
         val useFragmentCoordinates = useCocos8Sampler && game.requestedFragmentCoordinateMapSampler()
         val cameraX = if (mapOnlyCapture || rewardRouteState != null) 0f else battleCamera.x
         val cameraY = if (mapOnlyCapture || rewardRouteState != null) 0f else battleCamera.y
-        val mapLeft = if (mapOnlyCapture || rewardRouteState != null) -320f + cameraX else
-            SourceBattleMapGeometry.boardLeft(terrainGrid.width, cameraX)
-        val mapBottom = if (mapOnlyCapture || rewardRouteState != null) -560f + cameraY else
-            SourceBattleMapGeometry.mapBottom(terrainGrid.height, cameraY)
+        val mapLeft =
+            if (mapOnlyCapture || rewardRouteState != null) -320f + cameraX else SourceBattleMapGeometry.boardLeft(
+                terrainGrid.width,
+                cameraX
+            )
+        val mapBottom =
+            if (mapOnlyCapture || rewardRouteState != null) -560f + cameraY else SourceBattleMapGeometry.mapBottom(
+                terrainGrid.height,
+                cameraY
+            )
         val mapWidth = terrainGrid.width * boardTile
         val mapHeight = terrainGrid.height * boardTile
         val (sampleOffsetX, sampleOffsetY) = game.requestedMapSampleOffset()
@@ -5122,8 +5188,7 @@ void main() {
                 sampleOffsetY = sampleOffsetY,
                 cocos8Sampler = if (useCocos8Sampler) cocos8MapSampler.value else null,
                 fragmentCoordinates = useFragmentCoordinates,
-                framebufferWorldWidth = viewport.worldHeight * Gdx.graphics.backBufferWidth.toFloat() /
-                    Gdx.graphics.backBufferHeight.toFloat(),
+                framebufferWorldWidth = viewport.worldHeight * Gdx.graphics.backBufferWidth.toFloat() / Gdx.graphics.backBufferHeight.toFloat(),
                 framebufferWorldHeight = viewport.worldHeight,
             )
         }
@@ -5141,13 +5206,15 @@ void main() {
         )
         return BattleGridRenderView(map, miniMap)
     }
+
     private fun drawBattleGridActorLayer() {
         val mapObjectView = battleMapObjectRenderView()
         battleMapObjectRenderer.drawGates(mapObjectView)
         val selectAreaTiles = selectableAreaTiles()
         val actorLayerUnits = battle.units.values + battle.presentation.pendingPresentationUnits().filter {
-            it.hitPoints <= 0 || it.id in hitReactionAnimations ||
-                    it.id in deathAnimations || deathTimeline.containsPending(it.id)
+            it.hitPoints <= 0 || it.id in hitReactionAnimations || it.id in deathAnimations || deathTimeline.containsPending(
+                it.id
+            )
         }
         val visibleUnits = BattleActorLayerProjector.visibleSourceIndexes(
             candidates = actorLayerUnits.mapIndexed { index, unit ->
@@ -5172,24 +5239,22 @@ void main() {
         boardBottom = boardBottom,
         tileSize = boardTile,
         animationClock = mapObjectAnimationClock(),
-        gates = scriptRuntime.stage.mapObjects.values
-            .filter { it.enabled && it.objectId > 3 }
-            .mapNotNull { gate ->
+        gates = scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId > 3 }.mapNotNull { gate ->
                 dynamicTextures.gate(gate.objectId)?.let { texture ->
                     BattleMapGateRender(gate.objectId, gate.x, gate.y, texture)
                 }
             },
-        fires = scriptRuntime.stage.fires.values
-            .filter { it.enabled }
+        fires = scriptRuntime.stage.fires.values.filter { it.enabled }
             .map { fire -> BattleMapFireRender(fire.x, fire.y) },
-        objects = scriptRuntime.stage.mapObjects.values
-            .filter { it.enabled && it.objectId in 0..2 }
+        objects = scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId in 0..2 }
             .map { objectState -> BattleMapAnimatedObjectRender(objectState.objectId, objectState.x, objectState.y) },
         objectTexture = hudAssets.fireTexture,
     )
+
     /** Actor/effect renderer view는 composer에 위임하고 Screen은 현재 live-state adapter만 제공한다. */
     private fun battleActorEffectRenderView(visibleUnits: List<BattleUnit>): BattleActorEffectRenderView =
         battleActorEffectViewComposer.compose(visibleUnits)
+
     private fun playPendingMagicEffectSounds() {
         val now = animationClock()
         magicEffectAnimations.filter { !it.soundPlayed && now >= it.startedAt }.forEach { animation ->
@@ -5199,9 +5264,11 @@ void main() {
         }
         magicEffectAnimations.removeAll { now >= it.endsAt }
     }
+
     private fun drawMagicEffect() {
         battleActorEffectRenderer.drawEffects(battleActorEffectRenderView(emptyList()))
     }
+
     private fun tileBottom(sourceY: Int): Float = tileBottom(sourceY.toFloat())
     private fun tileBottom(sourceY: Float): Float = boardBottom - sourceY * boardTile
 
@@ -5209,12 +5276,10 @@ void main() {
     private fun selectableAreaTiles(): List<SelectAreaTile> {
         aiPresentation.resolution?.let { resolution ->
             when (aiPresentation.stage) {
-                AiPresentationStage.FOCUS_DELAY -> return resolution.moveArea
-                    .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
+                AiPresentationStage.FOCUS_DELAY -> return resolution.moveArea.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.GREEN) }
 
-                AiPresentationStage.ACTION_DELAY -> return resolution.actionArea
-                    .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
+                AiPresentationStage.ACTION_DELAY -> return resolution.actionArea.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
 
                 else -> Unit
@@ -5222,29 +5287,28 @@ void main() {
         }
         val selected = selectedUnitId?.let(battle.units::get) ?: return emptyList()
         return when {
-            magicMode -> selected.magic.getOrNull(selectedMagicIndex)
-                ?.hitArea
-                ?.offsets
-                ?.map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
+            magicMode -> selected.magic.getOrNull(selectedMagicIndex)?.hitArea?.offsets?.map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
                 ?.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
-                ?.map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
-                .orEmpty()
+                ?.map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }.orEmpty()
 
             propertyMode -> {
-                val range = listOf(0 to 0, 1 to 0, -1 to 0, 0 to 1, 0 to -1)
-                    .map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
+                val range = listOf(
+                    0 to 0,
+                    1 to 0,
+                    -1 to 0,
+                    0 to 1,
+                    0 to -1
+                ).map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
                     .filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
-                val targets = battle.units.values.asSequence()
-                    .filter { it.visible && unitsAreAllied(selected, it) }
+                val targets = battle.units.values.asSequence().filter { it.visible && unitsAreAllied(selected, it) }
                     .filter { candidate ->
                         val offset = candidate.tileX - selected.tileX to candidate.tileY - selected.tileY
                         offset == (0 to 0) || offset in setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
-                    }
-                    .map { SelectAreaTile(it.tileX, it.tileY, SelectAreaFrame.GREEN_BOX) }
-                    .toList()
+                    }.map { SelectAreaTile(it.tileX, it.tileY, SelectAreaFrame.GREEN_BOX) }.toList()
                 range + targets
             }
+
             else -> {
                 val moveFrame = if (selected.type() == Faction.PLAYER) SelectAreaFrame.BLUE else SelectAreaFrame.GREEN
                 val moveTiles = battle.movement.reachableTiles(selected.id).keys.map { (x, y) ->
@@ -5257,8 +5321,7 @@ void main() {
                 } else selected.attackOffsets.mapNotNull { (dx, dy) ->
                     val x = selected.tileX + dx
                     val y = selected.tileY + dy
-                    SelectAreaTile(x, y, SelectAreaFrame.RED_BOX)
-                        .takeIf { x in 0..boardMaxX && y in 0..boardMaxY }
+                    SelectAreaTile(x, y, SelectAreaFrame.RED_BOX).takeIf { x in 0..boardMaxX && y in 0..boardMaxY }
                 }
                 moveTiles + attackTiles
             }
@@ -5294,6 +5357,7 @@ void main() {
             harmNumbers = harmNumbers,
         )
     }
+
     private fun unitsAreAllied(left: BattleUnit, right: BattleUnit): Boolean =
         left.isPlayerSide() == right.isPlayerSide()
 
@@ -5304,16 +5368,14 @@ void main() {
         font.draw(batch, "원본 전술 전투 · $sourceScenario", 80f, 680f)
         font.color = Color.WHITE
         font.draw(
-            batch,
-            "라운드 ${battle.round} · ${battle.activeFaction.label()} 차례 · ${battle.weather.label()}",
-            80f,
-            638f
+            batch, "라운드 ${battle.round} · ${battle.activeFaction.label()} 차례 · ${battle.weather.label()}", 80f, 638f
         )
         font.draw(batch, eventMessage, 80f, 94f)
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
         font.draw(batch, "클릭: 선택/이동/공격 · M: 전략 · B: 아이템 · T: 턴 종료 · Esc: 돌아가기", 520f, 52f)
         batch.end()
     }
+
     private fun drawBattleHudChrome() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
@@ -5330,6 +5392,7 @@ void main() {
         hudAssets.battleMenuTexture?.let { batch.draw(it, miniButtonX + .2f, 730.2f, 69.6f, 69.6f) }
         batch.end()
     }
+
     private fun drawBattleMenu() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
@@ -5352,10 +5415,7 @@ void main() {
         dialogueFont.color = Color.BLACK
         dialogueFont.data.setScale(30f / 36f)
         dialogueFont.draw(
-            batch,
-            menu?.battleName ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
-            124f,
-            69f
+            batch, menu?.battleName ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex), 124f, 69f
         )
         dialogueFont.draw(batch, "턴 수", 430f, 69f)
         dialogueFont.draw(batch, "${menu?.round ?: battle.round} / ${menu?.maxRound ?: scenarioMaxRound()}", 692f, 69f)
@@ -5420,10 +5480,7 @@ void main() {
         font.data.setScale(sourceLabelScale)
         font.color = Color.BLACK
         font.draw(
-            batch,
-            view.title,
-            x + 7f,
-            141f
+            batch, view.title, x + 7f, 141f
         )
         overlayAssets.terrainLayerPanelPatch?.draw(batch, 1071f, 91f, 151f, 52f)
         font.draw(batch, "종료", 1100f, 119f)
@@ -5522,8 +5579,7 @@ void main() {
         else -> null
     }
 
-    private fun autoBattleToggleAt(x: Float, y: Float): Boolean =
-        x in 518.416f..640.457f && y in 267.997f..322.397f
+    private fun autoBattleToggleAt(x: Float, y: Float): Boolean = x in 518.416f..640.457f && y in 267.997f..322.397f
 
     private fun answerAutoBattle(tag: Int) {
         val before = autoBattleFlow.view().endRoundRequests
@@ -5542,6 +5598,7 @@ void main() {
             }
         }
     }
+
     private fun installAutoBattleRouteFixture() {
         autoBattleRouteFixtureController.install(
             autoBattleRouteState,
@@ -5591,12 +5648,12 @@ void main() {
             override fun getInfo(): Iterable<HelperLayer.Info> {
                 val live = campaign.extraInfo.map { HelperLayer.Info(it.type, it.reserved, it.text) }
                 if (live.isNotEmpty()) return live
-                val source = Gdx.files.internal("scenarios/R_00.py")
-                    .takeIf { it.exists() }?.readString("UTF-8").orEmpty()
-                val guide = Regex("stage\\.info\\('6(.*?)'\\)", setOf(RegexOption.DOT_MATCHES_ALL))
-                    .find(source)?.groupValues?.getOrNull(1)
-                    ?.replace("\\n", "\n")
-                    ?.let { "6$it" }
+                val source =
+                    Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.readString("UTF-8").orEmpty()
+                val guide = Regex(
+                    "stage\\.info\\('6(.*?)'\\)",
+                    setOf(RegexOption.DOT_MATCHES_ALL)
+                ).find(source)?.groupValues?.getOrNull(1)?.replace("\\n", "\n")?.let { "6$it" }
                     ?.takeIf { it.isNotBlank() }
                 return guide?.let { listOf(HelperLayer.Info(1, text = it)) }.orEmpty()
             }
@@ -5684,6 +5741,7 @@ void main() {
         magickInfoLayer = null
         magickPressedRow = null
     }
+
     private fun installBattleCommandRouteFixture() {
         battleCommandRouteFixture.install(
             route = battleCommandRouteState,
@@ -5740,10 +5798,7 @@ void main() {
         shapes.projectionMatrix = viewport.camera.combined
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = Color(0f, 0f, 0f, BattleCommandRenderModel.DISMISS_DIM_OPACITY); shapes.rect(
-            0f,
-            0f,
-            1488.372f,
-            800f
+            0f, 0f, 1488.372f, 800f
         )
         shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
@@ -5752,30 +5807,18 @@ void main() {
             val width = minOf(96f, 397.2f - tx * 96f)
             val height = minOf(96f, 322.5f - ty * 96f)
             if (width > 0f && height > 0f) batch.draw(
-                unitInfoAssets.unitInfoLogo,
-                736f + tx * 96f,
-                96f + ty * 96f,
-                width,
-                height
+                unitInfoAssets.unitInfoLogo, 736f + tx * 96f, 96f + ty * 96f, width, height
             )
         }
         batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-            batch,
-            736f,
-            96f,
-            397.2f,
-            322.5f
+            batch, 736f, 96f, 397.2f, 322.5f
         )
         val labels = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기", "취소")
         itemUpgradeFont.data.setScale(40f / 26f)
         battleCommandFlow.view().forEachIndexed { index, button ->
             val visual = BattleCommandRenderModel.visuals[index]
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-                batch,
-                visual.x,
-                visual.y,
-                visual.width,
-                visual.height
+                batch, visual.x, visual.y, visual.width, visual.height
             )
             itemUpgradeFont.color = if (button.interactable) Color.BLACK else Color(
                 BattleCommandRenderModel.DISABLED_COMPONENT,
@@ -5803,6 +5846,7 @@ void main() {
     /** 명령 화면 증거: 현재 자동 실행 경로를 전용 기록기에 전달한다. */
     private fun battleCommandRenderEventLog(): String =
         BattleCommandRenderEventRecorder.jsonl(requireNotNull(battleCommandRouteState))
+
     private fun showRoundCard(round: Int?, max: Int?, complete: () -> Unit) {
         activeRoundLayerElapsed = 0f
         activeRoundLayer = RoundLayer(
@@ -5841,6 +5885,7 @@ void main() {
         }
         miniMapReady = true
     }
+
     private fun installMiniMapRouteFixture() {
         miniMapRouteInstalled = true
         initializeMiniMap()
@@ -5856,10 +5901,7 @@ void main() {
     private fun drawRoundLayer(layer: RoundLayer) {
         shapes.projectionMatrix = viewport.camera.combined
         shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, 80f / 255f); shapes.rect(
-            0f,
-            0f,
-            1488.372f,
-            800f
+            0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
         font.data.setScale(120f / 26f)
@@ -5985,11 +6027,7 @@ void main() {
         val ox = if (commandChild) -59.536f else 0f
         val oy = if (commandChild) -294f else 0f
         for (ty in 0..4) for (tx in 0..5) batch.draw(
-            unitInfoAssets.unitInfoLogo,
-            795.536f + ox + tx * 96f,
-            390f + oy + ty * 96f,
-            96f,
-            96f
+            unitInfoAssets.unitInfoLogo, 795.536f + ox + tx * 96f, 390f + oy + ty * 96f, 96f, 96f
         )
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 795.536f + ox, 390f + oy, 491f, 410f)
         NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 799.536f + ox, 448f + oy, 483f, 348f)
@@ -6015,18 +6053,11 @@ void main() {
         val profile = gameDataCatalog.equipmentProfile(item.id) ?: return
         shapes.projectionMatrix = viewport.camera.combined
         shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(
-            0f,
-            0f,
-            1488.372f,
-            800f
+            0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
         for (ty in 0..6) for (tx in 0..10) batch.draw(
-            unitInfoAssets.unitInfoLogo,
-            253.186f + tx * 96f,
-            80f + ty * 96f,
-            96f,
-            96f
+            unitInfoAssets.unitInfoLogo, 253.186f + tx * 96f, 80f + ty * 96f, 96f, 96f
         )
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 253.186f, 80f, 982f, 640f)
         NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 265.778f, 564.802f, 144f, 144f)
@@ -6038,10 +6069,17 @@ void main() {
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 1065.827f, 97.824f, 150f, 50f)
         font.data.setScale(40f / 26f); font.color = Color.BLACK
         listOf(
-            item.name to (420.186f to 701f), "속성:" to (432.137f to 591f), "아이템" to (522.525f to 591f),
-            "가격:" to (432.137f to 546f), gameDataCatalog.purchasePrice(profile).toString() to (522.525f to 546f),
-            "효과" to (477.586f to 485f), item.typeName to (265.686f to 432f), "설명" to (953.586f to 421f),
-            profile.intro to (774.186f to 376f), "장착 가능한 부대입니다." to (804.516f to 704f), "확인" to (1090.827f to 147f)
+            item.name to (420.186f to 701f),
+            "속성:" to (432.137f to 591f),
+            "아이템" to (522.525f to 591f),
+            "가격:" to (432.137f to 546f),
+            gameDataCatalog.purchasePrice(profile).toString() to (522.525f to 546f),
+            "효과" to (477.586f to 485f),
+            item.typeName to (265.686f to 432f),
+            "설명" to (953.586f to 421f),
+            profile.intro to (774.186f to 376f),
+            "장착 가능한 부대입니다." to (804.516f to 704f),
+            "확인" to (1090.827f to 147f)
         ).forEach { (text, pos) -> font.draw(batch, text, pos.first, pos.second) }
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
@@ -6055,12 +6093,7 @@ void main() {
         if (magic.target == 2) {
             val hp = battle.units.mapValues { it.value.hitPoints }
             applyAction(
-                battle.presentation.castMagic(unit.id, unit.id, magic.id),
-                unit.name,
-                unit.id,
-                magic.id,
-                unit.id,
-                hp
+                battle.presentation.castMagic(unit.id, unit.id, magic.id), unit.name, unit.id, magic.id, unit.id, hp
             )
         } else {
             magicMode = true
@@ -6077,26 +6110,9 @@ void main() {
         return (line * 2 + column).takeIf { it in 0 until (magickListLayer?.rows?.size ?: 0) }
     }
 
-    private fun fixtureMagics(): List<MagicUiList.Magic> =
-        listOf(
-            39,
-            40,
-            41,
-            43,
-            44,
-            45,
-            46,
-            47,
-            48,
-            49,
-            50,
-            51,
-            52,
-            53,
-            54,
-            55,
-            56
-        ).mapNotNull(gameDataCatalog::magicProfile).map(::toMagicUi)
+    private fun fixtureMagics(): List<MagicUiList.Magic> = listOf(
+        39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56
+    ).mapNotNull(gameDataCatalog::magicProfile).map(::toMagicUi)
 
     private fun installMagickRouteFixture() {
         magickRouteFixtureController.install(magickRouteState, ::fixtureMagics)?.let { state ->
@@ -6111,11 +6127,7 @@ void main() {
         shapes.color = Color(0f, 0f, 0f, 40f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
         for (ty in 0..6) for (tx in 0..5) batch.draw(
-            unitInfoAssets.unitInfoLogo,
-            474.186f + tx * 96f,
-            90.5f + ty * 96f,
-            96f,
-            96f
+            unitInfoAssets.unitInfoLogo, 474.186f + tx * 96f, 90.5f + ty * 96f, 96f, 96f
         )
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 474.186f, 90.5f, 540f, 619f)
         NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 478.186f, 150.5f, 532f, 499f)
@@ -6129,10 +6141,7 @@ void main() {
             ?.let { batch.draw(it, 743.186f, 663.207f, 200f * previewFraction, 20f) }
         font.data.setScale(40f / 26f); font.color = Color.BLACK
         font.draw(batch, selectedUnitId?.let(battle.units::get)?.name ?: "허자장", 495.586f, 695f); font.draw(
-            batch,
-            "MP",
-            681.186f,
-            695f
+            batch, "MP", 681.186f, 695f
         )
         font.draw(batch, "${layer.mp}/${layer.maxMp}", 793.136f, 696f)
         layer.rows.take(10).forEachIndexed { index, magic ->
@@ -6150,11 +6159,7 @@ void main() {
             font.draw(batch, (magic.power ?: 0).div(100f).toString(), x + 180f, y + 47f)
         }
         font.color = Color.BLACK; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-            batch,
-            775.892f,
-            97.683f,
-            180f,
-            50f
+            batch, 775.892f, 97.683f, 180f, 50f
         )
         font.draw(batch, "취소", 815.892f, 145f); font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
@@ -6165,11 +6170,7 @@ void main() {
         shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
         for (ty in 0..5) for (tx in 0..6) batch.draw(
-            unitInfoAssets.unitInfoLogo,
-            452.686f + tx * 96f,
-            130f + ty * 96f,
-            96f,
-            96f
+            unitInfoAssets.unitInfoLogo, 452.686f + tx * 96f, 130f + ty * 96f, 96f, 96f
         )
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 452.686f, 130f, 583f, 540f)
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 465.636f, 434f, 340.3f, 100f)
@@ -6232,11 +6233,7 @@ void main() {
         batch.begin()
         batch.color = Color.WHITE
         for (ty in 0..3) for (tx in 0..7) batch.draw(
-            unitInfoAssets.unitInfoLogo,
-            405.686f + tx * 96f,
-            234.5f + ty * 96f,
-            96f,
-            96f
+            unitInfoAssets.unitInfoLogo, 405.686f + tx * 96f, 234.5f + ty * 96f, 96f, 96f
         )
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 405.686f, 234.5f, 677f, 331f)
         font.data.setScale(40f / 26f); font.color = Color.BLACK
@@ -6265,6 +6262,7 @@ void main() {
         winConditionLayer = layer
         winConditionOpen = layer.view().attached
     }
+
     private fun winConditionInfo(): String {
         val stage = scriptRuntime.stage
         val hidden = stage.itemVariables.flatMap { (variables, positions) ->
@@ -6279,8 +6277,8 @@ void main() {
             items = hidden.takeIf { it.isNotEmpty() },
             unitName = { index ->
                 battle.units.values.firstOrNull {
-                    !(winConditionRouteState != null && index == 0) &&
-                            it.visible && it.id.substringAfterLast('-').toIntOrNull() == index
+                    !(winConditionRouteState != null && index == 0) && it.visible && it.id.substringAfterLast('-')
+                        .toIntOrNull() == index
                 }?.name
             },
             variable = { id -> (campaign.globalVariables[id] as? Number)?.toInt() ?: 0 },
@@ -6351,6 +6349,7 @@ void main() {
         dialogueFont.color = Color.WHITE
         batch.end()
     }
+
     private fun drawLoseScene() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
@@ -6363,6 +6362,7 @@ void main() {
         x in 554.186f..734.186f && y in 271.285f..321.285f -> 1
         else -> null
     }
+
     private fun drawLosePrompt() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
@@ -6370,11 +6370,7 @@ void main() {
             val width = minOf(96f, 635f - tx * 96f)
             val height = minOf(96f, 296f - ty * 96f)
             if (width > 0f && height > 0f) batch.draw(
-                unitInfoAssets.unitInfoLogo,
-                426.686f + tx * 96f,
-                252f + ty * 96f,
-                width,
-                height
+                unitInfoAssets.unitInfoLogo, 426.686f + tx * 96f, 252f + ty * 96f, width, height
             )
         }
         batch.draw(unitInfoAssets.unitInfoBox3, 426.686f, 252f, 635f, 296f)
@@ -6399,6 +6395,7 @@ void main() {
         dialogueFont.draw(batch, "예", 510f, 330f); dialogueFont.draw(batch, "비", 740f, 330f)
         batch.end()
     }
+
     private fun focusNextNoActionUnit() {
         val candidates = battle.units.values.filter { it.type() == Faction.PLAYER && it.visible && !it.hasActed }
         if (candidates.isEmpty()) {
@@ -6415,6 +6412,7 @@ void main() {
     internal fun focusFirstCampCameraUnit(camp: Faction) {
         firstCampCameraUnit(battle.units.values, camp)?.let(::focusCameraOn)
     }
+
     private fun focusCameraOn(unit: BattleUnit, forceCenter: Boolean = false): Boolean {
         configureSourceCameraViewport()
         val (screenX, screenY) = battleCamera.sourceNodeScreenPoint(
@@ -6457,6 +6455,7 @@ void main() {
             advanceFrame = false,
         )
     }
+
     private fun configureSourceCameraViewport() {
         battleCamera.configureViewport(1488.3721f, 800f)
     }
@@ -6469,8 +6468,7 @@ void main() {
             componentStage == null || componentStage in setOf("speaker", "text", "background", "characters")
         val includeBody = componentStage == null || componentStage in setOf("text", "background", "characters")
         val speakerUnit = dialogue.speakerId?.toIntOrNull()?.let { characterId ->
-            (battle.units.values + battle.presentation.pendingPresentationUnits())
-                .firstOrNull { it.characterId == characterId && it.visible }
+            (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
         }
         val speakerScreenCenterY = speakerUnit?.let { unit ->
             val (_, visualY) = visualTile(unit)
@@ -6545,13 +6543,7 @@ void main() {
             } else {
                 dialogueFont.data.setScale(1f, .98f)
                 dialogueFont.draw(
-                    batch,
-                    dialogueReveal.visibleText,
-                    278.705f,
-                    dialogueTextY - 0.58f,
-                    728f,
-                    Align.left,
-                    true
+                    batch, dialogueReveal.visibleText, 278.705f, dialogueTextY - 0.58f, 728f, Align.left, true
                 )
                 dialogueFont.data.setScale(1f)
             }
@@ -6602,20 +6594,16 @@ void main() {
         choice.options.forEachIndexed { index, option ->
             font.color = if (index == scriptRuntime.selectedChoice) Color(1f, 0.86f, 0.43f, 1f) else Color.WHITE
             font.draw(
-                batch,
-                "${if (index == scriptRuntime.selectedChoice) "▶" else "  "} $option",
-                110f,
-                190f - index * 42f
+                batch, "${if (index == scriptRuntime.selectedChoice) "▶" else "  "} $option", 110f, 190f - index * 42f
             )
         }
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
         font.draw(batch, "↑↓ 선택 · Enter / 클릭 확정", 850f, 72f)
         batch.end()
     }
+
     private fun drawScriptInfoLayer() {
-        if (scriptRuntime.state != PlaybackState.MODAL ||
-            scriptRuntime.currentModalKind != ScenarioModalKind.INFO
-        ) return
+        if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) return
         val text = battleInfoReveal.visibleText
         val sourceCanvasWidth = 1488.3721f
         val centreX = sourceCanvasWidth / 2f
@@ -6642,19 +6630,15 @@ void main() {
 
     internal fun runBattleScript(clickedCharacterId: Int? = null, contextCampOverride: Int? = null) {
         if (verification.active || scriptRuntime.state != PlaybackState.COMPLETE) return
-        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE &&
-            visibleBattleOutcome() == BattleOutcome.PLAYER_VICTORY &&
-            !scriptRuntime.stage.battleEndedByScript
-        ) resultScene1Observed = true
+        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && visibleBattleOutcome() == BattleOutcome.PLAYER_VICTORY && !scriptRuntime.stage.battleEndedByScript) resultScene1Observed =
+            true
         if (scriptRuntime.stage.battleMaxRoundsIncludesFeature) battle.setResolvedMaxRounds(scenarioMaxRound())
         else battle.setMaxRounds(scenarioMaxRound())
         val scriptUnits = (battle.units.values + battle.presentation.pendingPresentationUnits()).distinctBy { it.id }
-        val positions = scriptUnits
-            .filter { it.visible && it.characterId != null }
+        val positions = scriptUnits.filter { it.visible && it.characterId != null }
             .associate { it.characterId!! to (it.tileX to it.tileY) }
-        val stagePositions = scriptUnits
-            .filter { it.characterId != null }
-            .associate { it.characterId!! to (it.tileX to it.tileY) }
+        val stagePositions =
+            scriptUnits.filter { it.characterId != null }.associate { it.characterId!! to (it.tileX to it.tileY) }
         val positionsByCamp = scriptUnits.filter { it.visible }.groupBy(
             keySelector = { it.type().scriptCamp() },
             valueTransform = { it.tileX to it.tileY },
@@ -6662,8 +6646,8 @@ void main() {
         val attributes = scriptUnits.mapNotNull { unit ->
             unit.characterId?.let { it to mapOf(7 to unit.hitPoints, 8 to unit.magicPoints) }
         }.toMap()
-        val mineMasterBattleId = scriptRuntime.stage
-            .battleUnitForCharacterId(scriptRuntime.stage.mineMasterInstanceId)?.battleId
+        val mineMasterBattleId =
+            scriptRuntime.stage.battleUnitForCharacterId(scriptRuntime.stage.mineMasterInstanceId)?.battleId
         scriptRuntime.setBattleContext(
             ScenarioBattleScriptContext(
                 round = battle.round,
@@ -6696,6 +6680,7 @@ void main() {
         syncScriptedUnits()
         scriptRuntime.stage.scriptedBattleOutcome?.let(battle::setScriptedOutcome)
     }
+
     private fun syncDialogueSpeakerPresentation() {
         val dialogue = scriptRuntime.currentDialogue
         if (dialogue == null) {
@@ -6706,10 +6691,10 @@ void main() {
         if (viewport.worldWidth <= 0f || viewport.worldHeight <= 0f) return
         positionedDialogueRevision = scriptRuntime.dialogueRevision
         val characterId = dialogue.speakerId?.toIntOrNull() ?: return
-        (battle.units.values + battle.presentation.pendingPresentationUnits())
-            .firstOrNull { it.characterId == characterId && it.visible }
+        (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
             ?.let(::focusCameraOn)
     }
+
     private fun syncScriptedUnits() {
         if (scriptRuntime.stage.battleMaxRoundsIncludesFeature) battle.setResolvedMaxRounds(scenarioMaxRound())
         else battle.setMaxRounds(scenarioMaxRound())
@@ -6717,9 +6702,7 @@ void main() {
         terrainGrid.applyObjectOverlays(scriptRuntime.stage.mapObjects.values)
         terrainGrid.applyFires(scriptRuntime.stage.fires.values)
         battle.setBlockedTiles(
-            scriptRuntime.stage.mapObjects.values
-                .filter { it.enabled && it.objectId > 3 }
-                .map { it.x to it.y },
+            scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId > 3 }.map { it.x to it.y },
         )
         scriptRuntime.stage.battleUnits.values.forEach { scripted ->
             val id = scripted.battleId
@@ -6749,14 +6732,11 @@ void main() {
             }
         }
         scriptRuntime.stage.units.values.forEach { scripted ->
-            (battle.units.values + battle.presentation.pendingPresentationUnits())
-                .firstOrNull {
+            (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
                 }?.apply {
                     val before = scriptUnitBaseline?.get(scripted.id)
-                    if (scripted.moveDuration <= 0f &&
-                        before != null && (scripted.x != before.x || scripted.y != before.y)
-                    ) {
+                    if (scripted.moveDuration <= 0f && before != null && (scripted.x != before.x || scripted.y != before.y)) {
                         tileX = scripted.x
                         tileY = scripted.y
                         hasAuthoredTileX = true
@@ -6775,8 +6755,9 @@ void main() {
         }
         scriptRuntime.stage.consumeScriptedUnitLevelChanges().forEach { change ->
             val scripted = scriptRuntime.stage.battleUnitForCharacterId(change.unitId) ?: return@forEach
-            val live = (battle.units.values + battle.presentation.pendingPresentationUnits())
-                .firstOrNull { it.id == scripted.battleId } ?: return@forEach
+            val live =
+                (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.id == scripted.battleId }
+                    ?: return@forEach
             val refreshed = BattleScenarioFactory.fromScriptedUnits(
                 units = listOf(scripted),
                 gameDataCatalog = gameDataCatalog,
@@ -6794,8 +6775,9 @@ void main() {
         }
         scriptRuntime.stage.consumeScriptedUnitPostsChanges().forEach { change ->
             val scripted = scriptRuntime.stage.battleUnitForCharacterId(change.unitId) ?: return@forEach
-            val live = (battle.units.values + battle.presentation.pendingPresentationUnits())
-                .firstOrNull { it.id == scripted.battleId } ?: return@forEach
+            val live =
+                (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.id == scripted.battleId }
+                    ?: return@forEach
             val refreshed = BattleScenarioFactory.fromScriptedUnits(
                 units = listOf(scripted),
                 gameDataCatalog = gameDataCatalog,
@@ -6816,14 +6798,12 @@ void main() {
             }
         }
         scriptRuntime.stage.consumeScriptedUnitDirections().forEach { (characterId, direction) ->
-            (battle.units.values + battle.presentation.pendingPresentationUnits())
-                .firstOrNull {
+            (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(characterId)?.battleId
                 }?.direction = direction
         }
         scriptRuntime.stage.units.values.forEach { scripted ->
-            (battle.units.values + battle.presentation.pendingPresentationUnits())
-                .firstOrNull {
+            (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
                 }?.let { unit ->
                     if (scripted.moveDuration > 0f) {
@@ -6832,24 +6812,19 @@ void main() {
                             unit.id,
                             ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed),
                         )
-                        scriptedMovementCameraCursors
-                            .getOrPut(scripted.id, ::MovementCameraTickCursor)
-                            .crossed(
+                        scriptedMovementCameraCursors.getOrPut(scripted.id, ::MovementCameraTickCursor).crossed(
                                 scripted.movePath,
                                 BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
                                 scripted.moveElapsed,
-                            )
-                            .forEach { sample ->
+                            ).forEach { sample ->
                                 focusCameraOnTile(sample.x, sample.y)
                             }
                     } else if (scriptedUnitPresentation.visual(unit.id)?.action == 20) {
-                        scriptedMovementCameraCursors[scripted.id]
-                            ?.crossed(
+                        scriptedMovementCameraCursors[scripted.id]?.crossed(
                                 scripted.movePath,
                                 BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
                                 scripted.moveElapsed,
-                            )
-                            ?.forEach { sample ->
+                            )?.forEach { sample ->
                                 focusCameraOnTile(sample.x, sample.y)
                             }
                         scriptedUnitPresentation.clearVisual(unit.id)
@@ -6888,13 +6863,14 @@ void main() {
             scriptedAttackCallbackEndsAt = maxOf(scriptedAttackCallbackEndsAt, reactionEndsAt)
             scheduleHitReaction(target.id, reactionDirection, hitAt, reactionEndsAt, targetAction)
             eventMessage = "연출 공격: ${attacker.name} → ${target.name}"
-        recordBattleTraceFrame(
+            recordBattleTraceFrame(
                 0f,
                 "transition:attackAction:${action.attackerId}:${action.targetId}:${action.flag}",
                 advanceFrame = false,
             )
         }
     }
+
     private fun applyScriptedStatuses() {
         scriptRuntime.stage.consumeUnitStatuses().forEach { change ->
             val unitReference = change["unit"] as? ScenarioUnitReference
@@ -6954,7 +6930,7 @@ void main() {
                 val authoredTarget = unitReference?.let { ref ->
                     "unit=${ref.id}"
                 } ?: "rect=$camp,$x1,$y1,$x2,$y2"
-        recordBattleTraceFrame(
+                recordBattleTraceFrame(
                     0f,
                     "transition:setUnitStatus:$authoredTarget:hp=$hpChange:mp=$mpChange:states=$states:resolved=$targetCharacterIds",
                     advanceFrame = false,
@@ -6971,6 +6947,7 @@ void main() {
         13 -> BattleStatus.LOST
         else -> null
     }
+
     private fun battleAttribute(sourceState: Int): BattleAttribute? = BattleAttribute.entries.getOrNull(sourceState)
 
     private fun Faction.label(): String = when (this) {
@@ -6994,10 +6971,11 @@ void main() {
         BattleWeather.HEAVY_RAIN -> "호우"
         BattleWeather.SNOW -> "눈"
     }
-    private fun scenarioMaxRound(): Int =
-        scriptRuntime.stage.battleMaxRounds.takeIf { it != 99 }
-            ?: Regex("턴\\s*수가\\s*(\\d+)").find(scriptRuntime.stage.winCondition)
-                ?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 99
+
+    private fun scenarioMaxRound(): Int = scriptRuntime.stage.battleMaxRounds.takeIf { it != 99 }
+        ?: Regex("턴\\s*수가\\s*(\\d+)").find(scriptRuntime.stage.winCondition)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        ?: 99
+
     private fun battleAvatarId(unit: BattleUnit): Int? {
         loadedBattleAvatarIds[unit.id]?.let { return it }
         val characterId = unit.characterId ?: return null
@@ -7005,14 +6983,12 @@ void main() {
             ?.also { loadedBattleAvatarIds[unit.id] = it }
     }
 
-    private fun unitTexture(unit: BattleUnit): Texture? =
-        battleAvatarId(unit)?.let(dynamicTextures::unitMovement)
+    private fun unitTexture(unit: BattleUnit): Texture? = battleAvatarId(unit)?.let(dynamicTextures::unitMovement)
 
-    private fun attackTexture(unit: BattleUnit): Texture? =
-        battleAvatarId(unit)?.let(dynamicTextures::attack)
+    private fun attackTexture(unit: BattleUnit): Texture? = battleAvatarId(unit)?.let(dynamicTextures::attack)
 
-    private fun specialTexture(unit: BattleUnit): Texture? =
-        battleAvatarId(unit)?.let(dynamicTextures::special)
+    private fun specialTexture(unit: BattleUnit): Texture? = battleAvatarId(unit)?.let(dynamicTextures::special)
+
     private fun battleDirection(actorId: String, targetId: String?): Int {
         val actor = battle.units[actorId] ?: return 2
         val target = targetId?.let(battle.units::get) ?: return 2
@@ -7023,23 +6999,17 @@ void main() {
             if (actor.tileY > target.tileY) 0 else 2
         } else if (actor.tileX > target.tileX) 3 else 1
     }
+
     private fun sourceActionAnimation(
-        unitId: String,
-        action: Int,
-        direction: Int,
-        startedAt: Float = animationClock()
+        unitId: String, action: Int, direction: Int, startedAt: Float = animationClock()
     ): UnitActionAnimation {
         val duration = requireSourceActionDuration(action, direction)
         battle.presentation.presentationUnit(unitId)?.direction = direction
         return UnitActionAnimation(
-            unitId,
-            UnitAnimationKind.ATTACK,
-            direction,
-            startedAt,
-            startedAt + duration,
-            sourceAction = action
+            unitId, UnitAnimationKind.ATTACK, direction, startedAt, startedAt + duration, sourceAction = action
         )
     }
+
     private fun scheduleHitReaction(unitId: String, direction: Int, startsAt: Float, endsAt: Float, sourceAction: Int) {
         val previousDirection = battle.presentation.presentationUnit(unitId)?.direction
         hitReactionAnimations[unitId] = UnitActionAnimation(
@@ -7059,10 +7029,12 @@ void main() {
             setDirection = { facing -> battle.presentation.presentationUnit(unitId)?.direction = facing },
         )
     }
+
     private fun requireSourceActionDuration(action: Int, direction: Int): Float =
         requireNotNull(battleSprites.duration(action, direction).takeIf { it > 0f }) {
             "원본 BRAnime anime$action 방향 $direction 클립이 없습니다"
         }
+
     /** 이동 카메라 틱 진행: 현재 이동 시간선의 방향을 유닛에 반영하고 새 타일 경과 시 카메라를 이동한다. */
     private fun driveMovementTicks() {
         val move = movementAnimation ?: return
@@ -7071,27 +7043,24 @@ void main() {
         val current =
             BattleUnitMoveTimeline.sample(move.path, move.timeline, elapsed.coerceAtMost(move.timeline.idleAt))
         if (animationClock() < move.endsAt) unit.direction = current.direction
-        move.cameraTickCursor.crossed(move.path, move.timeline, elapsed)
-            .forEach { sample ->
+        move.cameraTickCursor.crossed(move.path, move.timeline, elapsed).forEach { sample ->
                 focusCameraOnTile(sample.x, sample.y)
             }
     }
 
     private fun visualTile(unit: BattleUnit): Pair<Float, Float> {
-        backMoveAnimations[unit.id]
-            ?.takeIf { animationClock() < it.endsAt }
-            ?.let { animation ->
-                val fraction = ((animationClock() - animation.startedAt) /
-                        (animation.endsAt - animation.startedAt)).coerceIn(0f, 1f)
-                return (animation.move.fromX + (animation.move.toX - animation.move.fromX) * fraction) to
-                        (animation.move.fromY + (animation.move.toY - animation.move.fromY) * fraction)
+        backMoveAnimations[unit.id]?.takeIf { animationClock() < it.endsAt }?.let { animation ->
+                val fraction =
+                    ((animationClock() - animation.startedAt) / (animation.endsAt - animation.startedAt)).coerceIn(
+                        0f,
+                        1f
+                    )
+                return (animation.move.fromX + (animation.move.toX - animation.move.fromX) * fraction) to (animation.move.fromY + (animation.move.toY - animation.move.fromY) * fraction)
             }
-        movementAnimation
-            ?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
+        movementAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
             ?.let { move -> BattleUnitMoveTimeline.sample(move.path, move.timeline, animationClock() - move.startedAt) }
             ?.let { return it.x to it.y }
-        unit.characterId?.let(scriptRuntime.stage.units::get)
-            ?.takeIf { it.moveDuration > 0f }
+        unit.characterId?.let(scriptRuntime.stage.units::get)?.takeIf { it.moveDuration > 0f }
             ?.let { return it.visualX to it.visualY }
         return unit.tileX.toFloat() to unit.tileY.toFloat()
     }
