@@ -7,13 +7,6 @@ package com.jojo.game.presentation.scenario.hall
  * Runtime sampling is authoritative here: the generated horizontal clips
  * select alternate Pmapobj2 sheets, rows 1/2, and a negative node scale.
  */
-/**
- * data class  `HallUnitSpriteFrame`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class HallUnitSpriteFrame(
     val textureAssetId: Int,
@@ -21,28 +14,8 @@ data class HallUnitSpriteFrame(
     val flipX: Boolean,
 )
 
-/**
- * object  `HallUnitRender`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object HallUnitRender {
-    /**
-     * 공개 메서드 `frame`
-     *
-     * ### 파라미터
-    - `mapAvatar` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `action` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `direction` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `elapsedSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `HallUnitSpriteFrame`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun frame(mapAvatar: Int, action: Int, direction: Int, elapsedSeconds: Float): HallUnitSpriteFrame {
         val normalizedDirection = direction.takeIf { it in 0..3 } ?: 0
@@ -67,13 +40,6 @@ object HallUnitRender {
 
     /** Deterministic actual-game logger for the four HallUnit._move2 signs. */
     fun walkingRenderEventLog(): String {
-        /**
-         * data class  `Path`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Path(val direction: Int, val x: Int, val y: Int, val dx: Int, val dy: Int)
 
@@ -128,16 +94,6 @@ object HallUnitRender {
                 val localX = ((x + 41.28f) - 640f) / 1.72f
                 val localY = ((y + 55.04f) - 344f) / 1.72f
 
-                /**
-                 * 공개 메서드 `number`
-                 *
-                 * ### 파라미터
-                - `value` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun number(value: Float) =
                     "%.4f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.').ifEmpty { "0" }

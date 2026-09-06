@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-/** Immutable map-overlay snapshot projected by BattleScreen before drawing. */
+/** 전투 화면이 그리기 전에 투영한 맵 오버레이 상태입니다. */
 data class BattleMapView(
     val boardLeft: Float,
     val boardBottom: Float,
@@ -44,17 +44,13 @@ data class BattleMapRenderEvent(
     val text: String? = null,
 )
 
-/**
- * Owns only the small, ordered overlay pass shared by the tactical map.
- * BattleScreen remains responsible for projecting mutable battle state into
- * [BattleMapView]; this class never sees Battle, Scenario, input, or turn data.
- */
+/** 전술 맵에 공통으로 사용하는 오버레이 그리기만 담당합니다. */
 class BattleMapRenderer(
     private val batch: SpriteBatch,
     private val font: BitmapFont,
     private val assets: BattleMapRendererAssets,
 ) {
-    /** Stable command order used by the four draw passes and characterization tests. */
+    /** 네 개 그리기 단계에서 사용하는 고정 명령 순서입니다. */
     companion object {
         private val TERRAIN_COLOR = Color(0.94f, 0.97f, 1f, 0.9f)
         private val MP_COLOR = Color(224f / 255f, 224f / 255f, 0f, 1f)
@@ -161,4 +157,3 @@ class BattleMapRenderer(
     private fun tileBottom(view: BattleMapView, y: Float): Float = view.boardBottom - y * view.tileSize
 
 }
-

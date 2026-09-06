@@ -17,19 +17,9 @@ internal data class BattleCatalogVerificationResult(
     val astGapMarker: String,
 )
 
-/** Materializes every battle script and verifies its game-data projection. */
+/** 모든 전투 스크립트를 구체화하고 게임 데이터 투영을 검증한다. */
 internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
-/**
- * 공개 메서드 `dataDiagnostics`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `List<String>`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+/** 전투 데이터 표의 진단 정보를 반환한다. */
     fun dataDiagnostics(): List<String> {
         val magicProfiles = gameData.allMagicProfiles()
         return listOf(
@@ -48,17 +38,7 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
         )
     }
 
-/**
- * 공개 메서드 `verify`
- *
- * ### 파라미터
-- `initialUnhandledCalls` (`Map<String, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `BattleCatalogVerificationResult`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+/** 전투 카탈로그와 초기 미처리 호출 집계를 함께 검증한다. */
     fun verify(initialUnhandledCalls: Map<String, Int>): BattleCatalogVerificationResult {
         val modules = ScenarioCatalog.sModuleNames()
         val unhandledCalls = linkedMapOf<String, Int>().apply { putAll(initialUnhandledCalls) }
@@ -118,18 +98,6 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
                 val expectedHitArea = if ((mergedSkills[260]?.and(255) ?: 255) != rangeSkill) {
                     gameData.hitAreaProfile(sourceHitArea.upgradeId) ?: sourceHitArea
                 } else sourceHitArea
-/**
- * 공개 메서드 `expectedAbility`
- *
- * ### 파라미터
-- `base` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `sourceBase` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `passiveSkill` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Int`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
 
                 fun expectedAbility(base: Int, sourceBase: Int, passiveSkill: Int): Int {
                     val smft = mergedSkills[190]?.and(255)?.takeIf { it != 255 } ?: 0

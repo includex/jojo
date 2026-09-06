@@ -4,7 +4,7 @@ import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.scenario.TacticalUnit
 import com.jojo.game.domain.campaign.*
 
-/** Composes the independently-owned presentation queues and campaign mutations. */
+/** 독립된 표시 요청 대기열과 캠페인 변경을 조합한다. */
 internal class ScenarioStagePresentationCoordinator {
     private val requests = ScenarioStagePresentationRequestQueue()
     private val actions = ScenarioStageScriptedActions()

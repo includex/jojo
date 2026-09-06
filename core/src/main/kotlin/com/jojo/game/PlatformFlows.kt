@@ -4,25 +4,11 @@ package com.jojo.game
  * Desktop flows for recovered platform factories. Android/JSB operations are
  * represented by [NativeBoundary] calls; they are deliberately not simulated.
  */
-/**
- * interface  `NativeBoundary`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 interface NativeBoundary {
     fun call(name: String)
 }
 
-/**
- * class  `PrivacyConsentFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class PrivacyConsentFlow(
     private val native: NativeBoundary,
@@ -31,17 +17,6 @@ class PrivacyConsentFlow(
 ) {
     var attached = true
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `button` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(button: Int, event: Int) {
         if (event != 2) return; when (button) {
@@ -52,13 +27,6 @@ class PrivacyConsentFlow(
     }
 }
 
-/**
- * class  `LegalStatementFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class LegalStatementFlow(private val emit: (String) -> Unit, private val end: () -> Unit) {
     var attached = true
@@ -69,40 +37,18 @@ class LegalStatementFlow(private val emit: (String) -> Unit, private val end: ()
     var countdownDelay = 0
     var unlockDelay = 0
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - `playerTimer` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate(playerTimer: Int) {
-        // JS uses Math.floor twice; Kotlin's / truncates toward zero, so use
-        // floorDiv to preserve the source behavior for every integer input.
+        // JS는 Math.floor를 두 번 사용한다. Kotlin의 /는 0 방향으로 버리므로
+        // 모든 정수 입력에서 원본 동작을 보존하려면 floorDiv를 사용한다.
         val minutes = Math.floorDiv(playerTimer, 60_000)
         time = maxOf(3, time - Math.floorDiv(minutes, 30))
-        // Mirrors StatementLayer's schedule(handle, 1, time, 0) and
-        // scheduleOnce(unlock, time + 1) registration. Callback timing stays
-        // behind the engine scheduler boundary; registration is deterministic.
+        // 원본의 반복 예약과 잠금 해제 예약 등록을 재현한다. 콜백 시점은 엔진
+        // 스케줄러 경계에 맡기고 등록 순서만 결정적으로 유지한다.
         countdownRepeat = time
         unlockDelay = time + 1
     }
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `button` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(button: Int, event: Int) {
         if (event != 2) return; if (button == 0) {
@@ -111,13 +57,6 @@ class LegalStatementFlow(private val emit: (String) -> Unit, private val end: ()
     }
 }
 
-/**
- * class  `VersionInfoFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class VersionInfoFlow(private val version: String) {
     var attached = true
@@ -127,13 +66,6 @@ class VersionInfoFlow(private val version: String) {
     }
 }
 
-/**
- * class  `InstallationFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class InstallationFlow(private val desktop: Boolean, private val launch: String, mineFloor: Int) {
     val buttons = MutableList(5) { true }
@@ -148,13 +80,6 @@ class InstallationFlow(private val desktop: Boolean, private val launch: String,
     }
 }
 
-/**
- * class  `UpdateFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class UpdateFlow(private val emit: (String) -> Unit) {
     var attached = true
@@ -173,13 +98,6 @@ class UpdateFlow(private val emit: (String) -> Unit) {
     }
 }
 
-/**
- * class  `LoginEligibility`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class LoginEligibility(private val appId: Int, private val money: Int, private val mineFloor: Int) {
     private val floors = mapOf(
@@ -214,25 +132,8 @@ class LoginEligibility(private val appId: Int, private val money: Int, private v
     } else 0
 }
 
-/**
- * class  `DeviceIdentityService`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class DeviceIdentityService(private val saved: String?, private val macs: List<String>, private val macError: Int) {
-    /**
-     * 공개 메서드 `desktopDeviceId`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun desktopDeviceId(): String? {
         if (saved != null) return saved; if (macError != 0) return null
@@ -242,25 +143,11 @@ class DeviceIdentityService(private val saved: String?, private val macs: List<S
     }
 }
 
-/**
- * class  `TapTapSession`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class TapTapSession {
     fun haveLogin() = true
 }
 
-/**
- * class  `VideoRewardFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class VideoRewardFlow(private val loadError: Boolean, private val done: () -> Unit) {
     var attached = true

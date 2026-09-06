@@ -145,16 +145,6 @@ object ProgressionLayerTraceHarness {
         var pool = field(c, "reward")?.let { "{\"pool\":[[4,${int(it, "id")}]],\"rate\":[1]}" }
             ?: "{\"pool\":[[4,0]],\"rate\":[1]}"
 
-        /**
-         * 공개 메서드 `labels`
-         *
-         * ### 파라미터
-        - `extra` (`Boolean=false`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun labels(extra: Boolean = false) =
             buildList { add("행운 코인: ${layer.coins}"); if (extra) add("오늘 남은 뽑기 횟수:${layer.count}/30") }
@@ -307,16 +297,6 @@ private class ResetLayerSourceOracle {
     var done = 0
     var progress = 0.0
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate() {
         progress = 1.0; done++; removed++

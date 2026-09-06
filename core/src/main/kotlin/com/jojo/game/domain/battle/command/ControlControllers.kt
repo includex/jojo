@@ -41,94 +41,24 @@ data class ControllerStep(
 
 /** Dependencies read by Control and its nine derived modules. */
 interface BattleControlContext {
-    /**
-     * 공개 메서드 `currentPoint`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Control.Point`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun currentPoint(): Control.Point
 
-    /**
-     * 공개 메서드 `isParalyzed`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun isParalyzed(): Boolean
 
-    /**
-     * 공개 메서드 `isSurrounded`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun isSurrounded(): Boolean
 
-    /**
-     * 공개 메서드 `isMine`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun isMine(): Boolean
 
-    /**
-     * 공개 메서드 `setPersistentAi`
-     *
-     * ### 파라미터
-    - `ai` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun setPersistentAi(ai: Int)
 
-    /**
-     * 공개 메서드 `target`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ControlTarget?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun target(index: Int): ControlTarget?
 
-    /**
-     * 공개 메서드 `hasAttackTargets`
-     *
-     * ### 파라미터
-    - `targetIndex` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun hasAttackTargets(targetIndex: Int? = null): Boolean
 
@@ -156,17 +86,6 @@ interface BattleControlContext {
 
 /** Base Control.selectMovePoint, with overridable source hooks. */
 abstract class SourceControlController {
-    /**
-     * 공개 메서드 `step`
-     *
-     * ### 파라미터
-    - `context` (`BattleControlContext`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `data` (`ControlData`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ControllerStep`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun step(context: BattleControlContext, data: ControlData): ControllerStep {
         val here = context.currentPoint()
@@ -313,18 +232,6 @@ class CtrlYDDZDDBM : CtrlYDDZDDJS() {
 
 /** CtrlYDDZDDGJ: adds designated-target score in original _AIProcess2. */
 class CtrlYDDZDDGJ : CtrlYDDZDDJS() {
-    /**
-     * 공개 메서드 `targetScore`
-     *
-     * ### 파라미터
-    - `candidateIndex` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `data` (`ControlData`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `attackTargetValue` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun targetScore(candidateIndex: Int, data: ControlData, attackTargetValue: Int): Int =
         if (candidateIndex == data.targetIndex) attackTargetValue else 0
@@ -332,16 +239,6 @@ class CtrlYDDZDDGJ : CtrlYDDZDDJS() {
 
 /** Exact BattleScreen `_controls` order, suitable for injection into a manager adapter. */
 object ControlControllerFactory {
-    /**
-     * 공개 메서드 `create`
-     *
-     * ### 파라미터
-    - `ai` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `SourceControlController`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun create(ai: Int): SourceControlController = when (ai) {
         ControlAi.PASSIVE -> CtrlBDCJ(); ControlAi.ACTIVE -> CtrlZDCJ(); ControlAi.HOLD -> CtrlJSYD()

@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 
-/** Immutable actor/effect snapshot projected by [BattleScreen] before a draw pass. */
+/** 그리기 직전에 전투 화면이 투영한 배우·효과 불변 상태입니다. */
 internal data class BattleActorEffectRenderView(
     val boardLeft: Float,
     val boardBottom: Float,
@@ -22,7 +22,7 @@ internal data class BattleActorEffectRenderView(
     val sayMarker: BattleSayMarkerRender?,
 )
 
-/** All data needed to draw one BattleUnit and its prefab children. */
+/** 전투 유닛과 하위 프리팹을 그리는 데 필요한 상태입니다. */
 internal data class BattleActorRenderUnit(
     val id: String,
     val tileX: Float,
@@ -45,7 +45,7 @@ internal data class BattleActorRenderUnit(
     val stateTexture: Texture?,
 )
 
-/** One map-attached meff sample at its current animation time. */
+/** 현재 애니메이션 시점의 맵 부착 마법 효과 샘플입니다. */
 internal data class BattleEffectRender(
     val texture: Texture,
     val x: Float,
@@ -59,13 +59,10 @@ internal data class BattleEffectRender(
     val alpha: Float,
 )
 
-/** The qipao marker attached to the currently speaking actor. */
+/** 현재 발화 배우에 부착된 말풍선 표식입니다. */
 internal data class BattleSayMarkerRender(val texture: Texture, val tileX: Float, val tileY: Float)
 
-/**
- * Owns only the ordered actor/effect GPU passes. It knows nothing about Battle,
- * Scenario, animation clocks, or input; callers provide a stable render view.
- */
+/** 배우와 효과의 그리기 순서만 담당하는 렌더러입니다. */
 internal class BattleActorEffectRenderer(
     private val batch: SpriteBatch,
     private val hudAssets: BattleHudAssets,

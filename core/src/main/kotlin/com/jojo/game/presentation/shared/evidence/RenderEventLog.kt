@@ -40,16 +40,6 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
                 }}"
     }
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(): String = lines.joinToString(separator = "\n", postfix = if (lines.isEmpty()) "" else "\n")
 

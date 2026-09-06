@@ -4,25 +4,8 @@ import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * object  `FoundationCodec`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object FoundationCodec {
-    /**
-     * 공개 메서드 `bytes`
-     *
-     * ### 파라미터
-    - `s` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ByteArray`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun bytes(s: String): ByteArray {
         val out = ArrayList<Byte>(); for (ch in s) {
@@ -35,16 +18,6 @@ object FoundationCodec {
         }; return out.toByteArray()
     }
 
-    /**
-     * 공개 메서드 `text`
-     *
-     * ### 파라미터
-    - `a` (`ByteArray`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun text(a: ByteArray): String {
         val b = StringBuilder()
@@ -61,18 +34,6 @@ object FoundationCodec {
         }; return b.toString()
     }
 
-    /**
-     * 공개 메서드 `xor`
-     *
-     * ### 파라미터
-    - `a` (`ByteArray`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `key` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `decode` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ByteArray`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun xor(a: ByteArray, key: String, decode: Boolean): ByteArray = ByteArray(a.size) { i ->
         val shift = key[i % key.length].code % 8
@@ -81,13 +42,6 @@ object FoundationCodec {
     }
 }
 
-/**
- * object  `Md5Service`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object Md5Service {
     fun hex(s: String) =
@@ -101,13 +55,6 @@ object Md5Service {
             .doFinal(FoundationCodec.bytes(text)).joinToString("") { "%02x".format(it) }
 }
 
-/**
- * class  `UuidCodec`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class UuidCodec {
     private val key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
@@ -136,13 +83,6 @@ class UuidCodec {
     }
 }
 
-/**
- * class  `UserPreferencesStore`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class UserPreferencesStore(
     private val local: MutableMap<String, String>,
@@ -175,13 +115,6 @@ class UserPreferencesStore(
     }
 }
 
-/**
- * class  `StatusMachine`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class StatusMachine {
     var status = -1
@@ -201,13 +134,6 @@ class StatusMachine {
     }
 }
 
-/**
- * class  `EventDispatcher`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class EventDispatcher {
     data class L(val target: Any, val fn: () -> Unit, val id: String, val once: Boolean)

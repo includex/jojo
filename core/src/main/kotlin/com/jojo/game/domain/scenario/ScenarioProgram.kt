@@ -4,45 +4,18 @@ import com.jojo.game.*
 
 import java.util.*
 
+/** 단순화된 시나리오 스크립트의 실행 단계를 나타낸다. */
 sealed interface ScriptStep {
-    /**
-     * data class  `Command`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 시나리오 명령을 실행한다. */
     data class Command(val command: ScenarioCommand) : ScriptStep
 
-    /**
-     * data class  `PromptChoice`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 선택지 입력을 기다린다. */
     data class PromptChoice(val variable: String, val choice: Choice) : ScriptStep
 
-    /**
-     * data class  `AssignInt`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 정수 변수를 대입한다. */
     data class AssignInt(val variable: String, val value: Int) : ScriptStep
 
-    /**
-     * data class  `Conditional`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 변수 값에 따라 다음 단계 목록을 선택한다. */
     data class Conditional(
         val variable: String,
         val expected: Int,
@@ -51,39 +24,10 @@ sealed interface ScriptStep {
     ) : ScriptStep
 }
 
-/**
- * data class  `ScenarioScript`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 실행 가능한 시나리오 단계와 표시 문자열을 묶는다. */
 data class ScenarioScript(val moduleName: String, val steps: List<ScriptStep>, val displayText: List<String>)
 
-/**
- * Restricted source-level Python executor. It currently models the control
- * flow used by dialogue sections: assignments, choice result variables and
- * equality branches. Unsupported game calls are intentionally skipped until
- * their matching Stage API is implemented, rather than being faked.
- */
-/**
- * object  `ScenarioProgram`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
-
-/**
- * class  `ProgramPlayback`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 대화형 스크립트의 대입, 선택, 조건 분기를 재생한다. */
 class ProgramPlayback(val program: ScenarioScript) {
     val stage = ScenarioStage()
     var state: PlaybackState = PlaybackState.COMPLETE
@@ -105,69 +49,29 @@ class ProgramPlayback(val program: ScenarioScript) {
         runUntilInput()
     }
 
-    /**
-     * 공개 메서드 `advanceDialogue`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 대사를 닫고 다음 입력 지점까지 진행한다. */
     fun advanceDialogue() {
         check(state == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
         currentDialogue = null
         runUntilInput()
     }
 
-    /**
-     * 공개 메서드 `selectPrevious`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 선택지를 이전 항목으로 순환한다. */
     fun selectPrevious() {
         currentChoice?.options?.let { selectedChoice = Math.floorMod(selectedChoice - 1, it.size) }
     }
 
-    /**
-     * 공개 메서드 `selectNext`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 선택지를 다음 항목으로 순환한다. */
     fun selectNext() {
         currentChoice?.options?.let { selectedChoice = Math.floorMod(selectedChoice + 1, it.size) }
     }
 
-    /**
-     * 공개 메서드 `confirmChoice`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 선택지를 변수에 기록하고 재생을 이어간다. */
     fun confirmChoice() {
         check(state == PlaybackState.CHOICE) { "대기 중인 선택지가 없습니다." }
         val choice = requireNotNull(currentChoice)
         chosenOption = choice.options[selectedChoice]
-        variables[requireNotNull(pendingChoiceVariable)] = selectedChoice + 1 // Original scripts use one-based choices.
+        variables[requireNotNull(pendingChoiceVariable)] = selectedChoice + 1 // 원본 스크립트는 선택지를 1부터 센다.
         currentChoice = null
         pendingChoiceVariable = null
         runUntilInput()

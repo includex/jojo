@@ -9,22 +9,8 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
  * the node pool. The first pooled prefab is retained as a cloning seed, which
  * explains the source pool counts represented here.
  */
-/**
- * class  `NoticeInfoLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class NoticeInfoLayer {
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val shown: Boolean,
@@ -76,16 +62,6 @@ class NoticeInfoLayer {
         return true
     }
 
-    /**
-     * 공개 메서드 `advance`
-     *
-     * ### 파라미터
-    - `seconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun advance(seconds: Float) {
         if (!sliding) return
@@ -100,16 +76,6 @@ class NoticeInfoLayer {
         }
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view() = View(shown, sliding, bgY, messages.toList(), poolSize)
 
@@ -139,27 +105,10 @@ data class NoticeDrawCommand(
  * its render-event logger. Commands remain renderer-independent so the live
  * SpriteBatch path and JSONL path consume the same geometry and ordering.
  */
-/**
- * object  `NoticeInfoRenderer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object NoticeInfoRenderer {
     private const val PATH = "Canvas/Layer/bg"
 
-    /**
-     * 공개 메서드 `commands`
-     *
-     * ### 파라미터
-    - `view` (`NoticeInfoLayer.View`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<NoticeDrawCommand>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun commands(view: NoticeInfoLayer.View): List<NoticeDrawCommand> = buildList {
         if (view.shown) {
@@ -199,18 +148,6 @@ object NoticeInfoRenderer {
         add(NoticeDrawCommand("$PATH/button/Background/tool11", "sprite", .043f, buttonY - .8f, 69.6f, 69.6f, "tool10"))
     }
 
-    /**
-     * 공개 메서드 `append`
-     *
-     * ### 파라미터
-    - `log` (`RenderEventLog`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `route` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `view` (`NoticeInfoLayer.View`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun append(log: RenderEventLog, route: String, view: NoticeInfoLayer.View) {
         val phase = "battle-notice-$route"
@@ -231,17 +168,6 @@ object NoticeInfoRenderer {
         }
     }
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `view` (`NoticeInfoLayer.View`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(route: String, view: NoticeInfoLayer.View): String =
         RenderEventLog().also { append(it, route, view) }.jsonl()

@@ -20,21 +20,6 @@ internal class ScenarioHallManagementEvidenceRecorder(
                     blend = if (label) listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771), text = text
                 )
 
-            /**
-             * 공개 메서드 `label`
-             *
-             * ### 파라미터
-            - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `h` (`Float = 43.344f`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 43.344f) =
                 source(path, "label", x, y, w, h, text = text, label = true)

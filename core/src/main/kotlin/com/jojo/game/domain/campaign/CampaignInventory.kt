@@ -2,7 +2,7 @@ package com.jojo.game.domain.campaign
 
 import com.jojo.game.GameDataCatalog
 
-/** Aggregate for item stacks, discoveries, and equipped loadouts. */
+/** 아이템 보유량, 발견 보물, 장착 장비를 관리한다. */
 class CampaignInventory internal constructor(
     private val joinedUnitIds: () -> Iterable<Int>,
     private val unitAttribute: (unitId: Int, attribute: Int, default: Int) -> Int,
@@ -24,7 +24,7 @@ class CampaignInventory internal constructor(
     fun addItem(itemId: Int, count: Int = 1, level: Int = 1, experience: Int = 0) =
         itemStore.add(itemId, count, level, experience)
 
-    /** Records an acquired, unpriced treasure independently from inventory. */
+    /** 인벤토리와 별개로 획득한 비매품 보물을 기록한다. */
     fun discoverTreasure(itemId: Int, data: GameDataCatalog): Boolean {
         val item = data.equipmentProfile(itemId) ?: return false
         if (!item.treasure || item.price != 255) return false
@@ -33,10 +33,10 @@ class CampaignInventory internal constructor(
 
     fun consumeItem(itemId: Int): Boolean = itemStore.consume(itemId)
 
-    /** Removes a complete stack when deterministic battle fixtures replace their property seed. */
+    /** 고정 전투 구성에서 아이템 묶음을 통째로 제거한다. */
     internal fun removeItemStack(itemId: Int) = itemStore.removeStack(itemId)
 
-    /** Rehydrates the persisted discovery order after aggregate reset. */
+    /** 초기화 후 저장된 보물 발견 순서를 복원한다. */
     internal fun restoreDiscoveredTreasures(itemIds: Iterable<Int>) = itemStore.restoreDiscoveries(itemIds)
 
     fun itemLevels(itemId: Int): List<Int> = itemStore.levels(itemId)

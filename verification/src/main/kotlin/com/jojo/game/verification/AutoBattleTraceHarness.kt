@@ -5,7 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Direct games of TuoGuanLayer.js and MsgBox4's TUOGUAN persistence contract. */
+/** TuoGuanLayer와 MsgBox4의 자동 전투·지속 상태 계약을 검증한다. */
 object AutoBattleTraceHarness {
     private fun events(raw: String) = Regex("\\\"events\\\":\\[(.*?)]").findAll(raw)
         .map { m -> Regex("\\\"([^\\\"]*)\\\"").findAll(m.groupValues[1]).map { it.groupValues[1] }.toList() }.toList()
@@ -30,32 +30,12 @@ object AutoBattleTraceHarness {
             val dispatches = mutableListOf<String>()
             val calls = mutableListOf<Int>()
 
-            /**
-             * 공개 메서드 `create`
-             *
-             * ### 파라미터
-            - 입력 파라미터: 없음
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
-
+            /** 검증 모델을 초기 상태로 생성한다. */
             fun create() {
                 removed = 0; if (kind == "msg4") checked = persisted == 1
             }
 
-            /**
-             * 공개 메서드 `snap`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
-
+            /** 현재 자동 전투 상태를 JSON 조각으로 기록한다. */
             fun snap(step: String) =
                 "{\"step\":\"${esc(step)}\",\"attached\":${removed == 0},\"dispatches\":[${dispatches.joinToString(",") { "\"$it\"" }}],\"calls\":[${
                     calls.joinToString(",")

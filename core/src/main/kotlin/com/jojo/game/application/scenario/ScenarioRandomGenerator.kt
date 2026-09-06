@@ -6,6 +6,7 @@ import com.jojo.game.domain.scenario.ScenarioRandomSequence
 import java.util.*
 import kotlin.random.Random
 
+/** 시나리오 난수와 검증용 주입 시퀀스를 관리한다. */
 internal class ScenarioRandomGenerator(
     initialSeed: Double = Random.nextDouble() * 1_000.0,
 ) {
@@ -18,33 +19,13 @@ internal class ScenarioRandomGenerator(
     var stopAfterRandomTraceCount: Int? = null
         private set
 
-    /**
-     * 공개 메서드 `reset`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 난수 추적 횟수와 필요하면 중단 조건을 초기화한다. */
     fun reset(retainTraceStop: Boolean = false) {
         randomDrawCount = 0
         if (!retainTraceStop) stopAfterRandomTraceCount = null
     }
 
-    /**
-     * 공개 메서드 `setRandomSequence`
-     *
-     * ### 파라미터
-    - `values` (`Iterable<Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 재현 가능한 난수 값을 순서대로 주입한다. */
     fun setRandomSequence(values: Iterable<Int>) {
         injectedRandomValues.clear()
         values.forEach { value ->
@@ -54,33 +35,13 @@ internal class ScenarioRandomGenerator(
         randomDrawCount = 0
     }
 
-    /**
-     * 공개 메서드 `stopAfterRandomTrace`
-     *
-     * ### 파라미터
-    - `count` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지정 횟수의 난수 추적 후 실행을 멈출 조건을 설정한다. */
     fun stopAfterRandomTrace(count: Int) {
         require(count > 0) { "random trace count must be positive" }
         stopAfterRandomTraceCount = count
     }
 
-    /**
-     * 공개 메서드 `nextModelRandom`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 주입된 값 또는 현재 시드로 다음 모델 난수를 생성한다. */
     fun nextModelRandom(): Int {
         randomDrawCount++
         if (injectedRandomValues.isNotEmpty()) return injectedRandomValues.removeFirst()

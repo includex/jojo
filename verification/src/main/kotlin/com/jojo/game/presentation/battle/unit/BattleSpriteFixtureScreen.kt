@@ -12,7 +12,7 @@ import com.jojo.game.JojoGame
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.presentation.battle.UnitSpriteSource
 
-/** Verification-only sprite fixture surface. */
+/** 전투 스프라이트 리소스를 검증하기 위한 전용 화면이다. */
 class BattleSpriteFixtureScreen(
     private val game: JojoGame,
     private val characterId: Int,

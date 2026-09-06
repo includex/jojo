@@ -6,7 +6,7 @@ import com.jojo.game.application.battle.bootstrap.BattleSceneCoordinator
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Event adapter over [BattleSceneCoordinator]; constants/registry are source inventory, not game output. */
+/** [BattleSceneCoordinator] 이벤트를 어댑트하며 상수·레지스트리는 원본 목록으로만 취급한다. */
 object BattleBootstrapTraceHarness {
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
     @JvmStatic

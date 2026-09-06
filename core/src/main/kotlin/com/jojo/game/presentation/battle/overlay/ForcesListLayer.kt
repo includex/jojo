@@ -5,13 +5,6 @@ import com.jojo.game.domain.battle.*
 
 /** Stateful implementation of `ui/ForcesListLayer.js` (onCreate/_changeSel/_onClick). */
 class ForcesListLayer {
-    /**
-     * data class  `Unit`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Unit(
         val id: Int, val name: String, val post: String, val level: Int,
@@ -23,33 +16,12 @@ class ForcesListLayer {
         val poisoned: Boolean = false, val fengZhou: Boolean = false,
     )
 
-    /**
-     * data class  `Row`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Row(val unit: Unit, val colors: List<RowColor>, val labels: List<String>)
 
-    /**
-     * enum class  `RowColor`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class RowColor { BLACK, RED, BLUE }
 
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val selectedTab: Int,
@@ -64,17 +36,6 @@ class ForcesListLayer {
     private var flag = 0
     private var view: View? = null
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - `mine` (`List<Unit>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `enemy` (`List<Unit> = emptyList(`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate(mine: List<Unit>, enemy: List<Unit> = emptyList(), flag: Int): View {
         this.mine = mine; this.enemy = enemy; this.flag = flag
@@ -129,16 +90,6 @@ class ForcesListLayer {
         if (event != TOUCH_END) return false; view = view().copy(attached = false); return true
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view(): View = requireNotNull(view)
 

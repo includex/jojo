@@ -6,8 +6,9 @@ import com.jojo.game.application.runtime.GameEntryPoint
 import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 
-/** Production desktop entry point. Verification and capture flags live in :verification. */
+/** 실제 게임 실행을 담당하는 데스크톱 진입점입니다. */
 object DesktopLauncher {
+    /** 실행 인자를 해석하고 데스크톱 게임 창을 생성합니다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val options = ProductionLaunchOptions.parse(args)
@@ -30,7 +31,7 @@ object DesktopLauncher {
     }
 }
 
-/** The interactive launcher accepts gameplay navigation only. */
+/** 데스크톱 실행에 필요한 게임 진입 옵션입니다. */
 internal data class ProductionLaunchOptions(
     val scenario: String,
     val battleReturnScenario: String?,
@@ -38,6 +39,7 @@ internal data class ProductionLaunchOptions(
     val battle: Boolean,
 ) {
     companion object {
+        /** 명령행 인자를 실행 옵션으로 변환합니다. */
         fun parse(args: Array<String>): ProductionLaunchOptions {
             val allowed = setOf("--battle")
             args.forEach { argument ->

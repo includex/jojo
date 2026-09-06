@@ -8,17 +8,7 @@ import com.jojo.game.domain.battle.magic.BattleMagicHitArea
 import com.jojo.game.domain.battle.magic.BattleMagicProfile
 import com.jojo.game.domain.campaign.*
 
-/**
- * Read-only domain view of decoded game-data tables. Numeric property names
- * deliberately mirror the authored UNIT_ATTR_NAME schema.
- */
-/**
- * class  `GameDataCatalog`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 복호화된 게임 데이터 테이블을 읽기 전용 도메인 모델로 제공한다. */
 
 class GameDataCatalog private constructor(
     tables: GameDataTableBundle,
@@ -27,26 +17,19 @@ class GameDataCatalog private constructor(
     private val units = GameDataCatalogUnitDomain(tables, combat)
     private val equipment = GameDataCatalogEquipmentDomain(tables)
 
-    /**
-     * data class  `UnitProfile`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class UnitProfile(
         val id: Int,
         val name: String,
-        /** UNIT_ATTR_NAME2.FACE; DialogueLayer converts this to a Head asset. */
+        /** 대화창 인물 초상으로 변환할 얼굴 식별자이다. */
         val face: Int,
-        /** UNIT_ATTR_NAME.RAVATAR, used by HallUnit/Pmapobj2. */
+        /** 홀 화면에 표시할 유닛 아바타 식별자이다. */
         val mapAvatar: Int,
-        /** UNIT_ATTR_NAME.SAVATAR, used by BattleUnit/Model.fAvatarGroup. */
+        /** 전투 화면에 표시할 유닛 아바타 식별자이다. */
         val battleAvatar: Int,
-        /** UNIT_ATTR_NAME.SAVATAR_TYPE; gates battle-avatar compatibility. */
+        /** 전투 아바타 호환성을 판단하는 유형이다. */
         val battleAvatarType: Int,
-        /** UNIT_ATTR_NAME.FAMOUS.  BattleUnit uses this for its enemy HP bar. */
+        /** 적 체력 바 표시 여부에 쓰는 유명 인물 표식이다. */
         val famous: Boolean,
         val posts: Int,
         val level: Int,
@@ -57,79 +40,58 @@ class GameDataCatalog private constructor(
         val morale: Int,
         val maxHitPoints: Int,
         val maxMagicPoints: Int,
-        /** Unit.getCritTxt(): exact source text pool and RNG stream selection. */
+        /** 치명타 대사 목록과 난수 선택 규칙이다. */
         val criticalSpeech: CriticalSpeechProfile,
     ) {
-        /** Model.postsToArm() from the original client. */
+        /** 직위에서 계산한 병과 식별자이다. */
         val armId: Int get() = if (posts < 60) posts / 3 else posts - 40
     }
 
-    /**
-     * data class  `CriticalSpeechProfile`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class CriticalSpeechProfile(
         val texts: List<String>,
-        /** Named criIds entries contain one fixed line and consume no Tool.random call. */
+        /** 고정 치명타 대사인지 나타낸다. */
         val randomized: Boolean,
-        /** Only the source's final hard-coded fallback uses Tool.random flag=1. */
+        /** 특수 난수 경로를 사용하는 마지막 기본 대사인지 나타낸다. */
         val flagRandom: Boolean = false,
     )
 
-    /**
-     * data class  `ArmProfile`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class ArmProfile(
         val id: Int,
         val name: String,
-        /** ARM_ATTR_NAME.TYPE: 0 all-rounder, 1 civil, 2 martial. */
+        /** 병과 유형을 나타내는 원본 값이다. */
         val type: Int,
         val remote: Boolean,
-        /** ARM_ATTR_NAME.ATTACKDELAY (arms[6]). */
+        /** 공격 지연 여부를 나타낸다. */
         val attackDelay: Boolean,
         val magicHarmRate: Int,
-        /** ARM_ATTR_NAME.SAVATAR_TYPE. */
+        /** 전투 아바타 유형이다. */
         val battleAvatarType: Int,
         private val restraints: Map<Int, Int>,
         private val terrainExpend: Map<Int, Int>,
         private val terrainRise: Map<Int, Int>,
-        /** ARM_ATTR_NAME.MOVESPEED. Zero selects BattleUnit.move2's .08s step. */
+        /** 빠른 이동 여부를 나타낸다. */
         val fastMove: Boolean = true,
-        /** ARM_ATTR_NAME.MOVESOUND, used by defender KZQB's horse-only reduction. */
+        /** 이동 효과음 유형을 나타낸다. */
         val moveSound: Int = 0,
     ) {
-        /** Original Model.armRestraintAttr(): unspecified pairs are exactly 100%. */
+        /** 상대 병과에 대한 상성 수치를 반환한다. */
         fun restraintAgainst(defenderArmId: Int): Int = restraints[defenderArmId] ?: 100
 
-        /** Original BattleUnit.terrainImpact() baseline before skills. */
+        /** 스킬 적용 전 지형 영향 수치를 반환한다. */
         fun terrainImpact(terrainId: Int): Int = terrainRise[terrainId] ?: 100
 
-        /** BattleUnit.getArmTerrain(terrain, 1): absent terrain is impassable (255). */
+        /** 지형 이동 비용을 반환하며 미정 지형은 이동 불가로 처리한다. */
         fun terrainMoveCost(terrainId: Int): Int = terrainExpend[terrainId] ?: 255
 
-        /** TerrainLayer._initPanel0 distinguishes an absent rise entry from its 100% default. */
+        /** 표시용 지형 영향값을 반환한다. */
         fun terrainRiseForDisplay(terrainId: Int): Int? = terrainRise[terrainId]
 
-        /** TerrainLayer._initPanel1 renders an absent/over-200 expenditure as `--`. */
+        /** 표시용 지형 이동 비용을 반환한다. */
         fun terrainExpendForDisplay(terrainId: Int): Int? = terrainExpend[terrainId]
     }
 
-    /**
-     * data class  `BattleProfile`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class BattleProfile(
         val unit: UnitProfile,
@@ -148,23 +110,16 @@ class GameDataCatalog private constructor(
         val magic: List<MagicProfile>,
     )
 
-    /**
-     * data class  `HitAreaProfile`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class HitAreaProfile(
         override val id: Int,
         override val offsets: Set<Pair<Int, Int>>,
         override val allScreen: Boolean = false,
-        /** Model.hitareaUpgrade(id), or this ID when the source has no upgrade. */
+        /** 강화 범위가 없으면 현재 범위 식별자를 사용한다. */
         override val upgradeId: Int = id,
     ) : BattleMagicHitArea
 
-    /** Original MAGIC_ATTR_NAME2 fields needed by the tactical resolver. */
+    /** 전술 마법 계산에 필요한 마법 정보이다. */
     data class MagicProfile(
         override val id: Int,
         override val name: String,
@@ -177,50 +132,43 @@ class GameDataCatalog private constructor(
         override val power: Int,
         override val harmType: Int,
         override val category: Int,
-        /** MAGIC_ATTR_NAME2.MEFF: source target-effect index, 255 for none. */
+        /** 대상 효과 식별자이며 값 255는 효과 없음을 뜻한다. */
         override val effectId: Int = 255,
-        /** Original MAGIC_ATTR_NAME.CONDITION (magicConditionTest). */
+        /** 마법 사용 조건 식별자이다. */
         override val condition: Int = -1,
-        /** MAGIC_ATTR_NAME.AIUSE; 13 bypasses magicConditionTest in Control._AIProcess. */
+        /** AI의 마법 사용 규칙을 나타낸다. */
         override val aiUse: Int = 0,
-        /** Original MAGIC_ATTR_NAME.HITRATELIMIT. */
+        /** 명중률 하한을 나타낸다. */
         override val hitRateLimit: Int = 0,
-        /** MAGIC_ATTR_NAME.ICON (raw field 6), used by Global108 MagicLayer. */
+        /** 마법 목록에 표시할 아이콘 식별자이다. */
         override val icon: Int = 0,
-        /** MAGIC_ATTR_NAME.INTRO (raw field 7), used by Global108 MagicLayer. */
+        /** 마법 목록에 표시할 설명이다. */
         override val intro: String = "",
     ) : BattleMagicProfile
 
-    /** Original ITEM_ATTR_NAME values used by battle-script equipment. */
+    /** 전투 스크립트 장비가 사용하는 아이템 정보이다. */
     data class EquipmentProfile(
         val id: Int,
         val name: String,
         val itemType: Int,
-        /** ITEM_ATTR_NAME.PRICE (raw item-table field 2). */
+        /** 아이템 가격이다. */
         val price: Int,
         val specialType: Int,
         val value: Int,
         val effectValue: Int,
         val upgradePerLevel: Int,
-        /** Item.icon(): ITEM_ATTR_NAME2.ICON + 1; source path is Item/<icon>-1. */
+        /** 아이템 목록에 표시할 아이콘 식별자이다. */
         val icon: Int,
-        /** ITEM_ATTR_NAME.TREASURE (raw item-table field 9). */
+        /** 보물 아이템 여부를 나타낸다. */
         val treasure: Boolean,
-        /** ITEM_ATTR_NAME.INTRO (raw item-table field 10). */
+        /** 아이템 설명이다. */
         val intro: String = "",
     )
 
-    /**
-     * data class  `EquipmentBonus`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class EquipmentBonus(val attack: Int = 0, val defense: Int = 0, val spirit: Int = 0)
 
-    /** Decoded UNIT_POSTS_SKILL entry after original Tianfu overrides. */
+    /** 특성 보정을 적용한 유닛 직위 스킬 정보이다. */
     data class SkillProfile(val index: Int, val skillId: Int, val effect: Int, val name: String)
 
     fun skillsForUnit(characterId: Int, postsId: Int, campaign: CampaignState? = null) =

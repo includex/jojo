@@ -3,7 +3,7 @@ package com.jojo.game
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.presentation.scenario.TacticalUnit
 
-/** Owns script-issued unit action records and their mutable render queues. */
+/** 스크립트가 요청한 유닛 동작 기록과 표시 대기열을 관리한다. */
 internal class ScenarioStageScriptedActions {
     val attacks = mutableListOf<ScriptedAttackAction>()
     val unitActions = mutableListOf<ScriptedUnitAction>()

@@ -2,23 +2,13 @@ package com.jojo.game
 import com.jojo.game.presentation.shared.overlay.*
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Deterministic draw inventory for the actual MenuLayer button6 terrain route. */
+/** 지형 메뉴 경로에서 결정적으로 생성되는 그리기 항목이다. */
 object TerrainLayerRenderEvents {
     private const val phase = "battle-terrain-layer"
     private const val layer = "TerrainLayer"
     private const val root = "Canvas/Layer/bg"
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `terrain` (`TerrainLayer`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(terrain: TerrainLayer): String {
         val log = RenderEventLog()
@@ -32,21 +22,6 @@ object TerrainLayerRenderEvents {
                 path, type, x, y, w, h, asset, opacity, blend, true, text
             )
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
             draw(path, "label", x, y, w, h, text = text, blend = alphaBlend)
@@ -67,8 +42,7 @@ object TerrainLayerRenderEvents {
                 base, "sliced-sprite", 289.538f, rowY, 993.1f, 75f,
                 if (even) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2"
             )
-            // The ninth item is clipped by the viewport; only its background
-            // and partly intersecting terrain-name label submit a draw.
+            // 아홉 번째 항목은 뷰포트에 잘려 배경과 일부 겹치는 지형 이름만 그린다.
             if (rowIndex < 8) {
                 draw(
                     "$base/icon",
@@ -100,8 +74,7 @@ object TerrainLayerRenderEvents {
             row.values.forEachIndexed { index, value ->
                 val narrow = value.text == "○"
                 val width = if (narrow) 30.2f else 43.25f
-                // Authored columns 6..12 begin one pixel left of the naïve
-                // 60px progression (the prefab has a 59px centre step there).
+                // 원본 6..12열은 단순한 60픽셀 간격보다 1픽셀 왼쪽에서 시작한다.
                 val columnCorrection = if (index >= 6) -1f else 0f
                 val glyphCorrection = if (narrow) 6.525f else 0f
                 val x = 516.463f + index * 60f + columnCorrection + glyphCorrection

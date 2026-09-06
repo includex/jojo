@@ -5,7 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Fixture adapter over [ScenarioStage]'s production Head lifecycle. */
+/** [ScenarioStage]의 Head 수명 주기를 픽스처 입력에 연결한다. */
 object HeadTraceHarness {
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
     private fun cases(raw: String) =

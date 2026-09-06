@@ -12,19 +12,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/**
- * Isolated ListLayer fixture.  The source ListLayer is a generic table
- * overlay, so this screen deliberately keeps the source canvas coordinates
- * in the event stream (1488.372 x 800) while using the normal LibGDX
- * viewport for the visual smoke run.
- */
-/**
- * class  `GenericListFixtureScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** ListLayer 표 형식 오버레이를 원본 좌표로 검증하는 전용 화면이다. */
 
 class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
@@ -44,16 +32,7 @@ class GenericListFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Ru
         game.captureFrameIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 목록 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String {
         val l = RenderEventLog()

@@ -4,7 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import java.util.concurrent.CountDownLatch
 
-/** Owns only the LibGDX lifecycle, marker reporting, and process completion. */
+/** LibGDX 수명 주기와 검증 완료 신호만 담당한다. */
 class ScenarioBatchVerificationApplication : ApplicationAdapter() {
     private val completed = CountDownLatch(1)
     @Volatile private var failure: Throwable? = null
@@ -25,17 +25,7 @@ class ScenarioBatchVerificationApplication : ApplicationAdapter() {
         }
     }
 
-/**
- * 공개 메서드 `awaitCompletion`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+/** 검증 렌더링이 끝날 때까지 호출 스레드를 대기시킨다. */
     fun awaitCompletion() {
         completed.await()
         failure?.let { throw it }

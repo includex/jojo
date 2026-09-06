@@ -1,20 +1,10 @@
 package com.jojo.game
 import com.jojo.game.presentation.shared.overlay.*
 
-/** Renderer-free progression state machines used by the persistence-facing overlays. */
+/** 저장 기능과 연결된 진행 화면의 프레임워크 독립 상태를 관리한다. */
 class AchievementFixtureState(private val rewards: Map<Int, List<Any>>) {
     var removed = 0
 
-    /**
-     * 공개 메서드 `rows`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun rows() = rewards.entries.map { (id, v) ->
         listOf(
@@ -23,46 +13,18 @@ class AchievementFixtureState(private val rewards: Map<Int, List<Any>>) {
             (0..2).joinToString("  ") { if ((v[3] as Int and (1 shl it)) != 0) "★" else "☆" })
     }.flatten()
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `button` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(button: Int, event: Int) {
         if (button == 0 && event == 2) removed++
     }
 }
 
-/**
- * class  `DailySignInFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class DailySignInFlow(var count: Int, val signins: MutableList<Int>, private val now: Int) {
     var removed = 0
     val writes = linkedMapOf<String, Any>()
     val layers = mutableListOf<String>()
 
-    /**
-     * 공개 메서드 `claim`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun claim() {
         val midnight = now / 86400 * 86400; if (midnight !in signins) {
@@ -76,13 +38,6 @@ class DailySignInFlow(var count: Int, val signins: MutableList<Int>, private val
     }
 }
 
-/**
- * class  `RaffleFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class RaffleFlow(var count: Int, var coins: Int) {
     val writes = linkedMapOf<String, Any>()
@@ -90,22 +45,12 @@ class RaffleFlow(var count: Int, var coins: Int) {
     val toasts = mutableListOf<String>()
     val layers = mutableListOf<String>()
 
-    /**
-     * 공개 메서드 `inc`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun inc() {
         count++; writes["REWARD_VEDIO_COUNT"] = count
     }
 
-    /** _rewardVideo: only the recovered accepted codes consume an ad quota. */
+    /** 보상 동영상의 허용된 결과 코드만 광고 횟수를 차감한다. */
     fun rewardVideo(videoResult: String, confirm: Int = 0) {
         if (count >= 10) {
             layers += "MsgBox"
@@ -122,16 +67,6 @@ class RaffleFlow(var count: Int, var coins: Int) {
         if (normalized in setOf("0352", "03572", "0572", "0532")) inc()
     }
 
-    /**
-     * 공개 메서드 `generatedPool`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Pair<List<Pair<Int,Int>>,List<Int>>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun generatedPool(): Pair<List<Pair<Int, Int>>, List<Int>> {
         val pool = listOf(0 to 1, 4 to 100, 4 to 50, 4 to 25, 4 to 12, 4 to 6, 4 to 3, 4 to 1)
@@ -139,29 +74,12 @@ class RaffleFlow(var count: Int, var coins: Int) {
         return pool to rate
     }
 
-    /**
-     * 공개 메서드 `rewardGold`
-     *
-     * ### 파라미터
-    - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun rewardGold(id: Int) {
         calls += listOf("gold", id)
     }
 }
 
-/**
- * class  `RegistrationFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class RegistrationFlow {
     var removed = 0
@@ -183,7 +101,7 @@ class RegistrationFlow {
         }
     }
 
-    /** Validated RegisterLayer write branch: directory, encrypted payload, then native share request. */
+    /** 등록 화면의 검증된 저장·암호화·공유 요청 흐름을 실행한다. */
     fun writeRegister(path: String, fileName: String, payload: String) {
         files += listOf("mkdir", path.substringBeforeLast('/')); files += listOf(
             "write",

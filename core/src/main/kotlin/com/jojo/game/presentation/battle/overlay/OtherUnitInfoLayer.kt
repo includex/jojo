@@ -7,13 +7,6 @@ import com.jojo.game.domain.battle.*
 
 /** Production-state implementation of BattleScreen.showOtherunitInfo -> OtherUnitInfoLayer id7. */
 class OtherUnitInfoLayer {
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val name: String, val level: Int, val post: String,
@@ -24,19 +17,6 @@ class OtherUnitInfoLayer {
     private lateinit var current: View
     private var completion: (() -> Unit)? = null
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `post` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `displayName` (`String = unit.name`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `completion` (`(`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate(unit: BattleUnit, post: String, displayName: String = unit.name, completion: () -> Unit = {}): View {
         this.completion = completion
@@ -47,16 +27,6 @@ class OtherUnitInfoLayer {
         ).also { current = it }
     }
 
-    /**
-     * 공개 메서드 `complete`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun complete() {
         if (!current.attached) return
@@ -64,85 +34,25 @@ class OtherUnitInfoLayer {
         completion?.invoke()
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view(): View = current
 
-    /**
-     * 공개 메서드 `valueAnimation`
-     *
-     * ### 파라미터
-    - `entries` (`List<InfoBaseValueAnimation.Value>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun valueAnimation(entries: List<InfoBaseValueAnimation.Value>) = InfoBaseValueAnimation(entries)
 }
 
 /** Strict source-design draw inventory for the live R_00 settlement result panel. */
 object OtherUnitInfoRenderEvents {
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `view` (`OtherUnitInfoLayer.View`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(view: OtherUnitInfoLayer.View): String {
         require(view.attached)
         val phase = "battle-other-unit-info"
         val log = RenderEventLog()
 
-        /**
-         * 공개 메서드 `sprite`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun sprite(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String) =
             log.draw(phase, "OtherUnitInfoLayer", path, type, x, y, w, h, asset)
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, x: Float, y: Float, w: Float, text: String) =
             log.draw(

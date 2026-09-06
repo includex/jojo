@@ -1,17 +1,11 @@
 package com.jojo.game.presentation.battle.input
 
-/** Source BattleScreen._touchProcess map-local coordinate conversion. */
+/** 화면 좌표를 전투 맵 타일 좌표로 변환합니다. */
 object BattleTileInput {
-    /**
-     * data class  `Tile`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 맵에서 선택된 타일 좌표입니다. */
     data class Tile(val x: Int, val y: Int)
 
+    /** 월드 좌표와 맵 배치 정보로 타일을 계산합니다. */
     fun tileAt(
         worldX: Float,
         worldY: Float,
@@ -24,13 +18,9 @@ object BattleTileInput {
         require(mapTilesHigh > 0)
         val mapBottom = boardBottom - (mapTilesHigh - 1) * tileSize
         return Tile(
-            // Math.trunc(u / tileSize) in the recovered source.
+            // 원본은 타일 크기로 나눈 뒤 소수부를 버립니다.
             x = ((worldX - boardLeft) / tileSize).toInt(),
-            // Preserve the source operation order exactly:
-            //   p = Math.trunc((worldY - mapBottom) / tileSize)
-            //   y = mapH - (p + 1)
-            // Rewriting this as floor(boardBottom + tileSize - worldY)
-            // changes ownership of every exact horizontal tile boundary.
+            // 원본 연산 순서를 유지해야 경계선 타일의 소유가 달라지지 않습니다.
             y = mapTilesHigh - 1 - ((worldY - mapBottom) / tileSize).toInt(),
         )
     }

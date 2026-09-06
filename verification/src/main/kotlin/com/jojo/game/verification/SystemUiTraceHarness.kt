@@ -34,16 +34,6 @@ object SystemUiTraceHarness {
             if (arr[p] == '{') {
                 val o = balanced(arr, p)
 
-                /**
-                 * 공개 메서드 `field`
-                 *
-                 * ### 파라미터
-                - `key` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `String`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun field(key: String): String =
                     Regex("\\\"$key\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").find(o)?.groupValues?.get(1) ?: ""
@@ -76,16 +66,6 @@ object SystemUiTraceHarness {
     private fun nullable(v: Any?) = v?.toString() ?: "null"
     @JvmStatic
     fun main(args: Array<String>) {
-        /**
-         * 공개 메서드 `run`
-         *
-         * ### 파라미터
-        - `c` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun run(c: Case): String {
             val calls = mutableListOf<Int>()
@@ -146,16 +126,6 @@ object SystemUiTraceHarness {
                         listOf("null", "null", "null"); scheduled = loading.delay?.let { listOf(it) } ?: emptyList()
                 }
             }
-            /**
-             * 공개 메서드 `snapshot`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun snapshot(step: String): String {
                 attached = when (c.kind) {

@@ -3,33 +3,12 @@ package com.jojo.game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 
-/** Original HallLayer Pmap grid and its stable weighted A* implementation. */
+/** 홀 이동용 지도 격자와 안정적인 가중 경로 탐색을 제공한다. */
 data class HallPathGrid(val rows: List<IntArray>) {
-    /**
-     * 공개 메서드 `blocked`
-     *
-     * ### 파라미터
-    - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun blocked(x: Int, y: Int): Boolean = rows.getOrNull(y)?.getOrNull(x) != 0
 
     companion object {
-        /**
-         * 공개 메서드 `loadOrNull`
-         *
-         * ### 파라미터
-        - `sceneIndex` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `HallPathGrid?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun loadOrNull(sceneIndex: Int): HallPathGrid? = runCatching {
             val files = Gdx.files ?: return null
@@ -43,13 +22,6 @@ data class HallPathGrid(val rows: List<IntArray>) {
     }
 }
 
-/**
- * object  `HallPathfinder`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object HallPathfinder {
     private data class SearchNode(
@@ -61,7 +33,7 @@ object HallPathfinder {
         val insertionOrder: Int,
     )
 
-    /** Game of HallLayer.AStar, including obstacle/unit penalties and stable ties. */
+    /** 장애물·유닛 비용과 동일 비용 경로의 순서를 반영해 길을 찾는다. */
     fun find(
         startX: Int,
         startY: Int,
@@ -101,15 +73,14 @@ object HallPathfinder {
                 best[key] = total
                 queue += SearchNode(x, y, total, direction, node.x to node.y, insertionOrder++)
             }
-            // Modern JS Array.sort is stable. Keep insertion order explicit so
-            // equal-cost routes select the same authored turn sequence.
+            // 최신 JS의 Array.sort는 안정 정렬이다. 같은 비용 경로도 원본 순서를
+            // 선택하도록 삽입 순서를 명시적으로 유지한다.
             queue.sortWith(compareBy<SearchNode> { it.totalExpend }.thenBy { it.insertionOrder })
         }
         if (destination == null) return null
 
-        // Source stores every popped node in reverse order, then assigns them
-        // into a coordinate map. Iterating that list makes the oldest popped
-        // parent win when a coordinate was reached more than once.
+        // 원본은 꺼낸 노드를 역순으로 저장한 뒤 좌표 맵에 할당한다. 이 순서로
+        // 순회하면 같은 좌표에 여러 번 도달했을 때 가장 먼저 꺼낸 부모가 유지된다.
         val byPoint = HashMap<Pair<Int, Int>, SearchNode>()
         popped.forEach { byPoint[it.x to it.y] = it }
         val reversed = mutableListOf<Pair<Int, Int>>()
@@ -121,14 +92,13 @@ object HallPathfinder {
         return reversed.asReversed()
     }
 
-    /** Config.DIR values used by HallLayer._countDir. */
+    /** 두 좌표 사이의 이동 방향 값을 반환한다. */
     fun direction(fromX: Int, fromY: Int, toX: Int, toY: Int): Int = when {
-        // HallUnit._move2 compares the next point against the previous one.
-        // Increasing authored Y is DOWN, decreasing Y is UP.
-        toY - fromY < 0 -> 0 // UP
-        toY - fromY > 0 -> 2 // DOWN
-        fromX - toX < 0 -> 1 // RIGHT
-        fromX - toX > 0 -> 3 // LEFT
+        // 다음 좌표를 이전 좌표와 비교한다. 원본 Y 증가는 아래, 감소는 위다.
+        toY - fromY < 0 -> 0 // 위
+        toY - fromY > 0 -> 2 // 아래
+        fromX - toX < 0 -> 1 // 오른쪽
+        fromX - toX > 0 -> 3 // 왼쪽
         else -> -1
     }
 }

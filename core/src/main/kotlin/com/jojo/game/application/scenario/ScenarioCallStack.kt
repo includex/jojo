@@ -5,20 +5,11 @@ import com.jojo.game.domain.scenario.*
 
 import java.util.*
 
+/** 시나리오 함수 호출 프레임과 레이블 점프를 관리한다. */
 internal class ScenarioCallStack {
     val frames = ArrayDeque<Frame>()
 
-    /**
-     * 공개 메서드 `clear`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 모든 호출 프레임을 비운다. */
     fun clear() = frames.clear()
 
     fun pushFunction(
@@ -38,18 +29,7 @@ internal class ScenarioCallStack {
         frames.addLast(Frame(function))
     }
 
-    /**
-     * 공개 메서드 `jumpToLabel`
-     *
-     * ### 파라미터
-    - `label` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `functions` (`Map<String, RuntimeFunction>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 함수 또는 대상 함수의 레이블로 실행 위치를 옮긴다. */
     fun jumpToLabel(label: String, functions: Map<String, RuntimeFunction>) {
         val current = frames.peekLast()
         val currentIndex = current?.function?.labels?.get(label)

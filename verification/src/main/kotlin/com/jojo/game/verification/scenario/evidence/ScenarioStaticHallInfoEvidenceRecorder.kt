@@ -9,22 +9,6 @@ internal class ScenarioStaticHallInfoEvidenceRecorder {
     fun appendForces(log: RenderEventLog) {
         val scale = .86f
 
-        /**
-         * 공개 메서드 `draw`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String = ""`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun draw(path: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") {
             val type = when {

@@ -8,7 +8,7 @@ import com.jojo.game.presentation.battle.BattleAvatarResolver
 
 import java.util.*
 
-/** Owns campaign mutation records that need renderer-side presentation callbacks. */
+/** 렌더러 콜백이 필요한 캠페인 변경 기록을 관리한다. */
 internal class ScenarioStageCampaignPresentationChanges {
     private val unitPostsRequests = ArrayDeque<ScenarioUnitPostsRequest>()
     private val scriptedUnitLevelChanges = ArrayDeque<CampaignUnitLevelChange>()

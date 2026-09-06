@@ -16,22 +16,8 @@ import com.badlogic.gdx.utils.JsonValue
  * as data prevents individual actions from drifting into hand-maintained row
  * tables.
  */
-/**
- * class  `BattleSpriteTimeline`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class BattleSpriteTimeline private constructor(private val clips: Map<String, List<Keyframe>>) {
-    /**
-     * enum class  `Atlas`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Atlas(val source: UnitSpriteSource, val width: Int, val height: Int) {
         ATTACK(UnitSpriteSource.ATTACK, 64, 64),
@@ -39,13 +25,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         SPECIAL(UnitSpriteSource.SPECIAL, 48, 48),
     }
 
-    /**
-     * data class  `Frame`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Frame(
         val source: UnitSpriteSource,
@@ -76,17 +55,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         return clips["anime$action"]?.let { it to false }
     }
 
-    /**
-     * 공개 메서드 `duration`
-     *
-     * ### 파라미터
-    - `action` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `direction` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Float`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun duration(action: Int, direction: Int): Float =
         resolvedClip(action, direction)?.first?.sumOf(Keyframe::ticks)?.div(24f) ?: 0f
@@ -105,19 +73,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         return null
     }
 
-    /**
-     * 공개 메서드 `frame`
-     *
-     * ### 파라미터
-    - `action` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `direction` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `loop` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Frame?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun frame(action: Int, direction: Int, elapsed: Float, loop: Boolean = false): Frame? {
         val (clip, mirror) = resolvedClip(action, direction) ?: return null
@@ -158,16 +113,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
             fromRoot(JsonReader().parse(Gdx.files.internal("maps/battle-anime.json")))
         }
 
-        /**
-         * 공개 메서드 `load`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleSpriteTimeline`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun load(): BattleSpriteTimeline = cached
 
@@ -200,16 +145,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
                 if (event.asString() == "hit") hitEvent = true
                 event = event.next
             }
-            /**
-             * 공개 메서드 `prop`
-             *
-             * ### 파라미터
-            - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Int?`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun prop(name: String): Int? = props?.get(name)?.get(0)?.let { raw ->
                 when (raw.type()) {

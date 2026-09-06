@@ -35,16 +35,6 @@ internal data class BattlePresentationEnvironment(
 
 internal object BattlePresentationCoordinator {
 
-    /**
-     * 공개 메서드 `runtimeSnapshot`
-     *
-     * ### 파라미터
-    - `env` (`BattlePresentationEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `BattleActionSnapshot`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun runtimeSnapshot(env: BattlePresentationEnvironment): BattleActionSnapshot {
         val all = linkedMapOf<String, BattleUnit>().apply {
@@ -63,17 +53,6 @@ internal object BattlePresentationCoordinator {
         )
     }
 
-    /**
-     * 공개 메서드 `restoreRuntime`
-     *
-     * ### 파라미터
-    - `snapshot` (`BattleActionSnapshot`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattlePresentationEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun restoreRuntime(snapshot: BattleActionSnapshot, env: BattlePresentationEnvironment) {
         snapshot.states.values.forEach(BattleUnitMemento::restore)

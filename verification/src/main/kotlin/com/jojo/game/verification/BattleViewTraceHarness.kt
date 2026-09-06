@@ -7,7 +7,7 @@ import com.jojo.game.presentation.battle.render.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Canonical counterpart of tools/battle_view_source_trace_harness.js. */
+/** tools/battle_view_source_trace_harness.js에 대응하는 기준 실행기이다. */
 object BattleViewTraceHarness {
     private fun block(s: String, at: Int): String {
         val open = s[at]

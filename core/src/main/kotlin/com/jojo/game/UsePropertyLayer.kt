@@ -7,26 +7,12 @@ package com.jojo.game
  * press: releasing while the timer is pending selects the item, while the
  * timer completing opens ItemLayer and leaves this list attached.
  */
-/**
- * class  `UsePropertyLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class UsePropertyLayer(
     properties: List<Property>,
     private val onSelect: (Property?) -> Unit,
     private val onInspect: (Property) -> Unit,
 ) {
-    /**
-     * data class  `Property`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Property(
         val id: Int,
@@ -36,7 +22,7 @@ class UsePropertyLayer(
         val icon: Int,
     )
 
-    /** ItemStore.allProperty() order is presentation order in the source. */
+    /** 아이템 저장소의 순서를 화면 표시 순서로 사용한다. */
     val rows: List<Property> = properties.toList()
 
     var attached: Boolean = true
@@ -47,16 +33,6 @@ class UsePropertyLayer(
 
     private var pendingIndex: Int? = null
 
-    /**
-     * 공개 메서드 `touchStart`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touchStart(index: Int) {
         if (!attached || index !in rows.indices) return
@@ -64,16 +40,6 @@ class UsePropertyLayer(
         pendingIndex = index
     }
 
-    /**
-     * 공개 메서드 `update`
-     *
-     * ### 파라미터
-    - `delta` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun update(delta: Float) {
         if (!attached || pendingIndex == null) return
@@ -84,16 +50,6 @@ class UsePropertyLayer(
         onInspect(property)
     }
 
-    /**
-     * 공개 메서드 `touchEnd`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touchEnd(index: Int) {
         if (!attached || pendingIndex != index || index !in rows.indices) return
@@ -103,23 +59,13 @@ class UsePropertyLayer(
         onSelect(property)
     }
 
-    /**
-     * 공개 메서드 `touchCancel`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touchCancel() {
         if (!attached) return
         cancelPendingPreview()
     }
 
-    /** Both `bg/button` and full-screen `Panel_cancel` have this contract. */
+    /** 배경 버튼과 전체 화면 취소 영역의 공통 입력 규칙이다. */
     fun closeTouchEnd() {
         if (!attached) return
         cancelPendingPreview()

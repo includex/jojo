@@ -10,13 +10,6 @@ import com.jojo.game.domain.battle.BattleUnit
  * the state maps are equal: `setCharInfoBykey(h, unit, STATES, {})` still
  * inserts the unit into `h.index`, and the following `_jiesuan` focuses it.
  */
-/**
- * data class  `MagicLocalSettlementEntry`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class MagicLocalSettlementEntry(
     val targetId: String,
@@ -29,36 +22,15 @@ data class MagicLocalSettlementEntry(
     val attributeLiftRoundsAfter: Map<BattleAttribute, Int> = emptyMap(),
 )
 
-/**
- * data class  `MagicLocalSettlement`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class MagicLocalSettlement(val entries: List<MagicLocalSettlementEntry>)
 
 sealed interface TacticalActionResult {
     data object Success : TacticalActionResult
 
-    /**
-     * data class  `Rejected`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Rejected(val reason: String) : TacticalActionResult
 
-    /**
-     * data class  `Attack`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Attack(
         /** HP loss only; MPFY harm is reported exclusively by mpShieldDamage. */
@@ -116,13 +88,6 @@ sealed interface TacticalActionResult {
         val physicalPasses: List<PhysicalAttackPass> = emptyList(),
     ) : TacticalActionResult
 
-    /**
-     * data class  `Magic`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Magic(
         val name: String,
@@ -138,13 +103,6 @@ sealed interface TacticalActionResult {
         val localSettlements: List<MagicLocalSettlement> = List(passes.size) { MagicLocalSettlement(emptyList()) },
     ) : TacticalActionResult
 
-    /**
-     * data class  `Item`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Item(val name: String, val target: String, val effect: String) : TacticalActionResult
 }
@@ -152,13 +110,6 @@ sealed interface TacticalActionResult {
 /** Original property item data used by BattleScreen._usePro2. */
 data class BattlePropertyItem(val id: Int, val name: String, val itemType: Int, val value: Int)
 
-/**
- * data class  `MagicTarget`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class MagicTarget(
     val targetId: String,
@@ -218,13 +169,6 @@ data class PhysicalAttackTargetResult(
     val defeated: Boolean = false,
 )
 
-/**
- * data class  `PhysicalBackMove`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class PhysicalBackMove(
     val fromX: Int,

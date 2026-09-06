@@ -19,18 +19,6 @@ object MiniMapLayerTraceHarness {
                 fixture
             )
 
-        /**
-         * 공개 메서드 `state`
-         *
-         * ### 파라미터
-        - `layer` (`MiniMapLayer`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `callbacks` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun state(layer: MiniMapLayer, step: String, callbacks: Int): String {
             val size = layer.size?.let { "{\"width\":${it.first},\"height\":${it.second}}" } ?: "null"

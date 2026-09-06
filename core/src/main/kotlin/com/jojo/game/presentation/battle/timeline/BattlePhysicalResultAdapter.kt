@@ -4,11 +4,8 @@ import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
-/**
- * Lossless bridge from [Battle]'s eager physical result to the renderer's
- * source-ordered callback plan.  Keeping this outside BattleScreen lets the
- * calculation tests enforce `_attack2` ordering without a LibGDX window.
- */
+/** 전투 물리 결과를 원본 콜백 순서의 렌더 계획으로 변환합니다. */
+/** 공격 결과의 각 패스를 표시 콜백 호출 목록으로 변환합니다. */
 fun TacticalActionResult.Attack.toPhysicalCallbackInvocations(): List<BattlePhysicalCallbackPlan.Invocation> =
     physicalPasses.map { pass ->
         BattlePhysicalCallbackPlan.Invocation(
@@ -51,14 +48,9 @@ fun TacticalActionResult.Attack.toPhysicalCallbackInvocations(): List<BattlePhys
         )
     }
 
-/**
- * Money mutations owned by one source `_attack3` hit callback. JQFY spends
- * the struck unit's camp money, then XSJQ transfers its independently
- * recorded player/enemy deltas before the hurt animation starts.
- */
+/** 한 타격 콜백에서 발생하는 플레이어·적 자금 변화를 계산합니다. */
 internal fun PhysicalAttackTargetResult.hitCallbackEconomyDelta(
     targetIsPlayerSide: Boolean,
 ): Pair<Int, Int> =
     (playerMoneyDelta - if (targetIsPlayerSide) moneyShieldSpent else 0) to
             (enemyMoneyDelta - if (targetIsPlayerSide) 0 else moneyShieldSpent)
-

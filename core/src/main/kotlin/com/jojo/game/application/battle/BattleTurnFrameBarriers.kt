@@ -3,31 +3,11 @@ package com.jojo.game.application.battle
 internal class EmptyAiCampFrameBarrier {
     private var pending = false
 
-    /**
-     * 공개 메서드 `begin`
-     *
-     * ### 파라미터
-    - `hasActor` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun begin(hasActor: Boolean) {
         pending = !hasActor
     }
 
-    /**
-     * 공개 메서드 `yieldEntryFrame`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun yieldEntryFrame(): Boolean {
         if (!pending) return false
@@ -39,32 +19,11 @@ internal class EmptyAiCampFrameBarrier {
 internal class CommittedPlayerMoveFrameBarrier {
     private var exposed = false
 
-    /**
-     * 공개 메서드 `beginActor`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun beginActor() {
         exposed = false
     }
 
-    /**
-     * 공개 메서드 `yieldCompletionFrame`
-     *
-     * ### 파라미터
-    - `isPlayer` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `moved` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun yieldCompletionFrame(isPlayer: Boolean, moved: Boolean): Boolean {
         if (exposed || !isPlayer || !moved) return false
@@ -76,16 +35,6 @@ internal class CommittedPlayerMoveFrameBarrier {
 internal class ActionStatusFrameBarrier {
     private var settlementExposed = false
 
-    /**
-     * 공개 메서드 `beginActor`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun beginActor() {
         settlementExposed = false
@@ -99,16 +48,6 @@ internal class ActionStatusFrameBarrier {
      * are sampled in one game frame and the state edge is attributed to the
      * wrong episode.
      */
-    /**
-     * 공개 메서드 `yieldAfterCommit`
-     *
-     * ### 파라미터
-    - `hasAction` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun yieldAfterCommit(hasAction: Boolean): Boolean {
         if (settlementExposed || !hasAction) return false
@@ -120,31 +59,11 @@ internal class ActionStatusFrameBarrier {
 internal class CounterattackSettlementFrameBarrier {
     private var idleFramePending = false
 
-    /**
-     * 공개 메서드 `beginActor`
-     *
-     * ### 파라미터
-    - `hasPhysicalCounter` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun beginActor(hasPhysicalCounter: Boolean) {
         idleFramePending = hasPhysicalCounter
     }
 
-    /**
-     * 공개 메서드 `yieldIdleBeforeCommit`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun yieldIdleBeforeCommit(): Boolean {
         if (!idleFramePending) return false
@@ -168,16 +87,6 @@ internal class ScriptedMovementCampTransitionFrameBarrier {
         }
     }
 
-    /**
-     * 공개 메서드 `yieldBeforeCampTransition`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun yieldBeforeCampTransition(): Boolean {
         if (!completedMoveFramePending) return false
@@ -189,46 +98,16 @@ internal class ScriptedMovementCampTransitionFrameBarrier {
 internal class ConsecutiveNoResultFrameGate {
     private var completedInCurrentRender = false
 
-    /**
-     * 공개 메서드 `beginRender`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun beginRender() {
         completedInCurrentRender = false
     }
 
-    /**
-     * 공개 메서드 `markCompleted`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun markCompleted() {
         completedInCurrentRender = true
     }
 
-    /**
-     * 공개 메서드 `shouldYieldBefore`
-     *
-     * ### 파라미터
-    - `nextIsNoResult` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun shouldYieldBefore(nextIsNoResult: Boolean): Boolean =
         completedInCurrentRender && nextIsNoResult

@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.shared.overlay
 
-/** Behavioral implementation of registered Global104 `LoadingLayer`. */
+/** 로딩 차단 화면의 표시 상태를 관리합니다. */
 class LoadingLayer(private val flag: Int = 0) {
     var imageVisible: Boolean = flag and 3 == 0
         private set
@@ -8,7 +8,7 @@ class LoadingLayer(private val flag: Int = 0) {
         private set
     private var elapsed = 0f
 
-    /** Cocos flag 1 reveals the spinner/blocker after five scheduler seconds. */
+    /** 지연 시간이 지나면 로딩 표시를 활성화합니다. */
     fun advance(deltaSeconds: Float) {
         if (imageVisible || flag and 1 == 0) return
         elapsed += deltaSeconds.coerceAtLeast(0f)
@@ -19,32 +19,14 @@ class LoadingLayer(private val flag: Int = 0) {
     }
 }
 
-/**
- * Source Login's CHECK_REGISTER route: clear the one-shot marker, attach LoadingLayer,
- * wait for registerCheck, then detach it before handling the optional registration result.
- */
-/**
- * class  `LoginRegistrationCheckFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 로그인 등록 여부를 비동기로 확인하는 흐름입니다. */
 class LoginRegistrationCheckFlow(
     private val pending: Boolean,
     private val clearPending: () -> Unit,
     private val requestCheck: (((Boolean) -> Unit) -> Unit),
     private val onRegistered: () -> Unit = {},
 ) {
-    /**
-     * enum class  `State`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 등록 확인 흐름의 진행 상태입니다. */
     enum class State { IDLE, CHECKING, COMPLETE }
 
     var state = State.IDLE
@@ -54,17 +36,7 @@ class LoginRegistrationCheckFlow(
     var registered = false
         private set
 
-    /**
-     * 공개 메서드 `start`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 등록 확인 요청을 시작합니다. */
     fun start() {
         check(state == State.IDLE)
         if (!pending) {

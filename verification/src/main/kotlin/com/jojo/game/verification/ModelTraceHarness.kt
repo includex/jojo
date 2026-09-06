@@ -16,16 +16,6 @@ object ModelTraceHarness {
         var event = ""
         var stageName = ""
 
-        /**
-         * 공개 메서드 `setMoney`
-         *
-         * ### 파라미터
-        - `v` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun setMoney(v: Int) {
             val n = v.coerceIn(0, 9999999); if (n != property[0]) {
@@ -35,16 +25,6 @@ object ModelTraceHarness {
 
         fun stage(raw: Boolean = false) = if (raw) property[1] else property[1] shr 1
 
-        /**
-         * 공개 메서드 `load`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun load() {
             event = "e"; stageName = "s"; property[0] = 42; property[1] = 10; vars.putAll(

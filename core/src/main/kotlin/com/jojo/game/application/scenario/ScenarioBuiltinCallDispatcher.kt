@@ -5,6 +5,7 @@ import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.utils.JsonValue
 
+/** 내장 시나리오 호출에 필요한 실행 의존성을 모은다. */
 internal data class ScenarioBuiltinCallEnvironment(
     val functions: Map<String, RuntimeFunction>,
     val unhandledCalls: MutableMap<String, Int>,
@@ -13,15 +14,9 @@ internal data class ScenarioBuiltinCallEnvironment(
     val eval: (JsonValue, Frame) -> Any?,
 )
 
+/** 스크립트의 기본 내장 호출을 처리한다. */
 internal object ScenarioBuiltinCallDispatcher {
-    /**
-     * class  `Result`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 내장 호출의 계산 결과를 전달한다. */
     class Result(val value: Any?)
 
     fun dispatch(

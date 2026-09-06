@@ -3,7 +3,7 @@ package com.jojo.game
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattleStatus
 
-/** Parses tactical magic, terrain, status and effect-area data. */
+/** 전술 마법, 지형, 상태, 효과 범위 데이터를 해석한다. */
 internal class GameDataCatalogCombatDomain(tables: GameDataTableBundle) : GameDataCatalogTableDomain(tables) {
     fun magicProfile(id: Int): GameDataCatalog.MagicProfile? {
         val value = magics.getOrNull(id) ?: return null

@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/** Deterministic game rendering of the production Global130 AttributeLayer. */
+/** Global130 능력치 화면의 결정적 렌더링을 제공한다. */
 class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()
@@ -25,24 +25,14 @@ class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
         viewport.apply(); batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
         batch.draw(background, 0f, 0f, 1280f, 688f)
-        // The panel texture is only a visual fallback; semantic parity uses
-        // the exact source-coordinate event stream below.
+        // 패널은 시각 확인용이며 의미적 일치는 아래 좌표 이벤트로 검증한다.
         batch.draw(panel, 915f, 305f, 339f, 356f)
         batch.end()
         if (game.writeRenderEventLogIfRequested()) return
         game.captureFrameIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 능력치 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String {
         val l = RenderEventLog()

@@ -8,14 +8,16 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 
-/** Render-only overlay modes; the mutable AutoBattleFlow remains screen-owned. */
+/** 자동 전투 오버레이의 표시 종류입니다. */
 enum class BattleAutoOverlayKind { NONE, PROMPT, TUOGUAN }
 
+/** 자동 전투 오버레이에 표시할 상태입니다. */
 data class BattleAutoOverlayView(
     val overlay: BattleAutoOverlayKind,
     val checked: Boolean = false,
 )
 
+/** 오버레이 렌더링에 필요한 텍스처 묶음입니다. */
 data class BattleAutoOverlayAssets(
     val unitInfoLogo: Texture,
     val unitInfoBox: Texture,
@@ -25,12 +27,13 @@ data class BattleAutoOverlayAssets(
     val plate: Texture,
 )
 
-/** Stateless renderer for MsgBox4 and the entrusted-battle notice. */
+/** 자동 전투 확인창과 위임 안내를 그리는 렌더러입니다. */
 class BattleAutoOverlayRenderer(
     private val batch: SpriteBatch,
     private val labelFont: BitmapFont,
     private val assets: BattleAutoOverlayAssets,
 ) {
+    /** 현재 오버레이 상태를 화면에 그립니다. */
     fun draw(view: BattleAutoOverlayView) {
         if (view.overlay == BattleAutoOverlayKind.NONE) return
         batch.begin()
@@ -70,4 +73,3 @@ class BattleAutoOverlayRenderer(
         batch.draw(assets.plate, 613.686f, 25.894f, 261f, 83f)
     }
 }
-

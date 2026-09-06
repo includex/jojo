@@ -9,11 +9,7 @@ import com.jojo.game.domain.battle.TacticalActionResult
 import com.jojo.game.domain.battle.turn.hasPhysicalCounterPass
 import com.jojo.game.domain.scenario.PlaybackState
 
-/**
- * Runs the visible `_ai2` callback chain.  BattleScreen supplies a narrow
- * presentation port; AI resolution and model commits therefore remain in the
- * domain while this type owns the frame-by-frame callback state.
- */
+/** AI 턴의 이동·공격 콜백과 프레임별 표시 상태를 조정합니다. */
 internal class AiPresentationCoordinator(
     portFactory: (AiPresentationCoordinator) -> Port,
 ) {
@@ -64,6 +60,7 @@ internal class AiPresentationCoordinator(
         fun markNoResultCompleted()
     }
 
+    /** 지정한 진영의 AI 턴을 시작합니다. */
     fun beginCamp(camp: Faction): AiTurnResult {
         state.beginCamp(camp)
         port.finishDeathCallbacks()
@@ -89,6 +86,7 @@ internal class AiPresentationCoordinator(
         return result
     }
 
+    /** 현재 AI 턴을 한 프레임 진행합니다. */
     fun drive() {
         if (port.scriptState() != PlaybackState.COMPLETE) return
         val camp = state.activeCamp ?: return

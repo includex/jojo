@@ -43,16 +43,6 @@ internal class BattlePreparationAssets(backgroundId: Int, unitGlyphs: String) {
     val rosterFont: BitmapFont = KoreanFont.create(32, glyphs)
     val rosterNameFont: BitmapFont = KoreanFont.create(31, glyphs, 1.6f, Color.RED, Color.WHITE)
 
-    /**
-     * 공개 메서드 `avatar`
-     *
-     * ### 파라미터
-    - `id` (`Int?`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun avatar(id: Int?): Texture? {
         id ?: return null
@@ -62,16 +52,6 @@ internal class BattlePreparationAssets(backgroundId: Int, unitGlyphs: String) {
         return handle.takeIf { it.exists() }?.let(::Texture)?.linear()?.also { avatarTextures[id] = it }
     }
 
-    /**
-     * 공개 메서드 `face`
-     *
-     * ### 파라미터
-    - `headId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun face(headId: Int): Texture? {
         faceTextures[headId]?.let { return it }
@@ -79,16 +59,6 @@ internal class BattlePreparationAssets(backgroundId: Int, unitGlyphs: String) {
             ?.let(::Texture)?.linear()?.also { faceTextures[headId] = it }
     }
 
-    /**
-     * 공개 메서드 `dispose`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun dispose() {
         font.dispose()

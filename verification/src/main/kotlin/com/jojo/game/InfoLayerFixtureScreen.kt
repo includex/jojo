@@ -13,25 +13,13 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * Isolated live rendering fixture for the read-only Cocos R_00 Hall
- * InfoLayer observation.  Values are intentionally pinned to the source
- * subtree artifact; this is not a generic replacement for InfoLayer yet.
- */
-/**
- * class  `InfoLayerFixtureScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** R_00 회관의 읽기 전용 InfoLayer 상태와 닫기 동작을 검증한다. */
 
 class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeCompositionTraceProvider {
     private val requestedState = game.requestedCaptureState()
     private val skipped = requestedState == "info-layer-r00-skip"
 
-    // Both the natural full-reveal capture and the real Panel_cancel event
-    // leave the original InfoLayer in this rendered auto-close-pending state.
+    // 전체 공개 캡처와 Panel_cancel 이벤트 모두 자동 닫기 대기 상태를 남긴다.
     private val fullAutoPending = requestedState == "info-layer-r00-full-autopending" ||
             requestedState == "info-layer-r00-panel-touch"
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
@@ -65,20 +53,18 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         if (skipped) {
-            // The source SKIP listener calls _next() directly; the InfoLayer
-            // is removed before the next rendered frame.
+            // SKIP 입력은 다음 단계로 바로 이동하므로 다음 프레임 전에 제거된다.
             batch.end()
             game.captureFrameIfRequested()
             return
         }
-        // Cocos Canvas origin is its centre; source runtime Canvas is
-        // 1488.372093×800.  bg anchor=(.5,.28), local=(0,0), size=74.6×83.
+        // 원본 캔버스 중심 좌표와 배경 앵커를 LibGDX 좌표로 변환한다.
         val canvasX = 744.18605f
         val canvasY = 400f
         val bgW = if (fullAutoPending) 235.23f else 74.6f
         val bgH = 83f
         batch.draw(panel, canvasX - bgW / 2f, canvasY - bgH * .28f, bgW, bgH)
-        // Source richtext centre=(0,18.5), bounds=34.6×63, fontSize=40.
+        // 원본 richtext의 중심·범위·글꼴 크기를 유지한다.
         font.color = Color.WHITE
         val text = if (fullAutoPending) "재능의 첫 징후" else "재"
         val textWidth = if (fullAutoPending) 229.83f else 34.6f
@@ -87,16 +73,7 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
         game.captureFrameIfRequested()
     }
 
-    /**
-     * 공개 메서드 `compositionTrace`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** InfoLayer 구성 이벤트를 비교용 문자열로 반환한다. */
 
     fun compositionTrace(): String {
         val state = when (requestedState) {

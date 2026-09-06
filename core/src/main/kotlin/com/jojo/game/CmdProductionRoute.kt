@@ -1,7 +1,7 @@
 package com.jojo.game
 import com.jojo.game.presentation.shared.overlay.*
 
-/** Production state behind SettingLayer's gated other-tools action. */
+/** 설정 화면의 조건부 기타 도구 동작 상태이다. */
 class CmdProductionRoute {
     enum class State { SETTING, CMD, CLOSED }
 

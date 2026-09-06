@@ -3,90 +3,34 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.*
 
-/** Pure roster contract recovered from Hall/scene/EditLayer4. */
+/** Hall/scene/EditLayer4에서 복원한 편성 계약을 순수 상태로 표현한다. */
 class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>) {
-    /**
-     * data class  `UnitRow`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class UnitRow(val id: Int, val name: String, val leave: Boolean)
     sealed interface Effect {
         data object OpenGlobalEditor : Effect
 
-        /**
-         * data class  `OpenUnitSelector`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class OpenUnitSelector(val names: List<String>) : Effect
 
-        /**
-         * data class  `AskJoin`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class AskJoin(val id: Int, val text: String) : Effect
 
-        /**
-         * data class  `Info`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Info(val text: String) : Effect
         data object Close : Effect
 
-        /**
-         * data class  `Join`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Join(val id: Int, val camp: Int = 0, val order: Int = 0) : Effect
 
-        /**
-         * data class  `Leave`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Leave(val id: Int, val camp: Int = 255, val order: Int = 0) : Effect
 
-        /**
-         * data class  `Toast`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Toast(val text: String) : Effect
         data object Refresh : Effect
         data object OpenLearnUnitSkill : Effect
 
-        /**
-         * data class  `AskLeave`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class AskLeave(val id: Int, val text: String) : Effect
     }
@@ -95,16 +39,6 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
     var pendingUnitId: Int? = null
         private set
 
-    /**
-     * 공개 메서드 `button`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun button(tag: Int): List<Effect> = when (tag) {
         0 -> listOf(Effect.OpenGlobalEditor)
@@ -121,16 +55,6 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         else -> emptyList()
     }
 
-    /**
-     * 공개 메서드 `selectUnit`
-     *
-     * ### 파라미터
-    - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun selectUnit(id: Int): List<Effect> {
         if (id < 0) return emptyList()
@@ -143,16 +67,6 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.AskJoin(id, prompt))
     }
 
-    /**
-     * 공개 메서드 `joinAnswer`
-     *
-     * ### 파라미터
-    - `answer` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun joinAnswer(answer: Int): List<Effect> {
         val id = pendingUnitId ?: return emptyList()
@@ -161,16 +75,6 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.Join(id), Effect.Refresh)
     }
 
-    /**
-     * 공개 메서드 `tapRow`
-     *
-     * ### 파라미터
-    - `rowIndex` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun tapRow(rowIndex: Int): List<Effect> {
         val row = joined.values.elementAt(rowIndex)
@@ -178,16 +82,6 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.AskLeave(row.id, "~하게 할까요?${row.name}떠나다?"))
     }
 
-    /**
-     * 공개 메서드 `leaveAnswer`
-     *
-     * ### 파라미터
-    - `answer` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun leaveAnswer(answer: Int): List<Effect> {
         val id = pendingUnitId ?: return emptyList()
@@ -197,103 +91,35 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
         return listOf(Effect.Leave(id), Effect.Toast("${row.name}팀을 떠났습니다"), Effect.Refresh)
     }
 
-    /**
-     * 공개 메서드 `rows`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<UnitRow>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun rows(): List<UnitRow> = joined.values.toList()
 }
 
-/**
- * enum class  `EditRosterRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 enum class EditRosterRoute(val key: String) {
     DEFAULT("edit4-default"), SELECT("edit4-select");
 
     companion object {
-        /**
-         * 공개 메서드 `parse`
-         *
-         * ### 파라미터
-        - `state` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `EditRosterRoute?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun parse(state: String?): EditRosterRoute? = entries.firstOrNull { "hall-${it.key}-fixture" == state }
     }
 }
 
-/** EDIT-gated HallMenu tag8 hand-off; kept separate from Helper's tag9 route. */
+/** EDIT 조건의 HallMenu tag8 전달 경로를 Helper tag9와 분리해 표현한다. */
 class HallEditRosterRoute(private val editEnabled: Boolean) {
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(tag: Int, touchEnd: Boolean): Boolean = touchEnd && editEnabled && tag == 8
 }
 
-/** Actual HallMenu button8 -> Hall15 renderer contract. SelectList adds no visible draws in its initial source frame. */
+/** HallMenu button8에서 Hall15로 이어지는 렌더 계약을 표현한다. */
 object EditRosterRenderEvents {
     private val alpha = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`EditRosterRoute`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(route: EditRosterRoute): String {
         val log = RenderEventLog()
         val phase = "hall-${route.key}-stable"
 
-        /**
-         * 공개 메서드 `d`
-         *
-         * ### 파라미터
-        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `blend` (`Any=listOf(770,771`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun d(
             layer: String,
@@ -385,13 +211,6 @@ object EditRosterRenderEvents {
             "vline"
         )
         d("EditLayer4", "Canvas/Layer/bg/scrollview0", "sliced-sprite", 433.686f, 167f, 621f, 488f, "box5")
-        /**
-         * data class  `Row`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Row(
             val id: String,
@@ -431,13 +250,6 @@ object EditRosterRenderEvents {
             d("EditLayer4", "$p/label1", "label", row.nx, row.y + 4.8f, row.nw, 50.4f, text = row.name, blend = alpha)
             d("EditLayer4", "$p/label2", "label", 914.286f, row.y + 4.8f, 103.8f, 50.4f, text = "참전함", blend = alpha)
         }
-        /**
-         * data class  `Button`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Button(
             val i: Int,

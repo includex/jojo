@@ -2,7 +2,7 @@ package com.jojo.game.domain.campaign
 
 import com.jojo.game.GameDataCatalog
 
-/** Applies battle and scripted EXP gains to equipment owned by an inventory repository. */
+/** 인벤토리 장비에 전투 및 스크립트 경험치를 적용한다. */
 class CampaignEquipmentProgression internal constructor(
     private val equipmentRepository: CampaignEquipmentRepository,
 ) {
@@ -24,7 +24,7 @@ class CampaignEquipmentProgression internal constructor(
         return applyExperience(unitId, current, gain, slot, data, limitGainToRemaining = false)
     }
 
-    /** Applies the skill amount passed by the battle restore commands. */
+    /** 전투 복원 명령이 전달한 장비 경험치를 적용한다. */
     fun grantExperienceAmount(
         unitId: Int,
         amount: Int,
@@ -60,7 +60,7 @@ class CampaignEquipmentProgression internal constructor(
         val filled = if (limitGainToRemaining) oldExperience + gain else (oldExperience + gain).coerceAtMost(limit)
         val leveledUp = filled >= limit && oldLevel < data.equipmentLevelLimit(itemId)
         val newLevel = if (leveledUp) oldLevel + 1 else oldLevel
-        // At maximum level the filled bar remains visible; otherwise a level-up resets it.
+        // 최고 레벨에서는 누적 경험치를 유지하고, 그 외 레벨업 시에는 초기화한다.
         val newExperience = if (leveledUp && newLevel < data.equipmentLevelLimit(itemId)) 0 else filled
         equipmentRepository.storeEquipment(
             unitId,

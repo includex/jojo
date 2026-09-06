@@ -8,16 +8,6 @@ object LoadGameTraceHarness {
     private class J(private val s: String) {
         var p = 0
 
-        /**
-         * 공개 메서드 `v`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Any?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun v(): Any {
             w(); return when (s[p]) {
@@ -29,16 +19,6 @@ object LoadGameTraceHarness {
             }
         }
 
-        /**
-         * 공개 메서드 `w`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun w() {
             while (p < s.length && s[p].isWhitespace()) p++
@@ -49,16 +29,6 @@ object LoadGameTraceHarness {
             val x = p; while (s[p] != '"') p++; return s.substring(x, p++)
         }
 
-        /**
-         * 공개 메서드 `o`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Map<String,Any?>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun o(): Map<String, Any?> {
             p++
@@ -69,16 +39,6 @@ object LoadGameTraceHarness {
             }; p++; return r
         }
 
-        /**
-         * 공개 메서드 `a`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `List<Any?>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun a(): List<Any?> {
             p++
@@ -89,16 +49,6 @@ object LoadGameTraceHarness {
             }; p++; return r
         }
 
-        /**
-         * 공개 메서드 `n`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun n(): Int {
             val x = p; while (p < s.length && (s[p].isDigit() || s[p] == '-')) p++; return s.substring(x, p).toInt()
@@ -142,16 +92,6 @@ object LoadGameTraceHarness {
         val l = LoadGameLayer(repo); l.onCreate()
         val trace = mutableListOf<String>()
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun snap(step: String) {
             val v = l.view()
@@ -165,16 +105,6 @@ object LoadGameTraceHarness {
             ) { q(it) }; events.clear(); trace += "{\"step\":${q(step)},\"page\":${v.page},\"rows\":$rows,\"toggles\":${v.pageTogglesVisible},\"attached\":${v.attached},\"confirmation\":${v.confirmation?.index ?: "null"},\"events\":$es}"
         }
 
-        /**
-         * 공개 메서드 `fire`
-         *
-         * ### 파라미터
-        - `raw` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun fire(raw: String) {
             val (t, e) = raw.split(':')

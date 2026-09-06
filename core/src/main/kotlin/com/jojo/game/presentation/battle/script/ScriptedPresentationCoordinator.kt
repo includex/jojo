@@ -2,7 +2,7 @@ package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
 
-/** Coordinates timed script presentation requests and their callback effects. */
+/** 시간 제한이 있는 스크립트 표시 요청과 콜백 효과를 조정합니다. */
 internal class ScriptedPresentationCoordinator(
     private val timeline: ScriptPresentationTimeline,
     private val port: Port,
@@ -30,6 +30,7 @@ internal class ScriptedPresentationCoordinator(
         fun statusTarget(values: List<Map<String, Any?>>): Target?
     }
 
+    /** 현재 시각에 맞춰 효과를 처리하고 새 요청을 수락합니다. */
     fun drive() {
         val advance = timeline.advance(port.now(), port.modalActive())
         advance.effects.forEach { effect ->

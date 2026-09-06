@@ -2,7 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.domain.campaign.*
 
-/** Parses item, shop, equipment-growth and script-equipment data. */
+/** 아이템, 상점, 장비 성장, 스크립트 장비 데이터를 해석한다. */
 internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : GameDataCatalogTableDomain(tables) {
     fun equipmentProfile(id: Int): GameDataCatalog.EquipmentProfile? {
         val value = items.getOrNull(id) ?: return null

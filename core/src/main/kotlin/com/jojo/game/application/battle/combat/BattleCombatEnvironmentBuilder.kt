@@ -63,18 +63,6 @@ internal data class BattleCombatEnvironmentContext(
  */
 internal object BattleCombatEnvironmentBuilder {
 
-    /**
-     * 공개 메서드 `statusDuration`
-     *
-     * ### 파라미터
-    - `status` (`BattleStatus`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `statusRoundFor` (`(BattleStatus`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun statusDuration(status: BattleStatus, unit: BattleUnit, statusRoundFor: (BattleStatus) -> Int): Int = when {
         !unit.isPlayerSide() && status == BattleStatus.CONFUSION -> 1
@@ -101,16 +89,6 @@ internal object BattleCombatEnvironmentBuilder {
         return speech.texts[index]
     }
 
-    /**
-     * 공개 메서드 `buildMagicEnvironment`
-     *
-     * ### 파라미터
-    - `ctx` (`BattleCombatEnvironmentContext`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `MagicEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun buildMagicEnvironment(ctx: BattleCombatEnvironmentContext): MagicEnvironment = MagicEnvironment(
         probabilityResolver = ctx.probabilityResolver,
@@ -134,16 +112,6 @@ internal object BattleCombatEnvironmentBuilder {
         onDefeat = ctx.onDefeat,
     )
 
-    /**
-     * 공개 메서드 `buildPhysicalTargetEnvironment`
-     *
-     * ### 파라미터
-    - `ctx` (`BattleCombatEnvironmentContext`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `PhysicalTargetEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun buildPhysicalTargetEnvironment(ctx: BattleCombatEnvironmentContext): PhysicalTargetEnvironment =
         PhysicalTargetEnvironment(
@@ -166,16 +134,6 @@ internal object BattleCombatEnvironmentBuilder {
             applyProperty = ctx.applyProperty,
         )
 
-    /**
-     * 공개 메서드 `buildPhysicalCombatEnvironment`
-     *
-     * ### 파라미터
-    - `ctx` (`BattleCombatEnvironmentContext`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `PhysicalCombatEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun buildPhysicalCombatEnvironment(ctx: BattleCombatEnvironmentContext): PhysicalCombatEnvironment {
         val targetEnv = buildPhysicalTargetEnvironment(ctx)

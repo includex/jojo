@@ -11,12 +11,7 @@ import com.jojo.game.domain.battle.settlement.ResolvedBattleReward
 import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
 import com.jojo.game.domain.scenario.PlaybackState
 
-/**
- * Owns the callback-driven result, reward and equipment-upgrade state.
- * Campaign writes are performed by the port before the corresponding modal is
- * published; this keeps the source ordering (mutation -> layer -> callback)
- * explicit and testable without leaking flow state into BattleScreen.
- */
+/** 전투 결과·보상·장비 강화 흐름과 콜백 순서를 조정합니다. */
 internal class BattleOutcomePresentationCoordinator(private val port: Port) {
     enum class ResultFlow { NONE, LOSE_SCENE, WIN_SAVE_PROMPT }
 
@@ -80,6 +75,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
     val rewardActive: Boolean get() = rewardFlow != null
     val itemUpgradeActive: Boolean get() = itemUpgradeFlow != null
 
+    /** 전투 결과에 따라 보상, 승리 저장 또는 패배 화면으로 진행합니다. */
     fun continueAfterOutcome() {
         when (port.visibleOutcome()) {
             BattleOutcome.PLAYER_VICTORY -> {
@@ -99,6 +95,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         }
     }
 
+    /** 승리 후 저장 확인창을 엽니다. */
     fun openVictorySavePrompt() {
         if (winPromptActive || postBattleSaveLayer || port.routeCompleted()) return
         port.finishTrace()
@@ -106,6 +103,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         port.showVictoryPrompt()
     }
 
+    /** 승리 저장 확인 결과를 처리합니다. */
     fun answerVictorySavePrompt(answer: Int) {
         resultFlow = ResultFlow.NONE
         if (answer == 0) {
@@ -114,6 +112,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         } else finishVictoryRoute()
     }
 
+    /** 승리 처리를 완료하고 다음 시나리오로 이동합니다. */
     fun finishVictoryRoute() {
         if (postBattleSaveLayer) postBattleSaveLayer = false
         val next = port.nextScenario()
@@ -121,6 +120,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         port.showNextScenario(next)
     }
 
+    /** 대기 중인 보상 요청이 있으면 보상 흐름을 시작합니다. */
     fun openRewardRequestIfNeeded() {
         if (rewardFlow != null) return
         val resolved = port.rewardRequest() ?: return
@@ -128,6 +128,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         if (rewardFlow?.complete == true) advanceRewardFlow()
     }
 
+    /** 현재 보상 흐름을 한 단계 진행합니다. */
     fun advanceRewardFlow() {
         val flow = rewardFlow ?: return
         flow.advance()
@@ -139,6 +140,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         if (postBattleSceneStarted && !port.scriptIsBlocked() && rewardFlow == null) openVictorySavePrompt()
     }
 
+    /** 자연 전투 종료 조건을 확인하고 후속 장면을 진행합니다. */
     fun driveNaturalBattleCompletion() {
         val transitionBusy = port.transitionBusy()
         if (!port.naturalTransitionAllowed() || port.routeCompleted() ||
@@ -159,6 +161,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         }
     }
 
+    /** 전투 보상에 따른 장비 강화창을 필요할 때 엽니다. */
     fun openEquipmentUpgradeIfNeeded() {
         if (itemUpgradeFlow != null || !port.equipmentUpgradeAllowed()) return
         val details = port.campaignEquipmentUpgrade() ?: return
@@ -167,6 +170,7 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         ) { completeItemUpgrade() }
     }
 
+    /** 정산 결과를 기반으로 장비 강화창을 엽니다. */
     fun openSettlementItemUpgrade(request: CampaignEquipmentExperienceResult) {
         check(itemUpgradeFlow == null) { "overlapping settlement ItemUpgradeLayer" }
         val details = port.settlementUpgrade(request)
@@ -181,14 +185,17 @@ internal class BattleOutcomePresentationCoordinator(private val port: Port) {
         port.itemUpgradeCompleted()
     }
 
+    /** 현재 장비 강화창을 취소합니다. */
     fun closeItemUpgrade() {
         itemUpgradeFlow?.panelCancelTouchEnd()
     }
 
+    /** 장비 강화 경로가 설치되었음을 기록합니다. */
     fun markItemUpgradeRouteInstalled() {
         itemUpgradeRouteInstalled = true
     }
 
+    /** 패배 장면 흐름으로 전환합니다. */
     fun enterLoseScene() {
         if (loseSceneActive) return
         resultFlow = ResultFlow.LOSE_SCENE

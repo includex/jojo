@@ -3,8 +3,9 @@ package com.jojo.game.presentation.battle
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.domain.battle.Faction
 
-/** Exact static-data branch of Model.fAvatarGroup, shared by game and fixtures. */
+/** 전투 캐릭터와 진영에 맞는 아바타 번호를 계산합니다. */
 object BattleAvatarResolver {
+    /** 캐릭터·직위·무기·진영 정보를 원본 아바타 선택 규칙으로 변환합니다. */
     fun resolve(
         data: GameDataCatalog,
         characterId: Int,
@@ -27,7 +28,7 @@ object BattleAvatarResolver {
             Faction.PLAYER -> 0
             Faction.FRIEND -> 1
             Faction.ENEMY -> 2
-            // Model.fAvatarGroup clamps every camp above ENEMY to ENEMY.
+            // 원본 규칙은 적 진영보다 큰 진영을 적 진영으로 취급합니다.
             Faction.REINFORCEMENTS -> 2
         }
         return posts * 3 + 1 + camp

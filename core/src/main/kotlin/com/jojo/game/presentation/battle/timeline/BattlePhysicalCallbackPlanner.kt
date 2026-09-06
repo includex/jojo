@@ -4,8 +4,9 @@ import com.jojo.game.presentation.battle.timeline.BattlePhysicalCallbackPlan.Inv
 import com.jojo.game.presentation.battle.timeline.BattlePhysicalCallbackPlan.InvocationKind
 import com.jojo.game.presentation.battle.timeline.BattlePhysicalCallbackPlan.Step
 
-/** Coordinates physical passes, the optional magic counter, and final settlement. */
+/** 물리 공격 패스와 마법 반격·정산 순서를 계획합니다. */
 internal object BattlePhysicalCallbackPlanner {
+    /** 공격 결과를 원본 콜백 순서의 단계 목록으로 변환합니다. */
     fun build(input: BattlePhysicalCallbackPlan.Input): List<Step> = buildList {
         val firstCounter = input.invocations.indexOfFirst { invocation -> invocation.isCounter() }
             .let { index -> if (index < 0) input.invocations.size else index }
@@ -14,7 +15,7 @@ internal object BattlePhysicalCallbackPlanner {
             BattlePhysicalTargetCallbackPlanner.append(this, invocation)
         }
         input.counterMagic?.let { add(Step.CounterMagicUntilComplete(it)) }
-        // A successful CLFJ call suppresses physical counters in `_attack6`.
+        // 성공한 CLFJ 호출은 원본 _attack6의 물리 반격을 생략합니다.
         if (input.counterMagic == null) {
             input.invocations.drop(firstCounter).forEach { invocation ->
                 BattlePhysicalTargetCallbackPlanner.append(this, invocation)
@@ -27,8 +28,9 @@ internal object BattlePhysicalCallbackPlanner {
         kind == InvocationKind.COUNTER || kind == InvocationKind.COUNTER_FOLLOW_UP
 }
 
-/** Builds one `_attack2` pass, preserving the sequential `_attack3` target callbacks. */
+/** 하나의 물리 공격 패스와 대상별 콜백 순서를 구성합니다. */
 internal object BattlePhysicalTargetCallbackPlanner {
+    /** 공격 대상별 피해·방어·정산 단계를 추가합니다. */
     fun append(steps: MutableList<Step>, invocation: Invocation) {
         steps += Step.AttackUntilHit(invocation.kind, invocation.attackerId)
         invocation.targets.forEach { target -> appendTarget(steps, invocation, target) }

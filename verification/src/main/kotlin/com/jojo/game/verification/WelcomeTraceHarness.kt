@@ -5,34 +5,14 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Direct lifecycle implementation of recovered ui/Welcome.js. */
+/** 복원된 ui/Welcome.js의 화면 전환 수명 주기를 재현한다. */
 private class WelcomeFlow {
     val routes = mutableListOf<List<Any>>()
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 시작 시 로그인 화면으로 이동한다. */
     fun onCreate() = replaceScene("LOGIN", 1)
 
-    /**
-     * 공개 메서드 `onEvent`
-     *
-     * ### 파라미터
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 입력 이벤트에 따라 로그인 화면을 다시 연다. */
     fun onEvent(event: Int) {
         if (event == 3 || event == 5) replaceScene("LOGIN", 1)
     }
@@ -42,13 +22,7 @@ private class WelcomeFlow {
     }
 }
 
-/**
- * object  `WelcomeTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** Welcome 흐름을 입력 픽스처와 비교하는 실행기이다. */
 
 object WelcomeTraceHarness {
     private fun routes(v: List<List<Any>>) = v.joinToString(",", "[", "]") { "[\"${it[0]}\",${it[1]}]" }

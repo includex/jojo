@@ -10,7 +10,7 @@ import com.jojo.game.domain.campaign.*
 import com.jojo.game.application.scenario.battle.ScenarioStageBattleAccess
 import com.jojo.game.application.scenario.battle.ScenarioStageBattleSetup
 
-/** Minimal LibGDX-side replacement for the scenario-visible Stage state. */
+/** 시나리오가 사용하는 최소한의 무대 상태를 제공한다. */
 class ScenarioStage private constructor(
     private val campaign: CampaignState,
     private val battleSetup: ScenarioStageBattleSetup,
@@ -26,7 +26,7 @@ class ScenarioStage private constructor(
     private val movementCoordinator = ScenarioStageMovementCoordinator()
     private val presentationCoordinator = ScenarioStagePresentationCoordinator()
     private val fightCoordinator = ScenarioStageFightCoordinator()
-    // --- Scenario-local properties ---
+    // --- 시나리오 전용 상태 ---
     var backgroundId: Int = 0; private set
     var backgroundVariant: Int = 0; private set
     var eventName: String = ""; private set
@@ -53,7 +53,7 @@ class ScenarioStage private constructor(
     val joinedEquipment = linkedMapOf<Int, ScenarioJoinEquipment>()
     val unitAttributes: MutableMap<Int, MutableMap<Int, Int>> get() = campaign.unitAttributes
 
-    // --- Simple setters ---
+    // --- 단순 설정 함수 ---
     fun clearUnits() = unitRegistry.clearUnits()
     fun setMenuVisible(visible: Boolean) {
         menuVisible = visible
@@ -83,7 +83,7 @@ class ScenarioStage private constructor(
         section = number to name
     }
 
-    // --- Battle setup adapters whose public Stage shape includes other state ---
+    // --- 다른 상태를 포함하는 공개 Stage 형태의 전투 설정 어댑터 ---
     fun getItem(itemId: Int, suppliedCountOrLevel: Int = 0, addToInventory: Boolean = true): String =
         battleSetup.getItem(itemId, suppliedCountOrLevel, addToInventory, acquiredItems)
 
@@ -97,7 +97,7 @@ class ScenarioStage private constructor(
 
     fun jumpScene(target: Int) = battleSetup.jumpScene(target, { sceneJumpTarget = it }, { sceneJumpStage = it })
     fun resetLocalVariables() = Unit
-    // --- Presentation coordinator delegated methods ---
+    // --- 표시 조정자 위임 함수 ---
     fun requestUnitHide(unitId: Int, hideType: Int) = presentationCoordinator.requestUnitHide(unitId, hideType)
     fun consumeUnitHideRequest(): ScenarioUnitHideRequest? = presentationCoordinator.consumeUnitHideRequest()
     fun requestRectUnitHide(x1: Int, y1: Int, x2: Int, y2: Int, camp: Int, hideType: Int): Int =
@@ -186,7 +186,7 @@ class ScenarioStage private constructor(
     fun consumeScriptedUnitActions(): List<ScriptedUnitAction> = presentationCoordinator.consumeScriptedUnitActions()
     fun consumeScriptedUnitDirections(): List<Pair<Int, Int>> = presentationCoordinator.consumeScriptedUnitDirections()
 
-    // --- Fight coordinator delegated methods ---
+    // --- 전투 조정자 위임 함수 ---
     fun initFight() = fightCoordinator.initFight()
     fun startFight(firstUnitId: Int, secondUnitId: Int, backgroundIndex: Int): Long =
         fightCoordinator.startFight(firstUnitId, secondUnitId, backgroundIndex)
@@ -197,7 +197,7 @@ class ScenarioStage private constructor(
     fun effectSound(soundId: Int, mode: Int = 1) = fightCoordinator.effectSound(soundId, mode)
     fun consumeSoundEffects(): List<ScenarioSoundEffect> = fightCoordinator.consumeSoundEffects()
 
-    // --- Movement coordinator delegated methods ---
+    // --- 이동 조정자 위임 함수 ---
     fun enableBattleMovementTimeline() {
         movementCoordinator.battleMovementTimeline = true
     }
@@ -218,7 +218,7 @@ class ScenarioStage private constructor(
     fun updateAnimations(delta: Float) = movementCoordinator.updateAnimations(delta, units)
     fun finishAnimations() = movementCoordinator.finishAnimations(units)
 
-    // --- Unit registry delegated methods ---
+    // --- 유닛 등록부 위임 함수 ---
     fun createBattleUnits(faction: ScenarioUnitFaction, entries: List<Any?>) =
         unitRegistry.createBattleUnits(faction, entries, campaign)
 
@@ -252,7 +252,7 @@ class ScenarioStage private constructor(
     fun setUnitDirection(id: Int, direction: Int) =
         unitRegistry.setUnitDirection(id, direction) { presentationCoordinator.scriptedUnitDirections += it }
 
-    // --- Command dispatch ---
+    // --- 명령 분배 ---
     fun apply(command: ScenarioCommand) {
         when (command) {
             is ScenarioCommand.LoadBackground -> {

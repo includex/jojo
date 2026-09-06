@@ -5,7 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin execution half of the recovered CmdLayer feature/store side-effect fixture. */
+/** 복원된 CmdLayer 기능과 저장 부수효과 픽스처의 Kotlin 실행부이다. */
 object CmdLayerTraceHarness {
     private data class Case(
         val name: String,
@@ -93,18 +93,7 @@ object CmdLayerTraceHarness {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `l` (`CmdLayer`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** CmdLayer의 현재 상태를 JSON 스냅샷으로 만든다. */
         fun snap(l: CmdLayer, step: String): String {
             val fields = linkedMapOf<String, Any?>(
                 "step" to step,

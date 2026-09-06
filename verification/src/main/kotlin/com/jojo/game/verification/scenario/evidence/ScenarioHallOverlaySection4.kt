@@ -17,16 +17,6 @@ internal fun appendFixture4(writer: ScenarioHallOverlayEventWriter) = with(write
                     else -> "공격력 +10\n없음"
                 }
 
-                /**
-                 * 공개 메서드 `measuredWidth`
-                 *
-                 * ### 파라미터
-                - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Float`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun measuredWidth(value: String): Float =
                     value.count { it != ' ' } * 27.68f + value.count { it == ' ' } * 8.89f

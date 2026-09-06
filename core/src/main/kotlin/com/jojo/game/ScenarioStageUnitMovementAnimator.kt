@@ -8,7 +8,7 @@ import com.jojo.game.domain.battle.BattleUnitMoveTimeline
 
 import com.jojo.game.presentation.scenario.TacticalUnit
 
-/** Applies movement plans and advances their Hall/Battle visual timelines. */
+/** 이동 계획을 적용하고 홀·전투 화면의 이동 연출을 진행한다. */
 internal class ScenarioStageUnitMovementAnimator {
     fun begin(
         unit: TacticalUnit,

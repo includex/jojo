@@ -4,39 +4,28 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.audio.Sound
 
-/** Plays the source game's Cocos sound identifiers from the extracted MP3 assets. */
+/** 추출한 MP3 자산으로 원본 게임의 사운드 식별자를 재생한다. */
 class GameAudioPlayer {
-    // Several extracted source MP3s use an encoder stream that the desktop
-    // JLayer backend rejects during OpenAL's later update callback.  That
-    // exception otherwise terminates the render loop.  Audio can be enabled
-    // explicitly once the source streams are transcoded/verified; visuals
-    // and battle state must never depend on a decoder crash.
+    /** 검증되지 않은 오디오 디코더 오류가 렌더링을 중단하지 않도록 하는 재생 활성화 여부다. */
     private val enabled = System.getProperty("jojo.audio", "false").toBoolean()
+    /** 현재 재생 중인 배경음 식별자다. */
     private var playingBackgroundId: Int? = null
+    /** 현재 배경음 재생기다. */
     private var background: Music? = null
+    /** 효과음 식별자별로 재사용하는 사운드 자원이다. */
     private val effects = mutableMapOf<Int, Sound>()
 
-    /** Cocos keeps a playback handle even for one-shot effects so a later stage.effectSound(..., 0) can stop it. */
+    /** 나중의 중지 요청을 처리하기 위해 효과음 재생 핸들을 보관한다. */
     private val activeEffects = mutableMapOf<Int, Long>()
 
-    /**
-     * 공개 메서드 `sync`
-     *
-     * ### 파라미터
-    - `stage` (`ScenarioStage`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 시나리오 단계의 배경음과 대기 중인 효과음을 재생 상태에 반영한다. */
     fun sync(stage: ScenarioStage) {
         if (!enabled) return
         if (playingBackgroundId != stage.backgroundSound) playBackground(stage.backgroundSound)
         stage.consumeSoundEffects().forEach { playEffect(it.soundId, it.mode) }
     }
 
-    /** Direct BattleScreen sound path (attacks, damage and Meff animations). */
+    /** 전투 화면의 공격·피해·효과 애니메이션에 연결된 효과음을 재생한다. */
     fun playBattleEffect(soundId: Int) {
         if (enabled) playEffect(soundId, 1)
     }
@@ -80,17 +69,7 @@ class GameAudioPlayer {
         else -> "audio/Se${soundId.toString().padStart(2, '0')}.mp3"
     }
 
-    /**
-     * 공개 메서드 `dispose`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 재생 중인 오디오 자원을 중지하고 해제한다. */
     fun dispose() {
         background?.dispose()
         effects.values.forEach(Sound::dispose)

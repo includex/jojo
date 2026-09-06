@@ -4,14 +4,7 @@ import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
 
-/**
- * class  `ScenarioPlayback`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 입력 대기가 필요한 시나리오 명령을 순서대로 재생한다. */
 class ScenarioPlayback(val timeline: ScenarioTimeline) {
     val stage = ScenarioStage()
     var state: PlaybackState = PlaybackState.COMPLETE
@@ -30,66 +23,26 @@ class ScenarioPlayback(val timeline: ScenarioTimeline) {
         runUntilInput()
     }
 
-    /**
-     * 공개 메서드 `advanceDialogue`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 대사를 닫고 다음 입력 지점까지 진행한다. */
     fun advanceDialogue() {
         check(state == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
         currentDialogue = null
         runUntilInput()
     }
 
-    /**
-     * 공개 메서드 `selectPrevious`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 선택지를 이전 항목으로 순환한다. */
     fun selectPrevious() {
         val options = currentChoice?.options ?: return
         selectedChoice = Math.floorMod(selectedChoice - 1, options.size)
     }
 
-    /**
-     * 공개 메서드 `selectNext`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 선택지를 다음 항목으로 순환한다. */
     fun selectNext() {
         val options = currentChoice?.options ?: return
         selectedChoice = Math.floorMod(selectedChoice + 1, options.size)
     }
 
-    /**
-     * 공개 메서드 `confirmChoice`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 선택지를 확정하고 재생을 마친다. */
     fun confirmChoice() {
         check(state == PlaybackState.CHOICE) { "대기 중인 선택지가 없습니다." }
         chosenOption = currentChoice!!.options[selectedChoice]

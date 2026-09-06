@@ -9,32 +9,11 @@ package com.jojo.game
  * has a stable post-create render phase; render parity belongs to the Login
  * scene reached by the emitted request.
  */
-/**
- * class  `TerminalSceneFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class TerminalSceneFlow(private val kind: Kind) {
-    /**
-     * enum class  `Kind`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Kind { WELCOME, END }
 
-    /**
-     * data class  `SceneRoot`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class SceneRoot(
         val scene: String,
@@ -43,13 +22,6 @@ class TerminalSceneFlow(private val kind: Kind) {
         val authoredDrawables: List<Drawable>,
     )
 
-    /**
-     * data class  `Drawable`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Drawable(
         val path: String,
@@ -58,13 +30,6 @@ class TerminalSceneFlow(private val kind: Kind) {
         val assetFrame: String,
     )
 
-    /**
-     * data class  `ReplaceScene`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class ReplaceScene(val scene: String = "Login", val flag: Int? = null)
 
@@ -79,10 +44,10 @@ class TerminalSceneFlow(private val kind: Kind) {
         Kind.END -> SceneRoot(scene = "End", authoredDrawables = emptyList())
     }
 
-    /** UIScene.onCreate; this happens during activation, before a stable draw. */
+    /** 장면 활성화 시 안정적인 첫 화면 전에 생성 처리를 실행한다. */
     fun onCreate() = replaceLogin()
 
-    /** Source UI event phase values: 3=touch/click release, 5=keyboard back. */
+    /** UI 이벤트 단계 값 중 3은 입력 해제, 5는 뒤로가기를 뜻한다. */
     fun onEvent(phase: Int) {
         when (kind) {
             Kind.WELCOME -> if (phase == 3 || phase == 5) replaceLogin()
@@ -90,22 +55,12 @@ class TerminalSceneFlow(private val kind: Kind) {
         }
     }
 
-    /**
-     * 공개 메서드 `drainRequests`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<ReplaceScene>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun drainRequests(): List<ReplaceScene> = emitted.toList().also { emitted.clear() }
 
     private fun replaceLogin() {
-        // Welcome explicitly supplies flag=1; End calls the one-argument
-        // overload and therefore preserves the absent/default flag.
+        // 환영 화면은 flag=1을 명시하고 종료 화면은 인자 하나짜리 호출로
+        // 생략된 기본 플래그를 유지한다.
         emitted += ReplaceScene(flag = if (kind == Kind.WELCOME) 1 else null)
     }
 }

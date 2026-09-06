@@ -2,7 +2,7 @@ package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
 
-/** Owns the callback-sensitive lifetime of scripted battle highlights and item pickup effects. */
+/** 스크립트 강조 표시와 아이템 획득 효과의 생명주기를 관리합니다. */
 internal class ScriptPresentationTimeline {
     enum class Phase { TIMED, ITEM_ACTION, ITEM_ICON, ITEM_MODAL }
 
@@ -26,10 +26,13 @@ internal class ScriptPresentationTimeline {
 
     private var active: Snapshot? = null
 
+    /** 현재 활성화된 표시 요청의 스냅샷을 반환합니다. */
     fun snapshot(): Snapshot? = active
 
+    /** 활성화된 표시 요청이 있는지 반환합니다. */
     fun isActive(): Boolean = active != null
 
+    /** 일반 시간 제한 표시를 시작합니다. */
     fun startTimed(
         request: ScenarioScriptPresentationRequest,
         now: Float,
@@ -40,6 +43,7 @@ internal class ScriptPresentationTimeline {
         active = Snapshot(request, Phase.TIMED, now, now + duration, battleUnitId)
     }
 
+    /** 아이템 획득 표시 흐름을 시작합니다. */
     fun startItem(
         request: ScenarioScriptPresentationRequest.GetItem,
         now: Float,
@@ -50,6 +54,7 @@ internal class ScriptPresentationTimeline {
         active = Snapshot(request, Phase.ITEM_ACTION, now, now + actionDuration, battleUnitId)
     }
 
+    /** 현재 시각에 맞춰 표시 단계와 후속 효과를 진행합니다. */
     fun advance(now: Float, modalActive: Boolean): Advance {
         val current = active ?: return Advance(emptyList(), acceptsNewRequest = true)
         return when (current.phase) {

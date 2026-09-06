@@ -6,10 +6,12 @@ import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.campaign.CampaignTalent
 import java.util.Base64
 
-/** Encodes and restores the mutable runtime portion of a campaign save. */
+/** 캠페인 저장 데이터에 포함되는 런타임 상태를 직렬화하고 복원한다. */
 internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
+    /** 현재 캠페인 런타임 상태를 Base64 JSON으로 인코딩한다. */
     fun encode(): String = Base64.getEncoder().encodeToString(runtimeJson().toByteArray(Charsets.UTF_8))
 
+    /** 손상되거나 형식이 다른 입력은 무시하고 저장된 런타임 상태를 적용한다. */
     fun restore(encoded: String) {
         val json = runCatching { String(Base64.getDecoder().decode(encoded), Charsets.UTF_8) }.getOrNull() ?: return
         val root = runCatching { JsonReader().parse(json) }.getOrNull() ?: return

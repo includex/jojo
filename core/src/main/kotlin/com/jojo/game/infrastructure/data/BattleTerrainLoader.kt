@@ -4,7 +4,9 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 
+/** 원본 육각형 맵 JSON을 전투 지형 모델로 변환한다. */
 object BattleTerrainLoader {
+    /** 맵 인덱스에 해당하는 지형을 읽고 크기 일관성을 검증한다. */
     fun load(mapIndex: Int): BattleTerrainGrid {
         val file = Gdx.files.internal("maps/hexmaps/$mapIndex.json")
         require(file.exists()) { "원본 Hexzmap이 없습니다: $mapIndex" }

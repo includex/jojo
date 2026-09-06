@@ -4,7 +4,7 @@ import com.jojo.game.WinConditionsLayer
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin half of the source/game isolated layer trace contract. */
+/** 원본과 게임의 격리 레이어 추적 계약을 실행한다. */
 object LayerTraceDump {
     @JvmStatic fun main(args: Array<String>) {
         require(args.size == 2) { "usage: LayerTraceDump fixture.json output.json" }

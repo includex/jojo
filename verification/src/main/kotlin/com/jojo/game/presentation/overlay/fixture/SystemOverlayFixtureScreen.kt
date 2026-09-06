@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** Reusable global system-overlay renderer. */
+/** 공용 시스템 오버레이를 재사용 가능한 형태로 렌더링한다. */
 class SystemOverlayRenderer {
 
     data class MsgBox(val text: String, val flag: Int)
@@ -291,7 +291,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
     }
 }
 
-/** Registered Global100 prefab oracle; recovered source has no production caller. */
+/** 호출 경로가 복원되지 않은 Global100 프리팹의 검증용 기준 구현이다. */
 private class ProgressRenderOracle {
     var progress = 0f
         private set

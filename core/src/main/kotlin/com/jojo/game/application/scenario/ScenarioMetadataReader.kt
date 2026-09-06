@@ -8,37 +8,9 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 
-/**
- * Reads the JSON AST generated directly from each restored Python 3.9 source
- * file. This avoids fragile line parsing and keeps the original .py files in
- * the application bundle as the source of truth.
- */
-/**
- * object  `ScenarioMetadataReader`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 복원된 시나리오 소스의 JSON AST에서 실행 메타데이터를 읽는다. */
 object ScenarioMetadataReader {
-    /**
-     * Returns the last authored HallLayer.setJoinBattle contract in an R
-     * module.  Direct full-battle verification skips the Hall scenes, so it
-     * must reconstruct this production prerequisite instead of inventing a
-     * generic 0..14 roster.
-     */
-    /**
-     * 공개 메서드 `loadLastJoinBattleLimit`
-     *
-     * ### 파라미터
-    - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ScenarioJoinBattleLimit?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 모듈에 마지막으로 작성된 전투 편성 제한을 읽는다. */
     fun loadLastJoinBattleLimit(moduleName: String): ScenarioJoinBattleLimit? {
         val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
         return payload.get("ast").walk()
@@ -55,18 +27,7 @@ object ScenarioMetadataReader {
             .lastOrNull()
     }
 
-    /**
-     * 공개 메서드 `loadFirstInteractiveSegment`
-     *
-     * ### 파라미터
-    - `moduleName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `functionName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ScenarioTimeline`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 함수의 첫 번째 대화·선택 구간을 타임라인으로 읽는다. */
     fun loadFirstInteractiveSegment(moduleName: String, functionName: String): ScenarioTimeline {
         val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
         val module = payload.get("ast")
@@ -83,7 +44,7 @@ object ScenarioMetadataReader {
         return ScenarioTimeline(moduleName, commands)
     }
 
-    /** Returns true once a choice blocks the first interactive segment. */
+    /** 선택지가 나타나 첫 상호작용 구간이 끝났는지 반환한다. */
     private fun appendStatement(statement: JsonValue, commands: MutableList<ScenarioCommand>): Boolean {
         val expression = when (statement.typeName()) {
             "Expr" -> statement.field("value")

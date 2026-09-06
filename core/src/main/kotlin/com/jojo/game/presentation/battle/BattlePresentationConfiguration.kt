@@ -6,10 +6,7 @@ import com.jojo.game.application.runtime.RuntimeBattleRoute
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2Route
 import com.jojo.game.presentation.battle.timeline.BattleCharacterStrictState
 
-/**
- * Converts an immutable runtime presentation selection into screen decisions.
- * Route parsing and external naming stay at the runtime boundary.
- */
+/** 런타임 전투 경로를 화면 표시 상태로 변환합니다. */
 internal class BattlePresentationConfiguration(
     private val presentation: RuntimeBattlePresentation,
 ) {
@@ -61,12 +58,14 @@ internal class BattlePresentationConfiguration(
     val magickRoute = route.takeIf { it == RuntimeBattleRoute.MAGICK_LIST || it == RuntimeBattleRoute.MAGICK_DETAIL }
     val usePropertyRoute = route.takeIf { it in USE_PROPERTY_ROUTES }
 
+    /** 현재 경로에 맞는 전투 애니메이션 시계를 반환합니다. */
     fun animationClock(elapsed: Float, battleElapsed: Float): Float = when {
         rewardRouteState != null || winConditionRouteState != null -> 0f
         actionSampleMode -> elapsed
         else -> battleElapsed
     }
 
+    /** 맵 오브젝트 애니메이션에 사용할 시계를 반환합니다. */
     fun mapObjectAnimationClock(battleElapsed: Float): Float = when {
         rewardRouteState != null || winConditionRouteState != null -> 0f
         else -> battleElapsed

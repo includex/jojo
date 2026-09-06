@@ -7,7 +7,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin execution half of the shared ChooseLayer/Choose2Layer/CommandLayer fixture. */
+/** ChooseLayer·Choose2Layer·CommandLayer 공용 픽스처의 Kotlin 실행부이다. */
 object ChoiceCommandTraceHarness {
     private data class Case(
         val name: String,
@@ -21,7 +21,7 @@ object ChoiceCommandTraceHarness {
 
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
 
-    /** Decode a JSON string fragment without collapsing a literal `\\n` into a newline. */
+    /** JSON 문자열 조각을 해석하되 리터럴 줄바꿈 표기를 보존한다. */
     private fun unesc(s: String): String {
         val out = StringBuilder()
         var i = 0; while (i < s.length) {
@@ -94,17 +94,7 @@ object ChoiceCommandTraceHarness {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        /**
-         * 공개 메서드 `run`
-         *
-         * ### 파라미터
-        - `c` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 하나의 선택·명령 픽스처를 실행해 결과를 만든다. */
         fun run(c: Case): String {
             val calls = mutableListOf<Int>()
             var removals = 0
@@ -115,17 +105,7 @@ object ChoiceCommandTraceHarness {
                 replaced,
                 c.face
             ) { calls += it; removals++ } else command!!.onCreate(c.mask) { calls += it; removals++ }
-            /**
-             * 공개 메서드 `snap`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
-
+            /** 현재 선택·명령 레이어 상태를 JSON으로 기록한다. */
             fun snap(step: String): String {
                 val rows = if (choice != null) choice.rows().joinToString(
                     ",",

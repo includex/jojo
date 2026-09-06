@@ -1,6 +1,7 @@
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
+/** 조건 평가에 필요한 변수와 전장 조회 함수를 모은다. */
 internal data class ScenarioConditionEnvironment(
     val gvars: MutableMap<Int, Any?>,
     val pvars: MutableMap<Int, Any?>,
@@ -16,75 +17,26 @@ internal fun sourceUnitTypeMatches(camp: Int, selector: Int): Boolean = when (se
     else -> false
 }
 
-/**
- * Evaluates game script conditions: variable arithmetic, memory address read/write,
- * spatial adjacency (isNear), positional containment, and unit attribute tests.
- */
+/** 시나리오의 변수, 위치, 유닛 상태 조건을 평가한다. */
 internal object ScenarioConditionEvaluator {
     const val ADDRESS_INTVAR_START = ScenarioConditionOperandResolver.ADDRESS_INTVAR_START
     const val ADDRESS_INTVAR_END = ScenarioConditionOperandResolver.ADDRESS_INTVAR_END
     val DEFAULT_CARDINAL_NEAR_OFFSETS = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
     val DEFAULT_INFANTRY_NEAR_OFFSETS = DEFAULT_CARDINAL_NEAR_OFFSETS + setOf(1 to 1, -1 to 1, 1 to -1, -1 to -1)
 
-    /**
-     * 공개 메서드 `stageVariableValue`
-     *
-     * ### 파라미터
-    - `kind` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 종류와 값으로 지정된 시나리오 변수 값을 해석한다. */
     fun stageVariableValue(kind: Int, value: Int, env: ScenarioConditionEnvironment): Int =
         ScenarioConditionOperandResolver.value(kind, value, env)
 
-    /**
-     * 공개 메서드 `readStageAddress`
-     *
-     * ### 파라미터
-    - `address` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 시나리오 메모리 주소의 정수 값을 읽는다. */
     fun readStageAddress(address: Int, env: ScenarioConditionEnvironment): Int =
         ScenarioConditionOperandResolver.read(address, env)
 
-    /**
-     * 공개 메서드 `writeStageAddress`
-     *
-     * ### 파라미터
-    - `address` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 시나리오 메모리 주소에 정수 값을 기록한다. */
     fun writeStageAddress(address: Int, value: Int, env: ScenarioConditionEnvironment) =
         ScenarioConditionOperandResolver.write(address, value, env)
 
-    /**
-     * 공개 메서드 `applyStageVarOperation`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 인코딩된 피연산자 목록에 따라 변수 연산을 적용한다. */
     fun applyStageVarOperation(args: List<Any?>, env: ScenarioConditionEnvironment) {
         val targetKind = args.intAt(0)
         val targetIndex = args.intAt(1)
@@ -114,18 +66,7 @@ internal object ScenarioConditionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `testStageVariables`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 인코딩된 비교 연산으로 두 시나리오 변수를 비교한다. */
     fun testStageVariables(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean {
         val left = stageVariableValue(args.intAt(0), args.intAt(1), env)
         val right = stageVariableValue(args.intAt(3), args.intAt(4), env)
@@ -140,18 +81,7 @@ internal object ScenarioConditionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `isNear`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 두 유닛 또는 진영 선택자가 인접해 있는지 확인한다. */
     fun isNear(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean {
         var firstId = args.intAt(0)
         var target = args.intAt(1)
@@ -177,18 +107,7 @@ internal object ScenarioConditionEvaluator {
         return candidates.any { it in covered }
     }
 
-    /**
-     * 공개 메서드 `isInPosition`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 유닛 또는 진영 선택자가 지정 좌표에 있는지 확인한다. */
     fun isInPosition(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean {
         val target = args.intAt(0)
         val x = args.intAt(1)
@@ -197,18 +116,7 @@ internal object ScenarioConditionEvaluator {
         else env.battleContext.positions[target] == (x to y)
     }
 
-    /**
-     * 공개 메서드 `isInRectangle`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 유닛 또는 진영 선택자가 지정 사각형 안에 있는지 확인한다. */
     fun isInRectangle(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean {
         val target = args.intAt(0)
         val xRange = args.intAt(1)..args.intAt(3)
@@ -220,18 +128,7 @@ internal object ScenarioConditionEvaluator {
         return positions.any { (x, y) -> x in xRange && y in yRange }
     }
 
-    /**
-     * 공개 메서드 `totalRectangleUnits`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지정 진영의 생존 유닛 중 사각형 안에 있는 수를 센다. */
     fun totalRectangleUnits(args: List<Any?>, env: ScenarioConditionEnvironment): Int {
         val xRange = args.intAt(1)..args.intAt(3)
         val yRange = args.intAt(2)..args.intAt(4)
@@ -243,35 +140,13 @@ internal object ScenarioConditionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `totalUnits`
-     *
-     * ### 파라미터
-    - `type` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지정 진영 선택자에 속한 유닛 수를 센다. */
     fun totalUnits(type: Int, env: ScenarioConditionEnvironment): Int =
         env.battleContext.positionsByCamp.entries.sumOf { (camp, positions) ->
             if (sourceUnitTypeMatches(camp, type)) positions.size else 0
         }
 
-    /**
-     * 공개 메서드 `positionsForFilterSelector`
-     *
-     * ### 파라미터
-    - `selector` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Pair<Int, Int>>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 필터 선택자가 가리키는 유닛 좌표 목록을 반환한다. */
     fun positionsForFilterSelector(selector: Int, env: ScenarioConditionEnvironment): List<Pair<Int, Int>> =
         when (selector) {
             1024 -> env.battleContext.positions.values.toList()
@@ -283,18 +158,7 @@ internal object ScenarioConditionEvaluator {
             else -> emptyList()
         }
 
-    /**
-     * 공개 메서드 `unitStateTest`
-     *
-     * ### 파라미터
-    - `args` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioConditionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 유닛 속성 조건을 평가한다. */
     fun unitStateTest(args: List<Any?>, env: ScenarioConditionEnvironment): Boolean =
         ScenarioUnitConditionRules.stateMatches(args, env)
 }

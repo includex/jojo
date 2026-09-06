@@ -11,19 +11,9 @@ import com.jojo.game.GameDataCatalog
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.domain.battle.isEnemySide
 
-/** Exercises the real R_00 → S_00 campaign and scripted victory route. */
+/** 실제 R_00 → S_00 캠페인과 승리 시나리오 경로를 실행한다. */
 internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
-/**
- * 공개 메서드 `verify`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `String`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+/** 영천 캠페인 경로의 검증 결과를 반환한다. */
     fun verify(): String {
         val campaign = CampaignState()
         val prelude = ScenarioInterpreter.load("R_00", campaign).apply { start("scene1") }

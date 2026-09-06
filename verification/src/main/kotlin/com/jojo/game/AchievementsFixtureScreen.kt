@@ -14,27 +14,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/**
- * Isolated Global142 fixture.  Coordinates intentionally remain in the
- * source 1488.372 x 800 canvas, as the Electron comparator does.  The source
- * prefab is recovered in import/eb/...f9e99.json: Logo_12-1 is 1193x751 and
- * the content rows are 1157x70.
- */
-/**
- * class  `AchievementsFixtureScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 업적 화면의 원본 좌표와 닫기 동작을 검증하는 전용 화면이다. */
 
 class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()
     private val background = Texture(Gdx.files.internal("maps/71.jpg"))
 
-    // Reuse the exported nine-patch-compatible panel texture; the original
-    // Logo_12-1 panel is represented by the same tiled frame in the fixture.
+    // 원본 패널과 대응하는 타일 프레임을 사용한다.
     private val panel = Texture(Gdx.files.internal("maps/ui/terrain-layer/panel.png"))
     private val font = KoreanFont.create(34, "업적 없음 돈 확인 도움말 ★ ☆ 1. 여포")
     private var removed = false
@@ -42,7 +29,7 @@ class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), R
     override fun show() {
         Gdx.input.inputProcessor = object : InputAdapter() {
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                // Source button0 is the rightmost 147.6x56 close button.
+                // 원본 button0은 오른쪽 닫기 버튼이다.
                 val p = viewport.unproject(com.badlogic.gdx.math.Vector2(screenX.toFloat(), screenY.toFloat()))
                 if (p.x > 975f && p.y < 100f) removed = true
                 return true
@@ -58,8 +45,7 @@ class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), R
         batch.begin()
         batch.color = Color.WHITE
         batch.draw(background, 0f, 0f, 1280f, 688f)
-        // Approximate visual fallback uses the nearest recovered panel art;
-        // strict parity is represented by renderEventLog below.
+        // 시각 렌더링은 패널 아트를 사용하고, 정확한 비교는 이벤트 로그로 수행한다.
         batch.draw(panel, 147.5f * .86f, 24.5f * .86f, 1193f * .86f, 751f * .86f)
         font.color = Color.WHITE
         font.draw(batch, "업적", 180f * .86f, 408f * .86f)
@@ -75,16 +61,7 @@ class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), R
         game.captureFrameIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 업적 화면의 렌더 이벤트를 비교 가능한 문자열로 반환한다. */
 
     fun renderEventLog(): String {
         val log = RenderEventLog()

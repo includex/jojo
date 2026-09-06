@@ -5,20 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * Headless, direct games of ui/ItemLayer.js, UsePropertyLayer.js,
- * EquipConfirmLayer.js and EquipLayer.js.  This deliberately keeps the JS
- * touch-event contract (PRESS=0, END=2) rather than normalising it to the
- * desktop input abstraction: the trace is compared with the recovered
- * factories before this gate is allowed to pass.
- */
-/**
- * object  `ItemEquipTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** Item·UseProperty·EquipConfirm·Equip 레이어의 입력 계약을 헤드리스로 검증한다. */
 
 object ItemEquipTraceHarness {
     private const val DROP = "버릴 것을 결정하시겠습니까?I10?"
@@ -33,19 +20,7 @@ object ItemEquipTraceHarness {
         val events = mutableListOf<String>()
         val toasts = mutableListOf<String>()
 
-        /**
-         * 공개 메서드 `layer`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `txt` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `values` (`List<Int>? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 추적 결과에 레이어 생성 이벤트를 기록한다. */
         fun layer(name: String, txt: String? = null, values: List<Int>? = null) {
             val args = "{\"txt\":${txt?.let { "\"${esc(it)}\"" } ?: "null"},\"values\":${
                 values?.joinToString(
@@ -57,17 +32,7 @@ object ItemEquipTraceHarness {
             layers += "{\"layer\":\"$name\",\"args\":$args}"
         }
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 현재 아이템·장비 레이어 상태를 JSON 스냅샷으로 만든다. */
         fun snap(step: String): String =
             "{\"step\":\"${esc(step)}\",\"dead\":$dead,\"layers\":[${layers.joinToString(",")}],\"events\":[${
                 events.joinToString(",") { "\"${esc(it)}\"" }

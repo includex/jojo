@@ -18,7 +18,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** Deterministic Global131 renderer entered through StageLayer.choice2(). */
+/** StageLayer.choice2 경로로 진입하는 Global131 화면을 검증한다. */
 class Choose2FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private data class Geometry(val x: Float, val y: Float, val text: String, val labelX: Float, val labelY: Float)
 
@@ -90,16 +90,7 @@ class Choose2FixtureScreen(private val game: JojoGame, private val state: String
         game.captureFrameIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 선택 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String {
         val log = RenderEventLog()

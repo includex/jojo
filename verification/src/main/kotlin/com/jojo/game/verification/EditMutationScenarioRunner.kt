@@ -3,7 +3,7 @@ package com.jojo.game.verification
 import com.jojo.game.*
 import com.jojo.game.presentation.battle.edit.*
 
-/** Routes each fixture case to the owner-specific verification state machine. */
+/** 각 픽스처를 담당 상태 머신으로 전달해 실행한다. */
 object EditMutationScenarioRunner {
     fun run(scenario: EditMutationCase): String = when (scenario.owner) {
         "battle" -> EditBattleMutationScenario.run(scenario)

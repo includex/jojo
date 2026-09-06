@@ -7,13 +7,6 @@ import com.jojo.game.domain.battle.*
 
 /** Stateful implementation of BattleScreen.showMineunitInfo -> Battle registry id6. */
 class MineUnitInfoLayer {
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val name: String, val level: Int, val post: String,
@@ -25,19 +18,6 @@ class MineUnitInfoLayer {
     private lateinit var current: View
     private var completion: (() -> Unit)? = null
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `post` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `displayName` (`String=unit.name`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `completion` (`(`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate(unit: BattleUnit, post: String, displayName: String = unit.name, completion: () -> Unit = {}): View {
         this.completion = completion
@@ -47,108 +27,30 @@ class MineUnitInfoLayer {
         ).also { current = it }
     }
 
-    /**
-     * 공개 메서드 `complete`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun complete() {
         if (!current.attached) return; current = current.copy(attached = false); completion?.invoke()
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view() = current
 
-    /**
-     * 공개 메서드 `valueAnimation`
-     *
-     * ### 파라미터
-    - `entries` (`List<InfoBaseValueAnimation.Value>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun valueAnimation(entries: List<InfoBaseValueAnimation.Value>) = InfoBaseValueAnimation(entries)
 }
 
-/**
- * object  `MineUnitInfoRenderEvents`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object MineUnitInfoRenderEvents {
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `v` (`MineUnitInfoLayer.View`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(v: MineUnitInfoLayer.View): String {
         require(v.attached)
         val p = "battle-mine-unit-info"
         val l = RenderEventLog()
 
-        /**
-         * 공개 메서드 `s`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `a` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun s(path: String, type: String, x: Float, y: Float, w: Float, h: Float, a: String) =
             l.draw(p, "MineUnitInfoLayer", path, type, x, y, w, h, a)
 
-        /**
-         * 공개 메서드 `t`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float=54.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun t(path: String, x: Float, y: Float, w: Float, h: Float = 54.4f, text: String) = l.draw(
             p,

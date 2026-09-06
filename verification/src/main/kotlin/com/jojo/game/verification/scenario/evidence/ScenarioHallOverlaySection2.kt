@@ -13,22 +13,6 @@ internal fun appendFixture2(writer: ScenarioHallOverlayEventWriter) = with(write
                 event("ExclusiveLayer", "Canvas/Layer/bg/box1", "sliced-sprite", 136.186f, 47f, 1216f, 706f, "box1")
                 event("ExclusiveLayer", "Canvas/Layer/bg/bg1", "sprite", 136.186f, 703f, 1216f, 50f, "bg1")
                 label("ExclusiveLayer", "Canvas/Layer/bg/bg1/label", "장비 정보", 669.431f, 702.8f, 149.51f, 50.4f)
-                /**
-                 * 공개 메서드 `header`
-                 *
-                 * ### 파라미터
-                - `panel` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `labelX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `labelWidth` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun header(
                     panel: String,
@@ -112,20 +96,6 @@ internal fun appendFixture2(writer: ScenarioHallOverlayEventWriter) = with(write
                     header("panel1", 324.236f, 643.3f, 243.9f, 411.586f, 69.2f, "이름")
                     header("panel1", 568.186f, 643.3f, 780f, 883.431f, 149.51f, "특수 효과")
                 }
-                /**
-                 * 공개 메서드 `button`
-                 *
-                 * ### 파라미터
-                - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `labelX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `labelWidth` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun button(name: String, x: Float, labelX: Float, labelWidth: Float, value: String) {
                     val path = "Canvas/Layer/bg/$name/Background"

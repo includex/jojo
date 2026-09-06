@@ -3,7 +3,7 @@ package com.jojo.game.domain.campaign
 import com.jojo.game.GameDataCatalog
 import java.util.Collections
 
-/** Owns equipped loadouts and the equipment-specific inventory commands. */
+/** 장착 장비 상태와 장비 인벤토리 명령을 관리한다. */
 internal class CampaignInventoryEquipmentManager(
     private val itemStore: CampaignInventoryItemStore,
     private val joinedUnitIds: () -> Iterable<Int>,

@@ -22,13 +22,6 @@ import com.badlogic.gdx.Game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 
-/**
- * class  `JojoGame`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchConfiguration()) : Game() {
     private val scenarioRun get() = configuration.scenarioRun
@@ -64,7 +57,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
         configuration.runtimeArtifactObserver?.onArtifact(event)
     }
 
-    /** Internal presentation notification forwarded to an optional external observer. */
+    /** 시나리오 시작 알림을 외부 관찰자에게 전달한다. */
     internal fun scenarioStarted(module: String, index: Int) {
         configuration.runtimeScreenObserver?.scenarioStarted(module, index)
     }
@@ -128,7 +121,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
         Gdx.app.postRunnable { complete(false) }
     }
 
-    /** Desktop helper returns no supportAd entitlement, but the source-gated route stays live. */
+    /** 데스크톱 환경의 광고 지원 권한은 없지만 관련 경로는 유지한다. */
     internal fun settingFeatureEnvironment(sceneName: String) = SettingLayer.FeatureEnvironment(
         sceneName = sceneName,
         supportAdCode = 0,
@@ -178,81 +171,31 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun runtimeBattleReferenceAssets(): RuntimeBattleReferenceAssets? = configuration.runtimeBattleReferenceAssets
     fun runtimeBattlePreparationDriver(): RuntimeBattlePreparationDriver? = configuration.runtimeBattlePreparationDriver
 
-    /** Writes renderer metadata without framebuffer readback or PNG creation. */
+    /** 프레임버퍼를 읽지 않고 렌더러 메타데이터를 기록한다. */
     fun writeRenderEventLogIfRequested(): Boolean {
         if (!hasRenderEventLogRequest()) return false
         notifyArtifact(RuntimeArtifactEvent.EventLog(screenshotState, screen))
         return true
     }
 
-    /**
-     * 공개 메서드 `requestedMapTextureDumpPath`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun requestedMapTextureDumpPath(): String? = null
 
-    /**
-     * 공개 메서드 `requestedMapDither`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun requestedMapDither(): Boolean? = null
 
-    /**
-     * 공개 메서드 `requestedMapFilter`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun requestedMapFilter(): com.badlogic.gdx.graphics.Texture.TextureFilter? = null
 
-    /**
-     * 공개 메서드 `requestedCocos8MapSampler`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun requestedCocos8MapSampler(): Boolean = true
 
-    /** Cocos map sampling is aligned to physical framebuffer pixel centres. */
+    /** 맵 표본 좌표를 실제 프레임버퍼 픽셀 중심에 맞춘다. */
     fun requestedFragmentCoordinateMapSampler(): Boolean = true
     /**
      * Keep the logical Cocos quad unshifted. An explicit map-only option is
      * retained solely for regression sweeps; the source-faithful default uses
      * physical framebuffer pixel-centre sampling in BattleScreen.
-     */
-    /**
-     * 공개 메서드 `requestedMapSampleOffset`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Pair<Float, Float>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
     fun requestedMapSampleOffset(): Pair<Float, Float> = 0f to 0f
@@ -263,27 +206,17 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * records the Cocos source texture identity and quad contract rather
      * than treating a PNG position as an oracle.
      */
-    /**
-     * 공개 메서드 `writeMapQuadCandidateSidecar`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun writeMapQuadCandidateSidecar() = notifyArtifact(RuntimeArtifactEvent.MapSidecar(screenshotState))
 
-    /** Native framebuffer capture used for source-versus-game visual regression. */
+    /** 원본과 게임 화면을 비교하는 시각 회귀 검사용 프레임버퍼를 캡처한다. */
     fun captureFrameIfRequested(): Boolean {
         if (!hasFrameCaptureRequest()) return false
         notifyArtifact(RuntimeArtifactEvent.Frame(screenshotState, screen))
         return true
     }
 
-    /** Sidecar observation for pixel fixtures; it never changes battle state. */
+    /** 픽셀 검증용 부가 관측을 기록하며 전투 상태는 바꾸지 않는다. */
     fun writeCaptureStack(
         requested: String,
         requestedPresent: Boolean,

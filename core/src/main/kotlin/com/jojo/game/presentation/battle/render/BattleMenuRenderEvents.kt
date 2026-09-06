@@ -6,16 +6,6 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** Draw submissions produced by the actual BattleScreen menu-button route. */
 object BattleMenuRenderEvents {
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `view` (`MenuLayer.View`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(view: MenuLayer.View): String {
         val log = RenderEventLog()
@@ -31,21 +21,6 @@ object BattleMenuRenderEvents {
                 path, type, x, y, w, h, asset, blend = blend, text = text
             )
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
             draw(path, "label", x, y, w, h, text = text, blend = labelBlend)

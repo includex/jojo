@@ -218,16 +218,6 @@ fun attackValue(
     private fun statusValue(mask: Int, unit: Unit, v: Values): Int {
         var n = 0
 
-        /**
-         * 공개 메서드 `has`
-         *
-         * ### 파라미터
-        - `s` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun has(s: Int) = mask and (1 shl s) != 0
         if (has(Status.ATT)) n += if (unit.armType == Arm.QUAN_NENG) v.attackQn else if (unit.armType == Arm.WU_JIANG) v.attackWj else 0

@@ -14,38 +14,17 @@ import java.io.ByteArrayInputStream
 import java.util.*
 import java.util.zip.GZIPInputStream
 
-/** Production behavior recovered from Battle/scene/EditLayer (layer id 22). */
+/** Battle/scene/EditLayer 22번 레이어의 편집 동작을 재현한다. */
 class BattleUnitEditLayer(initialAttack: Int = 50, initialPosts: Int = 0) {
     sealed interface Effect {
-        /**
-         * data class  `SetAttack`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class SetAttack(val value: Int) : Effect
 
-        /**
-         * data class  `SetPosts`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class SetPosts(val value: Int) : Effect
         data object Close : Effect
         data object OpenAvatarEditor : Effect
 
-        /**
-         * data class  `Toast`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Toast(val text: String) : Effect
     }
@@ -59,77 +38,26 @@ class BattleUnitEditLayer(initialAttack: Int = 50, initialPosts: Int = 0) {
     private var pendingAttack: Int? = null
     private var pendingPosts: Int? = null
 
-    /**
-     * 공개 메서드 `editAttack`
-     *
-     * ### 파라미터
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun editAttack(value: Int) {
         pendingAttack = value
     }
 
-    /**
-     * 공개 메서드 `openPosts`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun openPosts() {
         postsPanelVisible = true
     }
 
-    /**
-     * 공개 메서드 `closePosts`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun closePosts() {
         postsPanelVisible = false
     }
 
-    /**
-     * 공개 메서드 `selectPosts`
-     *
-     * ### 파라미터
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun selectPosts(value: Int) {
         pendingPosts = value
     }
 
-    /**
-     * 공개 메서드 `button`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `allFeatures` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun button(tag: Int, allFeatures: Boolean = false): List<Effect> = when (tag) {
         0 -> buildList {
@@ -148,31 +76,14 @@ class BattleUnitEditLayer(initialAttack: Int = 50, initialPosts: Int = 0) {
     }
 }
 
-/** Hall Forces row -> UnitInfo button10 gate and payload contract. */
+/** Hall Forces 행에서 UnitInfo button10으로 이어지는 계약을 표현한다. */
 class HallBattleUnitEditRoute(private val editEnabled: Boolean) {
-    /**
-     * enum class  `State`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class State { FORCES, UNIT_INFO, EDIT, CLOSED }
 
     var state = State.FORCES
         private set
 
-    /**
-     * 공개 메서드 `selectUnit`
-     *
-     * ### 파라미터
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun selectUnit(touchEnd: Boolean): Boolean {
         val opens = touchEnd && state == State.FORCES
@@ -180,17 +91,6 @@ class HallBattleUnitEditRoute(private val editEnabled: Boolean) {
         return opens
     }
 
-    /**
-     * 공개 메서드 `unitInfoButton`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun unitInfoButton(tag: Int, touchEnd: Boolean): Boolean {
         val opens = touchEnd && editEnabled && state == State.UNIT_INFO && tag == 10
@@ -198,44 +98,17 @@ class HallBattleUnitEditRoute(private val editEnabled: Boolean) {
         return opens
     }
 
-    /**
-     * 공개 메서드 `close`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun close() {
         state = State.CLOSED
     }
 }
 
-/**
- * enum class  `BattleUnitEditRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 enum class BattleUnitEditRoute(val key: String) {
     DEFAULT("default"), POSTS("posts"), MUTATION("mutation"), AVATAR("avatar");
 
     companion object {
-        /**
-         * 공개 메서드 `parse`
-         *
-         * ### 파라미터
-        - `state` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleUnitEditRoute?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun parse(state: String?): BattleUnitEditRoute? {
             val key = state?.removeSuffix("-fixture")?.removePrefix("hall-battle-edit-") ?: return null
@@ -245,18 +118,7 @@ enum class BattleUnitEditRoute(val key: String) {
     }
 }
 
-/**
- * Authored EditLayer prefab layout. The compressed table is a compact form of
- * the prefab's draw submissions (not a runtime oracle); behavior stays in
- * [BattleUnitEditLayer] and the actual entry chain in [HallBattleUnitEditRoute].
- */
-/**
- * object  `BattleUnitEditRenderEvents`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** EditLayer 프리팹의 그리기 이벤트를 압축 표에서 복원한다. */
 
 object BattleUnitEditRenderEvents {
     private const val DEFAULT =
@@ -264,16 +126,6 @@ object BattleUnitEditRenderEvents {
     private const val POSTS =
         "H4sIAIM2mWoC/82d728TRxrHX/v+Cqv3tmx2fs9Wp5MoRAVdrkXQSq1Op8gEk+YaEpQErvcuUIeGkjuau6YEmqTuFS6AUtUkBoIU/iHvWv0X7pmx42AntndnPBlERICQ/cz3u88+88yvzZnC5ORI4R/FmdypwtT1wuyQ/svQlcLV3OzVmYm5Yi6EX4hKGRCBczIMc4XZ2eLc7NAHhSvFoanC3MT14tAYh4+L4hIp0hOSReEJevkihz8V2AkRcVHktHBxjBQDWZT0cvC3q+O//8O1qSm4wKUTl2fg0x9zKPcXIcJ3hUB/zc3NXCvmfnfm6JadK0wVJ0fHClNjxcmuTbxUvFy4Njk32vg6fJoszH6eCwOC6CHO8KWJuSM4F8dzcxOT0MAmAyESIMnhcw5hjnNCyNzI9Pj0aHQCHdH6rleFD5TruKYgUeOiLMypL2e83NBk4SKY0fidc9q8pgwkuBIFDMF1A5pTl33nwvlToydHzp05+c6773z04fDon89++MmF0YN/bQLjrWqy8Shf/9dusrnciz79JaiZnBg7MEpIHnBoAGVRjhCRw4Lm9H/LpAq+oU2WRFEgCAJ5kZKFaBAZyKrtPK9tP4nLj97LxiaBgMjh0AamQgDzICTZ6Ul5JblTVvR8NjzcUQFqG9IN4XHlSfJ91QDe8J0hG9/rd3+JK2vZfRcgFeWoFi7V42tg+s2t2m6lL7cIX4Y/hEPvnzz1pw/Of/TJh6dHL5w7f/bj4Y7wjijR4c1FmIuYfmKNgrsF/Hj4049HR06+PzzSlB1RdkBQdzqTXhamJONUUqNIQtzLAJ7qQcjFR8tto2SXzFLSUWrJjItBSUbdJbco2SXLlHSSOqAZGohc0j2gNSGzVBqlJNPUd5dCHzmgu0u7390WJfvdRanSZNgEopABke53jpQGNMqeKHmYCorehDIiW72iKVamwuJOrcxGa/+MoWnkEBRZQPsHsqbRTii1UtonlHDHI8KAoKs3gQKWwzjKYY6MHhHcHqRMyACFAno1EmDGTbtzKEz7lxG4PVQZDwOp0JhptGkVE/+6l2w/SUrP0uFxh3ImuI3yZHM+tXLSQuOAUUBjqdERCqhJ4fqgqmqofCr2fvwySLYMZFPQq103HIok1XWo4eLyq1p1vq/61GUcF5CcYcTF4eZQprsCGhrGefdSjsMtb6MQRcmUNFBKOkkvGQ9MMukhGRtLDlPScWrJTESDkoy7S25RskvmKek0vWQ8MMm0h2RsLBmnpKPUklWmGZBk1F1yi5Jdcp8CgHToQgjcbXTGQnXGhOQwY0bCSEfFiBgOoItvVoym3cJ2mvkE0lE3ttDIAh1vLsbbKynR+AAt9YQCs5lQiMuAfvxeKnKrgESENeZwkM0cTm37df3eavJqtb/w1B0hwhTuB2lMNyCkqj7DMRHp0REChR5QwqhByaIdYZISjzJoRtGANKNemhXFRDPhKek4vWTGxYAk4x6SNcVIcko4yaAY8QEpJr0UK4qJ4l7VzpuzoRjJRt4UNil7vRr/r9QzfbQxMW0kTMEsZmA3byT3Ft5LiVS5kalMCWjIlBEM2UwyZXUesPHThXz9wY/J4mpqOpGgUfW4WNFhECyogeIXa8lmaR+d1mwEAyYJyikOFRsGrdxAef2HUv3rakbZmPJAqilnLAAN5RTPDj57+re9B/14+wUIQUyvUjWCGbpjbODyTxX46EdEHcRGXGEMY9LsyL7PKu6gNeLIFY100nTkuKLRznung8UB7eJ456yUQmKVZIUAIA+QWSofx21RT6LmzDdU9qZBWHteSX5Y6N1/0EM9U2M+XHUdTE2IwcMujHom2lHWc6qnYglDkEmwxRxb/yUz2lHWsygIMWiKIo02ret3qrXnW/3KW9pR1++zAWfHhnzSn60q3I47CsMy/UgQhnUruGmp0bh6e5RSpnOzvqmGURrfeVzbnk+BRt2EhYMQ1r68S0Kml5ZJiCx2KtQq88nPr/O1ynKy+jJFG3AXhRjg9grxkbdOB6ZpL3fvVrK+1A+dergHZarOPSpSEWbmYruP9RgUqgeIzItfKCUZpdcahgPRinpo1QhnWlPMdDI60Pt61DQn4zb3NUxJJum1Dui+kh5aze5r2jEdgx4aQV2DJAkYN+65kv8u1ZfX+vVcrPPx4CiIONRxaj6T5jARzR0+Zvu1WOd6HxSGWI28I315gGGZXdqnvQcVB1zUweXcBvtZCmz6tSYCw0jUsAJiVw/tiGnUvsE9N3Ly1PCZj0ZOD59vD15C2nlMBplDONlYiMuPgiBI2ZwU0/QE62bBnRmcC6iHC7QN58yEa3Nz01MQBYWxL8Znpq9NXeos99VCvqAwVKJByFVLQnjmcnrCP5PsQyD42hvTByEkE4UhIFioyagw6wJFsrialFf6NgH10IphpCZCKHlIIJGw1Iq6asU01BjQSnFkpPXl4+TWUt8m4O5aJeQWXTnCLZXYQibuJlNSyF6qQoZuAUEBjpHRvoULeTXt9+tusjmfj3fma9uv03ZPqDkjBZ0Ch8iiZmP9kespeapjj6Rs8bgMIoPucPjLq72zBz88VQzC4DaSHFWLbNBjmCQl3jEaJ9D8CIJThhbjm/r3t+O79/Nq++7KYip+a0guoKhQfD1Pg7DxZIDaCX72dCp2a0gOaiMWqalEJR1BQwzQd0sJyIao/TQVnHTAMRoI/LN+8CPmq8IoECqgJAwqiTTt5fjhKSsGUaQvrGMKIsxkerpUTsprjb3w/RqQushpSYaHx0py3/KGIPQGiTsqbHj6wmZfumADUY76Ktcg58JxauEYD0Q47itcg1wJF539e9gY20d6UY9GOQJjMxOBYmh2bGZ6cvL6RPHvQ/q3sempueLU3BBgrnTOJUrU2IFJ4BFXXGZWWfTFHjpqoef5pAQoEiKrx62TNXZtmpseH58snoJ/K0xMwXc1/t5ecDb3ckeq2s2RiEGDCVYf+6e+ZgqXJqZHG7XV6PTly4M2rlsjxz4vjn1xpTDzReY2Th1XE9vWG0OoKzGFZkkOQyOz6cn6ymqtsuKisfiIm47UOv5bdddxh6WR2vMvmpYiSQOEzA6KfXVDpa07i/Gdh4GLhpOj7MVqiP422Us69gaozeOWEauc/eaVTWNRt4yNnWZs1PSkPXFzHjAKQ0TMAkIiU08eLsd3FwbSuMNRJZUtgqjDoIHIqaJNtqKq8U2jU9MzVwqTjuw6lJZTNOjge1IfTL6qDiaH6txw5lPJEc4ImZyYnQuPWCNXUYiE1Cc34AGGwV+XeiXF5d8wt/0k9NEgfRYa4RP2tMO38gilTG/lEI0GBLhH7WkLP7RlYB9N7LYMODKFqlG/H1MU2jgrr95waYo6o+bJFEAbF1dLj5P7K65MIZwduynqCFQTTVQBGkijXdDxTjXeWXZmDELHbgwjAdUzvUgZY3pU6uGymqtz6w5mwlfYKLR52LzcS9ZKLo0JvWVehTbujl7ccGiKDmU/0aLQxtGSfF2Ov15yaEzkLflGFrk3uVeJF3Yd2kKRL1sosuqSarsVh7acQNiXLwotjOPl4bJjY9T4t4cxlwuTs86cAbaJM402NfujpXmHMRP680bBLcx5ccP1AyXo8ZvDZBDtw4XB8l2jUY2+ybE/GEt//ii4hT+6k3Ltj8T+Hi4Ft3i4tl/X724llcfOzCHEQ1ZuDqE0XJiMoZrR83AZ3Mkni6txedGdQ5HH3Kzg5uETb+/F669dhg+l1J85Cm5hzlY1WSzXKu56dRp5SMzNcaaGi+wDzf1OfSm5ueXMGMawP2MU3MqY0jN3JXLI/Rmj4MbGJDcrSfmGw7FD6NEYHloYs77q0hiBqD9jFNzYmPrqbu3ZrjtjuMfkq+DmEfNswWXyldhj8lVwc2Mqu/FTd7WMFB6Tr4Kb90rPKy4jJiIeK2AFNy/y6v/+pzoq4dIc6bECVnCLCrjyBCpgl+ZAy6THiS1FN7dHbb52bU/kMRdrunHOUbvuXVqDqMfpYk23yDr3V11HDg79zhjbJOXkwXfO7WEesjIV+gxWgy5M3gvUfLQ2v83XvyrlHReCiITSo0mKPgiT3BaFiHDs0ySOB2GS4wIRUeSxdNZ0835sqxovOFzZoyL0aY0IrayprzuMGvWCL3/WKPpbGzVMSH/LMppusy7zaq+2s5ePd9SOAnceqbcU+CuB9DsSzIdeS/NQQDtdNefSZwGt6BYV4qu9ZOOnZL3qclOBz7ys6BbzYK/d7reIfOZlRX9rrZHU53yGols8VJXXtZevnNaBUegzJSu61XRPXL3tNHoi5jMlK7pFj3V3SR0bdrgJDofI45yGpttGD4yzHNrDqU97uM1Uc7LyXXKzmmx8684ehDymZk1/u+0RPnfBKfpbbY96V7G3mkfTzWuecsnlFi+Mpc+0rOgWkfNw2bU9hPhMy4puNQx1bo/0OJOh6XY7TGuV5bzrDcqUYo8eKbqNR9vlY/Eo4j49iqx2KtdXS8fhkfqRkMfuESIBVmsVmq5e+h8FkphtYsm3fnxgPtkoxU8X3FnFQw9Zm/AA6XBSdGHy0pn9zZbHZhPzuItO083Loo1HTodjAvlM2gLZJe3SWvzjbecJSfg886fpNps4ntSeVZ2GkMQe56A13Xz37krV5bZmLD0c+sMRCyLdlUl96g9zmvUl782ubKcCj9Zu/J+H6nW+33yn+7UXDmfOIg9HADFHAdFuRfoMICHEbJNCfXU33lgGp47ZM+lx752m2+y9Uy8Bc3biLfRyKLB5olTTLY6UlueTn/cc7y8jYeQxc2u6eV10p5yUyu6sQdRjZa3pFpV1vLWXbHyrjpQmt35yudhBkI/DgQc26dOB5gOQO+uqfFQ/A2z3tlObsM+jgppunqWfPknWdx2e3A49FteablFc3yonDyrJVzdcHmz3maKJzZlBGHok5TV31lCfhwY13fyhqjxzeQCXUO5xFVHTLd4W8bySrCw4TccMe1xF1HSLnAPjjBcllwN6woTPt2kwYfc6jXu/QM2cVwtCG4/cecR9nibUdIvlRP0+n/pdhyMLLj2+7UjTLcZei/eTtZLjSUUiiMc5aU037702F5P7K/8HswJCpMqXAAA="
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`BattleUnitEditRoute`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(route: BattleUnitEditRoute): String {
         if (route == BattleUnitEditRoute.AVATAR) return avatarJsonl()
@@ -317,26 +169,6 @@ object BattleUnitEditRenderEvents {
         val phase = "hall-battle-edit-avatar-stable"
         val alpha = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-        /**
-         * 공개 메서드 `d`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `visible` (`Boolean=true`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `blend` (`Any=listOf(770,771`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun d(
             path: String,
@@ -457,7 +289,7 @@ object BattleUnitEditRenderEvents {
     }
 }
 
-/** Deterministic execution of the real Hall -> Forces -> UnitInfo -> id22 route. */
+/** Hall → Forces → UnitInfo → id22 경로를 결정적으로 실행한다. */
 class BattleUnitEditRouteScreen(private val game: JojoGame, private val route: BattleUnitEditRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val entry = HallBattleUnitEditRoute(true)
@@ -487,16 +319,6 @@ class BattleUnitEditRouteScreen(private val game: JojoGame, private val route: B
         shapes.end(); game.writeRenderEventLogIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun renderEventLog() = BattleUnitEditRenderEvents.jsonl(route)
     override fun runtimeRenderEventLog(): String = renderEventLog()

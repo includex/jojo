@@ -5,19 +5,9 @@ import com.jojo.game.presentation.battle.BattleAvatarResolver
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.GameDataCatalog
 
-/** Verifies every resolved battle avatar against the packaged sprite families. */
+/** 해석된 모든 전투 아바타가 패키지 스프라이트 계열과 일치하는지 검증한다. */
 internal class BattleAvatarResourceVerifier(private val data: GameDataCatalog) {
-/**
- * 공개 메서드 `verify`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `String`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+/** 전투 아바타 리소스 검증 결과를 반환한다. */
     fun verify(): String {
         var checks = 0
         val missing = mutableListOf<String>()

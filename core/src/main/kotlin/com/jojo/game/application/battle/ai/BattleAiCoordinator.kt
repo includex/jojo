@@ -101,16 +101,6 @@ internal object BattleAiCoordinator {
         return BattleAiScorer.estimatedAttackValue(attacker, target, createScoringEnvironment(env))
     }
 
-    /**
-     * 공개 메서드 `createScoringEnvironment`
-     *
-     * ### 파라미터
-    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `BattleAiScoringEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun createScoringEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiScoringEnvironment =
         BattleAiScoringEnvironment(
@@ -124,16 +114,6 @@ internal object BattleAiCoordinator {
             basePhysicalDamageContext = env.basePhysicalDamageContext,
         )
 
-    /**
-     * 공개 메서드 `createDecisionEnvironment`
-     *
-     * ### 파라미터
-    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `BattleAiDecisionEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun createDecisionEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiDecisionEnvironment =
         BattleAiDecisionEnvironment(
@@ -146,16 +126,6 @@ internal object BattleAiCoordinator {
             hasDiagnosticEntry = { prefix -> env.traceActions.any { it.startsWith(prefix) } },
         )
 
-    /**
-     * 공개 메서드 `createControllerEnvironment`
-     *
-     * ### 파라미터
-    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `BattleAiControllerEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun createControllerEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiControllerEnvironment =
         BattleAiControllerEnvironment(
@@ -174,16 +144,6 @@ internal object BattleAiCoordinator {
             decisionEnv = createDecisionEnvironment(env),
         )
 
-    /**
-     * 공개 메서드 `createTurnEnvironment`
-     *
-     * ### 파라미터
-    - `env` (`BattleAiCoordinatorEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `BattleAiTurnEnvironment`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun createTurnEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiTurnEnvironment =
         BattleAiTurnEnvironment(

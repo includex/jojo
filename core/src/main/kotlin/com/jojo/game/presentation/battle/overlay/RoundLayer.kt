@@ -6,13 +6,6 @@ package com.jojo.game.presentation.battle.overlay
  * Cocos owns the labels and `scheduleOnce`; this model exposes their exact
  * resulting state and lets the desktop renderer inject the two-second timer.
  */
-/**
- * class  `RoundLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class RoundLayer(
     private val remove: () -> Unit,
@@ -23,13 +16,6 @@ class RoundLayer(
      * a present value (`"round" in t`).  Keep that distinction in the game
      * instead of using null as a proxy for both cases.
      */
-    /**
-     * data class  `CreateArgs`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class CreateArgs(
         val roundPresent: Boolean,
@@ -39,13 +25,6 @@ class RoundLayer(
         val maxPresent: Boolean = max != null,
     )
 
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val roundLabelsVisible: Boolean,

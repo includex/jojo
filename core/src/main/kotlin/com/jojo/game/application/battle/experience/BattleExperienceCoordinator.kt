@@ -30,16 +30,6 @@ internal data class BattleExperienceEnvironment(
 
 internal object BattleExperienceCoordinator {
 
-    /**
-     * 공개 메서드 `consumeEquipmentUpgrade`
-     *
-     * ### 파라미터
-    - `equipmentUpgrades` (`MutableList<CampaignEquipmentExperienceResult>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `CampaignEquipmentExperienceResult?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun consumeEquipmentUpgrade(equipmentUpgrades: MutableList<CampaignEquipmentExperienceResult>): CampaignEquipmentExperienceResult? =
         equipmentUpgrades.removeFirstOrNull()
@@ -54,19 +44,6 @@ internal object BattleExperienceCoordinator {
         BattleEquipmentExperienceKind.ARMOR -> if (resolvedHarm == 0) 1 else if (recipient.level <= opponent.level) 4 else 3
     }
 
-    /**
-     * 공개 메서드 `battleExperience`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `defeated` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `enemyMasterUnitId` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun battleExperience(attacker: BattleUnit, target: BattleUnit, defeated: Boolean, enemyMasterUnitId: String?): Int {
         val difference = kotlin.math.abs(target.level - attacker.level)
@@ -80,19 +57,6 @@ internal object BattleExperienceCoordinator {
         return result
     }
 
-    /**
-     * 공개 메서드 `addEquipmentExperience`
-     *
-     * ### 파라미터
-    - `attackerId` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `targetId` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `damage` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattleExperienceEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun addEquipmentExperience(attackerId: String, targetId: String, damage: Int, env: BattleExperienceEnvironment) {
         val attacker = env.units()[attackerId] ?: return
@@ -124,19 +88,6 @@ internal object BattleExperienceCoordinator {
         env.stagedHitSideEffects()?.add(apply) ?: apply()
     }
 
-    /**
-     * 공개 메서드 `notifyPhysicalDamage`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `damage` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattleExperienceEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun notifyPhysicalDamage(attacker: BattleUnit, target: BattleUnit, damage: Int, env: BattleExperienceEnvironment) {
         val apply = {
@@ -161,36 +112,12 @@ internal object BattleExperienceCoordinator {
         env.stagedCompletionSideEffects()?.add(apply) ?: apply()
     }
 
-    /**
-     * 공개 메서드 `notifyUnitDefeated`
-     *
-     * ### 파라미터
-    - `winner` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `defeated` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattleExperienceEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun notifyUnitDefeated(winner: BattleUnit, defeated: BattleUnit, env: BattleExperienceEnvironment) {
         val apply = { env.onUnitDefeated(winner, defeated) }
         env.stagedCompletionSideEffects()?.add(apply) ?: apply()
     }
 
-    /**
-     * 공개 메서드 `notifyBattleExperience`
-     *
-     * ### 파라미터
-    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `amount` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattleExperienceEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun notifyBattleExperience(unit: BattleUnit, amount: Int, env: BattleExperienceEnvironment) {
         if (amount <= 0) return

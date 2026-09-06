@@ -22,13 +22,7 @@ private class GiftService {
     }
 }
 
-/**
- * object  `SendGiftsTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 선물 전송 서비스의 생성·입력·라우팅 결과를 추적한다. */
 
 object SendGiftsTraceHarness {
     private fun state(step: String, p: GiftService): String {

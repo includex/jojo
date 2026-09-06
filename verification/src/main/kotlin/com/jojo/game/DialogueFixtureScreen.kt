@@ -17,21 +17,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/**
- * Deterministic renderer for Hall id 1, Global `DialogueLayer`.
- *
- * The four fixture states are entered with the same public input/state
- * transitions as the source oracle: panel completion/advance, SKIP, and the
- * 1.6 second auto-close timer.  Rendering constants are the authored prefab
- * transformed through the source Hall's 1488.372093 x 800 viewport.
- */
-/**
- * class  `DialogueFixtureScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 대화 패널의 진행·건너뛰기·자동 닫기 상태를 재현하는 검증 화면이다. */
 
 class DialogueFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
@@ -122,16 +108,7 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         }
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 대화 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String {
         val log = RenderEventLog()

@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/** Deterministic RewardLayer frames reached by scenario reward callbacks. */
+/** 시나리오 보상 콜백으로 도달하는 RewardLayer 화면을 검증한다. */
 class RewardFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val scale = .86f
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
@@ -48,19 +48,7 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
     }
 
     private fun drawBasic() {
-        /**
-         * 공개 메서드 `shadowed`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 제목과 보상 문구에 원본 그림자 효과를 적용한다. */
         fun shadowed(value: String, x: Float, y: Float) {
             titleFont.color = Color(0.3f, 0.3f, 0.3f, 1f); titleFont.draw(
                 batch,
@@ -96,16 +84,7 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
         }
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 보상 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String {
         val log = RenderEventLog()

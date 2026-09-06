@@ -11,13 +11,6 @@ import com.jojo.game.domain.scenario.*
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 
-/**
- * data class  `CampaignE2eTraceConfig`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class CampaignE2eTraceConfig(
     val outputPath: String,
@@ -29,13 +22,6 @@ data class CampaignE2eTraceConfig(
     val requireYingchuanBootstrapContract: Boolean = true,
 )
 
-/**
- * data class  `CampaignE2eStopPoint`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class CampaignE2eStopPoint(val module: String = "R_01", val sceneIndex: Int = 1)
 
@@ -399,33 +385,11 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
         if (campaignStages.lastOrNull() != stage) campaignStages += stage
     }
 
-    /**
-     * 공개 메서드 `scenarioStarted`
-     *
-     * ### 파라미터
-    - `module` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun scenarioStarted(module: String, index: Int) {
         pendingScenarioStarts += module to index
     }
 
-    /**
-     * 공개 메서드 `update`
-     *
-     * ### 파라미터
-    - `delta` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `current` (`Screen?`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun update(delta: Float, current: RuntimeScreenProbe) {
         if (finished) return

@@ -3,13 +3,6 @@ package com.jojo.game.domain.battle
 import com.jojo.game.*
 import com.jojo.game.domain.battle.magic.BattleMagicProfile
 
-/**
- * data class  `BattleUnit`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class BattleUnit(
     val id: String,
@@ -117,18 +110,6 @@ data class BattleUnit(
      * Moves an attribute's DOWN/NORMAL/UP value only one step toward the
      * requested lift, so an opposite request first neutralizes the current lift.
      */
-    /**
-     * 공개 메서드 `applyAttributeLift`
-     *
-     * ### 파라미터
-    - `attribute` (`BattleAttribute`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `requested` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `rounds` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun applyAttributeLift(attribute: BattleAttribute, requested: Int, rounds: Int): Int {
         val current = (attributeLifts[attribute] ?: 0).coerceIn(-1, 1)
@@ -178,17 +159,6 @@ data class BattleUnit(
      * promotion changes its arm/range tables as well as derived ability,
      * posts-skill and magic caches.  Deliberately retain tactical location,
      * current HP/MP, statuses, turn state and the currently loaded avatar.
-     */
-    /**
-     * 공개 메서드 `refreshPostsDerivedState`
-     *
-     * ### 파라미터
-    - `source` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `refreshAbilityPhase` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
     fun refreshPostsDerivedState(source: BattleUnit, refreshAbilityPhase: Boolean) {

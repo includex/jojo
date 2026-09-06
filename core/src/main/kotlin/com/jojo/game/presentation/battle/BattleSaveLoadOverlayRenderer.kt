@@ -9,20 +9,17 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-/** Which source modal owns the shared save/load list presentation. */
+/** 저장·불러오기 목록을 소유하는 모달 종류입니다. */
 enum class BattleSaveLoadOverlayKind { SAVE, LOAD }
 
-/** Immutable copy of the row data needed by the save/load presentation. */
+/** 저장·불러오기 목록 한 줄의 표시 정보입니다. */
 data class BattleSaveLoadRowView(
     val number: String,
     val stage: String,
     val name: String,
 )
 
-/**
- * Rendering-only snapshot. SaveLayer and LoadGameLayer remain responsible for
- * lifecycle and commands; this view is the only state the renderer consumes.
- */
+/** 저장·불러오기 렌더러가 소비하는 불변 화면 상태입니다. */
 data class BattleSaveLoadOverlayView(
     val kind: BattleSaveLoadOverlayKind,
     val rows: List<BattleSaveLoadRowView>,
@@ -41,7 +38,7 @@ data class BattleSaveLoadOverlayAssets(
     val rowOdd: NinePatch?,
 )
 
-/** Draws the two source modals that share the same slot-list vocabulary. */
+/** 저장·불러오기 모달을 공통 슬롯 목록으로 그립니다. */
 class BattleSaveLoadOverlayRenderer(
     private val batch: SpriteBatch,
     private val font: BitmapFont,

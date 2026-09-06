@@ -13,22 +13,8 @@ import com.badlogic.gdx.utils.JsonReader
  * zero-based slot index.  Keeping that protocol explicit prevents a menu tap
  * from silently saving to an unrelated "current" slot.
  */
-/**
- * class  `SaveLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class SaveLayer(private val repository: Repository, private val pageTogglesEnabled: Boolean = true) {
-    /**
-     * interface  `Repository`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface Repository {
         /** Manager.loadGame(index), or null when no slot has been written. */
@@ -38,13 +24,6 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         fun save(index: Int)
     }
 
-    /**
-     * data class  `Row`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Row(
         val index: Int,
@@ -55,13 +34,6 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         val occupied: Boolean,
     )
 
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(val page: Int, val rows: List<Row>, val pageTogglesVisible: Boolean, val attached: Boolean)
 
@@ -150,81 +122,21 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     /** Whether a source `저장 완료.` MsgBox would be displayed before removal. */
     fun showsCompletionTip(): Boolean = tip
 
-    /**
-     * 공개 메서드 `completionTipOpen`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun completionTipOpen(): Boolean = completionTipOpen
 
-    /**
-     * 공개 메서드 `pendingSlot`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun pendingSlot(): Int? = pendingIndex
 
-    /**
-     * 공개 메서드 `pendingPrompt`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun pendingPrompt(): String? = pendingPrompt
 
-    /**
-     * 공개 메서드 `storedPage`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun storedPage(): Int = storedPage
 
-    /**
-     * 공개 메서드 `takeLifecycle`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<String>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun takeLifecycle(): List<String> = lifecycle.toList().also { lifecycle.clear() }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view(): View = requireNotNull(view) { "SaveLayer.onCreate must run before access" }
 

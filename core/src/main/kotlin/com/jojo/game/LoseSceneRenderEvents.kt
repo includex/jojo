@@ -1,22 +1,10 @@
 package com.jojo.game
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Visible submissions shared by the real Lose draw and its JSONL route. */
+/** 패배 화면과 기록 경로가 함께 사용하는 표시 요청이다. */
 object LoseSceneRenderEvents {
     const val PHASE = "battle-lose-restart-prompt"
 
-    /**
-     * 공개 메서드 `append`
-     *
-     * ### 파라미터
-    - `log` (`RenderEventLog`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `flow` (`LoseSceneFlow`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `phase` (`String = PHASE`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun append(log: RenderEventLog, flow: LoseSceneFlow, phase: String = PHASE) {
         val sprites = listOf(770, 771)

@@ -2,7 +2,7 @@ package com.jojo.game
 
 import com.badlogic.gdx.utils.JsonValue
 
-/** Shared, read-only access to the decoded source tables. */
+/** 복호화된 원본 테이블을 읽기 전용으로 제공한다. */
 internal abstract class GameDataCatalogTableDomain(tables: GameDataTableBundle) {
     protected val units = tables.units
     protected val arms = tables.arms

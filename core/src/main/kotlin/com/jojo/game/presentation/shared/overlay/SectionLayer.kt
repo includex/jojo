@@ -1,15 +1,8 @@
 package com.jojo.game.presentation.shared.overlay
 
-/** Direct state implementation of recovered ui/SectionLayer.js. */
+/** 장면 구간 표시와 자동 진행 상태를 관리합니다. */
 class SectionLayer(private val setting: Int) {
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 구간 화면을 그리는 데 필요한 상태입니다. */
     data class View(
         val label: String,
         val count: Int,
@@ -27,19 +20,7 @@ class SectionLayer(private val setting: Int) {
     private val scheduled = mutableListOf<Int>()
     private var fn: (() -> Unit)? = null
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - `idx` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `callback` (`(`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 구간 이름과 완료 콜백으로 화면을 초기화합니다. */
     fun onCreate(idx: Int, name: String, callback: () -> Unit): View {
         this.index = idx; this.name = name; fn = callback; label =
             if (idx == 0) "서막" else chapter(idx); if (setting and AUTO_CLOSE != 0) scheduled += 3; return view()
@@ -53,79 +34,29 @@ class SectionLayer(private val setting: Int) {
         }; return "제$v"
     }
 
-    /**
-     * 공개 메서드 `next`
-     *
-     * ### 파라미터
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 터치 종료 입력을 다음 구간 진행으로 변환합니다. */
     fun next(event: Int): View {
         if (event == TOUCH_END) next(); return view()
     }
 
-    /**
-     * 공개 메서드 `next`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 구간 진행 횟수를 증가시키고 완료 시 콜백을 실행합니다. */
     fun next() {
         count++; if (count == 1) label = name else if (count == 2) {
             fn?.invoke(); callbacks++; attached = false
         }
     }
 
-    /**
-     * 공개 메서드 `auto`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 자동 진행 한 번을 실행하고 현재 상태를 반환합니다. */
     fun auto(): View {
         next(); return view()
     }
 
-    /**
-     * 공개 메서드 `skip`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 남은 구간을 건너뛰고 완료 콜백을 실행합니다. */
     fun skip(): View {
         fn?.invoke(); callbacks++; attached = false; return view()
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 구간 화면 상태를 반환합니다. */
     fun view() = View(label, count, scheduled.toList(), callbacks, attached)
 
     companion object {

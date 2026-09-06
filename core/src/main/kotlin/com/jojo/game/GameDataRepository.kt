@@ -4,18 +4,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 
-/** Byte-oriented source for the game's packaged data tables. */
+/** 패키지 게임 데이터 테이블의 바이트 단위 원본이다. */
 internal fun interface GameDataResourceSource {
-    /**
-     * 공개 메서드 `read`
-     *
-     * ### 파라미터
-    - `fileName` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ByteArray`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun read(fileName: String): ByteArray
 }
@@ -37,7 +27,7 @@ internal class ClasspathThenGdxGameDataResourceSource(
     }
 }
 
-/** Parsed, validated tables handed to the read-only catalog as one value. */
+/** 해석과 검증을 마친 테이블 묶음이다. */
 internal data class GameDataTableBundle(
     val units: List<JsonValue>,
     val arms: List<JsonValue>,
@@ -54,21 +44,11 @@ internal data class GameDataTableBundle(
     val gameConfig: JsonValue,
 )
 
-/** Loads, decodes, parses, validates, and assembles all catalog tables. */
+/** 모든 카탈로그 테이블을 읽고 복호화·해석·검증한다. */
 internal class GameDataRepository(
     private val source: GameDataResourceSource,
     private val jsonReader: JsonReader = JsonReader(),
 ) {
-    /**
-     * 공개 메서드 `load`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `GameDataTableBundle`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun load(): GameDataTableBundle = GameDataTableBundle(
         units = arrayTable("unit.bin", "unit"),

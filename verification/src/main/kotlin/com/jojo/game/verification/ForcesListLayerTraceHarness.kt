@@ -7,7 +7,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin half of the recovered-factory ForcesListLayer trace. */
+/** 복원된 ForcesListLayer 팩토리 추적의 Kotlin 실행부이다. */
 object ForcesListLayerTraceHarness {
     private data class Case(
         val name: String,
@@ -22,44 +22,14 @@ object ForcesListLayerTraceHarness {
         return Regex("""\{"name":"([^"]+)","flag":(\d+),"mine":\[(.*?)]\,"enemy":\[(.*?)]\,"events":\[(.*?)]}""").findAll(
             compact
         ).map { c ->
-            /**
-             * 공개 메서드 `units`
-             *
-             * ### 파라미터
-            - `raw` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `List<ForcesListLayer.Unit>`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
-
+            /** 원본 문자열에서 편성 유닛 목록을 읽는다. */
             fun units(raw: String): List<ForcesListLayer.Unit> = Regex("""\{([^{}]*)}""").findAll(raw).map { m ->
                 val p = m.groupValues[1]
 
-                /**
-                 * 공개 메서드 `n`
-                 *
-                 * ### 파라미터
-                - `k` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
-
+                /** 이름 필드를 결과에 기록한다. */
                 fun n(k: String) = Regex("\"$k\":(\\d+)").find(p)?.groupValues?.get(1)?.toInt() ?: 0
 
-                /**
-                 * 공개 메서드 `b`
-                 *
-                 * ### 파라미터
-                - `k` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
-
+                /** 버튼 필드를 결과에 기록한다. */
                 fun b(k: String) = p.contains("\"$k\":true")
                 val status = Regex("\"status\":(\\d+)").find(p)?.groupValues?.get(1)?.toInt()
                 ForcesListLayer.Unit(
@@ -104,16 +74,6 @@ object ForcesListLayerTraceHarness {
             val routes = mutableListOf<String>()
             val trace = mutableListOf<String>()
 
-            /**
-             * 공개 메서드 `state`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun state(step: String): String {
                 val view = layer.view()

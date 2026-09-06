@@ -2,7 +2,7 @@ package com.jojo.game.presentation.battle.evidence
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** A value-only projection of the battle routes that share the battlefield chrome. */
+/** 전투 화면 공통 외형을 기록하기 위한 값 전용 모델입니다. */
 internal data class BattleRenderEventView(
     val phase: String,
     val route: BattleRenderEventRoute,
@@ -54,8 +54,9 @@ internal data class BattleRenderEventRewardView(
 internal enum class BattleRenderEventRewardPhase { MONEY, ITEMS, NONE }
 internal data class BattleRenderEventRewardItemView(val iconAsset: String, val name: String)
 
-/** Records the legacy JSONL in the same painter order from an immutable view. */
+/** 불변 화면 모델을 원본 그리기 순서의 JSONL로 기록합니다. */
 internal object BattleRenderEventRecorder {
+    /** 렌더 이벤트 모델을 JSONL 문자열로 직렬화합니다. */
     fun jsonl(view: BattleRenderEventView): String = RenderEventLog().also { log ->
         BattleBattlefieldRenderEvents.append(log, view)
         when (view.route) {

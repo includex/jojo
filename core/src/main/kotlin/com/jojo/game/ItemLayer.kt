@@ -1,31 +1,14 @@
 package com.jojo.game
 
-/** Behavioural state for the shared Global/scene/ItemLayer. */
+/** 공용 아이템 화면의 동작 상태를 관리한다. */
 class ItemLayer(
     val itemId: Int,
     private val itemName: String,
     val canDrop: Boolean,
     private val repository: Repository,
 ) {
-    /**
-     * interface  `Repository`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface Repository {
-        /**
-         * 공개 메서드 `discard`
-         *
-         * ### 파라미터
-        - `itemId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Boolean`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun discard(itemId: Int): Boolean
     }
@@ -37,17 +20,6 @@ class ItemLayer(
     var toast: String? = null
         private set
 
-    /**
-     * 공개 메서드 `onButton`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `eventType` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onButton(index: Int, eventType: Int): Boolean {
         if (!attached || eventType != TOUCH_END) return false
@@ -64,7 +36,7 @@ class ItemLayer(
         }
     }
 
-    /** MsgBox result zero is the source `예` action. */
+    /** 확인 대화상자의 0번 결과를 수락으로 처리한다. */
     fun onDiscardAnswer(result: Int): Boolean {
         if (!discardConfirmationOpen) return false
         discardConfirmationOpen = false

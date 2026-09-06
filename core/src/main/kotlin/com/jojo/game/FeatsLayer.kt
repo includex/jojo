@@ -1,14 +1,7 @@
 package com.jojo.game
 
-/** Stateful implementation of Global/scene/FeatsLayer's input and row presentation. */
+/** 업적 화면의 입력과 행 표시 상태를 관리한다. */
 class FeatsLayer(rows: List<Row>) {
-    /**
-     * data class  `Row`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Row(
         val title: String,
@@ -23,23 +16,9 @@ class FeatsLayer(rows: List<Row>) {
         val phaseLabel: String get() = if (nextAbilityPhase == 0) "MAX" else nextAbilityPhase.toString()
     }
 
-    /**
-     * enum class  `Route`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Route { HELP }
 
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(val rows: List<Row>, val attached: Boolean, val route: Route?)
 
@@ -53,16 +32,6 @@ class FeatsLayer(rows: List<Row>) {
         require(this.rows.map(Row::title) == TITLES)
     }
 
-    /**
-     * 공개 메서드 `onCancel`
-     *
-     * ### 파라미터
-    - `eventType` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCancel(eventType: Int): Boolean {
         if (!attached || eventType != TOUCH_END) return false
@@ -70,17 +39,6 @@ class FeatsLayer(rows: List<Row>) {
         return true
     }
 
-    /**
-     * 공개 메서드 `onButton`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `eventType` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onButton(index: Int, eventType: Int): Boolean {
         if (!attached || eventType != TOUCH_END) return false
@@ -97,29 +55,9 @@ class FeatsLayer(rows: List<Row>) {
         }
     }
 
-    /**
-     * 공개 메서드 `consumeRoute`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Route?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun consumeRoute(): Route? = route.also { route = null }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view() = View(rows, attached, route)
 

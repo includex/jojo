@@ -134,13 +134,6 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
  * Gameplay rules live in [Battle]; this class owns input, presentation timing,
  * overlays, and LibGDX resources while those responsibilities are extracted.
  */
-/**
- * class  `BattleScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class BattleScreen(
     private val game: JojoGame,
@@ -3083,17 +3076,6 @@ void main() {
 
     /** Read-only application probe. External diagnostics may observe it, never mutate the battle. */
     internal fun runtimeProbe(): BattleRuntimeScreenProbe {
-        /**
-         * 공개 메서드 `screenPoint`
-         *
-         * ### 파라미터
-        - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Pair<Int, Int>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun screenPoint(x: Int, y: Int): Pair<Int, Int> {
             val projected = viewport.project(
@@ -3105,17 +3087,6 @@ void main() {
             return projected.x.toInt() to (Gdx.graphics.height - projected.y).toInt()
         }
 
-        /**
-         * 공개 메서드 `projectWorldPoint`
-         *
-         * ### 파라미터
-        - `worldX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `worldY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Pair<Int, Int>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun projectWorldPoint(worldX: Float, worldY: Float): Pair<Int, Int> {
             val projected = viewport.project(Vector2(worldX, worldY))
@@ -5319,19 +5290,6 @@ void main() {
         shapes.end()
         batch.begin()
         batch.color = Color.WHITE
-        /**
-         * 공개 메서드 `tiled`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun tiled(x: Float, y: Float, w: Float, h: Float) {
             var yy = 0f; while (yy < h) {
@@ -5347,18 +5305,6 @@ void main() {
             }
         }
 
-        /**
-         * 공개 메서드 `button`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun button(x: Float, y: Float, text: String) {
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, 238.8f, 56.6f); font.color =
@@ -5419,37 +5365,10 @@ void main() {
                 ); xx += 96f
             }; yy += 96f
         }
-        /**
-         * 공개 메서드 `box`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun box(x: Float, y: Float, w: Float, h: Float) =
             NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, x, y, w, h)
 
-        /**
-         * 공개 메서드 `btn`
-         *
-         * ### 파라미터
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun btn(x: Float, y: Float, w: Float, h: Float, text: String) {
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, w, h); font.draw(
@@ -5592,16 +5511,6 @@ void main() {
 
         val json = Json()
 
-        /**
-         * 공개 메서드 `stateText`
-         *
-         * ### 파라미터
-        - `init` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun stateText(init: Boolean): String {
             val dialogue = if (init) "null" else "{\"name\":\"SayLayer\",\"active\":true}"
@@ -5629,16 +5538,6 @@ void main() {
         file.writeString(records.joinToString("\n") + "\n", false)
         val stateOutput = output.removeSuffix(".jsonl") + ".state.json"
 
-        /**
-         * 공개 메서드 `quoted`
-         *
-         * ### 파라미터
-        - `value` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun quoted(value: String?): String = value?.let { json.toJson(it, String::class.java) } ?: "null"
         Gdx.files.absolute(stateOutput).writeString(
@@ -5657,16 +5556,6 @@ void main() {
         Gdx.app.exit()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun renderEventLog(): String {
         if (mineUnitInfoRoute) return MineUnitInfoRenderEvents.jsonl(requireNotNull(mineUnitInfoLayer).view())
@@ -5856,41 +5745,10 @@ void main() {
         val log = RenderEventLog()
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-        /**
-         * 공개 메서드 `sprite`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun sprite(path: String, x: Float, y: Float, w: Float, h: Float, asset: String, opacity: Float = 1f) =
             log.draw(phase, "HallLayer", path, "sprite", x, y, w, h, asset, opacity, listOf(770, 771), true, "")
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float) =
             log.draw(phase, "HallLayer", path, "label", x, y, w, h, null, 1f, labels, true, text)
@@ -5925,25 +5783,6 @@ void main() {
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-        /**
-         * 공개 메서드 `event`
-         *
-         * ### 파라미터
-        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun event(
             layer: String,
@@ -5973,24 +5812,6 @@ void main() {
                 text
             )
 
-        /**
-         * 공개 메서드 `sprite`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `owner` (`String="UsePropertyLayer"`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun sprite(
             path: String,
@@ -6005,22 +5826,6 @@ void main() {
         ) =
             event(owner, path, type, x, y, w, h, asset, opacity = opacity)
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float=50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `owner` (`String="UsePropertyLayer"`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(
             path: String,
@@ -6105,16 +5910,6 @@ void main() {
         sprite("Canvas/Layer/bg1/bg3", "sliced-sprite", 770.186f, 427f, 448f, 260f, "box1")
         sprite("Canvas/Layer/bg1/bg3/bg1", "sprite", 871.686f, 664.273f, 245f, 45f, "bg1")
         label("Canvas/Layer/bg1/bg3/bg1/label", "장착 가능한 부대입니다.", 804.516f, 661.573f, 379.34f)
-        /**
-         * 공개 메서드 `measuredWidth`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun measuredWidth(value: String) = value.count { it != ' ' } * 27.68f + value.count { it == ' ' } * 8.89f
         repeat(13) { row ->
@@ -6151,25 +5946,6 @@ void main() {
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-        /**
-         * 공개 메서드 `draw`
-         *
-         * ### 파라미터
-        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun draw(
             layer: String,
@@ -6199,24 +5975,6 @@ void main() {
                 text
             )
 
-        /**
-         * 공개 메서드 `sprite`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `layer` (`String="MagickListLayer"`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun sprite(
             path: String,
@@ -6230,21 +5988,6 @@ void main() {
             opacity: Float = 1f
         ) = draw(layer, path, type, x, y, w, h, asset, opacity = opacity)
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float=50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             draw("MagickListLayer", path, "label", x, y, w, h, text = text)
@@ -6437,34 +6180,11 @@ void main() {
 
     private fun installBattleCharacterRoute() {
         battleCharacterRouteInstalled = true
-        /**
-         * 공개 메서드 `unit`
-         *
-         * ### 파라미터
-        - `characterId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun unit(characterId: Int) =
             battle.units.values.firstOrNull { it.characterId == characterId && battleAvatarId(it) != null }
                 ?: error("battle-character fixture requires source unit $characterId")
 
-        /**
-         * 공개 메서드 `state`
-         *
-         * ### 파라미터
-        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `camp` (`BattleCharacterCamp`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `maxHp` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `hp` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun state(unit: BattleUnit, camp: BattleCharacterCamp, maxHp: Int, hp: Int) =
             BattleCharacterPresentation(unit.id, camp, maxHp, hp)
@@ -6630,17 +6350,6 @@ void main() {
                 ); UnitSpriteSource.MOVEMENT -> unitTexture(sample.unit)
             }
             texture?.let { atlas ->
-                /**
-                 * 공개 메서드 `spriteAt`
-                 *
-                 * ### 파라미터
-                - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun spriteAt(x: Float, y: Float) = batch.draw(
                     atlas, x, y, avatar.width, avatar.height, 0,
@@ -6727,16 +6436,6 @@ void main() {
     private fun fightPresentationView(): FightPresentationView {
         val snapshot = fightPresentation.renderSnapshot()
 
-        /**
-         * 공개 메서드 `identity`
-         *
-         * ### 파라미터
-        - `fighter` (`FightFighterSnapshot`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `FightUnitRenderIdentity`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun identity(fighter: FightFighterSnapshot): FightUnitRenderIdentity {
             val characterId = fighter.characterId
@@ -6908,20 +6607,6 @@ void main() {
         // gutter=0, start=0, count=4): contiguous 48px rows held for eight
         // 24fps ticks. Each attached node owns an independent loop clock.
         hudAssets.fireTexture?.let { texture ->
-            /**
-             * 공개 메서드 `drawSelectObject`
-             *
-             * ### 파라미터
-            - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `startRow` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `count` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `startedAt` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun drawSelectObject(x: Int, y: Int, startRow: Int, count: Int, startedAt: Float) {
                 val row = BattleObjectAnimationTimeline.row(mapObjectAnimationClock() - startedAt, startRow, count)
@@ -7725,28 +7410,8 @@ void main() {
     }
 
     private fun openForcesListLayer() {
-        /**
-         * 공개 메서드 `asSource`
-         *
-         * ### 파라미터
-        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `ForcesListLayer.Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun asSource(unit: BattleUnit): ForcesListLayer.Unit {
-            /**
-             * 공개 메서드 `liftStatus`
-             *
-             * ### 파라미터
-            - `attribute` (`BattleAttribute`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun liftStatus(attribute: BattleAttribute) = when {
                 (unit.attributeLifts[attribute] ?: 0) < 0 -> 0
@@ -7780,16 +7445,6 @@ void main() {
     private fun openUnitInfoLayer(selectedCharacterId: Int) {
         val source = battle.units.values.filter { it.visible }
 
-        /**
-         * 공개 메서드 `row`
-         *
-         * ### 파라미터
-        - `u` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun row(u: BattleUnit) = UnitInfoLayer.Unit(
             u.characterId ?: 0,
@@ -7939,25 +7594,6 @@ void main() {
             else -> "battle-command"
         }
 
-        /**
-         * 공개 메서드 `d`
-         *
-         * ### 파라미터
-        - `layer` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun d(
             layer: String,
@@ -8258,20 +7894,6 @@ void main() {
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
         font.data.setScale(120f / 26f)
-        /**
-         * 공개 메서드 `text`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `color` (`Color`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun text(value: String, x: Float, y: Float, width: Float, color: Color) {
             font.color = color; font.draw(batch, value, x, y + 125f, width, Align.center, false)
@@ -8900,16 +8522,6 @@ void main() {
     }
 
     private fun recordSourceCameraCenter(tileX: Float, tileY: Float) {
-        /**
-         * 공개 메서드 `jsNumber`
-         *
-         * ### 파라미터
-        - `value` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun jsNumber(value: Float): String =
             if (value.isFinite() && value == value.toInt().toFloat()) value.toInt().toString() else value.toString()
@@ -9932,33 +9544,12 @@ void main() {
             return BattleCharacterStrictState.entries.firstOrNull { it.route == route }
         }
 
-        /**
-         * data class  `IsolatedUnit`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class IsolatedUnit(val control: Boolean, val exist: Boolean, val acted: Boolean)
 
-        /**
-         * data class  `IsolatedView`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class IsolatedView(val paused: Boolean, val modal: Boolean, val action: Boolean, val events: List<String>)
 
-        /**
-         * class  `IsolatedContract`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         class IsolatedContract(
             private val units: List<IsolatedUnit>,
@@ -9969,31 +9560,11 @@ void main() {
             private var modal = false
             private val pending = mutableListOf<String>()
 
-            /**
-             * 공개 메서드 `showWinCondition`
-             *
-             * ### 파라미터
-            - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun showWinCondition(text: String) {
                 paused = true; modal = true; pending += "pause"; pending += "layer:WinConditionsLayer:$text:$round"
             }
 
-            /**
-             * 공개 메서드 `cancel`
-             *
-             * ### 파라미터
-            - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun cancel(event: Int) {
                 if (event == WinConditionsLayer.TOUCH_END && modal) {
@@ -10005,16 +9576,6 @@ void main() {
             fun nextNotOperUnit(camp: Int) =
                 !collocation && camp == 0 && units.any { it.control && it.exist && !it.acted }
 
-            /**
-             * 공개 메서드 `view`
-             *
-             * ### 파라미터
-            - 입력 파라미터: 없음
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun view() = IsolatedView(paused, modal, nextNotOperUnit(0), pending.toList().also { pending.clear() })
         }

@@ -23,13 +23,6 @@ class BattleUnitPresentationState(
     var attributeStatusIcons: Map<BattleAttribute, AttributeStatusIcon> = emptyMap()
         private set
 
-    /**
-     * data class  `HarmNumber`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class HarmNumber(
         val value: Int,
@@ -42,33 +35,12 @@ class BattleUnitPresentationState(
         val outlineWidth: Int = 1,
     )
 
-    /**
-     * data class  `AttributeStatusIcon`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class AttributeStatusIcon(val active: Boolean, val down: Boolean)
 
-    /**
-     * data class  `DefaultAction`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class DefaultAction(val action: Int, val loop: Boolean)
 
-    /**
-     * data class  `HarmBarInput`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class HarmBarInput(
         val hitPoints: Int,
@@ -77,13 +49,6 @@ class BattleUnitPresentationState(
         val maxMagicPoints: Int,
     )
 
-    /**
-     * data class  `DefaultActionInput`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class DefaultActionInput(
         val visible: Boolean,
@@ -95,33 +60,11 @@ class BattleUnitPresentationState(
         val paralyzed: Boolean,
     )
 
-    /**
-     * 공개 메서드 `refreshHpBar`
-     *
-     * ### 파라미터
-    - `hitPoints` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `maxHitPoints` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun refreshHpBar(hitPoints: Int, maxHitPoints: Int) {
         hpBarProgress = hpRatio(hitPoints, maxHitPoints)
     }
 
-    /**
-     * 공개 메서드 `showHarmNumber`
-     *
-     * ### 파라미터
-    - `hpAdd` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `mpAdd` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun showHarmNumber(hpAdd: Int? = null, mpAdd: Int? = null) {
         val isHp = mpAdd == null
@@ -130,16 +73,6 @@ class BattleUnitPresentationState(
         harmNumber = HarmNumber(value = kotlin.math.abs(value), isHp = isHp, xOffset = if (isHp) -24 else 24)
     }
 
-    /**
-     * 공개 메서드 `clearHarmNumber`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun clearHarmNumber() {
         harmNumber = null
@@ -161,16 +94,6 @@ class BattleUnitPresentationState(
         return effect
     }
 
-    /**
-     * 공개 메서드 `refreshAttributeStatusIcons`
-     *
-     * ### 파라미터
-    - `attributeLifts` (`Map<BattleAttribute, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun refreshAttributeStatusIcons(attributeLifts: Map<BattleAttribute, Int>) {
         attributeStatusIcons = BattleAttribute.entries.associateWith { attribute ->
@@ -179,32 +102,9 @@ class BattleUnitPresentationState(
         }
     }
 
-    /**
-     * 공개 메서드 `setStateAnimationVisible`
-     *
-     * ### 파라미터
-    - `visible` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun setStateAnimationVisible(visible: Boolean) = stateAnimation.setVisible(visible)
 
-    /**
-     * 공개 메서드 `showHarmBar`
-     *
-     * ### 파라미터
-    - `input` (`HarmBarInput`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `hpAdd` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `mpAdd` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `hitRate` (`Number? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun showHarmBar(input: HarmBarInput, hpAdd: Int? = null, mpAdd: Int? = null, hitRate: Number? = null) {
         harmBarPreview = BattleHarmBar.show(

@@ -3,12 +3,12 @@ package com.jojo.game.verification
 import com.jojo.game.presentation.battle.BattleScreenIsolatedContract
 import com.jojo.game.presentation.battle.BattleScreenIsolatedUnit
 
-/** Game half of tools/battle_layer_source_trace_harness.js. */
+/** battle_layer_source_trace_harness.js와 짝을 이루는 Kotlin 실행부이다. */
 object BattleScreenTraceHarness {
     private fun q(x: String) = "\"$x\""
     @JvmStatic
     fun main(args: Array<String>) {
-        // Fixture text is part of the source contract; do not erase spaces in it.
+        // 픽스처 텍스트는 원본 계약의 일부이므로 공백을 유지한다.
         val flat = java.nio.file.Files.readString(java.nio.file.Path.of(args[0]))
         val cases =
             Regex("\\{\\\"id\\\":\\\"([^\\\"]+)\\\",\\\"text\\\":\\\"([^\\\"]+)\\\",\\\"round\\\":(\\d+),(?:\\\"collocation\\\":(true|false),)?\\\"units\\\":\\[(.*?)],\\\"events\\\":\\[(.*?)]}").findAll(
@@ -26,17 +26,7 @@ object BattleScreenTraceHarness {
             val layer = BattleScreenIsolatedContract(units, m.groupValues[4] == "true", m.groupValues[3].toInt())
             val trace = mutableListOf<String>()
 
-            /**
-             * 공개 메서드 `snap`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
-
+            /** 현재 전투 단계의 상태를 기록한다. */
             fun snap(step: String) {
                 val v =
                     layer.view(); trace += "{\"step\":${q(step)},\"paused\":${v.paused},\"modal\":${v.modal},\"action\":${v.action},\"events\":[${

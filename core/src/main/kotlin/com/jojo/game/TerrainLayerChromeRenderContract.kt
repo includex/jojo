@@ -8,22 +8,8 @@ package com.jojo.game
  * BattleScreen so the production renderer can adopt it without changing input
  * or terrain data behaviour.
  */
-/**
- * object  `TerrainLayerChromeRenderContract`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object TerrainLayerChromeRenderContract {
-    /**
-     * data class  `Patch`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Patch(
         val path: String,
@@ -42,6 +28,6 @@ object TerrainLayerChromeRenderContract {
     val outerBox = Patch("maps/ui/terrain-layer/outer-box.png", PANEL_X, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT, 3)
     val titleStrip = Patch("maps/ui/terrain-layer/title-strip.png", PANEL_X, 650f, PANEL_WIDTH, 50f, 5)
 
-    /** Cocos child order: tiled Logo_9, outer box1, then title bg1. */
+    /** 지형 창 배경 요소의 표시 순서를 나타낸다. */
     fun chrome(): List<Patch> = listOf(outerBox, titleStrip)
 }

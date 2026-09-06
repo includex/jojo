@@ -5,23 +5,6 @@ import com.jojo.game.presentation.scenario.*
 internal fun appendMagic(writer: ScenarioHallOverlayEventWriter) = with(writer) {
         val magic = requireNotNull(input.magic)
 
-        /**
-         * 공개 메서드 `sprite`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float = 1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun sprite(
             path: String,
@@ -35,21 +18,6 @@ internal fun appendMagic(writer: ScenarioHallOverlayEventWriter) = with(writer) 
         ) =
             event("MagicLayer", path, type, x, y, w, h, asset, "", opacity, true)
 
-        /**
-         * 공개 메서드 `text`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float = 50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun text(path: String, value: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             label("MagicLayer", path, value, x, y, w, h, true)

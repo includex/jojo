@@ -3,21 +3,7 @@ package com.jojo.game.domain.battle
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleActionSnapshot
 
-/**
- * Publishes a calculated action at animation lifecycle boundaries.
- *
- * The calculation snapshots remain internal while callers can commit only
- * the movement, hit, status, economy, or final state appropriate to the
- * presentation edge they have reached.
- */
-/**
- * class  `BattleActionTransaction`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 전투 애니메이션 단계에 맞춰 계산된 상태를 순차 반영한다. */
 class BattleActionTransaction internal constructor(
     val actorId: String,
     private val before: BattleActionSnapshot,
@@ -33,33 +19,13 @@ class BattleActionTransaction internal constructor(
     private var complete = false
     private var hitEffectsCommitted = 0
 
-    /**
-     * 공개 메서드 `initialHp`
-     *
-     * ### 파라미터
-    - `id` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 행동 전 유닛의 체력을 조회한다. */
     fun initialHp(id: String): Int? = before.states[id]?.hitPoints
 
-    /**
-     * 공개 메서드 `initialMp`
-     *
-     * ### 파라미터
-    - `id` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 행동 전 유닛의 기력을 조회한다. */
     fun initialMp(id: String): Int? = before.states[id]?.magicPoints
 
-    /** Commits the actor's calculated destination and optional action state. */
+    /** 행동자의 계산된 이동 위치와 선택 상태를 반영한다. */
     fun commitMovement(commitActionState: Boolean = false) {
         if (complete) return
         val source = after.states[actorId] ?: return
@@ -79,7 +45,7 @@ class BattleActionTransaction internal constructor(
         }
     }
 
-    /** Publishes an animation-complete position without restoring other state. */
+    /** 다른 상태를 복원하지 않고 애니메이션 완료 위치만 반영한다. */
     fun commitPosition(id: String, x: Int, y: Int) {
         if (complete) return
         val unit = before.states[id]?.unit ?: return
@@ -89,7 +55,7 @@ class BattleActionTransaction internal constructor(
         unit.hasAuthoredTileY = true
     }
 
-    /** Publishes only the HP and MP visible at the current hit boundary. */
+    /** 현재 타격 단계에서 보여야 할 체력과 기력만 반영한다. */
     fun commitVitals(id: String, hp: Int? = null, mp: Int? = null) {
         if (complete) return
         val unit = before.states[id]?.unit ?: return
@@ -97,13 +63,13 @@ class BattleActionTransaction internal constructor(
         mp?.let(unit::setMpcur)
     }
 
-    /** Publishes callback-local money deltas before the final absolute restore. */
+    /** 최종 상태 복원 전에 콜백 단위의 자금 변동을 반영한다. */
     fun commitEconomy(playerDelta: Int = 0, enemyDelta: Int = 0) {
         if (complete) return
         adjustEconomy(playerDelta, enemyDelta)
     }
 
-    /** Publishes the calculated status collections for one unit. */
+    /** 유닛 하나의 계산된 상태 이상 목록을 반영한다. */
     fun commitStatuses(id: String) {
         if (complete) return
         val source = after.states[id] ?: return
@@ -115,7 +81,7 @@ class BattleActionTransaction internal constructor(
         )
     }
 
-    /** Publishes one callback-local status settlement rather than the final state. */
+    /** 최종 상태 대신 콜백 단위의 상태 이상 결과를 반영한다. */
     fun commitStatuses(entry: MagicLocalSettlementEntry) {
         if (complete) return
         restoreStatuses(
@@ -141,24 +107,14 @@ class BattleActionTransaction internal constructor(
         unit.attributeLiftRounds.putAll(attributeLiftRounds)
     }
 
-    /**
-     * 공개 메서드 `commitNextHitSideEffect`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 다음 타격 부수 효과를 한 번만 실행한다. */
     fun commitNextHitSideEffect() {
         if (complete) return
         hitSideEffects.getOrNull(hitEffectsCommitted)?.invoke()
         if (hitEffectsCommitted < hitSideEffects.size) hitEffectsCommitted++
     }
 
-    /** Restores the final snapshot, drains effects in order, and completes once. */
+    /** 최종 스냅샷과 남은 효과를 순서대로 반영하고 행동을 완료한다. */
     fun commitAll() {
         if (complete) return
         val liveDirections = before.states.mapNotNull { (id, state) ->

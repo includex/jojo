@@ -5,13 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * object  `FoundationTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** Foundation 서비스와 상태 전이를 입력별로 추적한다. */
 
 object FoundationTraceHarness {
     private fun q(s: String?) = s?.let { "\"${it.replace("\\", "\\\\").replace("\"", "\\\"")}\"" } ?: "null"
@@ -96,17 +90,7 @@ object FoundationTraceHarness {
                 val p = StatusMachine()
                 val o = mutableListOf<String>()
 
-                /**
-                 * 공개 메서드 `state`
-                 *
-                 * ### 파라미터
-                - `i` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Triple<() -> Unit, () -> Unit, () -> Unit>`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
-
+                /** 상태 진입·이탈·갱신 콜백을 한 묶음으로 만든다. */
                 fun state(i: Int): Triple<() -> Unit, () -> Unit, () -> Unit> =
                     Triple({ o.add("enter$i") }, { o.add("exit$i") }, { o.add("update$i") })
                 p.states[0] = state(0); p.states[1] = state(1); p.change(0)

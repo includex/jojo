@@ -8,19 +8,9 @@ import com.jojo.game.*
 import com.jojo.game.domain.scenario.ScenarioScript
 import com.jojo.game.domain.scenario.ScriptStep
 
+/** AST 리소스를 실행 가능한 시나리오 스크립트로 변환한다. */
 object ScenarioProgramLoader {
-    /**
-     * 공개 메서드 `load`
-     *
-     * ### 파라미터
-    - `moduleName` (`String = "R_00"`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `functionName` (`String = "scene1"`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ScenarioScript`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지정한 모듈과 함수의 AST를 읽어 시나리오 단계로 컴파일한다. */
     fun load(moduleName: String = "R_00", functionName: String = "scene1"): ScenarioScript {
         val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
         val module = payload.get("ast")

@@ -1,6 +1,6 @@
 package com.jojo.game
 
-/** Direct, Cocos-free UI state derived from the recovered System UI factories. */
+/** 복원한 시스템 UI 생성기에서 파생한 프레임워크 독립 상태이다. */
 class DialogState(private val callback: (Int) -> Unit) {
     var attached = true
     var label = ""
@@ -8,17 +8,6 @@ class DialogState(private val callback: (Int) -> Unit) {
     val visible = MutableList(3) { true }
     var panel = false
 
-    /**
-     * 공개 메서드 `create`
-     *
-     * ### 파라미터
-    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `f` (`Int = 7`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun create(text: String, f: Int = 7) {
         label = text; flag = f
@@ -28,17 +17,6 @@ class DialogState(private val callback: (Int) -> Unit) {
         for (i in 0..2) visible[i] = buttons and (1 shl i) != 0
     }
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(tag: Int, event: Int) {
         if (event == 2) {
@@ -47,28 +25,10 @@ class DialogState(private val callback: (Int) -> Unit) {
     }
 }
 
-/**
- * class  `ChoiceDialogState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ChoiceDialogState(private val callback: (Int) -> Unit) {
     var attached = true
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(tag: Int, event: Int) {
         if (event == 2) {
@@ -77,30 +37,12 @@ class ChoiceDialogState(private val callback: (Int) -> Unit) {
     }
 }
 
-/**
- * class  `QuantityDialogState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class QuantityDialogState(private val callback: (Int) -> Unit) {
     var n = 1
     var attached = true
     val events = mutableListOf<List<Any>>()
 
-    /**
-     * 공개 메서드 `input`
-     *
-     * ### 파라미터
-    - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `count` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun input(value: String, count: Int) {
         val next = (value.toDoubleOrNull()?.toInt() ?: 0).coerceIn(1, count)
@@ -109,17 +51,6 @@ class QuantityDialogState(private val callback: (Int) -> Unit) {
         }
     }
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(tag: Int, event: Int) {
         if (event == 2) {
@@ -128,13 +59,6 @@ class QuantityDialogState(private val callback: (Int) -> Unit) {
     }
 }
 
-/**
- * class  `ToggleDialogState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ToggleDialogState(private val callback: (Int) -> Unit, initialToggle: Boolean = false) {
     var attached = true
@@ -142,33 +66,12 @@ class ToggleDialogState(private val callback: (Int) -> Unit, initialToggle: Bool
     var persistedToggle = if (initialToggle) 1 else 0
     val visible = MutableList(3) { false }
 
-    /**
-     * 공개 메서드 `create`
-     *
-     * ### 파라미터
-    - `flag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun create(flag: Int) {
         var buttons = flag and 3; if (flag and 4 != 0) buttons = buttons or 32; for (i in 0..2) visible[i] =
             buttons and (1 shl i) != 0
     }
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(tag: Int, event: Int) {
         if (event == 2) {
@@ -177,13 +80,6 @@ class ToggleDialogState(private val callback: (Int) -> Unit, initialToggle: Bool
     }
 }
 
-/**
- * class  `ToastQueue`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ToastQueue {
     val items = mutableListOf<String>()
@@ -199,13 +95,6 @@ class ToastQueue {
     }
 }
 
-/**
- * class  `ProgressState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ProgressState {
     var label = ""
@@ -219,13 +108,6 @@ class ProgressState {
     }
 }
 
-/**
- * class  `LoadingState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class LoadingState {
     var image = true

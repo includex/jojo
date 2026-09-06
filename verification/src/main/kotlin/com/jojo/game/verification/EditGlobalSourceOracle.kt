@@ -1,6 +1,6 @@
 package com.jojo.game.verification
 
-/** Isolated EditLayer3 source oracle, reachable only by the verification flag. */
+/** 검증 플래그로만 접근하는 EditLayer3 원본 기준 구현이다. */
 internal class EditGlobalSourceOracle(
     ambition: Int,
     money: Int,

@@ -4,7 +4,7 @@ import com.jojo.game.GameDataCatalog
 import kotlin.collections.ArrayDeque
 import kotlin.random.Random
 
-/** Mutable campaign aggregate equivalent to the source Model singleton. */
+/** 캠페인 진행에 필요한 가변 상태를 모은 집합체이다. */
 class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive -> Random.nextInt(upperExclusive) }) {
     private val injectedInfoTransferRandomValues = ArrayDeque<Int>()
 

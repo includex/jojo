@@ -6,25 +6,6 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
         private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
     fun append(log: RenderEventLog, phase: String, layer: String = "EditLayer3") {
-        /**
-         * 공개 메서드 `d`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opacity` (`Float=1f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `blend` (`Any=listOf(770,771`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun d(
             path: String,

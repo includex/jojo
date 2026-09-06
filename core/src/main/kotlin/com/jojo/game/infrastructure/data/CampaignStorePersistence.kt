@@ -5,13 +5,14 @@ import com.badlogic.gdx.utils.JsonReader
 import com.jojo.game.domain.campaign.CampaignState
 import java.util.Base64
 
-/** Preference and numbered-slot persistence for the campaign application service. */
+/** 캠페인 스냅샷과 번호가 있는 저장 슬롯의 영속화를 담당한다. */
 internal class CampaignStorePersistence(
     private val preferences: Preferences,
     private val state: CampaignState,
 ) {
     private val runtime = CampaignRuntimeStateCodec(state)
 
+    /** 환경설정에 저장된 캠페인 스냅샷을 읽는다. */
     fun read(): CampaignStore.Snapshot {
         val encoded = preferences.getString(KEY, "")
         if (encoded.isBlank()) return CampaignStore.Snapshot()
@@ -20,6 +21,7 @@ internal class CampaignStorePersistence(
         return snapshotFrom(root)
     }
 
+    /** 캠페인 스냅샷과 런타임 상태를 저장한다. */
     fun write(snapshot: CampaignStore.Snapshot) {
         val completed = snapshot.completed.sorted().joinToString(",") { quote(it) }
         val choices = snapshot.choices.toSortedMap().entries.joinToString(",") { "${quote(it.key)}:${quote(it.value)}" }
@@ -29,6 +31,7 @@ internal class CampaignStorePersistence(
         preferences.putString(KEY, Base64.getEncoder().encodeToString(envelope.toByteArray(Charsets.ISO_8859_1))).flush()
     }
 
+    /** 현재 상태를 번호 슬롯 레코드로 만들고 저장한다. */
     fun saveSlot(index: Int, snapshot: CampaignStore.Snapshot): String {
         write(snapshot)
         val payload = preferences.getString(KEY, "")
@@ -38,8 +41,10 @@ internal class CampaignStorePersistence(
         return record
     }
 
+    /** 번호 슬롯의 원본 레코드를 읽고 비어 있으면 null을 반환한다. */
     fun loadSlot(index: Int): String? = preferences.getString("$SLOT_KEY_PREFIX$index", "").takeIf { it.isNotBlank() }
 
+    /** 슬롯 레코드를 검증해 캠페인 스냅샷으로 복원한다. */
     fun restoreSlot(index: Int, raw: String): CampaignStore.Snapshot? {
         if (loadSlot(index) != raw) return null
         val record = runCatching { JsonReader().parse(raw) }.getOrNull() ?: return null

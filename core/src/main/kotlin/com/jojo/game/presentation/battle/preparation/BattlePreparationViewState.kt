@@ -34,22 +34,12 @@ data class BattlePreparationUnitView(
     val headId: Int,
 )
 
-/** Maps game data into a detached, immutable rendering model. */
+/** 게임 데이터를 분리된 불변 준비 화면 모델로 변환합니다. */
 internal class BattlePreparationViewStateFactory(
     private val data: GameDataCatalog,
     private val unitAttribute: (unitId: Int, attribute: Int, default: Int) -> Int,
 ) {
-    /**
-     * 공개 메서드 `units`
-     *
-     * ### 파라미터
-    - `ids` (`List<Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<BattlePreparationUnitView>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 선택한 유닛 ID 목록을 준비 화면 모델로 변환합니다. */
     fun units(ids: List<Int>): List<BattlePreparationUnitView> = ids.mapNotNull(::unit)
 
     private fun unit(id: Int): BattlePreparationUnitView? {

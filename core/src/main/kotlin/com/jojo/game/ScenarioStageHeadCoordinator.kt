@@ -2,7 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.presentation.scenario.ScenarioHead
 
-/** Owns the independent lifecycle and fade/move state of scenario head nodes. */
+/** 시나리오 인물 머리 노드의 표시·이동·페이드 상태를 관리한다. */
 internal class ScenarioStageHeadCoordinator {
     val heads = linkedMapOf<Int, ScenarioHead>()
 

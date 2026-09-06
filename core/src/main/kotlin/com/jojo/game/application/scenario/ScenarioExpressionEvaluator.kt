@@ -4,6 +4,7 @@ import com.jojo.game.*
 
 import com.badlogic.gdx.utils.JsonValue
 
+/** 표현식 평가에 필요한 변수 범위와 호출 함수를 모은다. */
 internal data class ScenarioExpressionEnvironment(
     val vars: Map<Int, Any?>,
     val gvars: Map<Int, Any?>,
@@ -12,24 +13,10 @@ internal data class ScenarioExpressionEnvironment(
     val invokeCall: (JsonValue, Frame) -> Any?,
 )
 
-/**
- * Evaluates Python AST expressions: literals, variables, subscript access, binary/comparison ops, and function calls.
- */
+/** 시나리오 AST의 리터럴, 변수, 연산, 호출 표현식을 평가한다. */
 internal object ScenarioExpressionEvaluator {
 
-    /**
-     * 공개 메서드 `eval`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Any?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** AST 표현식 하나를 현재 실행 프레임에서 평가한다. */
     fun eval(node: JsonValue, frame: Frame, env: ScenarioExpressionEnvironment): Any? = when (node.typeName()) {
         "Constant" -> node.field("value").value()
         "Name" -> lookupName(node.field("id").asString(), frame, env)
@@ -65,19 +52,7 @@ internal object ScenarioExpressionEvaluator {
         else -> 0
     }
 
-    /**
-     * 공개 메서드 `evalCompare`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 비교 AST를 평가한다. */
     fun evalCompare(node: JsonValue, frame: Frame, env: ScenarioExpressionEnvironment): Boolean {
         val left = eval(node.field("left"), frame, env)
         val right = node.field("comparators").children().firstOrNull()?.let { eval(it, frame, env) }
@@ -93,19 +68,7 @@ internal object ScenarioExpressionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `evalBinary`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Any`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 이항 연산 AST를 평가한다. */
     fun evalBinary(node: JsonValue, frame: Frame, env: ScenarioExpressionEnvironment): Any {
         val left = eval(node.field("left"), frame, env)
         val right = eval(node.field("right"), frame, env)
@@ -120,19 +83,7 @@ internal object ScenarioExpressionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `evalBoolean`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 표현식 결과를 시나리오의 불리언 규칙으로 변환한다. */
     fun evalBoolean(node: JsonValue, frame: Frame, env: ScenarioExpressionEnvironment): Boolean =
         when (val value = eval(node, frame, env)) {
             is Boolean -> value
@@ -142,19 +93,7 @@ internal object ScenarioExpressionEvaluator {
             else -> true
         }
 
-    /**
-     * 공개 메서드 `lookupName`
-     *
-     * ### 파라미터
-    - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Any?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 프레임과 전역 범위에서 이름을 해석한다. */
     fun lookupName(name: String, frame: Frame, env: ScenarioExpressionEnvironment): Any = when (name) {
         "vars" -> env.vars
         "gvars" -> env.gvars
@@ -162,19 +101,7 @@ internal object ScenarioExpressionEvaluator {
         else -> frame.locals[name] ?: env.globalVariables[name] ?: 0
     }
 
-    /**
-     * 공개 메서드 `readSubscript`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Any?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 첨자 접근 AST에서 컨테이너 값을 읽는다. */
     fun readSubscript(node: JsonValue, frame: Frame, env: ScenarioExpressionEnvironment): Any? {
         val container = eval(node.field("value"), frame, env)
         val index = eval(node.field("slice"), frame, env).asInt()
@@ -185,20 +112,7 @@ internal object ScenarioExpressionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `assign`
-     *
-     * ### 파라미터
-    - `target` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `value` (`Any?`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 대입 대상 AST에 계산된 값을 기록한다. */
     fun assign(target: JsonValue, value: Any?, frame: Frame, env: ScenarioExpressionEnvironment) {
         when (target.typeName()) {
             "Name" -> frame.locals[target.field("id").asString()] = value
@@ -211,19 +125,7 @@ internal object ScenarioExpressionEvaluator {
         }
     }
 
-    /**
-     * 공개 메서드 `evalArguments`
-     *
-     * ### 파라미터
-    - `args` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`ScenarioExpressionEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Any?>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 호출 인수 목록을 순서대로 평가한다. */
     fun evalArguments(args: JsonValue, frame: Frame, env: ScenarioExpressionEnvironment): List<Any?> =
         args.children().map { eval(it, frame, env) }.toList()
 }

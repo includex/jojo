@@ -23,18 +23,6 @@ class FightUnit(
         nodeScaleX = 1
     }
 
-    /**
-     * 공개 메서드 `create`
-     *
-     * ### 파라미터
-    - `moveSound` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `soundEvent` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `shaderEvents` (`List<Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun create(moveSound: Int, soundEvent: String, shaderEvents: List<Int>) {
         nodeX = 0; nodeY = 0
@@ -56,17 +44,6 @@ class FightUnit(
         }
     }
 
-    /**
-     * 공개 메서드 `setActionDir`
-     *
-     * ### 파라미터
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `finished` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun setActionDir(value: Int, finished: Boolean) {
         action = value; reset(); animation = "anime$value"

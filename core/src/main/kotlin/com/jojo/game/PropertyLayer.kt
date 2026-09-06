@@ -8,22 +8,8 @@ package com.jojo.game
  * auxiliary equipment.  Keeping that distinction here is important because
  * the original Item.type() derives its UI category from this raw value.
  */
-/**
- * class  `PropertyLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class PropertyLayer(private val items: List<Item>, private val inventory: Map<Int, Int>) {
-    /**
-     * data class  `Item`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Item(
         val id: Int, val name: String, val itemType: Int, val icon: Int,
@@ -31,23 +17,9 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
         val expLimit: Int = 0, val typeName: String? = null,
     )
 
-    /**
-     * enum class  `Tab`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Tab { WEAPON, ARMOR, AUXILIARY, PROPERTY }
 
-    /**
-     * data class  `Row`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Row(val item: Item, val quantity: Int, val labels: List<String>)
 
@@ -56,69 +28,39 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
     var scrollRow = 0; private set
     private var propertyPanelInitialized = false
 
-    /** `onCreate` ends with the original `_currentSel(0)`. */
+    /** 생성 직후 첫 번째 항목을 선택한다. */
     fun onCreate(): List<Row> {
         attached = true; selected = Tab.WEAPON; scrollRow = 0; return rows()
     }
 
-    /**
-     * 공개 메서드 `select`
-     *
-     * ### 파라미터
-    - `tab` (`Tab`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Row>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun select(tab: Tab): List<Row> {
         selected = tab
         val result = rows()
-        // ScrollView clamps its offset when the source replaces content rows.
+        // 원본이 내용 행을 교체하면 스크롤 뷰가 오프셋을 제한한다.
         scrollRow = scrollRow.coerceIn(0, (result.size - 1).coerceAtLeast(0))
         return result
     }
 
-    /** Source toggle listener only reacts to TOUCH_END (2). */
+    /** 전환 입력은 터치 종료 시에만 처리한다. */
     fun onTabTouch(tab: Tab, event: Int): List<Row> = if (event == 2) select(tab) else rows()
 
-    /** Source close-button listener only removes on TOUCH_END (2). */
+    /** 닫기 버튼은 터치 종료 시에만 화면을 제거한다. */
     fun onCancel(event: Int) {
         if (event == 2) attached = false
     }
 
-    /** ScrollView owns the physical scrolling; expose its clamped row state. */
+    /** 스크롤 범위가 제한된 행 상태를 제공한다. */
     fun onScroll(row: Int): Int {
         scrollRow = row.coerceIn(0, (rows().size - 1).coerceAtLeast(0)); return scrollRow
     }
 
-    /** `_onEquipOnClick` adds ItemLayer only for TOUCH_END. */
+    /** 장비 선택 화면은 터치 종료 시에만 연다. */
     fun onRowTouch(index: Int, event: Int): Int? = if (event == 2) rows().getOrNull(index)?.item?.id else null
 
-    /**
-     * 공개 메서드 `panelInitialized`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun panelInitialized(): Boolean = propertyPanelInitialized
 
-    /**
-     * 공개 메서드 `rows`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Row>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun rows(): List<Row> = when (selected) {
         Tab.PROPERTY -> {
@@ -135,8 +77,7 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
 
     private fun equipment(filter: (Item) -> Boolean) = items.filter(filter).sortedBy { it.id }.map { item ->
         val owner = item.owner ?: "창고"
-        // PropertyLayer's switch assigns lv() to both WEAPONS and ARMOR;
-        // only AUXILIARY keeps the initial "---" value.
+        // 무기와 방어구에는 lv()를 적용하고 보조 장비만 초기 "---" 값을 유지한다.
         val level = if (item.isAuxiliary()) "---" else item.level.toString()
         val nameProperty = item.typeName ?: when {
             item.isAuxiliary() -> "보조"; item.isArmor() -> "방어구"; else -> "무기"
@@ -154,23 +95,10 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
     private fun Item.isAuxiliary() = !isWeapon() && !isArmor() && !isProperty()
 
     companion object {
-        /**
-         * 공개 메서드 `fromCatalog`
-         *
-         * ### 파라미터
-        - `data` (`GameDataCatalog`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `inventory` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `PropertyLayer`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun fromCatalog(data: GameDataCatalog, inventory: Map<Int, Int>): PropertyLayer = PropertyLayer(
-            // Model.itemIter feeds only the player's item-store entries to
-            // ui/PropertyLayer.  Keep the class itself generic for its
-            // direct source-trace contract; narrow the live battle model at
-            // this boundary instead of displaying every catalogue entry.
+            // 아이템 순회는 플레이어 저장소 항목만 상세 화면에 전달한다. 원본 추적
+            // 계약을 위해 클래스는 일반화하고, 이 경계에서만 전투 모델을 제한한다.
             data.allEquipmentProfiles().filter { (inventory[it.id] ?: 0) > 0 }
                 .map { Item(it.id, it.name, it.itemType, it.icon) }, inventory
         )

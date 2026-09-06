@@ -10,13 +10,6 @@ import com.jojo.game.domain.battle.*
  * model represented by [Battle].  Keeping this contract separate lets its
  * event and layer behaviour be tested without Cocos or JSON globals.
  */
-/**
- * class  `BattleSceneCoordinator`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class BattleSceneCoordinator(
     private val factory: Factory,
@@ -28,13 +21,6 @@ class BattleSceneCoordinator(
     private val miniMapLayer: Any? = null,
     private val noticeInfoLayer: Any? = null,
 ) {
-    /**
-     * interface  `BattleScreen`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface BattleScreen {
         /** BattleScreen.save(out). */
@@ -52,40 +38,11 @@ class BattleSceneCoordinator(
         fun saveGame(index: Int, json: String)
     }
 
-    /**
-     * interface  `Factory`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface Factory {
-        /**
-         * 공개 메서드 `addBattleScreen`
-         *
-         * ### 파라미터
-        - `data` (`Any?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleScreen`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun addBattleScreen(data: Any?): BattleScreen
 
-        /**
-         * 공개 메서드 `addForcesList`
-         *
-         * ### 파라미터
-        - `mine` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `enemy` (`List<Any?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `flag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun addForcesList(mine: List<Any?>, enemy: List<Any?>, flag: Int)
 
@@ -93,13 +50,6 @@ class BattleSceneCoordinator(
         fun stringify(value: Map<String, Any?>): String
     }
 
-    /**
-     * data class  `SaveRequest`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class SaveRequest(val index: Int, val onComplete: (() -> Unit)? = null)
 

@@ -1,6 +1,6 @@
 package com.jojo.game.verification
 
-/** Canonical JSON fragments shared by the Edit mutation scenario runners. */
+/** Edit 변이 시나리오 실행기가 공유하는 기준 JSON 조각이다. */
 object EditMutationTraceJson {
     fun quote(value: String): String =
         "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""

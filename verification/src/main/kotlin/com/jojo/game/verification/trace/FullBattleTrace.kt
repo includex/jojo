@@ -10,13 +10,6 @@ import java.nio.file.StandardOpenOption
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
-/**
- * data class  `FullBattleTraceConfig`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class FullBattleTraceConfig(
     val outputPath: String,
@@ -39,13 +32,6 @@ data class FullBattleTraceConfig(
  * dialogue/callbacks.  Treating that dialogue as the tactical timeout cuts the
  * source route at exactly the point the full-battle trace is meant to verify.
  */
-/**
- * class  `FullBattleTraceDeadline`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class FullBattleTraceDeadline(
     private val maxSimulationSeconds: Float,
@@ -53,17 +39,6 @@ class FullBattleTraceDeadline(
 ) {
     private var resultObservedAt: Float? = null
 
-    /**
-     * 공개 메서드 `timeoutReason`
-     *
-     * ### 파라미터
-    - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `hasOutcome` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun timeoutReason(elapsed: Float, hasOutcome: Boolean): String? {
         if (!hasOutcome) return if (elapsed >= maxSimulationSeconds) "timeout" else null
@@ -74,13 +49,6 @@ class FullBattleTraceDeadline(
 
 /** Exact deterministic counterparts of Tool.random and the harness Math.random override. */
 class SourceRandomStreams(toolSeed: Int, mathSeed: Long) {
-    /**
-     * data class  `Event`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Event(
         val frame: Long, val time: Float, val min: Int, val max: Int, val flag: Int,
@@ -93,34 +61,11 @@ class SourceRandomStreams(toolSeed: Int, mathSeed: Long) {
     private var time = 0f
     val events = mutableListOf<Event>()
 
-    /**
-     * 공개 메서드 `setClock`
-     *
-     * ### 파라미터
-    - `frame` (`Long`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `time` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun setClock(frame: Long, time: Float) {
         this.frame = frame; this.time = time
     }
 
-    /**
-     * 공개 메서드 `random`
-     *
-     * ### 파라미터
-    - `min` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `max` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `flag` (`Int = 0`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun random(min: Int, max: Int, flag: Int = 0): Int {
         val width = max - min + 1
@@ -158,16 +103,6 @@ class FullBattleTraceRecorder(
     var recordedRowCount = 0L
         private set
 
-    /**
-     * 공개 메서드 `nextFrame`
-     *
-     * ### 파라미터
-    - `time` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Long`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun nextFrame(time: Float): Long {
         frameNumber++
@@ -178,16 +113,6 @@ class FullBattleTraceRecorder(
     /** Same render id used by callback observations emitted before its RAF row. */
     fun upcomingFrame(): Long = frameNumber + 1
 
-    /**
-     * 공개 메서드 `addFrame`
-     *
-     * ### 파라미터
-    - `json` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun addFrame(json: String) {
         if (frameSpoolWriter == null && bufferedFrameBytes + json.length <= frameMemoryLimitBytes) {
@@ -226,17 +151,6 @@ class FullBattleTraceRecorder(
         inputs += context
     }
 
-    /**
-     * 공개 메서드 `write`
-     *
-     * ### 파라미터
-    - `reason` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `summaryJson` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun write(reason: String, summaryJson: String) {
         if (written) return
@@ -267,16 +181,6 @@ class FullBattleTraceRecorder(
                 writer.write("],\"frames\":[")
                 var firstFrame = true
 
-                /**
-                 * 공개 메서드 `emitFrame`
-                 *
-                 * ### 파라미터
-                - `frame` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun emitFrame(frame: String) {
                     if (!firstFrame) writer.write(",")
@@ -309,29 +213,9 @@ class FullBattleTraceRecorder(
     }
 
     companion object {
-        /**
-         * 공개 메서드 `escape`
-         *
-         * ### 파라미터
-        - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun escape(value: String) = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
 
-        /**
-         * 공개 메서드 `number`
-         *
-         * ### 파라미터
-        - `value` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun number(value: Float): String =
             if (value.isFinite()) "%.6f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.') else "0"

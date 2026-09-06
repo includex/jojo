@@ -5,7 +5,7 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.scenario.ScriptedUnitAction
 
-/** Owns setAction/setAction2's finite clip callback and synchronous fast path. */
+/** 스크립트 유닛 행동의 애니메이션 시작과 완료 콜백을 조정합니다. */
 internal class ScriptedUnitActionCoordinator(
     private val lifecycle: ScriptedUnitPresentationLifecycle,
     private val port: Port,
@@ -27,6 +27,7 @@ internal class ScriptedUnitActionCoordinator(
 
     val busy: Boolean get() = lifecycle.actionBusy
 
+    /** 대기 중인 유닛 행동을 시작합니다. */
     fun consumeStarts() {
         port.consumeActions().forEach { action ->
             val unit = port.unit(action)
@@ -51,6 +52,7 @@ internal class ScriptedUnitActionCoordinator(
         }
     }
 
+    /** 완료 시각에 도달한 유닛 행동을 정리합니다. */
     fun driveCallback() {
         val active = lifecycle.activeAction ?: return
         if (port.now() < active.endsAt) return

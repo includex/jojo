@@ -4,7 +4,7 @@ import com.jojo.game.domain.battle.*
 
 import com.jojo.game.application.runtime.BattleTraceRecorder
 
-/** Immutable projection of the live battle composition used by the evidence recorder. */
+/** 증거 기록기가 사용하는 전투 구성의 불변 투영 모델입니다. */
 internal data class BattleCompositionEvidenceView(
     val scenarioKey: String,
     val animationClock: Float,
@@ -18,7 +18,7 @@ internal data class BattleCompositionEvidenceView(
     val effectCount: Int,
 )
 
-/** Immutable state hand-off from BattleScreen; it contains no screen/model references. */
+/** 전투 화면에서 전달하는 값 전용 구성 입력입니다. */
 internal data class BattleCompositionEvidenceInput(
     val captureState: String?,
     val sourceScenario: String,
@@ -108,8 +108,9 @@ internal data class BattleCompositionEnemyPlanner(
     val magicId: Int?,
 )
 
-/** Projects immutable live-state values into the recorder's stable composition view. */
+/** 화면 입력 값을 안정적인 구성 증거 모델로 변환합니다. */
 internal object BattleCompositionEvidenceProjector {
+    /** 현재 화면 입력을 구성 증거 모델로 투영합니다. */
     fun project(input: BattleCompositionEvidenceInput): BattleCompositionEvidenceView {
         val scenarioKey = when (input.captureState) {
             "yingchuan-opening-say" -> "r00-opening-say"
@@ -155,8 +156,9 @@ internal object BattleCompositionEvidenceProjector {
     }
 }
 
-/** Deterministic serializer for the legacy battle composition trace schema. */
+/** 전투 구성 증거를 기존 JSONL 형식으로 직렬화합니다. */
 internal object BattleCompositionEvidenceRecorder {
+    /** 구성 증거를 결정적인 JSONL 문자열로 반환합니다. */
     fun record(view: BattleCompositionEvidenceView): String {
         val units = view.units.joinToString(",") { unit ->
             val atlasJson = unit.textureUuid?.let { "\"$it\"" } ?: "null"

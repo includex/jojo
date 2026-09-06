@@ -10,13 +10,7 @@ import com.jojo.game.presentation.battle.preparation.HallPreparationFlow
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * object  `HallPrepTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 전투 준비 화면의 입력과 렌더 상태를 추적한다. */
 
 object HallPrepTraceHarness {
     private data class C(val id: String, val kind: String, val flag: Int, val events: List<String>)
@@ -66,17 +60,7 @@ object HallPrepTraceHarness {
     private fun js(v: List<String>) = v.joinToString(",", "[", "]")
     private fun hall(c: C): String {
         val x = HallPreparationFlow(); x.onCreate(c.flag)
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `k` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 회관 준비 상태를 JSON 스냅샷으로 만든다. */
         fun snap(k: String) = "{\"step\":\"$k\",\"flag\":${x.flag},\"layers\":${js(x.layers.map { "\"$it\"" })}}"
         val r = mutableListOf(snap("create")); c.events.forEach { e ->
             x.command(
@@ -87,17 +71,7 @@ object HallPrepTraceHarness {
 
     private fun init(c: C): String {
         val x = BattleInitPresentationState(); x.create(c.flag)
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `k` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 전투 초기화 상태를 JSON 스냅샷으로 만든다. */
         fun snap(k: String) =
             "{\"step\":\"$k\",\"flag\":${x.flag},\"z\":${x.zIndex},\"sound\":[7],\"events\":[[\"BATTLE_INIT_START\"]],\"labels\":${
                 js(x.labels.map { "\"$it\"" })
@@ -115,17 +89,7 @@ object HallPrepTraceHarness {
     private fun sort(c: C): String {
         val x = BattleSortModel()
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `k` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 정렬 상태와 호출 기록을 JSON 스냅샷으로 만든다. */
         fun snap(k: String) =
             "{\"step\":\"$k\",\"pos\":{\"x\":10,\"y\":20},\"attached\":${x.attached},\"calls\":${js(x.calls.map { it.toString() })}}"
 
@@ -140,17 +104,7 @@ object HallPrepTraceHarness {
     private fun start(c: C): String {
         val x = BattleRosterModel()
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `k` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 배치 편성 상태를 JSON 스냅샷으로 만든다. */
         fun snap(k: String) =
             "{\"step\":\"$k\",\"slots\":${js(x.slots.map { it.toString() })},\"fights\":${js(x.fights.map { it.toString() })},\"label\":\"${x.label}\",\"ok\":${x.ok},\"events\":${
                 js(x.events.map { it.toString() })

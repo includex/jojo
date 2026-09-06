@@ -6,8 +6,9 @@ import com.jojo.game.presentation.scenario.ScenarioScreen
 import com.jojo.game.presentation.scenario.hall.HallInfo
 import com.jojo.game.presentation.scenario.hall.HallPropertyTab
 
-/** Produces composition evidence from a single immutable, frame-local view. */
+/** 한 프레임의 화면 상태를 검증용 구성 모델로 투영합니다. */
 internal object ScenarioRuntimeCompositionProjector {
+    /** 시나리오 화면의 전투·대화·홀 상태를 증거 모델로 변환합니다. */
     fun project(screen: ScenarioScreen): ScenarioEvidenceView =
         ScenarioEvidenceView(
             moduleName = screen.moduleName,

@@ -15,13 +15,6 @@ internal class BattleMovementPlanner<Actor : Any>(
     private val orderedMovementOffsets: List<Point>,
     private val enemyNearOffsets: Collection<Point>,
 ) {
-    /**
-     * data class  `MovementRules`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class MovementRules(
         val ignoresTerrain: Boolean = false,
@@ -29,13 +22,6 @@ internal class BattleMovementPlanner<Actor : Any>(
         val ignoresEnemyNear: Boolean = false,
     )
 
-    /**
-     * data class  `PathRules`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class PathRules(
         val avoidEnemies: Boolean = false,
@@ -44,35 +30,11 @@ internal class BattleMovementPlanner<Actor : Any>(
         val treatsEveryTerrainAsOne: Boolean = false,
     )
 
-    /**
-     * data class  `MovePoint`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class MovePoint(val remaining: Int, val parent: Point?)
 
-    /**
-     * data class  `MovePoints`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class MovePoints(val points: Map<Point, MovePoint>, val start: Point) {
-        /**
-         * 공개 메서드 `pathTo`
-         *
-         * ### 파라미터
-        - `destination` (`Point`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `List<Point>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun pathTo(destination: Point): List<Point> {
             val path = mutableListOf(destination)
@@ -97,13 +59,6 @@ internal class BattleMovementPlanner<Actor : Any>(
         ignoredEnemyId: String? = null,
         startOverride: Point? = null,
     ): MovePoints {
-        /**
-         * data class  `Queued`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Queued(
             val point: Point,
@@ -159,13 +114,6 @@ internal class BattleMovementPlanner<Actor : Any>(
         target: Point,
         rules: PathRules,
     ): List<Point>? {
-        /**
-         * data class  `Node`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Node(val point: Point, val cost: Int, val parent: Point?, val order: Long)
 
@@ -232,13 +180,6 @@ internal class BattleMovementPlanner<Actor : Any>(
         reachable: Set<Point>,
         isInsideSearchArea: (Point) -> Boolean = isInside,
     ): Point? {
-        /**
-         * data class  `Node`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Node(val point: Point, val totalExpend: Int, val order: Long)
 

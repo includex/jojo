@@ -10,7 +10,7 @@ internal data class PlannedScenarioMovement(
     val path: List<Pair<Int, Int>>,
 )
 
-/** Owns authored movement path selection and callback-duration rules. */
+/** 스크립트 이동 경로 선택과 콜백 지속 시간을 관리한다. */
 internal class ScenarioStageMovementPlanner {
     var hallPathGrid: HallPathGrid? = null
     var battleMovementTimeline: Boolean = false

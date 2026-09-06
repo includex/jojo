@@ -19,13 +19,6 @@ enum class FightSide { MINE, ENEMY }
  * both transforms is essential: setting only the next action reproduces the
  * frames but makes a fighter jump or face the wrong way between actions.
  */
-/**
- * data class  `FightUnitPresentation`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class FightUnitPresentation(
     var characterId: Int? = null,
@@ -48,13 +41,6 @@ data class FightUnitPresentation(
     }
 }
 
-/**
- * data class  `FightSpeechPresentation`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class FightSpeechPresentation(
     var active: Boolean = false,
@@ -71,62 +57,20 @@ data class FightActionPose(
     val opacity: Float = 255f,
 )
 
-/**
- * sealed class  `FightPresentationEvent`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 sealed class FightPresentationEvent {
-    /**
-     * data class  `CommandStarted`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class CommandStarted(val command: ScenarioFightCommand) : FightPresentationEvent()
 
-    /**
-     * data class  `ActionStarted`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class ActionStarted(val side: FightSide, val action: Int) : FightPresentationEvent()
 
-    /**
-     * data class  `TextChanged`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class TextChanged(val side: FightSide, val renderedText: String) : FightPresentationEvent()
 
-    /**
-     * data class  `Hit`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Hit(val attacker: FightSide, val defender: FightSide) : FightPresentationEvent()
 
-    /**
-     * data class  `Sound`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Sound(
         val side: FightSide,
@@ -135,13 +79,6 @@ sealed class FightPresentationEvent {
         val atActionSeconds: Float,
     ) : FightPresentationEvent()
 
-    /**
-     * data class  `CommandCompleted`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class CommandCompleted(val command: ScenarioFightCommand) : FightPresentationEvent()
 }
@@ -154,13 +91,6 @@ sealed class FightPresentationEvent {
  * matching [FightPresentationEvent.CommandCompleted]. No command is silently
  * fast-forwarded, so attack hit reactions and parallel animation callbacks
  * remain visible.
- */
-/**
- * class  `FightPresentationState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
  */
 
 class FightPresentationState(

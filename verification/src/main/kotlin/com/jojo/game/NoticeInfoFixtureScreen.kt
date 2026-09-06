@@ -9,32 +9,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.GL20
 
-/**
- * Actual game route: BattleScreen id 1 owns the persistent NoticeInfoLayer id
- * 25, and all state changes enter through its authored touch/NOTICE_MSG API.
- */
-/**
- * class  `BattleNoticeRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleScreen의 NoticeInfoLayer 상태 변경과 메시지 경로를 표현한다. */
 
 class BattleNoticeRoute private constructor(val notice: NoticeInfoLayer) {
     val attachedLayerIds = listOf(1, 25)
 
     companion object {
-        /**
-         * 공개 메서드 `initialize`
-         *
-         * ### 파라미터
-        - `state` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleNoticeRoute`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
+        /** 요청된 상태에 맞는 공지 경로를 초기화한다. */
 
         fun initialize(state: String): BattleNoticeRoute {
             val route = BattleNoticeRoute(NoticeInfoLayer())
@@ -66,7 +47,7 @@ class BattleNoticeRoute private constructor(val notice: NoticeInfoLayer) {
     }
 }
 
-/** Log-only fixture; framebuffer capture remains intentionally disabled. */
+/** 프레임 버퍼 대신 공지 이벤트 로그만 제공하는 검증 화면이다. */
 class NoticeInfoFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val route = BattleNoticeRoute.initialize(state)
 
@@ -76,28 +57,13 @@ class NoticeInfoFixtureScreen(private val game: JojoGame, private val state: Str
         game.writeRenderEventLogIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 공지 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String = NoticeInfoBattleRenderEvents.jsonl(state, route)
     override fun runtimeRenderEventLog(): String = renderEventLog()
 }
 
-/**
- * object  `NoticeInfoBattleRenderEvents`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 공지 화면 상태를 원본 그리기 이벤트로 직렬화한다. */
 
 object NoticeInfoBattleRenderEvents {
     private data class UnitDraw(val x: Float, val y: Float, val atlas: String, val barWidth: Float, val bar: String)
@@ -124,17 +90,7 @@ object NoticeInfoBattleRenderEvents {
         UnitDraw(544f, 0f, "19/19ac1287-4d09-45f4-bf9a-f5eb8b21795c.89d84", 88f, "Mark_3-1"),
     )
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `state` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `route` (`BattleNoticeRoute`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 공지 경로의 그리기 이벤트를 JSONL 한 줄로 만든다. */
 
     fun jsonl(state: String, route: BattleNoticeRoute): String {
         check(route.attachedLayerIds == listOf(1, 25))
@@ -142,23 +98,7 @@ object NoticeInfoBattleRenderEvents {
         val phase = "battle-notice-$name"
         val log = RenderEventLog()
 
-        /**
-         * 공개 메서드 `draw`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 공지 화면의 단일 그리기 이벤트를 로그에 추가한다. */
         fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String) =
             log.draw(phase, "HallLayer", path, type, x, y, w, h, asset)
         draw(

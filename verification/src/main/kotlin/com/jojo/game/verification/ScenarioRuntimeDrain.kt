@@ -4,24 +4,14 @@ import com.jojo.game.application.scenario.*
 import com.jojo.game.domain.scenario.PlaybackState
 
 internal object ScenarioRuntimeDrain {
-/**
- * 공개 메서드 `settleTimedDelay`
- *
- * ### 파라미터
-- `runtime` (`ScenarioInterpreter`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `limit` (`Int = 10_000`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+    /** 지연 상태를 제한된 횟수만큼 건너뛰어 안정 상태로 만든다. */
     fun settleTimedDelay(runtime: ScenarioInterpreter, limit: Int = 10_000) {
         var steps = 0
         while (runtime.state == PlaybackState.DELAY && steps++ < limit) runtime.skipDelay()
         check(runtime.state != PlaybackState.DELAY) { "timed scenario state did not settle" }
     }
 
+    /** 대화·선택·모달 단계를 진행해 시나리오를 완료 상태로 만든다. */
     fun toCompletion(
         runtime: ScenarioInterpreter,
         limit: Int = 10_000,

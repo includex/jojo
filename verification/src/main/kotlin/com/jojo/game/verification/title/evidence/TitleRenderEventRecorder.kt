@@ -8,17 +8,6 @@ import com.jojo.game.presentation.title.TitleViewState
 
 /** Builds title verification events from the same immutable snapshot used for drawing. */
 internal class TitleRenderEventRecorder {
-    /**
-     * 공개 메서드 `record`
-     *
-     * ### 파라미터
-    - `state` (`TitleViewState`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `startItemFixture` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun record(state: TitleViewState, startItemFixture: Boolean = false): String {
         if (startItemFixture) return StartItemRenderEvents.jsonl()
@@ -62,22 +51,6 @@ internal class TitleRenderEventRecorder {
                 visible = visible, text = text
             )
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float = 50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `visible` (`Boolean = true`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f, visible: Boolean = true) =
             event(path, "label", x, y, w, h, text = text, visible = visible)
@@ -127,21 +100,6 @@ internal class TitleRenderEventRecorder {
                 asset, opacity = opacity, blend = if (type == "label") LABEL_BLEND else SPRITE_BLEND, text = text
             )
 
-        /**
-         * 공개 메서드 `label`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float = 50.4f`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             event(path, "label", x, y, w, h, text = text)
@@ -173,21 +131,6 @@ internal class TitleRenderEventRecorder {
             )
             label("$path/Label", labels[index], if (index < 2) 252.29f else 252.186f, y - 6f, 526f, 40f)
         }
-        /**
-         * 공개 메서드 `panel`
-         *
-         * ### 파라미터
-        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `titleX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `titleY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `titleW` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `title` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun panel(index: Int, y: Float, titleX: Float, titleY: Float, titleW: Float, title: String) {
             val path = "Canvas/Layer/bg/scrollview/view/content/panel$index"
@@ -196,19 +139,6 @@ internal class TitleRenderEventRecorder {
             label("$path/bg1/label", title, titleX, titleY, titleW)
         }
 
-        /**
-         * 공개 메서드 `radios`
-         *
-         * ### 파라미터
-        - `panel` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `selected` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `values` (`List<String>`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun radios(panel: Int, y: Float, selected: Int, values: List<String>) {
             val xs = floatArrayOf(818.346f, 974.286f, 1119.419f)

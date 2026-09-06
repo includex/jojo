@@ -11,26 +11,12 @@ class SettingLayer(
     private val featureEnvironment: () -> FeatureEnvironment = { FeatureEnvironment() },
     private val applyGameSpeed: () -> Unit = {},
 ) {
-    /**
-     * interface  `Store`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface Store {
         fun getInt(key: String, default: Int = 0): Int
         fun putInt(key: String, value: Int)
     }
 
-    /**
-     * interface  `Sound`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface Sound {
         fun music(on: Boolean)
@@ -44,13 +30,6 @@ class SettingLayer(
         }
     }
 
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val flags: Int,
@@ -61,13 +40,6 @@ class SettingLayer(
         val attached: Boolean
     )
 
-    /**
-     * data class  `FeatureEnvironment`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class FeatureEnvironment(
         val sceneName: String = "Login",
@@ -82,23 +54,9 @@ class SettingLayer(
     )
 
     sealed interface FeatureResult {
-        /**
-         * data class  `Opened`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Opened(val name: String) : FeatureResult
 
-        /**
-         * data class  `Toast`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Toast(val text: String) : FeatureResult
         data object Gated : FeatureResult
@@ -112,16 +70,6 @@ class SettingLayer(
     private var speedChanged = false
     private var attached = false
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate(): View {
         flags = store.getInt(GAME_SETTING, BG_SOUND or EFFECT_SOUND or MINI_MAP); speed =
@@ -144,31 +92,11 @@ class SettingLayer(
         )
     }
 
-    /**
-     * 공개 메서드 `selectBackground`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun selectBackground(index: Int) {
         require(index in 0..3); store.putInt(BG_INDEX, index)
     }
 
-    /**
-     * 공개 메서드 `onSlider`
-     *
-     * ### 파라미터
-    - `progress` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onSlider(progress: Float) {
         speed = progress.coerceIn(0f, 1f); speedChanged = true
@@ -221,16 +149,6 @@ class SettingLayer(
         val removed = dismiss(eventType); if (removed) onDestroy(); return removed
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view() =
         View(flags, store.getInt(MSG_SPEED, 1), store.getInt(NOTIFY_LV, 1), store.getInt(BG_INDEX, 0), speed, attached)

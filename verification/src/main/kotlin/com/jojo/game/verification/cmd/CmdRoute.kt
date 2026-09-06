@@ -13,28 +13,11 @@ import com.jojo.game.CmdProductionRoute
 import com.jojo.game.JojoGame
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/**
- * enum class  `CmdRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 enum class CmdRoute(val key: String) {
     DEFAULT("default"), SELECTED("selected"), INFO("info");
 
     companion object {
-        /**
-         * 공개 메서드 `parse`
-         *
-         * ### 파라미터
-        - `state` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `CmdRoute?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun parse(state: String?): CmdRoute? {
             val value = state?.removeSuffix("-fixture")?.removePrefix("login-cmd-") ?: return null
@@ -43,13 +26,6 @@ enum class CmdRoute(val key: String) {
     }
 }
 
-/**
- * object  `CmdRenderEvents`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object CmdRenderEvents {
     private const val DEFAULT =
@@ -59,16 +35,6 @@ object CmdRenderEvents {
     private const val INFO =
         "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"
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`CmdRoute`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(route: CmdRoute): String {
         val table = decode(
@@ -101,13 +67,6 @@ object CmdRenderEvents {
         GZIPInputStream(ByteArrayInputStream(Base64.getDecoder().decode(value))).bufferedReader().readText()
 }
 
-/**
- * class  `CmdRouteScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class CmdRouteScreen(
     private val game: JojoGame,
@@ -149,16 +108,6 @@ class CmdRouteScreen(
         game.writeRenderEventLogIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun renderEventLog() = CmdRenderEvents.jsonl(route)
     override fun dispose() = shapes.dispose()

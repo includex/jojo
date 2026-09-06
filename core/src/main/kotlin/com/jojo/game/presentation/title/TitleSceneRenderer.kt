@@ -15,16 +15,6 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
     private val viewport = ScreenViewport(OrthographicCamera())
     private val batch = SpriteBatch()
 
-    /**
-     * 공개 메서드 `render`
-     *
-     * ### 파라미터
-    - `state` (`TitleViewState`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun render(state: TitleViewState) {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.05f, 1f)
@@ -49,30 +39,9 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         batch.end()
     }
 
-    /**
-     * 공개 메서드 `resize`
-     *
-     * ### 파라미터
-    - `width` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `height` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun resize(width: Int, height: Int) = viewport.update(width, height, true)
 
-    /**
-     * 공개 메서드 `dispose`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun dispose() = batch.dispose()
 

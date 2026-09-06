@@ -40,92 +40,26 @@ internal class ScenarioCallCoordinator(
         invokeCall = ::invokeCall,
     )
 
-    /**
-     * 공개 메서드 `eval`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Any?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun eval(node: JsonValue, frame: Frame): Any? =
         ScenarioExpressionEvaluator.eval(node, frame, expressionEnvironment)
 
-    /**
-     * 공개 메서드 `evalBoolean`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun evalBoolean(node: JsonValue, frame: Frame): Boolean =
         ScenarioExpressionEvaluator.evalBoolean(node, frame, expressionEnvironment)
 
-    /**
-     * 공개 메서드 `assign`
-     *
-     * ### 파라미터
-    - `target` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `value` (`Any?`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun assign(target: JsonValue, value: Any?, frame: Frame) =
         ScenarioExpressionEvaluator.assign(target, value, frame, expressionEnvironment)
 
-    /**
-     * 공개 메서드 `evalArguments`
-     *
-     * ### 파라미터
-    - `args` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Any?>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun evalArguments(args: JsonValue, frame: Frame): List<Any?> =
         ScenarioExpressionEvaluator.evalArguments(args, frame, expressionEnvironment)
 
-    /**
-     * 공개 메서드 `pushFunction`
-     *
-     * ### 파라미터
-    - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `label` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun pushFunction(name: String, label: String? = null) =
         callStack.pushFunction(name, label, functions, moduleName)
 
-    /**
-     * 공개 메서드 `jumpToLabel`
-     *
-     * ### 파라미터
-    - `label` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jumpToLabel(label: String) = callStack.jumpToLabel(label, functions)
 
@@ -184,17 +118,6 @@ internal class ScenarioCallCoordinator(
         conditionEnvironment = ::conditionEnvironment,
     )
 
-    /**
-     * 공개 메서드 `invokeCall`
-     *
-     * ### 파라미터
-    - `node` (`JsonValue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `frame` (`Frame`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Any?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun invokeCall(node: JsonValue, frame: Frame): Any? {
         val path = node.field("func").expressionPath()

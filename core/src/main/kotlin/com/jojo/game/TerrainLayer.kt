@@ -7,42 +7,21 @@ package com.jojo.game
  * payload apart from widgets makes its source table projection testable and
  * lets the desktop screen render the same 28 terrain rows later.
  */
-/**
- * class  `TerrainLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class TerrainLayer(
     private val terrain: List<Terrain>,
     private val arms: List<Arm>,
 ) {
-    /**
-     * data class  `Terrain`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Terrain(
         val id: Int,
         val name: String,
-        /** CFG terrain `flag`, shown as the four physical skill lights. */
+        /** 네 개의 물리 스킬 표시등에 쓰는 지형 플래그이다. */
         val flag: Int = 0,
-        /** CFG terrain `magic`, shown as the four strategy skill lights. */
+        /** 네 개의 전략 스킬 표시등에 쓰는 지형 마법 플래그이다. */
         val magic: Int = 0,
     )
 
-    /**
-     * data class  `Arm`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Arm(
         val id: Int,
@@ -51,51 +30,23 @@ class TerrainLayer(
         val terrainExpend: Map<Int, Int> = emptyMap(),
     )
 
-    /**
-     * enum class  `Tab`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     enum class Tab { RISE, EXPEND }
 
-    /**
-     * data class  `Cell`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Cell(
         val terrainId: Int,
         val terrainName: String,
-        /** Source `Game/Terrain/${index}`; the view owns asset loading. */
+        /** 지형 화면에 표시할 자원 식별자이다. */
         val iconIndex: Int,
         val enabledSkills: List<Boolean>,
-        /** Exactly the first thirteen source arms, in cfg arm iteration order. */
+        /** 설정 순서대로 정렬한 처음 열세 병과 목록이다. */
         val values: List<Value>,
     )
 
-    /**
-     * data class  `Value`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Value(val armId: Int, val armName: String, val text: String, val grade: Int? = null)
 
-    /**
-     * data class  `Panel`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Panel(val tab: Tab, val rows: List<Cell>)
 
@@ -104,7 +55,7 @@ class TerrainLayer(
     var selected: Tab? = null
         private set
 
-    /** TerrainLayer.sel: lazily construct only on first selection. */
+    /** 첫 지형 선택 시에만 상세 창을 지연 생성한다. */
     fun select(tab: Tab): Panel {
         selected = tab
         return panels.getOrPut(tab) {
@@ -121,16 +72,6 @@ class TerrainLayer(
         }
     }
 
-    /**
-     * 공개 메서드 `isInitialized`
-     *
-     * ### 파라미터
-    - `tab` (`Tab`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun isInitialized(tab: Tab): Boolean = tab in initialized
 
@@ -151,7 +92,7 @@ class TerrainLayer(
         iconIndex = iconIndex,
         enabledSkills = skillBits(source.magic),
         values = arms.take(ARM_LIMIT).map { arm ->
-            // `_initPanel1`: missing is 0, and costs over 200 become 0.
+            // `_initPanel1`: 값이 없거나 비용이 200을 넘으면 0으로 표시한다.
             val cost = (arm.terrainExpend[source.id] ?: 0).let { if (it > 200) 0 else it }
             Value(arm.id, arm.name, EXPEND_TEXT.getOrElse(cost) { "--" })
         },
@@ -175,9 +116,9 @@ class TerrainLayer(
     }
 }
 
-/** Source prefab button routing, separated so BattleScreen input has no hidden UI-only branch. */
+/** 전투 입력과 분리된 지형 화면 버튼 요청이다. */
 object TerrainLayerInput {
-    // TerrainLayer/bg is offset from the original 1488.372-wide Canvas.
+    // 지형 창 배경은 원본 1488.372 너비 캔버스를 기준으로 오프셋된다.
     const val PANEL_X = 274f
     const val PANEL_Y = 100f
     const val PANEL_WIDTH = 1021f
@@ -190,7 +131,7 @@ object TerrainLayerInput {
         data object Consume : Action
     }
 
-    /** button0/button1/button2 respectively; any in-panel touch is consumed by the modal. */
+    /** 세 버튼 요청을 구분하며 창 내부 입력은 모달이 소비한다. */
     fun tap(x: Float, y: Float): Action? {
         if (x !in PANEL_X..PANEL_X + PANEL_WIDTH || y !in PANEL_Y..PANEL_Y + PANEL_HEIGHT) return null
         if (y !in PANEL_Y + 11f..PANEL_Y + 71f) return Action.Consume
@@ -203,27 +144,17 @@ object TerrainLayerInput {
     }
 }
 
-/** Item prefab's icon node: 48×48 SpriteFrame at local x=-460, scale 1.4. */
+/** 아이템 아이콘의 표시 위치와 크기를 나타낸다. */
 object TerrainLayerSpriteLayout {
     const val PANEL_X = TerrainLayerInput.PANEL_X
     const val PANEL_Y = TerrainLayerInput.PANEL_Y
     const val ICON_X = PANEL_X + 17f
 
-    // Source item icon: 48px sprite at scale 1.4.
+    // 원본 아이템 아이콘은 배율 1.4의 48픽셀 스프라이트다.
     const val ICON_SIZE = 67f
     const val FIRST_ROW_BASELINE_Y = PANEL_Y + 488f
     const val ROW_STEP = 75f
 
-    /**
-     * 공개 메서드 `iconY`
-     *
-     * ### 파라미터
-    - `row` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Float`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun iconY(row: Int): Float = FIRST_ROW_BASELINE_Y - row * ROW_STEP - 57f
 }

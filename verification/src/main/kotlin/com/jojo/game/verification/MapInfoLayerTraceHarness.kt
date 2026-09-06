@@ -5,13 +5,6 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * object  `MapInfoLayerTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object MapInfoLayerTraceHarness {
     private data class Case(
@@ -43,32 +36,12 @@ object MapInfoLayerTraceHarness {
                 )
             }.toList()
 
-        /**
-         * 공개 메서드 `trace`
-         *
-         * ### 파라미터
-        - `c` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun trace(c: Case): String {
             var complete = 0
             var removed = 0
             val layer = MapInfoLayer(c.setting, { it }, { complete++ }, { removed++ })
             layer.onCreate(MapInfoLayer.Data(c.text, c.changePage, c.weapon, c.wait))
-            /**
-             * 공개 메서드 `snap`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun snap(step: String): String {
                 val v = layer.view()

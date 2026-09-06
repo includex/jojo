@@ -8,13 +8,6 @@ import com.jojo.game.presentation.scenario.overlay.*
  * between selected (unregistered) features and immediately toggled registered
  * features, including ItemStore and registration side effects.
  */
-/**
- * class  `CmdLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class CmdLayer(
     val rFlag: Int,
@@ -23,23 +16,9 @@ class CmdLayer(
     private val unitCount: Int,
     private val inventory: List<Item>,
 ) {
-    /**
-     * data class  `Item`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Item(val id: Int, val treasure: Boolean, val property: Boolean)
 
-    /**
-     * data class  `Layer`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Layer(val layer: String, val flag: Int?, val txt: String?)
 
@@ -66,16 +45,6 @@ class CmdLayer(
     var restart = 0; private set
     private var prompt: ((Int) -> Unit)? = null
 
-    /**
-     * 공개 메서드 `onCreate`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun onCreate() {
         addLayer("MsgBox", 3, "내부 테스트 도구에 대해서는, 도움말 설명을 먼저 확인해 보시는 것을 권장합니다.") { if (it == 0) helper() }
@@ -89,17 +58,6 @@ class CmdLayer(
         urls += "https://www.google.com"
     }
 
-    /**
-     * 공개 메서드 `item`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun item(index: Int, event: Int) {
         if (event != 2) return
@@ -130,7 +88,7 @@ class CmdLayer(
 
     private fun Double.format() = if (this % 1.0 == 0.0) toInt().toString() else toString()
 
-    /** Source _ACTIVATE returns a status bitmask; only bit 0 prevents toggle. */
+    /** 활성화 결과의 첫 비트가 설정 전환 가능 여부를 나타낸다. */
     private fun activate(bit: Int): Int = when (bit) {
         1 -> if (unitCount == 0) {
             toasts += "게임 시작 후에 사용해 주세요~"; 2
@@ -160,17 +118,6 @@ class CmdLayer(
         else -> 0
     }
 
-    /**
-     * 공개 메서드 `button`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun button(index: Int, event: Int) {
         if (event != 2) return; when (index) {
@@ -215,16 +162,6 @@ class CmdLayer(
         }
     }
 
-    /**
-     * 공개 메서드 `answer`
-     *
-     * ### 파라미터
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun answer(value: Int) {
         val fn = prompt; prompt = null; fn?.invoke(value)

@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 
-/** Deterministic execution of the production HallMenu(8) -> EditLayer4 route. */
+/** HallMenu(8)에서 EditLayer4로 이어지는 편성 경로를 검증한다. */
 class EditRosterRouteScreen(private val game: JojoGame, private val route: EditRosterRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val menu = HallEditRosterRoute(editEnabled = true)
@@ -44,16 +44,7 @@ class EditRosterRouteScreen(private val game: JojoGame, private val route: EditR
         game.writeRenderEventLogIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 편성 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String = EditRosterRenderEvents.jsonl(route)
     override fun runtimeRenderEventLog(): String = renderEventLog()

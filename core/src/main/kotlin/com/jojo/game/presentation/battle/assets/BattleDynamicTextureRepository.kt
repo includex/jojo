@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.JsonReader
 import java.security.MessageDigest
 
+/** 리치 텍스트를 이미지로 렌더링하기 위한 텍스처와 배치 정보입니다. */
 internal data class CocosRichTextTexture(
     val texture: Texture,
     val worldX: Float,
@@ -14,7 +15,7 @@ internal data class CocosRichTextTexture(
     val drawHeight: Float,
 )
 
-/** Owns battle textures whose resource key is selected from live gameplay state. */
+/** 전투 상태에 따라 선택되는 동적 텍스처를 캐시하고 해제합니다. */
 internal class BattleDynamicTextureRepository : Disposable {
     private val unitTextures = mutableMapOf<Int, Texture>()
     private val attackTextures = mutableMapOf<Int, Texture>()
@@ -27,7 +28,7 @@ internal class BattleDynamicTextureRepository : Disposable {
     private val terrainIconTextures = mutableMapOf<Int, Texture>()
     private val itemIconTextures = mutableMapOf<Int, Texture>()
 
-    /** Gameplay movement uses mov2 → mov → flat fallback. */
+    /** 이동 스프라이트를 우선순위 경로에서 찾아 반환합니다. */
     fun unitMovement(avatarId: Int): Texture? {
         unitTextures[avatarId]?.let { return it }
         val handle = firstExisting(BattleDynamicTexturePaths.movement(avatarId))
@@ -35,33 +36,13 @@ internal class BattleDynamicTextureRepository : Disposable {
             ?.also { unitTextures[avatarId] = it }
     }
 
-    /**
-     * 공개 메서드 `attack`
-     *
-     * ### 파라미터
-    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 공격 스프라이트를 반환합니다. */
     fun attack(avatarId: Int): Texture? = action("atk", avatarId)
 
-    /**
-     * 공개 메서드 `special`
-     *
-     * ### 파라미터
-    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 특수 행동 스프라이트를 반환합니다. */
     fun special(avatarId: Int): Texture? = action("spc", avatarId)
 
-    /** Fight/action atlases use only the authored `{kind}2 → {kind}` fallback. */
+    /** 행동 종류에 맞는 스프라이트를 조회합니다. */
     fun action(kind: String, avatarId: Int): Texture? = actionTexture(
         kind,
         avatarId,
@@ -73,17 +54,7 @@ internal class BattleDynamicTextureRepository : Disposable {
         },
     )
 
-    /**
-     * 공개 메서드 `effect`
-     *
-     * ### 파라미터
-    - `effectId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 마법 효과 텍스처를 반환합니다. */
     fun effect(effectId: Int): Texture? {
         effectTextures[effectId]?.let { return it }
         val handle = Gdx.files.internal("maps/effects/${effectId + 1}.png")
@@ -91,17 +62,7 @@ internal class BattleDynamicTextureRepository : Disposable {
             ?.also { effectTextures[effectId] = it }
     }
 
-    /**
-     * 공개 메서드 `head`
-     *
-     * ### 파라미터
-    - `faceId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 인물 얼굴 텍스처를 반환합니다. */
     fun head(faceId: Int): Texture? {
         headTextures[faceId]?.let { return it }
         val handle = Gdx.files.internal("maps/heads/$faceId.png")
@@ -109,22 +70,12 @@ internal class BattleDynamicTextureRepository : Disposable {
             ?.also { headTextures[faceId] = it }
     }
 
-    /** Nullable getOrPut deliberately re-probes missing dialog paths on later requests. */
+    /** 대화 텍스처를 조회하며 없는 경로는 다음 요청에서 다시 확인합니다. */
     fun battleDialog(path: String): Texture? = battleDialogTextures.getOrPut(path) {
         Gdx.files.internal(path).takeIf { it.exists() }?.let(::linearTexture)
     }
 
-    /**
-     * 공개 메서드 `richText`
-     *
-     * ### 파라미터
-    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `CocosRichTextTexture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 대화 문장의 사전 렌더링 텍스처를 조회합니다. */
     fun richText(text: String): CocosRichTextTexture? {
         if (text.isEmpty()) return null
         val key = MessageDigest.getInstance("SHA-256")
@@ -146,17 +97,7 @@ internal class BattleDynamicTextureRepository : Disposable {
         ).also { richTextTextures[key] = it }
     }
 
-    /**
-     * 공개 메서드 `gate`
-     *
-     * ### 파라미터
-    - `objectId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 성문 오브젝트에 대응하는 텍스처를 반환합니다. */
     fun gate(objectId: Int): Texture? {
         val gateId = (objectId - 4) * 2 + 1
         gateTextures[gateId]?.let { return it }
@@ -164,47 +105,17 @@ internal class BattleDynamicTextureRepository : Disposable {
         return handle.takeIf { it.exists() }?.let(::Texture)?.also { gateTextures[gateId] = it }
     }
 
-    /**
-     * 공개 메서드 `terrainIcon`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지형 아이콘 텍스처를 반환합니다. */
     fun terrainIcon(index: Int): Texture? = indexedTexture(
         index, terrainIconTextures, "maps/terrain-icons/$index.png",
     )
 
-    /**
-     * 공개 메서드 `itemIcon`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Texture?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 아이템 아이콘 텍스처를 반환합니다. */
     fun itemIcon(index: Int): Texture? = indexedTexture(
         index, itemIconTextures, "maps/item-icons/$index.png",
     )
 
-    /**
-     * 공개 메서드 `movementAtlasUuid`
-     *
-     * ### 파라미터
-    - `avatarId` (`Int?`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 특수 이동 아틀라스의 식별자를 반환합니다. */
     fun movementAtlasUuid(avatarId: Int?): String? = when (avatarId) {
         11 -> "19ac1287-4d09-45f4-bf9a-f5eb8b21795c"
         20 -> "3f8fbf89-4dd0-4d0b-88e0-9c7927fe5693"
@@ -246,37 +157,16 @@ internal class BattleDynamicTextureRepository : Disposable {
     }
 }
 
-/** Resource candidates are ordered exactly as the authored atlas fallback chain. */
+/** 원본 아틀라스의 대체 조회 순서를 제공합니다. */
 internal object BattleDynamicTexturePaths {
-    /**
-     * 공개 메서드 `movement`
-     *
-     * ### 파라미터
-    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<String>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 이동 스프라이트 후보 경로를 반환합니다. */
     fun movement(avatarId: Int): List<String> = listOf(
         "maps/units/mov2/$avatarId.png",
         "maps/units/mov/$avatarId.png",
         "maps/units/$avatarId.png",
     )
 
-    /**
-     * 공개 메서드 `action`
-     *
-     * ### 파라미터
-    - `kind` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `avatarId` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<String>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 행동 스프라이트 후보 경로를 반환합니다. */
     fun action(kind: String, avatarId: Int): List<String> = listOf(
         "maps/units/${kind}2/$avatarId.png",
         "maps/units/$kind/$avatarId.png",

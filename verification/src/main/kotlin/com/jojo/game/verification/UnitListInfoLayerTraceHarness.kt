@@ -17,13 +17,6 @@ import java.nio.file.Path
  * renderer dependency: the public state, event and completion contract is
  * exercised against the same fixture used by the recovered factories.
  */
-/**
- * object  `UnitListInfoLayerTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object UnitListInfoLayerTraceHarness {
     private data class Unit(
@@ -130,16 +123,6 @@ object UnitListInfoLayerTraceHarness {
             field(c, "pos")?.let { Regex("-?\\d+").findAll(it).map { m -> m.value.toInt() }.toList() } ?: listOf(0, 0)
         val dispatched = mutableListOf<Int>()
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun snap(step: String): String {
             val rows = layer.rows.mapIndexed { i, id ->
@@ -213,30 +196,10 @@ object UnitListInfoLayerTraceHarness {
             exp.toDouble() / u.expMax
         ) else listOf(hp.toDouble() / u.hpMax, mp.toDouble() / u.mpMax)
 
-        /**
-         * 공개 메서드 `encode`
-         *
-         * ### 파라미터
-        - `x` (`InfoBaseValueAnimation.Value`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun encode(x: InfoBaseValueAnimation.Value) =
             "{\"idx\":${x.index},\"src\":${x.source},\"dsc\":${x.destination},\"max\":${x.max}}"
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun snap(step: String): String {
             val ls =

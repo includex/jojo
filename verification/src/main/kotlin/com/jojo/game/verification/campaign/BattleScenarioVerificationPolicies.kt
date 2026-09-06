@@ -22,16 +22,6 @@ internal class AuthoredMechanicRouteTracker(private val scenario: String) {
     )
     private var waypointIndex = 0
 
-    /**
-     * 공개 메서드 `target`
-     *
-     * ### 파라미터
-    - `playerTiles` (`Collection<Pair<Int, Int>>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Pair<Int, Int>?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun target(playerTiles: Collection<Pair<Int, Int>>): Pair<Int, Int>? {
         if (scenario != "S_52") return null
@@ -70,44 +60,13 @@ internal fun s01SurvivalDestination(
     visibleEnemyTiles: Collection<Pair<Int, Int>>,
     alliedTiles: Collection<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
-    /**
-     * 공개 메서드 `distance`
-     *
-     * ### 파라미터
-    - `a` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `b` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distance(a: Pair<Int, Int>, b: Pair<Int, Int>) =
         kotlin.math.abs(a.first - b.first) + kotlin.math.abs(a.second - b.second)
 
-    /**
-     * 공개 메서드 `nearestEnemy`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun nearestEnemy(tile: Pair<Int, Int>) = visibleEnemyTiles.minOfOrNull { distance(tile, it) } ?: Int.MAX_VALUE
 
-    /**
-     * 공개 메서드 `nearestAlly`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun nearestAlly(tile: Pair<Int, Int>) = alliedTiles
         .filter { it != current }
@@ -175,29 +134,9 @@ internal fun s57GateDestination(
     current: Pair<Int, Int>,
     reachableLegalTiles: Collection<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
-    /**
-     * 공개 메서드 `inGate`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun inGate(tile: Pair<Int, Int>) = tile.first in 2..16 && tile.second in 11..23
 
-    /**
-     * 공개 메서드 `rectangleDistance`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun rectangleDistance(tile: Pair<Int, Int>): Int {
         val dx = when {
@@ -213,16 +152,6 @@ internal fun s57GateDestination(
         return dx + dy
     }
 
-    /**
-     * 공개 메서드 `fromCurrent`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun fromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
@@ -284,30 +213,10 @@ internal fun s57CriticalFinisherDestination(
     attackAllScreen: Boolean,
     attackOffsets: Set<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
-    /**
-     * 공개 메서드 `canAttack`
-     *
-     * ### 파라미터
-    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun canAttack(from: Pair<Int, Int>) = attackAllScreen ||
             (focusTile.first - from.first to focusTile.second - from.second) in attackOffsets
 
-    /**
-     * 공개 메서드 `distanceFromCurrent`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distanceFromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
@@ -328,44 +237,14 @@ internal fun s57EscortFocusDestination(
     attackAllScreen: Boolean,
     attackOffsets: Set<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
-    /**
-     * 공개 메서드 `canAttack`
-     *
-     * ### 파라미터
-    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun canAttack(from: Pair<Int, Int>) = attackAllScreen ||
             (focusTile.first - from.first to focusTile.second - from.second) in attackOffsets
 
-    /**
-     * 공개 메서드 `distanceToFocus`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distanceToFocus(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - focusTile.first) + kotlin.math.abs(tile.second - focusTile.second)
 
-    /**
-     * 공개 메서드 `distanceFromCurrent`
-     *
-     * ### 파라미터
-    - `tile` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distanceFromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
@@ -410,31 +289,10 @@ internal fun s57EscortAttackFrom(
     attackAllScreen: Boolean,
     attackOffsets: Set<Pair<Int, Int>>,
 ): Pair<Int, Int>? {
-    /**
-     * 공개 메서드 `canAttack`
-     *
-     * ### 파라미터
-    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun canAttack(from: Pair<Int, Int>) = attackAllScreen ||
             (guardTile.first - from.first to guardTile.second - from.second) in attackOffsets
 
-    /**
-     * 공개 메서드 `distance`
-     *
-     * ### 파라미터
-    - `left` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `right` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distance(left: Pair<Int, Int>, right: Pair<Int, Int>) =
         kotlin.math.abs(left.first - right.first) + kotlin.math.abs(left.second - right.second)
@@ -454,32 +312,10 @@ internal fun s57EscortFocusBlockerFallback(
     /** Per-guard bounded post-kill route evidence (this or next move reaches staging). */
     openedStagingReachableByGuard: Map<String, Collection<Pair<Int, Int>>>,
 ): S57EscortFocusBlockerFallback? {
-    /**
-     * 공개 메서드 `canAttack`
-     *
-     * ### 파라미터
-    - `from` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun canAttack(from: Pair<Int, Int>, target: Pair<Int, Int>) = attackAllScreen ||
             (target.first - from.first to target.second - from.second) in attackOffsets
 
-    /**
-     * 공개 메서드 `distance`
-     *
-     * ### 파라미터
-    - `left` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `right` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distance(left: Pair<Int, Int>, right: Pair<Int, Int>) =
         kotlin.math.abs(left.first - right.first) + kotlin.math.abs(left.second - right.second)

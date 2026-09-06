@@ -61,46 +61,15 @@ internal object BattlePhysicalContextBuilder {
         },
     )
 
-    /**
-     * 공개 메서드 `visibleFamousPlayerCount`
-     *
-     * ### 파라미터
-    - `env` (`BattlePhysicalContextEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun visibleFamousPlayerCount(env: BattlePhysicalContextEnvironment): Int =
         env.units().count { it.visible && it.isPlayerSide() && it.famous }
 
-    /**
-     * 공개 메서드 `consumeMpAttackSkill`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun consumeMpAttackSkill(attacker: BattleUnit) {
         if (attacker.skills[4]?.and(255)?.let { it != 255 } == true) attacker.addMpcur(-1)
     }
 
-    /**
-     * 공개 메서드 `consumeXuShiDamage`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattlePhysicalContextEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun consumeXuShiDamage(attacker: BattleUnit, env: BattlePhysicalContextEnvironment): Int {
         val effect = attacker.skills[243]?.and(255)?.takeIf { it != 255 } ?: return 0
@@ -110,18 +79,6 @@ internal object BattlePhysicalContextBuilder {
         return stored * effect
     }
 
-    /**
-     * 공개 메서드 `accumulateChargeWhenHit`
-     *
-     * ### 파라미터
-    - `defender` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `activeAttack` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `env` (`BattlePhysicalContextEnvironment`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun accumulateChargeWhenHit(defender: BattleUnit, activeAttack: Boolean, env: BattlePhysicalContextEnvironment) {
         if (activeAttack && defender.skills[26]?.and(255)?.let { it != 255 } == true) {
@@ -129,18 +86,6 @@ internal object BattlePhysicalContextBuilder {
         }
     }
 
-    /**
-     * 공개 메서드 `mrspDamage`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `random100` (`(`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun mrspDamage(attacker: BattleUnit, target: BattleUnit, random100: () -> Int): Int? {
         if (attacker.skills[156]?.and(255)?.let { it != 255 } != true) return null

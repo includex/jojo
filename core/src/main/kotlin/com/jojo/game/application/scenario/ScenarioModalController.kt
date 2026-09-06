@@ -6,10 +6,7 @@ import com.jojo.game.domain.scenario.*
 
 import java.util.*
 
-/**
- * Manages modal presentations (INFO, SECTION, MAP_INFO, AMBITION, WIN_CONDITION)
- * and their multi-page typing / auto-close lifetimes in the scenario interpreter.
- */
+/** 시나리오 모달의 표시 내용, 타이핑, 자동 닫힘 시간을 관리한다. */
 internal class ScenarioModalController(
     private val stage: ScenarioStage,
     private val onStateChange: (PlaybackState) -> Unit,
@@ -36,17 +33,7 @@ internal class ScenarioModalController(
     internal var modalRemainingSeconds = 0f
     internal var modalPostTypingDelaySeconds = 1f
 
-    /**
-     * 공개 메서드 `reset`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 모달 표시와 대기 상태를 초기화한다. */
     fun reset() {
         currentModalText = null
         currentModalKind = null
@@ -61,18 +48,7 @@ internal class ScenarioModalController(
         modalPostTypingDelaySeconds = 1f
     }
 
-    /**
-     * 공개 메서드 `update`
-     *
-     * ### 파라미터
-    - `delta` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `autoCloseUi` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 모달 시간과 자동 닫힘 여부를 한 프레임 갱신한다. */
     fun update(delta: Float, autoCloseUi: Boolean) {
         if (currentModalKind == ScenarioModalKind.AMBITION) {
             ambitionElapsedSeconds += delta.coerceAtLeast(0f)
@@ -88,7 +64,7 @@ internal class ScenarioModalController(
         }
     }
 
-    /** BattleScreen.showWinCondition: `pause(); addLayer(... { fn: resume })`. */
+    /** 승리 조건 모달의 다음 페이지를 표시하거나 실행을 재개한다. */
     fun resumeModal() {
         modalNextText?.let { next ->
             currentModalText = next
@@ -110,13 +86,13 @@ internal class ScenarioModalController(
         onResumeExecution()
     }
 
-    /** Production entry for BattleScreen.showWinCondition's pause + layer request pair. */
+    /** 승리 조건 표시를 요청하고 시나리오 실행을 멈춘다. */
     fun suspendForWinCondition(text: String) {
         stage.showWinCondition(text)
         onStateChange(PlaybackState.MODAL)
     }
 
-    /** A first panel click finishes typing; it must not also close the layer. */
+    /** 첫 입력은 모달을 닫지 않고 타이핑만 완료한다. */
     fun completeModalTyping() {
         modalRemainingSeconds = modalPostTypingDelaySeconds
     }
@@ -137,7 +113,7 @@ internal class ScenarioModalController(
         onStateChange(PlaybackState.MODAL)
     }
 
-    /** Exact MapInfoLayer.setData accumulation and auto-close contract. */
+    /** 지도 정보의 누적 본문과 자동 닫힘 시간을 설정한다. */
     fun suspendForMapInfo(text: String, changePage: Boolean, wepon: Boolean, wait: Boolean) {
         if (changePage) mapInfoContent = ""
         val separator = if (!changePage && wepon && mapInfoContent.isNotEmpty()) "\n" else ""
@@ -154,18 +130,7 @@ internal class ScenarioModalController(
         onStateChange(PlaybackState.MODAL)
     }
 
-    /**
-     * 공개 메서드 `suspendForSection`
-     *
-     * ### 파라미터
-    - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 장 번호와 이름을 순서대로 표시한다. */
     fun suspendForSection(index: Int, name: String) {
         val digits = listOf("십", "일", "2", "삼", "넷", "다섯", "육", "칠", "팔", "구")
         var value = index
@@ -182,7 +147,7 @@ internal class ScenarioModalController(
         onStateChange(PlaybackState.MODAL)
     }
 
-    /** HallLayer.addAmbition opens its complete HallMenuLayer for 2.5 s. */
+    /** 야망 변화 모달을 표시하고 지속 시간을 설정한다. */
     fun suspendForAmbition(delta: Int) {
         ambitionFrom = stage.ambition
         stage.addAmbition(delta)
@@ -211,19 +176,7 @@ internal class ScenarioModalController(
         return pages.ifEmpty { listOf("") }
     }
 
-    /**
-     * 공개 메서드 `setSectionPresentation`
-     *
-     * ### 파라미터
-    - `chapter` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `nextText` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 외부 화면이 사용할 장 표시 상태를 설정한다. */
     fun setSectionPresentation(chapter: String, nextText: String, remainingSeconds: Float) {
         currentModalText = chapter
         currentModalKind = ScenarioModalKind.SECTION
@@ -233,19 +186,7 @@ internal class ScenarioModalController(
         onStateChange(PlaybackState.MODAL)
     }
 
-    /**
-     * 공개 메서드 `setModalPresentation`
-     *
-     * ### 파라미터
-    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `kind` (`ScenarioModalKind`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 외부 화면이 사용할 일반 모달 표시 상태를 설정한다. */
     fun setModalPresentation(text: String, kind: ScenarioModalKind, remainingSeconds: Float) {
         currentModalText = text
         currentModalKind = kind
@@ -256,19 +197,7 @@ internal class ScenarioModalController(
         onStateChange(PlaybackState.MODAL)
     }
 
-    /**
-     * 공개 메서드 `setAmbitionPresentation`
-     *
-     * ### 파라미터
-    - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `indicatorEnabled` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `remainingSeconds` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 외부 화면이 사용할 야망 모달 진행 상태를 설정한다. */
     fun setAmbitionPresentation(elapsed: Float, indicatorEnabled: Boolean, remainingSeconds: Float) {
         ambitionElapsedSeconds = elapsed
         ambitionIndicatorEnabled = indicatorEnabled

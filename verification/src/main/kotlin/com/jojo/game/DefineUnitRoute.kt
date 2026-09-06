@@ -12,16 +12,9 @@ import java.io.ByteArrayInputStream
 import java.util.*
 import java.util.zip.GZIPInputStream
 
-/** HallLayer.reqEffect(0/1) -> Global133 production lifecycle. */
+/** HallLayer.reqEffect(0/1)에서 Global133으로 이어지는 흐름을 재현한다. */
 class DefineUnitFlow(private val resume: () -> Unit = {}) {
-    /**
-     * enum class  `Prompt`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
-
+    /** 사용자 확인이 필요한 편집 흐름의 상태이다. */
     enum class Prompt { NONE, RESET, FINISH }
 
     var paused = false; private set
@@ -31,35 +24,14 @@ class DefineUnitFlow(private val resume: () -> Unit = {}) {
     var name = "조조"; private set
     val abilities = mutableListOf(41, 49, 46, 40, 42)
 
-    /**
-     * 공개 메서드 `reqEffect`
-     *
-     * ### 파라미터
-    - `effect` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지정된 효과 화면을 열고 입력을 일시 중지한다. */
     fun reqEffect(effect: Int): Boolean {
         if (effect > 1) return false
         paused = true; attached = true
         return true
     }
 
-    /**
-     * 공개 메서드 `touchButton`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 버튼 입력을 현재 확인 대화 상태로 변환한다. */
     fun touchButton(tag: Int, touchEnd: Boolean): Boolean {
         if (!attached || !touchEnd) return false
         prompt = when (tag) {
@@ -68,17 +40,7 @@ class DefineUnitFlow(private val resume: () -> Unit = {}) {
         return prompt != Prompt.NONE
     }
 
-    /**
-     * 공개 메서드 `answer`
-     *
-     * ### 파라미터
-    - `yes` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 확인 결과에 따라 능력치를 초기화하거나 흐름을 종료한다. */
     fun answer(yes: Boolean) {
         when (prompt) {
             Prompt.RESET -> if (yes) {
@@ -95,29 +57,12 @@ class DefineUnitFlow(private val resume: () -> Unit = {}) {
     }
 }
 
-/**
- * enum class  `DefineUnitRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 편집 화면에서 검증할 상태 경로를 정의한다. */
 enum class DefineUnitRoute(val key: String) {
     DEFAULT("default"), RESET_PROMPT("reset-prompt"), FINISH_PROMPT("finish-prompt");
 
     companion object {
-        /**
-         * 공개 메서드 `parse`
-         *
-         * ### 파라미터
-        - `state` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `DefineUnitRoute?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 외부 상태 문자열을 편집 경로로 변환한다. */
         fun parse(state: String?): DefineUnitRoute? {
             val value = state?.removeSuffix("-fixture")?.removePrefix("hall-define-unit-") ?: return null
             return entries.firstOrNull { it.key == value }
@@ -125,14 +70,7 @@ enum class DefineUnitRoute(val key: String) {
     }
 }
 
-/**
- * object  `DefineUnitRenderEvents`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 편집 화면 프리팹 이벤트를 압축 리소스에서 복원한다. */
 object DefineUnitRenderEvents {
     private const val DEFAULT =
         "H4sIAAAAAAAC/7WXXW8bRRSGr4dfEYlL5PGc+R4LITlp1CAsiNJU4s5a2+tg2K4je13BXRFByiUXrfqhFqWCUiEhEZCRetFf1Gz+A2eTOG3KbncWBnnlWWvX5533nGfOzm5FSdKLvolnZCNKb0fz9tmP9q1on8z3Z5MsJgw/IK2lwnBiGSPRfB5n8/b16FbcTqNscjtuDzUeAzMSsWxZ5VhLjgcazyLVMk6bWMtoMBQxtbGVY/rl/t77Hy7SFAOMWuMZDh8RIMYwks0WMXlvq3xO21EaJ/1hlA7jpHJyo3gcLZKsf34dhySaf0EYFSDfULgWjydpfDOdZCU6gz2STRKc2oUGl0DBagJcUUWAMU2UdKQ33Zv2XQuuTL0mMB5A3gqrQa7CakaKGxoGbCfRADNy/q0BqDOAo6OCcC2pFEQxKgmGvbGz0e/2tre658Hz7w5Pnj7OHy3XTn5b5j8+W8sPfs6P7tVqjqNhvHIBVlGOLrjE0RgirCTSYlEauXjTgeKWSnSglKaWOHiXgSfLk18OOmt+8fmFADBnKdcOFThVymBhJbVQKXL0Q374oMNVrUo8mmSD6dfQXu9ufHJ957Obn17r39je+Xh3k8yTyfA1UZoDFZg0pVRRJOkongtUL/7dKHGXkrubn+/2e931zd4KBC6uaJiVRonDp8d4NCuSkJQJINIpLJIt1ldl/p5/m9//vuNBsihJU7FCpJOFBcX+ZZIw8pXJG1wj6ixuMXntKK+a+6u/jvOfXtYLLLJsmrL2ejT8am82XaSjt5wAE5Y6cNirsCoINDg0oykUZkQzM//QwmuvvQGz4lwJc6WEKxoLkazE2+nDe/mTF5564OGNM0012P/sDWq9ccDWgA290lu+PHz14vj04d1aySjL+pc9FFZ0g6JaaiKwUTgnahoENs+To2cdCd5itTktCGWWozkkVeECK9ZwgU7znFZrXsmtYYIaUSgqCoXlqtR+0FCRV7u0heb/4ZJXunQaHyeFoka3ptplqxk4q0eLdY4qri7B4bgibBU3XU8NXgEn7h/q4cyf3zl9/KAjnbeYN5xCyjBl475wCmnDwMn94QzushZOgfuBIHDyCjgvwAkCpyiHk1vpB+dZ59TeYt5wcmvClE34wslxqxoETuEPZ3CXtXByx8PAKcrhXIETBE5ZAScGP4NTOSqrH+u/v8z//DU/+KMjmbeeP5/chamc9OZTiDB8ygZ8hnZZzye+mAThU1bwecFOED5VOZ+AryQezfPREve4Hcm9xbzhBMPDlE35wglGh4FT+cMZ3GUtnGBMGDhVOZwrcN4N599qKqCm8xMAAA=="
@@ -141,17 +79,7 @@ object DefineUnitRenderEvents {
     private const val FINISH =
         "H4sIAAAAAAAC/7WYXW8bRRSGr4dfEYlL5PF8nPmyECgJUYMIEKVB4s5aO+sQcO0o3lTlDlRXimgvekFEWiUopbQVEohQpVKL+ovizX/grBO7cdnJTlgjr7yO7LznvOc8Mzszi1G7vRR9G2+R+ahzM+pVh39Ub0SbpLe5tZHEhOGLg7VUGkEsYyTq9eKkV70W3YirnSjZuBlXmxqvhlmTMVSscqwCrYbGT5GqGKdNrCFqNGVMbWyhRb/eXH/3/e1OBwXWKq0tvH1AODGGkWRrOybvLObntBx14na9GXWacdub3FrcirbbSf3se7y1o95XhFHJ4UKET3vrc91bk/KNdZJstDGjc2kBnHKrCReKKsIZ00SBI0vd9W7dVfhExvl6eHHylprmMFLTjGQ/CNOptqMG2j5715xTZzjeHZVEaKAgiWIUCKpdX5mvzy4tL86eaaa3dwaP9tOHxzOD34/Tn5/MpP1f08NdX6hW1IxHOXOrqMCcBeDdGCItELBY8JCcL+arhKWA+SqlqSWOX5buwfHgab82c6msONflzFkqtENhQZUy2Cuglnu1D++nO3s1oXzi8dpG0uje4tW52flPrq18/sVnH9WvL698vLpAeu2N5hs2tOBUYmWUUlkDwFH8LDFo9t8h1RlHWl34crW+NDu3sDTqrZAT0mYknePn0RFeQQ2QQJnkBJzCBthsOHiL9Oz79Kc7NT+KMqcWGdngIEtYsatVAgUnUjXIthrKZalqR4Uv05MXR+nj117d7STpdlh1Lmp+s77V3e6svZU3Z9JSxx3OH1hxJJI7TF1TnqUug1L/Vwj87o0Tzqw8C4AFUdJlo54Ay3Fy+mA3PXh5eRge4EQwTTW3/9UJL3QiOA5gnEm9TtLjnZOXR6cPfvRFipKkPp7O+AhPrqgGTSQOZ+dkwTDGeWxw+KQGvChGYeEy1pgVaAWZUzgwsiGX0RBcOH+oiQIaJqmRWSBFeWbQV7/3wgIJvyebhZqiJ+H15DTO41kgjd6M31MliIXRnG6do0qoMQsCkbY+FGYvlxYezPBZXIxZ+uy70/29GriiGMGYSYBSLRGhmEmwpTAT4ZhNy1MhZhIfsmUwEx7Mzlkog5nMx0xYCMNsOJvpohjBmAlrSrVEhmImcCVXBjMZjtm0PBViJpwohZnMx2zEQhnMwIMZag4xU46C/6H55+v0+W9p/68asKIw4aQJV6orEEyalKVIgyuQNiVPxaThmrwMaeAh7RyHMqSpfNI4rsYDJrSHx7gErIEoihGMGTeiVEtUKGbc6FKYqXDMpuWpEDNuTCnMVD5mIxYKMPsfjnKGFWpF7Z63RGzyIAeGOeJEqQTREkeI01c5xWHVYWcm25inGdhAVh0Gl5Xx2RDg/pAxXIsY3GUpzIllp05Axr8LEZ3Y7qNQlp3EzECf7WxzBurf9wdP/zjtH82ktw/wyZAe9GfSX+4MHt873d1L7+6fPD9Mf3gxuLtz8ureh/7iJJ1e8VBWCoaHBMJwKiziY3GHysJL5okyQbxShkqZxXA4bWSI4io4n/nBq35IqEtOD8z0DHkPEAwaUvaiIXzCe/bdezv/ABRPldvKFQAA"
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`DefineUnitRoute`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 지정한 편집 경로의 그리기 이벤트를 JSONL로 반환한다. */
     fun jsonl(route: DefineUnitRoute): String {
         val phase = "hall-define-unit-${route.key}-stable"
         val encoded = when (route) {
@@ -183,14 +111,7 @@ object DefineUnitRenderEvents {
     }
 }
 
-/**
- * class  `DefineUnitRouteScreen`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 편집 흐름을 화면으로 실행하는 검증용 LibGDX 화면이다. */
 class DefineUnitRouteScreen(private val game: JojoGame, private val route: DefineUnitRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val shapes = ShapeRenderer()
     private val flow = DefineUnitFlow()
@@ -221,17 +142,7 @@ class DefineUnitRouteScreen(private val game: JojoGame, private val route: Defin
         }; shapes.end(); game.writeRenderEventLogIfRequested()
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 현재 편집 경로의 렌더 이벤트를 반환한다. */
     fun renderEventLog() = DefineUnitRenderEvents.jsonl(route)
     override fun runtimeRenderEventLog(): String = renderEventLog()
     override fun dispose() {

@@ -74,13 +74,6 @@ internal object MagicResolver {
         val offsets = magic.effectOffsets + (0 to 0)
         val experienceTargets = (env.units() + env.pendingPresentationUnits()).associateBy { it.id }
 
-        /**
-         * data class  `MagicEquipmentRecord`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class MagicEquipmentRecord(
             val recipient: BattleUnit,
@@ -91,19 +84,6 @@ internal object MagicResolver {
 
         val magicEquipmentByRecipient = linkedMapOf<Pair<String, BattleEquipmentExperienceKind>, MagicEquipmentRecord>()
 
-        /**
-         * 공개 메서드 `recordMagicEquipment`
-         *
-         * ### 파라미터
-        - `recipient` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `opponent` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `resolvedHarm` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `kind` (`BattleEquipmentExperienceKind`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun recordMagicEquipment(
             recipient: BattleUnit,

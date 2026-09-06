@@ -7,13 +7,6 @@ import com.jojo.game.domain.battle.*
  * choice portion of `_AIProcess` (717-917).  Numeric enum values deliberately
  * mirror Config.js so the adapter does not reinterpret original data.
  */
-/**
- * object  `ControlScoring`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object ControlScoring {
 
@@ -103,29 +96,9 @@ object ControlScoring {
         val ai: Int
         val aiValue: Int
 
-        /**
-         * 공개 메서드 `skill`
-         *
-         * ### 파라미터
-        - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun skill(id: Int): Int
 
-        /**
-         * 공개 메서드 `status`
-         *
-         * ### 파라미터
-        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun status(index: Int): Int
 
@@ -135,30 +108,9 @@ object ControlScoring {
         /** BattleUnit.isCanLan(): MP is usable by this unit. */
         fun isCanLan(): Boolean
 
-        /**
-         * 공개 메서드 `attackHarms`
-         *
-         * ### 파라미터
-        - `target` (`Unit`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `List<AttackHarm>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun attackHarms(target: Unit): List<AttackHarm>
 
-        /**
-         * 공개 메서드 `magicHarm`
-         *
-         * ### 파라미터
-        - `magic` (`Magic`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `target` (`Unit`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun magicHarm(magic: Magic, target: Unit): Int
     }

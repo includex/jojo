@@ -79,19 +79,6 @@ internal object BattleAiTurnResolver {
         var currentHealthBefore: Map<String, Int> = emptyMap()
         var currentMoveArea: List<Pair<Int, Int>> = emptyList()
 
-        /**
-         * 공개 메서드 `record`
-         *
-         * ### 파라미터
-        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `targetId` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `magicId` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `result` (`TacticalActionResult? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun record(
             unit: BattleUnit,
@@ -130,16 +117,6 @@ internal object BattleAiTurnResolver {
             resolvedUnits++
         }
 
-        /**
-         * 공개 메서드 `hold`
-         *
-         * ### 파라미터
-        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun hold(unit: BattleUnit) {
             unit.markActionComplete()

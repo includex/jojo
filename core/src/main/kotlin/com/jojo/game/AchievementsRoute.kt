@@ -8,13 +8,6 @@ import com.jojo.game.presentation.shared.overlay.*
  * is used.  Once exposed, the same button either opens Global142 or emits the
  * recovered empty-save notice.
  */
-/**
- * class  `SettingAchievementsRoute`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class SettingAchievementsRoute(
     private val rewards: Map<Int, StageAchievement>,
@@ -22,13 +15,6 @@ class SettingAchievementsRoute(
     sealed interface Effect {
         data object OpenAchievements : Effect
 
-        /**
-         * data class  `Toast`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Toast(val text: String) : Effect
     }
@@ -36,32 +22,11 @@ class SettingAchievementsRoute(
     var toolsPanelVisible: Boolean = false
         private set
 
-    /**
-     * 공개 메서드 `exposeToolsPanel`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun exposeToolsPanel() {
         toolsPanelVisible = true
     }
 
-    /**
-     * 공개 메서드 `touch`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `touchEnd` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touch(tag: Int, touchEnd: Boolean): List<Effect> {
         if (!toolsPanelVisible || !touchEnd || tag != 7) return emptyList()
@@ -74,13 +39,6 @@ class SettingAchievementsRoute(
     }
 }
 
-/**
- * data class  `StageAchievement`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class StageAchievement(
     val round: Int,
@@ -89,13 +47,6 @@ data class StageAchievement(
     val stars: Int,
 )
 
-/**
- * data class  `AchievementRow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class AchievementRow(
     val title: String,
@@ -103,7 +54,7 @@ data class AchievementRow(
     val stars: String,
 )
 
-/** Renderer-independent state of Global142, preserving source insertion order. */
+/** 원본 삽입 순서를 유지하는 업적 화면 상태이다. */
 class AchievementsFlow(
     rewards: Map<Int, StageAchievement>,
     battleName: (Int) -> String,
@@ -121,7 +72,7 @@ class AchievementsFlow(
     var removed: Boolean = false
         private set
 
-    /** Only Logo_12-1/button0 on touch-end closes; button1 is deliberately inert. */
+    /** 첫 번째 버튼의 터치 종료만 닫기 동작으로 처리한다. */
     fun touch(button: Int, touchEnd: Boolean): Boolean {
         if (!removed && touchEnd && button == 0) removed = true
         return removed

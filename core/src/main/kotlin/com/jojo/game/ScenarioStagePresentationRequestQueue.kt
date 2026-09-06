@@ -5,7 +5,7 @@ import com.jojo.game.presentation.scenario.TacticalUnit
 
 import java.util.*
 
-/** Owns renderer-facing scenario presentation requests and their delivery order. */
+/** 렌더러에 전달할 시나리오 표시 요청과 순서를 관리한다. */
 internal class ScenarioStagePresentationRequestQueue {
     private val unitHideRequests = ArrayDeque<ScenarioUnitHideRequest>()
     private var unitShowRequest: ScenarioUnitShowRequest? = null

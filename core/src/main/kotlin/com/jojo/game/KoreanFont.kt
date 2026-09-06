@@ -8,15 +8,10 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import java.io.File
 
-/**
- * object  `KoreanFont`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
+/** 실행 환경에 맞는 한국어 비트맵 글꼴을 생성한다. */
 object KoreanFont {
+    /** 크기·외곽선·색상 설정으로 글꼴을 생성한다. */
     fun create(
         size: Int,
         extraCharacters: String,
@@ -26,9 +21,7 @@ object KoreanFont {
     ): BitmapFont {
         val candidates = listOfNotNull(
             System.getenv("JOJO_FONT_PATH"),
-            // Android system images ship one of these CJK font locations;
-            // FreeType can open the system font directly, avoiding a
-            // desktop-only Apple font dependency in the APK.
+            // 안드로이드 시스템 글꼴을 우선 사용해 APK가 데스크톱 전용 글꼴에 의존하지 않게 한다.
             if (Gdx.app?.type == ApplicationType.Android) "/system/fonts/NotoSansCJK-Regular.ttc" else null,
             if (Gdx.app?.type == ApplicationType.Android) "/system/fonts/NotoSansKR-Regular.otf" else null,
             if (Gdx.app?.type == ApplicationType.Android) "/system/fonts/NanumGothic.ttf" else null,
@@ -46,10 +39,7 @@ object KoreanFont {
                     this.borderWidth = borderWidth
                     this.borderColor = borderColor
                     this.color = fillColor
-                    // Cocos system labels are rasterized by Chromium/Skia,
-                    // while the game uses FreeType.  Keep the production
-                    // default, but make the hinting policy explicit and
-                    // reproducibly selectable for framebuffer comparison.
+                    // 프레임버퍼 비교를 위해 프리타입 힌팅 정책을 명시적으로 선택한다.
                     hinting = when (System.getenv("JOJO_FONT_HINTING")?.lowercase()) {
                         "none" -> FreeTypeFontGenerator.Hinting.None
                         "slight" -> FreeTypeFontGenerator.Hinting.Slight

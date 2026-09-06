@@ -7,7 +7,7 @@ data class EditMutationCase(
     val events: List<String>
 )
 
-/** Parses the small, deliberately JSON-shaped fixture used by the Edit trace. */
+/** Edit 추적에 사용하는 단순 JSON 형태 픽스처를 해석한다. */
 object EditMutationFixtureParser {
     fun parse(input: String): List<EditMutationCase> = objects(block(input, "cases")).map { value ->
         EditMutationCase(

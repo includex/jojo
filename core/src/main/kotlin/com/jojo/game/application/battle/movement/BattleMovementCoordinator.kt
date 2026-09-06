@@ -29,34 +29,10 @@ internal data class BattleMovementEnvironment(
 internal object BattleMovementCoordinator {
     private const val DEFAULT_TERRAIN_SIZE = 100
 
-    /**
-     * 공개 메서드 `distance`
-     *
-     * ### 파라미터
-    - `a` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `b` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun distance(a: BattleUnit, b: BattleUnit): Int =
         kotlin.math.abs(a.tileX - b.tileX) + kotlin.math.abs(a.tileY - b.tileY)
 
-    /**
-     * 공개 메서드 `facingDirection`
-     *
-     * ### 파라미터
-    - `fromX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `fromY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `toX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `toY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun facingDirection(fromX: Int, fromY: Int, toX: Int, toY: Int): Int {
         val dx = kotlin.math.abs(toX - fromX)
@@ -66,17 +42,6 @@ internal object BattleMovementCoordinator {
         } else if (fromX > toX) 3 else 1
     }
 
-    /**
-     * 공개 메서드 `isInsideDefaultTerrainBounds`
-     *
-     * ### 파라미터
-    - `point` (`Pair<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `terrain` (`BattleTerrainGrid?`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun isInsideDefaultTerrainBounds(point: Pair<Int, Int>, terrain: BattleTerrainGrid?): Boolean =
         point.first >= 0 && point.second >= 0 &&
@@ -109,16 +74,6 @@ internal object BattleMovementCoordinator {
         return point
     }
 
-    /**
-     * 공개 메서드 `movementRules`
-     *
-     * ### 파라미터
-    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `BattleMovementPlanner.MovementRules`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun movementRules(unit: BattleUnit): BattleMovementPlanner.MovementRules {
         val ignoresTerrain = unit.skills[29]?.and(255)?.let { it != 255 } == true

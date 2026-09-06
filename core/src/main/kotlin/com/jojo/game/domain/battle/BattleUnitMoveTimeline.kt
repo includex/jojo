@@ -2,13 +2,6 @@ package com.jojo.game.domain.battle
 
 /** Pure implementation of BattleUnit.move2's directional action schedule. */
 object BattleUnitMoveTimeline {
-    /**
-     * data class  `Segment`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Segment(
         val direction: Int,
@@ -19,13 +12,6 @@ object BattleUnitMoveTimeline {
         val duration: Float,
     )
 
-    /**
-     * data class  `Timeline`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Timeline(
         val secondsPerTile: Float,
@@ -49,17 +35,6 @@ object BattleUnitMoveTimeline {
     /**
      * [path] is BattleScreen.unitMove's `s` array: it contains start followed
      * by every point selected by A*. `fastMove` is BattleUnit.moveSpeed().
-     */
-    /**
-     * 공개 메서드 `schedule`
-     *
-     * ### 파라미터
-    - `path` (`List<Pair<Int, Int>>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `fastMove` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Timeline`
-     * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
     fun schedule(path: List<Pair<Int, Int>>, fastMove: Boolean): Timeline {
@@ -98,18 +73,6 @@ object BattleUnitMoveTimeline {
      * Samples the same piecewise-linear cc.moveTo sequence constructed by
      * move2. The final .1s delay holds the destination while defaultAction is
      * restored, so it is intentionally not interpolated as another tile.
-     */
-    /**
-     * 공개 메서드 `sample`
-     *
-     * ### 파라미터
-    - `path` (`List<Pair<Int, Int>>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `timeline` (`Timeline`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Sample`
-     * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
     fun sample(path: List<Pair<Int, Int>>, timeline: Timeline, elapsed: Float): Sample {

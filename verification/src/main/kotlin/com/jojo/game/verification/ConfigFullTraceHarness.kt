@@ -9,17 +9,7 @@ import java.nio.file.Path
 import java.util.*
 import java.util.zip.GZIPInputStream
 
-/**
- * Direct complete Config.js game inventory. The gzip/base64 literal is a lossless
- * 185-export / 8,800-node canonical source inventory, split for JVM constants.
- */
-/**
- * object  `ConfigFullTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** Config.js의 전체 게임 인벤토리를 보존한 검증용 압축 데이터이다. */
 
 object ConfigFullTraceHarness {
     private val encoded = listOf(

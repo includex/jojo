@@ -9,7 +9,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin half of the common HallMenuLayer/HallCommandLayer factory fixture. */
+/** 공용 HallMenuLayer·HallCommandLayer 팩토리 픽스처의 Kotlin 실행부이다. */
 object HallUiTraceHarness {
     private data class Case(
         val id: String,
@@ -102,42 +102,12 @@ object HallUiTraceHarness {
     }
 
     private fun commandSnap(x: HallCommandFlow, step: String): String {
-        /**
-         * 공개 메서드 `bools`
-         *
-         * ### 파라미터
-        - `v` (`List<Boolean>`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun bools(v: List<Boolean>) = jsonList(v.map { it.toString() })
 
-        /**
-         * 공개 메서드 `ints`
-         *
-         * ### 파라미터
-        - `v` (`List<Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun ints(v: List<Int>) = jsonList(v.map { it.toString() })
 
-        /**
-         * 공개 메서드 `nullableInts`
-         *
-         * ### 파라미터
-        - `v` (`List<Int?>`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun nullableInts(v: List<Int?>) = jsonList(v.map { it?.toString() ?: "null" })
         return "{\"step\":\"${esc(step)}\",\"active\":${bools(x.active)},\"tags\":${ints(x.tags)},\"priorities\":${

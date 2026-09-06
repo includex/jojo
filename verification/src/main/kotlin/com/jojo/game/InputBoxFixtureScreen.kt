@@ -17,7 +17,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** Diagnostic route for the shipped Global137 InputBox prefab. */
+/** 배포된 Global137 입력 상자 프리팹의 동작을 검증하는 화면이다. */
 class InputBoxFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
@@ -80,16 +80,7 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
         font.draw(batch, "확인", 966.163f, 356f, 100f, Align.center, false)
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 입력 상자의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String = InputBoxRenderEvents.jsonl(state, model.value, model.attached)
     override fun runtimeRenderEventLog(): String = renderEventLog()
@@ -104,7 +95,7 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
     }
 }
 
-/** Capture-only state for a registered prefab that has no recovered runtime caller. */
+/** 복원된 호출자가 없는 프리팹의 캡처 전용 상태를 보관한다. */
 private class InputBoxRenderOracle(
     savedValue: String?,
     private val persist: (String) -> Unit,
@@ -115,17 +106,7 @@ private class InputBoxRenderOracle(
     var attached = true
         private set
 
-    /**
-     * 공개 메서드 `touchButton`
-     *
-     * ### 파라미터
-    - `button` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `event` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 버튼 입력을 적용해 프리팹 상태를 갱신한다. */
 
     fun touchButton(button: Int, event: Int) {
         if (!attached || event != 2 || button !in 0..1) return
@@ -135,34 +116,14 @@ private class InputBoxRenderOracle(
         } else callback(null)
     }
 
-    /**
-     * 공개 메서드 `touchOutside`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 바깥 영역 입력을 적용해 입력 상자를 닫는다. */
 
     fun touchOutside() = attached
 }
 
-/** Filled with exact source draw records after the actual addLayer oracle runs. */
+/** 실제 addLayer 검증 결과에서 얻은 원본 그리기 이벤트를 제공한다. */
 object InputBoxRenderEvents {
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `state` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `attached` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 입력 상자 상태와 이벤트를 JSONL 한 줄로 직렬화한다. */
 
     fun jsonl(state: String, value: String, attached: Boolean): String {
         if (!attached) return ""

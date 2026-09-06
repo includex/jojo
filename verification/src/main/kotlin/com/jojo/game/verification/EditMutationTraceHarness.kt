@@ -3,7 +3,7 @@ package com.jojo.game.verification
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Entry point for the verification-only EditLayer mutation trace. */
+/** 검증 전용 EditLayer 변이 추적의 진입점이다. */
 object EditMutationTraceHarness {
     @JvmStatic
     fun main(args: Array<String>) {

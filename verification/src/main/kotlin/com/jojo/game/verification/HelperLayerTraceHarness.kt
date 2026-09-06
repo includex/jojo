@@ -6,7 +6,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin side of the recovered HelperLayer isolated source/game trace fixture. */
+/** 복원된 HelperLayer 격리 원본·게임 추적 픽스처의 Kotlin 실행부이다. */
 object HelperLayerTraceHarness {
     private data class Case(
         val name: String,
@@ -66,17 +66,7 @@ object HelperLayerTraceHarness {
             Case(name, info, replacement, events)
         }
 
-        /**
-         * 공개 메서드 `run`
-         *
-         * ### 파라미터
-        - `spec` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 하나의 Helper 픽스처 사례를 실행한다. */
         fun run(spec: Case): String {
             val calls = mutableListOf<Pair<String, Int>>()
             var removeCount = 0

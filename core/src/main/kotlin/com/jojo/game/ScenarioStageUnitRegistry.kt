@@ -6,14 +6,14 @@ import com.jojo.game.domain.campaign.*
 import com.jojo.game.application.scenario.battle.ScenarioStageBattleUnitFactory
 import com.jojo.game.application.scenario.battle.ScenarioStageBattleUnitSelection
 
-/** Owns live tactical-unit identity and battle-instance lookup indexes. */
+/** 전장 유닛 식별자와 인스턴스 조회 색인을 관리한다. */
 internal class ScenarioStageUnitRegistry {
     val units = linkedMapOf<Int, TacticalUnit>()
 
-    /** Keys are camp-local source-slot offsets: ENEMY:0, ENEMY:80, ENEMY:160. */
+    /** 진영별 원본 슬롯 오프셋을 키로 사용한다. */
     val battleUnits = linkedMapOf<String, ScenarioBattleUnit>()
 
-    /** BattleScreen._unitIds: a character ID always resolves to its first actor. */
+    /** 인물 식별자는 등록된 첫 번째 전장 유닛으로 해석한다. */
     private val firstBattleUnitKeyByCharacterId = linkedMapOf<Int, String>()
     private val battleUnitFactory = ScenarioStageBattleUnitFactory()
 
@@ -72,12 +72,12 @@ internal class ScenarioStageUnitRegistry {
         }
     }
 
-    /** Resolves the first actor registered for a character. */
+    /** 인물에 등록된 첫 번째 전장 유닛을 찾는다. */
     fun battleUnitForCharacterId(characterId: Int): ScenarioBattleUnit? =
         firstBattleUnitKeyByCharacterId[characterId]?.let(battleUnits::get)
             ?: battleUnits.values.firstOrNull { it.characterId == characterId }
 
-    /** Resolves an actor directly by its stable battle-instance slot. */
+    /** 고정 전장 인스턴스 슬롯으로 유닛을 찾는다. */
     fun battleUnitForSlot(battleSlot: Int): ScenarioBattleUnit? =
         battleUnits.values.firstOrNull { it.battleSlot == battleSlot }
 

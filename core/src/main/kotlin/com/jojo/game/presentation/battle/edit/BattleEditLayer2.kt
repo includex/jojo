@@ -16,46 +16,18 @@ class BattleEditLayer2(
     private val canApplyRound: Boolean,
 ) {
     sealed interface Effect {
-        /**
-         * data class  `SetWeather`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class SetWeather(val value: Int) : Effect
 
-        /**
-         * data class  `SetRound`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class SetRound(val value: Int) : Effect
 
-        /**
-         * data class  `Toast`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Toast(val text: String) : Effect
 
         /** Instance.LAYER.EditLayer, id 120, prefab Global/scene/EditLayer3. */
         data object OpenGlobalEditor : Effect
 
-        /**
-         * data class  `KillAll`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class KillAll(val flag: Int) : Effect
         data object Remove : Effect
@@ -79,46 +51,16 @@ class BattleEditLayer2(
     var removed: Boolean = false
         private set
 
-    /**
-     * 공개 메서드 `openWeatherPanel`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun openWeatherPanel() {
         weatherPanelVisible = true
     }
 
-    /**
-     * 공개 메서드 `closeWeatherPanel`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun closeWeatherPanel() {
         weatherPanelVisible = false
     }
 
-    /**
-     * 공개 메서드 `selectWeather`
-     *
-     * ### 파라미터
-    - `value` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun selectWeather(value: Int) {
         require(value in weatherNames.indices)
@@ -128,32 +70,12 @@ class BattleEditLayer2(
         weatherLabel = weatherNames[value]
     }
 
-    /**
-     * 공개 메서드 `textChanged`
-     *
-     * ### 파라미터
-    - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun textChanged(value: String) {
         roundText = value
         editChanged = true
     }
 
-    /**
-     * 공개 메서드 `editingDidEnd`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun editingDidEnd() {
         if (!editChanged) return
@@ -162,17 +84,6 @@ class BattleEditLayer2(
         if (value == original.getValue(1)) pending.remove(1) else pending[1] = value
     }
 
-    /**
-     * 공개 메서드 `touchButton`
-     *
-     * ### 파라미터
-    - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `phase` (`Int = 2`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Effect>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun touchButton(tag: Int, phase: Int = 2): List<Effect> {
         // Cocos removal detaches the node but does not invalidate a retained
@@ -199,27 +110,10 @@ class BattleEditLayer2(
         }
     }
 
-    /**
-     * 공개 메서드 `pendingValues`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Map<Int, Int>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun pendingValues(): Map<Int, Int> = pending.toMap()
 }
 
-/**
- * enum class  `BattleEditLayer2Route`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 enum class BattleEditLayer2Route(val key: String) {
     INITIAL("initial"), WEATHER("weather"), ROUND("round"), APPLY("apply"), CHILD("child"), CHILD_SCENE("child-scene"), REGISTER(
@@ -227,16 +121,6 @@ enum class BattleEditLayer2Route(val key: String) {
     );
 
     companion object {
-        /**
-         * 공개 메서드 `parse`
-         *
-         * ### 파라미터
-        - `state` (`String?`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleEditLayer2Route?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun parse(state: String?): BattleEditLayer2Route? {
             val normalized = state?.removeSuffix("-fixture") ?: return null
@@ -252,17 +136,6 @@ enum class BattleEditLayer2Route(val key: String) {
 object BattleEditLayer2RenderEvents {
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`BattleEditLayer2Route`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `model` (`BattleEditLayer2`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(route: BattleEditLayer2Route, model: BattleEditLayer2): String {
         val log = RenderEventLog()
@@ -304,24 +177,6 @@ object BattleEditLayer2RenderEvents {
     }
 
     private fun appendEdit2(log: RenderEventLog, phase: String, layer: String, model: BattleEditLayer2) {
-        /**
-         * 공개 메서드 `d`
-         *
-         * ### 파라미터
-        - `path` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `type` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `asset` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `text` (`String=""`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `blend` (`Any=listOf(770,771`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun d(
             path: String,

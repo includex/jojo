@@ -13,13 +13,6 @@ import com.jojo.game.domain.scenario.*
  * continuation state between those operations so opening a child list is not
  * confused with the existing desktop M/B development shortcuts.
  */
-/**
- * class  `BattleCommandFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class BattleCommandFlow {
     companion object {
@@ -36,16 +29,6 @@ class BattleCommandFlow {
         ATTACK(0), MAGICK(1), PROPERTY(2), SWAP(3), SIEGE(4), WAIT(5), CANCEL(6);
 
         companion object {
-            /**
-             * 공개 메서드 `fromTag`
-             *
-             * ### 파라미터
-            - `tag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun fromTag(tag: Int) = entries.firstOrNull { it.tag == tag }
         }
@@ -76,33 +59,12 @@ class BattleCommandFlow {
     sealed interface Result {
         data object Ignored : Result
 
-        /**
-         * data class  `OpenChild`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class OpenChild(val command: Command) : Result
 
-        /**
-         * data class  `Commit`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Commit(val command: Command) : Result
 
-        /**
-         * data class  `Rollback`
-         *
-         * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-         *
-         * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-         */
 
         data class Rollback(val unitId: String, val pose: UnitPose) : Result
     }

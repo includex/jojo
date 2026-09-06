@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** Strict-log diagnostic entered through the real game Buy/Sell adapters. */
+/** 실제 Buy/Sell 어댑터를 통해 MsgBox3 경로를 검증하는 화면이다. */
 class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
     private val batch = SpriteBatch()
@@ -41,8 +41,7 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         model = if (state == "quantity-buy-initial") {
             buy.openPropertyQuantity(item.id)
         } else {
-            // Match the source oracle's actual precondition route: confirm
-            // three through BuyLayer before entering SellLayer.onClick.
+            // 원본과 같이 BuyLayer에서 세 번째 항목을 확인한 뒤 SellLayer로 진입한다.
             buy.openPropertyQuantity(item.id).also {
                 it.textChanged("3")
                 it.touchButton(0, 2)
@@ -97,16 +96,7 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         font.draw(batch, "취소", 814.186f, 356f, 100f, Align.center, false)
     }
 
-    /**
-     * 공개 메서드 `renderEventLog`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** 구매·판매 대화 상자의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
     fun renderEventLog(): String = MsgBox3RenderEvents.jsonl(state, model)
     override fun runtimeRenderEventLog(): String = renderEventLog()
@@ -119,26 +109,10 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
     }
 }
 
-/**
- * object  `MsgBox3RenderEvents`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** MsgBox3 상태를 원본 그리기 이벤트 형식으로 직렬화한다. */
 
 object MsgBox3RenderEvents {
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `state` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `model` (`MsgBox3Layer`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
+    /** MsgBox3 모델의 현재 상태를 JSONL 한 줄로 만든다. */
 
     fun jsonl(state: String, model: MsgBox3Layer): String {
         if (!model.attached) return ""

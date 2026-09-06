@@ -17,16 +17,6 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
     private val batch = SpriteBatch()
     private val layout = GlyphLayout()
 
-    /**
-     * 공개 메서드 `render`
-     *
-     * ### 파라미터
-    - `state` (`BattlePreparationViewState`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun render(state: BattlePreparationViewState) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
@@ -60,45 +50,13 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         batch.end()
     }
 
-    /**
-     * 공개 메서드 `screenToWorld`
-     *
-     * ### 파라미터
-    - `screenX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `screenY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Pair<Float, Float>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun screenToWorld(screenX: Int, screenY: Int): Pair<Float, Float> =
         viewport.unproject(Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
 
-    /**
-     * 공개 메서드 `resize`
-     *
-     * ### 파라미터
-    - `width` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `height` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun resize(width: Int, height: Int) = viewport.update(width, height, true)
 
-    /**
-     * 공개 메서드 `dispose`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun dispose() = batch.dispose()
 

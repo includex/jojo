@@ -79,16 +79,6 @@ object MiscUiTraceHarness {
                 var show = false
                 var count = 0
 
-                /**
-                 * 공개 메서드 `x`
-                 *
-                 * ### 파라미터
-                - 입력 파라미터: 없음
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun x() = snap(c.kind, true, "\"show\":$show,\"count\":$count")
                 out += x(); ev.forEach { z ->
@@ -112,16 +102,6 @@ object MiscUiTraceHarness {
                 var attached = true
                 val calls = mutableListOf<String?>()
 
-                /**
-                 * 공개 메서드 `x`
-                 *
-                 * ### 파라미터
-                - 입력 파라미터: 없음
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun x() = snap(
                     c.kind,
@@ -177,16 +157,6 @@ object MiscUiTraceHarness {
                 var attached = true
                 val calls = mutableListOf<Any?>()
 
-                /**
-                 * 공개 메서드 `x`
-                 *
-                 * ### 파라미터
-                - 입력 파라미터: 없음
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun x() = snap(
                     c.kind,

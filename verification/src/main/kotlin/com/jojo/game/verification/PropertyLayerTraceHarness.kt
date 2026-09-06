@@ -10,32 +10,10 @@ object PropertyLayerTraceHarness {
     fun main(args: Array<String>) {
         val text = java.nio.file.Files.readString(java.nio.file.Path.of(args[0]))
 
-        /**
-         * 공개 메서드 `field`
-         *
-         * ### 파라미터
-        - `s` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `key` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun field(s: String, key: String) =
             Regex("\\\"$key\\\":(null|\\\"[^\\\"]*\\\"|-?\\d+|true|false)").find(s)?.groupValues?.get(1)
 
-        /**
-         * 공개 메서드 `str`
-         *
-         * ### 파라미터
-        - `s` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `key` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun str(s: String, key: String) = field(s, key)?.removeSurrounding("\"")
         val itemObjects = Regex("\\{[^{}]*\\\"id\\\":\\d+[^{}]*}").findAll(
@@ -69,29 +47,9 @@ object PropertyLayerTraceHarness {
             )
         }.toList()
 
-        /**
-         * 공개 메서드 `esc`
-         *
-         * ### 파라미터
-        - `s` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
 
-        /**
-         * 공개 메서드 `trace`
-         *
-         * ### 파라미터
-        - `spec` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun trace(spec: Case): String {
             val layer = PropertyLayer(items, inventory)

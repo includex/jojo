@@ -2,53 +2,19 @@ package com.jojo.game.infrastructure.data
 
 import java.security.MessageDigest
 
-/**
- * Codec for the campaign save envelope.
- *
- * This format prefixes an MD5 digest and rotates every byte by a
- * position-dependent amount. Keeping this format lets the Kotlin game read
- * and write the established durable save container.
- */
-/**
- * object  `CampaignSaveCodec`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
-
+/** 캠페인 저장 봉투의 해시 검증과 바이트 회전을 담당한다. */
 object CampaignSaveCodec {
     private const val KEY = "ccz65Sha08GeZ1Fu"
     private const val SALT = "8015"
 
-    /**
-     * 공개 메서드 `encode`
-     *
-     * ### 파라미터
-    - `json` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** JSON 저장 본문에 검증용 해시를 붙여 저장 형식으로 인코딩한다. */
     fun encode(json: String): String {
         val payload = md5("${KEY}_${json}_${SALT}") + json
         val bytes = payload.toByteArray(Charsets.UTF_8)
         return rotate(bytes, decrypt = false).toString(Charsets.ISO_8859_1)
     }
 
-    /**
-     * 공개 메서드 `decode`
-     *
-     * ### 파라미터
-    - `encoded` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 해시가 일치하는 저장 봉투만 JSON 본문으로 복호화한다. */
     fun decode(encoded: String): String? = runCatching {
         val decoded = rotate(encoded.toByteArray(Charsets.ISO_8859_1), decrypt = true)
             .toString(Charsets.UTF_8)

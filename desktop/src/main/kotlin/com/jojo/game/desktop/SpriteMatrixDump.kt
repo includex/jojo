@@ -7,20 +7,10 @@ import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
 import com.jojo.game.GameDataCatalog
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
-/** One-process counterpart to the source Cocos AnimationState frame dump. */
+/** 전투 스프라이트의 프레임 정보를 출력하는 데스크톱 도구입니다. */
 object SpriteMatrixDump {
     @JvmStatic
-/**
- * 공개 메서드 `main`
- *
- * ### 파라미터
-- `args` (`Array<String>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+    /** 프로필 또는 애니메이션 프레임을 읽어 표준 출력으로 내보냅니다. */
     fun main(args: Array<String>) {
         val profileIds = args.firstOrNull { it.startsWith("--profiles=") }
             ?.substringAfter('=')
@@ -28,17 +18,7 @@ object SpriteMatrixDump {
             ?.filter(String::isNotBlank)
             ?.map(String::toInt)
             .orEmpty()
-/**
- * 공개 메서드 `value`
- *
- * ### 파라미터
-- `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `String`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
-
+        /** 지정한 이름의 필수 실행 인자 값을 반환합니다. */
         fun value(name: String): String = args.firstOrNull { it.startsWith("--$name=") }
             ?.substringAfter('=') ?: error("--$name is required")
         val cases = args.firstOrNull { it.startsWith("--cases=") }

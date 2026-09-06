@@ -4,7 +4,7 @@ import com.jojo.game.*
 import com.jojo.game.presentation.battle.render.*
 import com.jojo.game.presentation.battle.unit.*
 
-/** Combined implementation trace: FightLayer callbacks + BattleUnit harm UI equivalents. */
+/** FightLayer 콜백과 BattleUnit 피해 UI 동작을 함께 추적한다. */
 object FightPresentationTraceHarness {
     private fun q(s: String) = "\"$s\""
     @JvmStatic
@@ -31,17 +31,7 @@ object FightPresentationTraceHarness {
         var bars = BattleHarmBar.View()
         val trace = mutableListOf<String>()
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 현재 전투 표현 상태를 기록한다. */
         fun snap(step: String) {
             val shown = health.shownHp("target", if (hit) 1f else 0f, hp)
             val raw = if (!hit) listOf(null, null, null) else if (damage == 0) listOf(

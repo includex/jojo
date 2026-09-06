@@ -68,22 +68,6 @@ internal fun appendFixture0(writer: ScenarioHallOverlayEventWriter) = with(write
                 listOf(410.859f, 555.31f, 1027.419f).forEach { x ->
                     event("HallLayer", "$root/vline", "sliced-sprite", x, 160.25f, 6f, 450.3f, "vline")
                 }
-                /**
-                 * 공개 메서드 `header`
-                 *
-                 * ### 파라미터
-                - `x` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `y` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `w` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `h` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `lx` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `lw` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-                - `value` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
 
                 fun header(x: Float, y: Float, w: Float, h: Float, lx: Float, lw: Float, value: String) {
                     event("HallLayer", "$root/box3", "sliced-sprite", x, y, w, h, "bg1")

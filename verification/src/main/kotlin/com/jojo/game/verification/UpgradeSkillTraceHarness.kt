@@ -11,13 +11,6 @@ import java.nio.file.Path
  * no desktop input abstraction is allowed to alter the recovered listener
  * contract before its trace is compared with the original factory.
  */
-/**
- * object  `UpgradeSkillTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object UpgradeSkillTraceHarness {
     private fun esc(v: String) = v.replace("\\", "\\\\").replace("\"", "\\\"")
@@ -41,48 +34,14 @@ object UpgradeSkillTraceHarness {
         var answer: ((Int) -> Unit)? = null
         var timer = false
 
-        /**
-         * 공개 메서드 `layer`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `txt` (`String? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `flag` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `sel` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `size` (`Int? = null`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun layer(name: String, txt: String? = null, flag: Int? = null, sel: Int? = null, size: Int? = null) {
             layers += "{\"layer\":\"$name\",\"args\":{\"txt\":${txt?.let { "\"${esc(it)}\"" } ?: "null"},\"flag\":${flag ?: "null"},\"sel\":${sel ?: "null"},\"listSize\":${size ?: "null"}}}"
         }
 
-        /**
-         * 공개 메서드 `map`
-         *
-         * ### 파라미터
-        - `m` (`Map<String, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun map(m: Map<String, Int>) = m.entries.joinToString(",", "[", "]") { "[\"${it.key}\",${it.value}]" }
 
-        /**
-         * 공개 메서드 `snap`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun snap(step: String) =
             "{\"step\":\"${esc(step)}\",\"dead\":$dead,\"active\":$active,\"layers\":[${layers.joinToString(",")}],\"events\":[${

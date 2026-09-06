@@ -5,7 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Direct event-contract games for Feats, JiQi, Attribute and Exclusive UI. */
+/** Feats·JiQi·능력치·전용 UI의 이벤트 계약을 직접 검증한다. */
 object CharacterAbilityTraceHarness {
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
     private fun events(s: String) = Regex("\\\"events\\\":\\[(.*?)]").find(s)?.groupValues?.get(1)
@@ -22,19 +22,7 @@ object CharacterAbilityTraceHarness {
         val layers = mutableListOf<String>()
         val out = mutableListOf<String>()
 
-        /**
-         * 공개 메서드 `add`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `ls` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `ex` (`String?=null`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 현재 UI 상태의 스냅샷을 결과 목록에 추가한다. */
         fun add(step: String, ls: String, ex: String? = null) {
             out += snap(step, dead, ls, layers, ex)
         }
@@ -65,17 +53,7 @@ object CharacterAbilityTraceHarness {
                 var rows = listOf(1, 0)
                 var ls = labels("label0" to "Item1", "label1" to "Item2", "label2" to "----", "label3" to "T1")
 
-                /**
-                 * 공개 메서드 `ex`
-                 *
-                 * ### 파라미터
-                - 입력 파라미터: 없음
-                 *
-                 * ### 응답 스펙
-                 * - 반환 타입: `Unit`
-                 * - 반환값: 동작 결과의 도메인 값입니다.
-                 */
-
+                /** 전용 패널과 버튼 상태를 JSON 조각으로 만든다. */
                 fun ex() = ",\"sel\":$sel,\"flag\":$flag,\"panels\":[${panels.joinToString(",")}],\"buttons\":[${
                     buttons.joinToString(",")
                 }],\"rows\":[${rows.joinToString(",")}]"

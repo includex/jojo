@@ -56,29 +56,9 @@ internal class BattleProbabilityResolver(
     fun flagRandom(min: Int, max: Int): Int =
         sourceRandomStreams?.random(min, max, 1) ?: (fallbackRandom.nextInt(max - min + 1) + min)
 
-    /**
-     * 공개 메서드 `random100`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun random100(): Int = defaultRandom(0, 100)
 
-    /**
-     * 공개 메서드 `initializeRateGauges`
-     *
-     * ### 파라미터
-    - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun initializeRateGauges(unit: BattleUnit) {
         if (unit.rateAccumulators.isNotEmpty()) return
@@ -91,17 +71,6 @@ internal class BattleProbabilityResolver(
     fun rollStatusDuration(): Int =
         if (sourceRandomStreams != null) defaultRandom(1, 3) else 3
 
-    /**
-     * 공개 메서드 `physicalHitRate`
-     *
-     * ### 파라미터
-    - `attackerCritical` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `defenderCritical` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun physicalHitRate(attackerCritical: Int, defenderCritical: Int): Int {
         val attacker = attackerCritical.toDouble()
@@ -115,17 +84,6 @@ internal class BattleProbabilityResolver(
         return rate.toInt().coerceIn(25, 100)
     }
 
-    /**
-     * 공개 메서드 `physicalHitRate`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun physicalHitRate(attacker: BattleUnit, target: BattleUnit): Int {
         val baseline = physicalHitRate(
@@ -152,17 +110,6 @@ internal class BattleProbabilityResolver(
         return rolled
     }
 
-    /**
-     * 공개 메서드 `criticalRate`
-     *
-     * ### 파라미터
-    - `attackerMorale` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `defenderMorale` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun criticalRate(attackerMorale: Int, defenderMorale: Int): Int {
         val attacker = attackerMorale.coerceAtLeast(1)
@@ -176,17 +123,6 @@ internal class BattleProbabilityResolver(
         return rate.coerceIn(0, 100)
     }
 
-    /**
-     * 공개 메서드 `criticalHit`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun criticalHit(attacker: BattleUnit, target: BattleUnit): Boolean {
         val rate = if (hasSkill(attacker, 270)) {

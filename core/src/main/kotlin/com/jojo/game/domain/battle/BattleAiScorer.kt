@@ -29,34 +29,10 @@ internal data class BattleAiScoringEnvironment(
  */
 internal object BattleAiScorer {
 
-    /**
-     * 공개 메서드 `canAttack`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun canAttack(attacker: BattleUnit, target: BattleUnit): Boolean =
         attacker.attackAllScreen || ((target.tileX - attacker.tileX) to (target.tileY - attacker.tileY)) in attacker.attackOffsets
 
-    /**
-     * 공개 메서드 `canAttackFrom`
-     *
-     * ### 파라미터
-    - `attacker` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `target` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun canAttackFrom(attacker: BattleUnit, x: Int, y: Int, target: BattleUnit): Boolean =
         attacker.attackAllScreen || ((target.tileX - x) to (target.tileY - y)) in attacker.attackOffsets

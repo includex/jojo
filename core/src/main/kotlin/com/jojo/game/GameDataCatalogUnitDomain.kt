@@ -2,7 +2,7 @@ package com.jojo.game
 
 import com.jojo.game.domain.campaign.*
 
-/** Owns unit, arm, post, battle-profile and campaign-level queries. */
+/** 유닛, 병과, 직위, 전투 정보, 캠페인 레벨 조회를 제공한다. */
 internal class GameDataCatalogUnitDomain(
     tables: GameDataTableBundle,
     private val combat: GameDataCatalogCombatDomain,

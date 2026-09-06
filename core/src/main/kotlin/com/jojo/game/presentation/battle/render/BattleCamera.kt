@@ -17,17 +17,6 @@ internal object SourceBattleMapGeometry {
     private const val initialMapCenterX = 640f
     private const val initialMapCenterY = 864f
 
-    /**
-     * 공개 메서드 `boardLeft`
-     *
-     * ### 파라미터
-    - `mapTilesWide` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `cameraDeltaX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Float`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun boardLeft(mapTilesWide: Int, cameraDeltaX: Float): Float =
         initialMapCenterX - mapTilesWide * renderedTile / 2f + cameraDeltaX
@@ -36,17 +25,6 @@ internal object SourceBattleMapGeometry {
     fun boardBottom(mapTilesHigh: Int, cameraDeltaY: Float): Float =
         initialMapCenterY + mapTilesHigh * renderedTile / 2f - renderedTile + cameraDeltaY
 
-    /**
-     * 공개 메서드 `mapBottom`
-     *
-     * ### 파라미터
-    - `mapTilesHigh` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `cameraDeltaY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Float`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun mapBottom(mapTilesHigh: Int, cameraDeltaY: Float): Float =
         initialMapCenterY - mapTilesHigh * renderedTile / 2f + cameraDeltaY
@@ -83,16 +61,6 @@ class BattleCamera(
     var mapScrollingDispatchCount: Int = 0
         private set
 
-    /**
-     * 공개 메서드 `reset`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun reset() {
         x = 0f; y = 0f
@@ -102,17 +70,6 @@ class BattleCamera(
     val contentX: Float get() = initialContentX() + x
     val contentY: Float get() = initialContentY() + y
 
-    /**
-     * 공개 메서드 `configureViewport`
-     *
-     * ### 파라미터
-    - `width` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `height` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun configureViewport(width: Float, height: Float) {
         viewportWidth = width
@@ -133,17 +90,6 @@ class BattleCamera(
      * Returning that observable mutation lets callers retain the source
      * centerUnit invocation while avoiding a synthetic camera transition when
      * the unit was already inside the 96 px edge band.
-     */
-    /**
-     * 공개 메서드 `ensureVisible`
-     *
-     * ### 파라미터
-    - `worldX` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `worldY` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
      */
 
     fun ensureVisible(worldX: Float, worldY: Float): Boolean {

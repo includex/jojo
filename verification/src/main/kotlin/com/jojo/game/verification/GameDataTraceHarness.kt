@@ -5,15 +5,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Direct Kotlin implementation for the A/F inventory fixture.  It models ItemStore's three
- * field slots and Item's recovered type/value/getter rules, not UI data. */
-/**
- * object  `GameDataTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** A/F 인벤토리 픽스처의 아이템 규칙과 저장 상태를 직접 검증한다. */
 
 object GameDataTraceHarness {
     private data class I(
@@ -61,32 +53,12 @@ object GameDataTraceHarness {
         val weapons = mutableListOf<Triple<Int, Int, Int>>()
         val out = mutableListOf<String>()
 
-        /**
-         * 공개 메서드 `type`
-         *
-         * ### 파라미터
-        - `x` (`I`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 아이템 분류 규칙에 따라 타입 번호를 계산한다. */
         fun type(x: I) = when {
             x.kind <= 9 -> 0; x.kind <= 19 -> 1; x.id in 1000..1003 -> 3; else -> 2
         }
 
-        /**
-         * 공개 메서드 `snapshot`
-         *
-         * ### 파라미터
-        - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 아이템 상태를 검증 결과 목록에 추가한다. */
         fun snapshot(step: String) = out.add(
             ob(
                 "s" to j(step),
@@ -104,17 +76,6 @@ object GameDataTraceHarness {
             )
         )
 
-        /**
-         * 공개 메서드 `itemRow`
-         *
-         * ### 파라미터
-        - `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-        - `pos` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun itemRow(id: Int, pos: Int): String {
             val x = items.getValue(id)

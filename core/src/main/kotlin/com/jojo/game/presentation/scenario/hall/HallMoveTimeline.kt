@@ -6,13 +6,6 @@ import kotlin.math.floor
 
 /** Exact HallUnit._move2 straight-run grouping and 40 ms z-order scheduler. */
 object HallMoveTimeline {
-    /**
-     * data class  `Segment`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Segment(
         val fromX: Float, val fromY: Float,
@@ -21,26 +14,9 @@ object HallMoveTimeline {
         val direction: Int,
     )
 
-    /**
-     * data class  `Sample`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Sample(val x: Float, val y: Float, val direction: Int, val zIndex: Float)
 
-    /**
-     * 공개 메서드 `segments`
-     *
-     * ### 파라미터
-    - `path` (`List<Pair<Int, Int>>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Segment>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun segments(path: List<Pair<Int, Int>>): List<Segment> {
         if (path.size < 2) return emptyList()
@@ -87,17 +63,6 @@ object HallMoveTimeline {
         return result
     }
 
-    /**
-     * 공개 메서드 `sample`
-     *
-     * ### 파라미터
-    - `path` (`List<Pair<Int, Int>>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `elapsed` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Sample`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun sample(path: List<Pair<Int, Int>>, elapsed: Float): Sample {
         val segments = segments(path)
@@ -110,16 +75,6 @@ object HallMoveTimeline {
                 z(point.first.toFloat(), point.second.toFloat())
             )
         }
-        /**
-         * 공개 메서드 `positionAt`
-         *
-         * ### 파라미터
-        - `time` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Triple<Float, Float, Int>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun positionAt(time: Float): Triple<Float, Float, Int> {
             val segment = segments.firstOrNull { time < it.startsAt + it.duration } ?: segments.last()

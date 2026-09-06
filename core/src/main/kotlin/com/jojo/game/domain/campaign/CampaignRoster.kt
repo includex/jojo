@@ -5,7 +5,7 @@ import com.jojo.game.domain.scenario.*
 
 import java.util.*
 
-/** Owns the ordered battle selection and its authored Hall entry rules. */
+/** 전투 편성과 홀 진입 규칙을 관리한다. */
 class CampaignRoster internal constructor(
     private val joinedUnitIds: () -> Collection<Int>,
 ) {
@@ -18,19 +18,19 @@ class CampaignRoster internal constructor(
         selectedUnitIds.clear()
     }
 
-    /** Seeds a deterministic startup or capture roster without Hall validation. */
+    /** 홀 검증 없이 시작 또는 캡처용 편성을 설정한다. */
     internal fun seedStartupRoster(unitIds: Iterable<Int>) {
         selectedUnitIds.clear()
         selectedUnitIds.addAll(unitIds)
     }
 
-    /** Rehydrates persisted roster order after aggregate reset. */
+    /** 저장된 편성 순서를 복원한다. */
     internal fun restoreBattleRoster(unitIds: Iterable<Int>) {
         selectedUnitIds.clear()
         selectedUnitIds.addAll(unitIds)
     }
 
-    /** Resolves Hall selection bounds while preserving the authored direct-battle fast path. */
+    /** 홀 선택 제한과 즉시 전투 진입 조건을 계산한다. */
     fun resolveBattleEntry(limit: ScenarioJoinBattleLimit): ScenarioBattleEntryPlan {
         val excluded = limit.excludedUnitIds.distinct()
         val available = joinedUnitIds().filterNot { it in excluded }
@@ -41,7 +41,7 @@ class CampaignRoster internal constructor(
             }
         }
         val hallMaximum = minOf(limit.maximum.coerceAtLeast(0), available.size)
-        // The direct comparison uses the authored maximum before UI availability and size caps.
+        // 즉시 진입 여부는 UI 제한을 적용하기 전 원본 최대 인원으로 판단한다.
         val direct = mandatory.takeIf { it.size >= limit.maximum }
         val uiMaximum = minOf(hallMaximum, 20)
         val uiMinimum = if (uiMaximum > 0) maxOf(1, 2 * (uiMaximum / 3)) else 0
@@ -51,17 +51,7 @@ class CampaignRoster internal constructor(
         )
     }
 
-    /**
-     * 공개 메서드 `configureBattleRoster`
-     *
-     * ### 파라미터
-    - `limit` (`ScenarioJoinBattleLimit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `ScenarioBattleEntryPlan`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 제한에 맞는 기본 전투 편성을 구성한다. */
     fun configureBattleRoster(limit: ScenarioJoinBattleLimit): ScenarioBattleEntryPlan {
         val plan = resolveBattleEntry(limit)
         val effective = plan.selectionLimit
@@ -73,18 +63,7 @@ class CampaignRoster internal constructor(
         return plan
     }
 
-    /**
-     * 공개 메서드 `setBattleRoster`
-     *
-     * ### 파라미터
-    - `selection` (`Collection<Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `limit` (`ScenarioJoinBattleLimit`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 선택한 편성이 제한 조건을 만족하면 저장한다. */
     fun setBattleRoster(selection: Collection<Int>, limit: ScenarioJoinBattleLimit): Boolean {
         val distinct = selection.distinct()
         val available = (joinedUnitIds() + limit.requiredUnitIds)
@@ -99,7 +78,7 @@ class CampaignRoster internal constructor(
         return true
     }
 
-    /** Fills the R_00 single-unit roster without replacing an existing selection. */
+    /** 기존 편성이 없을 때 R_00 단독 전투 편성을 채운다. */
     fun prepareImplicitSingleUnitBattle(): Boolean {
         if (selectedUnitIds.isNotEmpty()) return true
         val joined = joinedUnitIds()

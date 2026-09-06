@@ -1,6 +1,6 @@
 package com.jojo.game.presentation.scenario
 
-/** Renderer-timed unit state; source-domain coordinates remain on ScenarioStage. */
+/** 렌더링 보간에 사용하는 전술 유닛 상태입니다. */
 data class TacticalUnit(
     val id: Int,
     var x: Int,
@@ -29,7 +29,7 @@ data class TacticalUnit(
     var moveJustStarted: Boolean = false
 }
 
-/** Renderer-timed portrait state for a source scenario event. */
+/** 시나리오 이벤트에 표시되는 초상화의 보간 상태입니다. */
 data class ScenarioHead(val characterId: Int, var x: Int = 0, var y: Int = 0, var visible: Boolean = true) {
     var visualX: Float = x.toFloat()
     var visualY: Float = y.toFloat()

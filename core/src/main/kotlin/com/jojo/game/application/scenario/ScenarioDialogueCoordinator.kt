@@ -4,13 +4,6 @@ import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
 
-/**
- * class  `ScenarioDialogueCoordinator`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ScenarioDialogueCoordinator(
     private val stage: ScenarioStage,
@@ -43,16 +36,6 @@ class ScenarioDialogueCoordinator(
     var externalDialogueReturnState: PlaybackState? = null
         private set
 
-    /**
-     * 공개 메서드 `reset`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun reset() {
         currentDialogue = null
@@ -63,33 +46,12 @@ class ScenarioDialogueCoordinator(
         externalDialogueReturnState = null
     }
 
-    /**
-     * 공개 메서드 `resetSpeakers`
-     *
-     * ### 파라미터
-    - `speakerIndex` (`Int = 0`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun resetSpeakers(speakerIndex: Int = 0) {
         dialogueSpeakerIndex = speakerIndex
         lastDialogueSpeakerId = -1
     }
 
-    /**
-     * 공개 메서드 `advanceDialogue`
-     *
-     * ### 파라미터
-    - `deferCloseCallbackFrame` (`Boolean = false`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `currentState` (`PlaybackState`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun advanceDialogue(deferCloseCallbackFrame: Boolean = false, currentState: PlaybackState) {
         check(currentState == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
@@ -115,17 +77,6 @@ class ScenarioDialogueCoordinator(
         onResumeExecution()
     }
 
-    /**
-     * 공개 메서드 `presentExternalBattleDialogue`
-     *
-     * ### 파라미터
-    - `dialogue` (`Dialogue`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `currentState` (`PlaybackState`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun presentExternalBattleDialogue(dialogue: Dialogue, currentState: PlaybackState) {
         check(currentDialogue == null && currentState != PlaybackState.DIALOGUE) { "이미 대사가 표시 중입니다." }
@@ -136,16 +87,6 @@ class ScenarioDialogueCoordinator(
         onStateChange(PlaybackState.DIALOGUE)
     }
 
-    /**
-     * 공개 메서드 `presentDialogue`
-     *
-     * ### 파라미터
-    - `dialogue` (`Dialogue`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun presentDialogue(dialogue: Dialogue) {
         currentDialogueAtTop = false
@@ -163,32 +104,12 @@ class ScenarioDialogueCoordinator(
         dialogueRevision++
     }
 
-    /**
-     * 공개 메서드 `beginDialogueLifecycle`
-     *
-     * ### 파라미터
-    - `sourceText` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun beginDialogueLifecycle(sourceText: String) {
         currentDialogueSourceText = sourceText
         dialogueLifecycleRevision++
     }
 
-    /**
-     * 공개 메서드 `startSay`
-     *
-     * ### 파라미터
-    - `sourceText` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun startSay(sourceText: String) {
         val dialogues = parseDialogueBlocks(sourceText)
@@ -198,19 +119,6 @@ class ScenarioDialogueCoordinator(
         onStateChange(PlaybackState.DIALOGUE)
     }
 
-    /**
-     * 공개 메서드 `startTalk`
-     *
-     * ### 파라미터
-    - `primary` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `fallback` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `text` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `activeCharacterIds` (`Set<Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun startTalk(primary: Int, fallback: Int, text: String, activeCharacterIds: Set<Int>) {
         val speaker = if (primary in activeCharacterIds) primary else fallback
@@ -220,16 +128,6 @@ class ScenarioDialogueCoordinator(
         onStateChange(PlaybackState.DIALOGUE)
     }
 
-    /**
-     * 공개 메서드 `handleDelayTick`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Boolean`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun handleDelayTick(): Boolean {
         if (dialogueCallbackFramePending) {
@@ -245,16 +143,6 @@ class ScenarioDialogueCoordinator(
     }
 
     companion object {
-        /**
-         * 공개 메서드 `parseDialogueBlocks`
-         *
-         * ### 파라미터
-        - `raw` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `List<Dialogue>`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun parseDialogueBlocks(raw: String): List<Dialogue> {
             val tags = Regex("""(?m)^&(\d+)\n""").findAll(raw).toList()

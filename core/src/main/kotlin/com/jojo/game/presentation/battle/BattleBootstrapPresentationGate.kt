@@ -2,7 +2,7 @@ package com.jojo.game.presentation.battle
 
 import com.jojo.game.ScenarioStage
 
-/** Callback-owning stage work which may delay the UNKNOWN -> Mine hand-off. */
+/** 초기 전투 인계 전에 완료되어야 하는 콜백 상태입니다. */
 internal data class BattleBootstrapCallbackState(
     val move: Boolean = false,
     val attackAction: Boolean = false,
@@ -10,17 +10,7 @@ internal data class BattleBootstrapCallbackState(
     val show: Boolean = false,
     val fight: Boolean = false,
 ) {
-    /**
-     * 공개 메서드 `blockingReasons`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<String>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 아직 완료되지 않은 초기화 차단 사유를 반환합니다. */
     fun blockingReasons(): List<String> = buildList {
         if (move) add("move")
         if (attackAction) add("attackAction")
@@ -30,7 +20,7 @@ internal data class BattleBootstrapCallbackState(
     }
 }
 
-/** BattleScreen._execControlScript(true)'s completion callback. */
+/** 초기 전투 작업이 시작되지 않았다면 시작합니다. */
 internal fun completeInitialBattleOperation(stage: ScenarioStage) {
     if (!stage.battleOperationStarted) stage.startOperation()
 }

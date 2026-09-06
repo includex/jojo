@@ -3,25 +3,11 @@ package com.jojo.game
 import kotlin.math.abs
 import kotlin.math.max
 
-/** Production implementation of InfoBaseLayer's queued five-step numeric label animation. */
+/** 정보창 숫자 라벨의 다섯 단계 대기 애니메이션을 구현한다. */
 class InfoBaseValueAnimation(entries: List<Value>) {
-    /**
-     * data class  `Value`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Value(val index: Int, val source: Int, val destination: Int, val max: Int)
 
-    /**
-     * data class  `Update`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Update(val index: Int, val text: String)
 
@@ -34,16 +20,6 @@ class InfoBaseValueAnimation(entries: List<Value>) {
      * Mirrors `_next`, including delivery of JavaScript `undefined` when a
      * retained scheduled callback fires after the final value was consumed.
      */
-    /**
-     * 공개 메서드 `callback`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Update?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun callback(): Update? {
         val value = current ?: return null
@@ -55,16 +31,6 @@ class InfoBaseValueAnimation(entries: List<Value>) {
         return Update(value.index, text)
     }
 
-    /**
-     * 공개 메서드 `pending`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `List<Value>`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun pending(): List<Value> = queue.toList()
 

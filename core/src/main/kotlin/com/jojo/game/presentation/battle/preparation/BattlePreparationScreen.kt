@@ -11,7 +11,7 @@ import com.jojo.game.application.runtime.BattlePreparationPresentation
 
 import com.badlogic.gdx.*
 
-/** Preparation lifecycle, input connection, navigation, and immutable runtime probe. */
+/** 전투 준비 화면의 생명주기·입력·이동·런타임 상태를 관리합니다. */
 class BattlePreparationScreen(
     private val game: JojoGame,
     private val returnScenario: String,
@@ -131,7 +131,7 @@ class BattlePreparationScreen(
         battleViewMarkerCount = battleView.markers().size,
     )
 
-    /** Read-only state; changes still enter through the installed InputProcessor. */
+    /** 읽기 전용 준비 상태를 런타임 검증 모델로 반환합니다. */
     internal fun runtimeProbe() = BattlePreparationRuntimeProbe(
         returnScenario = returnScenario,
         sourceScenario = sourceScenario,
@@ -146,34 +146,12 @@ class BattlePreparationScreen(
 }
 
 internal object BattlePreparationInputConnection {
-    /**
-     * 공개 메서드 `install`
-     *
-     * ### 파라미터
-    - `input` (`Input`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `processor` (`InputProcessor`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 준비 화면 입력 프로세서를 등록합니다. */
     fun install(input: Input, processor: InputProcessor) {
         input.inputProcessor = processor
     }
 
-    /**
-     * 공개 메서드 `release`
-     *
-     * ### 파라미터
-    - `input` (`Input`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `processor` (`InputProcessor`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
-
+    /** 등록한 준비 화면 입력 프로세서를 해제합니다. */
     fun release(input: Input, processor: InputProcessor) {
         if (input.inputProcessor === processor) input.inputProcessor = null
     }

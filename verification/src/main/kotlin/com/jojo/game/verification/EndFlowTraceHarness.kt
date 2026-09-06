@@ -7,7 +7,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin half of the common end-flow fixture.  Trace keys deliberately match the JS factory harness. */
+/** 공용 종료 흐름 픽스처의 Kotlin 실행부이며 JS 기준 실행기와 키를 맞춘다. */
 object EndFlowTraceHarness {
     private data class Case(val name: String, val kind: String, val info: String, val events: List<String>)
 
@@ -38,17 +38,7 @@ object EndFlowTraceHarness {
             })
         }.toList()
 
-        /**
-         * 공개 메서드 `run`
-         *
-         * ### 파라미터
-        - `c` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
-
+        /** 하나의 종료 흐름 사례를 실행해 상태 문자열을 만든다. */
         fun run(c: Case): String {
             val bg = mutableListOf<String>()
             var label = ""
@@ -68,17 +58,6 @@ object EndFlowTraceHarness {
             var pending: ((Int) -> Unit)? = null
             val win = if (c.kind == "wincon") WinConBoxLayer() else null
 
-            /**
-             * 공개 메서드 `msg`
-             *
-             * ### 파라미터
-            - `t` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-            - `fn` (`(Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `Unit`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun msg(t: String, fn: (Int) -> Unit) {
                 layers += "MsgBox"; pending = fn
@@ -119,29 +98,9 @@ object EndFlowTraceHarness {
                         c.info; top = 1
                 }; "lose" -> lose!!.onCreate(); "end" -> end!!.onCreate(); "skip" -> skip!!.onCreate()
             }
-            /**
-             * 공개 메서드 `js`
-             *
-             * ### 파라미터
-            - `a` (`List<String>`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun js(a: List<String>): String = a.joinToString(",", "[", "]") { "\"${esc(it)}\"" }
 
-            /**
-             * 공개 메서드 `snap`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun snap(step: String): String {
                 if (skip != null) {

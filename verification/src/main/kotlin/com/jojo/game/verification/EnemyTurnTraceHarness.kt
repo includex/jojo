@@ -3,15 +3,7 @@ import com.jojo.game.domain.battle.command.*
 
 import com.jojo.game.*
 
-/** Game half of tools/enemy_turn_source_trace_harness.js.  It deliberately
- * drives the real ControlManager + ControlControllers transition protocol. */
-/**
- * object  `EnemyTurnTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** 실제 ControlManager 전환 프로토콜로 적 턴 의사결정을 검증한다. */
 
 object EnemyTurnTraceHarness {
     private fun q(s: String) = "\"$s\""

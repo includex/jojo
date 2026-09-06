@@ -10,89 +10,25 @@ import com.badlogic.gdx.utils.JsonReader
  * the actual CampaignStore transition, while this module owns source order,
  * slot paging and validation.
  */
-/**
- * class  `LoadGameLayer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class LoadGameLayer(private val repository: Repository) {
     /** Exact `_loadGame` scene branch: battle=2 is the post-battle Hall path. */
     enum class RestoreRoute { HALL, BATTLE, HALL_AFTER_BATTLE }
 
-    /**
-     * interface  `Repository`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     interface Repository {
-        /**
-         * 공개 메서드 `load`
-         *
-         * ### 파라미터
-        - `index` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String?`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun load(index: Int): String?
 
-        /**
-         * 공개 메서드 `savedPage`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun savedPage(): Int
 
-        /**
-         * 공개 메서드 `savePage`
-         *
-         * ### 파라미터
-        - `page` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun savePage(page: Int)
 
-        /**
-         * 공개 메서드 `featureEnabled`
-         *
-         * ### 파라미터
-        - `name` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Boolean`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun featureEnabled(name: String): Boolean
 
-        /**
-         * 공개 메서드 `versionCode`
-         *
-         * ### 파라미터
-        - 입력 파라미터: 없음
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun versionCode(): Int
 
@@ -100,13 +36,6 @@ class LoadGameLayer(private val repository: Repository) {
         fun restore(index: Int, raw: String, route: RestoreRoute): Boolean
     }
 
-    /**
-     * data class  `Row`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Row(
         val index: Int,
@@ -117,23 +46,9 @@ class LoadGameLayer(private val repository: Repository) {
         val occupied: Boolean,
     )
 
-    /**
-     * data class  `Confirmation`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class Confirmation(val index: Int, val message: String)
 
-    /**
-     * data class  `View`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class View(
         val page: Int,
@@ -217,29 +132,9 @@ class LoadGameLayer(private val repository: Repository) {
         return true
     }
 
-    /**
-     * 공개 메서드 `view`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `View`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun view(): View = requireNotNull(view) { "LoadGameLayer.onCreate must run before access" }
 
-    /**
-     * 공개 메서드 `pendingSlot`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Int?`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun pendingSlot(): Int? = pendingIndex
 

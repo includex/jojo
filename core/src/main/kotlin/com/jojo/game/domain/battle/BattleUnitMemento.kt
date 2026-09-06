@@ -69,16 +69,6 @@ internal data class BattleUnitMemento(
     }
 
     companion object {
-        /**
-         * 공개 메서드 `capture`
-         *
-         * ### 파라미터
-        - `unit` (`BattleUnit`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `BattleUnitMemento`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun capture(unit: BattleUnit): BattleUnitMemento = BattleUnitMemento(
             unit = unit,

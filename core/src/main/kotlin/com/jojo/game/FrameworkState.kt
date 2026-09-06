@@ -1,6 +1,6 @@
 package com.jojo.game
 
-/** Lifecycle state for recovered framework factories; native audio is a boundary sink. */
+/** 복원한 프레임워크 생성기의 생명주기 상태를 관리한다. */
 class LayeredSceneState {
     data class Layer(val id: Int, val name: String, val modal: Boolean)
 
@@ -29,13 +29,6 @@ class LayeredSceneState {
     }
 }
 
-/**
- * class  `SceneLayerController`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class SceneLayerController(private val scene: LayeredSceneState, private val id: Int, private val end: () -> Unit) {
     fun removeFromParent() = scene.remove(id)
@@ -44,13 +37,6 @@ class SceneLayerController(private val scene: LayeredSceneState, private val id:
     }
 }
 
-/**
- * class  `AudioService`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class AudioService(private val sink: (String) -> Unit) {
     var music = true
@@ -68,13 +54,6 @@ class AudioService(private val sink: (String) -> Unit) {
     }
 }
 
-/**
- * class  `ServiceFlow`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ServiceFlow(private val sink: (String) -> Unit, private val done: () -> Unit) {
     var attached = true
@@ -85,13 +64,6 @@ class ServiceFlow(private val sink: (String) -> Unit, private val done: () -> Un
     }
 }
 
-/**
- * class  `ServiceMenuState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class ServiceMenuState(flag: Int) {
     var attached = true

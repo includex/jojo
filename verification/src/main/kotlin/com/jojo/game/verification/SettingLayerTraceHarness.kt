@@ -26,29 +26,9 @@ object SettingLayerTraceHarness {
                     )
                 }.toList()
 
-        /**
-         * 공개 메서드 `json`
-         *
-         * ### 파라미터
-        - `s` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Unit`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun json(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
 
-        /**
-         * 공개 메서드 `run`
-         *
-         * ### 파라미터
-        - `spec` (`Case`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `String`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun run(spec: Case): String {
             val writes = mutableListOf<Pair<String, Int>>()
@@ -70,16 +50,6 @@ object SettingLayerTraceHarness {
             }
             val layer = SettingLayer(store, sound) { events += "applySpeed" }
             layer.onCreate()
-            /**
-             * 공개 메서드 `snap`
-             *
-             * ### 파라미터
-            - `step` (`String`): 구현 기준으로 역할 및 허용 값 정의 필요
-             *
-             * ### 응답 스펙
-             * - 반환 타입: `String`
-             * - 반환값: 동작 결과의 도메인 값입니다.
-             */
 
             fun snap(step: String): String {
                 val v = layer.view()

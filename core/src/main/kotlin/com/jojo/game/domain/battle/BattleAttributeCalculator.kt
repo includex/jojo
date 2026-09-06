@@ -8,16 +8,6 @@ import com.jojo.game.domain.battle.BattleUnit
 internal object BattleAttributeCalculator {
     /** Applies ability support before the temporary 20 percent attribute lift. */
     fun effective(unit: BattleUnit, attribute: BattleAttribute): Int {
-        /**
-         * 공개 메서드 `baseOf`
-         *
-         * ### 파라미터
-        - `value` (`BattleAttribute`): 구현 기준으로 역할 및 허용 값 정의 필요
-         *
-         * ### 응답 스펙
-         * - 반환 타입: `Int`
-         * - 반환값: 동작 결과의 도메인 값입니다.
-         */
 
         fun baseOf(value: BattleAttribute): Int = when (value) {
             BattleAttribute.ATTACK -> unit.attack

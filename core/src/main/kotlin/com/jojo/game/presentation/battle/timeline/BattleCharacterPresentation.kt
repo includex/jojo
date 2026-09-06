@@ -25,13 +25,6 @@ enum class BattleCharacterMaterial(val sourceId: String) {
     GRAY("gray"),
 }
 
-/**
- * enum class  `BattleCharacterStrictState`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 enum class BattleCharacterStrictState(val route: String) {
     HP_CAMPS_PARTIAL("hp-camps-partial"),
@@ -50,13 +43,6 @@ enum class BattleCharacterStrictState(val route: String) {
  * later drive this object from its authored BRAnime event times without
  * duplicating those contracts in its draw and trace paths.
  */
-/**
- * class  `BattleCharacterPresentation`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 class BattleCharacterPresentation(
     val unitId: String,
@@ -64,13 +50,6 @@ class BattleCharacterPresentation(
     val maxHp: Int,
     hp: Int = maxHp,
 ) {
-    /**
-     * data class  `HarmLabel`
-     *
-     * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
-     *
-     * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
-     */
 
     data class HarmLabel(
         val value: Int,
@@ -137,16 +116,6 @@ class BattleCharacterPresentation(
         }
     }
 
-    /**
-     * 공개 메서드 `finishAttack`
-     *
-     * ### 파라미터
-    - 입력 파라미터: 없음
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `Unit`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun finishAttack() {
         action = STAND
@@ -206,13 +175,6 @@ class BattleCharacterPresentation(
  * Draw schema for parity states that the shared RenderEventLog cannot yet
  * express: material slot/value and label outline are deliberately explicit.
  */
-/**
- * data class  `BattleCharacterDrawEvent`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 data class BattleCharacterDrawEvent(
     val nodePath: String,
@@ -239,13 +201,6 @@ data class BattleCharacterDrawEvent(
     val zIndex: Int = 0,
 )
 
-/**
- * object  `BattleCharacterStateRenderer`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
 
 object BattleCharacterStateRenderer {
     private const val UNIT_PATH = "Canvas/Layer/ScrollView/view/content/map/unit"
@@ -317,17 +272,6 @@ object BattleCharacterStateRenderer {
         }
     }
 
-    /**
-     * 공개 메서드 `jsonl`
-     *
-     * ### 파라미터
-    - `route` (`BattleCharacterStrictState`): 구현 기준으로 역할 및 허용 값 정의 필요
-    - `events` (`List<BattleCharacterDrawEvent>`): 구현 기준으로 역할 및 허용 값 정의 필요
-     *
-     * ### 응답 스펙
-     * - 반환 타입: `String`
-     * - 반환값: 동작 결과의 도메인 값입니다.
-     */
 
     fun jsonl(route: BattleCharacterStrictState, events: List<BattleCharacterDrawEvent>): String =
         events.mapIndexed { sequence, event -> event.toJson(sequence, route.route) }

@@ -6,13 +6,7 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * object  `SectionLayerTraceHarness`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** SectionLayer의 표시·선택 상태를 원본 입력과 비교한다. */
 
 object SectionLayerTraceHarness {
     @JvmStatic
