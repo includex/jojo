@@ -1,10 +1,11 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import java.util.*
 
-/** Serializes the source-comparison composition contract without screen dependencies. */
+/** ScenarioCompositionEvidenceRecorder: 화면 의존성 없이 원본 비교용 구성 계약을 직렬화한다. */
 internal class ScenarioCompositionEvidenceRecorder {
     fun record(view: ScenarioEvidenceView): String {
         val units = view.units.joinToString(",") { unit ->

@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.domain.scenario
 
 import com.jojo.game.domain.battle.Faction
 
-/** Fixed camp slot ranges used by scenario battle instances. */
+/** BattleSlotLayout: 전투 준비 화면에서 진영별 편성 칸의 좌표·최대 인원을 계산하는 배치 규칙이다. */
 internal object BattleSlotLayout {
     const val mineCount = 20
     const val friendEnd = 40

@@ -1,11 +1,8 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
-import com.jojo.game.presentation.battle.FightActionPose
-import com.jojo.game.presentation.battle.FightPresentationEvent
-import com.jojo.game.presentation.battle.FightSide
-import com.jojo.game.presentation.battle.FightUnitPresentation
 
-/** Owns per-action elapsed time, callback crossings, poses and child resets. */
+/** FightActionTimeline: 전투 동작 시간 흐름이며, 시간 경과에 따른 전투 상태와 표현 단계를 진행한다. */
 internal class FightActionTimeline(
     private val durations: Map<Int, Float>,
     private val hitTimes: Map<Int, Float>,

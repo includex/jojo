@@ -1,14 +1,17 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Records the source-authored, state-free TerrainLayer traversal. */
+/** ScenarioTerrainEvidenceRecorder: 원본에 작성된 상태 비보유 TerrainLayer 순회를 기록한다. */
 internal class ScenarioTerrainEvidenceRecorder {
+    /** append: 검증 이벤트와 산출물을 기록한다. */
     fun append(log: RenderEventLog, view: ScenarioStaticHallEvidenceView) {
         check(view.kind == ScenarioStaticHallEvidenceKind.TERRAIN)
         val scale = .86f
+        /** draw: 검증 렌더 이벤트를 구성하고 반환한다. */
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", visible: Boolean = true,
@@ -18,10 +21,12 @@ internal class ScenarioTerrainEvidenceRecorder {
             blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
             visible = visible, text = text,
         )
+        /** sprite: 스프라이트 렌더 이벤트를 구성한다. */
         fun sprite(
             path: String, x: Float, y: Float, w: Float, h: Float, asset: String,
             visible: Boolean = true, sliced: Boolean = false,
         ) = draw(path, if (sliced) "sliced-sprite" else "sprite", x, y, w, h, asset, visible = visible)
+        /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
         fun label(path: String, value: String, x: Float, y: Float, w: Float, h: Float, visible: Boolean = true) =
             draw(path, "label", x, y, w, h, text = value, visible = visible)
 
@@ -82,7 +87,9 @@ internal class ScenarioTerrainEvidenceRecorder {
             984.388f, 1044.488f, 1103.888f, 1103.888f, 1164.588f, 1223.588f,
         ).forEach { x -> sprite("Canvas/Layer/bg/panel/vline", x, 189.448f, 6f, 448.6f, "vline") }
 
+        /** Header: 지형 정보 패널에 그릴 제목의 식별자·좌표·문구를 보관한다. */
         data class Header(val id: String, val x: Float, val y: Float, val text: String)
+        /** headers: 헤더 목록 상태를 검증 흐름에 전달한다. */
         val headers = listOf(
             Header("button", 285.588f, 602.358f, "이름"), Header("button0", 508.088f, 602.358f, "마왕"),
             Header("button1", 568.397f, 602.183f, "보병"), Header("button2", 628.116f, 602.183f, "기병"),

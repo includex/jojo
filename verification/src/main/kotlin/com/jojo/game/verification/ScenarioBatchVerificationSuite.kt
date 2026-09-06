@@ -1,10 +1,11 @@
+// Verification
 package com.jojo.game.verification
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
-/** 독립된 카탈로그 검사를 정해진 마커 순서로 조합한다. */
+/** ScenarioBatchVerificationSuite: 독립된 카탈로그 검사를 정해진 마커 순서로 조합한다. */
 internal class ScenarioBatchVerificationSuite {
-/** 전체 시나리오 검사를 실행하고 마커 목록을 반환한다. */
+    /** verify: 전체 시나리오 검사를 실행하고 마커 목록을 반환한다. */
     fun verify(): List<String> {
         val scenarioResult = ScenarioCatalogVerifier().verify()
         val gameData = GameDataCatalog.load()

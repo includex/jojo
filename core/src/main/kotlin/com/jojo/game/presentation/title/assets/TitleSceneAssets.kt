@@ -1,6 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.title.assets
 
-import com.jojo.game.KoreanFont
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -9,7 +10,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 
-/** Owns the complete title scene resource lifetime. */
+/** TitleSceneAssets: 제목 장면 자원이며, 화면 표시에 필요한 텍스처와 자원 경로를 보관한다. */
 internal class TitleSceneAssets {
     val dimPixel = Texture(Pixmap(1, 1, Pixmap.Format.RGBA8888).also {
         it.setColor(Color.WHITE)

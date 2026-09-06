@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.utils.Align
 
-/** Pure source-order plan for the ForcesListLayer table. */
+/** HallForcesRenderPlan: 거점 부대 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallForcesRenderPlan {
     private const val X = 142.49f
     private const val Y = 68.37f

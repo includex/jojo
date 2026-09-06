@@ -1,18 +1,12 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.badlogic.gdx.utils.JsonValue
-import com.jojo.game.ScenarioStageCallDispatcher
-import com.jojo.game.ScenarioStageCallEnvironment
-import com.jojo.game.asBooleanValue
-import com.jojo.game.asInt
-import com.jojo.game.asList
-import com.jojo.game.asText
-import com.jojo.game.intAt
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
 
-/** Routes stage presentation, progression, and reward commands. */
-internal object ScenarioStageCallPresentationDispatcher : com.jojo.game.ScenarioStageCallFamily {
+/** ScenarioStageCallPresentationDispatcher: stage API의 화면·배경·인물 연출 호출을 표시 명령으로 해석한다. */
+internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamily {
     private const val infoControlGlobal = 4071
 
     override fun dispatch(

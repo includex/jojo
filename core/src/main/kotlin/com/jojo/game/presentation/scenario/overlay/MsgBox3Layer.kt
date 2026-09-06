@@ -1,16 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario.overlay
 
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Cocos-free behavioral implementation of the recovered Global118 MsgBox3 prefab.
- *
- * The production callers are BuyLayer's property purchase route and
- * SellLayer's property sale route.  Values intentionally remain Double:
- * JavaScript's Number/edit-box path accepts fractional and NaN values even
- * though both normal callers provide integer limits.
- */
+/** MsgBox3Layer: 수량 입력 모달로, 허용 범위 안의 값만 유지하고 확인 결과를 콜백으로 전달한다. */
 
 class MsgBox3Layer(
     val count: Double,
@@ -39,14 +33,14 @@ class MsgBox3Layer(
         }
     }
 
-    /** The recovered prefab reacts only to Cocos TOUCH_END (event type 2). */
+    /** touchButton: 확인 또는 취소 버튼 터치를 처리하고, 확정한 수량을 콜백으로 전달한다. */
     fun touchButton(tag: Int, eventType: Int) {
         if (eventType != 2) return
         attached = false
         callback(if (tag == 0) value else 0.0)
     }
 
-    /** Panel_cancel is inactive; it is a prefab blocker, not a close action. */
+    /** touchOutside: 모달 바깥쪽 터치로 입력 창을 취소할지 판정한다. */
     fun touchOutside() = Unit
 
     companion object {

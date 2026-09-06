@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 import com.jojo.game.application.battle.ai.*
 import com.jojo.game.application.battle.combat.*
@@ -23,12 +24,7 @@ import com.jojo.game.application.runtime.BattleTraceRandomStreams
 import java.util.*
 
 
-/**
- * Deterministic tactical state and rule coordinator.
- *
- * The state is independent of rendering so battle scripts and extracted rule
- * services can be tested without a LibGDX window.
- */
+/** Battle: 렌더링과 분리된 전술 전투 조정기로, 유닛 상태와 전투 규칙을 결정론적으로 처리한다. */
 class Battle(
     units: List<BattleUnit>,
     events: List<BattleEvent>,
@@ -39,55 +35,51 @@ class Battle(
     weatherSchedule: List<BattleWeather> = emptyList(),
     weatherOffset: Int = 0,
     terrainMagicFlags: Map<Int, Int> = emptyMap(),
-    /** GAME_CFG.terrain[n].resumeHP, used by Control._cxpl. */
+    /** terrainResumeRates: 지형마다 전투 유닛의 체력을 회복하는 비율이다. */
     terrainResumeRates: Map<Int, Int> = emptyMap(),
-    /** GAME_CFG.terrain[n].resumeMP, applied during BattleScreen._stateProcess. */
+    /** terrainResumeMp: 지형마다 전투 유닛의 기력을 회복하는 양이다. */
     terrainResumeMp: Map<Int, Int> = emptyMap(),
-    /** BattleScreen.eFlag(), injected from the scenario/game feature mask. */
+    /** enabledFeatures: 시나리오가 활성화한 전투 기능을 비트 마스크로 나타낸다. */
     enabledFeatures: Int = 0,
-    /** defineSkillAttr(skill, RESET_TYPE, RESET), supplied by original data. */
+    /** skillTempResetTypes: 스킬별 임시값을 초기화하는 라운드 규칙이다. */
     skillTempResetTypes: Map<Int, BattleSkillTemp.ResetType> = emptyMap(),
-    /** Model.stateExInfoByIdx(status, ROUND, 3), injected from GAME_CFG.status. */
+    /** statusRoundFor: 상태 이상별 기본 지속 라운드를 반환하는 규칙이다. */
     statusRoundFor: (BattleStatus) -> Int = { 3 },
-    /** Same packed status-table round for ATT..MOV slots 0..5. */
+    /** attributeStatusRoundFor: 능력치 증감별 기본 지속 라운드를 반환하는 규칙이다. */
     attributeStatusRoundFor: (BattleAttribute) -> Int = { 3 },
     movementOffsets: Set<Pair<Int, Int>> = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1),
-    /** Retained as a source-compatible named argument; routing owns this data. */
+    /** directDestinationOffsets: 지정 이동이 허용하는 상대 목적지 좌표 목록이다. */
     directDestinationOffsets: List<Pair<Int, Int>> = emptyList(),
-    /** Config.HITAREA.BU_BING, used by BattleUnit.count_attackHarm JDGJ. */
+    /** infantryOffsets: 보병 이동에 사용하는 인접 좌표 규칙이다. */
     infantryOffsets: Set<Pair<Int, Int>> = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1),
     propertyItems: Map<Int, BattlePropertyItem> = emptyMap(),
     consumeProperty: (Int) -> Boolean = { false },
-    /** Game.getGVars(GLOBAL_VAR.ZDSY, 0), injected from the source save state. */
+    /** zdsyGlobalValue: 전투 규칙에서 참조하는 전역 시나리오 값이다. */
     zdsyGlobalValue: Int = 0,
-    /** ItemStore.pushProperty(id, -1), deliberately separate from player input consumption. */
+    /** consumeAutomaticProperty: 자동 발동한 속성 아이템을 저장소에서 차감하는 콜백이다. */
     consumeAutomaticProperty: (Int) -> Unit = {},
     onPermanentProperty: (BattlePropertyItem, BattleUnit) -> Unit = { _, _ -> },
     onUnitDefeated: (BattleUnit, BattleUnit) -> Unit = { _, _ -> },
-    /** Mine-only persistence hook. Enemy/Friend EXP remains in [BattleUnit.experience]. */
+    /** onBattleExperience: 전투 경험치 획득을 캠페인 성장 결과로 정산하는 콜백이다. */
     onBattleExperience: (BattleUnit, Int) -> CampaignExperienceResult? = { _, _ -> null },
     experienceLimit: (Int) -> Int = { 100 },
     levelLimit: Int = 50,
-    /** Rebuild Unit.setLevel's derived battle projection after EXP raises LV. */
+    /** onBattleLevelUp: 전투 중 레벨 상승 뒤 파생 능력치를 갱신하는 콜백이다. */
     onBattleLevelUp: (BattleUnit) -> Unit = {},
     onPhysicalDamage: (BattleUnit, BattleUnit, Int) -> Unit = { _, _, _ -> },
-    /**
-     * Exact BattleScreen g_charinfo equipment settlement.  Unlike the legacy
-     * physical callback below, this receives one already max-merged slot
-     * award after the complete outer action has resolved.
-     */
+    /** onEquipmentExperienceAward: 정산된 장비 경험치를 장비별 성장 결과로 변환하는 콜백이다. */
     onEquipmentExperienceAward: ((BattleUnit, BattleUnit, Int, BattleEquipmentExperienceKind) -> List<CampaignEquipmentExperienceResult>)? = null,
-    /** Compatibility hook for presentation/tests that observe each _attack3 hit. */
+    /** onEquipmentExperience: 물리 공격마다 장비 경험치 결과를 계산하는 호환 콜백이다. */
     onEquipmentExperience: (BattleUnit, BattleUnit, Int) -> List<CampaignEquipmentExperienceResult> = { _, _, _ -> emptyList() },
-    /** restore() skills 149..151, kept separate from attack-earned EXP. */
+    /** onRestoreUnitExperience: 회복 효과로 얻는 유닛 경험치를 정산하는 콜백이다. */
     onRestoreUnitExperience: (BattleUnit, Int) -> RestoreGrowthResolution<CampaignExperienceResult> = { _, _ -> RestoreGrowthResolution.Unavailable },
     onRestoreEquipmentExperience: (BattleUnit, Int, CampaignEquipmentSlot) -> RestoreGrowthResolution<CampaignEquipmentExperienceResult> = { _, _, _ -> RestoreGrowthResolution.Unavailable },
     random: Random = Random(0),
-    /** Opt-in exact Tool.random/Math.random streams for full source replay. */
+    /** sourceRandomStreams: 원본 난수 흐름을 재현해 전투 기록을 동일하게 만드는 선택 입력이다. */
     sourceRandomStreams: BattleTraceRandomStreams? = null,
-    /** Game.money() at battle entry, injected because BattleScreen owns it. */
+    /** initialPlayerMoney: 전투 시작 시 플레이어가 보유한 금액이다. */
     initialPlayerMoney: Int = 0,
-    /** Battle attribute ENEMY_MONEY at battle entry. */
+    /** initialEnemyMoney: 전투 시작 시 적 진영이 보유한 금액이다. */
     initialEnemyMoney: Int = 0,
     onUnitRetreat: (BattleUnit) -> Unit = {},
 ) {
@@ -105,11 +97,11 @@ class Battle(
         BattleSkillTemp { configuration.skillTempResetTypes[it] ?: BattleSkillTemp.ResetType.RESET }
     internal val probabilityResolver = BattleProbabilityResolver(random, sourceRandomStreams)
 
-    /** The start-inclusive route passed from BattleScreen.unitMove to BattleUnit.move2. */
+    /** lastMovePath: 유닛이 마지막으로 확정한 이동 경로를 반환해 이동 표현에 제공한다. */
     fun lastMovePath(id: String): List<Pair<Int, Int>> = journal.lastMovePath(id)
     internal val battlefield = Battlefield(units)
 
-    /** Live read-only view of tactically active units in insertion order. */
+    /** units: 전장에 남아 있는 전투 유닛을 식별자별로 조회하는 읽기 전용 맵이다. */
     val units: Map<String, BattleUnit> = battlefield.activeMap
     val experience by lazy { BattleExperienceFacade(configuration, journal) { this.units } }
     val presentation by lazy {
@@ -158,27 +150,24 @@ class Battle(
         )
     }
 
-    /** Ordered AI decisions retained for deterministic full-battle diagnostics. */
+    /** traceActions: 전투 재현과 검증에 사용하는 수행 행동 기록이다. */
     val traceActions: MutableList<String> get() = journal.mutableTraceActions()
 
-    /** Most recently resolved `_ai2` actor; consumed by BattleScreen presentation. */
+    /** lastAiUnitResolution: 가장 최근 AI 유닛이 선택한 이동과 전술 행동 결과이다. */
     var lastAiUnitResolution: AiUnitResolution?
         get() = journal.lastAiUnitResolution
         private set(value) {
             journal.recordLastAiUnitResolution(value)
         }
 
-    /**
-     * One `_ai2` result calculated ahead of rendering but kept out of the
-     * live model until BattleScreen reaches the matching source callbacks.
-     */
+    /** pendingActionTransaction: 표현 완료 전까지 보류하는 현재 전투 행동 트랜잭션이다. */
     var pendingActionTransaction: BattleActionTransaction?
         get() = journal.pendingActionTransaction
         private set(value) {
             journal.recordPendingActionTransaction(value)
         }
 
-    /** BattleScreen's two money stores, exposed for injected source-parity tests. */
+    /** playerMoney: 전투 중 플레이어 진영이 보유한 금액으로, 보호막과 보상에 사용한다. */
     var playerMoney: Int
         get() = journal.playerMoney
         private set(value) {
@@ -202,7 +191,7 @@ class Battle(
             journal.setActiveFaction(value)
         }
 
-    /** Selects the controllable allied camp used by deterministic actual-route verification. */
+    /** selectVerificationFaction: 검증 경로에서 아군 진영만 현재 조작 진영으로 선택한다. */
     internal fun selectVerificationFaction(faction: Faction) {
         require(faction.isPlayerSide()) { "Verification routes may only select an allied camp." }
         activeFaction = faction
@@ -238,15 +227,15 @@ class Battle(
 
     fun outcome(): BattleOutcome? = outcomeCoordinator.outcome()
 
-    /** BattleScreen.setMaxRound: ZJHH contributes exactly four turns. */
+    /** setMaxRounds: 전투의 라운드 제한을 설정해 시간 종료 판정에 사용한다. */
     fun setMaxRounds(value: Int) = outcomeCoordinator.setMaxRounds(value)
 
-    /** A ScenarioStage setMaxRound value has already applied BattleScreen.eFlag(). */
+    /** setResolvedMaxRounds: 시나리오에서 해석한 라운드 제한을 결과 조정기에 반영한다. */
     fun setResolvedMaxRounds(value: Int) = outcomeCoordinator.setResolvedMaxRounds(value)
 
     fun enabledFeatureMask(): Int = configuration.enabledFeatures
 
-    /** Recovered BattleScreen.setWeather/setRound entry points used by EditLayer2. */
+    /** applyEditedWeather: 편집 화면에서 전달한 날씨 번호를 안전한 전장 날씨로 적용한다. */
     fun applyEditedWeather(value: Int) {
         weather = BattleWeather.entries[value.coerceIn(BattleWeather.entries.indices)]
     }
@@ -255,7 +244,7 @@ class Battle(
         round = value.coerceAtLeast(1)
     }
 
-    /** BattleScreen.skillTemp/setSkillTemp/incSkillTemp, exposed for scripts. */
+    /** skillTemp: 유닛 스킬의 현재 임시값을 조회하고, 값이 없으면 기본값을 반환한다. */
     fun skillTemp(unitId: String, skillId: Int, default: Int = 0): Int = skillTemps.value(unitId, skillId, default)
     fun setSkillTemp(unitId: String, skillId: Int, amount: Int, recordedRound: Int = round) =
         skillTemps.set(unitId, skillId, amount, recordedRound)
@@ -266,14 +255,10 @@ class Battle(
         journal.addBlockedTiles(values)
     }
 
-    /** Scenario scripts can end a battle through reward()/lose() without eliminating every enemy. */
+    /** setScriptedOutcome: 시나리오 스크립트가 확정한 전투 승패를 저장한다. */
     fun setScriptedOutcome(value: BattleOutcome) = outcomeCoordinator.setScriptedOutcome(value)
 
-    /**
-     * Mirrors a ScenarioStage result without clearing an outcome on ordinary
-     * scene1 passes which have not called reward/lose.  Script callbacks can
-     * publish this after the initial BattleScreen script invocation.
-     */
+    /** syncScriptedOutcome: 외부 스크립트 결과와 현재 전투 승패 상태를 동기화한다. */
     fun syncScriptedOutcome(value: BattleOutcome?) = outcomeCoordinator.syncScriptedOutcome(value)
 
     fun addUnit(unit: BattleUnit) {
@@ -281,13 +266,13 @@ class Battle(
         initializeRateGauges(unit)
     }
 
-    /** BattleScreen._truncUnitData seeds JQ_BDMZL through JQ_BBJL inclusively. */
+    /** initializeRateGauges: 새 유닛의 확률 판정 게이지를 초기화한다. */
     fun initializeRateGauges(unit: BattleUnit) = probabilityResolver.initializeRateGauges(unit)
 
-    /** Initial scripted units pass through the same _truncUnitData seeding. */
+    /** initializeAllRateGauges: 현재 전장의 모든 유닛 확률 게이지를 초기화한다. */
     fun initializeAllRateGauges() = units.values.forEach(::initializeRateGauges)
 
-    /** BattleUnit.setStateRound when an event explicitly supplies a status. */
+    /** rollStatusDuration: 상태 이상 적용 시 사용할 지속 라운드를 난수 규칙으로 결정한다. */
     fun rollStatusDuration(): Int = probabilityResolver.rollStatusDuration()
 
     internal fun canAttack(attacker: BattleUnit, target: BattleUnit): Boolean =

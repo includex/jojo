@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -57,10 +58,6 @@ internal data class BattleCombatEnvironmentContext(
     val consumeMpAttackSkill: (BattleUnit) -> Unit,
     val mrspDamage: (BattleUnit, BattleUnit) -> Int?,
 )
-
-/**
- * Constructs resolution environments for magic casting, physical targeting, and combat interactions.
- */
 internal object BattleCombatEnvironmentBuilder {
 
 

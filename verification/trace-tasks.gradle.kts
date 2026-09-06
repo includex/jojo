@@ -394,7 +394,7 @@ val cmdLayerSourceTrace=tasks.register<Exec>("cmdLayerSourceTrace") {
     commandLine("node",rootProject.file("tools/cmd_layer_source_trace_harness.js").absolutePath,cmdLayerFixture.absolutePath,cmdLayerSource.get().asFile.absolutePath)
 }
 val cmdLayerTrace=tasks.register<JavaExec>("cmdLayerTrace") {
-    dependsOn(tasks.classes);classpath=sourceSets.main.get().runtimeClasspath;mainClass.set("com.jojo.game.CmdLayerTraceHarness")
+    dependsOn(tasks.classes);classpath=sourceSets.main.get().runtimeClasspath;mainClass.set("com.jojo.game.verification.CmdLayerTraceHarness")
     args(cmdLayerFixture.absolutePath,cmdLayerGame.get().asFile.absolutePath);outputs.file(cmdLayerGame)
 }
 val verifyCmdLayerPairwise=tasks.register<Exec>("verifyCmdLayerPairwise") {

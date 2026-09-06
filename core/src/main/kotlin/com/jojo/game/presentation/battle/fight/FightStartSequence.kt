@@ -1,9 +1,7 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
 import com.jojo.game.domain.scenario.ScenarioFightCommand
-import com.jojo.game.presentation.battle.FightUnitPresentation
-
-/** Owns FightLayer's slot assignment and initial anchor transforms. */
 internal data class FightStartLayout(
     val backgroundIndex: Int,
     val mineIndex: Int,
@@ -12,6 +10,7 @@ internal data class FightStartLayout(
     val enemyCharacterId: Int,
 )
 
+/** FightStartSequence: 시간 경과에 따른 전투 표현 순서와 상태 변화를 관리한다. */
 internal object FightStartSequence {
     fun layout(command: ScenarioFightCommand.Start, isMineUnit: (Int) -> Boolean?): FightStartLayout {
         val mineIndex = if (isMineUnit(command.firstUnitId) ?: true) 0 else 1

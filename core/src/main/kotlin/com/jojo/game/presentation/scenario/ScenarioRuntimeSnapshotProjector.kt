@@ -1,19 +1,17 @@
+// Scenario
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.presentation.scenario.*
 
-import com.jojo.game.GameDataCatalog
-import com.jojo.game.FeatsLayer
+import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.presentation.scenario.hall.FeatsLayer
 import com.jojo.game.presentation.scenario.ScenarioScreen
 import com.jojo.game.application.runtime.RuntimeScenarioPresentation
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueStages
 import com.jojo.game.presentation.scenario.hall.HallManagement
 
-/**
- * Converts the mutable screen state into the immutable input consumed by the
- * frame recorders.  The recorder boundary receives only value objects.
- */
+/** ScenarioRuntimeSnapshotProjector: 시나리오 실행 스냅샷 변환기이며, 도메인 데이터를 화면에 바로 쓸 수 있는 표시 모델로 변환한다. */
 internal object ScenarioRuntimeSnapshotProjector {
     private val observableOverlays = setOf(
         RuntimeScenarioOverlay.INFO, RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT,

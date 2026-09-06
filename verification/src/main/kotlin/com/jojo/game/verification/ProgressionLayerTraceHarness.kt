@@ -1,13 +1,20 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.application.campaign.AchievementFixtureState
+import com.jojo.game.application.campaign.DailySignInFlow
+import com.jojo.game.application.campaign.RaffleFlow
+import com.jojo.game.application.campaign.RegistrationFlow
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** JSON/event adapter for the production progression state machines. */
+/** ProgressionLayerTraceHarness: 운영 진행 상태 머신을 JSON과 이벤트 형식으로 변환하는 어댑터이다. */
 object ProgressionLayerTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
+    /** balanced: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun balanced(s: String, start: Int): String {
         var d = 0
         var quote = false
@@ -20,6 +27,7 @@ object ProgressionLayerTraceHarness {
         }; error("unbalanced fixture")
     }
 
+    /** cases: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun cases(raw: String): List<String> {
         val b = raw.indexOf('[', raw.indexOf("\"cases\""))
         val out = mutableListOf<String>()
@@ -30,21 +38,28 @@ object ProgressionLayerTraceHarness {
         }; return out
     }
 
+    /** field: 입력 데이터에서 지정한 블록을 추출한다. */
     private fun field(o: String, n: String): String? =
         Regex("\\\"$n\\\"\\s*:\\s*(\\{(?:[^{}]|\\{[^{}]*})*}|\\[[^]]*]|\\\"(?:\\\\.|[^\"])*\\\"|-?\\d+|true|false)").find(
             o
         )?.groupValues?.get(1)
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(o: String, n: String, d: String = "") = field(o, n)?.removeSurrounding("\"") ?: d
+    /** int: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun int(o: String, n: String, d: Int = 0) = field(o, n)?.toIntOrNull() ?: d
+    /** ints: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun ints(o: String, n: String) =
         field(o, n)?.let { Regex("-?\\d+").findAll(it).map { m -> m.value.toInt() }.toList() } ?: emptyList()
 
+    /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun events(o: String) =
         field(o, "events")?.let { Regex("\"([^\"]*)\"").findAll(it).map { m -> m.groupValues[1] }.toList() }
             ?: emptyList()
 
+    /** ss: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun ss(v: List<String>) = v.joinToString(",", "[", "]", transform = ::q)
+    /** vv: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun vv(v: List<List<Any>>) = v.joinToString(",", "[", "]") { row ->
         row.joinToString(
             ",",
@@ -53,12 +68,14 @@ object ProgressionLayerTraceHarness {
         ) { if (it is String) q(it) else it.toString() }
     }
 
+    /** writes: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun writes(v: Map<String, Any>) = v.entries.joinToString(
         ",",
         "{",
         "}"
     ) { q(it.key) + ":" + (if (it.value is String) q(it.value as String) else it.value) }
 
+    /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
     private fun snap(
         step: String,
         kind: String,
@@ -87,6 +104,7 @@ object ProgressionLayerTraceHarness {
             )
         },\"pool\":${pool ?: "null"},\"buttons\":[${buttons.joinToString(",")}] }".replace("] }", "]}")
 
+    /** achievements: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun achievements(c: String): String {
         val rewards =
             Regex("\"(\\d+)\"\\s*:\\s*\\[\"([^\"]+)\",(\\d+),(\\d+),(\\d+)]").findAll(field(c, "rewards") ?: "{}")
@@ -111,6 +129,7 @@ object ProgressionLayerTraceHarness {
         return out.joinToString(",", "[", "]")
     }
 
+    /** signin: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun signin(c: String): String {
         val layer = DailySignInFlow(int(c, "count"), ints(c, "signins").toMutableList(), int(c, "time"))
         val out = mutableListOf(snap("create", "signin", labels = listOf("행운 코인: ${layer.count}"), count = layer.count))
@@ -128,6 +147,7 @@ object ProgressionLayerTraceHarness {
         return out.joinToString(",", "[", "]")
     }
 
+    /** poolJson: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun poolJson(pool: Pair<List<Pair<Int, Int>>, List<Int>>, objects: Boolean = false): String {
         val rows = pool.first.joinToString(
             ",",
@@ -140,12 +160,14 @@ object ProgressionLayerTraceHarness {
         }] }".replace("] }", "]}")
     }
 
+    /** raffle: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun raffle(c: String): String {
         val layer = RaffleFlow(int(c, "count"), int(c, "coins"))
         var pool = field(c, "reward")?.let { "{\"pool\":[[4,${int(it, "id")}]],\"rate\":[1]}" }
             ?: "{\"pool\":[[4,0]],\"rate\":[1]}"
 
 
+        /** labels: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun labels(extra: Boolean = false) =
             buildList { add("행운 코인: ${layer.coins}"); if (extra) add("오늘 남은 뽑기 횟수:${layer.count}/30") }
 
@@ -200,6 +222,7 @@ object ProgressionLayerTraceHarness {
         return out.joinToString(",", "[", "]")
     }
 
+    /** reset: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun reset(c: String): String {
         val layer = ResetLayerSourceOracle(); layer.onCreate()
         val out = mutableListOf(
@@ -221,6 +244,7 @@ object ProgressionLayerTraceHarness {
         }; return out.joinToString(",", "[", "]")
     }
 
+    /** register: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun register(c: String): String {
         val layer = RegistrationFlow()
         val labels = mutableListOf("")
@@ -273,6 +297,7 @@ object ProgressionLayerTraceHarness {
         }; return out.joinToString(",", "[", "]")
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val json = cases(Files.readString(Path.of(args[0]))).joinToString(",", "{", "}") { c ->
@@ -291,13 +316,14 @@ object ProgressionLayerTraceHarness {
     }
 }
 
-/** Isolated source-inventory oracle: ResetLayer has no recovered addLayer caller. */
+/** ResetLayerSourceOracle: 격리된 원본 인벤토리 기준값이며 ResetLayer에는 복원된 addLayer 호출자가 없다. */
 private class ResetLayerSourceOracle {
     var removed = 0
     var done = 0
     var progress = 0.0
 
 
+    /** onCreate: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     fun onCreate() {
         progress = 1.0; done++; removed++
     }

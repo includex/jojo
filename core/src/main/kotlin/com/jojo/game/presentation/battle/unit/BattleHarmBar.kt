@@ -1,9 +1,10 @@
+// Battle
 package com.jojo.game.presentation.battle.unit
 
 import com.jojo.game.*
-/** Pure target-preview HP/MP bar calculation. */
 object BattleHarmBar {
 
+    /** View: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class View(
         val bar0: Float? = null,
         val bar1: Float? = null,
@@ -11,11 +12,6 @@ object BattleHarmBar {
         val amountText: String? = null,
         val hitRateText: String? = null,
     )
-
-    /**
-     * HP_ADD is read first, then MP_ADD intentionally overwrites it exactly
-     * as the source object-property checks do. Bars use the pre-effect value.
-     */
     fun show(
         hp: Int,
         maxHp: Int,
@@ -52,4 +48,3 @@ object BattleHarmBar {
         }
     }
 }
-

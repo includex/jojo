@@ -1,13 +1,15 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
-import com.jojo.game.InfoBaseValueAnimation
+import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
 
 
-/** Stateful implementation of BattleScreen.showMineunitInfo -> Battle registry id6. */
+/** 아군 유닛의 이름·직책·능력치·상태를 정보 패널용 값으로 변환한다. */
 class MineUnitInfoLayer {
 
+    /** 아군 유닛의 이름, 능력치, 장비·기기 행을 렌더링 값으로 제공한다. */
     data class View(
         val name: String, val level: Int, val post: String,
         val hp: Int, val maxHp: Int, val mp: Int, val maxMp: Int,
@@ -38,8 +40,6 @@ class MineUnitInfoLayer {
 
     fun valueAnimation(entries: List<InfoBaseValueAnimation.Value>) = InfoBaseValueAnimation(entries)
 }
-
-
 object MineUnitInfoRenderEvents {
 
     fun jsonl(v: MineUnitInfoLayer.View): String {

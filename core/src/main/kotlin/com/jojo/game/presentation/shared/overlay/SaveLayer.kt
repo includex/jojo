@@ -1,3 +1,4 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
 import com.jojo.game.domain.battle.*
@@ -5,22 +6,15 @@ import com.jojo.game.domain.battle.*
 
 import com.badlogic.gdx.utils.JsonReader
 
-/**
- * Injectable state implementation of `ui/SaveLayer.js`.
- *
- * The Cocos layer itself does not serialize a game: it lists Manager slots,
- * asks MsgBox for confirmation, then dispatches SAVE_GAME with the selected
- * zero-based slot index.  Keeping that protocol explicit prevents a menu tap
- * from silently saving to an unrelated "current" slot.
- */
+/** SaveLayer: 저장 슬롯을 페이지별로 표시하고 사용자의 확인 뒤 선택 슬롯에 현재 진행 상태를 기록한다. */
 
 class SaveLayer(private val repository: Repository, private val pageTogglesEnabled: Boolean = true) {
 
     interface Repository {
-        /** Manager.loadGame(index), or null when no slot has been written. */
+        /** load: 지정 저장 슬롯의 원본 데이터를 읽어 비어 있으면 null을 반환한다. */
         fun load(index: Int): String?
 
-        /** Battle/Hall's SAVE_GAME listener. */
+        /** save: 지정 저장 슬롯에 현재 진행 상태를 기록한다. */
         fun save(index: Int)
     }
 
@@ -43,14 +37,14 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     private var attached = false
     private var pendingIndex: Int? = null
 
-    /** The source passes this exact label text to MsgBox. */
+    /** pendingPrompt: 사용자가 선택한 슬롯을 저장할지 확인할 때 표시할 안내 문구다. */
     private var pendingPrompt: String? = null
     private var completionTipOpen = false
     private var view: View? = null
     private var storedPage = 0
     private val lifecycle = mutableListOf<String>()
 
-    /** Source `onCreate({ func, tip })`; omitted data uses tip=true. */
+    /** onCreate: 저장 화면을 부착하고 완료 콜백·안내 표시 정책·마지막 페이지를 초기화한다. */
     fun onCreate(onComplete: (() -> Unit)? = null, showCompleteTip: Boolean = true, savedPage: Int = 0): View {
         callback = onComplete
         tip = showCompleteTip
@@ -59,7 +53,7 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         return refPage(savedPage)
     }
 
-    /** `_refPage`: page zero has 22 slots, later pages have 20 and begin +2. */
+    /** refPage: 지정 페이지의 슬롯 데이터를 해석해 시간순 저장 목록 화면 모델을 갱신한다. */
     fun refPage(nextPage: Int): View {
         require(nextPage >= 0) { "SAVE_PAGE must be non-negative" }
         if (page == nextPage && view != null) return view()
@@ -71,11 +65,11 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         return View(page, rows, pageTogglesVisible = pageTogglesEnabled, attached = attached).also { view = it }
     }
 
-    /** Source toggle callback: page changes only on TOUCH_END and only when enabled. */
+    /** onPageTouch: 페이지 버튼의 터치 종료를 확인해 허용된 경우 표시 페이지를 전환한다. */
     fun onPageTouch(nextPage: Int, eventType: Int): View =
         if (pageTogglesEnabled && eventType == TOUCH_END) refPage(nextPage) else view()
 
-    /** `item` TOUCH_START/END: only END opens the source MsgBox confirmation. */
+    /** onRowTouch: 저장할 슬롯을 선택하고 확인 모달에 표시할 슬롯 안내 문구를 준비한다. */
     fun onRowTouch(index: Int, eventType: Int): Boolean {
         if (eventType != TOUCH_END || view()?.rows?.any { it.index == index } != true) return false
         pendingIndex = index
@@ -92,15 +86,14 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         if (result != 0) return false
         repository.save(index)
         lifecycle += "dispatch:SAVE_GAME:$index"
-        // `_temp` does not remove yet when tip=true: MsgBox("저장 완료.")
-        // must itself finish before func/removeLayer.
+        // tip=true이면 `_temp`는 즉시 제거하지 않고, MsgBox("저장 완료.")가 끝난 뒤 func/removeLayer를 실행한다.
         if (tip) {
             completionTipOpen = true; lifecycle += "msgbox:complete"
         } else complete()
         return true
     }
 
-    /** Post-save MsgBox (`저장 완료.`) completion callback. */
+    /** onCompletionTip: 저장 완료 안내창의 종료 입력을 받아 저장 화면 마무리를 이어간다. */
     fun onCompletionTip(eventType: Int): Boolean {
         if (eventType != TOUCH_END || !completionTipOpen) return false
         completionTipOpen = false
@@ -108,7 +101,7 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         return true
     }
 
-    /** bg1/button TOUCH_END: invokes func then removes, no save. */
+    /** onCancel: 취소 버튼 입력으로 저장 화면을 닫고 호출자에게 완료를 알린다. */
     fun onCancel(eventType: Int): Boolean {
         if (eventType != TOUCH_END || !attached) return false
         callback?.invoke()
@@ -119,7 +112,7 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         return true
     }
 
-    /** Whether a source `저장 완료.` MsgBox would be displayed before removal. */
+    /** showsCompletionTip: 원본처럼 제거 전에 `저장 완료.` 안내창을 표시하는지 반환한다. */
     fun showsCompletionTip(): Boolean = tip
 
 
@@ -151,12 +144,11 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     private fun decodeRow(index: Int, page: Int): Row {
         val text = repository.load(index)
         val root = text?.takeIf { it.startsWith('{') }?.let { runCatching { JsonReader().parse(it) }.getOrNull() }
-        // SaveLayer labels the physical save slot (`c + 1`), even though
-        // non-zero pages begin at `20 * page + 2`.
+        // SaveLayer는 0이 아닌 페이지가 `20 * page + 2`에서 시작해도 실제 저장 슬롯 번호(`c + 1`)를 표시한다.
         val number = "No.${(index + 1).toString().padStart(3, ' ')}"
         if (root == null) return Row(index, 0, number, "---", "진행 상황 저장 안 함", false)
         val model = root.get("model")?.get("game") ?: root.get("model")
-        // Config.MODEL_PROPERTY_INDEX.STAGE_N is exactly 1.
+        // Config.MODEL_PROPERTY_INDEX.STAGE_N의 인덱스는 정확히 1이다.
         val stage = model?.get("property2")?.get(1)?.asInt() ?: model?.getInt("stage", 0) ?: 0
         return Row(
             index = index,

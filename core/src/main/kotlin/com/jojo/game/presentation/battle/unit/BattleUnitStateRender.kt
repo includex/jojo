@@ -1,12 +1,13 @@
+// Battle
 package com.jojo.game.presentation.battle.unit
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
-/** Geometry/order adapter for BattleUnit's dynamically appended `status` child. */
 object BattleUnitStateRender {
 
+    /** Command: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     data class Command(
         val textureIndex: Int,
         val x: Float,

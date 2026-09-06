@@ -1,5 +1,7 @@
+// Battle
 package com.jojo.game.application.battle
 
+/** LearnUnitSkillFlow: 유닛 학습 스킬 선택 흐름으로, 선택값을 임시 보관하고 저장 효과를 발행한다. */
 class LearnUnitSkillFlow(initialUnit0: Int = 1024) {
     sealed interface Effect {
 
@@ -34,6 +36,7 @@ class LearnUnitSkillFlow(initialUnit0: Int = 1024) {
     fun close() = listOf(Effect.Close)
 }
 
+/** EditRosterLearnRoute: 편집 화면에서 학습 화면을 열고 닫는 라우팅 상태를 관리한다. */
 class EditRosterLearnRoute(private val editEnabled: Boolean) {
 
     enum class State { EDIT4, LEARN, CLOSED }
@@ -50,6 +53,7 @@ class EditRosterLearnRoute(private val editEnabled: Boolean) {
     }
 }
 
+/** LearnUnitSkillRoute: 학습 화면의 하위 경로를 식별하는 열거형으로, 저장된 경로 문자열을 해석한다. */
 enum class LearnUnitSkillRoute(val key: String) {
     DEFAULT("default"), SELECT("select"), APPLY("apply"), CANCEL("cancel");
 

@@ -1,15 +1,11 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.badlogic.gdx.utils.JsonValue
-import com.jojo.game.ScenarioStageCallDispatcher
-import com.jojo.game.ScenarioStageCallEnvironment
-import com.jojo.game.asBooleanValue
-import com.jojo.game.asInt
-import com.jojo.game.asText
 import com.jojo.game.domain.scenario.ScenarioCommand
 
-/** Routes non-battle stage and model state commands. */
-internal object ScenarioStageCallStateDispatcher : com.jojo.game.ScenarioStageCallFamily {
+/** ScenarioStageCallStateDispatcher: stage API의 시나리오 상태 변경 호출을 캠페인·무대 상태에 반영한다. */
+internal object ScenarioStageCallStateDispatcher : ScenarioStageCallFamily {
     override fun dispatch(
         path: String,
         node: JsonValue,

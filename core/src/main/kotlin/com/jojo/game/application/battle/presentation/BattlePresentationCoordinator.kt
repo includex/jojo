@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.presentation
 
 import com.jojo.game.domain.battle.*
@@ -33,6 +34,7 @@ internal data class BattlePresentationEnvironment(
     val setStagedCompletionSideEffects: (MutableList<() -> Unit>?) -> Unit,
 )
 
+/** BattlePresentationCoordinator: 실제 전투 결과를 잠시 되돌린 뒤, 표현 완료 순서에 맞춰 적용할 트랜잭션을 만든다. */
 internal object BattlePresentationCoordinator {
 
 

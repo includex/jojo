@@ -1,8 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
-import com.jojo.game.EncryptedGameDataCodec
+import com.jojo.game.infrastructure.data.EncryptedGameDataCodec
 
 /** 마법 효과 정의 목록을 보관하고 리소스에서 불러옵니다. */
 class MagicEffectCatalog private constructor(private val effects: List<MagicEffectDefinition>) {

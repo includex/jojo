@@ -1,6 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.title
 
-/** Routes for the optional sign-in and version overlays shown above the title screen. */
+/** LoginOptionalOverlayRoute: 타이틀에서 로그인 선택 오버레이를 열거나 닫는 화면 경로를 구분한다. */
 enum class LoginOptionalOverlayRoute(val state: String) {
     SIGNIN_OPEN("login-signin-open"), VERSION_OPEN("login-version-open");
 

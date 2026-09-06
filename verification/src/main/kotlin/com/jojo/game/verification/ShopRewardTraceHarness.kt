@@ -1,10 +1,12 @@
+// Verification
 package com.jojo.game.verification
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Entry point for the verification-only shop, sell, and reward trace. */
+/** ShopRewardTraceHarness: 검증 전용 상점·판매·보상 추적의 진입점이다. */
 object ShopRewardTraceHarness {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val result = linkedMapOf<String, String>()

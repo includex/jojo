@@ -1,11 +1,10 @@
+// Battle
 package com.jojo.game.presentation.battle.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.utils.Disposable
-
-/** Owns static battle HUD, menu, dialogue, status, and selection resources. */
 internal class BattleHudAssets : Disposable {
     val dialoguePanelTexture = linearOptional("maps/ui/dialogue-panel.png")
     val fightSpeechLeftTexture = linearOptional("maps/ui/fight-speech-left.png")

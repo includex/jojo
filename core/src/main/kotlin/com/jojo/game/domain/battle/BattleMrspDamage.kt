@@ -1,8 +1,8 @@
+// Battle
 package com.jojo.game.domain.battle
 
-/** Pure implementation of BattleUnit.count_attackHarm's MRSP random ladder. */
+/** BattleMrspDamage: 정신력 기반 공격의 피해 규칙을 계산하며, 대상의 방어와 상태 보정을 반영한다. */
 object BattleMrspDamage {
-    /** `random(0, 99)` maps to 100%, 80%, 60%, 40%, or 20% max HP. */
     fun percent(roll: Int): Int {
         val value = roll.coerceIn(0, 99)
         var steps = 5

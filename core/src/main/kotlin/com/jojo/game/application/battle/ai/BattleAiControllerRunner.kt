@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.ai
 
 import com.jojo.game.domain.battle.*
@@ -38,11 +39,6 @@ internal data class AiControllerResult(
     val sourcePoints: List<Control.Point>,
     val activeAi: Int,
 )
-
-/**
- * Executes the Cocos ControlManager driver for an AI unit, integrating ControlControllerFactory,
- * target tracking, pathfinding, and decision evaluation.
- */
 internal object BattleAiControllerRunner {
 
     private val directDestinationOffsets: List<Pair<Int, Int>> = listOf(

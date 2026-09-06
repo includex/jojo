@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.graphics.Color
@@ -7,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Immutable data and resolved assets for ItemLayer's rendered overlay. */
+/** HallItemView: 거점 Item 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallItemView(
     val itemName: String,
     val category: Int,
@@ -29,7 +30,7 @@ internal data class HallItemView(
     val itemIconTexture: Texture?,
 )
 
-/** Stateless draw sequence for ItemLayer. */
+/** HallItemRenderer: 거점 Item 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallItemRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallItemView) {
         fun patch(texture: Texture?, inset: Int = 3): NinePatch? =

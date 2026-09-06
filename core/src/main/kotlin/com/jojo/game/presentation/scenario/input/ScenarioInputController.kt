@@ -1,9 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario.input
 
 import com.badlogic.gdx.Input
 import com.jojo.game.domain.scenario.PlaybackState
 
-/** Narrow state/command boundary between ScenarioScreen and input routing. */
+/** ScenarioInputPort: 시나리오 입력 Port로, 시나리오 표현 계층 사이에서 필요한 동작과 데이터를 약속한다. */
 interface ScenarioInputPort {
     fun hallState(): ScenarioInputRouter.HallState
     fun playbackState(): PlaybackState
@@ -17,6 +18,7 @@ interface ScenarioInputPort {
     fun routeHallTouch(route: ScenarioInputRouter.Touch.Hall, x: Float, y: Float)
 }
 
+/** ScenarioInputController: 키보드와 터치 입력을 현재 재생 상태에 맞는 선택·진행·거점 동작으로 전달한다. */
 class ScenarioInputController(private val port: ScenarioInputPort) {
     fun keyDown(keycode: Int): Boolean {
         if (keycode == Input.Keys.ESCAPE && port.dismissHallOverlay()) return true

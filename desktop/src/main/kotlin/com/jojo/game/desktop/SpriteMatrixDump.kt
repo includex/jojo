@@ -1,10 +1,11 @@
+// Desktop
 package com.jojo.game.desktop
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.presentation.battle.unit.BattleSpriteTimeline
 
 /** 전투 스프라이트의 프레임 정보를 출력하는 데스크톱 도구입니다. */

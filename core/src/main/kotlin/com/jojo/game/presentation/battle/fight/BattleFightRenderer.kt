@@ -1,8 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 import com.jojo.game.presentation.battle.assets.*
 
 import com.jojo.game.*
-import com.jojo.game.presentation.battle.UnitSpriteSource
+import com.jojo.game.presentation.battle.unit.UnitSpriteSource
 import com.jojo.game.presentation.battle.timeline.*
 
 import com.badlogic.gdx.graphics.Color
@@ -16,7 +17,7 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.Viewport
 import kotlin.math.abs
 
-/** Draws one immutable FightLayer snapshot using resources owned by BattleScreen. */
+/** BattleFightRenderer: 전투 전투 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 internal class BattleFightRenderer(
     private val batch: SpriteBatch,
     private val font: BitmapFont,

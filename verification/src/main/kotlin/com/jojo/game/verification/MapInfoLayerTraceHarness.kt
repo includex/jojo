@@ -1,23 +1,36 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.MapInfoLayer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
 
+/** MapInfoLayerTraceHarness: 검증 실행을 시작하고 추적 결과를 수집하는 타입이다. */
 object MapInfoLayerTraceHarness {
+    /** Case: case 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** name: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val name: String,
+        /** setting: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val setting: Int,
+        /** text: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val text: String,
+        /** changePage: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val changePage: Boolean,
+        /** weapon: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val weapon: Boolean,
+        /** wait: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val wait: Boolean,
+        /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val events: List<String>
     )
 
+    /** escape: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun escape(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val source = Files.readString(Path.of(args[0])).replace(Regex("\\s+"), "")
@@ -37,12 +50,14 @@ object MapInfoLayerTraceHarness {
             }.toList()
 
 
+        /** trace: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun trace(c: Case): String {
             var complete = 0
             var removed = 0
             val layer = MapInfoLayer(c.setting, { it }, { complete++ }, { removed++ })
             layer.onCreate(MapInfoLayer.Data(c.text, c.changePage, c.weapon, c.wait))
 
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snap(step: String): String {
                 val v = layer.view()
                 val events =

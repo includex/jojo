@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/** Source-authored PropertyLayer table geometry and paint-order contract. */
+/** HallPropertyRenderPlan: 거점 속성 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallPropertyRenderPlan {
     fun rowY(index: Int): Float = 481.58f - index * 67.08f
 

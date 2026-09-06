@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/** Behavioural implementation of Hall/scene/UnitListLayer (Hall layer id 9). */
+/** HallUnitListLayer: 거점 유닛 List 레이어이며, 시나리오 화면에 표시할 요소를 그린다. */
 class HallUnitListLayer(unitIds: Collection<Int>) {
     val rows: List<Int> = unitIds.distinct().sorted()
     var selectedUnitId: Int? = null

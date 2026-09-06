@@ -1,30 +1,22 @@
+// Battle
 package com.jojo.game.presentation.battle.unit
 
 import com.jojo.game.*
-/**
- * Status-effect animation state used by [BattleUnitPresentationState.refreshStatus].
- *
- * The Cocos component only renders the first two abnormal statuses from the
- * MB..ZD range.  Keeping this small state machine outside the renderer makes
- * that otherwise visual-only selection and its `_lastRefState` cache
- * testable.
- */
+/** BattleUnitStateAnimation: 전투 유닛 상태 애니메이션이며, 시간 경과에 따른 전투 상태와 표현 단계를 진행한다. */
 
 class BattleUnitStateAnimation {
 
+    /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     data class Effect(
-        /** Indices into the original scene's `state_texture` array. */
         val textureIndices: List<Int>,
-        /** `anime_state` uses constant key positions at these two frames. */
         val positions: List<Pair<Int, Int>> = listOf(-16 to 16, 16 to 16),
         val framesPerSecond: Int = 3,
         val loop: Boolean = true,
         val active: Boolean = true,
     ) {
 
+        /** Sample: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
         data class Sample(val textureIndex: Int, val position: Pair<Int, Int>)
-
-        /** `createWithSpriteFrames(frames, 3)` with constant position keys. */
         fun sampleAt(secondsSinceCreate: Float): Sample {
             val frame = ((secondsSinceCreate.coerceAtLeast(0f) * framesPerSecond).toInt() % textureIndices.size)
             return Sample(textureIndices[frame], positions[frame])
@@ -33,20 +25,10 @@ class BattleUnitStateAnimation {
 
     private var lastRefState = 0
     private var effect: Effect? = null
-
-    /** Current source `_state_meff`, or null if no MB..ZD status is active. */
     fun current(): Effect? = effect
-
-    /** Changes visibility without discarding the selected status frames. */
     fun setVisible(visible: Boolean) {
         effect = effect?.copy(active = visible)
     }
-
-    /**
-     * `activeStatuses` is ordered exactly as `BATTLE_UNIT_STATUS2.MB..ZD`.
-     * Source records at most two active entries and only those entries
-     * participate in the cache bit mask.
-     */
 
     fun refresh(activeStatuses: List<Boolean>): Effect? {
         val selected = mutableListOf<Int>()
@@ -57,7 +39,6 @@ class BattleUnitStateAnimation {
             selected += index
         }
         if (mask == lastRefState) {
-            // Source re-enables an existing effect without recreating it.
             if (effect != null && !effect!!.active) effect = effect!!.copy(active = true)
             return effect
         }
@@ -65,7 +46,6 @@ class BattleUnitStateAnimation {
         lastRefState = mask
         effect = if (selected.isEmpty()) null else Effect(
             textureIndices = if (selected.size == 1) {
-                // It creates two identical SpriteFrames for one status.
                 listOf(selected[0], selected[0])
             } else {
                 listOf(selected[0], selected[1])
@@ -74,4 +54,3 @@ class BattleUnitStateAnimation {
         return effect
     }
 }
-

@@ -1,11 +1,12 @@
+// Scenario
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.presentation.scenario.overlay.*
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioModalKind
+import com.jojo.game.application.scenario.ScenarioStage
 
 import com.jojo.game.domain.scenario.PlaybackState
-import com.jojo.game.ScenarioStage
 
 /** 재생 상태에서 화면에 필요한 값만 모은 불변 모델입니다. */
 internal data class ScenarioViewState(

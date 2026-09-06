@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendHelperPart2: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendHelperPart2(writer: ScenarioHelperEventWriter) = with(writer) {
         draw(
             "Canvas/Layer/Logo_12-1/scrollview/view/content/richtext/RICHTEXT_CHILD",

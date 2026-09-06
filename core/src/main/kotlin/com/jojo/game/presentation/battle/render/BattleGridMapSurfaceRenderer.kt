@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.render
 
 import com.badlogic.gdx.Gdx
@@ -7,12 +8,11 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 
-/** Immutable projection for BattleScreen's map-texture and persistent minimap pass. */
+/** BattleGridRenderView: 전투 격자 렌더링 표시 정보이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 data class BattleGridRenderView(
     val map: BattleGridMapSurface?,
     val miniMap: BattleGridMiniMapView?,
 )
-
 data class BattleGridMapSurface(
     val texture: Texture,
     val left: Float,
@@ -26,13 +26,13 @@ data class BattleGridMapSurface(
     val framebufferWorldWidth: Float,
     val framebufferWorldHeight: Float,
 )
-
 data class BattleGridMiniMapMarker(
     val texture: Texture,
     val x: Float,
     val y: Float,
 )
 
+/** BattleGridMiniMapView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 data class BattleGridMiniMapView(
     val shown: Boolean,
     val framePatch: NinePatch?,
@@ -42,11 +42,7 @@ data class BattleGridMiniMapView(
     val markers: List<BattleGridMiniMapMarker>,
 )
 
-/**
- * Draws the part of a tactical grid that is independent of battle actors.
- * It deliberately owns the temporary map shader/filter changes so those
- * state changes cannot leak into the actor pass.
- */
+/** BattleGridMapSurfaceRenderer: 전투 격자 지도 Surface 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
     fun draw(view: BattleGridRenderView) {
         view.map?.let(::drawMap)
@@ -82,8 +78,6 @@ class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
             map.height,
         )
         if (sampler != null) {
-            // Flush before restoring so subsequent actor submissions never use
-            // the Cocos8 map shader or nearest texture filtering.
             batch.flush()
             batch.shader = null
             priorFilter?.let { (min, mag) -> map.texture.setFilter(min, mag) }

@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -29,13 +30,8 @@ internal data class PhysicalTargetEnvironment(
     val applyProperty: (item: BattlePropertyItem, target: BattleUnit, consume: () -> Boolean) -> TacticalActionResult.Item?,
 )
 
-/**
- * Resolves single-target physical combat effects: damage application, MP/money shields,
- * life steal, recoil, knockback, status effects, and automated consumable usage.
- */
+/** PhysicalTargetResolver: 물리 대상 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object PhysicalTargetResolver {
-
-    /** BattleUnit.getAtkStatus plus attacker's random supplementary lists. */
     fun rollAttackStatusBatch(attacker: BattleUnit, random100: () -> Int): AttackStatusBatch {
         val statuses = linkedSetOf<BattleStatus>()
 
@@ -72,8 +68,6 @@ internal object PhysicalTargetResolver {
         }
         return AttackStatusBatch(statuses, down)
     }
-
-    /** Applies incoming attack status ailments and attribute down effects to target. */
     fun applyIncomingAttackStatuses(
         batch: AttackStatusBatch,
         target: BattleUnit,
@@ -89,7 +83,7 @@ internal object PhysicalTargetResolver {
         }
     }
 
-    /** Resolves one physical target, including every target-local secondary effect. */
+    /** resolve: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     fun resolve(
         attacker: BattleUnit,
         target: BattleUnit,

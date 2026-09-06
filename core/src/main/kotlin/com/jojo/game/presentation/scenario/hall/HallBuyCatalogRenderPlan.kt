@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.utils.Align
 
-/** Pure source-order plan for the read-only BuyLayer catalog pane. */
+/** HallBuyCatalogRenderPlan: 거점 Buy 목록 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallBuyCatalogRenderPlan {
     fun commands(view: HallBuyCatalogView): List<HallBuyCatalogDrawCommand> = buildList {
         patch("maps/ui/start-battle/box1.png", 176.42f, 89.01f, 480.74f, 503.1f)

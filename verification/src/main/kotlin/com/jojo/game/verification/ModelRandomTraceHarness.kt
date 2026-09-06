@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.badlogic.gdx.utils.JsonReader
@@ -5,8 +6,9 @@ import com.jojo.game.domain.scenario.ScenarioRandomSequence
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Emits the deterministic scenario-random contract for external comparison. */
+/** ModelRandomTraceHarness: 외부 비교를 위해 결정적인 시나리오 난수 계약을 출력한다. */
 object ModelRandomTraceHarness {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val cases = JsonReader().parse(Files.readString(Path.of(args[0]))).get("cases")

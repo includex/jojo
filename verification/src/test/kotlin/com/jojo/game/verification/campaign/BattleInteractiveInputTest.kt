@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game.verification.campaign
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -12,13 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleInteractiveInputTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleInteractiveInputTest: BattleInteractiveInput의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleInteractiveInputTest {
     @Test fun `S01 survival move maximizes enemy separation then keeps the right rear ally line`() {
@@ -208,8 +203,7 @@ class BattleInteractiveInputTest {
     }
 
     @Test fun `production destination excludes occupied movement overlay cells`() {
-        // Source canMovePoints exposes allied occupied cells for highlighting,
-        // while unitMove rejects them. The driver must plan from the latter.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             listOf(3 to 20, 3 to 19),
             executableProductionMoveTiles(
@@ -221,8 +215,7 @@ class BattleInteractiveInputTest {
     }
 
     @Test fun `S57 gate uses the source predicate rectangle rather than blocked point 16 19`() {
-        // v15: (16,19) and (16,20) are map objects; a legal inside tile
-        // still wins over the old point-distance local minimum at (17,19).
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             16 to 18,
             s57GateDestination(
@@ -230,8 +223,7 @@ class BattleInteractiveInputTest {
                 reachableLegalTiles = listOf(17 to 19, 17 to 18, 16 to 18, 17 to 20),
             ),
         )
-        // When no inside tile is reachable, exclude current so the route
-        // makes deterministic progress toward the rectangle.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             17 to 18,
             s57GateDestination(
@@ -269,8 +261,7 @@ class BattleInteractiveInputTest {
     }
 
     @Test fun `S57 escort moves or attacks only its focused leader`() {
-        // Destination (2,0) is the only legal tile with the focused leader
-        // in the unit's attack offsets; guard positions never enter this policy.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             2 to 0,
             s57EscortFocusDestination(
@@ -305,8 +296,7 @@ class BattleInteractiveInputTest {
         val guard = S57EscortFocusBlocker("guard", 2 to 0, 40)
         val leaderPriorityGuard = S57EscortFocusBlocker("leader-priority-guard", 1 to 0, 20)
         val unrelated = S57EscortFocusBlocker("unrelated", 1 to 1, 1)
-        // A legal leader-staging tile exists, so even a closer attackable guard
-        // cannot displace the focused attack.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             null,
             s57EscortFocusBlockerFallback(
@@ -316,8 +306,7 @@ class BattleInteractiveInputTest {
                 openedStagingReachableByGuard = emptyMap(),
             ),
         )
-        // Guard (2,0) occupies the only next cardinal progress step from the
-        // legal frontier (1,0) to leader staging (3,0).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(
             S57EscortFocusBlockerFallback(guard, 1 to 0),
             s57EscortFocusBlockerFallback(
@@ -327,8 +316,7 @@ class BattleInteractiveInputTest {
                 openedStagingReachableByGuard = mapOf("guard" to listOf(3 to 0)),
             ),
         )
-        // This guard can be attacked but does not reduce the path distance to
-        // any focus staging tile, so it remains excluded from the S57 route.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (S57)을 검증한다.
         assertEquals(
             null,
             s57EscortFocusBlockerFallback(
@@ -364,8 +352,7 @@ class BattleInteractiveInputTest {
     @Test fun `S57 blocking guard fallback yields an Attack UI tile instead of WAIT`() {
         val guard = S57EscortFocusBlocker("guard", 2 to 0, 40)
         val fallback = s57EscortFocusBlockerFallback(
-            // This is the post-move observation: the selected escort is now
-            // at the returned attackFrom tile and can issue CommandLayer Attack.
+            // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
             current = 1 to 0, reachableLegalTiles = listOf(1 to 0), focusTile = 4 to 0,
             attackAllScreen = false, attackOffsets = setOf(1 to 0),
             occupiedTiles = setOf(1 to 0, 2 to 0), guards = listOf(guard),
@@ -377,9 +364,7 @@ class BattleInteractiveInputTest {
 
     @Test fun `S57 blocker is excluded unless its removal opens a real focus staging tile`() {
         val guard = S57EscortFocusBlocker("guard", 2 to 0, 40)
-        // It is an attackable Manhattan-frontier guard, but the live
-        // counterfactual flood-fill still cannot enter (3,0), the only
-        // physical staging tile for leader (4,0).
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             null,
             s57EscortFocusBlockerFallback(
@@ -403,9 +388,7 @@ class BattleInteractiveInputTest {
                 attackOffsets = setOf(1 to 0),
             ),
         )
-        // The map value denotes the bounded post-kill route probe. It is
-        // deliberately sufficient to enable this immediate real Attack UI
-        // action even though staging is reached on the following move.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(
             guard,
             s57EscortFocusBlockerFallback(

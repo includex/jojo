@@ -1,8 +1,10 @@
+// Verification
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 
 import com.jojo.game.presentation.scenario.overlay.*
+import com.jojo.game.presentation.shared.KoreanFont
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.badlogic.gdx.Gdx
@@ -19,21 +21,33 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** 실제 Buy/Sell 어댑터를 통해 MsgBox3 경로를 검증하는 화면이다. */
+/** MsgBox3FixtureScreen: 실제 Buy/Sell 어댑터를 통해 MsgBox3 경로를 검증하는 화면이다. */
 class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** textures: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val textures = mutableListOf<Texture>()
+    /** texture: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun texture(path: String): Texture? = Gdx.files.internal(path).takeIf { it.exists() }
         ?.let(::Texture)?.also(textures::add)
 
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = texture("maps/71.jpg")
+    /** logo9: 검증 흐름에서 사용하는 값을 담는다. */
     private val logo9 = texture("maps/ui/unit-info/logo9.png")
+    /** bg1: 검증 흐름에서 사용하는 값을 담는다. */
     private val bg1 = texture("maps/ui/input-box/bg1.png")
+    /** box1: 검증 흐름에서 사용하는 값을 담는다. */
     private val box1 = texture("maps/ui/input-box/box1.png")?.let { NinePatch(it, 3, 3, 3, 3) }
+    /** button: 검증 흐름에서 사용하는 값을 담는다. */
     private val button = texture("maps/ui/input-box/box3.png")?.let { NinePatch(it, 9, 9, 7, 11) }
+    /** font: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val font: BitmapFont = KoreanFont.create(40, "수치를 입력하세요구매 수량판매 수량구매하기판매하기취소1237")
+    /** item: 검증 흐름에서 사용하는 값을 담는다. */
     private val item = ShopItem(150, "회복의 콩", "property", price = 10, sell = 5)
+    /** model: 검증 흐름에서 사용하는 값을 담는다. */
     private val model: MsgBox3Layer
 
     init {
@@ -52,9 +66,11 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         }
     }
 
+    /** show: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun show() {
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         Gdx.input.inputProcessor = object : InputAdapter() {
+            /** touchUp: 검증 입력을 현재 화면 상태에 반영한다. */
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, buttonCode: Int): Boolean {
                 val p = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 when {
@@ -67,6 +83,7 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         }
     }
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -81,6 +98,7 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         game.captureFrameIfRequested()
     }
 
+    /** drawModal: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawModal() {
         logo9?.let { batch.draw(it, 477.336f, 285.8f, 533.7f, 228.4f) }
         bg1?.let { batch.draw(it, 477.336f, 464.2f, 533.7f, 50f) }
@@ -96,12 +114,15 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
         font.draw(batch, "취소", 814.186f, 356f, 100f, Align.center, false)
     }
 
-    /** 구매·판매 대화 상자의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 구매·판매 대화 상자의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String = MsgBox3RenderEvents.jsonl(state, model)
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose()
         font.dispose()
@@ -109,15 +130,16 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
     }
 }
 
-/** MsgBox3 상태를 원본 그리기 이벤트 형식으로 직렬화한다. */
 
+/** MsgBox3RenderEvents: MsgBox3 상태를 원본 그리기 이벤트 형식으로 직렬화한다. */
 object MsgBox3RenderEvents {
-    /** MsgBox3 모델의 현재 상태를 JSONL 한 줄로 만든다. */
 
+    /** jsonl: MsgBox3 모델의 현재 상태를 JSONL 한 줄로 만든다. */
     fun jsonl(state: String, model: MsgBox3Layer): String {
         if (!model.attached) return ""
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", layer: String = "MsgBox3"

@@ -1,10 +1,16 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.MagicInfoLayer
+import com.jojo.game.presentation.shared.overlay.MagicUiList
 
 
+/** MagicTraceHarness: 검증 실행을 시작하고 추적 결과를 수집하는 타입이다. */
 object MagicTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"$s\""
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val text = java.nio.file.Files.readString(java.nio.file.Path.of(a[0]))
@@ -18,6 +24,7 @@ object MagicTraceHarness {
         ) { run(it) }; java.nio.file.Files.writeString(java.nio.file.Path.of(a[1]), o); println(o)
     }
 
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     private fun run(m: MatchResult): String {
         val id = m.groupValues[1]
         val mp = m.groupValues[2].toInt()
@@ -46,6 +53,7 @@ object MagicTraceHarness {
             uses
         ); list.rows.forEach { list.events += "asset:Game/Magic/${it.icon + 1}-1" }
         var info: MagicInfoLayer? = null
+        /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
         val trace = mutableListOf<String>(); fun snap(s: String) {
             val rows = list.rows.joinToString(
                 prefix = "[",

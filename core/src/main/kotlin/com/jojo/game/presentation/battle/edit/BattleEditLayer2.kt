@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.edit
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
@@ -8,27 +9,17 @@ import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2ChildRend
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2RegisterRenderEvents
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2ScenePanelRenderEvents
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2WeatherRenderEvents
-
-/** Renderer-independent contract of Battle/scene/EditLayer2 (layer id 23). */
 class BattleEditLayer2(
     initialWeather: Int,
     initialRound: Int,
     private val canApplyRound: Boolean,
 ) {
+    /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     sealed interface Effect {
-
         data class SetWeather(val value: Int) : Effect
-
-
         data class SetRound(val value: Int) : Effect
-
-
         data class Toast(val text: String) : Effect
-
-        /** Instance.LAYER.EditLayer, id 120, prefab Global/scene/EditLayer3. */
         data object OpenGlobalEditor : Effect
-
-
         data class KillAll(val flag: Int) : Effect
         data object Remove : Effect
     }
@@ -64,8 +55,6 @@ class BattleEditLayer2(
 
     fun selectWeather(value: Int) {
         require(value in weatherNames.indices)
-        // Preserve the recovered source typo: selecting the original value
-        // deletes `_data.key`, so an already pending weather value survives.
         if (value != original.getValue(0)) pending[0] = value
         weatherLabel = weatherNames[value]
     }
@@ -86,9 +75,6 @@ class BattleEditLayer2(
 
 
     fun touchButton(tag: Int, phase: Int = 2): List<Effect> {
-        // Cocos removal detaches the node but does not invalidate a retained
-        // callback reference; the recovered handler still dispatches if such
-        // a callback is delivered after removal.
         if (phase != 2) return emptyList()
         return when (tag) {
             0 -> buildList {
@@ -115,6 +101,7 @@ class BattleEditLayer2(
 }
 
 
+/** BattleEditLayer2Route: 전투 화면 흐름에서 현재 처리 종류를 구분한다. */
 enum class BattleEditLayer2Route(val key: String) {
     INITIAL("initial"), WEATHER("weather"), ROUND("round"), APPLY("apply"), CHILD("child"), CHILD_SCENE("child-scene"), REGISTER(
         "register"
@@ -131,8 +118,6 @@ enum class BattleEditLayer2Route(val key: String) {
         }
     }
 }
-
-/** Visible draw submissions of the actual Menu(BJ) -> EditLayer2 route. */
 object BattleEditLayer2RenderEvents {
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 

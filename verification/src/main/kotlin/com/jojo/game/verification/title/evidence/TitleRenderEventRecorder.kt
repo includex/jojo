@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification.title.evidence
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -6,9 +7,10 @@ import com.jojo.game.verification.title.StartItemRenderEvents
 import com.jojo.game.presentation.title.TitleMode
 import com.jojo.game.presentation.title.TitleViewState
 
-/** Builds title verification events from the same immutable snapshot used for drawing. */
+/** TitleRenderEventRecorder: 그리기에 사용하는 동일한 불변 스냅샷에서 타이틀 검증 이벤트를 만든다. */
 internal class TitleRenderEventRecorder {
 
+    /** record: 검증 이벤트와 산출물을 기록한다. */
     fun record(state: TitleViewState, startItemFixture: Boolean = false): String {
         if (startItemFixture) return StartItemRenderEvents.jsonl()
         val log = RenderEventLog()
@@ -39,7 +41,9 @@ internal class TitleRenderEventRecorder {
         return log.jsonl()
     }
 
+    /** appendLoad: 검증 이벤트와 산출물을 기록한다. */
     private fun appendLoad(log: RenderEventLog, state: TitleViewState) {
+        /** event: 단일 렌더 이벤트를 로그에 추가한다. */
         fun event(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", visible: Boolean = true,
@@ -52,6 +56,7 @@ internal class TitleRenderEventRecorder {
             )
 
 
+        /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f, visible: Boolean = true) =
             event(path, "label", x, y, w, h, text = text, visible = visible)
         event("Canvas/Layer/bg1", "tiled-sprite", 278.186f, 97.5f, 932f, 605f, "Logo_9-1")
@@ -89,8 +94,10 @@ internal class TitleRenderEventRecorder {
         }
     }
 
+    /** appendSettings: 검증 이벤트와 산출물을 기록한다. */
     private fun appendSettings(log: RenderEventLog, state: TitleViewState) {
         val view = requireNotNull(state.settings)
+        /** event: 단일 렌더 이벤트를 로그에 추가한다. */
         fun event(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", opacity: Float = 1f
@@ -101,6 +108,7 @@ internal class TitleRenderEventRecorder {
             )
 
 
+        /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             event(path, "label", x, y, w, h, text = text)
         event("Canvas/Layer/bg", "tiled-sprite", 195.686f, 41f, 1097f, 718f, "Logo_9-1")
@@ -132,6 +140,7 @@ internal class TitleRenderEventRecorder {
             label("$path/Label", labels[index], if (index < 2) 252.29f else 252.186f, y - 6f, 526f, 40f)
         }
 
+        /** panel: 패널 렌더 이벤트를 구성한다. */
         fun panel(index: Int, y: Float, titleX: Float, titleY: Float, titleW: Float, title: String) {
             val path = "Canvas/Layer/bg/scrollview/view/content/panel$index"
             event(path, "sliced-sprite", 793.336f, y, 479.7f, 100f, "box1")
@@ -140,6 +149,7 @@ internal class TitleRenderEventRecorder {
         }
 
 
+        /** radios: 라디오 선택 이벤트를 기록한다. */
         fun radios(panel: Int, y: Float, selected: Int, values: List<String>) {
             val xs = floatArrayOf(818.346f, 974.286f, 1119.419f)
             val labelXs = floatArrayOf(855.731f, 1024.671f, 1169.804f)
@@ -199,6 +209,7 @@ internal class TitleRenderEventRecorder {
     }
 
     private companion object {
+        /** SCALE: 렌더링 배율 값을 보관한다. */
         const val SCALE = .86f
         val SPRITE_BLEND = listOf(770, 771)
         val LABEL_BLEND = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")

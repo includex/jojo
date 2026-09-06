@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.scenario.ScenarioMapPresentationRequest
@@ -7,6 +8,7 @@ internal class ScriptedUnitTimedCoordinator(
     private val lifecycle: ScriptedUnitPresentationLifecycle,
     private val port: Port,
 ) {
+    /** Port: 전투 표현 계층이 외부 기능과 연결할 때 사용하는 계약이다. */
     internal interface Port {
         fun now(): Float
         fun consumeMap(): ScenarioMapPresentationRequest?
@@ -15,7 +17,6 @@ internal class ScriptedUnitTimedCoordinator(
         fun centerCamera(request: CameraCenter)
         fun resumeScript()
     }
-
     internal data class CameraCenter(val x: Int, val y: Int)
 
     val busy: Boolean get() = lifecycle.activeMap != null

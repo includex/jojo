@@ -1,6 +1,7 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
 
-import com.jojo.game.KoreanFont
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -8,8 +9,6 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
-
-/** Owns preparation textures, fonts, patches, and lazy unit image caches. */
 internal class BattlePreparationAssets(backgroundId: Int, unitGlyphs: String) {
     private val textures = mutableListOf<Texture>()
     private val avatarTextures = mutableMapOf<Int, Texture>()

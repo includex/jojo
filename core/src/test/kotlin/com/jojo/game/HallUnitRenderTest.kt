@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.scenario.hall.*
@@ -5,13 +6,7 @@ import com.jojo.game.presentation.scenario.hall.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `HallUnitRenderTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** HallUnitRenderTest: HallUnitRender의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class HallUnitRenderTest {
     @Test fun `walking matches runtime sheet row and horizontal scale`() {
@@ -32,8 +27,7 @@ class HallUnitRenderTest {
         assertEquals(2, HallUnitRender.frame(0, 20, 2, .125f).row)
         assertEquals(2, HallUnitRender.frame(0, 20, 2, .2499f).row)
         assertEquals(1, HallUnitRender.frame(0, 20, 2, .25f).row)
-        // A direction change calls Animation.play(newClip), so callers pass
-        // local zero rather than the movement's global .08 second clock.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(1, HallUnitRender.frame(0, 20, 1, 0f).row)
         assertEquals(1, HallUnitRender.frame(0, 20, 2, 0f).row)
     }

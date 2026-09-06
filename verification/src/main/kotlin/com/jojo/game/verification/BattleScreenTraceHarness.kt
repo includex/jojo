@@ -1,11 +1,14 @@
+// Verification
 package com.jojo.game.verification
 
-import com.jojo.game.presentation.battle.BattleScreenIsolatedContract
-import com.jojo.game.presentation.battle.BattleScreenIsolatedUnit
+import com.jojo.game.presentation.battle.verification.BattleScreenIsolatedContract
+import com.jojo.game.presentation.battle.verification.BattleScreenIsolatedUnit
 
-/** battle_layer_source_trace_harness.js와 짝을 이루는 Kotlin 실행부이다. */
+/** BattleScreenTraceHarness: battle_layer_source_trace_harness.js와 짝을 이루는 Kotlin 실행부이다. */
 object BattleScreenTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(x: String) = "\"$x\""
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         // 픽스처 텍스트는 원본 계약의 일부이므로 공백을 유지한다.
@@ -26,7 +29,7 @@ object BattleScreenTraceHarness {
             val layer = BattleScreenIsolatedContract(units, m.groupValues[4] == "true", m.groupValues[3].toInt())
             val trace = mutableListOf<String>()
 
-            /** 현재 전투 단계의 상태를 기록한다. */
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snap(step: String) {
                 val v =
                     layer.view(); trace += "{\"step\":${q(step)},\"paused\":${v.paused},\"modal\":${v.modal},\"action\":${v.action},\"events\":[${

@@ -1,8 +1,7 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
 import com.jojo.game.presentation.battle.*
-
-/** Immutable copy of one mutable FightUnit presentation node. */
 internal data class FightFighterSnapshot(
     val characterId: Int?,
     val created: Boolean,
@@ -13,12 +12,11 @@ internal data class FightFighterSnapshot(
     val zIndex: Int,
 )
 
+/** FightSpeechSnapshot: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class FightSpeechSnapshot(
     val active: Boolean,
     val renderedText: String,
 )
-
-/** Deep immutable rendering snapshot taken at one FightLayer presentation tick. */
 internal data class FightPresentationSnapshot(
     val backgroundIndex: Int,
     val introBackgroundActive: Boolean,
@@ -32,7 +30,6 @@ internal data class FightPresentationSnapshot(
     val mineSpeech: FightSpeechSnapshot,
     val enemySpeech: FightSpeechSnapshot,
 )
-
 internal data class FightUnitRenderIdentity(
     val name: String?,
     val introName: String?,
@@ -40,6 +37,7 @@ internal data class FightUnitRenderIdentity(
     val avatarId: Int?,
 )
 
+/** FightFighterView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class FightFighterView(
     val side: FightSide,
     val slot: Int,
@@ -56,6 +54,7 @@ internal data class FightFighterView(
     val speech: FightSpeechSnapshot,
 )
 
+/** FightPresentationView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class FightPresentationView(
     val backgroundIndex: Int,
     val introBackgroundActive: Boolean,
@@ -102,8 +101,6 @@ private fun FightSpeechPresentation.renderSnapshot() = FightSpeechSnapshot(
     active = active,
     renderedText = renderedText,
 )
-
-/** Combines a pure state snapshot with identities resolved by BattleScreen. */
 internal object FightPresentationViewBuilder {
     fun build(
         snapshot: FightPresentationSnapshot,

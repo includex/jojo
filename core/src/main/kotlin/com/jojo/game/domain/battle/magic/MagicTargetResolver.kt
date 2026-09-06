@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.magic
 
 import com.jojo.game.domain.battle.*
@@ -5,10 +6,7 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleAttributeCalculator
 
-/**
- * Pure Kotlin resolver for resolving the effect of a magic spell onto a single target unit,
- * including healing, status changes, stat lifts, MP drain, and offensive damage.
- */
+/** MagicTargetResolver: 마법 대상 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object MagicTargetResolver {
 
     fun resolveTarget(

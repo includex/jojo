@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.settlement
 
 import com.jojo.game.domain.scenario.ScenarioRewardRequest
@@ -9,7 +10,7 @@ data class ResolvedBattleReward(
     val end: Boolean,
 )
 
-/** Exact arithmetic from recovered BattleScreen.reward. */
+/** BattleRewardResolver: 전투 보상 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 object BattleRewardResolver {
     fun resolve(
         request: ScenarioRewardRequest,

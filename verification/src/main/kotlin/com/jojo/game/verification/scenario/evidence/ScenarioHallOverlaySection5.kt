@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendFixture5: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendFixture5(writer: ScenarioHallOverlayEventWriter) = with(writer) {
                 val value = input.modalText
                 event(

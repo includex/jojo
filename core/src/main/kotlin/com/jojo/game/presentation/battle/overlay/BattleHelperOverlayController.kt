@@ -1,17 +1,10 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.HelperLayer
-import com.jojo.game.presentation.battle.BattleHelperOverlayView
-
-/**
- * Owns the HelperLayer lifecycle and its confirmation-button gesture.
- *
- * The screen only consumes the immutable [BattleHelperOverlayView] projection
- * and sends pointer intents, so the transient pressed state cannot leak into
- * the rest of BattleScreen's overlay state.
- */
 internal class BattleHelperOverlayController {
+    /** 도움말 레이어의 연결 상태와 확인 버튼 누름 상태를 보관한다. */
     private sealed interface State {
         data object Hidden : State
         data class Visible(
@@ -20,6 +13,7 @@ internal class BattleHelperOverlayController {
         ) : State
     }
 
+    /** 도움말 오버레이의 확인 버튼 좌표를 전달하는 포인터 입력이다. */
     sealed interface Intent {
         data class PointerDown(val x: Float, val y: Float) : Intent
         data class PointerUp(val x: Float, val y: Float) : Intent
@@ -44,7 +38,7 @@ internal class BattleHelperOverlayController {
         )
     }
 
-    /** Returns true when the helper overlay owns this input event. */
+    /** 확인 버튼 입력을 레이어에 전달하고 닫힘 여부를 내부 상태에 반영한다. */
     fun dispatch(intent: Intent): Boolean {
         val visible = state as? State.Visible ?: return false
         when (intent) {

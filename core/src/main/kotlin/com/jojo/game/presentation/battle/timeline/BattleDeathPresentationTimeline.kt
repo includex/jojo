@@ -1,19 +1,13 @@
+// Battle
 package com.jojo.game.presentation.battle.timeline
 
 import com.jojo.game.domain.battle.*
 
-/**
- * Callback-driven presentation of the source `unitDeath` generator.
- *
- * The timeline owns the serial queue and the two script barriers.  It does
- * not know Battle, Scenario, LibGDX, or a mutable screen; the host supplies
- * an immutable death batch and a narrow port for the authored side effects.
- */
+/** BattleDeathPresentationTimeline: 전투 사망 표현 시간 흐름이며, 시간 경과에 따른 전투 상태와 표현 단계를 진행한다. */
 internal class BattleDeathPresentationTimeline(
     private val port: Port,
 ) {
     internal enum class Checkpoint { CAMP_START, CAMP_RESTORE, ROUND_START }
-
     internal data class DeathUnit(
         val unitId: String,
         val direction: Int,
@@ -25,6 +19,7 @@ internal class BattleDeathPresentationTimeline(
         val retireMessage: String?,
     )
 
+    /** Port: 전투 표현 계층이 외부 기능과 연결할 때 사용하는 계약이다. */
     internal interface Port {
         val now: Float
         val scriptComplete: Boolean
@@ -38,7 +33,6 @@ internal class BattleDeathPresentationTimeline(
         fun completeDeathAnimation(unit: DeathUnit)
         fun completeCheckpoint(checkpoint: Checkpoint)
     }
-
     private enum class Stage { NONE, PRE_SCRIPT, HIDING, POST_SCRIPT }
 
     private val pending = ArrayDeque<DeathUnit>()
@@ -47,10 +41,7 @@ internal class BattleDeathPresentationTimeline(
     private var checkpoint: Checkpoint? = null
     private var stage = Stage.NONE
     private var postActionDeathsStarted = false
-
     private data class Active(val unit: DeathUnit, val endsAt: Float)
-
-    /** Starts a post-action unitDeath sequence without a turn checkpoint. */
     internal fun queuePostAction(units: List<DeathUnit>): Boolean {
         pending.clear()
         pending.addAll(units)
@@ -60,7 +51,7 @@ internal class BattleDeathPresentationTimeline(
         return true
     }
 
-    /** Starts the lifecycle-owned death barrier at the source checkpoint. */
+    /** begin: 전투 단계의 시작 상태를 만들고 필요한 값을 초기화한다. */
     internal fun begin(nextCheckpoint: Checkpoint): Boolean {
         check(checkpoint == null) { "overlapping lifecycle unitDeath checkpoints" }
         checkpoint = nextCheckpoint
@@ -80,7 +71,7 @@ internal class BattleDeathPresentationTimeline(
         return false
     }
 
-    /** Advances the pre/post script callback barrier once the script returns. */
+    /** driveScriptBarrier: 현재 전투 상태를 다음 처리 단계로 진행한다. */
     internal fun driveScriptBarrier() {
         val current = checkpoint ?: return
         if (!port.scriptComplete) return
@@ -105,7 +96,7 @@ internal class BattleDeathPresentationTimeline(
         }
     }
 
-    /** Advances one serial death/dialogue/animation callback chain. */
+    /** tick: 현재 전투 상태를 다음 처리 단계로 진행한다. */
     internal fun tick(now: Float) {
         active?.let { running ->
             if (now < running.endsAt) return
@@ -133,7 +124,7 @@ internal class BattleDeathPresentationTimeline(
         }
     }
 
-    /** Clears a manual post-action callback after its second script pass. */
+    /** finishPostActionCallbacks: 진행 중인 전투 처리를 완료하고 후속 상태를 반영한다. */
     internal fun finishPostActionCallbacks() {
         postActionDeathsStarted = false
         if (checkpoint == null) {
@@ -189,8 +180,6 @@ internal class BattleDeathPresentationTimeline(
             port.runScript()
             return
         }
-        // POST_SCRIPT is an external coroutine barrier. Only
-        // driveScriptBarrier may publish its completion.
     }
 
     private fun clearBarrier() {

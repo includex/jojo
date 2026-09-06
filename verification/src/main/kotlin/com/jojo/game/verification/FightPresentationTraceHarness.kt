@@ -1,12 +1,15 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
 import com.jojo.game.presentation.battle.render.*
 import com.jojo.game.presentation.battle.unit.*
 
-/** FightLayer 콜백과 BattleUnit 피해 UI 동작을 함께 추적한다. */
+/** FightPresentationTraceHarness: FightLayer 콜백과 BattleUnit 피해 UI 동작을 함께 추적한다. */
 object FightPresentationTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"$s\""
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val text = java.nio.file.Files.readString(java.nio.file.Path.of(args[0]))
@@ -18,6 +21,7 @@ object FightPresentationTraceHarness {
         java.nio.file.Files.writeString(java.nio.file.Path.of(args[1]), output); println(output)
     }
 
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     private fun run(m: MatchResult): String {
         val id = m.groupValues[1]
         val mode = m.groupValues[2].toInt()
@@ -31,7 +35,7 @@ object FightPresentationTraceHarness {
         var bars = BattleHarmBar.View()
         val trace = mutableListOf<String>()
 
-        /** 현재 전투 표현 상태를 기록한다. */
+        /** snap: 현재 전투 표현 상태를 기록한다. */
         fun snap(step: String) {
             val shown = health.shownHp("target", if (hit) 1f else 0f, hp)
             val raw = if (!hit) listOf(null, null, null) else if (damage == 0) listOf(

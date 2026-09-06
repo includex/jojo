@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.command.*
@@ -5,13 +6,7 @@ import com.jojo.game.domain.battle.command.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `ControlScoringTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** ControlScoringTest: ControlScoring의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class ControlScoringTest {
     private class U(
@@ -36,14 +31,14 @@ class ControlScoringTest {
         val target = U(2, hp = 100)
         val attacker = U(1, armType = ControlScoring.Arm.WU_JIANG,
             harms = listOf(ControlScoring.AttackHarm(50, target, rate = 50)))
-        // 50 * 100 / 100 then accuracy 50%, no reciprocal harm => 25.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(25, ControlActionScoring.attackValue(attacker, target, counter = true))
     }
 
     @Test fun `magic damage doubles score then applies famous kill and source zszd`() {
         val target = U(2, hp = 100, hpCur = 30, famous = true, mine = true, skills = mapOf(273 to 1))
         val caster = U(1, magic = 30)
-        // harm=30: base30, double-to-60, famous +1, kill +100, ZSZD +100.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (ZSZD)을 검증한다.
         assertEquals(261, ControlActionScoring.magicValue(M(category = 0, harmType = 1), caster, target, mutableMapOf()))
     }
 
@@ -55,7 +50,7 @@ class ControlScoringTest {
             skills = mapOf(44 to 1),
             harms = listOf(ControlScoring.AttackHarm(10, target)),
         )
-        // 10 physical percent + Config.AI_VALUE.ATK_XWBFJ (40).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (AI_VALUE, ATK_XWBFJ)을 검증한다.
         assertEquals(50, ControlActionScoring.attackValue(withSourceCounterSkill, target, counter = true))
 
         val counterDisabled = U(
@@ -64,14 +59,14 @@ class ControlScoringTest {
             skills = mapOf(226 to 1, 44 to 1),
             harms = listOf(ControlScoring.AttackHarm(10, target)),
         )
-        // WFJGJ skips the entire counter/counter-skill portion.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (WFJGJ)을 검증한다.
         assertEquals(10, ControlActionScoring.attackValue(counterDisabled, target, counter = true))
     }
 
     @Test fun `magic lift uses original arm specific status score and caches only valid result`() {
         val target = U(2, armType = ControlScoring.Arm.WEN_GUAN)
         val cache = mutableMapOf<String, Int>()
-        // JDFY on WenGuan = DEF_WG 10, then source's s += max(1,s) => 20.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (JDFY, DEF_WG)을 검증한다.
         assertEquals(20, ControlActionScoring.magicValue(M(category = ControlScoring.Category.JDFY), U(1), target, cache))
         assertEquals(mapOf("magic_1_2_1" to 20), cache)
     }
@@ -79,25 +74,18 @@ class ControlScoringTest {
     @Test fun `all-rounder defence score uses source ATT_QN identifier`() {
         val target = U(2, armType = ControlScoring.Arm.QUAN_NENG)
         val values = ControlScoring.Values(attackQn = 7, defQn = 99)
-        // Control.js has the authored (and observable under injected data)
-        // ATT_QN lookup in the DEF case: 7 then doubled.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (ATT_QN, DEF)을 검증한다.
         assertEquals(14, ControlActionScoring.magicValue(M(category = ControlScoring.Category.JDFY), U(1), target, mutableMapOf(), values = values))
     }
 
     @Test fun `ZCXD accepts every source AI from attack-unit onward`() {
         val target = U(2, ai = 3, states = mapOf(ControlScoring.Status.XD to ControlScoring.Lift.DOWN))
-        // ZCXD produces MOV value 10, then the source doubles a positive score.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (ZCXD, MOV)을 검증한다.
         assertEquals(20, ControlActionScoring.magicValue(M(category = ControlScoring.Category.ZCXD), U(1), target, mutableMapOf()))
     }
 
     @Test fun `category switch break preserves damaging magic candidate`() {
-/**
- * data class  `Case`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** Case: 마법 분류별 상태·AI 조합을 묶어 후보 선택 규칙을 반복 검증하는 지역 테스트 입력이다. */
 
         data class Case(val category: Int, val states: Map<Int, Int>, val ai: Int = 6)
         val cases = listOf(
@@ -119,8 +107,7 @@ class ControlScoringTest {
 
         for (case in cases) {
             val target = U(2, armType = ControlScoring.Arm.WU_JIANG, mine = true, ai = case.ai, states = case.states)
-            // Source `break` skips the inapplicable status value, then scores
-            // the 10-point harm and doubles the positive result.
+            // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
             assertEquals(
                 20,
                 ControlActionScoring.magicValue(
@@ -154,8 +141,7 @@ class ControlScoringTest {
             mine = true,
             states = mapOf(ControlScoring.Status.ATT to ControlScoring.Lift.DOWN),
         )
-        // The ATT duplicate breaks the source switch. SPR must not be added,
-        // but the damaging component below the switch remains worth 20.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (ATT, SPR)을 검증한다.
         assertEquals(
             20,
             ControlActionScoring.magicValue(
@@ -170,7 +156,7 @@ class ControlScoringTest {
     @Test fun `recover hp requires missing hp and same side`() {
         val target = U(2, hp = 100, hpCur = 50, mine = true)
         val caster = U(1, mine = true, magic = 70)
-        // clamp 70 to 50; 50 + normal heal bonus70.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(240, ControlActionScoring.magicValue(M(category = 0, type = ControlScoring.Type.HUIFU_HP), caster, target, mutableMapOf()))
     }
 
@@ -181,7 +167,7 @@ class ControlScoringTest {
             ControlScoring.Choice(1, 1, 10, attack),
             ControlScoring.choose(listOf(
                 ControlScoring.Move(1, 1, 10, attacks = listOf(attack), magics = listOf(magic)),
-                // total is equal: source's `lt <= _t` retains the first move.
+                // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
                 ControlScoring.Move(2, 2, 15)
             ))
         )

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
@@ -15,27 +16,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleTurnSettlementServiceTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleTurnSettlementServiceTest: BattleTurnSettlementService의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleTurnSettlementServiceTest {
 
     @Test
-/**
- * 공개 메서드 `advanceToNextCampCyclesThroughAllFourFactions`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** advanceToNextCampCyclesThroughAllFourFactions: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun advanceToNextCampCyclesThroughAllFourFactions() {
         var camp = Faction.PLAYER
@@ -59,16 +45,7 @@ class BattleTurnSettlementServiceTest {
     }
 
     @Test
-/**
- * 공개 메서드 `advanceRoundIncrementsRoundOnlyForReinforcements`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** advanceRoundIncrementsRoundOnlyForReinforcements: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun advanceRoundIncrementsRoundOnlyForReinforcements() {
         val (newRound, advance) = BattleRoundCoordinator.advanceRound(Faction.REINFORCEMENTS, 3)
@@ -78,16 +55,7 @@ class BattleTurnSettlementServiceTest {
     }
 
     @Test
-/**
- * 공개 메서드 `turnSnapshotAndChangesDetectsHpAndStatusModifications`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** turnSnapshotAndChangesDetectsHpAndStatusModifications: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun turnSnapshotAndChangesDetectsHpAndStatusModifications() {
         val unit = BattleUnit(

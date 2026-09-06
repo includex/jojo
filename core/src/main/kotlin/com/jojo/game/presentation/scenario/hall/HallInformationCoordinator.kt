@@ -1,10 +1,15 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.*
 import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.domain.campaign.CampaignState
+import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
+import com.jojo.game.presentation.shared.overlay.MagicInfoLayer
+import com.jojo.game.presentation.shared.overlay.TerrainLayer
 
-/** Owns non-command Hall overlays and their detail/inspection input transitions. */
+/** HallInformationCoordinator: 거점 정보 조정기이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 internal class HallInformationCoordinator(
     private val campaign: CampaignState,
     private val catalog: GameDataCatalog,

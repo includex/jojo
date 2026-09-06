@@ -1,4 +1,9 @@
+// Test
 package com.jojo.game
+
+import com.jojo.game.application.scenario.ScenarioStageWeatherEnvironment
+import com.jojo.game.infrastructure.data.EncryptedGameDataCodec
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.presentation.scenario.overlay.*
 
@@ -11,7 +16,7 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.command.*
 import com.jojo.game.application.scenario.*
 import com.jojo.game.presentation.battle.timeline.*
-import com.jojo.game.presentation.battle.BattleUnitPresentationStore
+import com.jojo.game.presentation.battle.unit.BattleUnitPresentationStore
 import com.jojo.game.infrastructure.data.CampaignSaveCodec
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
@@ -24,13 +29,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-/**
- * class  `ScenarioRuntimeTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** ScenarioRuntimeTest: ScenarioRuntime의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class ScenarioRuntimeTest {
     @Test
@@ -39,18 +38,7 @@ class ScenarioRuntimeTest {
         stage.seedBattleUnitPosition(1, 10, 10)
         stage.setUnitDirection(1, 2)
 
-/**
- * 공개 메서드 `target`
- *
- * ### 파라미터
-- `id` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `x` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `y` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Int`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** target: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun target(id: Int, x: Int, y: Int): Int {
             stage.seedBattleUnitPosition(id, x, y)
@@ -73,8 +61,7 @@ class ScenarioRuntimeTest {
         val runtime = ScenarioInterpreter.load("S_22", campaign)
         runtime.enableExternalBattlePresentation()
         runtime.start("scene0")
-        // loadBg/draw owns the first native callback; resuming it reaches
-        // setDir(countDir) and then the action-5 presentation barrier.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         runtime.completeBattleBackgroundLoad()
 
         assertEquals(2, runtime.stage.unit(118).direction)
@@ -174,8 +161,7 @@ class ScenarioRuntimeTest {
 
         runtime.update(1f / 60f)
         assertEquals(PlaybackState.DELAY, runtime.state)
-        // S_00 continues with attackAction(...) and then an authored
-        // stage.delay(10); both callbacks precede speaker 235.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서 (S_00)을 검증한다.
         runtime.skipDelay()
         assertEquals(PlaybackState.DELAY, runtime.state)
         runtime.skipDelay()
@@ -194,8 +180,7 @@ class ScenarioRuntimeTest {
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
         assertFalse(runtime.stage.menuVisible)
         assertEquals(Dialogue("0", "출발."), runtime.currentDialogue)
-        // bgSound(-1) is after stage.say in the recovered source and therefore
-        // must not execute until the SayLayer completion callback resumes it.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(15, runtime.stage.backgroundSound)
 
         runtime.advanceDialogue()
@@ -400,7 +385,7 @@ class ScenarioRuntimeTest {
         assertEquals(100, runtime.requestedBattleBackgroundMapIndex)
         assertEquals(0, runtime.stage.battleMapIndex)
         assertEquals(0, campaign.globalVariables[4051])
-        // A generic delay skip must not leap over a failed/pending image load.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         runtime.skipDelay()
         assertTrue(runtime.hasPendingBattleBackgroundLoad)
         assertNull(runtime.stage.consumeScriptPresentationRequest())
@@ -417,8 +402,7 @@ class ScenarioRuntimeTest {
         })
         assertEquals(PlaybackState.DELAY, runtime.state)
         runtime.resumeExternalDelay()
-        // scene0's next statement is stage.delay(5), so the callback cannot
-        // skip or merge that independent half-second source barrier.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(PlaybackState.DELAY, runtime.state)
         assertNull(runtime.stage.consumeScriptPresentationRequest())
     }
@@ -536,14 +520,10 @@ class ScenarioRuntimeTest {
         stage.apply(ScenarioCommand.MoveUnit(0, 12, 12, 2))
         val unit = stage.unit(0)
 
-        // Source _move2 keeps _x/_y at the origin until its final callFunc;
-        // only the rendered node traverses the path in the meantime.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(10 to 10, unit.x to unit.y)
         assertEquals(1, unit.direction)
-        // The move call itself is observable before updateAnimations: the
-        // command is emitted by runUntilInput after that render's animation
-        // update.  The next render must advance both its script delay and its
-        // move action by the same delta.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(10f, unit.visualX)
         assertEquals(10f, unit.visualY)
         stage.updateAnimations(0.02f)
@@ -552,8 +532,7 @@ class ScenarioRuntimeTest {
         assertEquals(1, unit.direction)
         assertEquals(0.02f, unit.animationElapsed, 0.001f)
 
-        // The stable A* neighbor order reaches x first and then y. Source
-        // setAction starts anime20_2 again when this corner is crossed.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         stage.updateAnimations(0.07f)
         assertEquals(2, unit.direction)
         assertEquals(0f, unit.animationElapsed, 0.001f)
@@ -570,7 +549,7 @@ class ScenarioRuntimeTest {
         stage.enableBattleMovementTimeline()
         stage.apply(ScenarioCommand.ShowUnit(0, 7, 0, 1))
 
-        // Three orthogonal route edges: 3 * .08 plus move2's final .1 delay.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(0.34f, stage.moveDuration(0, 8, 2), 0.001f)
         stage.apply(ScenarioCommand.MoveUnit(0, 8, 2, 2))
         stage.updateAnimations(0.3f)
@@ -610,9 +589,7 @@ class ScenarioRuntimeTest {
         val callbackDelay = stage.moveDuration(33, 12, 5)
         stage.apply(ScenarioCommand.MoveUnit(33, 12, 5, 2))
 
-        // runUntilInput emits the move after the current render's animation
-        // update, so its initial action remains observable without consuming
-        // an extra frame from the callback delay.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(20, stage.unit(33).action)
         assertEquals(13 to 1, stage.unit(33).let { it.x to it.y })
         stage.updateAnimations(callbackDelay)
@@ -760,7 +737,7 @@ class ScenarioRuntimeTest {
         assertEquals(0.5f, stage.heads.getValue(119).opacity, 0.001f)
         stage.updateAnimations(0.5f)
 
-        // 3-4-5 distance maps to Head.move's 0.01 * distance seconds.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(0.05f, stage.moveHead(119, 103, 104), 0.001f)
         stage.updateAnimations(0.025f)
         assertEquals(101.5f, stage.heads.getValue(119).visualX, 0.001f)
@@ -835,8 +812,7 @@ class ScenarioRuntimeTest {
 
         assertEquals(TacticalActionResult.Item("회복약", "target", "HP 35 회복"), state.combat.useProperty("user", "target", 150))
         assertEquals(75, state.units.getValue("target").hitPoints)
-        // The screen-owned projection synchronizes the recovered HP before
-        // this unit is rendered.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(.75f, BattleUnitPresentationStore().stateFor(state.units.getValue("target")).hpBarProgress)
         assertEquals(null, inventory[150])
     }
@@ -857,9 +833,7 @@ class ScenarioRuntimeTest {
 
         assertEquals(1, area[2 to 1])
         assertEquals(2, area[1 to 1])
-        // BattleScreen's psHash/overlay retains same-camp occupied routing
-        // nodes.  `moveUnit` is the separate destination gate and rejects
-        // the occupied point.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(true, 3 to 2 in area)
         assertEquals(false, 2 to 3 in area)
         assertIs<TacticalActionResult.Success>(state.movement.moveUnit("unit", 1, 1))
@@ -910,7 +884,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, magicPoints = 50, level = 1, skills = mapOf(95 to 0)),
             ), events = emptyList(),
         )
-        // 100 + BIAO_HAN 10 + LRHY 10 + FZZS_ATT 10 + GDZS(+15/-15).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (BIAO_HAN, LRHY, FZZS_ATT)을 검증한다.
         assertEquals(130, (state.combat.attack("attacker", "target", damage = 100) as TacticalActionResult.Attack).damage)
     }
 
@@ -970,8 +944,7 @@ class ScenarioRuntimeTest {
             ), events = emptyList(),
         )
         val result = state.combat.attack("attacker", "target") as TacticalActionResult.Attack
-        // BattleScreen._attack6 starts with FAN_JI (75%); its FJBDSJ
-        // follow-up adds LIANJI as well, for another -25% (50%).
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (FAN_JI, FJBDSJ, LIANJI)을 검증한다.
         assertEquals(56, result.counterDamage)
         assertEquals(37, result.counterFollowUpDamage)
         assertEquals(407, state.units.getValue("attacker").hitPoints)
@@ -982,16 +955,7 @@ class ScenarioRuntimeTest {
         val clearOnly = GameDataCatalog.MagicProfile(1, "청명", 0, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), 0, emptySet(), 0, 100, 0, 0, condition = 3)
         val special = clearOnly.copy(id = 2, condition = 5)
         val rain = clearOnly.copy(id = 58, target = 2)
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -1007,17 +971,7 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `original unit restraint skills override and adjust arm matchup`() {
-/**
- * 공개 메서드 `damage`
- *
- * ### 파라미터
-- `attackerSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `targetSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Int`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** damage: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun damage(attackerSkills: Map<Int, Int>, targetSkills: Map<Int, Int>): Int {
             val state = Battle(
@@ -1109,8 +1063,7 @@ class ScenarioRuntimeTest {
 
         val campaign = CampaignState().also { it.roster.restoreBattleRoster(listOf(157)) }
         val stage = ScenarioStage(campaign)
-        // The source accepts x-only hidden Mine slots during scene0 and
-        // supplies the missing y as its runtime default (zero).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         stage.createBattleUnits(ScenarioUnitFaction.MINE, listOf(mapOf("idx" to 0, "x" to 7, "dir" to 1, "hide" to 1)))
 
         assertEquals(157, stage.battleUnits.getValue("MINE:0").characterId)
@@ -1137,16 +1090,14 @@ class ScenarioRuntimeTest {
                 assertEquals(9, it.aiTargetY)
             }
         }
-        // Omitted source AI defaults to BattleScreen's hold-position value;
-        // most importantly it was not overwritten by camp 4.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(2, stage.battleUnits.getValue("ENEMY:0").ai)
     }
 
     @Test
     fun `battle object state keeps source type separate from terrain overlay`() {
         val stage = ScenarioStage()
-        // stage.setObjects(True, 27, [[1, 4, 8]]) in the source: 1 is the
-        // object type while 27 is its terrain replacement.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         stage.setMapObjects(true, 27, listOf(listOf(1, 4, 8)))
         val objectState = stage.mapObjects.getValue(4 to 8)
 
@@ -1358,8 +1309,7 @@ class ScenarioRuntimeTest {
 
         playback.advanceDialogue()
         assertEquals(PlaybackState.CHOICE, playback.state)
-        // Source move2 keeps the logical tile at the origin until its final
-        // callback; the choice can already be queued while the node moves.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(5, playback.stage.unit(181).y)
         assertEquals(20, playback.stage.unit(181).action)
         playback.stage.finishAnimations()
@@ -1440,16 +1390,7 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `S52 all-camp rectangle selector 6 keeps an occupied gate open`() {
-/**
- * 공개 메서드 `runtimeAtGate`
- *
- * ### 파라미터
-- `occupied` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `ScenarioInterpreter`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** runtimeAtGate: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun runtimeAtGate(occupied: Boolean): ScenarioInterpreter = ScenarioInterpreter.load("S_52").also { runtime ->
             runtime.setScriptVariables((0..100).associateWith { 1 } + (20 to 0))
@@ -1819,8 +1760,7 @@ class ScenarioRuntimeTest {
 
         val result = assertIs<TacticalActionResult.Magic>(battle.combat.castMagic("caster", "target", wind.id))
 
-        // trunc((61 - 32) / 3 + 25 + 5) * 50% = 19. The caster tile
-        // is unsuitable (85%), so reading it incorrectly would return 16.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(19, result.targets.single().damage)
     }
 
@@ -1857,16 +1797,7 @@ class ScenarioRuntimeTest {
             hitArea = GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), effectAreaId = 0,
             effectOffsets = emptySet(), expendMp = 1, power = 100, harmType = 0, category = 0,
         )
-/**
- * 공개 메서드 `state`
- *
- * ### 파라미터
-- `flag` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** state: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun state(flag: Int) = Battle(
             listOf(
@@ -2046,7 +1977,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("enemy", "적", Faction.ENEMY, 5, 5),
             ), emptyList(),
         )
-        // floor(50 * 28 / 100) + floor(60 / 10)
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         val result = battle.combat.castMagic("caster", "ally", 39)
         assertIs<TacticalActionResult.Magic>(result, result.toString())
         assertEquals(20, result.targets.single().healing)
@@ -2061,7 +1992,7 @@ class ScenarioRuntimeTest {
                 BattleUnit("enemy", "적", Faction.ENEMY, 1, 0, spirit = 1, morale = 1, hitPoints = 500, maxHitPoints = 500, skills = mapOf(115 to 10)),
             ), emptyList(),
         )
-        // base 59 + LRHY 20 + HXCLZS 5, then (100 + 10 + 5 - 10)% = 95%.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (LRHY, HXCLZS)을 검증한다.
         assertEquals(132, (battle.combat.castMagic("caster", "enemy", 0) as TacticalActionResult.Magic).targets.single().damage)
     }
 
@@ -2117,24 +2048,14 @@ class ScenarioRuntimeTest {
         val result = state.combat.attack("attacker", "target") as TacticalActionResult.Attack
         assertEquals(100, result.hitRate)
         assertEquals(false, result.critical)
-        // The critical gauge succeeded, so source `_attack2` still selects
-        // HIT_ATTACK/anime21 even though FYZMGJ cancels the damaging critical.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (HIT_ATTACK, FYZMGJ)을 검증한다.
         assertEquals(true, result.physicalPasses.first().critical)
     }
 
     @Test
     fun `original strategy hit limit and magic evasion are resolved`() {
         val tactic = GameDataCatalog.MagicProfile(0, "책략", 5, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), 0, emptySet(), 0, 100, 0, 0, hitRateLimit = 3)
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `targetSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(targetSkills: Map<Int, Int>) = Battle(
             listOf(
@@ -2144,7 +2065,7 @@ class ScenarioRuntimeTest {
         )
         assertEquals(50, (battle(emptyMap()).combat.castMagic("caster", "target", 0) as TacticalActionResult.Magic).targets.single().hitRate)
         val evaded = (battle(mapOf(17 to 0)).combat.castMagic("caster", "target", 0) as TacticalActionResult.Magic).targets.single()
-        // CLMY is checked after count_magic_hitRate's displayed limit.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (CLMY)을 검증한다.
         assertEquals(50, evaded.hitRate)
         assertEquals(false, evaded.hit)
     }
@@ -2170,36 +2091,17 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `Control magic hit limit three and four retain source floor but ignore modifiers against famous targets`() {
-/**
- * 공개 메서드 `tactic`
- *
- * ### 파라미터
-- `limit` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** tactic: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun tactic(limit: Int) = GameDataCatalog.MagicProfile(
             0, "책략", 5, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)),
             0, emptySet(), 0, 100, 0, 0, hitRateLimit = limit,
         )
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `limit` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(limit: Int) = Battle(
             listOf(
-                // CLJDMZ would normally force 100%, proving that the source
-                // does not enter its modifier branch for a famous target.
+                // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (CLJDMZ)을 검증한다.
                 BattleUnit("caster", "책사", Faction.PLAYER, 0, 0, spirit = 100, morale = 100, magic = listOf(tactic(limit)), skills = mapOf(15 to 0)),
                 BattleUnit("target", "명장", Faction.ENEMY, 1, 0, spirit = 1, morale = 1, famous = true),
             ),
@@ -2208,8 +2110,7 @@ class ScenarioRuntimeTest {
 
         for (limit in 3..4) {
             val target = assertIs<TacticalActionResult.Magic>(battle(limit).combat.castMagic("caster", "target", 0)).targets.single()
-            // The source cap is 0, then its common range(i, 25, 100)
-            // exposes 25. CLJDMZ is deliberately skipped for this branch.
+            // 테스트 근거: 전투 계산·난수 소비·경계값 (CLJDMZ)을 검증한다.
             assertEquals(25, target.hitRate)
         }
     }
@@ -2391,9 +2292,7 @@ class ScenarioRuntimeTest {
         destination.roundLifecycle.endTurn()
         assertEquals(1, destination.ai.resolveTurn().moves)
         assertEquals(2, destination.units.getValue("enemy").tileX)
-        // CtrlDZDD only persists BEI_DONG_CHU_JI when the controller is
-        // entered while already standing on its destination.  Completing
-        // the move this turn therefore retains AI 4 until the next camp.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (BEI_DONG_CHU_JI)을 검증한다.
         assertEquals(4, destination.units.getValue("enemy").ai)
         destination.roundLifecycle.endTurn()
         destination.roundLifecycle.endTurn()
@@ -2403,8 +2302,7 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `passive AI uses source psAry scan then attacks from a reachable tile`() {
-        // CtrlBDCJ._aiHaveAttackTargets scans all movement candidates.  The
-        // target is not attackable at x=0, but it is attackable from x=3.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         val battle = Battle(
             listOf(
                 BattleUnit("enemy", "적", Faction.ENEMY, 0, 0, ai = 0, movement = 3, critical = 100),
@@ -2456,8 +2354,7 @@ class ScenarioRuntimeTest {
         val result = battle.ai.resolveTurn()
 
         assertEquals(1, result.attacks)
-        // harmType=4 is MAGIC_HARM_TYPE.NO. Original _countMagicValue
-        // gives it no offensive score, so Control._AIProcess selects attack.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (MAGIC_HARM_TYPE)을 검증한다.
         assertEquals(3, battle.units.getValue("enemy").magicPoints)
         assertEquals(true, battle.units.getValue("enemy").hasActed)
         assertEquals(true, battle.units.getValue("player").hitPoints < 100)
@@ -2512,8 +2409,7 @@ class ScenarioRuntimeTest {
     fun `only explicit event direction changes are emitted to battle presentation`() {
         val stage = ScenarioStage()
 
-        // A lazily-created proxy is bookkeeping only and must not replace a
-        // BattleScreen actor's authored spawn direction.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         stage.unit(99)
         assertEquals(emptyList(), stage.consumeScriptedUnitDirections())
 
@@ -2596,8 +2492,7 @@ class ScenarioRuntimeTest {
         assertEquals(multiSpeakerRevision, runtime.dialogueLifecycleRevision)
 
         runtime.advanceDialogue()
-        // Closing this multi-speaker SayLayer resumes the authored scripted
-        // movement, whose move2 callback is represented by DELAY.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (DELAY)을 검증한다.
         assertEquals(PlaybackState.DELAY, runtime.state)
         assertNull(runtime.currentDialogueSourceText)
     }
@@ -2618,8 +2513,7 @@ class ScenarioRuntimeTest {
         repeat(4) { runtime.advanceDialogue() }
         runtime.skipDelay()
         runtime.skipDelay()
-        // The second long fire delay resumes into unit(3).move(8, 5), which
-        // owns a separate move2 callback barrier before the next SayLayer.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         runtime.skipDelay()
         assertEquals("3", runtime.currentDialogue?.speakerId)
         runtime.advanceDialogue()
@@ -2769,8 +2663,7 @@ class ScenarioRuntimeTest {
             stage.consumeFightCommands(),
         )
 
-        // FightLayer.end restores the sound captured by startFight even when
-        // the renderer consumed Start and the other commands incrementally.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         stage.enqueueFightCommand(ScenarioFightCommand.End(fightId))
         assertEquals(2, stage.backgroundSound)
         assertNull(stage.activeFightId)
@@ -2809,7 +2702,7 @@ class ScenarioRuntimeTest {
         assertEquals(Dialogue("134", "흥, 아무도 아니야!"), runtime.currentDialogue)
         runtime.advanceDialogue()
 
-        // The authored two-second stage.delay follows the first strike.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(PlaybackState.DELAY, runtime.state)
         val beforeDelay = runtime.stage.consumeFightCommands()
         assertIs<ScenarioFightCommand.Start>(beforeDelay[0])

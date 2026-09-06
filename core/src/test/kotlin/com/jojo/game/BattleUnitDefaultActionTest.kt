@@ -1,20 +1,15 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
 
-import com.jojo.game.presentation.battle.BattleUnitPresentationStore
+import com.jojo.game.presentation.battle.unit.BattleUnitPresentationStore
 import com.jojo.game.presentation.battle.unit.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `BattleUnitDefaultActionTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleUnitDefaultActionTest: BattleUnitDefaultAction의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleUnitDefaultActionTest {
     private fun unit(hp: Int = 100, famous: Boolean = false, acted: Boolean = false, states: Set<BattleStatus> = emptySet()) =

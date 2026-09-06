@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
@@ -13,27 +14,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * class  `BattleOutcomeCoordinatorTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleOutcomeCoordinatorTest: BattleOutcomeCoordinator의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleOutcomeCoordinatorTest {
 
     @Test
-/**
- * 공개 메서드 `testOutcomeCalculations`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** testOutcomeCalculations: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun testOutcomeCalculations() {
         var round = 1
@@ -70,30 +56,21 @@ class BattleOutcomeCoordinatorTest {
 
         assertNull(coordinator.outcome())
 
-        // Player victory when enemy defeated
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         units.remove(enemyUnit)
         assertEquals(BattleOutcome.PLAYER_VICTORY, coordinator.outcome())
 
-        // Enemy victory when round limit reached
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         round = 10
         assertEquals(BattleOutcome.ENEMY_VICTORY, coordinator.outcome())
 
-        // Scripted outcome overrides everything
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         coordinator.setScriptedOutcome(BattleOutcome.PLAYER_VICTORY)
         assertEquals(BattleOutcome.PLAYER_VICTORY, coordinator.outcome())
     }
 
     @Test
-/**
- * 공개 메서드 `testMaxRoundsFeatureFlag`
- *
- * ### 파라미터
-- 입력 파라미터: 없음
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** testMaxRoundsFeatureFlag: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun testMaxRoundsFeatureFlag() {
         var features = 0

@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
@@ -8,9 +9,7 @@ import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.utils.JsonValue
 
-/**
- * Dispatches stage.unit().* and stage.head().* receiver method calls.
- */
+/** ScenarioUnitActionDispatcher: 스크립트의 유닛 생성·삭제·상태 변경 호출을 무대 유닛 상태에 반영한다. */
 internal object ScenarioUnitActionDispatcher {
 
     fun dispatch(

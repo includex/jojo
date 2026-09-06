@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
@@ -12,13 +13,18 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/** Global130 능력치 화면의 결정적 렌더링을 제공한다. */
+/** AttributeFixtureScreen: Global130 능력치 화면의 결정적 렌더링을 제공한다. */
 class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = Texture(Gdx.files.internal("maps/71.jpg"))
+    /** panel: 화면 패널 리소스를 담는다. */
     private val panel = Texture(Gdx.files.internal("maps/ui/terrain-layer/panel.png"))
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -32,11 +38,12 @@ class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
         game.captureFrameIfRequested()
     }
 
-    /** 능력치 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 능력치 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String {
         val l = RenderEventLog()
         val phase = "hall-attribute-stable"
+        /** d: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun d(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = ""
@@ -60,9 +67,12 @@ class AttributeFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
         }
         return l.jsonl()
     }
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose(); background.dispose(); panel.dispose()
     }

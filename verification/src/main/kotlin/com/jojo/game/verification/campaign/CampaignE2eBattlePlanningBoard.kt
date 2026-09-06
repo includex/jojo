@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification.campaign
 
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
@@ -5,6 +6,7 @@ import com.jojo.game.domain.battle.BattleStatus
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.isEnemySide
 
+/** CampaignE2eBattlePlanningBoard: 전투 검증 상태와 선택 정보를 모으는 타입이다. */
 internal class CampaignE2eBattlePlanningBoard(val ctx: CampaignE2eProjectionContext) {
     val screen = ctx.screen
     val probe = screen.battle
@@ -33,11 +35,14 @@ internal class CampaignE2eBattlePlanningBoard(val ctx: CampaignE2eProjectionCont
     val occupiedTiles = units.asSequence().filter { it.visible && it.hitPoints > 0 }.map { it.tile() }.toSet()
     val strategicTarget = strategicTarget()
 
+    /** targetPriority: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     fun targetPriority(unit: RuntimeBattleUnitSnapshot): Int = targetOrder().indexOf(unit.characterId).takeIf { it >= 0 } ?: 10_000
 
+    /** canAttack: 공격 가능 여부를 전투 규칙으로 판정한다. */
     fun canAttack(unit: RuntimeBattleUnitSnapshot, tile: Pair<Int, Int>, target: RuntimeBattleUnitSnapshot): Boolean =
         unit.attackAllScreen || (target.x - tile.first to target.y - tile.second) in unit.attackOffsets.map { it.tile() }
 
+    /** attackableFrom: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     fun attackableFrom(unit: RuntimeBattleUnitSnapshot, tile: Pair<Int, Int>): List<RuntimeBattleUnitSnapshot> {
         val attackable = routedVisibleEnemies.filter { canAttack(unit, tile, it) }
         if (scenario == "S_01") {
@@ -48,6 +53,7 @@ internal class CampaignE2eBattlePlanningBoard(val ctx: CampaignE2eProjectionCont
         return attackable.sortedWith(compareBy<RuntimeBattleUnitSnapshot>(::targetPriority).thenBy { it.hitPoints })
     }
 
+    /** guidedMagicPlanFor: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     fun guidedMagicPlanFor(caster: RuntimeBattleUnitSnapshot): CampaignE2eGuidedMagicPlan? {
         if (BattleStatus.SILENCE in caster.statuses) return null
         return s57GuidedOffensiveMagicPlan(
@@ -58,6 +64,7 @@ internal class CampaignE2eBattlePlanningBoard(val ctx: CampaignE2eProjectionCont
         )
     }
 
+    /** strategicTarget: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     private fun strategicTarget(): Pair<Int, Int>? {
         val waypoint = s57GateTarget ?: ctx.authoredMechanicRoute.target(playerTiles)
         if (scenario == "S_01") {
@@ -72,10 +79,12 @@ internal class CampaignE2eBattlePlanningBoard(val ctx: CampaignE2eProjectionCont
         return candidates.minWithOrNull(comparator)?.tile() ?: waypoint
     }
 
+    /** distanceFromParty: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     private fun distanceFromParty(enemy: RuntimeBattleUnitSnapshot): Int = playerTiles.minOfOrNull { (x, y) ->
         kotlin.math.abs(enemy.x - x) + kotlin.math.abs(enemy.y - y)
     } ?: Int.MAX_VALUE
 
+    /** targetOrder: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     private fun targetOrder(): List<Int> = when (scenario) {
         "S_52" -> listOf(170, 171, 172, 173)
         "S_57" -> listOf(165, 162, 169, 166, 167, 168, 163, 164, 35)

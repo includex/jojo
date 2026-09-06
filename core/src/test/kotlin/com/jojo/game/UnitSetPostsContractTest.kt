@@ -1,4 +1,7 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.application.scenario.ScenarioStage
 
 import com.jojo.game.domain.battle.*
 
@@ -12,7 +15,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Focused source-contract coverage for Unit.setPosts and BattleUnit.setPosts. */
+/** UnitSetPostsContractTest: Unit과 BattleUnit의 setPosts가 유지해야 하는 원본 직위 변경 계약을 집중 검증한다. */
 class UnitSetPostsContractTest {
     @Test
     fun `model setPosts preserves flags 2 8 and Mine phase refresh semantics`() {
@@ -26,7 +29,7 @@ class UnitSetPostsContractTest {
             it.setUnitAttribute(0, 2, -999)
         }
 
-        // The first do/while breaks, but the source's second block still runs.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         val same = assertNotNull(campaign.setUnitPosts(0, profile.posts, flags = 2, data = data))
         assertFalse(same.postsWritten)
         assertEquals(emptyList(), same.cacheRefreshOrder)
@@ -35,8 +38,7 @@ class UnitSetPostsContractTest {
             same.derivedAttributes,
         )
 
-        // Bit 8 suppresses only refAbilityPhase; it does not suppress POSTS,
-        // resetPostsSkills, or refMagick.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (POSTS)을 검증한다.
         val skipped = assertNotNull(campaign.setUnitPosts(0, profile.posts + 1, flags = 8, data = data))
         assertTrue(skipped.postsWritten)
         assertEquals(listOf("postsSkills", "magic"), skipped.cacheRefreshOrder)
@@ -62,14 +64,12 @@ class UnitSetPostsContractTest {
         assertEquals(0, reload.unitId)
         assertTrue(reload.oldAvatarId != reload.newAvatarId)
 
-        // `testAvatar()` compares the loaded group after Unit.setPosts.  Once
-        // POSTS is already equal it returns false and the call is synchronous.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (POSTS)을 검증한다.
         stage.setBattleUnitPosts(0, promoted, data = data)
         assertFalse(stage.lastBattleUnitPostsRequiresPause)
         assertNull(stage.consumeUnitPostsRequest())
 
-        // No live BattleUnit wrapper surrounds Model.unit().setPosts: default
-        // flags are 3 and no avatar load/pause is manufactured.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         val modelChange = assertNotNull(stage.setModelUnitPosts(0, profile.posts, data = data))
         assertEquals(3, modelChange.flags)
         assertNull(stage.consumeUnitPostsRequest())

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -6,7 +7,7 @@ import com.jojo.game.domain.battle.*
 
 import com.jojo.game.application.battle.*
 import com.jojo.game.domain.battle.turn.*
-import com.jojo.game.presentation.battle.BattleScreenHitReactionDirectionScheduler
+import com.jojo.game.presentation.battle.timeline.BattleScreenHitReactionDirectionScheduler
 import com.jojo.game.presentation.battle.timeline.*
 
 import kotlin.test.Test
@@ -16,13 +17,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleAiPresentationStepTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleAiPresentationStepTest: BattleAiPresentationStep의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleAiPresentationStepTest {
     @Test
@@ -30,8 +25,7 @@ class BattleAiPresentationStepTest {
         var victimDirection = 0
         val scheduler = BattleScreenMutationTestScheduler()
 
-        // `_attack3` saves h=0, then the normal-hit SHOU_GONG_JI3 (anime32)
-        // faces the victim toward the attacker (3) only for its reaction.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (SHOU_GONG_JI3)을 검증한다.
         BattleScreenHitReactionDirectionScheduler.schedule(
             sourceAction = 32,
             reactionDirection = 3,
@@ -54,8 +48,7 @@ class BattleAiPresentationStepTest {
         var victimDirection = 0
         val scheduler = BattleScreenMutationTestScheduler()
 
-        // The blocked `_attack3` branch plays FANG_YU (anime26), then calls
-        // defaultAction(-1); it must retain the reaction-facing direction.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (FANG_YU)을 검증한다.
         BattleScreenHitReactionDirectionScheduler.schedule(
             sourceAction = 26,
             reactionDirection = 3,
@@ -131,7 +124,7 @@ class BattleAiPresentationStepTest {
         assertEquals(emptyMap(), local.attributeLiftsBefore)
         assertEquals(-1, local.attributeLiftsAfter[BattleAttribute.ATTACK])
         assertTrue(local.hasStatesPayload)
-        // Eager status mutation remains hidden until `_jiesuan(t, o)` starts.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(emptyMap(), battle.units.getValue("defender").attributeLifts)
         assertNotNull(battle.pendingActionTransaction).commitStatuses(local)
         assertEquals(-1, battle.units.getValue("defender").attributeLifts[BattleAttribute.ATTACK])
@@ -168,7 +161,7 @@ class BattleAiPresentationStepTest {
         assertTrue(hit.playerMoneyDelta > 0)
         assertTrue(hit.enemyMoneyDelta < 0)
 
-        // Eager resolution is hidden until the authored attack hit callback.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(10, battle.units.getValue("attacker").hitPoints)
         assertEquals(100, battle.units.getValue("defender").hitPoints)
         assertEquals(100 to 100, battle.playerMoney to battle.enemyMoney)
@@ -185,8 +178,7 @@ class BattleAiPresentationStepTest {
         )
 
         deferred.commitAll()
-        // commitAll restores the absolute resolved snapshot. It must not add
-        // the callback-local values a second time.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(attackerAtHit, battle.units.getValue("attacker").hitPoints)
         assertEquals(defenderAtHit, battle.units.getValue("defender").hitPoints)
         assertEquals(
@@ -225,8 +217,7 @@ class BattleAiPresentationStepTest {
         assertTrue(barrier.yieldIdleBeforeCommit())
         assertFalse(barrier.yieldIdleBeforeCommit())
 
-        // Ordinary physical attacks and every non-counter action keep the
-        // existing direct action-completion -> settlement path.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         barrier.beginActor(hasPhysicalCounter = ordinaryAttack.hasPhysicalCounterPass())
         assertFalse(barrier.yieldIdleBeforeCommit())
     }
@@ -250,13 +241,13 @@ class BattleAiPresentationStepTest {
     fun `camp transition barrier does not delay unrelated script completions`() {
         val barrier = ScriptedMovementCampTransitionFrameBarrier()
         val unrelatedEdges = listOf(
-            // No authored move occurred.
+            // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
             listOf(true, true, true, false, false),
-            // The move is still running.
+            // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
             listOf(true, true, true, true, true),
-            // Movement completed but the script continued into another wait.
+            // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
             listOf(true, true, false, true, false),
-            // Bootstrap/round-script movement is not a camp-first transition.
+            // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
             listOf(false, true, true, true, false),
         )
         unrelatedEdges.forEach { edge ->
@@ -276,13 +267,11 @@ class BattleAiPresentationStepTest {
         val barrier = ActionStatusFrameBarrier()
         barrier.beginActor()
 
-        // The terminal action row contains the synchronous XD settlement;
-        // only its next resume may select another actor.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertTrue(barrier.yieldAfterCommit(hasAction = true))
         assertFalse(barrier.yieldAfterCommit(hasAction = true))
 
-        // A no-result actor settles directly through _shifudu/_jiesuan and
-        // must not inherit the action-only frame delay.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         barrier.beginActor()
         assertFalse(barrier.yieldAfterCommit(hasAction = false))
     }
@@ -304,9 +293,7 @@ class BattleAiPresentationStepTest {
         assertEquals(false to 0, actor.hasActed to actor.actionStatusRound)
         deferred.commitAll()
 
-        // Source _jiesuan(g_charinfo) writes STATUS_ROUND and XD before the
-        // final attack callback's rendered frame is sampled.  There is no
-        // intermediate frame containing only one half of this transition.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서 (STATUS_ROUND)을 검증한다.
         assertEquals(true to 1, actor.hasActed to actor.actionStatusRound)
         assertEquals(null, battle.pendingActionTransaction)
     }
@@ -323,8 +310,7 @@ class BattleAiPresentationStepTest {
         assertIs<TacticalActionResult.Attack>(battle.presentation.attack("attacker", "target"))
         val actor = battle.units.getValue("attacker")
         val target = battle.units.getValue("target")
-        // BattleScreen.sourceActionAnimation/countDir publishes these while
-        // the precomputed logical snapshot still contains direction 2.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         actor.direction = 1
         target.direction = 3
 
@@ -556,33 +542,14 @@ private class BattleScreenMutationTestScheduler {
 
     private val pending = mutableListOf<Mutation>()
 
-/**
- * 공개 메서드 `schedule`
- *
- * ### 파라미터
-- `at` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `mutation` (`(`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** schedule: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun schedule(at: Float, mutation: () -> Unit) {
         pending += Mutation(at, mutation)
         pending.sortBy(Mutation::at)
     }
 
-/**
- * 공개 메서드 `advanceTo`
- *
- * ### 파라미터
-- `now` (`Float`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** advanceTo: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
     fun advanceTo(now: Float) {
         while (pending.firstOrNull()?.at?.let { now >= it } == true) {

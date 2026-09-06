@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.turn
 
 import com.jojo.game.domain.battle.*
@@ -17,7 +18,7 @@ data class BattleTurnEntryRequest(
 
 data class BattleCampTransitionRequest(val previous: Faction, val current: Faction)
 
-/** Pure source-order decisions used by the mutable turn coordinator. */
+/** BattleTurnPolicy: 전투 턴 정책이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 object BattleTurnPolicy {
     fun acceptsPlayerEnd(request: BattleTurnEntryRequest): Boolean =
         request.phase == BattleTurnPhase.PLAYER_INPUT &&

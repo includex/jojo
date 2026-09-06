@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
@@ -9,7 +10,7 @@ internal data class RuntimeFunction(
     val name: String,
     val statements: List<JsonValue>,
     val labels: Map<String, Int>,
-    /** Nested label continuations used by recovered menu state machines. */
+    /** labelEntrypoints: 레이블 진입 시 실행할 문장 묶음을 이름별로 빠르게 찾는 색인이다. */
     val labelEntrypoints: Map<String, List<JsonValue>> = emptyMap(),
 )
 
@@ -17,7 +18,7 @@ internal data class Frame(
     val function: RuntimeFunction,
     var index: Int = 0,
     val locals: MutableMap<String, Any?> = mutableMapOf(),
-    /** Original source function survives synthetic if/for execution frames. */
+    /** sourceFunction: 호출 스택 추적에 남길 원본 함수 이름이다. */
     val sourceFunction: String = function.name,
 )
 

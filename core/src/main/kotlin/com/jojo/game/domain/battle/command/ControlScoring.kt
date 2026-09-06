@@ -1,12 +1,7 @@
+// Battle
 package com.jojo.game.domain.battle.command
 
 import com.jojo.game.domain.battle.*
-
-/**
- * Injectable, side-effect-free implementation of Control.js lines 325-666 and the
- * choice portion of `_AIProcess` (717-917).  Numeric enum values deliberately
- * mirror Config.js so the adapter does not reinterpret original data.
- */
 
 object ControlScoring {
 
@@ -15,8 +10,6 @@ object ControlScoring {
         const val WEN_GUAN = 1
         const val WU_JIANG = 2
     }
-
-    /** BattleConfg.UNIT_STATUS_LIFT: DOWN=0, NORMAL=1, UP=2. */
     object Lift {
         const val DOWN = 0
         const val NORMAL = 1
@@ -67,8 +60,6 @@ object ControlScoring {
         const val HUIFU_HP = 19
         const val HUIFU_MP = 20
     }
-
-    /** Values from Config.js AI_VALUE (lines 1568-1607). */
     data class Values(
         val hpMpRate: Int = 100, val accuracyBase: Int = 100, val counterNoSkill: Int = 40,
         val kill: Int = 100, val famous: Int = 1, val healFamous: Int = 100, val healNormal: Int = 70,
@@ -101,11 +92,7 @@ object ControlScoring {
 
 
         fun status(index: Int): Int
-
-        /** BattleUnit.isCanXue(): HP is below its source weak threshold. */
         fun isCanXue(): Boolean
-
-        /** BattleUnit.isCanLan(): MP is usable by this unit. */
         fun isCanLan(): Boolean
 
 
@@ -126,11 +113,6 @@ object ControlScoring {
         val harmType: Int
         val expendMp: Int
     }
-    /**
-     * The query adapter prepares each legal PS point and its already-scored
-     * attack/magic candidates.  This is the final comparison loop from
-     * Control._AIProcess lines 764-916: equal values retain earlier order.
-     */
 
     data class Action(val value: Int, val targetIndex: Int, val magic: Magic? = null) {
         val kind get() = if (magic == null) "attack" else "magic"
@@ -164,25 +146,12 @@ object ControlScoring {
         return selected
     }
 
-    /**
-     * Control._AIProcess's nearby-unit cover term.  `distance` is the
-     * BattleUnit.distance(..., 1) result.  The source deliberately has
-     * stronger discontinuities at one and two tiles.
-     */
-
     fun coverPressure(distance: Int, sameCamp: Boolean, values: Values = Values()): Int {
         if (distance !in 1..4) return 0
         var pressure = (if (sameCamp) values.coverFriendly else values.coverEnemy) * (5 - distance)
         if (distance == 1) pressure *= 3 else if (distance == 2) pressure *= 2
         return if (sameCamp) pressure else -pressure
     }
-
-    /**
-     * Exact `BattleUnit.distance(target, 1)` contract used by
-     * `Control._AIProcess` when it scores nearby-unit cover. Flag bit 1 is
-     * not a Manhattan-distance option: the recovered client keeps the value
-     * only for a diagonally adjacent unit and returns zero otherwise.
-     */
 
     fun coverDistance(fromX: Int, fromY: Int, toX: Int, toY: Int): Int {
         val dx = kotlin.math.abs(fromX - toX)
@@ -191,18 +160,9 @@ object ControlScoring {
         return if (manhattan == 2 && dx != 0 && dy != 0) manhattan else 0
     }
 
-    /** Source countAttackValue. `counter` is its fourth argument bit 0. */
-
     data class Skills(
-        /** Config.SKILL_TYPE.WFJGJ (226): disables the counter-attack branch. */
         val noCounter: Int = 226,
-        /**
-         * Config.SKILL_TYPE FJHFJ(44), FTSH(40), QHFJ(181), FJBDSJ(43),
-         * WXFJ(232).  Control._countAttackValue calls Unit.skill2 with this
-         * exact ordered list before adding AI_VALUE.ATK_XWBFJ.
-         */
         val counterSkills: IntArray = intArrayOf(44, 40, 181, 43, 232),
-        /** Config.SKILL_TYPE.ZSZD (273). */
         val zszd: Int = 273,
     )
 

@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.render
 
 import com.badlogic.gdx.Gdx
@@ -12,7 +13,7 @@ import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.story.ScenarioStoryRenderer
 
-/** Stateless non-hall scene overlay renderer over an immutable presentation view. */
+/** ScenarioOverlayRenderer: 시나리오 오버레이 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object ScenarioOverlayRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, shapes: ShapeRenderer, projection: Matrix4, view: ScenarioOverlayRenderView) {
         shapes.projectionMatrix = projection

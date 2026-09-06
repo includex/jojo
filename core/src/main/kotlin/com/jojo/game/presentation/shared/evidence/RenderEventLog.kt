@@ -1,8 +1,9 @@
+// Presentation
 package com.jojo.game.presentation.shared.evidence
 
 import java.util.*
 
-/** A deterministic, renderer-coordinate JSONL stream for source/game frame comparison. */
+/** RenderEventLog: 프레임별 그리기 호출을 결정적 JSONL 행으로 축적해 렌더링 비교 자료를 만든다. */
 class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int = 0) {
     private val lines = mutableListOf<String>()
 
@@ -23,9 +24,7 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
     ) {
         val sequence = sequenceOffset + lines.size
         lines += "{" +
-                // Verification fixtures use a deterministic timestamp. Runtime
-                // timing is deliberately present in the shared schema but does
-                // not participate in semantic parity comparisons.
+                // 검증 픽스처는 결정적인 시간을 사용한다. 실행 시간은 공용 스키마에 포함되지만 의미적 동등성 비교에는 사용하지 않는다.
                 "\"sequence\":$sequence,\"frame\":$frame,\"timestamp\":0," +
                 "\"phase\":\"${escape(phase)}\",\"layer\":\"${escape(layer)}\"," +
                 "\"nodePath\":\"${escape(nodePath)}\",\"drawType\":\"${escape(drawType)}\"," +

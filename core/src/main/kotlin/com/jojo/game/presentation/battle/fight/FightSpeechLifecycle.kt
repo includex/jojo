@@ -1,10 +1,6 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
-import com.jojo.game.presentation.battle.FightPresentationEvent
-import com.jojo.game.presentation.battle.FightSide
-import com.jojo.game.presentation.battle.FightSpeechPresentation
-
-/** Owns speech panel reset, rich-text typing units and rendered text updates. */
 internal class FightSpeechLifecycle {
     val mine = FightSpeechPresentation()
     val enemy = FightSpeechPresentation()

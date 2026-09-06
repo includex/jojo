@@ -1,10 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.Disposable
-
-/** Preserves independent demand-loading for every UnitInfo DynamicAtlas crop. */
 internal class BattleUnitInfoAssets : Disposable {
     private val bg = lazyTexture("bg1.png")
     private val box1 = lazyTexture("box1.png")

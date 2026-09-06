@@ -1,4 +1,7 @@
+// Verification
 package com.jojo.game
+
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 
@@ -17,21 +20,32 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** 대화 패널의 진행·건너뛰기·자동 닫기 상태를 재현하는 검증 화면이다. */
 
+/** DialogueFixtureScreen: 대화 패널의 진행·건너뛰기·자동 닫기 상태를 재현하는 검증 화면이다. */
 class DialogueFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** textures: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val textures = mutableListOf<Texture>()
+    /** texture: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun texture(path: String): Texture? = Gdx.files.internal(path).takeIf { it.exists() }
         ?.let(::Texture)?.also { textures += it }
 
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = texture("maps/71.jpg")
+    /** leftPanel: left panel 값을 보관해 검증 흐름에서 사용한다. */
     private val leftPanel = texture("maps/ui/choice-panel.png")
+    /** rightPanel: right panel 값을 보관해 검증 흐름에서 사용한다. */
     private val rightPanel = texture("maps/ui/dialogue-panel.png")
+    /** face1: 검증 흐름에서 사용하는 값을 담는다. */
     private val face1 = texture("maps/heads/1.png")
+    /** face214: 검증 흐름에서 사용하는 값을 담는다. */
     private val face214 = texture("maps/heads/214.png")
+    /** textFont: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val textFont: BitmapFont = KoreanFont.create(36, "왼쪽 첫 문장둘째 줄오른쪽 대사")
+    /** speakerFont: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val speakerFont: BitmapFont = KoreanFont.create(
         36,
         "조조허자장",
@@ -39,8 +53,10 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         borderColor = Color(1f, 1f, 154f / 255f, 1f),
         fillColor = Color(233f / 255f, 253f / 255f, 255f / 255f, 1f),
     )
+    /** dialogue: 검증 흐름에서 사용하는 값을 담는다. */
     private val dialogue = createModel(state)
 
+    /** createModel: 검증 실행에 필요한 객체와 상태를 구성한다. */
     private fun createModel(state: String): DialogueLayer {
         DialogueLayer.resetAlternation()
         val names = mapOf(0 to "조조", 157 to "허자장")
@@ -67,9 +83,11 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         return layer
     }
 
+    /** show: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun show() {
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         Gdx.input.inputProcessor = object : InputAdapter() {
+            /** touchUp: 검증 입력을 현재 화면 상태에 반영한다. */
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 return dialogue.touch(DialogueLayer.TOUCH_END)
@@ -77,6 +95,7 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         }
     }
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -91,6 +110,7 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         game.captureFrameIfRequested()
     }
 
+    /** drawDialogue: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawDialogue(view: DialogueLayer.View) {
         if (view.bubble == 0) {
             face1?.let { batch.draw(it, 98.628f, 62f, 192f, 240f) }
@@ -108,11 +128,12 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         }
     }
 
-    /** 대화 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 대화 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String {
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, visible: Boolean = true, opacity: Float = 1f, text: String = ""
@@ -184,10 +205,13 @@ class DialogueFixtureScreen(private val game: JojoGame, private val state: Strin
         }
         return log.jsonl()
     }
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
 
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose()
         textFont.dispose()

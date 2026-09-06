@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -6,9 +7,11 @@ import com.jojo.game.application.battle.bootstrap.BattleSceneCoordinator
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** [BattleSceneCoordinator] 이벤트를 어댑트하며 상수·레지스트리는 원본 목록으로만 취급한다. */
+/** BattleBootstrapTraceHarness: [BattleSceneCoordinator] 이벤트를 어댑트하며 상수·레지스트리는 원본 목록으로만 취급한다. */
 object BattleBootstrapTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
@@ -22,17 +25,21 @@ object BattleBootstrapTraceHarness {
             val saves = mutableListOf<String>()
             val callbacks = mutableListOf<String>()
             val battleLayer = object : BattleSceneCoordinator.BattleScreen {
+                /** save: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun save(out: MutableMap<String, Any?>) {
                     out["battleSaved"] = true; log += "battle.save"
                 }
 
+                /** filterUnits: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun filterUnits(flag: Int): List<Any?> = if (flag == 1187) listOf("m1", "m2") else listOf("e1")
             }
             val factory = object : BattleSceneCoordinator.Factory {
+                /** addBattleScreen: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun addBattleScreen(data: Any?): BattleSceneCoordinator.BattleScreen {
                     layers += "{\"id\":[1,\"Battle/scene/BattleScreen\"],\"args\":{\"ms\":null,\"es\":null,\"flag\":null}}"; return battleLayer
                 }
 
+                /** addForcesList: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun addForcesList(mine: List<Any?>, enemy: List<Any?>, flag: Int) {
                     layers += "{\"id\":\"ForcesListLayer\",\"args\":{\"ms\":[${mine.joinToString(",") { q(it.toString()) }}],\"es\":[${
                         enemy.joinToString(
@@ -41,6 +48,7 @@ object BattleBootstrapTraceHarness {
                     }],\"flag\":$flag}}"
                 }
 
+                /** stringify: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun stringify(value: Map<String, Any?>) =
                     "{\"battleSaved\":true,\"model\":{\"modelSaved\":true}}"
             }

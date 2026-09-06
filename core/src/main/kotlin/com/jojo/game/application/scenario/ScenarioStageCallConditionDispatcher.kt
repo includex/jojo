@@ -1,12 +1,10 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.badlogic.gdx.utils.JsonValue
-import com.jojo.game.ScenarioStageCallDispatcher
-import com.jojo.game.ScenarioStageCallEnvironment
-import com.jojo.game.asInt
 
-/** Routes stage condition predicates and variable operations. */
-internal object ScenarioStageCallConditionDispatcher : com.jojo.game.ScenarioStageCallFamily {
+/** ScenarioStageCallConditionDispatcher: stage API의 조건·변수 질의를 스크립트 평가 결과로 변환한다. */
+internal object ScenarioStageCallConditionDispatcher : ScenarioStageCallFamily {
     override fun dispatch(
         path: String,
         node: JsonValue,

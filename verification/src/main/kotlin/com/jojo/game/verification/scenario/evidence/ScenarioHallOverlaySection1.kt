@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendFixture0: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendFixture0(writer: ScenarioHallOverlayEventWriter) = with(writer) {
                 event(
                     "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f,
@@ -69,6 +71,7 @@ internal fun appendFixture0(writer: ScenarioHallOverlayEventWriter) = with(write
                     event("HallLayer", "$root/vline", "sliced-sprite", x, 160.25f, 6f, 450.3f, "vline")
                 }
 
+                /** header: 검증 출력 헤더를 구성한다. */
                 fun header(x: Float, y: Float, w: Float, h: Float, lx: Float, lw: Float, value: String) {
                     event("HallLayer", "$root/box3", "sliced-sprite", x, y, w, h, "bg1")
                     event("HallLayer", "$root/box3/box3", "sliced-sprite", x, y, w, h, "box3")

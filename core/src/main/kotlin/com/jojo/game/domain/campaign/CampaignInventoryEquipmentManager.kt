@@ -1,9 +1,10 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import java.util.Collections
 
-/** 장착 장비 상태와 장비 인벤토리 명령을 관리한다. */
+/** CampaignInventoryEquipmentManager: 유닛 장비칸과 인벤토리 인스턴스를 교환하고 능력치 미리보기를 계산한다. */
 internal class CampaignInventoryEquipmentManager(
     private val itemStore: CampaignInventoryItemStore,
     private val joinedUnitIds: () -> Iterable<Int>,

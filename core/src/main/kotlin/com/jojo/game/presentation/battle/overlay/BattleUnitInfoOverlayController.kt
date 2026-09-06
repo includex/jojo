@@ -1,13 +1,11 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.UnitInfoLayer
-import com.jojo.game.presentation.battle.BattleUnitInfoOverlayView
-import com.jojo.game.presentation.battle.BattleUnitInfoUnitView
-
-/** Owns UnitInfoLayer lifecycle and source-compatible button press gestures. */
+import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
 internal class BattleUnitInfoOverlayController(
     private val jiqiRates: List<Int> = DEFAULT_JIQI_RATES,
 ) {
+    /** 유닛 정보의 버튼 누름, 닫기, 기기 목록 열기를 요청하는 입력이다. */
     sealed interface Intent {
         data class PointerDown(val x: Float, val y: Float) : Intent
         data class PointerUp(val x: Float, val y: Float) : Intent
@@ -15,14 +13,15 @@ internal class BattleUnitInfoOverlayController(
         data object Dismiss : Intent
     }
 
+    /** 유닛 정보가 닫혔거나 기기 목록으로 전환됐음을 보고한다. */
     sealed interface Effect {
         data object None : Effect
         data object Closed : Effect
         data class JiqiOpened(val layer: JiQiLayer) : Effect
     }
-
     data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
 
+    /** 선택된 유닛 정보 레이어와 눌린 버튼을 보관한다. */
     private sealed interface State {
         data object Hidden : State
         data class Visible(val layer: UnitInfoLayer, val pressedButton: Int? = null) : State

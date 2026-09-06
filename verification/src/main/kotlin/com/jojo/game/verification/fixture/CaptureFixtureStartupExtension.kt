@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification.fixture
 
 import com.jojo.game.application.runtime.RuntimeStartupRequest
@@ -19,10 +20,12 @@ import com.jojo.game.verification.load.ModalLoadRouteScreen
 import com.jojo.game.verification.terminal.TerminalSceneRoute
 import com.jojo.game.verification.terminal.TerminalSceneRouteScreen
 
-/** Verification-only startup catalogue for isolated capture surfaces. */
+/** CaptureFixtureStartupExtension: 격리된 캡처 화면을 위한 검증 전용 시작 카탈로그이다. */
 class CaptureFixtureStartupExtension : RuntimeStartupExtension {
+    /** route: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     override fun route(request: RuntimeStartupRequest): Boolean {
         val state = request.state
+        /** show: 검증 화면의 입력 처리기를 등록한다. */
         fun show(screen: com.badlogic.gdx.Screen): Boolean { request.showScreen(screen); return true }
         when (state) {
             "login-setting" -> return show(TitleScreen(request.game, initialSettingOpen = true, useInitialSettings = true))
@@ -61,6 +64,7 @@ class CaptureFixtureStartupExtension : RuntimeStartupExtension {
         return false
     }
 
+    /** prepareHall: 회관 검증 상태를 초기화한다. */
     private fun prepareHall(request: RuntimeStartupRequest) {
         request.campaignState.reset(); request.campaignState.joinedUnits += listOf(0, 157, 181)
         listOf(0, 157, 181).forEach { request.campaignState.setUnitAttribute(it, 18, 3) }

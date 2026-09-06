@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.overlay.RoundLayer
@@ -5,13 +6,7 @@ import com.jojo.game.presentation.battle.overlay.RoundLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `RoundLayerTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** RoundLayerTest: RoundLayer의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class RoundLayerTest {
     @Test
@@ -42,11 +37,11 @@ class RoundLayerTest {
     fun `RoundLayer uses property presence and JavaScript missing-max comparison semantics`() {
         val layer = RoundLayer({}, {})
 
-        // `round in t` is true even for zero, and `0 > undefined` is false.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         layer.onCreate(RoundLayer.CreateArgs(roundPresent = true, round = 0, max = null))
         assertEquals(RoundLayer.View(true, false, "제0턴"), layer.view)
 
-        // An absent property selects the camp-label pair irrespective of max.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         layer.onCreate(RoundLayer.CreateArgs(roundPresent = false, max = 20))
         assertEquals(RoundLayer.View(false, true, ""), layer.view)
     }

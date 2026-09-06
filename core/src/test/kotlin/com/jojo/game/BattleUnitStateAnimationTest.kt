@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.unit.*
@@ -8,13 +9,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleUnitStateAnimationTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleUnitStateAnimationTest: BattleUnitStateAnimation의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleUnitStateAnimationTest {
     @Test
@@ -36,8 +31,7 @@ class BattleUnitStateAnimationTest {
             state.refresh(listOf(true, false, true, true)),
         )
 
-        // The third active status is past the source's `break` and therefore
-        // does not alter its `_lastRefState` cache or recreate the node.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         state.setVisible(false)
         assertTrue(state.refresh(listOf(true, false, true, false))!!.active)
         assertEquals(listOf(0, 2), state.current()!!.textureIndices)

@@ -1,6 +1,7 @@
+// Battle
 package com.jojo.game.domain.battle
 
-/** 라운드별 초기화 규칙을 따르는 전투 임시 스킬 값을 보관한다. */
+/** BattleSkillTemp: 라운드별 초기화 규칙을 따르는 임시 스킬 값을 보관하며, 지속 효과의 남은 상태를 관리한다. */
 class BattleSkillTemp(
     private val resetTypeForSkill: (Int) -> ResetType = { ResetType.RESET },
 ) {

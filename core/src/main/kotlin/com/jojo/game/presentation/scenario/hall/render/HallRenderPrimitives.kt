@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
 import com.badlogic.gdx.graphics.Color
@@ -8,7 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Small borrowed-asset drawing vocabulary shared by immutable Hall renderers. */
+/** HallRenderPrimitives: 거점 렌더링 Primitives이며, 시나리오 장면을 정확히 표시하기 위한 변환·갱신 규칙을 제공한다. */
 internal class HallRenderPrimitives(
     private val assets: ScenarioSceneAssets,
     private val batch: SpriteBatch,

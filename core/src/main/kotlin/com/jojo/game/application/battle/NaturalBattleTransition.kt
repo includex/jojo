@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.BattleOutcome
@@ -7,7 +8,7 @@ import com.jojo.game.domain.battle.turn.BattleTurnPhase
 
 import com.jojo.game.domain.scenario.*
 
-/** Decisions shared by the normal BattleScreen route and its end-to-end transition test. */
+/** NaturalBattleTransition: 전투 결과 뒤 보상·장면 전환을 판단하고, 표현 콜백 완료 전에는 진행을 보류한다. */
 object NaturalBattleTransition {
 
     enum class CompletionAction { WAIT, RUN_SCENE1, START_SCENE2 }
@@ -42,22 +43,10 @@ object NaturalBattleTransition {
         dialoguePresent: Boolean,
     ): Boolean = outcome == BattleOutcome.ENEMY_VICTORY &&
             scriptState == PlaybackState.COMPLETE && !dialoguePresent
-
-    /**
-     * A result may be observed while BattleScreen is still waiting for a
-     * presentation callback. The next script pass must not open a SayLayer
-     * until that callback has released its previous layer.
-     */
     fun resultScriptReadyForContinuation(
         scriptState: PlaybackState,
         callbackPending: Boolean,
     ): Boolean = scriptState == PlaybackState.COMPLETE && !callbackPending
-
-    /**
-     * A tactical outcome begins result handling; it is not itself the source
-     * `stage.end` callback. Full traces may finish once that callback has run,
-     * or once BattleScreen's source-equivalent end-process scene is active.
-     */
     fun terminalReady(
         scriptState: PlaybackState,
         callbackPending: Boolean,
@@ -65,12 +54,6 @@ object NaturalBattleTransition {
         endProcessStarted: Boolean,
     ): Boolean = scriptState == PlaybackState.COMPLETE && !callbackPending &&
             (scriptEnded || endProcessStarted)
-
-    /**
-     * Campaign traces normally flush from the victory save prompt.  A loss
-     * instead transfers ownership to Lose.scene, whose delayed prompt must
-     * remain live even after the trace has been written.
-     */
     fun campaignLossReadyToFlush(
         exitOnFinish: Boolean,
         outcome: BattleOutcome?,

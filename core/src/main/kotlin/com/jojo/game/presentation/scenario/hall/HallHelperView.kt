@@ -1,7 +1,8 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 import com.jojo.game.presentation.shared.overlay.*
 
-/** Ready-to-draw HelperLayer content. */
+/** HallHelperView: 거점 도움말 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallHelperView(val text: String) {
     companion object {
         val default = HallHelperView(

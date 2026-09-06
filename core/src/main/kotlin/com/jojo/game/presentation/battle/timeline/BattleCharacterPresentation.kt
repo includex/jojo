@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.timeline
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
@@ -5,19 +6,13 @@ import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 import java.util.*
-
-/** Source BattleScreen.unitHide mode used by the production character state. */
 enum class BattleHideType { CHE_LI, BAI_TUI, SI_WANG }
-
-/** The four source BattleUnit.createInfoNode bar2 selections. */
 enum class BattleCharacterCamp(val hpFrame: String) {
     MINE("Mark_5-1"),
     FRIEND("Mark_3-1"),
     ENEMY("Mark_68-1"),
     FAMOUS_ENEMY("Mark_2-1"),
 }
-
-/** Material slots selected by BattleUnit/FightUnit animation callbacks. */
 enum class BattleCharacterMaterial(val sourceId: String) {
     DEFAULT("builtin-2d-sprite (Instance)"),
     OUTLINE("edgeHighlight (Instance)"),
@@ -26,6 +21,7 @@ enum class BattleCharacterMaterial(val sourceId: String) {
 }
 
 
+/** BattleCharacterStrictState: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 enum class BattleCharacterStrictState(val route: String) {
     HP_CAMPS_PARTIAL("hp-camps-partial"),
     OUTLINE_HIGHLIGHT("outline-highlight"),
@@ -35,22 +31,12 @@ enum class BattleCharacterStrictState(val route: String) {
     DEATH_HIDDEN("death-hidden"),
 }
 
-/**
- * Renderer-independent state missing from the current BattleScreen timeline.
- *
- * In particular this owns the live material/value, the post-hurt hide action,
- * info/status visibility and the source harm-label outline.  BattleScreen can
- * later drive this object from its authored BRAnime event times without
- * duplicating those contracts in its draw and trace paths.
- */
-
 class BattleCharacterPresentation(
     val unitId: String,
     val camp: BattleCharacterCamp,
     val maxHp: Int,
     hp: Int = maxHp,
 ) {
-
     data class HarmLabel(
         val value: Int,
         val isHp: Boolean,
@@ -92,14 +78,12 @@ class BattleCharacterPresentation(
 
     val hpProgress: Float get() = if (maxHp <= 0) 0f else hp.toFloat() / maxHp
 
-    /** GONG_JI2/GONG_JI_DELAY select outlineMater for the entire clip. */
+    /** beginAttack: 전투 단계의 시작 상태를 만들고 필요한 값을 초기화한다. */
     fun beginAttack(delayed: Boolean = false) {
         action = if (delayed) GONG_JI_DELAY else GONG_JI2
         material = BattleCharacterMaterial.OUTLINE
         materialValue = null
     }
-
-    /** Exact BattleUnit BRAnime __cb2 contract. */
     fun animationMaterialEvent(value: Int) {
         when {
             value == 0 -> {
@@ -122,21 +106,19 @@ class BattleCharacterPresentation(
         material = BattleCharacterMaterial.DEFAULT
         materialValue = null
     }
-
-    /** Authored attack `hit` event: HP/bar changes before hurt action 32. */
     fun hitImpact(amount: Int, isHp: Boolean = true) {
         if (isHp) hp = (hp - kotlin.math.abs(amount)).coerceAtLeast(0)
         action = SHOU_GONG_JI3
         harm = HarmLabel(kotlin.math.abs(amount), isHp)
     }
 
-    /** Hurt clip completion clears the harm label and returns to idle. */
+    /** finishHit: 진행 중인 전투 처리를 완료하고 후속 상태를 반영한다. */
     fun finishHit() {
         harm = null
         action = STAND
     }
 
-    /** unitHide begins only after the hurt clip has completed. */
+    /** beginHide: 전투 단계의 시작 상태를 만들고 필요한 값을 초기화한다. */
     fun beginHide(type: BattleHideType) {
         restoreHp = hp
         hideType = type
@@ -151,7 +133,7 @@ class BattleCharacterPresentation(
         }
     }
 
-    /** Hide clip completion: setVisible(false), then restore the saved HP. */
+    /** finishHide: 진행 중인 전투 처리를 완료하고 후속 상태를 반영한다. */
     fun finishHide() {
         val type = requireNotNull(hideType) { "beginHide must precede finishHide" }
         if (type != BattleHideType.CHE_LI) retreatCount++
@@ -171,11 +153,6 @@ class BattleCharacterPresentation(
     }
 }
 
-/**
- * Draw schema for parity states that the shared RenderEventLog cannot yet
- * express: material slot/value and label outline are deliberately explicit.
- */
-
 data class BattleCharacterDrawEvent(
     val nodePath: String,
     val drawType: String,
@@ -184,9 +161,7 @@ data class BattleCharacterDrawEvent(
     val width: Float,
     val height: Float,
     val assetFrameId: String? = null,
-    /** Exact atlas crop submitted by the renderer; asset id alone is not a frame identity. */
     val sourceRect: List<Int>? = null,
-    /** Final horizontal mirror after the authored animation scale is applied. */
     val flipX: Boolean? = null,
     val flipY: Boolean? = null,
     val text: String? = null,
@@ -202,10 +177,9 @@ data class BattleCharacterDrawEvent(
 )
 
 
+/** BattleCharacterStateRenderer: 전투 화면에 필요한 표시 정보와 그리기 규칙을 담당한다. */
 object BattleCharacterStateRenderer {
     private const val UNIT_PATH = "Canvas/Layer/ScrollView/view/content/map/unit"
-
-    /** Coordinates are final draw-submission pixels after the source map ×2. */
     fun commands(
         state: BattleCharacterPresentation,
         unitLeft: Float,
@@ -251,7 +225,7 @@ object BattleCharacterStateRenderer {
             )
         }
         state.harm?.let { label ->
-            // A 48×24 local sibling under the map becomes a 96×48 draw quad.
+            // 맵 아래의 48×24 로컬 형제 노드는 96×48 드로 쿼드가 된다.
             val x = unitLeft + if (label.isHp) 0f else 96f
             add(
                 BattleCharacterDrawEvent(

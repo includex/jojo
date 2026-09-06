@@ -1,9 +1,11 @@
+// Verification
 package com.jojo.game.verification.campaign
 
 import com.jojo.game.application.runtime.*
 
-/** Stable, read-only screen markers used before and after driver input. */
+/** CampaignE2eScreenObservation: 입력 전후에 사용하는 안정적인 읽기 전용 화면 표식이다. */
 internal object CampaignE2eScreenObservation {
+    /** of: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     fun of(screen: RuntimeScreenProbe): String = when (screen) {
         is ScenarioRuntimeProbe -> screen.let {
             "screen=ScenarioScreen;module=${it.module};scene=${it.sceneIndex};playback=${it.playback};" +

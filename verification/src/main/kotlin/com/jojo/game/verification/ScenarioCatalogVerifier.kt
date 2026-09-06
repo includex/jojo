@@ -1,20 +1,24 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.application.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
-import com.jojo.game.EncryptedGameDataCodec
+import com.jojo.game.infrastructure.data.EncryptedGameDataCodec
 import com.jojo.game.domain.scenario.PlaybackState
-import com.jojo.game.ScenarioCatalog
+import com.jojo.game.infrastructure.data.ScenarioCatalog
 
+/** ScenarioCatalogVerificationResult: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 internal data class ScenarioCatalogVerificationResult(
+    /** marker: 시나리오 검증 성공 표식을 담는다. */
     val marker: String,
+    /** unhandledCalls: 처리되지 않은 호출별 횟수를 담는다. */
     val unhandledCalls: Map<String, Int>,
 )
 
-/** 패키지된 게임 리소스로 모든 캠페인 시나리오를 실행하고 소진한다. */
+/** ScenarioCatalogVerifier: 패키지된 게임 리소스로 모든 캠페인 시나리오를 실행하고 소진한다. */
 internal class ScenarioCatalogVerifier {
-/** 시나리오 카탈로그와 관련 게임 데이터 표를 검증한다. */
+    /** verify: 시나리오 카탈로그와 관련 게임 데이터 표를 검증한다. */
     fun verify(): ScenarioCatalogVerificationResult {
         val modules = ScenarioCatalog.rModuleNames()
         check(modules.isNotEmpty()) { "R 시나리오가 번들에 없습니다." }
@@ -68,6 +72,7 @@ internal class ScenarioCatalogVerifier {
         )
     }
 
+    /** verifyGameDataTables: 게임 데이터 표를 복호화하고 JSON 구조를 검증한다. */
     private fun verifyGameDataTables() {
         TABLE_NAMES.forEach { name ->
             val payload = EncryptedGameDataCodec.decode(Gdx.files.internal("maps/data/$name.bin").readBytes())
@@ -84,6 +89,7 @@ internal class ScenarioCatalogVerifier {
     }
 }
 
+/** mergeUnhandled: 미처리 호출 집계를 대상 맵에 누적한다. */
 internal fun mergeUnhandled(target: MutableMap<String, Int>, source: Map<String, Int>) {
     source.forEach { (call, count) -> target[call] = (target[call] ?: 0) + count }
 }

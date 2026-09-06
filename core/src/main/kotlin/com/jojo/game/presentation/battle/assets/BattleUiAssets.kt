@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.assets
 
 /** 전투 모달 UI에서 사용하는 스프라이트 경로를 생성합니다. */

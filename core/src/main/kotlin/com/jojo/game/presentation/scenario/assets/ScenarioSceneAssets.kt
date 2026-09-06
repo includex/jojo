@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.assets
 
-import com.jojo.game.KoreanFont
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -9,7 +10,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 
-/** Owns the render resources which live for one [ScenarioScreen] instance. */
+/** ScenarioSceneAssets: 시나리오 장면 자원이며, 화면 표시에 필요한 텍스처와 자원 경로를 보관한다. */
 internal class ScenarioSceneAssets(
     private val requiredGlyphsProvider: () -> String,
 ) {
@@ -176,7 +177,7 @@ internal class ScenarioSceneAssets(
         }
 }
 
-/** A non-collection facade prevents callers from owning a scene texture cache. */
+/** ScenarioSceneTextureCache: 시나리오 장면 텍스처 Cache이며, 시나리오 장면을 정확히 표시하기 위한 변환·갱신 규칙을 제공한다. */
 internal class ScenarioSceneTextureCache {
     private val cache = ScenarioSceneAssetCache<String, Texture>(Texture::dispose)
 

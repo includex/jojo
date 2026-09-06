@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -5,27 +6,33 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
+/** ProgressLoadingState: 검증 실행의 현재 상태를 표현하는 타입이다. */
 private class ProgressLoadingState {
     var bg = ""
     var label = ""
     var progress = 0.0
 
 
+    /** onCreate: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     fun onCreate(arg: String?) {
         bg = "bg4"; if (arg != null) label = arg
     }
 
 
+    /** set: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     fun set(value: Double) {
         progress = value
     }
 }
 
 
+/** Progress2TraceHarness: 검증 실행을 시작하고 추적 결과를 수집하는 타입이다. */
 object Progress2TraceHarness {
+    /** state: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun state(step: String, p: ProgressLoadingState) =
         "{\"step\":\"$step\",\"bg\":\"${p.bg}\",\"label\":\"${p.label}\",\"spin\":{\"t\":2,\"a\":-360},\"progress\":${p.progress}}"
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val input = Files.readString(Path.of(args[0])).trim()

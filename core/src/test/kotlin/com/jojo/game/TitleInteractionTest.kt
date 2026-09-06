@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -7,13 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * class  `TitleInteractionTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** TitleInteractionTest: TitleInteraction의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class TitleInteractionTest {
     @Test fun `four authored button rectangles dispatch exact title routes`() {
@@ -48,13 +43,7 @@ class TitleInteractionTest {
     }
 
     @Test fun `natural title settings pointer route mutates store and closes through production contracts`() {
-/**
- * class  `Store`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** Store: 테스트에서 사용하는 입력·상태 조합을 표현하거나 대상 기능의 경계 조건을 보조 검증한다. */
 
         class Store : SettingLayer.Store {
             val values = mutableMapOf<String, Int>()
@@ -71,7 +60,7 @@ class TitleInteractionTest {
             override fun requestExit() { events += "exit" }
         }
 
-        // Pointer hits the real title Settings button, then authored setting controls.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         TitleInteraction.dispatch(requireNotNull(TitleInteraction.mainActionAt(1097, 283)), routes)
         assertEquals(7, setting.view().flags)
         assertEquals(false, TitleInteraction.applySetting(requireNotNull(TitleInteraction.settingActionAt(220, 550)), setting))

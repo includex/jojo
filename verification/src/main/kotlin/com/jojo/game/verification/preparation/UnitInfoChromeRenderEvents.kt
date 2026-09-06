@@ -1,5 +1,7 @@
+// Verification
 package com.jojo.game.verification.preparation
 
+/** writeUnitInfoChromeEvents: 검증 이벤트와 산출물을 기록한다. */
 internal fun writeUnitInfoChromeEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0.0f * scale, 0.0f * scale, 1488.372f * scale, 800.0f * scale, "default_sprite_splash", 0.392f, listOf(770, 771), true, "")
     context.draw("UnitInfoLayer", "Canvas/Layer/bg1", "tiled-sprite", 197.186f * scale, 12.0f * scale, 1094.0f * scale, 776.0f * scale, "Logo_9-1", 1.0f, listOf(770, 771), true, "")

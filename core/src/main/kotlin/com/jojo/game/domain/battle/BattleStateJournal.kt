@@ -1,16 +1,10 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
 
-/**
- * Mutable progress owned by a battle aggregate.
- *
- * Besides turn state this records the deterministic trace and the small
- * amount of deferred presentation state needed to bridge AI calculation and
- * animation callbacks.  Commands below make each mutation explicit without
- * changing the legacy Battle surface used by screens and verification code.
- */
+/** BattleStateJournal: 전투 진행 중 변하는 상태를 기록하며, 초기 구성과 분리된 유닛·턴·자금 정보를 유지한다. */
 internal class BattleStateJournal(
     initialWeather: BattleWeather,
     initialPlayerMoney: Int,

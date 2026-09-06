@@ -1,3 +1,4 @@
+// Navigation
 package com.jojo.game.application.navigation
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -5,8 +6,10 @@ import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.presentation.scenario.ScenarioScreen
+import com.jojo.game.presentation.scenario.trace.ScenarioRandomTraceConfiguration
 import com.jojo.game.presentation.title.TitleScreen
 import com.jojo.game.presentation.battle.BattleScreen
+import com.jojo.game.application.runtime.BattleVerificationRuntime
 import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
 import com.jojo.game.presentation.shared.overlay.LoadGameLayer
 import com.jojo.game.infrastructure.data.CampaignStore
@@ -22,7 +25,7 @@ internal fun campaignRestoreDestination(route: LoadGameLayer.RestoreRoute): Camp
     LoadGameLayer.RestoreRoute.HALL_AFTER_BATTLE -> CampaignRestoreDestination.HALL_AFTER_BATTLE
 }
 
-/** Owns screen replacement and saved-campaign route selection. */
+/** GameScreenNavigator: 캠페인 저장 상태와 시작 설정을 반영해 게임 화면 전환을 수행하는 응용 경로다. */
 internal class GameScreenNavigator(
     private val game: JojoGame,
     private val configuration: GameLaunchConfiguration,
@@ -111,8 +114,10 @@ internal class GameScreenNavigator(
                 run.battleEnemyDefeated,
                 entryScene,
                 run.startLabel,
-                run.stopAfterRandomTrace,
-                run.stopAfterRandomTraceCount,
+                ScenarioRandomTraceConfiguration(
+                    stopAfterNextTrace = run.stopAfterRandomTrace,
+                    stopAfterTraceCount = run.stopAfterRandomTraceCount,
+                ),
                 campaign.state,
             )
         )
@@ -125,8 +130,10 @@ internal class GameScreenNavigator(
         campaign.persist(); replaceScreen(
             BattleScreen(
                 game,
-                configuration.verification.battle,
-                configuration.verification.scriptedBattle,
+                BattleVerificationRuntime(
+                    tutorial = configuration.verification.battle,
+                    scripted = configuration.verification.scriptedBattle,
+                ),
                 sourceScenario,
                 returnScenario,
                 campaign.state,

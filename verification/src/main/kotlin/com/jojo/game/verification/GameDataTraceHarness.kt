@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -5,30 +6,45 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** A/F 인벤토리 픽스처의 아이템 규칙과 저장 상태를 직접 검증한다. */
 
+/** GameDataTraceHarness: A/F 인벤토리 픽스처의 아이템 규칙과 저장 상태를 직접 검증한다. */
 object GameDataTraceHarness {
+    /** I: i 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class I(
+        /** id: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val id: Int,
+        /** name: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val name: String,
+        /** treasure: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val treasure: Int,
+        /** kind: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val kind: Int,
+        /** value: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val value: Int,
+        /** eff: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val eff: Int,
+        /** price: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val price: Int,
+        /** icon: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val icon: Int
     )
 
+    /** j: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun j(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
+    /** ar: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun ar(xs: List<String>) = "[${xs.joinToString(",")}]"
+    /** ob: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun ob(vararg xs: Pair<String, String>) = "{${xs.joinToString(",") { j(it.first) + ":" + it.second }}}"
+    /** ints: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun ints(s: String, key: String) =
         Regex("\\\"$key\\\"\\s*:\\s*\\[([^]]*)]").find(s)!!.groupValues[1].split(',').filter { it.isNotBlank() }
             .map { it.trim().toInt() }
 
+    /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun events(s: String) = Regex("\\\"events\\\"\\s*:\\s*\\[(.*?)]").find(s)!!.groupValues[1].split(',')
         .map { it.trim().removeSurrounding("\"") }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val text = Files.readString(Path.of(args[0]))
@@ -53,12 +69,12 @@ object GameDataTraceHarness {
         val weapons = mutableListOf<Triple<Int, Int, Int>>()
         val out = mutableListOf<String>()
 
-        /** 아이템 분류 규칙에 따라 타입 번호를 계산한다. */
+        /** type: 아이템 분류 규칙에 따라 타입 번호를 계산한다. */
         fun type(x: I) = when {
             x.kind <= 9 -> 0; x.kind <= 19 -> 1; x.id in 1000..1003 -> 3; else -> 2
         }
 
-        /** 아이템 상태를 검증 결과 목록에 추가한다. */
+        /** snapshot: 아이템 상태를 검증 결과 목록에 추가한다. */
         fun snapshot(step: String) = out.add(
             ob(
                 "s" to j(step),
@@ -77,6 +93,7 @@ object GameDataTraceHarness {
         )
 
 
+        /** itemRow: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun itemRow(id: Int, pos: Int): String {
             val x = items.getValue(id)
             val t = type(x)

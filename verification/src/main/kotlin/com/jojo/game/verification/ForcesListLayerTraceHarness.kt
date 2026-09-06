@@ -1,35 +1,44 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.battle.overlay.ForcesListLayer
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 복원된 ForcesListLayer 팩토리 추적의 Kotlin 실행부이다. */
+/** ForcesListLayerTraceHarness: 복원된 ForcesListLayer 팩토리 추적의 Kotlin 실행부이다. */
 object ForcesListLayerTraceHarness {
+    /** Case: case 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** name: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val name: String,
+        /** flag: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val flag: Int,
+        /** mine: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val mine: List<ForcesListLayer.Unit>,
+        /** enemy: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val enemy: List<ForcesListLayer.Unit>,
+        /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val events: List<String>
     )
 
+    /** cases: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun cases(input: String): List<Case> {
         val compact = input.replace(Regex("\\s+"), "")
         return Regex("""\{"name":"([^"]+)","flag":(\d+),"mine":\[(.*?)]\,"enemy":\[(.*?)]\,"events":\[(.*?)]}""").findAll(
             compact
         ).map { c ->
-            /** 원본 문자열에서 편성 유닛 목록을 읽는다. */
+            /** units: 원본 문자열에서 편성 유닛 목록을 읽는다. */
             fun units(raw: String): List<ForcesListLayer.Unit> = Regex("""\{([^{}]*)}""").findAll(raw).map { m ->
                 val p = m.groupValues[1]
 
-                /** 이름 필드를 결과에 기록한다. */
+                /** n: 이름 필드를 결과에 기록한다. */
                 fun n(k: String) = Regex("\"$k\":(\\d+)").find(p)?.groupValues?.get(1)?.toInt() ?: 0
 
-                /** 버튼 필드를 결과에 기록한다. */
+                /** b: 버튼 필드를 결과에 기록한다. */
                 fun b(k: String) = p.contains("\"$k\":true")
                 val status = Regex("\"status\":(\\d+)").find(p)?.groupValues?.get(1)?.toInt()
                 ForcesListLayer.Unit(
@@ -62,7 +71,9 @@ object ForcesListLayerTraceHarness {
         }.toList()
     }
 
+    /** e: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun e(x: String) = x.replace("\\", "\\\\").replace("\"", "\\\"")
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val all = cases(Files.readString(Path.of(args[0]))).joinToString(",", "{", "}") { c ->
@@ -75,6 +86,7 @@ object ForcesListLayerTraceHarness {
             val trace = mutableListOf<String>()
 
 
+            /** state: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
             fun state(step: String): String {
                 val view = layer.view()
                 val rows = view.rows.mapIndexed { index, row ->

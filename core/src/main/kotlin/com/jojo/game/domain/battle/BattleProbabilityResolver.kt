@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.domain.battle.*
@@ -7,12 +8,12 @@ import com.jojo.game.domain.battle.magic.BattleMagicProfile
 
 import java.util.*
 
-/** Domain-facing random stream used when a caller needs deterministic replay. */
+/** BattleRandomSource: 전투 확률 계산에 필요한 난수 공급 계약으로, 재현 가능한 전투 기록을 지원한다. */
 interface BattleRandomSource {
     fun random(min: Int, max: Int, flag: Int = 0): Int
 }
 
-/** Stored probability-gauge positions retained in [BattleUnit.rateAccumulators]. */
+/** BattleRateGauge: 확률 게이지의 누적 상태를 나타내며, 반복 판정의 성공 보정을 유지한다. */
 internal enum class BattleRateGauge(val index: Int) {
     PHYSICAL_HIT(0),
     PHYSICAL_GUARD(1),
@@ -24,12 +25,11 @@ internal enum class BattleRateGauge(val index: Int) {
     CRITICAL_GUARD(7),
 }
 
-/** Owns deterministic opposed gauges and both battle random channels. */
+/** BattleProbabilityResolver: 명중·필살·상태 이상 등의 확률을 난수원과 누적 게이지로 판정한다. */
 internal class BattleProbabilityResolver(
     private val fallbackRandom: Random,
     private val sourceRandomStreams: BattleRandomSource?,
 ) {
-    /** Advances both opposed gauges before deciding which side crossed first. */
     fun countRate(
         attacker: BattleUnit,
         defender: BattleUnit,
@@ -47,12 +47,8 @@ internal class BattleProbabilityResolver(
         defender.rateAccumulators[defenderGauge.index] = other.coerceIn(0, 255)
         return success
     }
-
-    /** Inclusive Tool.random channel used by ordinary battle rules. */
     fun defaultRandom(min: Int, max: Int): Int =
         sourceRandomStreams?.random(min, max, 0) ?: (fallbackRandom.nextInt(max - min + 1) + min)
-
-    /** Inclusive Math.random-derived channel used by flagged source rules. */
     fun flagRandom(min: Int, max: Int): Int =
         sourceRandomStreams?.random(min, max, 1) ?: (fallbackRandom.nextInt(max - min + 1) + min)
 
@@ -66,8 +62,6 @@ internal class BattleProbabilityResolver(
             unit.rateAccumulators[gauge.index] = random100()
         }
     }
-
-    /** Script-authored status rolls are fixed at three without source replay streams. */
     fun rollStatusDuration(): Int =
         if (sourceRandomStreams != null) defaultRandom(1, 3) else 3
 
@@ -94,8 +88,6 @@ internal class BattleProbabilityResolver(
                 baseline - effect(target, 64) - effect(target, 71) + effect(attacker, 66)
                 ).coerceIn(25, 100)
     }
-
-    /** Updates gauges before applying remote immunity and guaranteed-hit overrides. */
     fun physicalHit(attacker: BattleUnit, target: BattleUnit, hitRate: Int): Boolean {
         val rolled = countRate(
             attacker,
@@ -184,8 +176,6 @@ internal class BattleProbabilityResolver(
         }
         return rate.coerceIn(25, 100)
     }
-
-    /** Updates magic gauges before applying the target's guaranteed miss. */
     fun magicHit(attacker: BattleUnit, target: BattleUnit, hitRate: Int): Boolean {
         val rolled = countRate(
             attacker,
@@ -196,8 +186,6 @@ internal class BattleProbabilityResolver(
         )
         return rolled && target.skills[17]?.and(255)?.let { it == 255 } != false
     }
-
-    /** Updates continuous gauges before applying either forced-repeat skill. */
     fun continuousAttack(attacker: BattleUnit, target: BattleUnit): Boolean {
         val forced = hasSkill(attacker, 197) || hasSkill(attacker, 276)
         val own = BattleAttributeCalculator.effective(attacker, BattleAttribute.CRITICAL).toDouble()

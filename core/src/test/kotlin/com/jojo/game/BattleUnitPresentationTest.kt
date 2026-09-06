@@ -1,21 +1,15 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
 
-import com.jojo.game.presentation.battle.BattleUnitPresentationStore
 import com.jojo.game.presentation.battle.unit.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * class  `BattleUnitPresentationTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleUnitPresentationTest: BattleUnitPresentation의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleUnitPresentationTest {
     @Test
@@ -26,8 +20,7 @@ class BattleUnitPresentationTest {
         )
         val store = BattleUnitPresentationStore()
 
-        // MB (paralysis) and HL (confusion) are the first two active source
-        // states; later ZD does not enter the two-frame status clip.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(listOf(0, 2), store.stateFor(unit).stateAnimation.current()!!.textureIndices)
         unit.statuses.remove(BattleStatus.PARALYSIS)
         assertEquals(listOf(2, 3), store.stateFor(unit).stateAnimation.current()!!.textureIndices)

@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -6,10 +7,12 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin half of the SettingLayer recovered-JS isolated trace fixture. */
+/** SettingLayerTraceHarness: SettingLayer 복원 JS 격리 추적 픽스처의 Kotlin 실행부이다. */
 object SettingLayerTraceHarness {
+    /** Case: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(val name: String, val values: LinkedHashMap<String, Int>, val events: List<String>)
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
@@ -27,23 +30,29 @@ object SettingLayerTraceHarness {
                 }.toList()
 
 
+        /** json: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun json(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
 
 
+        /** run: 검증 시나리오 입력을 적용하고 추적 결과를 반환한다. */
         fun run(spec: Case): String {
             val writes = mutableListOf<Pair<String, Int>>()
             val events = mutableListOf<String>()
             val store = object : SettingLayer.Store {
+                /** getInt: 지정한 키 또는 인덱스의 검증 값을 조회한다. */
                 override fun getInt(key: String, default: Int) = spec.values[key] ?: default
+                /** putInt: 지정한 키 또는 상태에 검증 값을 반영한다. */
                 override fun putInt(key: String, value: Int) {
                     spec.values[key] = value; writes += key to value
                 }
             }
             val sound = object : SettingLayer.Sound {
+                /** music: 검증 입력을 처리하고 관련 상태를 갱신한다. */
                 override fun music(on: Boolean) {
                     events += "music:$on"
                 }
 
+                /** effect: 검증 입력을 처리하고 관련 상태를 갱신한다. */
                 override fun effect(on: Boolean) {
                     events += "effect:$on"
                 }
@@ -51,6 +60,7 @@ object SettingLayerTraceHarness {
             val layer = SettingLayer(store, sound) { events += "applySpeed" }
             layer.onCreate()
 
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snap(step: String): String {
                 val v = layer.view()
                 val values = spec.values.entries.joinToString(",") { "\"${json(it.key)}\":${it.value}" }

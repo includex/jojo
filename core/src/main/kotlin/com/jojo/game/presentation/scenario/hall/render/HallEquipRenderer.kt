@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
 import com.badlogic.gdx.graphics.Color
@@ -10,7 +11,7 @@ import com.jojo.game.presentation.scenario.hall.HallEquipmentRenderPlan
 import com.jojo.game.presentation.scenario.hall.HallEquipUnitView
 import com.jojo.game.presentation.scenario.hall.HallEquipView
 
-/** Stateless EquipLayer renderer over an immutable [HallEquipView]. */
+/** HallEquipRenderer: 거점 Equip 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallEquipRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, viewport: Viewport, view: HallEquipView) {
         val draw = HallRenderPrimitives(assets, batch)

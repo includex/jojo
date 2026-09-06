@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
@@ -121,8 +122,6 @@ internal class ScenarioModalController(
         val appended = separator + text
         currentModalText = appended
         currentModalKind = ScenarioModalKind.MAP_INFO
-        // Source types one rich-text token every .04 s, then waits 1 s (5 s
-        // when `wait` is set) before AUTO_CLOSE advances the script.
         modalPostTypingDelaySeconds = if (wait) 5f else 1f
         modalRemainingSeconds = appended.length * 0.04f + modalPostTypingDelaySeconds
         mapInfoContent += appended

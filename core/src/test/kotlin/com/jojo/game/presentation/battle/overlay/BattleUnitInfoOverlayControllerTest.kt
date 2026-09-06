@@ -1,6 +1,7 @@
+// Test
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.UnitInfoLayer
+import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

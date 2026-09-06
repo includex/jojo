@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -9,13 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleQiLingTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleQiLingTest: BattleQiLing의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleQiLingTest {
     private fun damage(withTargetCampNeighbor: Boolean): Int {
@@ -30,8 +25,7 @@ class BattleQiLingTest {
 
     @Test
     fun `QI_LING applies only when target BU_BING area has no same camp unit`() {
-        // Source filterHitAreaUnit(target, BU_BING, 13) checks an existing
-        // same-isMine neighbour and stops after its first match.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (BU_BING)을 검증한다.
         assertEquals(11, damage(false) - damage(true))
     }
 }

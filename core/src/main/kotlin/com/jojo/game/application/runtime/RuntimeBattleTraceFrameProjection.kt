@@ -1,9 +1,10 @@
+// Runtime
 package com.jojo.game.application.runtime
 
 import com.jojo.game.application.runtime.BattleTraceRecorder
 import com.jojo.game.application.runtime.RuntimeBattleTraceView
 
-/** Immutable, renderer-free hand-off for one full-battle trace row. */
+/** RuntimeBattleTraceFrameInput: 화면 전투 상태를 추적 JSON으로 변환하기 전 필요한 원시 프레임 데이터다. */
 internal data class RuntimeBattleTraceFrameInput(
     val frame: Long,
     val elapsed: Float,
@@ -120,7 +121,7 @@ internal data class RuntimeBattleTraceUnitInput(
 internal data class RuntimeBattleTraceSpriteInput(val sourceY: Int, val sourceWidth: Int, val sourceHeight: Int)
 internal data class RuntimeBattleTracePoint(val x: Int, val y: Int)
 
-/** Maps a value-only frame into the stable recorder view and legacy JSON fragments. */
+/** RuntimeBattleTraceFrameProjector: 원시 전투 프레임을 검증 파일용 RuntimeBattleTraceView로 직렬화한다. */
 internal object RuntimeBattleTraceFrameProjector {
     fun project(input: RuntimeBattleTraceFrameInput): RuntimeBattleTraceView = RuntimeBattleTraceView(
         frame = input.frame,

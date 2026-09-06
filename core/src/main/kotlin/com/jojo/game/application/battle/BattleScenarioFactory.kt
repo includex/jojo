@@ -1,21 +1,16 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.*
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.application.runtime.BattleTraceRandomStreams
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleWeather
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.ScenarioBattleUnit
 
-/**
- * Compatibility facade for constructing battles from authored scenarios.
- *
- * Projection and runtime configuration live in the application layer; this
- * object remains at the historic package and keeps its public call sites
- * source-compatible.
- */
+/** BattleScenarioFactory: 작성된 시나리오에서 전투를 생성하는 호환 진입점으로, 기존 호출 경로를 유지한다. */
 object BattleScenarioFactory {
     fun tutorialBattle(): Battle = BattleScenarioAssembler.tutorialBattle()
 

@@ -1,14 +1,11 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
-/**
- * Creates the Hall management screens' immutable display projections from the
- * campaign read model. Interaction state stays with ScenarioScreen and is
- * supplied only as the tab, selected unit, or transient notice it controls.
- */
+/** HallManagementViewFactory: 거점 Management 표시 정보 생성기이며, 도메인 데이터를 화면에 바로 쓸 수 있는 표시 모델로 변환한다. */
 internal class HallManagementViewFactory(
     private val campaign: CampaignState,
     private val catalog: GameDataCatalog,
@@ -37,8 +34,6 @@ internal class HallManagementViewFactory(
     )
 
     fun buyCandidates(): List<GameDataCatalog.EquipmentProfile> {
-        // The isolated source fixture feeds 0..itemCount (255 is its sentinel).
-        // Cocos' vertical layout leaves the tail at the top of the viewport.
         if (overlayVariant == RuntimeScenarioOverlay.BUY) return catalog.allEquipmentProfiles()
             .asReversed()
             .filter { it.id != 255 && catalog.equipmentCategory(it) <= 2 && it.price != 255 }
@@ -175,5 +170,5 @@ internal class HallManagementViewFactory(
     }
 }
 
-/** Immutable item/count projection retained for Hall interaction hit testing. */
+/** HallInventoryItemView: 거점 소지품 Item 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallInventoryItemView(val itemId: Int, val count: Int)

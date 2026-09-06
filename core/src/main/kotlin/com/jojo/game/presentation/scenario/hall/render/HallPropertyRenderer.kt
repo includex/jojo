@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -5,7 +6,7 @@ import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.hall.HallPropertyRenderPlan
 import com.jojo.game.presentation.scenario.hall.HallPropertyView
 
-/** Stateless PropertyLayer renderer over a ready-to-draw warehouse table view. */
+/** HallPropertyRenderer: 거점 속성 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallPropertyRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallPropertyView) {
         val draw = HallRenderPrimitives(assets, batch)

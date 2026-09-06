@@ -1,19 +1,19 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
-import com.jojo.game.presentation.battle.FightActionPose
-import com.jojo.game.presentation.battle.UnitSpriteSource
+import com.jojo.game.presentation.battle.unit.UnitSpriteSource
 import com.jojo.game.presentation.battle.timeline.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 
-/** Exact SpriteFrame/transform sampling for FightUnit's shipped animeFR. */
+/** FightSpriteTimeline: 전투 스프라이트 시간 흐름이며, 시간 경과에 따른 전투 상태와 표현 단계를 진행한다. */
 class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>) {
-    /** Raw FightUnit `__cb1` payload at its authored animation time. */
     data class SoundEvent(val atSeconds: Float, val value: String)
 
 
+    /** Frame: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class Frame(
         val source: UnitSpriteSource,
         val sourceY: Int,
@@ -23,7 +23,6 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
         val material: BattleCharacterMaterial,
         val materialValue: Float = 0f,
     )
-
     private data class SpriteKey(val atTicks: Float, val source: UnitSpriteSource, val index: Int)
     private data class ScalarKey(val atTicks: Float, val value: Float, val linear: Boolean)
     private data class PositionKey(val atTicks: Float, val x: Float, val y: Float, val linear: Boolean)
@@ -32,7 +31,6 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
         val material: BattleCharacterMaterial,
         val value: Float,
     )
-
     private data class SoundKey(val atTicks: Float, val value: String)
     private data class Clip(
         val totalTicks: Float,
@@ -80,14 +78,6 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
             materialValue = clip.materials.lastOrNull { it.atTicks <= tick + EPSILON }?.value ?: 0f,
         )
     }
-
-    /**
-     * Returns every callback1 crossed by one forward animation step.
-     *
-     * Animation callbacks at frame zero fire once when play() starts.  The
-     * explicit [includeStart] flag preserves that case without letting a
-     * later sample at the same time replay it.
-     */
     fun soundEventsCrossed(
         action: Int,
         fromExclusiveSeconds: Float,
@@ -187,13 +177,6 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
                         scales += ScalarKey(at, value.get(0).asFloat(), value.get(1)?.asInt() == 1)
                     }
                     props.get("opacity")?.let { value ->
-                        // Most recovered animation properties are encoded as
-                        // [value, linearFlag], but anime23 keeps its two
-                        // opacity keys as bare numbers.  Cocos treats those
-                        // scalar assignments as discrete keyframes.  Reading
-                        // them as arrays crashed the first battle that used
-                        // action 23 (S_02), even though earlier scenarios
-                        // happened not to instantiate that clip.
                         if (value.isArray) {
                             opacities += ScalarKey(at, value.get(0).asFloat(), value.get(1)?.asInt() == 1)
                         } else {
@@ -214,8 +197,6 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
                 }
                 var soundEvent = entry.get("events")?.get("1")?.child
                 while (soundEvent != null) {
-                    // Cocos animation events preserve both numeric effect
-                    // IDs and the special `yidong` move-sound token.
                     sounds += SoundKey(at, soundEvent.asString())
                     soundEvent = soundEvent.next
                 }

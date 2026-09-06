@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.round
 
 import com.jojo.game.domain.battle.*
@@ -13,6 +14,7 @@ import com.jojo.game.domain.battle.settlement.*
 import com.jojo.game.domain.battle.BattleAttributeCalculator
 
 
+/** BattleRoundCoordinator: 진영 순환·라운드 전진·날씨 변화·진영 시작과 종료 정산을 조정한다. */
 object BattleRoundCoordinator {
 
 

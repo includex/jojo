@@ -1,10 +1,13 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
 import com.jojo.game.*
+import com.jojo.game.application.campaign.DailySignInFlow
+import com.jojo.game.application.campaign.RaffleFlow
 import com.jojo.game.domain.battle.*
 
 
-/** Source-faithful state contract for ui/SettingLayer.js. */
+/** SettingLayer: 음향·메시지·배경·속도 설정을 편집하고 조건에 맞는 부가 기능 화면을 여는 상태다. */
 class SettingLayer(
     private val store: Store,
     private val sound: Sound = Sound.NONE,
@@ -76,7 +79,7 @@ class SettingLayer(
             store.getInt(GAME_SPEED, 0) / 100f; attached = true; return view()
     }
 
-    /** Toggle check event: all flag writes immediate; bits 0/1 also reconfigure Sound. */
+    /** check: 설정 비트를 켜거나 끄고 배경음·효과음 선택은 즉시 음향 서비스에 반영한다. */
     fun check(bit: Int, checked: Boolean) {
         require(bit in 0..6); flags = if (checked) flags or (1 shl bit) else flags and (1 shl bit).inv(); store.putInt(
             GAME_SETTING,
@@ -84,7 +87,7 @@ class SettingLayer(
         ); if (bit == 0) sound.music(checked); if (bit == 1) sound.effect(checked)
     }
 
-    /** check2 tags E<<8|N; source persists MSG_SPEED and NOTIFY_LV immediately. */
+    /** check2: 메시지 속도 또는 알림 수준 선택값을 해당 환경설정 키에 저장한다. */
     fun check2(panel: Int, selection: Int) {
         require(panel in 0..2 && selection >= 0); if (panel != 1) store.putInt(
             if (panel == 0) MSG_SPEED else NOTIFY_LV,
@@ -102,19 +105,19 @@ class SettingLayer(
         speed = progress.coerceIn(0f, 1f); speedChanged = true
     }
 
-    /** The source close listener only detaches on TOUCH_END; persistence belongs to onDestroy. */
+    /** dismiss: 터치 종료 입력일 때만 설정 화면을 닫고 처리 여부를 반환한다. */
     fun dismiss(eventType: Int): Boolean {
         if (eventType != TOUCH_END || !attached) return false; attached = false; return true
     }
 
-    /** Source onDestroy commits GAME_SPEED2 only after onSlider set its dirty flag. */
+    /** onDestroy: 슬라이더로 바뀐 게임 속도를 저장하고 실행 중인 속도 설정을 갱신한다. */
     fun onDestroy() {
         if (speedChanged) {
             store.putInt(GAME_SPEED, (speed * 100).toInt()); applyGameSpeed()
         }
     }
 
-    /** Recovered optional buttons 7/8/9: achievements, raffle and sign-in. */
+    /** featureButton: 해금 조건과 현재 장면을 검사해 업적·추첨·출석부 화면을 열거나 안내 결과를 만든다. */
     fun featureButton(tag: Int, eventType: Int): FeatureResult {
         if (!attached || eventType != TOUCH_END || tag !in 7..9) return FeatureResult.Ignored
         val env = featureEnvironment()
@@ -144,7 +147,7 @@ class SettingLayer(
         }
     }
 
-    /** Compatibility entry point used by the game shell: detach then dispose immediately. */
+    /** close: 화면 닫기 입력을 처리한 뒤 필요한 속도 저장 정리까지 함께 실행한다. */
     fun close(eventType: Int): Boolean {
         val removed = dismiss(eventType); if (removed) onDestroy(); return removed
     }

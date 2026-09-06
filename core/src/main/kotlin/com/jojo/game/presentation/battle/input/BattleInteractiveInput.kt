@@ -1,18 +1,12 @@
+// Battle
 package com.jojo.game.presentation.battle.input
 
 import com.jojo.game.domain.battle.turn.BattleTurnPhase
 import com.jojo.game.domain.scenario.*
 
-/**
- * Single source of truth for BattleScreen's map-input pause gate.
- *
- * Say/choice layers consume their own input, while DELAY and MODAL are true
- * source-script pauses and must never leak a click into tactical selection.
- * Tactical map input additionally belongs only to ctrl_mine/PLAYER_INPUT.
- */
-
 object BattleInteractiveInput {
 
+    /** Route: 전투 화면 흐름에서 현재 처리 종류를 구분한다. */
     enum class Route { DIALOGUE, CHOICE, SCRIPT_PAUSED, TURN_PAUSED, PLAYER_INPUT }
 
 
@@ -26,8 +20,6 @@ object BattleInteractiveInput {
             Route.TURN_PAUSED
         }
     }
-
-    /** Deterministic state trace used by the no-framebuffer regression test. */
     fun trace(): String = listOf(
         PlaybackState.DIALOGUE to BattleTurnPhase.PLAYER_INPUT,
         PlaybackState.DELAY to BattleTurnPhase.PLAYER_INPUT,

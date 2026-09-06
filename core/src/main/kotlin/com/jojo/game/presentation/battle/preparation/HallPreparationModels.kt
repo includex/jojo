@@ -1,6 +1,5 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
-
-/** Lifecycle models for HallLayer and battle preparation factories. */
 class HallPreparationFlow(private val featureSkip: Boolean = false) {
     var flag = 2
     val layers = mutableListOf<String>()
@@ -29,6 +28,7 @@ class HallPreparationFlow(private val featureSkip: Boolean = false) {
 }
 
 
+/** BattleInitPresentationState: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 class BattleInitPresentationState {
     var flag = 0
     var attached = false
@@ -53,6 +53,7 @@ class BattleInitPresentationState {
 }
 
 
+/** BattleSortModel: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 class BattleSortModel {
     var attached = true
     var pos = "10,20"
@@ -70,6 +71,7 @@ class BattleSortModel {
 }
 
 
+/** BattleRosterModel: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 class BattleRosterModel {
     val slots = mutableListOf(-1, -1, -1)
     val fights = linkedSetOf<Int>()
@@ -92,8 +94,6 @@ class BattleRosterModel {
         label = "출진 무장 - ${fights.size}/3"; ok = fights.size >= 2; events += fights.size
     }
 }
-
-
 class BattleDeploymentRules {
     val max = 3
     val min = 2

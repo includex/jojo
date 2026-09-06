@@ -1,9 +1,11 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.battle.overlay.MineUnitInfoLayer
 import com.jojo.game.presentation.battle.overlay.OtherUnitInfoLayer
 
 import com.jojo.game.presentation.scenario.hall.*
+import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 
 import com.jojo.game.*
 import com.jojo.game.domain.battle.*
@@ -11,39 +13,54 @@ import com.jojo.game.domain.battle.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * Behavioural games of recovered UnitListLayer, MineUnitInfoLayer,
- * OtherUnitInfoLayer and their InfoBase animation.  This deliberately has no
- * renderer dependency: the public state, event and completion contract is
- * exercised against the same fixture used by the recovered factories.
- */
 
+/** UnitListInfoLayerTraceHarness: 복원된 UnitListLayer·MineUnitInfoLayer·OtherUnitInfoLayer와 InfoBase 애니메이션의 동작을 실행한다. 렌더러에 의존하지 않고 복원 팩토리와 같은 픽스처로 상태·이벤트·완료 계약을 검증한다. */
 object UnitListInfoLayerTraceHarness {
+    /** Unit: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Unit(
+        /** id: 상점 항목 식별자를 담는다. */
         val id: Int,
+        /** name: 검증 대상의 표시 이름을 담는다. */
         val name: String,
+        /** post: 검증 대상의 현재 상태 값을 담는다. */
         val post: String,
+        /** lv: 검증 대상의 현재 상태 값을 담는다. */
         val lv: Int,
+        /** hp: 검증 대상의 현재 상태 값을 담는다. */
         val hp: Int,
+        /** hpMax: 검증 대상의 현재 상태 값을 담는다. */
         val hpMax: Int,
+        /** mp: 검증 대상의 현재 상태 값을 담는다. */
         val mp: Int,
+        /** mpMax: 검증 대상의 현재 상태 값을 담는다. */
         val mpMax: Int,
+        /** exp: 검증 대상의 현재 상태 값을 담는다. */
         val exp: Int = 0,
+        /** expMax: 검증 대상의 현재 상태 값을 담는다. */
         val expMax: Int = 100,
+        /** wExp: 검증 대상의 현재 상태 값을 담는다. */
         val wExp: Int = 0,
+        /** wMax: 검증 대상의 현재 상태 값을 담는다. */
         val wMax: Int = 100,
+        /** aExp: 검증 대상의 현재 상태 값을 담는다. */
         val aExp: Int = 0,
+        /** aMax: 검증 대상의 현재 상태 값을 담는다. */
         val aMax: Int = 100
     )
 
+    /** q: 문자열을 JSON 인용 형식으로 변환한다. */
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    /** field: 입력 데이터에서 지정한 블록을 추출한다. */
     private fun field(o: String, n: String): String? =
         Regex("\\\"$n\\\"\\s*:\\s*(\\{(?:[^{}]|\\{[^{}]*})*}|\\[[^]]*]|\\\"(?:\\\\.|[^\"])*\\\"|-?\\d+|true|false)").find(
             o
         )?.groupValues?.get(1)
 
+    /** int: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun int(o: String, n: String, d: Int = 0) = field(o, n)?.trim('"')?.toIntOrNull() ?: d
+    /** str: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun str(o: String, n: String) = field(o, n)?.trim()?.removeSurrounding("\"") ?: ""
+    /** balanced: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun balanced(s: String, start: Int): String {
         var d = 0
         var quote = false
@@ -56,6 +73,7 @@ object UnitListInfoLayerTraceHarness {
         }; error("unbalanced")
     }
 
+    /** cases: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun cases(raw: String): List<String> {
         val a = raw.indexOf("\"cases\"")
         val b = raw.indexOf('[', a)
@@ -67,6 +85,7 @@ object UnitListInfoLayerTraceHarness {
         }; return out
     }
 
+    /** units: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun units(o: String): List<Unit> {
         val a = field(o, "units") ?: "[]"; return Regex("\\{([^{}]*)}").findAll(a).map { m ->
             val x = "{${m.groupValues[1]}}"; Unit(
@@ -88,6 +107,7 @@ object UnitListInfoLayerTraceHarness {
         }.toList()
     }
 
+    /** single: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun single(o: String): Unit {
         val x = field(o, "unit") ?: "{}"; return Unit(
             int(x, "id"),
@@ -107,15 +127,19 @@ object UnitListInfoLayerTraceHarness {
         )
     }
 
+    /** events: 입력 데이터에서 검증 이벤트 목록을 추출한다. */
     private fun events(o: String) = Regex("\"events\"\\s*:\\s*\\[(.*?)]").find(o)?.groupValues?.get(1)
         ?.let { Regex("\"([^\"]*)\"").findAll(it).map { m -> m.groupValues[1] }.toList() } ?: emptyList()
 
+    /** data: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun data(o: String): Map<String, Int> {
         val x = field(o, "data") ?: "{}"; return Regex("\"([^\"]+)\"\\s*:\\s*(-?\\d+)").findAll(x)
             .associate { it.groupValues[1] to it.groupValues[2].toInt() }
     }
 
+    /** num: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun num(x: Double) = if (x == x.toLong().toDouble()) x.toLong().toString() else x.toString()
+    /** listRun: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun listRun(c: String): String {
         val byId = units(c).associateBy { it.id }
         val layer = HallUnitListLayer(byId.keys)
@@ -124,6 +148,7 @@ object UnitListInfoLayerTraceHarness {
         val dispatched = mutableListOf<Int>()
 
 
+        /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snap(step: String): String {
             val rows = layer.rows.mapIndexed { i, id ->
                 val u = requireNotNull(byId[id]); "{\"tag\":$i,\"labels\":[${q(u.name)},${q(u.post)}]}"
@@ -142,6 +167,7 @@ object UnitListInfoLayerTraceHarness {
         return out.joinToString(",", "[", "]")
     }
 
+    /** infoRun: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun infoRun(c: String): String {
         val mine = str(c, "kind") == "mine"
         val u = single(c)
@@ -163,6 +189,7 @@ object UnitListInfoLayerTraceHarness {
             maxMagicPoints = u.mpMax,
             level = u.lv
         )
+        /** add: 검증 이벤트 또는 항목을 현재 기록에 추가한다. */
         val entries = mutableListOf<InfoBaseValueAnimation.Value>(); fun add(
             key: String,
             idx: Int,
@@ -197,10 +224,12 @@ object UnitListInfoLayerTraceHarness {
         ) else listOf(hp.toDouble() / u.hpMax, mp.toDouble() / u.mpMax)
 
 
+        /** encode: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun encode(x: InfoBaseValueAnimation.Value) =
             "{\"idx\":${x.index},\"src\":${x.source},\"dsc\":${x.destination},\"max\":${x.max}}"
 
 
+        /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snap(step: String): String {
             val ls =
                 labs.mapIndexed { i, a -> "[${q("label$i")},[${a.joinToString(",") { q(it) }}]]" }.joinToString(",")
@@ -222,6 +251,7 @@ object UnitListInfoLayerTraceHarness {
         }; return out.joinToString(",", "[", "]")
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val raw = Files.readString(Path.of(a[0]))

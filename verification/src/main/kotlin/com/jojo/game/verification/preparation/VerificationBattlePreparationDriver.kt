@@ -1,12 +1,15 @@
+// Verification
 package com.jojo.game.verification.preparation
 
 import com.jojo.game.application.runtime.BattlePreparationPresentation
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
 
-/** Maps verification-only startup route names to neutral preparation rendering facts. */
+/** VerificationBattlePreparationDriver: 검증 전용 시작 경로 이름을 중립적인 준비 화면 사실로 매핑한다. */
 internal class VerificationBattlePreparationDriver(
+    /** route: 검증 실행 계획을 담는다. */
     private val route: String?,
 ) : RuntimeBattlePreparationDriver {
+    /** presentation: 표현 상태를 검증 출력으로 변환한다. */
     override fun presentation(): BattlePreparationPresentation = when (route) {
         "start-battle-unit-info-fixture" -> BattlePreparationPresentation(detailsVisible = true)
         "battle-view-fixture" -> BattlePreparationPresentation(mapVisible = true)

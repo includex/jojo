@@ -1,16 +1,21 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
+/** ScenarioHallManagementEvidenceRecorder: 매입·매각 거점 관리 화면의 목록과 버튼 렌더링 이벤트를 기록한다. */
 internal class ScenarioHallManagementEvidenceRecorder(
+    /** input: 검증 입력 정보를 담는다. */
     private val input: ScenarioHallManagementEvidenceInput,
 ) {
+    /** append: 검증 이벤트와 산출물을 기록한다. */
     fun append(log: RenderEventLog) {
         val kind = input.kind
         val layer = if (kind == ScenarioHallManagementEvidenceKind.BUY) "BuyLayer" else "SellLayer"
         if (kind == ScenarioHallManagementEvidenceKind.BUY || kind == ScenarioHallManagementEvidenceKind.SELL) {
+            /** source: 원본 검증 데이터를 조회한다. */
             fun source(
                 path: String, type: String, x: Float, y: Float, w: Float, h: Float,
                 asset: String? = null, text: String = "", label: Boolean = false
@@ -21,6 +26,7 @@ internal class ScenarioHallManagementEvidenceRecorder(
                 )
 
 
+            /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
             fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 43.344f) =
                 source(path, "label", x, y, w, h, text = text, label = true)
             if (kind == ScenarioHallManagementEvidenceKind.SELL) {
@@ -53,6 +59,7 @@ internal class ScenarioHallManagementEvidenceRecorder(
             label("bg1/label", "현금", 188.844f, 39.388f, 59.512f)
             source("bg1/box2", "sliced-sprite", 258.676f, 39.56f, 141.556f, 43f, "box2")
             label("bg1/box2/label", input.money.toString(), 378.107f, 39.388f, 19.135f)
+            /** sourceButton: 원본 버튼 입력을 변환한다. */
             fun sourceButton(
                 path: String,
                 text: String,

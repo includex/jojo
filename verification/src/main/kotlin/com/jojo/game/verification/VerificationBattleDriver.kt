@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
@@ -8,10 +9,12 @@ import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattleActionSample
 import com.jojo.game.application.runtime.RuntimeBattleRoute
 
-/** Verification-owned deterministic input driver for externally named battle runs. */
+/** VerificationBattleDriver: 외부에서 이름을 지정한 전투 실행을 위한 검증 전용 결정적 입력기이다. */
 internal class VerificationBattleDriver(private val state: String?) : RuntimeBattleDriver {
+    /** endTurnIssued: 검증 대상의 현재 상태 값을 담는다. */
     private var endTurnIssued = false
 
+    /** commands: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     override fun commands(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe): List<RuntimeBattleCommand> {
         if (state == "enemy-turn" && !endTurnIssued && probe.turnPhase == "PLAYER_INPUT" && probe.outcome == null) {
             endTurnIssued = true
@@ -21,8 +24,9 @@ internal class VerificationBattleDriver(private val state: String?) : RuntimeBat
     }
 }
 
-/** Keeps externally named presentation routes out of the production screen. */
+/** VerificationBattlePresentation: 외부 명명 표현 경로가 운영 화면에 들어가지 않도록 격리한다. */
 internal object VerificationBattlePresentation {
+    /** from: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     fun from(state: String?): RuntimeBattlePresentation {
         val action = when (state) {
             "attack6-f0" -> RuntimeBattleActionSample(6, 1f / 24f)
@@ -77,6 +81,16 @@ internal object VerificationBattlePresentation {
             state == "battle-init-fixture" -> RuntimeBattleRoute.INITIAL
             state == "battle-terrain-layer-fixture" -> RuntimeBattleRoute.TERRAIN
             state == "battle-menu-fixture" -> RuntimeBattleRoute.MENU
+            state == "yingchuan-menu" -> RuntimeBattleRoute.MENU
+            state == "yingchuan-helper" -> RuntimeBattleRoute.HELPER
+            state == "yingchuan-win-condition" -> RuntimeBattleRoute.WIN_MODAL
+            state == "yingchuan-unit-info" -> RuntimeBattleRoute.UNIT_INFO
+            state == "lose-result" -> RuntimeBattleRoute.RESULT_LOSE
+            state == "win-result" -> RuntimeBattleRoute.RESULT_WIN
+            state == "yingchuan-opening-say" -> RuntimeBattleRoute.OPENING_SAY
+            state == "hud" -> RuntimeBattleRoute.HUD
+            state == "yingchuan-dialogue-1" -> RuntimeBattleRoute.DIALOGUE_ONE
+            state == "enemy-turn" -> RuntimeBattleRoute.ENEMY_TURN
             state == "map-only" -> RuntimeBattleRoute.MAP_ONLY
             state == "yingchuan-selection" -> RuntimeBattleRoute.SELECTION
             state == "yingchuan-terrain" -> RuntimeBattleRoute.MODAL_TERRAIN

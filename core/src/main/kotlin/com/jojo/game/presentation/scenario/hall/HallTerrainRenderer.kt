@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.graphics.Color
@@ -6,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Stateless executor for [HallTerrainRenderPlan]. */
+/** HallTerrainRenderer: 거점 지형 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallTerrainRenderer {
     private const val SCALE = .86f
 

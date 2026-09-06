@@ -1,19 +1,27 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.ServiceFlow
+import com.jojo.game.presentation.shared.ServiceMenuState
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 프레임워크 서비스와 스킬 모델의 호출 결과를 추적한다. */
 
+/** FrameworkServiceTraceHarness: 프레임워크 서비스와 스킬 모델의 호출 결과를 추적한다. */
 object FrameworkServiceTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"$s\""
+    /** cases: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun cases(s: String) = Regex("\\{[^{}]*\\}").findAll(s).map { it.value }
         .filter { it.contains("\"kind\":\"service\"") || it.contains("\"kind\":\"skm\"") }.toList()
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(s: String, k: String) = Regex("\"$k\"\\s*:\\s*\"([^\"]*)\"").find(s)?.groupValues?.get(1) ?: ""
+    /** num: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun num(s: String, k: String) = Regex("\"$k\"\\s*:\\s*(\\d+)").find(s)?.groupValues?.get(1)?.toInt() ?: 0
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val out = cases(Files.readString(Path.of(a[0]))).joinToString(",", "{", "}") { c ->

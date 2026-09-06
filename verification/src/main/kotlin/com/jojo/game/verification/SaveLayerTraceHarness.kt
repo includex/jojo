@@ -1,12 +1,16 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.*
 
 
+/** SaveLayerTraceHarness: 검증 실행을 시작하고 추적 결과를 수집하는 타입이다. */
 object SaveLayerTraceHarness {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
+        /** q: 문자열을 JSON 인용 형식으로 변환한다. */
         val f = java.nio.file.Files.readString(java.nio.file.Path.of(a[0])); fun q(x: String) = "\"$x\""
         val saves =
             Regex("\\{\\\"index\\\":(\\d+),\\\"time\\\":(\\d+),\\\"name\\\":\\\"([^\\\"]+)\\\",\\\"stage\\\":(\\d+),\\\"game\\\":(true|false)}").findAll(
@@ -18,18 +22,22 @@ object SaveLayerTraceHarness {
             ).toList()
 
 
+        /** one: 런타임 이벤트를 받아 검증 산출물을 갱신한다. */
         fun one(c: MatchResult): String {
             val g = c.groupValues
             val repo = object : SaveLayer.Repository {
+                /** load: 검증 리소스를 읽어 실행 상태를 구성한다. */
                 override fun load(i: Int): String? {
                     val x = saves[i]
                         ?: return null; return "{\"time\":${x[2]},\"name\":\"${x[3]}\",\"model\":${if (x[5] == "true") "{\"game\":{\"stage\":${x[4]}}}" else "{\"property2\":[0,${x[4]}]}"}}"
                 }
 
+                /** save: 검증 산출물을 지정한 경로에 기록한다. */
                 override fun save(i: Int) {}
             }
             var cb = 0
             val l = SaveLayer(repo, g[3] == "true"); l.onCreate({ cb++ }, g[4] == "true", g[2].toInt())
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             val t = mutableListOf<String>(); fun snap(s: String) {
                 val v = l.view()
                 val rows = v.rows.joinToString(

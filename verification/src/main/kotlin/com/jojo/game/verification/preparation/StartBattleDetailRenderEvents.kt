@@ -1,5 +1,7 @@
+// Verification
 package com.jojo.game.verification.preparation
 
+/** writeStartBattleDetailEvents: 검증 이벤트와 산출물을 기록한다. */
 internal fun writeStartBattleDetailEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("StartBattleScreen", "Canvas/Layer/bg/box1/scrollview/view/content/box1/label", "label", 1155.369f * scale, 335.95f * scale, 69.2f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "운기")
     context.draw("StartBattleScreen", "Canvas/Layer/bg/box1/scrollview/view/content/box1/label_yq", "label", 1257.696f * scale, 335.95f * scale, 44.49f * scale, 50.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "84")

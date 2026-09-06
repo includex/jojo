@@ -1,13 +1,11 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.BattleUnit
 
-/**
- * Captures the mutable unit state needed to calculate an action transaction
- * and later publish or discard that calculation without replacing the unit.
- */
+/** BattleUnitMemento: 유닛의 위치·체력·행동·상태 이상을 복원하기 위한 불변 기록이다. */
 internal data class BattleUnitMemento(
     val unit: BattleUnit,
     val tileX: Int,
@@ -36,7 +34,7 @@ internal data class BattleUnitMemento(
     val attributeLiftRounds: Map<BattleAttribute, Int>,
     val rateAccumulators: Map<Int, Int>,
 ) {
-    /** Restores the captured values into the same unit identity. */
+    /** restore: 기록한 값으로 원본 유닛의 전투 상태를 되돌린다. */
     fun restore(): BattleUnit = unit.apply {
         tileX = this@BattleUnitMemento.tileX
         tileY = this@BattleUnitMemento.tileY

@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.TerrainLayer
+import com.jojo.game.presentation.shared.overlay.TerrainLayer
 
-/** Immutable terrain-panel snapshot.  The screen owns the live catalog selection. */
+/** HallTerrainView: 거점 지형 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallTerrainView(
     val riseTab: Boolean,
     val rows: List<HallTerrainRowView>,

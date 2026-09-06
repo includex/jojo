@@ -1,8 +1,9 @@
+// Test
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.PropertyLayer
-import com.jojo.game.TerrainLayer
-import com.jojo.game.TreasureLayer
+import com.jojo.game.presentation.shared.overlay.TerrainLayer
+import com.jojo.game.presentation.shared.overlay.PropertyLayer
+import com.jojo.game.presentation.shared.overlay.TreasureLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

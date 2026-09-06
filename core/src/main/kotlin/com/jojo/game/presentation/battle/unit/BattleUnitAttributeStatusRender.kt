@@ -1,11 +1,12 @@
+// Battle
 package com.jojo.game.presentation.battle.unit
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
-/** Geometry adapter for BattleUnit prefab status/unit_status_0..5. */
 object BattleUnitAttributeStatusRender {
 
+    /** Command: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     data class Command(
         val attribute: BattleAttribute,
         val textureIndex: Int,

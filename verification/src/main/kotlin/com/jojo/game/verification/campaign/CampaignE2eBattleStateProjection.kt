@@ -1,6 +1,9 @@
+// Verification
 package com.jojo.game.verification.campaign
 
+/** CampaignE2eBattleStateProjection: 실행 상태를 검증용 모델로 변환하는 타입이다. */
 internal class CampaignE2eBattleStateProjection {
+    /** project: 실행 상태를 검증용 모델로 변환한다. */
     fun project(board: CampaignE2eBattlePlanningBoard, movePlan: CampaignE2eMovePlan, inputs: CampaignE2eActionInputs): CampaignE2eBattleState {
         val screen = board.screen
         val snapshot = board.probe.snapshot

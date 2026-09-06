@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.application.scenario.battle
 
 import com.jojo.game.domain.scenario.*
 
-/** Encodes source camp selectors used by rectangle AI and hide operations. */
+/** ScenarioStageBattleUnitSelection: 스크립트의 진영·사각형 선택 조건에 맞는 전투 유닛을 판별한다. */
 internal object ScenarioStageBattleUnitSelection {
     fun matchesAiCamp(unit: ScenarioBattleUnit, camp: Int): Boolean = when (camp) {
         0, 1, 2, 3 -> scriptCamp(unit) == camp

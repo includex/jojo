@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.graphics.Color
@@ -6,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Stateless renderer for the immutable [HallSellView]. */
+/** HallSellRenderer: 거점 Sell 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallSellRenderer {
     private const val SCALE = .86f
 

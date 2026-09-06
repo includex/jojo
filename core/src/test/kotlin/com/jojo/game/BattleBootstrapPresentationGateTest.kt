@@ -1,26 +1,21 @@
+// Test
 package com.jojo.game
 
-import com.jojo.game.presentation.battle.BattleBootstrapCallbackState
-import com.jojo.game.presentation.battle.completeInitialBattleOperation
+import com.jojo.game.presentation.battle.bootstrap.BattleBootstrapCallbackState
+import com.jojo.game.presentation.battle.bootstrap.completeInitialBattleOperation
+import com.jojo.game.application.scenario.ScenarioStage
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleBootstrapPresentationGateTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleBootstrapPresentationGateTest: BattleBootstrapPresentationGate의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleBootstrapPresentationGateTest {
     @Test
     fun `persistent unit poses are not bootstrap callbacks`() {
-        // setAction(4/9) is intentionally absent from callback state: those
-        // authored poses remain rendered after scene0 without delaying scene1.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(emptyList(), BattleBootstrapCallbackState().blockingReasons())
     }
 
@@ -46,7 +41,7 @@ class BattleBootstrapPresentationGateTest {
         completeInitialBattleOperation(stage)
 
         assertTrue(stage.battleOperationStarted)
-        // Idempotent when a scenario did issue startOper itself.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         completeInitialBattleOperation(stage)
         assertTrue(stage.battleOperationStarted)
     }

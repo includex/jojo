@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.command
 
 import com.jojo.game.domain.battle.command.ControlScoring.Arm
@@ -9,8 +10,6 @@ import com.jojo.game.domain.battle.command.ControlScoring.Status
 import com.jojo.game.domain.battle.command.ControlScoring.Type
 import com.jojo.game.domain.battle.command.ControlScoring.Unit
 import com.jojo.game.domain.battle.command.ControlScoring.Values
-
-/** Attack and magic value policy from the source Control module. */
 object ControlActionScoring {
 fun attackValue(
         attacker: Unit,
@@ -48,8 +47,6 @@ fun attackValue(
 
 
     private fun Unit.skill(ids: IntArray) = ids.firstOrNull { skill(it) != 255 }?.let(::skill) ?: 255
-
-    /** Source `_countMagicValue`; cache is exactly its supplied object. */
     fun magicValue(
         magic: Magic, caster: Unit, target: Unit, cache: MutableMap<String, Int>,
         hitRate: (Unit, Unit, Magic) -> Int = { _, _, _ -> 100 }, values: Values = Values(), skills: Skills = Skills()
@@ -90,9 +87,6 @@ fun attackValue(
             }
 
             else -> {
-                // These source branches use `break` inside the category switch.
-                // That skips only the status contribution; it must not discard a
-                // spell which also has a physical/magical harm component below.
                 run category@{
                     when (magic.category) {
                         Category.HFZT -> for (s in Status.MB..Status.ZD) if (target.status(s) != Lift.NORMAL) abnormal =
@@ -145,9 +139,6 @@ fun attackValue(
                             if (target.status(Status.ZD) != Lift.NORMAL) return@category; lift =
                                 lift or (1 shl Status.ZD)
                         }
-                        // Source checks AI.GONG_JI_WU_JIANG (3), not the later
-                        // retreat controller value (6).  AI 3..9 can therefore
-                        // be released from the action-complete state.
                         Category.ZCXD -> {
                             if (target.ai < 3 || target.status(Status.XD) == Lift.NORMAL) return@category; abnormal =
                                 abnormal or (1 shl Status.MOV)
@@ -187,7 +178,6 @@ fun attackValue(
                 score += statusValue(abnormal, target, values) + statusValue(lift, target, values)
             }
         }
-        // MAGIC_HARM_TYPE.NO is 4; NORMAL is 0 and still deals damage.
         if (magic.harmType != 4) {
             var harm = caster.magicHarm(magic, target).coerceIn(1, target.hpCur)
             if (harm >= target.hpCur) famousMask = famousMask or 4
@@ -221,10 +211,6 @@ fun attackValue(
 
         fun has(s: Int) = mask and (1 shl s) != 0
         if (has(Status.ATT)) n += if (unit.armType == Arm.QUAN_NENG) v.attackQn else if (unit.armType == Arm.WU_JIANG) v.attackWj else 0
-        // Control.js intentionally uses ATT_QN (not DEF_QN) for a
-        // all-rounder's defence entry.  They currently share the same
-        // Config value, but preserving the source identifier matters for
-        // injected parity tables.
         if (has(Status.DEF)) n += when (unit.armType) {
             Arm.QUAN_NENG -> v.attackQn; Arm.WEN_GUAN -> v.defWg; else -> v.defWj
         }

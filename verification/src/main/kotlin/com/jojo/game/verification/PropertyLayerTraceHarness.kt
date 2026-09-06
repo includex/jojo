@@ -1,20 +1,26 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.PropertyLayer
 
-/** Kotlin half of the shared PropertyLayer recovered-source conformance fixture. */
+/** PropertyLayerTraceHarness: 공용 PropertyLayer 복원 원본 적합성 픽스처의 Kotlin 실행부이다. */
 object PropertyLayerTraceHarness {
+    /** Case: case 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(val name: String, val events: List<String>)
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val text = java.nio.file.Files.readString(java.nio.file.Path.of(args[0]))
 
 
+        /** field: 입력 데이터에서 지정한 블록을 추출한다. */
         fun field(s: String, key: String) =
             Regex("\\\"$key\\\":(null|\\\"[^\\\"]*\\\"|-?\\d+|true|false)").find(s)?.groupValues?.get(1)
 
 
+        /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun str(s: String, key: String) = field(s, key)?.removeSurrounding("\"")
         val itemObjects = Regex("\\{[^{}]*\\\"id\\\":\\d+[^{}]*}").findAll(
             text.substringAfter("\"items\": [").substringBefore("],\n  \"inventory\"")
@@ -48,11 +54,14 @@ object PropertyLayerTraceHarness {
         }.toList()
 
 
+        /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
 
 
+        /** trace: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun trace(spec: Case): String {
             val layer = PropertyLayer(items, inventory)
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             var routes = mutableListOf<Int>(); fun snap(step: String): String {
                 val rows = layer.rows()
                 val scroll = layer.scrollRow.coerceAtMost((rows.size - 1).coerceAtLeast(0))

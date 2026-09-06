@@ -1,15 +1,11 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.badlogic.gdx.utils.JsonValue
-import com.jojo.game.ScenarioStageCallDispatcher
-import com.jojo.game.ScenarioStageCallEnvironment
-import com.jojo.game.asInt
-import com.jojo.game.asList
-import com.jojo.game.intAt
 import com.jojo.game.domain.scenario.ScenarioCommand
 
-/** Routes battle setup, operation, and sound commands. */
-internal object ScenarioStageCallBattleDispatcher : com.jojo.game.ScenarioStageCallFamily {
+/** ScenarioStageCallBattleDispatcher: stage API의 전투 제어 호출을 전장 준비·결과 처리 명령으로 해석한다. */
+internal object ScenarioStageCallBattleDispatcher : ScenarioStageCallFamily {
     private const val loadBackgroundJumpOffsetGlobal = 4051
 
     override fun dispatch(

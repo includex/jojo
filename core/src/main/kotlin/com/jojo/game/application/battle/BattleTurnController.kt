@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.*
@@ -18,6 +19,7 @@ import com.jojo.game.domain.battle.turn.BattleTurnPhase
 import com.jojo.game.domain.battle.turn.BattleTurnPolicy
 import com.jojo.game.domain.battle.turn.BattleTurnSnapshot
 
+/** BattleTurnController: 전투 턴 수명주기 조정기로, 진영 전환·표현 콜백·라운드 처리를 정해진 순서로 진행한다. */
 class BattleTurnController(
     private val battle: Battle,
     private val showCamp: (BattleCampCard) -> Unit,
@@ -28,7 +30,7 @@ class BattleTurnController(
     private val presentDeaths: (BattleDeathCheckpoint) -> Boolean = { true },
     private val presentCampRestore: (CampSettlement) -> Boolean = { true },
     private val runRoundScript: (RoundAdvance) -> Boolean = { true },
-    /** Preserve addRound's curCamp=REINFORCEMENTS observation before callback completion. */
+    /** deferSynchronousRoundScriptCompletion: 동기 라운드 스크립트 완료를 다음 프레임으로 미룰지 나타내는 제어 값이다. */
     private val deferSynchronousRoundScriptCompletion: Boolean = false,
     private val presentWeather: (WeatherTransition) -> Boolean = { true },
     private val onCampEvents: (TurnResult) -> Unit = {},
@@ -36,14 +38,11 @@ class BattleTurnController(
 ) {
     private val state = BattleTurnRuntimeState(initialPhase)
 
-    /** Immutable lifecycle observation for presentation and tests. */
+    /** snapshot: 표현 계층과 테스트가 읽는 현재 턴 상태의 불변 투영이다. */
     val snapshot: BattleTurnSnapshot
         get() = state.snapshot()
 
-    /**
-     * Initial `_execControlScript(true)` enters Mine operation without the
-     * ordinary `_setOper/_stateProcess/unitDeath` camp-start chain.
-     */
+    /** completeBootstrap: 초기 전투 준비를 끝내고 플레이어 입력 단계로 전환한다. */
 
     fun completeBootstrap() {
         check(state.phase == BattleTurnPhase.BOOTSTRAP) { "bootstrap completion outside bootstrap phase" }
@@ -51,7 +50,7 @@ class BattleTurnController(
         state.phase = BattleTurnPhase.PLAYER_INPUT
     }
 
-    /** Player's END_ROUND command. This is the entry corresponding to ctrl_mine. */
+    /** endPlayerTurn: 플레이어 턴 종료 요청을 검증하고 진영 복원 단계로 진행한다. */
     fun endPlayerTurn(): Boolean {
         if (!BattleTurnPolicy.acceptsPlayerEnd(
         BattleTurnEntryRequest(state.phase, battle.activeFaction, battle.outcome()),
@@ -61,7 +60,7 @@ class BattleTurnController(
         return true
     }
 
-    /** Source COLLOCATION path: Mine is dispatched through the same _ai2 controller as AI camps. */
+    /** runCollocatedPlayerTurn: 공동 배치된 플레이어 진영의 AI 처리를 실행하고 후속 복원을 예약한다. */
     fun runCollocatedPlayerTurn(): Boolean {
         if (!BattleTurnPolicy.acceptsPlayerEnd(
         BattleTurnEntryRequest(state.phase, battle.activeFaction, battle.outcome()),
@@ -73,7 +72,7 @@ class BattleTurnController(
         return true
     }
 
-    /** RoundLayer's `fn` callback after exactly two seconds. */
+    /** completeCampCard: 진영 안내 카드 표시를 끝내고 진영 시작 상태를 적용한다. */
     fun completeCampCard() {
         check(state.phase == BattleTurnPhase.CAMP_CARD) { "RoundLayer callback outside camp-card phase" }
         beginCampState()
@@ -88,7 +87,7 @@ class BattleTurnController(
         beginCampScript()
     }
 
-    /** Called only when the source scene script reports COMPLETE. */
+    /** completeCampScript: 진영 시작 스크립트 완료 뒤 사망 처리 단계로 전환한다. */
     fun completeCampScript() {
         check(state.phase == BattleTurnPhase.CAMP_SCRIPT) { "camp script completion outside script phase" }
         state.phase = BattleTurnPhase.CAMP_DEATHS
@@ -110,18 +109,14 @@ class BattleTurnController(
         if (!hasPendingAiPresentation()) beginCampRestore()
     }
 
-    /** Final callback after BattleScreen has shown every `_ai2` actor pass. */
+    /** completeAiPresentation: AI 동작 표현 완료를 반영하고 진영 종료 복원으로 진행한다. */
     fun completeAiPresentation(result: AiTurnResult? = null) {
         check(state.phase == BattleTurnPhase.AI) { "AI presentation completion outside AI phase" }
         if (result != null) state.lastAiResult = result
         beginCampRestore()
     }
 
-    /**
-     * Finish an AI callback whose first post-action scenario script called
-     * `stage.end()`. The source does not run unit-hide or camp-restore after
-     * that explicit boundary.
-     */
+    /** finishScriptEndedBattle: 스크립트가 확정한 전투 종료 결과를 턴 상태에 반영한다. */
 
     fun finishScriptEndedBattle() {
         check(state.phase == BattleTurnPhase.AI) { "script-end completion outside AI phase" }
@@ -168,8 +163,8 @@ class BattleTurnController(
     }
 
     private fun beginCampRestore() {
-        // The source never lets isEnd bypass restore/unitDeath.  A lethal
-        // poison/recoil/state tick must remain visible before FINISHED.
+        // 원본은 종료 조건이 복원·사망 처리를 건너뛰지 않게 한다. 치명적인
+        // 독·반동·상태 틱은 종료 상태 전에도 화면에 노출되어야 한다.
         val settlement = battle.roundLifecycle.settleActiveCampEnd()
         state.lastCampSettlement = settlement
         state.phase = BattleTurnPhase.CAMP_RESTORE
@@ -189,8 +184,8 @@ class BattleTurnController(
         val previous = battle.activeFaction
         state.lastTurn = battle.roundLifecycle.advanceToNextCamp()
         val current = battle.activeFaction
-        // BattleScreen._setOper only creates RoundLayer when crossing between
-        // MINE/FRIEND and ENEMY. MINE -> FRIEND continues without a card.
+        // 원본 조작 설정은 아군 계열과 적군 사이를 넘을 때만 진영 안내를 만든다.
+        // 플레이어에서 우군으로의 전환은 안내 카드 없이 이어진다.
         if (BattleTurnPolicy.campCardFor(BattleCampTransitionRequest(previous, current))) {
             state.phase = BattleTurnPhase.CAMP_CARD
             showCamp(BattleCampCard(requireNotNull(state.lastTurn), showsRoundNumber = current != Faction.ENEMY))
@@ -217,4 +212,3 @@ class BattleTurnController(
         return true
     }
 }
-

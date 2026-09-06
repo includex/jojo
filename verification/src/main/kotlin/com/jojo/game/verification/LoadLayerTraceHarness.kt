@@ -1,10 +1,13 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.*
 
 
+/** LoadLayerTraceHarness: 검증 실행을 시작하고 추적 결과를 수집하는 타입이다. */
 object LoadLayerTraceHarness {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val s = java.nio.file.Files.readString(java.nio.file.Path.of(a[0]))

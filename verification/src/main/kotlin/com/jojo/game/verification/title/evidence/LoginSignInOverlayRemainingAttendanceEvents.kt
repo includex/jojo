@@ -1,5 +1,7 @@
+// Verification
 package com.jojo.game.verification.title.evidence
 
+/** writeSignInOverlayRemainingAttendanceRows: 검증 이벤트와 산출물을 기록한다. */
 internal fun writeSignInOverlayRemainingAttendanceRows(context: LoginOptionalOverlayEventContext) {
     context.draw("Canvas/Layer/Logo_12-1/scrollview/view/content/item0", "sprite", 635.438520f, 327.660000f, 490.200000f, 68.800000f, "bg1", 1f, listOf(770, 771), "")
     context.draw("Canvas/Layer/Logo_12-1/scrollview/view/content/item0/box3", "sliced-sprite", 635.438520f, 327.660000f, 490.200000f, 68.800000f, "box3", 1f, listOf(770, 771), "")

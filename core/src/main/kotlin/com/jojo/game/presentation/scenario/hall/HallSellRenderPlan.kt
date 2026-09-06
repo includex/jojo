@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.utils.Align
 
-/** Pure draw ordering and coordinates for the SellLayer presentation. */
+/** HallSellRenderPlan: 거점 Sell 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallSellRenderPlan {
     private const val X = 267.84f
     private const val Y = 65.36f

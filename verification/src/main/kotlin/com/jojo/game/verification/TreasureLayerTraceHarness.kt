@@ -1,20 +1,29 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.TreasureLayer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Kotlin half of the source-factory TreasureLayer contract fixture. */
+/** TreasureLayerTraceHarness: 원본 팩토리의 TreasureLayer 계약 픽스처를 실행하는 Kotlin 부분이다. */
 object TreasureLayerTraceHarness {
+    /** Case: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** name: 검증 대상의 표시 이름을 담는다. */
         val name: String,
+        /** treasures: 검증 대상의 현재 상태 값을 담는다. */
         val treasures: List<TreasureLayer.Item>,
+        /** discovered: 검증 대상의 현재 상태 값을 담는다. */
         val discovered: Set<Int>,
+        /** events: 검증 이벤트 목록을 담는다. */
         val events: List<String>
     )
 
+    /** q: 문자열을 JSON 인용 형식으로 변환한다. */
     private fun q(s: String?) = s?.let { "\"${it.replace("\\", "\\\\").replace("\"", "\\\"")}\"" } ?: "null"
+    /** cases: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun cases(text: String): List<Case> =
         Regex("""\{\"name\":\"([^\"]+)\",\"treasures\":\[(.*?)]?,\"discovered\":\[(.*?)]?,\"events\":\[(.*?)]?}""")
             .findAll(text.replace(Regex("\\s+"), "")).map { m ->
@@ -34,6 +43,7 @@ object TreasureLayerTraceHarness {
                 Case(m.groupValues[1], items, found, events)
             }.toList()
 
+    /** state: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun state(l: TreasureLayer, step: String, removed: Boolean, route: Int?): String {
         val rows = (l.rows.filter { it.discovered } + l.rows.filterNot { it.discovered }).joinToString(
             ",",
@@ -49,6 +59,7 @@ object TreasureLayerTraceHarness {
         return "{\"step\":\"$step\",\"title\":${q(l.title)},\"rows\":$rows,\"removed\":$removed,\"route\":${route ?: "null"}}"
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val out = cases(Files.readString(Path.of(args[0]))).joinToString(",", "{", "}") { c ->

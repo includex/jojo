@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
@@ -7,13 +8,7 @@ import com.jojo.game.domain.battle.combat.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `PhysicalDamageCalculatorTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** PhysicalDamageCalculatorTest: PhysicalDamageCalculator의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class PhysicalDamageCalculatorTest {
 
@@ -73,9 +68,7 @@ class PhysicalDamageCalculatorTest {
         val attacker = unit(attack = 120, level = 10)
         val target = unit(defense = 60)
 
-        // attack = 120 * 110 / 100 = 132
-        // defense = 60 * 90 / 100 = 54
-        // base = max(1, (132 - 54)/2 + 25 + 10) = 39 + 35 = 74
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val normalDamage = PhysicalDamageCalculator.basePhysicalDamage(
             attacker,
             target,
@@ -87,7 +80,7 @@ class PhysicalDamageCalculatorTest {
         )
         assertEquals(74, normalDamage)
 
-        // splash deducts 25% of base damage: 74 - 74/4 = 74 - 18 = 56
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val splashDamage = PhysicalDamageCalculator.basePhysicalDamage(
             attacker,
             target,
@@ -105,21 +98,20 @@ class PhysicalDamageCalculatorTest {
         val attacker = unit(attack = 100, skills = mapOf(165 to 0))
         val target = unit(defense = 80, attack = 80, spirit = 40, critical = 80, morale = 80)
 
-        // ATTACKER_AWARE: skill 165 on attacker picks target's lowest attribute (spirit 40)
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (ATTACKER_AWARE)을 검증한다.
         val awareDamage = PhysicalDamageCalculator.basePhysicalDamage(
             attacker,
             target,
             BasePhysicalDamageContext(defenseRule = PhysicalDefenseRule.ATTACKER_AWARE),
         )
-        // INTRINSIC: uses target.defense directly (80)
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (INTRINSIC)을 검증한다.
         val intrinsicDamage = PhysicalDamageCalculator.basePhysicalDamage(
             attacker,
             target,
             BasePhysicalDamageContext(defenseRule = PhysicalDefenseRule.INTRINSIC),
         )
 
-        // With defense 40: (100 - 40)/2 + 25 + 10 = 30 + 35 = 65
-        // With defense 80: (100 - 80)/2 + 25 + 10 = 10 + 35 = 45
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(65, awareDamage)
         assertEquals(45, intrinsicDamage)
     }
@@ -129,8 +121,7 @@ class PhysicalDamageCalculatorTest {
         val enemyAttacker = unit(faction = Faction.ENEMY, attack = 10, maxHitPoints = 500, armType = 2)
         val target = unit(defense = 200)
 
-        // Standard damage would be 1
-        // Minimum floor for enemy non-armType 1: max(1, 500 * min(7, 4) / 100) = 20
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val damage = PhysicalDamageCalculator.basePhysicalDamage(
             enemyAttacker,
             target,
@@ -152,7 +143,7 @@ class PhysicalDamageCalculatorTest {
         val target133 = target.copy(skills = mapOf(133 to 10))
         assertEquals(120, PhysicalDamageCalculator.physicalArmRestraint(attacker133, target133))
 
-        // Skill 316 overrides all
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val attacker316 = attacker.copy(skills = mapOf(316 to 0))
         assertEquals(130, PhysicalDamageCalculator.physicalArmRestraint(attacker316, target))
 
@@ -165,18 +156,18 @@ class PhysicalDamageCalculatorTest {
         val attacker = unit(skills = mapOf(174 to 40))
         val target = unit(maxHitPoints = 250, skills = mapOf(242 to 70))
 
-        // Armor piercing minimum: 40% of 250 = 100
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(100, PhysicalDamageCalculator.armorPiercingMinimumDamage(attacker, target, 50))
         assertEquals(120, PhysicalDamageCalculator.armorPiercingMinimumDamage(attacker, target, 120))
 
-        // Capped damage: min(damage, 70)
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(70, PhysicalDamageCalculator.cappedPhysicalDamage(target, 100))
         assertEquals(50, PhysicalDamageCalculator.cappedPhysicalDamage(target, 50))
 
-        // Minimum damage for enemy
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val enemy = unit(faction = Faction.ENEMY, armType = 2, maxHitPoints = 400)
         assertEquals(16, PhysicalDamageCalculator.physicalMinimumDamage(enemy, visibleFamousPlayerCount = 4))
-        // Player side always minimum 1
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         val player = unit(faction = Faction.PLAYER, maxHitPoints = 400)
         assertEquals(1, PhysicalDamageCalculator.physicalMinimumDamage(player, visibleFamousPlayerCount = 4))
     }
@@ -203,7 +194,7 @@ class PhysicalDamageCalculatorTest {
             ),
             level = 10,
         )
-        // Add DI_FA skill 33 on attacker: 80 * 15 / 100 = 12
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (DI_FA)을 검증한다.
         val attackerWithDiFa = attacker.copy(skills = attacker.skills + mapOf(33 to 15))
 
         val context = FlatPhysicalDamageContext(
@@ -212,7 +203,7 @@ class PhysicalDamageCalculatorTest {
             moveLength = 4,
             adjacentOccupiedCount = 2,
         )
-        // 15 (skill 9) + 12 (skill 33) + 30 (skill 183) + 6 (skill 26: 3*2) + 12 (skill 25: 3*4) + 16 (skill 109: 2*8) + 25 (att 95) - 20 (tgt 95) = 96
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val flat = PhysicalDamageCalculator.physicalFlatSkillDamage(attackerWithDiFa, target, context)
         assertEquals(96, flat)
     }
@@ -246,12 +237,7 @@ class PhysicalDamageCalculatorTest {
             skill292RandomBonus = 3,
         )
 
-        // Base: 100
-        // Confusion: +10
-        // Skill 176: +15
-        // Skill 129: +20
-        // Skill 292: +10 + 3 = +13
-        // Total = 100 + 10 + 15 + 20 + 13 = 158
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val rate = PhysicalDamageCalculator.physicalDamageRate(attacker, target, context)
         assertEquals(158, rate)
     }
@@ -261,15 +247,14 @@ class PhysicalDamageCalculatorTest {
         val attacker = unit(skills = mapOf(271 to 1, 217 to 30))
         val target = unit(direction = 0)
 
-        // Critical: +50, skill 271 != 0: +30 => 180
-        // Skill 217 incomingDirection == target.direction: +30 => 210
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val critContext = PhysicalCriticalRateContext(
             critical = true,
             incomingDirection = 0,
         )
         assertEquals(210, PhysicalDamageCalculator.physicalCriticalRate(attacker, target, critContext))
 
-        // Counter without skill 181: -25, plus counterSkill46Bonus
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val counterContext = PhysicalCriticalRateContext(
             counter = true,
             counterSkill46Bonus = 15,
@@ -278,8 +263,7 @@ class PhysicalDamageCalculatorTest {
         // 100 + 15 - 25 + 20 = 110
         assertEquals(110, PhysicalDamageCalculator.physicalCriticalRate(attacker, target, counterContext))
 
-        // Continuous without skill 291: -25
-        // Splash: -20
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val comboContext = PhysicalCriticalRateContext(
             continuous = true,
             splash = true,

@@ -1,4 +1,7 @@
+// Verification
 package com.jojo.game
+
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
@@ -10,26 +13,39 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/** 시나리오 보상 콜백으로 도달하는 RewardLayer 화면을 검증한다. */
+/** RewardFixtureScreen: 시나리오 보상 콜백으로 도달하는 RewardLayer 화면을 검증한다. */
 class RewardFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** scale: 검증 흐름에서 사용하는 값을 담는다. */
     private val scale = .86f
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** textures: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val textures = mutableListOf<Texture>()
+    /** texture: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun texture(path: String): Texture? =
         Gdx.files.internal(path).takeIf { it.exists() }?.let(::Texture)?.also { textures += it }
 
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = texture("maps/71.jpg")
+    /** box: 검증 흐름에서 사용하는 값을 담는다. */
     private val box = texture("maps/ui/start-battle/button.png")?.let { NinePatch(it, 9, 9, 7, 11) }
+    /** icon88: 검증 흐름에서 사용하는 값을 담는다. */
     private val icon88 = texture("maps/item-icons/88.png")
+    /** icon89: 검증 흐름에서 사용하는 값을 담는다. */
     private val icon89 = texture("maps/item-icons/89.png")
+    /** dim: 검증 흐름에서 사용하는 값을 담는다. */
     private val dim = Pixmap(1, 1, Pixmap.Format.RGBA8888).let { pixmap ->
         pixmap.setColor(Color.BLACK); pixmap.fill()
         Texture(pixmap).also { textures += it }.also { pixmap.dispose() }
     }
+    /** titleFont: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val titleFont = KoreanFont.create(100, "전투 종료보상금전리품★☆ 900")
+    /** itemFont: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val itemFont = KoreanFont.create(38, "회복용 콩밀")
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -47,8 +63,9 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
         game.captureFrameIfRequested()
     }
 
+    /** drawBasic: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawBasic() {
-        /** 제목과 보상 문구에 원본 그림자 효과를 적용한다. */
+        /** shadowed: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun shadowed(value: String, x: Float, y: Float) {
             titleFont.color = Color(0.3f, 0.3f, 0.3f, 1f); titleFont.draw(
                 batch,
@@ -64,6 +81,7 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
         shadowed("★  ★  ★", 521.806f, 207.313f)
     }
 
+    /** drawCards: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawCards(count: Int) {
         titleFont.color = Color(0.3f, 0.3f, 0.3f, 1f); titleFont.draw(batch, "전리품", 596.73f * scale, 726.144f * scale)
         titleFont.color = Color.WHITE; titleFont.draw(batch, "전리품", 588.486f * scale, 739.142f * scale)
@@ -84,13 +102,14 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
         }
     }
 
-    /** 보상 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 보상 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String {
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, opacity: Float = 1f, text: String = ""
@@ -165,9 +184,12 @@ class RewardFixtureScreen(private val game: JojoGame, private val state: String)
         }
         return log.jsonl()
     }
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose(); titleFont.dispose(); itemFont.dispose(); textures.distinct().forEach(Texture::dispose)
     }

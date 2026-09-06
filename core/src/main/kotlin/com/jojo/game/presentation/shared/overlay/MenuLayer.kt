@@ -1,6 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
-/** 전투 메뉴의 날씨·라운드·명령 버튼 상태를 관리합니다. */
+/** MenuLayer: 전투의 날씨·라운드·명령 활성 조건을 계산해 메뉴 화면 모델로 제공한다. */
 class MenuLayer {
     /** 메뉴에서 선택할 수 있는 명령 종류입니다. */
     enum class Command { JSYX, CD, DD, XTSZ, WJYL, DJYL, DX, BW, HHJS, SLTJ, XDT, JSWCZBD, BJ, HELP }

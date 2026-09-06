@@ -1,8 +1,9 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
-/** 아이템 보유량, 발견 보물, 장착 장비를 관리한다. */
+/** CampaignInventory: 캠페인이 보유한 소비품·발견 보물·장비 인스턴스를 한 상태로 보존한다. */
 class CampaignInventory internal constructor(
     private val joinedUnitIds: () -> Iterable<Int>,
     private val unitAttribute: (unitId: Int, attribute: Int, default: Int) -> Int,
@@ -24,7 +25,7 @@ class CampaignInventory internal constructor(
     fun addItem(itemId: Int, count: Int = 1, level: Int = 1, experience: Int = 0) =
         itemStore.add(itemId, count, level, experience)
 
-    /** 인벤토리와 별개로 획득한 비매품 보물을 기록한다. */
+    /** discoverTreasure: 판매 불가 보물인지 확인한 뒤 중복 없이 발견 목록에 등록한다. */
     fun discoverTreasure(itemId: Int, data: GameDataCatalog): Boolean {
         val item = data.equipmentProfile(itemId) ?: return false
         if (!item.treasure || item.price != 255) return false
@@ -33,10 +34,10 @@ class CampaignInventory internal constructor(
 
     fun consumeItem(itemId: Int): Boolean = itemStore.consume(itemId)
 
-    /** 고정 전투 구성에서 아이템 묶음을 통째로 제거한다. */
+    /** removeItemStack: 전투 편성에서 사용한 특정 아이템의 모든 보유 인스턴스를 제거한다. */
     internal fun removeItemStack(itemId: Int) = itemStore.removeStack(itemId)
 
-    /** 초기화 후 저장된 보물 발견 순서를 복원한다. */
+    /** restoreDiscoveredTreasures: 저장 데이터의 보물 식별자 순서로 발견 목록을 되살린다. */
     internal fun restoreDiscoveredTreasures(itemIds: Iterable<Int>) = itemStore.restoreDiscoveries(itemIds)
 
     fun itemLevels(itemId: Int): List<Int> = itemStore.levels(itemId)

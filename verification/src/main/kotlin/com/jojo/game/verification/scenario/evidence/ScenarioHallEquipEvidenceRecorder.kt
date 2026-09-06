@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
@@ -5,21 +6,28 @@ import com.jojo.game.presentation.scenario.*
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
+/** ScenarioHallEquipEvidenceRecorder: 장비 화면의 유닛·장비 목록·탭·버튼을 원본 좌표 이벤트로 기록한다. */
 internal class ScenarioHallEquipEvidenceRecorder(
+    /** input: 검증 입력 정보를 담는다. */
     private val input: ScenarioHallEquipEvidenceInput,
 ) {
+    /** append: 검증 이벤트와 산출물을 기록한다. */
     fun append(log: RenderEventLog, phase: String = "hall-equip-stable", layer: String = "EquipLayer") {
         val scale = .86f
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /** event: 단일 렌더 이벤트를 로그에 추가한다. */
         fun event(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "", visible: Boolean = true, opacity: Float = 1f) =
             log.draw(phase, layer, path, type, x * scale, y * scale, w * scale, h * scale, asset, opacity, if (type == "label") labels else sprites, visible, text)
+        /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
         fun label(path: String, value: String, x: Float, y: Float, w: Float, h: Float = 50.4f, visible: Boolean = true) =
             event(path, "label", x, y, w, h, text = value, visible = visible)
+        /** button: 버튼 입력 이벤트를 기록한다. */
         fun button(path: String, value: String, x: Float, y: Float, w: Float, labelX: Float, labelY: Float, labelW: Float) {
             event("$path/Background", "sliced-sprite", x, y, w, 50f, "box3")
             label("$path/Background/Label", value, labelX, labelY, labelW, 40f)
         }
+        /** width: 렌더링 폭을 계산한다. */
         fun width(value: String) = if (value == "조조" || value == "군웅") 69.2f else 103.8f
         val nameWidth = width(input.unitName)
         val postsWidth = width(input.postsName)
@@ -59,6 +67,7 @@ internal class ScenarioHallEquipEvidenceRecorder(
         input.slots.take(3).forEachIndexed { index, slot -> appendSlot(event = ::event, label = ::label, index = index, slot = slot) }
     }
 
+    /** appendSlot: 검증 이벤트와 산출물을 기록한다. */
     private fun appendSlot(event: (String, String, Float, Float, Float, Float, String?, String, Boolean, Float) -> Unit, label: (String, String, Float, Float, Float, Float, Boolean) -> Unit, index: Int, slot: ScenarioHallEquipEvidenceSlot) {
         val root = "Canvas/Layer/bg1/scrollview/view/content/bg$index"; val visible = index < 2; val detail = index == 0
         val rootY = 24.38f - index * 158f; val labelY = floatArrayOf(122.083f,-38.415f,-194.883f)[index]; val valueY = floatArrayOf(122.38f,-38.62f,-194.62f)[index]; val frameY = floatArrayOf(33.733f,-126.765f,-283.233f)[index]

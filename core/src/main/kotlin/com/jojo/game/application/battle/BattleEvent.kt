@@ -1,8 +1,9 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.TurnTrigger
 
-/** A scheduled action evaluated against the mutable battle coordinator. */
+/** BattleEvent: 가변 전투 상태에 대해 실행할 예약 작업으로, 시점별 시나리오 효과를 적용한다. */
 class BattleEvent(
     val id: String,
     val trigger: TurnTrigger,

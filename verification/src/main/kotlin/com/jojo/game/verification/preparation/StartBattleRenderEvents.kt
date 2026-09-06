@@ -1,8 +1,9 @@
+// Verification
 package com.jojo.game.verification.preparation
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Canonical authored traversal for Hall/scene/StartBattleScreen and UnitInfoLayer. */
+/** appendStartBattleRenderEvents: Hall·scene·StartBattleScreen과 UnitInfoLayer의 원본 순회를 기준 형태로 재현한다. */
 internal fun appendStartBattleRenderEvents(
     log: RenderEventLog,
     unitInfo: Boolean,

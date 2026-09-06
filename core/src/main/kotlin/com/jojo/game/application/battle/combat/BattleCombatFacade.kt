@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -11,7 +12,7 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.combat.*
 
-/** Owns the tactical combat entry points and the combat context they share. */
+/** BattleCombatFacade: 전투 전투 처리 진입점이며, 관련 전투 기능을 묶어 안정적인 호출 경로를 제공한다. */
 class BattleCombatFacade internal constructor(private val battle: Battle) {
     private val tacticalEnvironment by lazy { BattleCombatEnvironmentAssembler.tactical(battle) }
     private val physicalContext by lazy { BattleCombatEnvironmentAssembler.physicalContext(battle) }

@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendFixture6: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendFixture6(writer: ScenarioHallOverlayEventWriter) = with(writer) {
                 event(
                     "HallLayer",

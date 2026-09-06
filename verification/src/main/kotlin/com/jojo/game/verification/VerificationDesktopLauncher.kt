@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
@@ -12,8 +13,9 @@ import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 import com.jojo.game.verification.preparation.VerificationBattlePreparationDriver
 import com.jojo.game.verification.title.VerificationTitleStartupDriver
 
-/** Verification-owned desktop entry point for capture, trace and scripted-run flags. */
+/** VerificationDesktopLauncher: 캡처·추적·스크립트 실행 옵션을 처리하는 검증 전용 데스크톱 진입점이다. */
 object VerificationDesktopLauncher {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val options = VerificationDesktopLaunchOptions.parse(args)
@@ -29,19 +31,30 @@ object VerificationDesktopLauncher {
     }
 }
 
-/** Parser is deliberately owned by verification so desktop production has no test CLI surface. */
+/** VerificationDesktopLaunchOptions: 운영 데스크톱에 테스트 CLI가 노출되지 않도록 검증 모듈이 옵션을 해석한다. */
 internal data class VerificationDesktopLaunchOptions(
+    /** scenario: 검증 시나리오 식별자를 담는다. */
     val scenario: String,
+    /** battleReturnScenario: 검증 시나리오 식별자를 담는다. */
     val battleReturnScenario: String?,
+    /** explicitScenario: 검증 시나리오 식별자를 담는다. */
     val explicitScenario: Boolean,
+    /** battle: 전투 실행 여부를 담는다. */
     val battle: Boolean,
+    /** scenarioRun: 검증 시나리오 식별자를 담는다. */
     val scenarioRun: ScenarioRunConfiguration,
+    /** verification: 검증 실행 설정을 담는다. */
     val verification: VerificationConfiguration,
+    /** capture: 캡처 실행 여부를 담는다. */
     val capture: RenderCaptureConfiguration,
+    /** fullBattleTrace: 검증 추적 결과를 담는다. */
     val fullBattleTrace: BattleTraceRuntimeConfig?,
+    /** fullBattleTraceOutputPath: 검증 산출물을 저장할 경로를 담는다. */
     val fullBattleTraceOutputPath: String?,
+    /** yingchuanEntryFlowTracePath: 검증 산출물을 저장할 경로를 담는다. */
     val yingchuanEntryFlowTracePath: String?,
 ) {
+    /** toGameConfiguration: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     fun toGameConfiguration(): GameLaunchConfiguration {
         val artifactObserver = VerificationArtifactObserver(capture)
         return GameLaunchConfiguration(
@@ -59,7 +72,6 @@ internal data class VerificationDesktopLaunchOptions(
             runtimeArtifactObserver = artifactObserver,
             runtimeScreenObserver = artifactObserver,
             runtimeBattleDriver = VerificationBattleDriver(capture.state),
-            runtimeBattleReferenceAssets = VerificationBattleReferenceAssets(),
             runtimeBattlePresentation = VerificationBattlePresentation.from(capture.state),
             runtimeBattlePreparationDriver = VerificationBattlePreparationDriver(capture.state),
             runtimeScenarioDriver = VerificationScenarioDriver(capture.state),
@@ -72,10 +84,14 @@ internal data class VerificationDesktopLaunchOptions(
     }
 
     companion object {
+        /** parse: 외부 입력을 검증용 값으로 변환한다. */
         fun parse(args: Array<String>): VerificationDesktopLaunchOptions {
             val values = args.toList()
+            /** value: 검증 입력을 처리하고 관련 상태를 갱신한다. */
             fun value(prefix: String) = values.firstOrNull { it.startsWith(prefix) }?.removePrefix(prefix)
+            /** ints: 검증 입력을 처리하고 관련 상태를 갱신한다. */
             fun ints(prefix: String) = value(prefix)?.takeIf(String::isNotBlank)?.split(',')?.map { it.trim().toInt() }.orEmpty()
+            /** pairs: 검증 입력을 처리하고 관련 상태를 갱신한다. */
             fun pairs(prefix: String) = value(prefix)?.takeIf(String::isNotBlank)?.split(',')?.associate { token ->
                 token.trim().split(':', limit = 2).let { it[0].toInt() to it[1].toInt() }
             }.orEmpty()
@@ -141,7 +157,7 @@ internal data class VerificationDesktopLaunchOptions(
                 ),
                 capture = RenderCaptureConfiguration(
                     screenshotPath = value("--capture="), rawCapturePath = value("--capture-raw="),
-                    mapTextureDumpPath = value("--dump-map-texture="), mapDither = value("--map-dither="),
+                    mapDither = value("--map-dither="),
                     mapFilter = value("--map-filter="), mapSampler = value("--map-sampler="), mapSampleOffset = offset,
                     compositionTracePath = value("--composition-trace="), renderEventLogPath = value("--render-event-log="),
                     state = value("--capture-state="),

@@ -1,10 +1,11 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.jojo.game.domain.scenario.Choice
 import com.jojo.game.domain.scenario.Dialogue
 import com.jojo.game.domain.scenario.PlaybackState
 
-/** Stable contracts shared by scenario orchestration, presentation, and verification. */
+/** ScenarioModalKind: 스크립트가 중단해 표시하는 모달의 용도와 재개 방식을 구분한다. */
 enum class ScenarioModalKind { EVENT, INFO, SECTION, MAP_INFO, AMBITION }
 data class ScenarioChoiceTrace(val module: String, val function: String, val line: Int, val option: Int, val optionCount: Int)
 data class ScenarioRandomTrace(val module: String, val function: String, val line: Int, val value: Int)

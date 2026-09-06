@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -5,7 +6,7 @@ import com.jojo.game.presentation.scenario.overlay.*
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-/** Stateless source HallCommandLayer renderer. */
+/** HallCommandRenderer: 거점 명령 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallCommandRenderer {
     fun draw(batch: SpriteBatch, view: HallCommandRenderView) {
         batch.color = Color.WHITE

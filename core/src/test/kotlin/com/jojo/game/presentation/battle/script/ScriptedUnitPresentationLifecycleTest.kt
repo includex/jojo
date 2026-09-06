@@ -1,10 +1,11 @@
+// Test
 package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.scenario.ScenarioMapPresentationRequest
 import com.jojo.game.domain.scenario.ScenarioUnitHideRequest
 import com.jojo.game.domain.scenario.ScenarioUnitShowRequest
 import com.jojo.game.domain.scenario.ScriptedUnitAction
-import com.jojo.game.presentation.battle.ScriptedUnitVisual
+import com.jojo.game.presentation.battle.unit.ScriptedUnitVisual
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

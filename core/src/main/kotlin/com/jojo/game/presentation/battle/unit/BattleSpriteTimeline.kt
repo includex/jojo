@@ -1,24 +1,17 @@
+// Battle
 package com.jojo.game.presentation.battle.unit
 
 import com.jojo.game.domain.battle.*
 
-import com.jojo.game.presentation.battle.UnitSpriteSource
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 
-/**
- * Direct Kotlin implementation of Battle.CreateAnime's SpriteFrame selection for BattleUnit.
- *
- * The original does not encode sprite rows in game logic.  It reads animeBR,
- * chooses one of Unit_atk/mov/spc, and creates a 24fps SpriteFrame timeline
- * using `y = index * (height + 2 * inset) + inset`.  Keeping that definition
- * as data prevents individual actions from drifting into hand-maintained row
- * tables.
- */
+/** BattleSpriteTimeline: 전투 스프라이트 시간 흐름이며, 시간 경과에 따른 전투 상태와 표현 단계를 진행한다. */
 
 class BattleSpriteTimeline private constructor(private val clips: Map<String, List<Keyframe>>) {
 
+    /** Atlas: 전투 화면 표시에 사용할 이미지와 자원 경로를 보관한다. */
     enum class Atlas(val source: UnitSpriteSource, val width: Int, val height: Int) {
         ATTACK(UnitSpriteSource.ATTACK, 64, 64),
         MOVEMENT(UnitSpriteSource.MOVEMENT, 48, 48),
@@ -26,6 +19,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
     }
 
 
+    /** Frame: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class Frame(
         val source: UnitSpriteSource,
         val sourceY: Int,
@@ -35,7 +29,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         val offsetX: Float = 0f,
         val offsetY: Float = 0f,
     )
-
     private data class Keyframe(
         val ticks: Int,
         val atlas: Atlas?,
@@ -43,11 +36,10 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         val scaleX: Int?,
         val offsetX: Int?,
         val offsetY: Int?,
-        /** Cocos Animation event `hit`, used by BattleScreen._attack2. */
         val hit: Boolean,
     )
 
-    /** The generated `_1` clip is a mirrored copy of the authored `_3`. */
+    /** resolvedClip: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     private fun resolvedClip(action: Int, direction: Int): Pair<List<Keyframe>, Boolean>? {
         val desired = "anime${action}_$direction"
         clips[desired]?.let { return it to false }
@@ -58,11 +50,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
 
     fun duration(action: Int, direction: Int): Float =
         resolvedClip(action, direction)?.first?.sumOf(Keyframe::ticks)?.div(24f) ?: 0f
-
-    /** Raw original animeBR keys, exposed for headless resource conformance. */
     fun clipNames(): Set<String> = clips.keys
-
-    /** Time of BattleUnit.setAction2's authored `hit` callback, if present. */
     fun hitTime(action: Int, direction: Int): Float? {
         val clip = resolvedClip(action, direction)?.first ?: return null
         var ticks = 0
@@ -115,8 +103,6 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
 
 
         fun load(): BattleSpriteTimeline = cached
-
-        /** Kept public for the headless renderer conformance suite. */
         fun fromJson(json: String): BattleSpriteTimeline = fromRoot(JsonReader().parse(json))
 
         private fun fromRoot(root: JsonValue): BattleSpriteTimeline {

@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.presentation
 
 import com.jojo.game.domain.battle.*
@@ -11,8 +12,6 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.BattleSkillTemp
 import com.jojo.game.domain.battle.Battlefield
-
-/** Builds the state bridge shared by presentation transactions and AI deferral. */
 internal object BattlePresentationEnvironmentAssembler {
     fun build(
         battlefield: Battlefield,

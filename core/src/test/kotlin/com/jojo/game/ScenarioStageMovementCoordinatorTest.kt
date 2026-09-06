@@ -1,6 +1,10 @@
+// Test
 package com.jojo.game
 
-import com.jojo.game.presentation.scenario.TacticalUnit
+import com.jojo.game.domain.scenario.TacticalUnit
+import com.jojo.game.application.scenario.ScenarioStageHeadCoordinator
+import com.jojo.game.application.scenario.ScenarioStageMovementPlanner
+import com.jojo.game.application.scenario.ScenarioStageUnitMovementAnimator
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.utils.Align
 
-/** Pure source-order drawing plan for the Hall treasure catalog. */
+/** HallTreasureRenderPlan: 거점 Treasure 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallTreasureRenderPlan {
     fun commands(view: HallTreasureView): List<HallTreasureDrawCommand> = buildList {
         tiled("maps/ui/start-battle/logo9.png", 222.9f, 72.24f, 834.2f, 543.52f)

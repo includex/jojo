@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game.presentation.scenario.input
 
 import kotlin.test.Test
@@ -36,7 +37,7 @@ class ScenarioInputRouterTest {
     @Test fun `choice rows and ask buttons preserve selection bounds`() {
         assertEquals(ScenarioInputRouter.Touch.SelectAndConfirm(1), ScenarioInputRouter.choiceTouch(false, 3, 600f, 350f))
         assertEquals(ScenarioInputRouter.Touch.SelectAndConfirm(0), ScenarioInputRouter.choiceTouch(true, 2, 500f, 320f))
-        // 700 is inside the source ask dialog's second-button hitbox.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(ScenarioInputRouter.Touch.SelectAndConfirm(1), ScenarioInputRouter.choiceTouch(true, 2, 700f, 320f))
     }
 }

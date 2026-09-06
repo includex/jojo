@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/** Immutable hall-input projection for rendering and evidence consumers. */
+/** HallInteractionView: 거점 Interaction 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallInteractionView(
     val menuOpen: Boolean,
     val equipTabIndex: Int,
@@ -19,7 +20,7 @@ internal sealed interface HallInteractionIntent {
     enum class ManagementKind { EQUIP, BUY, SELL }
 }
 
-/** Owns hall menu/tab selection and translates raw coordinates into intents. */
+/** HallInteractionController: 거점 Interaction 제어기이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 internal class HallInteractionController {
     private var menuOpen = false
     private var equipTabIndex = 1

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -9,13 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * class  `BattleUnitAttributeLiftTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleUnitAttributeLiftTest: BattleUnitAttributeLift의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleUnitAttributeLiftTest {
     @Test fun `expired attribute lift retains configured packed round while normal`() {
@@ -48,17 +43,17 @@ class BattleUnitAttributeLiftTest {
         assertEquals(1, unit.attributeLifts[attribute])
         assertEquals(3, unit.attributeLiftRounds[attribute])
 
-        // Source UP(2) -> requested DOWN(0) reaches NORMAL(1), not DOWN.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (DOWN, NORMAL)을 검증한다.
         assertEquals(0, unit.applyAttributeLift(attribute, -1, 2))
         assertNull(unit.attributeLifts[attribute])
         assertEquals(2, unit.attributeLiftRounds[attribute])
 
         assertEquals(-1, unit.applyAttributeLift(attribute, -1, 1))
-        // Source DOWN(0) -> requested UP(2) likewise reaches NORMAL first.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (DOWN, NORMAL)을 검증한다.
         assertEquals(0, unit.applyAttributeLift(attribute, 1, 3))
         assertNull(unit.attributeLifts[attribute])
 
-        // _setStatusRound runs before the duplicate-state early return.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(0, unit.applyAttributeLift(attribute, 0, 1))
         assertEquals(1, unit.attributeLiftRounds[attribute])
     }

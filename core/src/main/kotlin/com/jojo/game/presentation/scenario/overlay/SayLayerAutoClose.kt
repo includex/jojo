@@ -1,12 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.overlay
 
-/**
- * Source SayLayer `_enabledAutoClose` timer.
- *
- * The Cocos component schedules `_next()` one second after its typewriter
- * handler finishes (or after a touch exposes the pending text).  A new page,
- * disabled setting, or manual advance cancels that pending callback.
- */
+/** SayLayerAutoClose: 자동 진행 대사 레이어의 남은 표시 시간을 계산하고 종료 시점을 판정한다. */
 
 class SayLayerAutoClose(private val delaySeconds: Float = 1f) {
     private var remaining: Float? = null

@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.utils.Align
 
-/** Pure, source-ordered draw plan for BuyLayer's right-side unit card. */
+/** HallBuyUnitSummaryRenderPlan: 거점 Buy 유닛 Summary 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallBuyUnitSummaryRenderPlan {
     private const val X = 701.77f
     private const val Y = 132.81f

@@ -1,4 +1,7 @@
+// Verification
 package com.jojo.game
+
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
@@ -14,20 +17,28 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/** 업적 화면의 원본 좌표와 닫기 동작을 검증하는 전용 화면이다. */
 
+/** AchievementsFixtureScreen: 업적 화면의 원본 좌표와 닫기 동작을 검증하는 전용 화면이다. */
 class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = Texture(Gdx.files.internal("maps/71.jpg"))
 
     // 원본 패널과 대응하는 타일 프레임을 사용한다.
+    /** panel: 화면 패널 리소스를 담는다. */
     private val panel = Texture(Gdx.files.internal("maps/ui/terrain-layer/panel.png"))
+    /** font: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val font = KoreanFont.create(34, "업적 없음 돈 확인 도움말 ★ ☆ 1. 여포")
+    /** removed: 삭제 여부를 담는다. */
     private var removed = false
 
+    /** show: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun show() {
         Gdx.input.inputProcessor = object : InputAdapter() {
+            /** touchDown: 검증 입력을 현재 화면 상태에 반영한다. */
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 // 원본 button0은 오른쪽 닫기 버튼이다.
                 val p = viewport.unproject(com.badlogic.gdx.math.Vector2(screenX.toFloat(), screenY.toFloat()))
@@ -37,6 +48,7 @@ class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), R
         }
     }
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -61,11 +73,12 @@ class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), R
         game.captureFrameIfRequested()
     }
 
-    /** 업적 화면의 렌더 이벤트를 비교 가능한 문자열로 반환한다. */
 
+    /** renderEventLog: 업적 화면의 렌더 이벤트를 비교 가능한 문자열로 반환한다. */
     fun renderEventLog(): String {
         val log = RenderEventLog()
         val phase = "hall-achievements-stable"
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", opacity: Float = 1f, visible: Boolean = true
@@ -234,9 +247,12 @@ class AchievementsFixtureScreen(private val game: JojoGame) : ScreenAdapter(), R
         }
         return log.jsonl()
     }
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose(); background.dispose(); panel.dispose(); font.dispose()
     }

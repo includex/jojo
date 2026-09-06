@@ -1,8 +1,7 @@
+// Battle
 package com.jojo.game.domain.battle.command
 
 import com.jojo.game.domain.battle.*
-
-/** Injectable implementation of recovered-js/modules/battle/ControlManager.js. */
 class ControlManager(
     private val state: UnitState,
     private val factory: Factory,
@@ -42,22 +41,12 @@ class ControlManager(
 
         fun setWithData(targetIndex: Int, x: Int, y: Int)
 
-        /** Control.selectMovePoint result: 0 complete, 1 select another controller, 2 stop. */
+        /** selectMovePoint: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
         fun selectMovePoint(points: List<Control.Point>, pointHash: Set<Control.Point>): Int
     }
 
     var result: Control.Result? = null
         private set
-
-    /**
-     * The actual Control subclass which completed the current selection.
-     *
-     * This is intentionally not [UnitState.ai].  ControlManager may retry
-     * through a temporary controller (for example CtrlYDDZDDJS) without
-     * changing the unit's persistent AI field.  BattleUnit.AIValue is written
-     * only by CtrlZDCJ/CtrlJSYD._AIProcess4, so callers must use this value
-     * rather than the persisted configuration.
-     */
     var activeAi: Int? = null
         private set
     private var control: Driver? = null
@@ -68,8 +57,6 @@ class ControlManager(
     fun setResult(value: Control.Result?) {
         result = value
     }
-
-    /** Direct Kotlin implementation of ControlManager.setControl: replace the live driver now. */
     fun setControl(ai: Int, targetIndex: Int = -1, x: Int = -1, y: Int = -1) {
         activeAi = ai
         control = factory.create(ai).also {
@@ -78,11 +65,7 @@ class ControlManager(
         }
     }
 
-    /**
-     * Source chooses active AI for controlled units, otherwise uses saved AI
-     * and passes target index only if that target still exists. It retries
-     * only when a controller returns 1, at most five times.
-     */
+    /** selectMovePoint: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
 
     fun selectMovePoint(points: List<Control.Point>, pointHash: Set<Control.Point>): Int {
         this.points = points
@@ -99,7 +82,6 @@ class ControlManager(
     }
 
     companion object {
-        /** BattleConfg.AI.ZHU_DONG_CHU_JI. */
-        const val AI_ACTIVE = 1
+                const val AI_ACTIVE = 1
     }
 }

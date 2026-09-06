@@ -1,9 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.timeline
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
-/** Pure source rules shared by the live unitDeath/scripted-hide callbacks and focused tests. */
 internal object UnitDeathPresentation {
 
     fun sortedDying(units: Collection<BattleUnit>): List<BattleUnit> = units
@@ -17,4 +17,3 @@ internal object UnitDeathPresentation {
         else -> 23
     }
 }
-

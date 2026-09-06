@@ -1,18 +1,12 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
 import com.badlogic.gdx.utils.JsonReader
 
-/**
- * Source-faithful state implementation of `ui/LoadGameLayer.js`.
- *
- * `Manager.loadGame(index, 2)` returns the raw save after the confirmation;
- * this layer deliberately does not treat a row tap as a load.  Its host owns
- * the actual CampaignStore transition, while this module owns source order,
- * slot paging and validation.
- */
+/** LoadGameLayer: 저장 슬롯의 호환성·전투 복원 경로를 검사한 뒤 캠페인 불러오기를 요청하는 화면 상태다. */
 
 class LoadGameLayer(private val repository: Repository) {
-    /** Exact `_loadGame` scene branch: battle=2 is the post-battle Hall path. */
+    /** RestoreRoute: 저장 시점이 홀·전투·전투 직후 중 어디였는지에 따라 복원할 화면 경로를 구분한다. */
     enum class RestoreRoute { HALL, BATTLE, HALL_AFTER_BATTLE }
 
 
@@ -32,7 +26,7 @@ class LoadGameLayer(private val repository: Repository) {
 
         fun versionCode(): Int
 
-        /** Corresponds to Manager.resetGame + Model.loadGame + replaceScene. */
+        /** restore: 검증한 저장 원문을 지정 복원 경로로 적용하고 성공 여부를 반환한다. */
         fun restore(index: Int, raw: String, route: RestoreRoute): Boolean
     }
 
@@ -64,13 +58,13 @@ class LoadGameLayer(private val repository: Repository) {
     private var pendingIndex: Int? = null
     private var view: View? = null
 
-    /** Source onCreate: background, pooled rows, SAVE_PAGE, then _refPage. */
+    /** onCreate: 마지막으로 열었던 저장 페이지를 읽어 불러오기 화면을 초기화한다. */
     fun onCreate(): View {
         attached = true
         return refPage(repository.savedPage().coerceAtLeast(0))
     }
 
-    /** `_refPage`: page 0 contains slots 0..21; later pages begin at 20p+2. */
+    /** refPage: 저장 페이지를 바꾸고 슬롯 데이터를 최근 저장 순서로 재구성한다. */
     fun refPage(nextPage: Int): View {
         require(nextPage >= 0) { "SAVE_PAGE must be non-negative" }
         if (page == nextPage && view != null) return view()
@@ -82,14 +76,14 @@ class LoadGameLayer(private val repository: Repository) {
         return View(page, rows, repository.featureEnabled("ZDBHSW"), attached).also { view = it }
     }
 
-    /** Source toggle listener: feature-gated and only TOUCH_END changes page. */
+    /** onPageTouch: 기능 해금 여부와 터치 종료를 확인해 저장 페이지 전환을 처리한다. */
     fun onPageTouch(nextPage: Int, eventType: Int): Boolean {
         if (!attached || eventType != TOUCH_END || !repository.featureEnabled("ZDBHSW") || nextPage !in 0..4) return false
         refPage(nextPage)
         return true
     }
 
-    /** Item listener: only Cocos TOUCH_END opens MsgBox. */
+    /** onRowTouch: 선택한 슬롯을 보관하고 불러오기 확인 문구가 포함된 화면 모델을 갱신한다. */
     fun onRowTouch(index: Int, eventType: Int): Boolean {
         if (eventType != TOUCH_END || !attached || view()?.rows?.any { it.index == index } != true) return false
         pendingIndex = index
@@ -118,13 +112,12 @@ class LoadGameLayer(private val repository: Repository) {
             else -> RestoreRoute.BATTLE
         }
         val restored = repository.restore(index, raw, route)
-        // `_loadGame` replaces the scene but does not call removeFromParent.
-        // Keep this layer's local attachment state unchanged for source parity.
+        // `_loadGame`은 장면만 교체하고 removeFromParent를 호출하지 않으므로, 원본과 같게 이 레이어의 부착 상태를 유지한다.
         view = view().copy(confirmation = null, attached = attached, notice = if (restored) null else "저장 파일이 손실되었습니다!")
         return restored
     }
 
-    /** bg1/button0 has only a TOUCH_END close handler in the original. */
+    /** onCancel: 취소 입력으로 화면을 분리하고 보류된 확인 정보를 제거한다. */
     fun onCancel(eventType: Int): Boolean {
         if (eventType != TOUCH_END || !attached) return false
         attached = false

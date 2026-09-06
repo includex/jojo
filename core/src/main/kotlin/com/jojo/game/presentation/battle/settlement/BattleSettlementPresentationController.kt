@@ -1,12 +1,12 @@
+// Battle
 package com.jojo.game.presentation.battle.settlement
 
 import com.jojo.game.domain.battle.settlement.BattleSettlementPlan
 import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
 import com.jojo.game.domain.battle.settlement.SettlementInfoDelta
 import com.jojo.game.domain.battle.settlement.SettlementInfoPanel
-import com.jojo.game.presentation.battle.TurnSettlementOp
 
-/** Value-only overlay read model. The screen remains responsible for drawing it. */
+/** SettlementInfoView: 정산 Info 표시 정보이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 internal data class SettlementInfoView(
     val unitId: String,
     val panel: SettlementInfoPanel,
@@ -16,10 +16,10 @@ internal data class SettlementInfoView(
     val title: String,
 )
 
+/** SettlementInfo2View: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class SettlementInfo2View(val text: String, val startedAt: Float, val endsAt: Float)
-
-/** Owns the serial `_jiesuan` operation cursor and overlay lifecycle. */
 internal class BattleSettlementPresentationController {
+    /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     sealed interface Effect {
         data class Focus(val unitId: String, val forceCenter: Boolean) : Effect
         data class Sound(val index: Int) : Effect
@@ -29,12 +29,12 @@ internal class BattleSettlementPresentationController {
         data class GrowthInfo(val unitId: String, val grants: List<SettlementGrowthGrant>, val startedAt: Float) : Effect
         data class Meff(val effectId: Int, val targetIds: List<String>) : Effect
         data class ItemUpgrade(val result: com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult) : Effect
+        /** HideState: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
         data class HideState(val unitIds: List<String>) : Effect
         data class Refresh(val unitIds: List<String>) : Effect
         data class Default(val unitId: String) : Effect
         data class Finished(val plan: BattleSettlementPlan, val local: Boolean) : Effect
     }
-
     private data class Active(
         val plan: BattleSettlementPlan,
         val operations: List<TurnSettlementOp>,
@@ -44,7 +44,6 @@ internal class BattleSettlementPresentationController {
         var waitUntil: Float = 0f,
         var waiting: Waiting = Waiting.None,
     )
-
     private sealed interface Waiting {
         data object None : Waiting
         data object Action : Waiting

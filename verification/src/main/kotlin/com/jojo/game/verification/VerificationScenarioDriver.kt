@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.application.runtime.RuntimeScenarioCommand
@@ -10,10 +11,12 @@ import com.jojo.game.application.runtime.RuntimeScenarioCommand.ShowOverlay
 import com.jojo.game.verification.scenario.ScenarioFixtureInstaller
 import com.jojo.game.domain.scenario.PlaybackState
 
-/** Verification-owned playback settling policy. Route spelling remains outside core. */
+/** VerificationScenarioDriver: 검증 전용 재생 안정화 정책이며 경로 이름은 core 바깥에서 관리한다. */
 class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDriver {
+    /** presentationSent: 검증 대상의 현재 상태 값을 담는다. */
     private var presentationSent = false
 
+    /** commands: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     override fun commands(frame: RuntimeScenarioFrame): List<RuntimeScenarioCommand> {
         presentationCommand()?.let { command ->
             if (!presentationSent) {
@@ -37,6 +40,7 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
         val overlayNames = RuntimeScenarioOverlay.values().associateBy { it.name.lowercase().replace('_', '-') }
     }
 
+    /** presentationCommand: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun presentationCommand(): RuntimeScenarioCommand? = when (state) {
         "hall-palace-fixture" -> Present(RuntimeScenarioPresentation.PALACE, scene = ScenarioFixtureInstaller.palaceScene())
         "hall-section-fixture" -> Present(RuntimeScenarioPresentation.SECTION, scene = ScenarioFixtureInstaller.sectionScene())
@@ -46,6 +50,7 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
             ?: overlayCommand()
     }
 
+    /** overlayCommand: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun overlayCommand(): RuntimeScenarioCommand? = state
         ?.removePrefix("hall-")
         ?.removeSuffix("-fixture")

@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.ai
 
 import com.jojo.game.domain.battle.*
@@ -23,6 +24,7 @@ internal class AiPresentationCoordinator(
     internal val hasActiveCamp: Boolean get() = state.hasActiveCamp
     internal val playerMoveScriptStarted: Boolean get() = state.playerMoveScriptStarted
 
+    /** Port: 전투 표현 계층이 외부 기능과 연결할 때 사용하는 계약이다. */
     internal interface Port {
         fun now(): Float
         fun resolve(camp: Faction): AiTurnResult

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -14,13 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleTurnControllerTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleTurnControllerTest: BattleTurnController의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleTurnControllerTest {
     @Test
@@ -31,7 +26,7 @@ class BattleTurnControllerTest {
         assertFalse(gate.shouldYieldBefore(nextIsNoResult = true))
         gate.markCompleted()
         assertTrue(gate.shouldYieldBefore(nextIsNoResult = true))
-        // A real move or command remains part of the current callback tail.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertFalse(gate.shouldYieldBefore(nextIsNoResult = false))
 
         gate.beginRender()
@@ -47,8 +42,7 @@ class BattleTurnControllerTest {
         assertEquals(1, unit.actionStatusRound)
         assertTrue(unit.hasActed)
 
-        // Source setStateRound(remove XD) writes the configured XD round and
-        // then returns status to NORMAL; it does not zero STATUS_ROUND.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (NORMAL, STATUS_ROUND)을 검증한다.
         unit.hasActed = false
         assertEquals(1, unit.actionStatusRound)
         assertFalse(unit.hasActed)
@@ -246,9 +240,7 @@ class BattleTurnControllerTest {
             presentCampRestore = { callbacks += "restore:${it.faction}"; true },
         )
 
-        // Enter S22's equivalent enemy `_ai2` completion callback.  Its
-        // first post-action runBattleScript will subsequently call stage.end
-        // and stage.lose, publishing this scripted outcome.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서 (S22)을 검증한다.
         assertTrue(controller.endPlayerTurn())
         controller.completeCampCard()
         assertEquals(BattleTurnPhase.AI, controller.snapshot.phase)
@@ -280,7 +272,7 @@ class BattleTurnControllerTest {
             observedOutcome = BattleOutcome.ENEMY_VICTORY,
         ))
 
-        // stage.end() alone must retain the _ai2 action/post-script tail.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertFalse(CollocatedPlayerMoveScriptEnd.finishesAiTurn(
             camp = Faction.PLAYER,
             moveCallbackStarted = true,
@@ -289,8 +281,7 @@ class BattleTurnControllerTest {
             scriptedOutcome = null,
             observedOutcome = null,
         ))
-        // A result that has not been propagated into Battle is not safe to
-        // finish: BattleTurnController validates the observable outcome.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertFalse(CollocatedPlayerMoveScriptEnd.finishesAiTurn(
             camp = Faction.PLAYER,
             moveCallbackStarted = true,
@@ -299,7 +290,7 @@ class BattleTurnControllerTest {
             scriptedOutcome = BattleOutcome.ENEMY_VICTORY,
             observedOutcome = null,
         ))
-        // This guard is intentionally unavailable to ordinary enemy `_ai2`.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertFalse(CollocatedPlayerMoveScriptEnd.finishesAiTurn(
             camp = Faction.ENEMY,
             moveCallbackStarted = true,
@@ -431,8 +422,7 @@ class BattleTurnControllerTest {
         assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
         assertEquals("card:r1:ENEMY", calls.last())
 
-        // Card -> state -> camp script -> deaths -> AI -> restore -> deaths ->
-        // addRound. The explicit round-script barrier must stop before weather.
+        // 테스트 근거: 저장·추적 자료의 순서와 직렬화 규칙을 검증한다.
         controller.completeCampCard()
         assertEquals(BattleTurnPhase.ROUND_SCRIPT, controller.snapshot.phase)
         assertEquals(2, state.round)

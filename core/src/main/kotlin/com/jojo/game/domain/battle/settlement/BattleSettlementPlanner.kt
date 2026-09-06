@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.settlement
 
 import com.jojo.game.domain.battle.BattleAttribute
@@ -5,8 +6,6 @@ import com.jojo.game.domain.battle.BattleStatus
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.MagicLocalSettlement
 import com.jojo.game.domain.battle.isPlayerSide
-
-/** Immutable unit data required by the pure settlement planner. */
 data class SettlementUnitSnapshot(
     val id: String,
     val baseFaction: Faction,

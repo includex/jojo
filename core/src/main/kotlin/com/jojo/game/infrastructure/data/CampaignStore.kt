@@ -1,51 +1,52 @@
+// Infrastructure
 package com.jojo.game.infrastructure.data
 
 import com.badlogic.gdx.Preferences
 import com.jojo.game.domain.campaign.CampaignState
 
-/** 화면 전환 사이의 캠페인 상태와 저장 슬롯을 관리한다. */
+/** CampaignStore: 화면 전환에 필요한 캠페인 상태와 환경설정 기반 저장 슬롯을 함께 보관한다. */
 class CampaignStore(private val preferences: Preferences) {
     data class Snapshot(
         val currentScenario: String = "R_00",
         val completed: Set<String> = emptySet(),
         val choices: Map<String, String> = emptyMap(),
-        /** 전투 진입 시 함께 저장되는 캠페인 단계이다. */
+        /** stage: 전투 진입과 복원 시 이어갈 캠페인 진행 단계를 기록한다. */
         val stage: Int = 0,
     )
 
-    /** 현재 Game 인스턴스의 이벤트·전투 화면이 공유하는 상태이다. */
+    /** state: 이벤트·홀·전투 화면이 같은 게임 실행에서 공유하는 가변 캠페인 상태다. */
     val state = CampaignState()
     private val persistence = CampaignStorePersistence(preferences, state)
     var snapshot: Snapshot = persistence.read()
         private set
 
-    /** 현재 시나리오를 진입 시나리오로 기록한다. */
+    /** enter: R_로 시작하는 시나리오만 현재 진입 지점으로 저장한다. */
     fun enter(scenario: String) {
         if (!scenario.startsWith("R_")) return
         snapshot = snapshot.copy(currentScenario = scenario)
         persist()
     }
 
-    /** 새 게임을 시작하고 이전 상태를 모두 초기화한다. */
+    /** newGame: 저장된 스냅샷과 런타임 캠페인 상태를 새 게임 기본값으로 초기화한다. */
     fun newGame() {
         state.reset()
         snapshot = Snapshot()
         persist()
     }
 
-    /** 시나리오 선택 결과를 현재 캠페인 스냅샷에 기록한다. */
+    /** recordChoice: 시나리오별 선택 결과를 다음 재생과 저장 복원에 사용할 수 있게 기록한다. */
     fun recordChoice(scenario: String, choice: String) {
         snapshot = snapshot.copy(choices = snapshot.choices + (scenario to choice))
         persist()
     }
 
-    /** 완료한 시나리오와 다음 시나리오를 함께 기록한다. */
+    /** complete: 완료 시나리오를 누적하고 다음 진입 시나리오를 현재 스냅샷에 설정한다. */
     fun complete(scenario: String, nextScenario: String) {
         snapshot = snapshot.copy(currentScenario = nextScenario, completed = snapshot.completed + scenario)
         persist()
     }
 
-    /** 현재 상태를 환경설정 저장소에 즉시 반영한다. */
+    /** persist: 현재 스냅샷과 캠페인 런타임 데이터를 환경설정 저장소에 즉시 기록한다. */
     fun persist() = persistence.write(snapshot)
 
     /** 캠페인 단계를 하나 증가시키고 저장한다. */

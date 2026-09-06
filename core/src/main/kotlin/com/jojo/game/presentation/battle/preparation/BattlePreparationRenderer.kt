@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
 
 import com.badlogic.gdx.Gdx
@@ -11,7 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-/** LibGDX drawing boundary for immutable preparation snapshots. */
+/** BattlePreparationRenderer: 전투 준비 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 internal class BattlePreparationRenderer(private val assets: BattlePreparationAssets) {
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
     private val batch = SpriteBatch()

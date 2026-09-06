@@ -1,8 +1,9 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
-/** 인벤토리 장비에 전투 및 스크립트 경험치를 적용한다. */
+/** CampaignEquipmentProgression: 전투·스크립트 보상 경험치를 장비 등급과 능력치 변화로 환산한다. */
 class CampaignEquipmentProgression internal constructor(
     private val equipmentRepository: CampaignEquipmentRepository,
 ) {
@@ -24,7 +25,7 @@ class CampaignEquipmentProgression internal constructor(
         return applyExperience(unitId, current, gain, slot, data, limitGainToRemaining = false)
     }
 
-    /** 전투 복원 명령이 전달한 장비 경험치를 적용한다. */
+    /** grantExperienceAmount: 복원된 경험치 수치를 지정 장비에 적용하고 등급 상승 결과를 계산한다. */
     fun grantExperienceAmount(
         unitId: Int,
         amount: Int,

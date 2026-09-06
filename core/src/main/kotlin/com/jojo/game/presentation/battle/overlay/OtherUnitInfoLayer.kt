@@ -1,13 +1,15 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
-import com.jojo.game.InfoBaseValueAnimation
+import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
 
 
-/** Production-state implementation of BattleScreen.showOtherunitInfo -> OtherUnitInfoLayer id7. */
+/** 적 유닛의 전투 능력치와 표시 이름을 정보 패널 상태로 만들고 종료 콜백을 호출한다. */
 class OtherUnitInfoLayer {
 
+    /** 적 유닛의 이름·직책·HP·MP와 패널 연결 상태를 렌더링 값으로 제공한다. */
     data class View(
         val name: String, val level: Int, val post: String,
         val hp: Int, val maxHp: Int, val mp: Int, val maxMp: Int,
@@ -40,8 +42,6 @@ class OtherUnitInfoLayer {
 
     fun valueAnimation(entries: List<InfoBaseValueAnimation.Value>) = InfoBaseValueAnimation(entries)
 }
-
-/** Strict source-design draw inventory for the live R_00 settlement result panel. */
 object OtherUnitInfoRenderEvents {
 
     fun jsonl(view: OtherUnitInfoLayer.View): String {

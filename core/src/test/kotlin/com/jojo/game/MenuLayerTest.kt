@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -11,13 +12,7 @@ import kotlin.test.assertTrue
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * class  `MenuLayerTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** MenuLayerTest: MenuLayer의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class MenuLayerTest {
     @Test fun `onCreate caps round and maps weather sheet and edit visibility`() {
@@ -36,7 +31,7 @@ class MenuLayerTest {
         val menu = MenuLayer(); menu.onCreate(MenuLayer.CreateData(MenuLayer.Weather.YIN, 2, 20, "x"))
         assertNull(menu.onCommand(MenuLayer.Command.HELP, 1))
         assertEquals(MenuLayer.Command.HELP, menu.onCommand(MenuLayer.Command.HELP, 2))
-        // MenuLayer.js TOUCH_END executes removeFromParent before its switch.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (TOUCH_END)을 검증한다.
         assertFalse(menu.view().attached)
     }
 
@@ -46,7 +41,7 @@ class MenuLayerTest {
         assertEquals(3, MenuLayer.weatherSheet(MenuLayer.Weather.FENG))
         assertEquals(4, MenuLayer.weatherSheet(MenuLayer.Weather.HAO_YU))
         assertEquals(5, MenuLayer.weatherSheet(MenuLayer.Weather.XUE))
-        // `_create_weather`: cc.rect(0, l*c, s, c), createWithSpriteFrames(a, 6), Loop.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(0, MenuLayer.weatherFrameAt(0f))
         assertEquals(0, MenuLayer.weatherFrameAt(1f / 6f - .0001f))
         assertEquals(1, MenuLayer.weatherFrameAt(1f / 6f))

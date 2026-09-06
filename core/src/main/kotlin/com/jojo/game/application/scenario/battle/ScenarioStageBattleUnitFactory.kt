@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.application.scenario.battle
 
 import com.jojo.game.domain.scenario.*
@@ -8,7 +9,7 @@ internal data class ScenarioStageBattleUnitCreation(
     val initiallyVisible: Boolean,
 )
 
-/** Translates authored createMine/createFriend/createEnemy rows into battle units. */
+/** ScenarioStageBattleUnitFactory: 스크립트 인수와 유닛 데이터로 전장 배치용 ScenarioBattleUnit을 생성한다. */
 internal class ScenarioStageBattleUnitFactory {
     fun create(
         faction: ScenarioUnitFaction,

@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.presentation.overlay.fixture
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 import com.jojo.game.presentation.shared.overlay.*
+import com.jojo.game.presentation.shared.KoreanFont
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.*
@@ -21,32 +23,49 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** 공용 시스템 오버레이를 재사용 가능한 형태로 렌더링한다. */
+/** SystemOverlayRenderer: 공용 시스템 오버레이를 재사용 가능한 형태로 렌더링한다. */
 class SystemOverlayRenderer {
 
+    /** MsgBox: msg box 관련 검증 상태와 동작을 제공하는 타입이다. */
     data class MsgBox(val text: String, val flag: Int)
 
+    /** Toast: toast 관련 검증 상태와 동작을 제공하는 타입이다. */
     data class Toast(val text: String)
 }
 
+/** SystemOverlayFixtureScreen: 검증 화면의 상태와 입력·렌더링 동작을 제공하는 타입이다. */
 class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** shapes: 검증 흐름에서 사용하는 값을 담는다. */
     private val shapes = ShapeRenderer()
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = Texture(Gdx.files.internal("maps/71.jpg"))
+    /** logo9: 검증 흐름에서 사용하는 값을 담는다. */
     private val logo9 = Texture(Gdx.files.internal("maps/ui/start-battle/logo9.png"))
+    /** logo3: 검증 흐름에서 사용하는 값을 담는다. */
     private val logo3 = Texture(Gdx.files.internal("maps/ui/win-condition/logo3.png"))
+    /** loadingTexture: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val loadingTexture = Texture(Gdx.files.internal("maps/ui/system-overlay/uiloading.png"))
+    /** boxTexture: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val boxTexture = Texture(Gdx.files.internal("maps/ui/start-battle/button.png"))
+    /** box: 검증 흐름에서 사용하는 값을 담는다. */
     private val box = NinePatch(boxTexture, 9, 9, 7, 11)
+    /** font: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val font: BitmapFont =
         KoreanFont.create(34, "저장 완료.게임 저장하시겠습니까?예비원본 공통 알림 UI 비교자원 로딩 중이 완료되면 접속하는 것이 빠를 거예요!")
+    /** msg: 검증 흐름에서 사용하는 값을 담는다. */
     private val msg = if (state == "msgbox-ok") SystemOverlayRenderer.MsgBox("저장 완료.", 1)
     else if (state == "msgbox-confirm") SystemOverlayRenderer.MsgBox("게임 저장하시겠습니까?", 3) else null
+    /** toast: 검증 흐름에서 사용하는 값을 담는다. */
     private val toast = if (state == "toast-stable") SystemOverlayRenderer.Toast("원본 공통 알림 UI 비교") else null
+    /** progress: 검증 흐름에서 사용하는 값을 담는다. */
     private val progress = state.removePrefix("progress-").takeIf { state.startsWith("progress-") }?.let {
         ProgressRenderOracle().also { layer -> layer.onProgress(it.toInt() / 100f) }
     }
+    /** loading: 검증 흐름에서 사용하는 값을 담는다. */
     private val loading = state.takeIf { it.startsWith("loading-") }?.let {
         val flag = when {
             it == "loading-flag2-hidden" -> 2
@@ -55,10 +74,13 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         }
         LoadingLayer(flag).also { layer -> if (it == "loading-flag1-after5") layer.advance(5f) }
     }
+    /** spinnerAngle: spinner angle 값을 보관해 검증 흐름에서 사용한다. */
     private var spinnerAngle = 0f
 
+    /** show: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun show() {
         Gdx.input.inputProcessor = object : InputAdapter() {
+            /** touchDown: 검증 입력을 현재 화면 상태에 반영한다. */
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 val p = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 if (progress != null || loading != null) return true
@@ -67,6 +89,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         }
     }
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f); Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         viewport.apply(); batch.projectionMatrix = viewport.camera.combined
@@ -85,6 +108,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         game.captureFrameIfRequested()
     }
 
+    /** drawMsgBox: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawMsgBox(model: SystemOverlayRenderer.MsgBox) {
         batch.draw(logo9, 426.686f, 252f, 635f, 296f)
         box.draw(batch, 426.686f, 252f, 635f, 296f)
@@ -98,6 +122,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         }
     }
 
+    /** drawToast: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawToast(model: SystemOverlayRenderer.Toast) {
         shapes.projectionMatrix = viewport.camera.combined
         shapes.begin(ShapeRenderer.ShapeType.Filled)
@@ -109,6 +134,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         batch.end()
     }
 
+    /** dim: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun dim(opacity: Float) {
         if (opacity <= 0f) return
         batch.color = Color(0f, 0f, 0f, opacity)
@@ -116,6 +142,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         batch.color = Color.WHITE
     }
 
+    /** drawSpinner: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawSpinner(x: Float, y: Float, size: Float, angle: Float) {
         batch.draw(
             loadingTexture, x, y, size / 2f, size / 2f, size, size, 1f, 1f, angle,
@@ -123,6 +150,7 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         )
     }
 
+    /** drawProgress: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawProgress(model: ProgressRenderOracle) {
         dim(.392f)
         drawSpinner(674.186f, 460.5f, 140f, spinnerAngle)
@@ -131,14 +159,17 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         font.draw(batch, ProgressRenderOracle.TIPS, 294.186f, 305f, 900f, Align.center, false)
     }
 
+    /** drawLoading: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawLoading(model: LoadingLayer) {
         dim(model.blockerOpacity)
         if (model.imageVisible) drawSpinner(709.186f, 365f, 70f, spinnerAngle)
     }
 
+    /** renderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     fun renderEventLog(): String {
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, opacity: Float = 1f, visible: Boolean = true, text: String = ""
@@ -283,20 +314,26 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
         }
         return log.jsonl()
     }
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose(); shapes.dispose(); font.dispose(); background.dispose(); logo9.dispose(); logo3.dispose(); loadingTexture.dispose(); boxTexture.dispose()
     }
 }
 
-/** 호출 경로가 복원되지 않은 Global100 프리팹의 검증용 기준 구현이다. */
+/** ProgressRenderOracle: 호출 경로가 복원되지 않은 Global100 프리팹의 검증용 기준 구현이다. */
 private class ProgressRenderOracle {
+    /** progress: 검증 흐름에서 사용하는 값을 담는다. */
     var progress = 0f
         private set
+    /** label: 검증 흐름에서 사용하는 값을 담는다. */
     val label get() = "자원 로딩 중${kotlin.math.truncate(100f * progress).toInt()}%"
 
+    /** onProgress: on progress에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     fun onProgress(value: Float) {
         progress = value
     }

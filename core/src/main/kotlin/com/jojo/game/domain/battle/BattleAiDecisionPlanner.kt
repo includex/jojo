@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.domain.battle.*
@@ -25,14 +26,10 @@ internal data class AiDecision(
     val targetId: String?,
     val magicId: Int?,
     val value: Int,
-    /** Control._AIProcess stores info.value, not terrain-inclusive value. */
     val actionValue: Int = 0,
 )
 
-/**
- * Pure Kotlin decision planner for AI movement and action selection.
- * Evaluates reachable tiles, cover pressure, physical attack scoring, and strategy/magic candidate scoring.
- */
+/** BattleAiDecisionPlanner: AI 유닛의 이동·공격 후보를 계산하고, 현재 전장에 가장 알맞은 행동을 선택한다. */
 internal object BattleAiDecisionPlanner {
 
     fun chooseAiDecision(

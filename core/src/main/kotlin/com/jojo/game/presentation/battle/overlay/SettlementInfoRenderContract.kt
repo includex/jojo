@@ -1,18 +1,8 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
-/**
- * Exact MineUnitInfoLayer / OtherUnitInfoLayer prefab draw inventory.
- *
- * This is a UI-only contract: it neither owns settlement state nor draws from
- * BattleScreen.  Asset paths correspond to the recovered SpriteFrame chains
- * exported by `export_map_assets.py`.
- */
-
 object SettlementInfoRenderContract {
-
     data class Sprite(val path: String, val x: Float, val y: Float, val width: Float, val height: Float)
-
-
     enum class Panel { MINE, OTHER }
 
     private const val ROOT_X = 736f

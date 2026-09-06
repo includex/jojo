@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.domain.battle.*
@@ -6,12 +7,7 @@ import com.jojo.game.domain.battle.BattleUnit
 
 import java.util.*
 
-/**
- * Owns the ordered unit topology used by tactical and presentation queries.
- *
- * Unit objects remain mutable battle entities; only structural changes to the
- * active and retained collections are confined to this class.
- */
+/** Battlefield: 전투에 참여하는 유닛과 점유 타일을 관리하며, 위치 변경과 전장 복원을 수행한다. */
 internal class Battlefield(initialUnits: Iterable<BattleUnit>) {
     private val activeById = linkedMapOf<String, BattleUnit>()
     private val retainedById = linkedMapOf<String, BattleUnit>()
@@ -37,8 +33,6 @@ internal class Battlefield(initialUnits: Iterable<BattleUnit>) {
 
 
     fun pendingPresentationUnits(): Collection<BattleUnit> = retainedView.values
-
-    /** Active units win duplicate IDs and retained-only units follow in insertion order. */
     fun allPresentationUnits(): List<BattleUnit> = buildList {
         val seen = mutableSetOf<String>()
         activeById.values.forEach { unit ->
@@ -68,8 +62,6 @@ internal class Battlefield(initialUnits: Iterable<BattleUnit>) {
     fun hideForPresentation(id: String) {
         presentationUnit(id)?.visible = false
     }
-
-    /** Restores a retained unit without changing an already-active duplicate. */
     fun restore(id: String): BattleUnit? {
         val unit = activeById[id] ?: retainedById.remove(id)?.also { activeById[id] = it } ?: return null
         unit.retreatFlag = false

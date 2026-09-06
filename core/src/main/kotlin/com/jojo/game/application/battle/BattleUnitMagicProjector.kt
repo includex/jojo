@@ -1,10 +1,11 @@
+// Battle
 package com.jojo.game.application.battle
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.battle.magic.BattleMagicProfileValue
 import com.jojo.game.domain.campaign.CampaignState
 
-/** Resolves post, campaign, and skill-granted spells for a projected unit. */
+/** BattleUnitMagicProjector: 직위·시나리오·스킬에서 얻은 마법을 전투 유닛용 마법 목록으로 투영한다. */
 internal class BattleUnitMagicProjector(
     private val catalog: GameDataCatalog?,
     private val campaign: CampaignState?,

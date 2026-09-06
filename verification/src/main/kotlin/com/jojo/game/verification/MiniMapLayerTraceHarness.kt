@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.battle.overlay.MiniMapLayer
@@ -7,10 +8,12 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Compile-stable implementation trace companion for the recovered MiniMap factory harness. */
+/** MiniMapLayerTraceHarness: 복원된 MiniMap 팩토리 추적을 컴파일 가능한 구현으로 연결한다. */
 object MiniMapLayerTraceHarness {
+    /** quote: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun quote(value: String?) = value?.let { "\"${it.replace("\\", "\\\\").replace("\"", "\\\"")}\"" } ?: "null"
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val fixture = Files.readString(Path.of(args[0])).replace(Regex("\\s+"), "")
@@ -20,6 +23,7 @@ object MiniMapLayerTraceHarness {
             )
 
 
+        /** state: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun state(layer: MiniMapLayer, step: String, callbacks: Int): String {
             val size = layer.size?.let { "{\"width\":${it.first},\"height\":${it.second}}" } ?: "null"
             val bg = if (layer.size == null) "null" else "{\"x\":${layer.bgX},\"y\":${layer.bgY}}"

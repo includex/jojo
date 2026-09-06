@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.story
 
 import com.jojo.game.presentation.scenario.overlay.*
 
-/** Immutable input for the source DialogueLayer street composition. */
+/** ScenarioStreetDialogueView: 시나리오 Street Dialogue 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class ScenarioStreetDialogueView(
     val hasDialogue: Boolean,
     val portraitId: Int?,
@@ -12,7 +13,7 @@ internal data class ScenarioStreetDialogueView(
     val isAtTop: Boolean,
 )
 
-/** Immutable upper-dialogue projection for the source Palace fixture. */
+/** ScenarioPalaceFixtureView: 시나리오 Palace Fixture 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class ScenarioPalaceFixtureView(
     val dialogueText: String,
     val portraitId: Int,

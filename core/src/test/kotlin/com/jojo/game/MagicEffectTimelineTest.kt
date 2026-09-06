@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.assets.MagicEffectCatalog
@@ -6,20 +7,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import javax.imageio.ImageIO
 
-/**
- * class  `MagicEffectTimelineTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** MagicEffectTimelineTest: MagicEffectTimeline의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class MagicEffectTimelineTest {
     @Test
     fun `every decoded effect schedules source hit frame or exact finish fallback`() {
         val catalog = MagicEffectCatalog.load()
-        // Meff.bin is indexed 0..255 in this title.  Check the entire table
-        // rather than a hand-picked spell set.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         (0..255).mapNotNull(catalog::effect).forEach { effect ->
             assertTrue(effect.hitTime >= 0f)
             assertTrue(effect.hitTime <= effect.duration)
@@ -45,7 +39,7 @@ class MagicEffectTimelineTest {
             val image = stream.use(ImageIO::read)
             assertTrue(effect.frameWidth <= image.width, "Meff ${effectId + 1} frame width")
             effect.frames.filter { it.sourceIndex >= 0 }.forEach { frame ->
-                // StageLayer.meff uses b = IDX * FRAME_H with no gutter.
+                // 테스트 근거: 연출 프레임과 콜백 처리 순서 (IDX, FRAME_H)을 검증한다.
                 assertTrue((frame.sourceIndex + 1) * effect.frameHeight <= image.height,
                     "Meff ${effectId + 1} row ${frame.sourceIndex} exceeds ${image.height}px")
             }

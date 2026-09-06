@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game.application.runtime
 
 import com.jojo.game.domain.battle.*

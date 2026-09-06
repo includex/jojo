@@ -1,19 +1,15 @@
+// Battle
 package com.jojo.game.domain.battle.settlement
 
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.campaign.CampaignEquipmentExperienceResult
-
-/** Renderer-independent `_jiesuan` plan. Logical values remain lossless. */
 data class BattleSettlementPlan(
     val stage: CampSettlementStage,
     val camp: Faction,
     val units: List<SettlementUnitPlan>,
-    /** Played only after every unit's info callback has completed. */
     val meffBuckets: List<SettlementMeffBucket>,
-    /** Source branches whose mutations/presentation are not in CampSettlement. */
     val pendingIntegrations: List<SettlementPendingIntegration> = emptyList(),
-    /** Always consumed before [units]/[meffBuckets], matching both source callers. */
     val authoredSubflows: List<SettlementAuthoredSubflowPlan> = emptyList(),
 ) {
     val sourceDataComplete: Boolean get() = pendingIntegrations.isEmpty()

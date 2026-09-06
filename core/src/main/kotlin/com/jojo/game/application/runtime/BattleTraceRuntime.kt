@@ -1,13 +1,9 @@
+// Runtime
 package com.jojo.game.application.runtime
 
 import com.jojo.game.domain.battle.BattleRandomSource
 
-/**
- * Neutral runtime controls for deterministic battle observation.
- *
- * The verification module owns output paths, JSON formatting and persistence;
- * core only receives these timing/seed controls and a deterministic RNG.
- */
+/** BattleTraceRuntimeConfig: 자동 전투 재생의 시나리오·난수 시드·시간 제한을 고정하는 실행 설정이다. */
 data class BattleTraceRuntimeConfig(
     val scenario: String = "S_00",
     val toolSeed: Int = 1000,
@@ -18,7 +14,7 @@ data class BattleTraceRuntimeConfig(
     val exitOnFinish: Boolean = true,
 )
 
-/** Runtime clock guard; verification decides how a timeout is reported. */
+/** BattleTraceDeadline: 전투 결과 화면 도달 여부를 기준으로 추적 실행의 시간 초과를 판정한다. */
 class BattleTraceDeadline(
     private val maxSimulationSeconds: Float,
     private val resultSceneGraceSeconds: Float = 300f,
@@ -31,7 +27,7 @@ class BattleTraceDeadline(
     }
 }
 
-/** Deterministic counterparts of the source Tool.random and Math.random streams. */
+/** BattleTraceRandomStreams: 재현 가능한 도구·전투 난수열과 호출 순서를 함께 기록하는 난수 공급원이다. */
 class BattleTraceRandomStreams(toolSeed: Int, mathSeed: Long) : BattleRandomSource {
     data class Event(
         val frame: Long,
@@ -72,7 +68,7 @@ class BattleTraceRandomStreams(toolSeed: Int, mathSeed: Long) : BattleRandomSour
     }
 }
 
-/** In-memory frame clock/sink; verification owns serialization and persistence. */
+/** BattleTraceRecorder: 프레임 JSON과 입력 흔적을 누적해 전투 재현 자료로 남기는 기록기다. */
 class BattleTraceRecorder(private val random: BattleTraceRandomStreams) {
     private val frames = mutableListOf<String>()
     private val inputs = mutableListOf<String>()

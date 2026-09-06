@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.*
@@ -5,7 +6,7 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.application.battle.Battle
 import com.jojo.game.application.battle.BattleEvent
 import com.jojo.game.domain.battle.BattleUnit
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.battle.TurnTrigger
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.BattleEquipmentExperienceKind
@@ -16,7 +17,7 @@ import com.jojo.game.domain.battle.settlement.RestoreGrowthResolution
 import com.jojo.game.domain.scenario.ScenarioUnitFaction
 import com.jojo.game.domain.scenario.battleId
 
-/** Application entry point that combines projected scenario units and runtime hooks. */
+/** BattleScenarioAssembler: 시나리오의 유닛·지형·이벤트를 조합해 실행 가능한 전투 집합을 만든다. */
 internal object BattleScenarioAssembler {
     fun tutorialBattle(): Battle = Battle(
         units = listOf(

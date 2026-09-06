@@ -1,13 +1,11 @@
+// Battle
 package com.jojo.game.domain.battle.combat
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
-/**
- * Pure Kotlin area-of-effect calculations for physical combat:
- * directional splash area geometry, splash target harm resolution, and damage transfer.
- */
+/** PhysicalAttackAreaResolver: 물리 공격 범위 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object PhysicalAttackAreaResolver {
 
     fun physicalEffectPositions(attacker: BattleUnit, target: BattleUnit): Set<Pair<Int, Int>> {

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -9,13 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleMoveSoundRateTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleMoveSoundRateTest: BattleMoveSoundRate의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleMoveSoundRateTest {
     private fun damage(targetMoveSound: Int, attackerSkills: Map<Int, Int>): Int {
@@ -33,8 +28,7 @@ class BattleMoveSoundRateTest {
     fun `JMGJ PCGJ and BBGJ select target arm move sound exactly`() {
         val skills = mapOf(129 to 20, 164 to 30, 11 to 40)
         val none = damage(3, skills)
-        // Base harm is 56, so source percentage application gives 67, 72,
-        // and 78 respectively after truncation.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(67, damage(0, skills))
         assertEquals(72, damage(1, skills))
         assertEquals(78, damage(2, skills))

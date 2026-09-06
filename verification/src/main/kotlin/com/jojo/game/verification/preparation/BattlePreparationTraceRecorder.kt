@@ -1,12 +1,14 @@
+// Verification
 package com.jojo.game.verification.preparation
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 import java.util.*
 
-/** Verification output boundary for preparation, sort, and battle-view fixtures. */
+/** BattlePreparationTraceRecorder: 준비·정렬·전투 화면 픽스처의 검증 출력 경계이다. */
 internal class BattlePreparationTraceRecorder {
 
+    /** renderEvents: 전투 준비 상태를 렌더 이벤트 JSONL로 변환한다. */
     fun renderEvents(state: BattlePreparationViewState, route: String?): String = when {
         route == "battle-view-fixture" -> battleViewEvents()
         route?.removeSuffix("-fixture")?.startsWith("start-battle-sort-") == true ->
@@ -17,6 +19,7 @@ internal class BattlePreparationTraceRecorder {
     }
 
 
+    /** composition: 전투 준비 배치 상태를 JSON 구성으로 반환한다. */
     fun composition(state: BattlePreparationViewState): String {
         val roster = state.availableIds.mapIndexed { index, id ->
             val cx = (233.686f + index % 6 * 133f) * SCALE
@@ -53,6 +56,7 @@ internal class BattlePreparationTraceRecorder {
                 "\"roster\":[$roster],\"slots\":[$slots]}"
     }
 
+    /** battleSortEvents: 부대 정렬 화면의 렌더 이벤트를 반환한다. */
     private fun battleSortEvents(route: String): String {
         val phase = "hall-$route-stable"
         val open = route.endsWith("open")
@@ -101,9 +105,11 @@ internal class BattlePreparationTraceRecorder {
         return base + extra.jsonl()
     }
 
+    /** battleViewEvents: 전투 보기 화면의 렌더 이벤트를 반환한다. */
     private fun battleViewEvents(): String {
         val log = RenderEventLog()
         val phase = "hall-battle-view-stable"
+        /** draw: 검증 렌더 이벤트를 구성하고 반환한다. */
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, opacity: Float = 1f, text: String = "",
@@ -154,12 +160,15 @@ internal class BattlePreparationTraceRecorder {
         return log.jsonl()
     }
 
+    /** rect: 좌표와 크기를 직사각형 JSON으로 변환한다. */
     private fun rect(x: Float, y: Float, width: Float, height: Float) =
         "[${format(x)},${format(y)},${format(width)},${format(height)}]"
 
+    /** format: 검증 출력 문자열의 형식을 구성한다. */
     private fun format(value: Float) = "%.3f".format(Locale.US, value)
 
     private companion object {
+        /** SCALE: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
         const val SCALE = .86f
     }
 }

@@ -1,30 +1,29 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.SettingLayer
-import com.jojo.game.presentation.battle.BattleSettingsOverlayView
 import kotlin.math.abs
-
-/** Owns the settings overlay lifecycle and source-prefab press gesture. */
 internal class BattleSettingsOverlayController(private val layer: SettingLayer) {
+    /** 설정 패널의 누름과 닫기 요청을 화면 좌표로 전달하는 입력이다. */
     sealed interface Intent {
         data class PointerDown(val x: Float, val y: Float) : Intent
         data class PointerUp(val x: Float, val y: Float) : Intent
         data object Close : Intent
     }
 
+    /** 설정 패널이 닫혔는지 알려 주는 처리 결과이다. */
     sealed interface Effect {
         data object None : Effect
         data object Closed : Effect
     }
-
     data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
 
+    /** 설정 패널의 표시 여부와 마지막으로 누른 좌표를 보관한다. */
     private sealed interface State {
         data object Hidden : State
         data class Visible(val press: Point? = null) : State
     }
-
     private data class Point(val x: Float, val y: Float)
 
     private var state: State = State.Hidden

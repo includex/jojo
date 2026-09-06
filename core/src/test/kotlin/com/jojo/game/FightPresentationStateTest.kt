@@ -1,8 +1,10 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.scenario.*
 
 import com.jojo.game.presentation.battle.*
+import com.jojo.game.presentation.battle.fight.*
 import com.jojo.game.presentation.battle.fight.FightSpriteTimeline
 import com.jojo.game.domain.scenario.*
 import kotlin.test.Test
@@ -12,13 +14,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * class  `FightPresentationStateTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** FightPresentationStateTest: FightPresentationState의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class FightPresentationStateTest {
     private val fightId = 7L
@@ -89,7 +85,7 @@ class FightPresentationStateTest {
         state.advance(0.04f)
         assertEquals("가", state.mineSpeech.renderedText)
         state.advance(0.04f)
-        // JS substring(0, 1) exposes the high surrogate for one scheduler tick.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(2, state.mineSpeech.content.length)
         state.advance(0.04f)
         assertEquals(text, state.mineSpeech.renderedText)
@@ -165,8 +161,7 @@ class FightPresentationStateTest {
 
         assertClose(-50f, state.mine.childX)
         state.begin(ScenarioFightCommand.SetAction(fightId, true, 0))
-        // Source slot 0 starts at -200 with scaleX=-4; _reset adds
-        // 4 * -50 * -1, placing the mounted attacker at x=0.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertClose(0f, state.mine.parentX)
         assertClose(-4f, state.mine.parentScaleX)
     }
@@ -213,7 +208,7 @@ class FightPresentationStateTest {
         val state = started()
         val command = ScenarioFightCommand.Attack1(fightId, false, 3, false)
 
-        // anime19 hits at 4/24 and ends at 8/24; anime27 reaction lasts 8/24.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertClose(12f / 24f, state.begin(command))
         assertEquals(19, state.enemy.action)
         state.advance(4f / 24f)
@@ -266,8 +261,7 @@ class FightPresentationStateTest {
             val commands = runtime.stage.consumeFightCommands()
             commands.filterIsInstance<ScenarioFightCommand.Attack1>().firstOrNull()?.let { attack = it }
             if (attack != null) return@repeat
-            // An authored stage.delay has no presentation command; external
-            // FightLayer waits always have exactly one queued command.
+            // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
             if (commands.isEmpty()) runtime.skipDelay() else runtime.resumeExternalDelay()
         }
 
@@ -314,25 +308,21 @@ class FightPresentationStateTest {
         var postEndAstObservedBeforeEndAck = false
         while (trace.none { it.endsWith(":End") }) {
             if (pending.isEmpty()) {
-                // S_01 has one authored stage.delay between Attack2 and Say;
-                // it is not a FightLayer callback and produces no command.
+                // 테스트 근거: 연출 프레임과 콜백 처리 순서 (S_01)을 검증한다.
                 assertEquals(PlaybackState.DELAY, runtime.state)
                 assertEquals("Attack2", trace.last { it.startsWith("resume:") }.substringAfterLast(':'))
                 authoredDelayTrace += "delay20:start"
                 runtime.update(1.999f, autoCloseUi = false)
                 assertEquals(PlaybackState.DELAY, runtime.state)
                 assertTrue(runtime.stage.consumeFightCommands().isEmpty())
-                // Cross the 2.0 s boundary with a small margin so the test
-                // does not depend on Float representation of 1.999 + .001.
+                // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
                 runtime.update(0.002f, autoCloseUi = false)
                 authoredDelayTrace += "delay20:complete"
                 pending.addAll(runtime.stage.consumeFightCommands())
             }
             val command = pending.removeFirst()
             if (command is ScenarioFightCommand.End) {
-                // fight.end is synchronous. The resume owned by the final
-                // fight.say has already evaluated hide/getItem/setAction/say
-                // before the renderer acknowledges the queued End command.
+                // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
                 assertFalse(runtime.stage.unit(134).visible)
                 assertTrue(127 in runtime.stage.acquiredItems)
                 assertEquals(PlaybackState.DIALOGUE, runtime.state)
@@ -389,10 +379,7 @@ class FightPresentationStateTest {
         runtime.advanceDialogue() // first speaker page
         assertEquals(Dialogue("134", "흥, 아무도 아니야!"), runtime.currentDialogue)
 
-        // Reproduce the stale Float.MAX_VALUE left by an earlier external
-        // FightLayer pause.  This close is an ordinary stage.say, so it has
-        // no externalDialogueReturnState and must reset that timer before
-        // the deferred SayLayer callback frame resumes the AST.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서 (MAX_VALUE, AST)을 검증한다.
         val delay = ScenarioInterpreter::class.java
             .getDeclaredField("delayRemainingSeconds")
             .also { it.isAccessible = true }

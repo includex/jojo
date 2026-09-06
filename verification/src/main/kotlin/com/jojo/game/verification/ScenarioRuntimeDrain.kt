@@ -1,17 +1,19 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.application.scenario.*
 
 import com.jojo.game.domain.scenario.PlaybackState
 
+/** ScenarioRuntimeDrain: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 internal object ScenarioRuntimeDrain {
-    /** 지연 상태를 제한된 횟수만큼 건너뛰어 안정 상태로 만든다. */
+    /** settleTimedDelay: 지연 상태를 제한된 횟수만큼 건너뛰어 안정 상태로 만든다. */
     fun settleTimedDelay(runtime: ScenarioInterpreter, limit: Int = 10_000) {
         var steps = 0
         while (runtime.state == PlaybackState.DELAY && steps++ < limit) runtime.skipDelay()
         check(runtime.state != PlaybackState.DELAY) { "timed scenario state did not settle" }
     }
 
-    /** 대화·선택·모달 단계를 진행해 시나리오를 완료 상태로 만든다. */
+    /** toCompletion: 대화·선택·모달 단계를 진행해 시나리오를 완료 상태로 만든다. */
     fun toCompletion(
         runtime: ScenarioInterpreter,
         limit: Int = 10_000,

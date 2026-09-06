@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.PhysicalAttackPass
@@ -10,13 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * class  `BattlePhysicalCallbackPlanTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattlePhysicalCallbackPlanTest: BattlePhysicalCallbackPlan의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattlePhysicalCallbackPlanTest {
     @Test
@@ -219,8 +214,7 @@ class BattlePhysicalCallbackPlanTest {
                                 targetId = "defender",
                                 harm = 10,
                                 mpShieldDamage = 10,
-                                // Invalid legacy aggregates must not leak
-                                // through a source branch that never runs.
+                                // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
                                 lifeStealHealing = 4,
                                 qxlHealing = 10,
                                 playerMoneyDelta = 10,
@@ -239,7 +233,7 @@ class BattlePhysicalCallbackPlanTest {
         assertTrue(steps.none { it is BattlePhysicalCallbackPlan.Step.LifeStealCommitted })
         assertTrue(steps.none { it is BattlePhysicalCallbackPlan.Step.QxlCommitted })
         assertTrue(steps.none { it is BattlePhysicalCallbackPlan.Step.MoneyAbsorbCommitted })
-        // FTSH is outside the MPFY do/while and still uses the final n.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (FTSH, MPFY)을 검증한다.
         assertTrue(BattlePhysicalCallbackPlan.Step.RecoilCommitted("defender", "attacker", 5) in steps)
     }
 
@@ -287,7 +281,7 @@ class BattlePhysicalCallbackPlanTest {
                         "attacker",
                         listOf(BattlePhysicalCallbackPlan.Target("defender", 20)),
                     ),
-                    // Deliberately supplied to prove the source suppression rule.
+                    // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
                     BattlePhysicalCallbackPlan.Invocation(
                         BattlePhysicalCallbackPlan.InvocationKind.COUNTER,
                         "defender",

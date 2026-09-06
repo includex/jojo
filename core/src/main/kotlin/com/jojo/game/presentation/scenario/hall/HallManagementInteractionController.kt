@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 internal sealed interface HallEquipInputIntent {
@@ -28,10 +29,7 @@ internal enum class HallEquipConfirmationInputIntent { CONFIRM, CANCEL }
 internal enum class HallUnequipConfirmationInputIntent { NONE, CONFIRM, CANCEL }
 internal enum class HallItemInputIntent { NONE, CLOSE, REQUEST_DISCARD, DISCARD_YES, DISCARD_NO }
 
-/**
- * Owns Hall-management and item-layer hit testing. The returned intents deliberately
- * contain no screen, campaign, rendering, or layer references.
- */
+/** HallManagementInteractionController: 거점 Management Interaction 제어기이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 internal class HallManagementInteractionController {
     fun equipTap(x: Float, y: Float): HallEquipInputIntent = when {
         y in 566f..610f && x in 123f..639f -> HallEquipInputIntent.SelectTab(((x - 123f) / 129f).toInt())

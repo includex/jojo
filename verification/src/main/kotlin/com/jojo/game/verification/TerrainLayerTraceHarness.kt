@@ -1,12 +1,16 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.TerrainLayer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
 
+/** TerrainLayerTraceHarness: 검증 실행을 시작하고 추적 결과를 수집하는 타입이다. */
 object TerrainLayerTraceHarness {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val events = Regex("\"(DOWN|END|SCROLL):(\\d+)\"")
@@ -33,6 +37,7 @@ object TerrainLayerTraceHarness {
         var removed = false
 
 
+        /** state: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun state(tag: String, scroll: Int? = null): String {
             val buttons = if (selected == TerrainLayer.Tab.RISE) "[false,true,true]" else "[true,false,true]"
             val suffix = scroll?.let { ",\"scroll\":$it" } ?: ""
@@ -63,6 +68,7 @@ object TerrainLayerTraceHarness {
         print(trace.joinToString(prefix = "[", postfix = "]"))
     }
 
+    /** payload: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun payload(panel: TerrainLayer.Panel): String =
         panel.rows.joinToString(prefix = "[", postfix = "]") { row ->
             val skills = row.enabledSkills.joinToString(prefix = "[", postfix = "]")

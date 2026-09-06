@@ -1,3 +1,4 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
 import com.jojo.game.*
@@ -5,7 +6,7 @@ import com.jojo.game.domain.scenario.*
 
 import java.util.*
 
-/** 전투 편성과 홀 진입 규칙을 관리한다. */
+/** CampaignRoster: 합류 유닛 중 전투 편성을 유지하고 홀의 최소·최대 편성 규칙을 적용한다. */
 class CampaignRoster internal constructor(
     private val joinedUnitIds: () -> Collection<Int>,
 ) {
@@ -18,19 +19,19 @@ class CampaignRoster internal constructor(
         selectedUnitIds.clear()
     }
 
-    /** 홀 검증 없이 시작 또는 캡처용 편성을 설정한다. */
+    /** seedStartupRoster: 시작·캡처 경로에서 홀 제한 검증 없이 초기 전투 명단을 채운다. */
     internal fun seedStartupRoster(unitIds: Iterable<Int>) {
         selectedUnitIds.clear()
         selectedUnitIds.addAll(unitIds)
     }
 
-    /** 저장된 편성 순서를 복원한다. */
+    /** restoreBattleRoster: 저장된 유닛 식별자 순서를 현재 전투 명단으로 복원한다. */
     internal fun restoreBattleRoster(unitIds: Iterable<Int>) {
         selectedUnitIds.clear()
         selectedUnitIds.addAll(unitIds)
     }
 
-    /** 홀 선택 제한과 즉시 전투 진입 조건을 계산한다. */
+    /** resolveBattleEntry: 편성 제한과 현재 선택을 검사해 즉시 진입 또는 편성 화면 표시를 결정한다. */
     fun resolveBattleEntry(limit: ScenarioJoinBattleLimit): ScenarioBattleEntryPlan {
         val excluded = limit.excludedUnitIds.distinct()
         val available = joinedUnitIds().filterNot { it in excluded }
@@ -51,7 +52,7 @@ class CampaignRoster internal constructor(
         )
     }
 
-    /** 제한에 맞는 기본 전투 편성을 구성한다. */
+    /** configureBattleRoster: 합류 유닛에서 제한을 만족하는 기본 전투 명단을 생성한다. */
     fun configureBattleRoster(limit: ScenarioJoinBattleLimit): ScenarioBattleEntryPlan {
         val plan = resolveBattleEntry(limit)
         val effective = plan.selectionLimit
@@ -63,7 +64,7 @@ class CampaignRoster internal constructor(
         return plan
     }
 
-    /** 선택한 편성이 제한 조건을 만족하면 저장한다. */
+    /** setBattleRoster: 사용자가 선택한 유닛이 인원·합류 조건을 만족할 때만 명단에 반영한다. */
     fun setBattleRoster(selection: Collection<Int>, limit: ScenarioJoinBattleLimit): Boolean {
         val distinct = selection.distinct()
         val available = (joinedUnitIds() + limit.requiredUnitIds)
@@ -78,7 +79,7 @@ class CampaignRoster internal constructor(
         return true
     }
 
-    /** 기존 편성이 없을 때 R_00 단독 전투 편성을 채운다. */
+    /** prepareImplicitSingleUnitBattle: 초기 시나리오에 편성이 없을 때 합류한 첫 유닛만으로 전투를 준비한다. */
     fun prepareImplicitSingleUnitBattle(): Boolean {
         if (selectedUnitIds.isNotEmpty()) return true
         val joined = joinedUnitIds()

@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendFixture3: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendFixture3(writer: ScenarioHallOverlayEventWriter) = with(writer) {
                 val value = input.modalText
                 val richTextWidth = when (fixture) {

@@ -1,11 +1,14 @@
+// Battle
 package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
 
-/** 스크립트 강조 표시와 아이템 획득 효과의 생명주기를 관리합니다. */
+/** ScriptPresentationTimeline: 스크립트 강조와 아이템 획득 효과를 시간 순서로 재생하고, 완료 뒤 다음 명령을 허용한다. */
 internal class ScriptPresentationTimeline {
+    /** Phase: 전투 화면 흐름에서 현재 처리 종류를 구분한다. */
     enum class Phase { TIMED, ITEM_ACTION, ITEM_ICON, ITEM_MODAL }
 
+    /** Snapshot: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class Snapshot(
         val request: ScenarioScriptPresentationRequest,
         val phase: Phase,
@@ -14,6 +17,7 @@ internal class ScriptPresentationTimeline {
         val battleUnitId: String?,
     )
 
+    /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     sealed interface Effect {
         data class FinishUnitAction(val battleUnitId: String) : Effect
         data object PlayGetItemSound : Effect
@@ -21,7 +25,6 @@ internal class ScriptPresentationTimeline {
         data object DismissUnitInfo : Effect
         data object ResumeScript : Effect
     }
-
     data class Advance(val effects: List<Effect>, val acceptsNewRequest: Boolean)
 
     private var active: Snapshot? = null

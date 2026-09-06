@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
 import com.badlogic.gdx.graphics.Color
@@ -9,7 +10,7 @@ import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.hall.HallBuyCatalogRenderer
 import com.jojo.game.presentation.scenario.hall.HallBuyUnitSummaryRenderer
 
-/** Complete BuyLayer composition over already-projected catalog, summary, and currency text. */
+/** HallBuyManagementRenderer: 거점 Buy Management 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallBuyManagementRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallBuyManagementRenderView) {
         fun texture(name: String) = assets.hallTexture("maps/ui/start-battle/$name.png")

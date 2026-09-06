@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.domain.battle.*
@@ -23,10 +24,7 @@ internal data class BattleAiScoringEnvironment(
     val basePhysicalDamageContext: (attacker: BattleUnit, target: BattleUnit, splash: Boolean) -> BasePhysicalDamageContext,
 )
 
-/**
- * Evaluates tactical AI scoring for physical and magic candidate actions,
- * converting domain BattleUnit models into ControlScoring adapters.
- */
+/** BattleAiScorer: AI 후보 행동의 공격·안전·목표 기여도를 점수로 계산해 행동 선택에 사용한다. */
 internal object BattleAiScorer {
 
 

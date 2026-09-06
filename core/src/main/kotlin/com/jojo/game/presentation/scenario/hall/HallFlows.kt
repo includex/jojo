@@ -1,9 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.scenario.overlay.*
 
-/** State flows for recovered ui/HallMenuLayer.js and HallCommandLayer.js. */
+/** HallRoute: 거점 경로이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 data class HallRoute(val layer: String, val payload: String?)
 
 

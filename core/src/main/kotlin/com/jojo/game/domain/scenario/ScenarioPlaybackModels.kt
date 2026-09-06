@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.domain.scenario
 
-/** An original StageLayer script can suspend for an input, timer, or native modal. */
+/** PlaybackState: 시나리오 실행이 대화·선택·지연·모달·완료 중 어느 입력 지점에 있는지 나타낸다. */
 enum class PlaybackState { DIALOGUE, CHOICE, DELAY, MODAL, COMPLETE }
 
 enum class ScenarioUnitFaction { FRIEND, ENEMY, MINE }
@@ -31,7 +32,7 @@ val ScenarioBattleUnit.battleId: String
 val ScenarioBattleUnit.stageKey: String
     get() = BattleSlotLayout.stageKey(faction, battleSlot)
 
-/** One authored Stage.setObjects/setObject invocation, before presentation filtering. */
+/** ScenarioMapObjectsCall: 스크립트가 지도 오브젝트를 생성·이동·숨김 처리할 때 전달하는 명령 값이다. */
 data class ScenarioMapObjectsCall(
     val enabled: Boolean,
     val terrainId: Int,

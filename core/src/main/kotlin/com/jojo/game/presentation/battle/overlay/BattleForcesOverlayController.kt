@@ -1,22 +1,20 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
 import com.jojo.game.presentation.battle.overlay.ForcesListLayer
-import com.jojo.game.presentation.battle.BattleForcesOverlayView
-import com.jojo.game.presentation.battle.BattleForcesRowView
-
-/** Owns ForcesListLayer lifecycle, press matching, and its immutable renderer view. */
 internal class BattleForcesOverlayController {
+    /** 부대 목록에서 탭 전환과 닫기 동작을 전달하는 포인터 입력이다. */
     sealed interface Intent {
         data class PointerDown(val x: Float, val y: Float) : Intent
         data class PointerUp(val x: Float, val y: Float) : Intent
     }
 
+    /** 부대 목록이 닫혔거나 선택된 유닛을 화면에 알리는 결과이다. */
     sealed interface Effect {
         data object None : Effect
         data object Closed : Effect
         data class UnitSelected(val unit: SelectedUnit) : Effect
     }
-
     data class SelectedUnit(
         val characterId: Int,
         val name: String,
@@ -25,14 +23,13 @@ internal class BattleForcesOverlayController {
         val hp: Int,
         val maxHp: Int,
     )
-
     data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
 
+    /** 부대 목록의 연결 상태와 현재 누른 탭·행을 보관한다. */
     private sealed interface State {
         data object Hidden : State
         data class Visible(val layer: ForcesListLayer, val press: Press = Press.None) : State
     }
-
     private sealed interface Press {
         data object None : Press
         data object Close : Press

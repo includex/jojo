@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -5,7 +6,7 @@ import com.jojo.game.presentation.scenario.overlay.*
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-/** Immutable texture projection for HallCommandLayer's five main controls. */
+/** HallViewState: 거점 표시 정보 상태이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallViewState(
     val menuTexture: Texture?,
     val battleTexture: Texture?,
@@ -14,7 +15,7 @@ internal data class HallViewState(
     val sellTexture: Texture?,
 )
 
-/** Stateless Hall rendering which consumes only resolved assets and a batch. */
+/** HallRenderer: 거점 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallRenderer {
     fun drawMainCommands(batch: SpriteBatch, view: HallViewState) {
         batch.color.set(1f, 1f, 1f, 1f)

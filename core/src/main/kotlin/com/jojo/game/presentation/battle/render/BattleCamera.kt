@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.render
 
 import com.jojo.game.domain.battle.*
@@ -6,12 +7,6 @@ import com.jojo.game.domain.battle.BattleUnitMoveTimeline
 
 import com.jojo.game.domain.scenario.BattleSlotLayout
 import com.jojo.game.domain.scenario.ScenarioUnitFaction
-
-/**
- * Source map geometry after BattleScreen._loadBg has assigned the JSON map
- * width/height and the ScrollView layout has adopted the map sprite size.
- * TITLE_SIZE is 48 in the source and the battle canvas is rendered at 2x.
- */
 internal object SourceBattleMapGeometry {
     private const val renderedTile = 96f
     private const val initialMapCenterX = 640f
@@ -20,8 +15,6 @@ internal object SourceBattleMapGeometry {
 
     fun boardLeft(mapTilesWide: Int, cameraDeltaX: Float): Float =
         initialMapCenterX - mapTilesWide * renderedTile / 2f + cameraDeltaX
-
-    /** Bottom edge of source row zero; source Y increases down the map. */
     fun boardBottom(mapTilesHigh: Int, cameraDeltaY: Float): Float =
         initialMapCenterY + mapTilesHigh * renderedTile / 2f - renderedTile + cameraDeltaY
 
@@ -40,8 +33,6 @@ internal object SourceBattleMapGeometry {
         boardLeft(mapTilesWide, cameraDeltaX) + tileX * renderedTile + renderedTile / 2f to
                 boardBottom(mapTilesHigh, cameraDeltaY) - tileY * renderedTile + renderedTile / 2f
 }
-
-/** Source BattleScreen ScrollView follow contract (_contains/centerUnit). */
 class BattleCamera(
     viewportWidth: Float = 1488.3721f,
     viewportHeight: Float = 800f,
@@ -56,8 +47,6 @@ class BattleCamera(
     private var viewportHeight = viewportHeight
     var x = 0f; private set
     var y = 0f; private set
-
-    /** Observable equivalent of BattleScreen's synchronous MAP_SCROLLING dispatch. */
     var mapScrollingDispatchCount: Int = 0
         private set
 
@@ -65,8 +54,6 @@ class BattleCamera(
     fun reset() {
         x = 0f; y = 0f
     }
-
-    /** Absolute ScrollView.content.position recorded by the source trace. */
     val contentX: Float get() = initialContentX() + x
     val contentY: Float get() = initialContentY() + y
 
@@ -76,21 +63,11 @@ class BattleCamera(
         viewportHeight = height
         clamp()
     }
-
-    /** Mirrors dragging the source ScrollView content. */
     fun pan(deltaX: Float, deltaY: Float) {
         x += deltaX
         y += deltaY
         clamp()
     }
-    /**
-     * Source `_contains` for a screen-space map point.
-     *
-     * `BattleScreen` dispatches MAP_SCROLLING only from its `a != 0` branch.
-     * Returning that observable mutation lets callers retain the source
-     * centerUnit invocation while avoiding a synthetic camera transition when
-     * the unit was already inside the 96 px edge band.
-     */
 
     fun ensureVisible(worldX: Float, worldY: Float): Boolean {
         val beforeX = contentX
@@ -108,22 +85,14 @@ class BattleCamera(
             y -= worldY - (viewportHeight - safeInset); outside = true
         }
         clamp()
-        // Source dispatches MAP_SCROLLING whenever `_contains` enters its
-        // edge branch, even when ScrollView clamping leaves content.position
-        // unchanged. Keep event semantics separate from the return value,
-        // which reports only a camera-coordinate mutation to trace callers.
         if (outside) mapScrollingDispatchCount++
         return contentX != beforeX || contentY != beforeY
     }
-
-    /** Source centerUnit(unit, 1): center even when the unit is already visible. */
     fun forceCenter(worldX: Float, worldY: Float) {
         x += viewportWidth / 2f - worldX
         y += viewportHeight / 2f - worldY
         clamp()
     }
-
-    /** `_contains(convertToWorldSpaceAR(unit.node))` screen-space point. */
     fun sourceNodeScreenPoint(
         tileX: Int,
         tileY: Int,
@@ -135,8 +104,6 @@ class BattleCamera(
         return localX + contentX + viewportWidth / 2f to
                 localY + contentY + viewportHeight / 2f
     }
-
-    /** Exact source BattleScreen.center(tileX,tileY), including equal-position dispatches. */
     fun centerTile(tileX: Int, tileY: Int, mapTilesWide: Int, mapTilesHigh: Int) {
         mapWidth = mapTilesWide.coerceAtLeast(1) * 96f
         mapHeight = mapTilesHigh.coerceAtLeast(1) * 96f
@@ -150,9 +117,6 @@ class BattleCamera(
     }
 
     private fun clamp() {
-        // ScrollView clamps its absolute content.position. `x`/`y` are
-        // deltas from the authored S_00 position, whose map centre is
-        // (640,864), so their legal ranges are intentionally asymmetric.
         val halfScrollableX = ((mapWidth - viewportWidth) / 2f).coerceAtLeast(0f)
         val halfScrollableY = ((mapHeight - viewportHeight) / 2f).coerceAtLeast(0f)
         val initialContentX = initialContentX()
@@ -164,8 +128,6 @@ class BattleCamera(
     private fun initialContentX(): Float = initialMapCenterX - viewportWidth / 2f
     private fun initialContentY(): Float = initialMapCenterY - viewportHeight / 2f
 }
-
-/** `_firstUnit` probes `_unitSet[i]`; it does not test visible/HP/effective faction. */
 internal fun firstCampCameraUnit(units: Iterable<BattleUnit>, camp: Faction): BattleUnit? {
     val range = BattleSlotLayout.rangeFor(camp)
     return units.asSequence()
@@ -174,8 +136,6 @@ internal fun firstCampCameraUnit(units: Iterable<BattleUnit>, camp: Faction): Ba
         .minByOrNull { (index, _) -> index }
         ?.second
 }
-
-/** Converts the presentation BattleUnit identity into its authored scenario slot. */
 internal fun battleSlotIndexFor(unit: BattleUnit): Int? {
     unit.battleSlot?.let { return it }
     val local = unit.id.substringAfterLast('-').toIntOrNull() ?: return null
@@ -185,16 +145,6 @@ internal fun battleSlotIndexFor(unit: BattleUnit): Int? {
         Faction.ENEMY, Faction.REINFORCEMENTS -> BattleSlotLayout.enemyStart + local
     }
 }
-
-/**
- * Mirrors Cocos [CallbackTimer.update] for BattleUnit.move2's camera callback.
- *
- * This is deliberately not a catch-up cursor.  Cocos initializes `_elapsed`
- * on its first update and, when a later frame crosses the interval, invokes
- * the callback only once and resets `_elapsed` to zero.  Consequently a slow
- * frame observes the unit's *current* interpolated position and does not emit
- * every ideal movement-interval point which happened to be crossed.
- */
 internal class MovementCameraTickCursor {
     private var activePath: List<Pair<Int, Int>>? = null
     private var activeTimeline: BattleUnitMoveTimeline.Timeline? = null
@@ -214,12 +164,6 @@ internal class MovementCameraTickCursor {
             lastElapsed = null
             timerElapsed = 0f
         }
-        // A same-tile scripted move resolves to only its origin. Source
-        // BattleUnit.move does not enter move2 in that case, so no Animation
-        // schedule/centerUnit callback exists. Completion sync can still see
-        // a retained MOVE visual from the preceding command; clear the cursor
-        // contractually by returning no ticks instead of constructing a
-        // move2 timeline that requires an edge.
         if (path.size < 2) {
             lastElapsed = elapsed
             return emptyList()
@@ -227,8 +171,6 @@ internal class MovementCameraTickCursor {
         val moveTimeline = requireNotNull(timeline) { "move2 path needs its authored timeline" }
         val previous = lastElapsed
         lastElapsed = elapsed
-        // CallbackTimer's sentinel `_elapsed == -1` branch performs no
-        // callback, irrespective of the first frame's dt.
         if (previous == null) return emptyList()
         timerElapsed += (elapsed - previous).coerceAtLeast(0f)
         if (processedTicks >= moveTimeline.movementTicks.size || timerElapsed < moveTimeline.secondsPerTile) {
@@ -238,18 +180,8 @@ internal class MovementCameraTickCursor {
         processedTicks++
         val movementEndsAt = moveTimeline.idleAt - .1f
         val completingThisRender = elapsed > movementEndsAt + 1e-6f
-        // Scheduler runs its due callback at the completion boundary while
-        // the action manager can consume the remaining moveTo + delay and
-        // remove the schedule in that same render. Its node read is therefore
-        // the pre-final interpolation retained from the preceding render,
-        // never the newly committed integer endpoint.
         val sampledElapsed = if (completingThisRender) previous else elapsed
         val sample = BattleUnitMoveTimeline.sample(path, moveTimeline, sampledElapsed.coerceAtMost(moveTimeline.idleAt))
-        // The action manager reaches moveTo's endpoint and, after the .1s
-        // delay, unschedules `_handle` before Scheduler can emit a coarse
-        // catch-up callback for the held destination. Source accelerated
-        // traces therefore retain the last in-flight centerUnit position
-        // (for example S_00 actor258 y=6.57), not the integer endpoint.
         return if (sample.moving || (!completingThisRender && elapsed <= movementEndsAt + 1e-6f)) {
             listOf(sample)
         } else emptyList()

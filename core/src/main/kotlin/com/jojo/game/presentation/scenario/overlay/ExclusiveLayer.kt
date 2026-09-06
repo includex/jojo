@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.overlay
 
-/** Interaction state for Global/scene/ExclusiveLayer (source layer id 126). */
+/** ExclusiveLayer: 세트 목록과 전용 목록 탭을 전환하고, 닫기 입력을 처리하는 전용 장비 모달이다. */
 class ExclusiveLayer(initialTab: Tab = Tab.SET_LIST) {
 
     enum class Tab { SET_LIST, EXCLUSIVE_LIST }
@@ -10,7 +11,7 @@ class ExclusiveLayer(initialTab: Tab = Tab.SET_LIST) {
     var attached: Boolean = true
         private set
 
-    /** Mirrors the source Button callback: only TOUCH_END mutates the layer. */
+    /** onButton: 탭 또는 닫기 버튼 터치에 따라 전용 장비 모달의 선택 상태를 변경한다. */
     fun onButton(index: Int, event: Int) {
         if (!attached || event != TOUCH_END) return
         when (index) {
@@ -30,7 +31,7 @@ class ExclusiveLayer(initialTab: Tab = Tab.SET_LIST) {
     }
 }
 
-/** EquipLayer.button14's production child-layer route. */
+/** EquipExclusiveRoute: Equip 전용 경로이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 object EquipExclusiveRoute {
 
     fun openFromInformationButton(event: Int): ExclusiveLayer? =

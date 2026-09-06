@@ -1,15 +1,18 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Appends the source-order equipment confirmation records to an existing Hall trace. */
+/** ScenarioEquipConfirmationEvidenceRecorder: 원본 순서의 장비 확인 기록을 기존 Hall 추적에 추가한다. */
 internal class ScenarioEquipConfirmationEvidenceRecorder {
+    /** append: 검증 이벤트와 산출물을 기록한다. */
     fun append(log: RenderEventLog, view: ScenarioEquipConfirmationEvidenceView) {
         val scale = .86f
         val spriteBlend = listOf(770, 771)
         val labelBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /** event: 단일 렌더 이벤트를 로그에 추가한다. */
         fun event(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", opacity: Float = 1f
@@ -20,6 +23,7 @@ internal class ScenarioEquipConfirmationEvidenceRecorder {
                 if (type == "label") labelBlend else spriteBlend, text = text
             )
 
+        /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
         fun label(path: String, value: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             event(path, "label", x, y, w, h, text = value)
 

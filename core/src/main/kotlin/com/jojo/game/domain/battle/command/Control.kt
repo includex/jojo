@@ -1,12 +1,5 @@
+// Battle
 package com.jojo.game.domain.battle.command
-
-/**
- * Injectable implementation of recovered-js/modules/battle/Control.js.
- *
- * The scoring implementation is supplied by the battle layer because the
- * source's `_AIProcess` reads map and hit-area services from its manager.
- * This class preserves Control's state, priority order, and manager calls.
- */
 
 class Control {
 
@@ -28,8 +21,6 @@ class Control {
 
 
         fun isParalyzed(): Boolean
-
-        /** Control._isBBW: every QUN_XIONG neighbor is occupied. */
         fun isSurrounded(): Boolean
 
 
@@ -38,7 +29,7 @@ class Control {
 
         fun setResult(result: Result)
 
-        /** Direct dependency-injected equivalent of `_AIProcess()`. */
+        /** selectByAi: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
         fun selectByAi(): Result?
     }
 
@@ -49,27 +40,17 @@ class Control {
         private set
     var targetY: Int = -1
         private set
-
-    /** Control.setManager. */
     fun setManager(value: Manager) {
         manager = value
     }
-
-    /** Control.setWithData(t=-1,e=-1,r=-1). */
     fun setWithData(targetIndex: Int = -1, x: Int = -1, y: Int = -1) {
         this.targetIndex = targetIndex
         this.targetX = x
         this.targetY = y
     }
-
-    /** Control.getUnitByTargetUnit is represented by the retained source index. */
     fun targetUnitIndex(): Int = targetIndex
 
-    /**
-     * Control.selectMovePoint: initialize with the current point, then run
-     * `_process1`, `_selectMovePoint2` (currently source stub: 0), and only
-     * then `_AIProcess`.
-     */
+    /** selectMovePoint: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
 
     fun selectMovePoint(): Int {
         val current = requireNotNull(manager) { "Control manager has not been set" }
@@ -78,8 +59,6 @@ class Control {
         current.selectByAi()?.let(current::setResult)
         return 0
     }
-
-    /** Direct Kotlin implementation of `_process1`. */
     private fun process1(manager: Manager): Boolean {
         if (manager.isParalyzed() || manager.isSurrounded()) {
             manager.setControl(AI_JIAN_SHOU_YUAN_DI)
@@ -89,7 +68,6 @@ class Control {
     }
 
     companion object {
-        /** BattleConfg.AI.JIAN_SHOU_YUAN_DI. */
-        const val AI_JIAN_SHOU_YUAN_DI = 2
+                const val AI_JIAN_SHOU_YUAN_DI = 2
     }
 }

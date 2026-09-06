@@ -1,3 +1,4 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
 /** 장착 장비의 부위를 구분한다. */

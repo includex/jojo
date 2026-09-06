@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.graphics.Color
@@ -7,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Stateless renderer for an immutable ForcesListLayer snapshot. */
+/** HallForcesRenderer: 거점 부대 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallForcesRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallForcesView) {
         val titleLayout = GlyphLayout()

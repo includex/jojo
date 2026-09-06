@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
@@ -22,10 +23,7 @@ internal data class ScenarioTacticalEnvironment(
 
 internal data class ScenarioHandledCall(val value: Any?)
 
-/**
- * Dispatches authored tactical battle calls (units, map objects, animations, highlights)
- * from ScenarioInterpreter.
- */
+/** ScenarioTacticalActionDispatcher: 이동·공격·지형물 등 전술 스크립트 호출을 ScenarioStage 변경으로 변환한다. */
 internal object ScenarioTacticalActionDispatcher {
 
     fun dispatch(

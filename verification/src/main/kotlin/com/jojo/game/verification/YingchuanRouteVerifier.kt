@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.application.scenario.*
 
@@ -7,13 +8,13 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
 import com.jojo.game.domain.battle.Faction
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.domain.battle.isEnemySide
 
-/** 실제 R_00 → S_00 캠페인과 승리 시나리오 경로를 실행한다. */
+/** YingchuanRouteVerifier: 실제 R_00 → S_00 캠페인과 승리 시나리오 경로를 실행한다. */
 internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
-/** 영천 캠페인 경로의 검증 결과를 반환한다. */
+    /** verify: 영천 캠페인 경로의 검증 결과를 반환한다. */
     fun verify(): String {
         val campaign = CampaignState()
         val prelude = ScenarioInterpreter.load("R_00", campaign).apply { start("scene1") }
@@ -110,6 +111,7 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
             "units=${battle.units.size}, visible=[$visibleCamps], aiActions=$aiActions, bossWin=end"
     }
 
+    /** configureInitialRoster: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun configureInitialRoster(campaign: CampaignState) {
         val selection = campaign.joinedUnits.take(15)
         check(
@@ -125,6 +127,7 @@ internal class YingchuanRouteVerifier(private val gameData: GameDataCatalog) {
         ) { "R_00 전투 명단을 구성하지 못했습니다." }
     }
 
+    /** verifyBattleOperationStart: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun verifyBattleOperationStart(campaign: CampaignState) {
         val runtime = ScenarioInterpreter.load("S_00", campaign).apply { start("scene0") }
         ScenarioRuntimeDrain.toCompletion(runtime, failureMessage = "영천 입력 개방 검증 초기화가 종료되지 않았습니다.")

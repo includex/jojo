@@ -1,8 +1,8 @@
+// Battle
     package com.jojo.game.presentation.battle.edit.evidence
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2
-
     internal object BattleEditLayer2WeatherRenderEvents {
         private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 

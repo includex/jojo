@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -5,14 +6,6 @@ import com.jojo.game.presentation.scenario.overlay.*
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.scenario.*
-
-/**
- * Production state contract for the recovered Battle CommandLayer.
- *
- * BattleScreen owns movement and action execution.  This class preserves the
- * continuation state between those operations so opening a child list is not
- * confused with the existing desktop M/B development shortcuts.
- */
 
 class BattleCommandFlow {
     companion object {
@@ -75,14 +68,12 @@ class BattleCommandFlow {
     var childCommand: Command? = null
         private set
 
-    /** Unit selection starts `_process`; CommandLayer must not exist yet. */
+    /** beginMove: 전투 단계의 시작 상태를 만들고 필요한 값을 초기화한다. */
     fun beginMove(unitId: String, before: UnitPose) {
         move = Move(unitId, before, before, 0)
         childCommand = null
         phase = Phase.MOVING
     }
-
-    /** `unitMove` completion is the sole production entry to `sel_command`. */
     fun movementCompleted(destination: UnitPose, enabledMask: Int) {
         val pending = checkNotNull(move) { "movementCompleted requires beginMove" }
         check(phase == Phase.MOVING) { "movementCompleted requires MOVING, was $phase" }
@@ -90,7 +81,7 @@ class BattleCommandFlow {
         phase = Phase.COMMAND
     }
 
-    /** `stage.end()` aborts the source move callback before `sel_command`. */
+    /** abandonMoveForScriptEnd: 입력 또는 이벤트를 반영해 전투 상태를 전환한다. */
     fun abandonMoveForScriptEnd() {
         move = null
         childCommand = null
@@ -106,7 +97,7 @@ class BattleCommandFlow {
         }
     }
 
-    /** Mirrors CommandLayer's button TOUCH_END and Panel_cancel(tag 6). */
+    /** touch: 입력 또는 이벤트를 반영해 전투 상태를 전환한다. */
     fun touch(tag: Int, event: Int): Result {
         if (phase != Phase.COMMAND || event != TOUCH_END) return Result.Ignored
         val command = Command.fromTag(tag) ?: return Result.Ignored
@@ -124,8 +115,6 @@ class BattleCommandFlow {
         phase = Phase.CHILD_ACTION
         return Result.OpenChild(command)
     }
-
-    /** MagickList/UseProperty cancellation re-enters the same command loop. */
     fun childCancelled() {
         check(phase == Phase.CHILD_ACTION) { "childCancelled requires CHILD_ACTION" }
         childCommand = null
@@ -148,15 +137,11 @@ class BattleCommandFlow {
 
     private fun List<Button>.getValue(command: Command) = first { it.command == command }
 }
-
-/** Source ctrl_mine checks isEnd immediately after its move callback script. */
 internal object BattleMoveScriptContinuation {
 
     fun shouldOpenCommand(scriptState: PlaybackState, battleEndedByScript: Boolean): Boolean =
         scriptState == PlaybackState.COMPLETE && !battleEndedByScript
 }
-
-/** Renderer-facing nodes; geometry/assets are filled from the actual source fixture. */
 object BattleCommandRenderModel {
     const val PANEL_OPACITY = 200f / 255f
     const val DISMISS_DIM_OPACITY = 10f / 255f
@@ -187,13 +172,6 @@ object BattleCommandRenderModel {
         }
         add(Node("Canvas/Layer/Panel_cancel", true, true, false, 2))
     }
-
-    /**
-     * Literal CommandLayer prefab geometry after the 1280x800 source canvas
-     * is projected into the verification canvas.  Each command owns two
-     * copies of the same SpriteFrame (img0 and img1); command3 and command5
-     * retain their source-trimmed 15x15 and 16x14 pixel extents.
-     */
 
     data class Icon(val asset: String, val x: Float, val y: Float, val width: Float, val height: Float)
 

@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.domain.scenario
 
-/** Outbound, framework-free presentation requests emitted by a source scenario. */
+/** ScenarioSoundEffect: 시나리오 무대가 재생할 효과음 식별자와 재생 방식을 전달하는 요청이다. */
 data class ScenarioSoundEffect(val soundId: Int, val mode: Int)
 data class ScenarioMapPresentationRequest(val x: Int, val y: Int, val duration: Float, val magicCallId: Int? = null)
 data class ScenarioCameraCenterRequest(val x: Int, val y: Int)

@@ -1,31 +1,22 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
-/**
- * Direct state implementation of recovered-js/modules/battle/RoundLayer.js.
- *
- * Cocos owns the labels and `scheduleOnce`; this model exposes their exact
- * resulting state and lets the desktop renderer inject the two-second timer.
- */
+/** 현재 턴과 최대 턴 입력을 화면 문구로 변환하고 일정 시간이 지나면 제거를 알린다. */
 
 class RoundLayer(
     private val remove: () -> Unit,
     private val complete: () -> Unit,
 ) {
-    /**
-     * The recovered JavaScript distinguishes an absent `round` property from
-     * a present value (`"round" in t`).  Keep that distinction in the game
-     * instead of using null as a proxy for both cases.
-     */
 
     data class CreateArgs(
         val roundPresent: Boolean,
         val round: Int = 0,
         val max: Int? = null,
-        /** `max: null` is distinct from an absent JS property (`undefined`). */
         val maxPresent: Boolean = max != null,
     )
 
 
+    /** 턴 문구와 진영 문구의 표시 여부를 렌더링 입력으로 제공한다. */
     data class View(
         val roundLabelsVisible: Boolean,
         val campLabelsVisible: Boolean,
@@ -36,13 +27,8 @@ class RoundLayer(
     var view: View = View(roundLabelsVisible = false, campLabelsVisible = true, roundText = "")
         private set
 
-    /** Equivalent to RoundLayer.onCreate({ fn, round?, max? }). */
+    /** 현재 턴·최대 턴 입력을 일반 턴 또는 최종 턴 문구로 변환한다. */
     fun onCreate(args: CreateArgs) {
-        // In JavaScript `round > undefined` is false.  Therefore a supplied
-        // round with no max is still rendered as a numbered round, not an
-        // exception as the earlier Kotlin approximation did.
-        // JavaScript numeric coercion: `round > null` compares with zero,
-        // whereas `round > undefined` is false.
         val isFinal = args.maxPresent && args.round > (args.max ?: 0)
         val text = if (!args.roundPresent) "" else if (isFinal) "최종 턴" else "제${args.round}턴"
         view = View(
@@ -52,12 +38,10 @@ class RoundLayer(
         )
     }
 
-    /** Compatibility adapter for callers that use null to mean an absent property. */
+    /** nullable 턴 입력을 CreateArgs로 변환해 라운드 표시를 초기화한다. */
     fun onCreate(round: Int?, max: Int?) = onCreate(
         CreateArgs(roundPresent = round != null, round = round ?: 0, max = max),
     )
-
-    /** Equivalent to its single `scheduleOnce(..., 2)` callback. */
     fun elapsed(seconds: Float) {
         if (!finished && seconds >= DISPLAY_SECONDS) {
             finished = true

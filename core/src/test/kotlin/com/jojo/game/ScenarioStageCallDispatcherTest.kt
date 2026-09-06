@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.badlogic.gdx.utils.JsonReader
@@ -8,6 +9,9 @@ import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioConditionEnvironment
 import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.scenario.ScenarioRandomTrace
+import com.jojo.game.application.scenario.ScenarioStageCallDispatcher
+import com.jojo.game.application.scenario.ScenarioStageCallEnvironment
+import com.jojo.game.application.scenario.ScenarioStage
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.PlaybackState
 import kotlin.test.Test

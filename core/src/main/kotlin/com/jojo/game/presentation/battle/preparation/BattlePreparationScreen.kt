@@ -1,7 +1,8 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
 import com.jojo.game.presentation.battle.render.*
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 import com.jojo.game.presentation.battle.preparation.StartBattleSortRoute
@@ -11,7 +12,7 @@ import com.jojo.game.application.runtime.BattlePreparationPresentation
 
 import com.badlogic.gdx.*
 
-/** 전투 준비 화면의 생명주기·입력·이동·런타임 상태를 관리합니다. */
+/** BattlePreparationScreen: 전투 시작 전 편성 화면으로, 유닛 선택·배치·입력·전환 상태를 화면 수명주기와 함께 처리한다. */
 class BattlePreparationScreen(
     private val game: JojoGame,
     private val returnScenario: String,
@@ -144,7 +145,6 @@ class BattlePreparationScreen(
         view = viewState(),
     )
 }
-
 internal object BattlePreparationInputConnection {
     /** 준비 화면 입력 프로세서를 등록합니다. */
     fun install(input: Input, processor: InputProcessor) {

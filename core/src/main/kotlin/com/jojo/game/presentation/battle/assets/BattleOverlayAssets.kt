@@ -1,11 +1,10 @@
+// Battle
 package com.jojo.game.presentation.battle.assets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.utils.Disposable
-
-/** Owns static textures and nine-slices for full-screen battle overlays. */
 internal class BattleOverlayAssets : Disposable {
     val sectionBackgroundTexture = optionalTexture("maps/ui/section/logo5.jpg")
     val rewardItemTexture = optionalTexture("maps/marks/47.png")

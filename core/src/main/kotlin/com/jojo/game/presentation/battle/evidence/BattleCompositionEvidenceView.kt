@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.evidence
 
 import com.jojo.game.domain.battle.*
@@ -18,25 +19,6 @@ internal data class BattleCompositionEvidenceView(
     val effectCount: Int,
 )
 
-/** 전투 화면에서 전달하는 값 전용 구성 입력입니다. */
-internal data class BattleCompositionEvidenceInput(
-    val captureState: String?,
-    val sourceScenario: String,
-    val returnScenario: String,
-    val animationClock: Float,
-    val visualAnimationClock: Float,
-    val units: List<BattleCompositionUnit>,
-    val masks: List<BattleCompositionMask>,
-    val dialogue: BattleCompositionDialogueInput?,
-    val action: BattleCompositionAction?,
-    val winConditionOpen: Boolean,
-    val winConditionModal: Boolean,
-    val enemyPlanner: BattleCompositionEnemyPlanner?,
-    val resultFlow: String,
-    val modal: Boolean,
-    val effectCount: Int,
-)
-
 internal data class BattleCompositionUnit(
     val id: String,
     val frame: Int,
@@ -53,7 +35,6 @@ internal data class BattleCompositionUnit(
     val sourceYPosition: Int,
     val scaleX: Int,
 )
-
 internal data class BattleCompositionMask(
     val id: String,
     val frame: String,
@@ -61,7 +42,6 @@ internal data class BattleCompositionMask(
     val tileX: Int,
     val tileY: Int,
 )
-
 internal data class BattleCompositionScenario(
     val dialogue: BattleCompositionDialogue? = null,
     val action: BattleCompositionAction? = null,
@@ -71,7 +51,6 @@ internal data class BattleCompositionScenario(
     val loseActive: Boolean = false,
     val winPromptActive: Boolean = false,
 )
-
 internal data class BattleCompositionDialogue(
     val opening: Boolean,
     val speakerId: String?,
@@ -81,22 +60,11 @@ internal data class BattleCompositionDialogue(
     val remainingText: String,
     val typewriterActive: Boolean,
 )
-
-internal data class BattleCompositionDialogueInput(
-    val speakerId: String?,
-    val speakerName: String?,
-    val sourceText: String,
-    val visibleText: String,
-    val remainingText: String,
-    val typewriterActive: Boolean,
-)
-
 internal data class BattleCompositionAction(
     val sourceAction: Int,
     val direction: Int,
     val active: Boolean,
 )
-
 internal data class BattleCompositionEnemyPlanner(
     val characterId: Int,
     val ai: Int,
@@ -107,54 +75,6 @@ internal data class BattleCompositionEnemyPlanner(
     val targetId: String?,
     val magicId: Int?,
 )
-
-/** 화면 입력 값을 안정적인 구성 증거 모델로 변환합니다. */
-internal object BattleCompositionEvidenceProjector {
-    /** 현재 화면 입력을 구성 증거 모델로 투영합니다. */
-    fun project(input: BattleCompositionEvidenceInput): BattleCompositionEvidenceView {
-        val scenarioKey = when (input.captureState) {
-            "yingchuan-opening-say" -> "r00-opening-say"
-            "yingchuan-dialogue-1" -> "dialogue-1"
-            "attack6-f0" -> "battle-action-6-f0"
-            "yingchuan-win-condition" -> "win-condition-modal"
-            "enemy-turn" -> "enemy-turn"
-            "lose-result" -> "lose-result"
-            "win-result" -> "win-result"
-            else -> "natural-r00"
-        }
-        val dialogue = input.dialogue?.let { value ->
-            BattleCompositionDialogue(
-                opening = scenarioKey == "r00-opening-say",
-                speakerId = value.speakerId,
-                speakerName = value.speakerName,
-                sourceText = value.sourceText,
-                visibleText = value.visibleText,
-                remainingText = value.remainingText,
-                typewriterActive = value.typewriterActive,
-            )
-        }
-        return BattleCompositionEvidenceView(
-            scenarioKey = scenarioKey,
-            animationClock = input.animationClock,
-            visualAnimationClock = input.visualAnimationClock,
-            tracedMapBottom = if (input.captureState == "map-only") -560 else -96,
-            units = input.units,
-            masks = input.masks,
-            scenario = BattleCompositionScenario(
-                dialogue = dialogue,
-                action = input.action.takeIf { scenarioKey == "battle-action-6-f0" },
-                winConditionOpen = input.winConditionOpen,
-                winConditionModal = input.winConditionModal,
-                enemyPlanner = input.enemyPlanner.takeIf { scenarioKey == "enemy-turn" },
-                loseActive = input.resultFlow == "LOSE_SCENE",
-                winPromptActive = input.resultFlow == "WIN_SAVE_PROMPT",
-            ),
-            naturalSay = input.returnScenario == "R_00",
-            modal = input.modal,
-            effectCount = input.effectCount,
-        )
-    }
-}
 
 /** 전투 구성 증거를 기존 JSONL 형식으로 직렬화합니다. */
 internal object BattleCompositionEvidenceRecorder {

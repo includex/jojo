@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.movement
 
 import com.jojo.game.domain.battle.*
@@ -11,8 +12,6 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleMovementPlanner
-
-/** Builds movement-only dependencies, including the journal's route command. */
 internal object BattleMovementEnvironmentAssembler {
     fun build(
         units: () -> Map<String, BattleUnit>,

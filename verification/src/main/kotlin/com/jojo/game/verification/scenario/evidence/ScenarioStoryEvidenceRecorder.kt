@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -7,8 +8,9 @@ import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Pure JSONL recorder for the palace, section, and isolated street-dialogue fixtures. */
+/** ScenarioStoryEvidenceRecorder: 궁전·구역·격리된 거리 대화 픽스처를 JSONL로 기록하는 순수 기록기이다. */
 internal class ScenarioStoryEvidenceRecorder {
+    /** record: 검증 이벤트와 산출물을 기록한다. */
     fun record(view: ScenarioStoryEvidenceView): String = RenderEventLog().also { log ->
         when (view) {
             ScenarioStoryEvidenceView.Palace -> appendPalace(log)
@@ -17,10 +19,12 @@ internal class ScenarioStoryEvidenceRecorder {
         }
     }.jsonl()
 
+    /** appendPalace: 검증 이벤트와 산출물을 기록한다. */
     private fun appendPalace(log: RenderEventLog) {
         val scale = .86f
         val sprites = listOf(770, 771)
         val text = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /** draw: 검증 렌더 이벤트를 구성하고 반환한다. */
         fun draw(
             path: String,
             type: String,
@@ -59,9 +63,11 @@ internal class ScenarioStoryEvidenceRecorder {
         draw("Canvas/Layer/bg0/label", "label", 403.896f, 633.52f, 66.28f, 54.4f, value = "조조")
     }
 
+    /** appendSection: 검증 이벤트와 산출물을 기록한다. */
     private fun appendSection(log: RenderEventLog) {
         val scale = .86f
         val sprites = listOf(770, 771)
+        /** sprite: 스프라이트 렌더 이벤트를 구성한다. */
         fun sprite(
             path: String,
             x: Float,
@@ -101,6 +107,7 @@ internal class ScenarioStoryEvidenceRecorder {
         )
     }
 
+    /** appendStreetDialogue: 검증 이벤트와 산출물을 기록한다. */
     private fun appendStreetDialogue(log: RenderEventLog, view: ScenarioStoryEvidenceView.StreetDialogue) {
         val stages = listOf("panel", "portrait", "speaker", "text", "background", "characters")
         val index = stages.indexOf(view.stage)

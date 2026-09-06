@@ -1,9 +1,11 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.battle.Faction
-import com.jojo.game.presentation.battle.BattleAvatarResolver
+import com.jojo.game.domain.battle.BattleAvatarResolver
 
+/** BattlePreparationViewState: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 data class BattlePreparationViewState(
     val backgroundId: Int,
     val availableIds: List<Int>,
@@ -21,6 +23,7 @@ data class BattlePreparationViewState(
     val battleViewMarkerCount: Int = 0,
 )
 
+/** BattlePreparationUnitView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 data class BattlePreparationUnitView(
     val id: Int,
     val name: String,

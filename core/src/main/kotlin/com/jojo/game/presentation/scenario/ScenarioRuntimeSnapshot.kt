@@ -1,11 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
-/**
- * Immutable renderer observation.  It deliberately contains presentation data
- * only; formatting it as an artifact is a verification concern.
- */
+/** ScenarioRuntimeSnapshot: 시나리오 실행 스냅샷이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 data class ScenarioRuntimeSnapshot(
     val frame: ScenarioFrameEvidenceInput,
     val composition: ScenarioEvidenceView,

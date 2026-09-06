@@ -1,10 +1,11 @@
+// Battle
 package com.jojo.game.domain.battle.combat
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
-/** Resolves the source's forced single-pass physical attack route. */
+/** ForcedPhysicalCombatResolver: 강제 물리 전투 처리 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object ForcedPhysicalCombatResolver {
 fun executeForcedAttack(
         attacker: BattleUnit,

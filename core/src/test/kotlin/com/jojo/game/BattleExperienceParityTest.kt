@@ -1,8 +1,11 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.application.battle.Battle
 
 import com.jojo.game.application.battle.BattleScenarioFactory
+import com.jojo.game.application.scenario.ScenarioStage
 
 import com.jojo.game.domain.battle.*
 
@@ -14,13 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleExperienceParityTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleExperienceParityTest: BattleExperienceParity의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleExperienceParityTest {
     @Test
@@ -148,9 +145,7 @@ class BattleExperienceParityTest {
             terrain = BattleTerrainGrid(2, 1, listOf(intArrayOf(0, 0))),
         )
         val actor = battle.units.getValue(unit217.battleId)
-        // GJJDMZ makes this focused sequence independent of accumulated hit
-        // gauges. GJMFJ suppresses retaliation during the first four active
-        // attacks; both are removed by the real level-derived cache refresh.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (GJJDMZ, GJMFJ)을 검증한다.
         actor.skills = actor.skills + mapOf(92 to 0, 226 to 0)
         battle.selectVerificationFaction(Faction.FRIEND)
 
@@ -162,7 +157,7 @@ class BattleExperienceParityTest {
             actor.hasActed = false
         }
 
-        // Normal 12, defeated 48, normal 12, normal 12.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(84, actor.experience)
         assertEquals(1, actor.level)
         battle.roundLifecycle.endTurn()
@@ -177,9 +172,7 @@ class BattleExperienceParityTest {
             assertEquals(if (index == 0) 96 else 8, actor.experience)
         }
 
-        // The second counter crosses Unit.expLimit(): unitAddExp applies four
-        // to reach 100, levels up, then BattleScreen feeds the remaining eight
-        // through the next g_charinfo settlement pass.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(2, actor.level)
         assertEquals(8, actor.experience)
         assertEquals(44, actor.attack)
@@ -197,9 +190,7 @@ class BattleExperienceParityTest {
         actor.terrainImpacts = actor.terrainImpacts + (0 to 100)
         assertEquals(57, finalAttacker.defense)
         assertEquals(121, finalAttacker.maxHitPoints)
-        // S22's actual AI candidate is ENEMY 217 -> PLAYER 5 and unit 5 has
-        // no legal counter from those authored positions. Isolate that same
-        // countAtkHarm2 branch from this FRIEND-driven EXP fixture.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (S22, ENEMY, PLAYER)을 검증한다.
         val aiActor = actor.copy(id = "ai-217", faction = Faction.ENEMY, tileX = 0, tileY = 0)
         val aiTarget = finalAttacker.copy(
             id = "ai-5", faction = Faction.PLAYER, tileX = 1, tileY = 0,
@@ -211,8 +202,7 @@ class BattleExperienceParityTest {
         )
         assertEquals(10, aiBattle.ai.previewAttackValue(aiActor.id, aiTarget.id))
 
-        // The mismatch frame is 217's next active attack. A counter applies
-        // the source counter multiplier and is therefore not the same harm.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         val finalResult = assertIs<TacticalActionResult.Attack>(
             aiBattle.combat.forcedAttack(aiActor.id, aiTarget.id),
         )

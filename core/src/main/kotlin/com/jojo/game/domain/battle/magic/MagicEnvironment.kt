@@ -1,9 +1,11 @@
+// Battle
 package com.jojo.game.domain.battle.magic
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
+/** MagicEnvironment: 마법 해결기가 대상·지형·날씨·확률·정산 콜백에 접근하도록 제공하는 실행 문맥이다. */
 internal data class MagicEnvironment(
     val probabilityResolver: BattleProbabilityResolver,
     val units: () -> Collection<BattleUnit>,

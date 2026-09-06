@@ -1,10 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.render
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.MenuLayer
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
-
-/** Draw submissions produced by the actual BattleScreen menu-button route. */
 object BattleMenuRenderEvents {
 
     fun jsonl(view: MenuLayer.View): String {

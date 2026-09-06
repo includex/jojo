@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.story
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -8,9 +9,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Stateless rendering of story-only visual layers. */
+/** ScenarioStoryRenderer: 시나리오 이야기 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object ScenarioStoryRenderer {
-    /** Draws the source Palace fixture's upper DialogueLayer while owning the batch lifecycle. */
+    /** drawPalaceFixture: 궁전 장면의 고정 오브젝트와 장식 요소를 렌더링한다. */
     fun drawPalaceFixture(assets: ScenarioSceneAssets, batch: SpriteBatch, view: ScenarioPalaceFixtureView) {
         batch.begin()
         batch.setBlendFunctionSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA)
@@ -27,7 +28,7 @@ internal object ScenarioStoryRenderer {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
     }
 
-    /** Draws the cumulative source DialogueLayer contents while [batch] is active. */
+    /** drawStreetDialogue: 거리 장면의 대화 상자와 화자 초상화를 렌더링한다. */
     fun drawStreetDialogue(
         assets: ScenarioSceneAssets,
         batch: SpriteBatch,

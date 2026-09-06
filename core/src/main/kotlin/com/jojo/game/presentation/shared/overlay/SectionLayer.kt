@@ -1,6 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
-/** 장면 구간 표시와 자동 진행 상태를 관리합니다. */
+/** SectionLayer: 시나리오 장·막 제목을 두 단계로 표시하고 자동 진행 또는 입력 완료 콜백을 제어한다. */
 class SectionLayer(private val setting: Int) {
     /** 구간 화면을 그리는 데 필요한 상태입니다. */
     data class View(

@@ -1,6 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.title
 
-/** Immutable title presentation snapshot exposed through the runtime observer port. */
+/** TitleViewState: 타이틀 화면에 표시할 메뉴·선택 상태·오버레이 정보를 묶은 불변 화면 모델이다. */
 data class TitleViewState(
     val mode: TitleMode,
     val optionalOverlayRoute: LoginOptionalOverlayRoute?,

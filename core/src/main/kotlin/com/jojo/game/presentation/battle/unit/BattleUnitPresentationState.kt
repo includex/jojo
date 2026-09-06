@@ -1,14 +1,13 @@
+// Battle
 package com.jojo.game.presentation.battle.unit
 
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattleStatus
-/** Renderer-independent visual state derived from one tactical unit. */
 class BattleUnitPresentationState(
     initialHitPoints: Int,
     initialMaxHitPoints: Int,
 ) {
-    /** Authored status-effect animation selection for paralysis, silence, confusion, and poison. */
     val stateAnimation = BattleUnitStateAnimation()
 
     var hpBarProgress: Float = hpRatio(initialHitPoints, initialMaxHitPoints)
@@ -22,8 +21,6 @@ class BattleUnitPresentationState(
 
     var attributeStatusIcons: Map<BattleAttribute, AttributeStatusIcon> = emptyMap()
         private set
-
-
     data class HarmNumber(
         val value: Int,
         val isHp: Boolean,
@@ -34,22 +31,14 @@ class BattleUnitPresentationState(
         val outlineRgb: Int = 9_212_044,
         val outlineWidth: Int = 1,
     )
-
-
     data class AttributeStatusIcon(val active: Boolean, val down: Boolean)
-
-
     data class DefaultAction(val action: Int, val loop: Boolean)
-
-
     data class HarmBarInput(
         val hitPoints: Int,
         val maxHitPoints: Int,
         val magicPoints: Int,
         val maxMagicPoints: Int,
     )
-
-
     data class DefaultActionInput(
         val visible: Boolean,
         val hitPoints: Int,
@@ -117,8 +106,6 @@ class BattleUnitPresentationState(
             hitRate,
         )
     }
-
-    /** Chooses the authored idle animation from current unit state. */
     fun defaultAction(input: DefaultActionInput): DefaultAction {
         if (!input.visible) return DefaultAction(STAND, loop = true)
         val lowHp = input.hitPoints < (input.maxHitPoints * (if (input.famous) 4 else 2) / 10)

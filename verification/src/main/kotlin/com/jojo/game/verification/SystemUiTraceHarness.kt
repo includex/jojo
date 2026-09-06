@@ -1,15 +1,26 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.ChoiceDialogState
+import com.jojo.game.presentation.shared.overlay.DialogState
+import com.jojo.game.presentation.shared.overlay.LoadingState
+import com.jojo.game.presentation.shared.overlay.ProgressState
+import com.jojo.game.presentation.shared.overlay.QuantityDialogState
+import com.jojo.game.presentation.shared.overlay.ToastQueue
+import com.jojo.game.presentation.shared.overlay.ToggleDialogState
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Canonical trace for MsgBox{,2,3,4}, Toast, Progress and Loading games. */
+/** SystemUiTraceHarness: MsgBox 계열과 Toast·Progress·Loading 화면의 기준 추적을 실행한다. */
 object SystemUiTraceHarness {
+    /** Case: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(val name: String, val kind: String, val data: String, val events: List<String>)
 
+    /** esc: JSON 특수 문자를 이스케이프해 안전한 문자열을 만든다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+    /** balanced: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun balanced(s: String, start: Int): String {
         val open = s[start]
         val close = if (open == '{') '}' else ']'
@@ -25,6 +36,7 @@ object SystemUiTraceHarness {
         }; error("unclosed fixture")
     }
 
+    /** cases: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun cases(raw: String): List<Case> {
         val root = raw.indexOf("\"cases\"")
         val arr = balanced(raw, raw.indexOf('[', root))
@@ -35,6 +47,7 @@ object SystemUiTraceHarness {
                 val o = balanced(arr, p)
 
 
+                /** field: 입력 데이터에서 지정한 블록을 추출한다. */
                 fun field(key: String): String =
                     Regex("\\\"$key\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").find(o)?.groupValues?.get(1) ?: ""
 
@@ -53,20 +66,27 @@ object SystemUiTraceHarness {
         return out
     }
 
+    /** str: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun str(data: String, key: String, default: String = "") =
         Regex("\\\"$key\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").find(data)?.groupValues?.get(1) ?: default
 
+    /** int: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun int(data: String, key: String, default: Int = 0) =
         Regex("\\\"$key\\\"\\s*:\\s*(\\d+)").find(data)?.groupValues?.get(1)?.toInt() ?: default
 
+    /** texts: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun texts(data: String) = Regex("\\\"texts\\\"\\s*:\\s*\\[([^]]*)]").find(data)?.groupValues?.get(1)
         ?.let { Regex("\\\"([^\\\"]*)\\\"").findAll(it).map { m -> m.groupValues[1] }.toList() } ?: emptyList()
 
+    /** bool: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun bool(v: Boolean) = if (v) "true" else "false"
+    /** nullable: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
     private fun nullable(v: Any?) = v?.toString() ?: "null"
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
 
+        /** run: 검증 시나리오 입력을 적용하고 추적 결과를 반환한다. */
         fun run(c: Case): String {
             val calls = mutableListOf<Int>()
             var attached = true
@@ -127,6 +147,7 @@ object SystemUiTraceHarness {
                 }
             }
 
+            /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snapshot(step: String): String {
                 attached = when (c.kind) {
                     "msg" -> msg!!.attached; "msg2" -> msg2!!.attached; "msg3" -> msg3!!.attached; "msg4" -> msg4!!.attached; "toast" -> toast!!.attached; else -> true

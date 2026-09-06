@@ -1,8 +1,9 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.settlement.ResolvedBattleReward
 
-/** Input-driven progression state for the source RewardLayer coroutine. */
+/** BattleRewardFlow: 전투 보상 표시 흐름으로, 금전·아이템·종료 보상을 순서대로 공개한다. */
 class BattleRewardFlow(val reward: ResolvedBattleReward) {
     enum class Phase { MONEY, ITEMS, END, COMPLETE }
 
@@ -18,6 +19,7 @@ class BattleRewardFlow(val reward: ResolvedBattleReward) {
 
     val complete: Boolean get() = phase == Phase.COMPLETE
 
+    /** advance: 현재 보상 단계를 진행하고, 다음 보상 또는 완료 상태로 전환한다. */
     fun advance() {
         phase = when (phase) {
             Phase.MONEY -> if (reward.itemIds.isNotEmpty()) Phase.ITEMS else Phase.COMPLETE

@@ -1,17 +1,12 @@
+// Battle
 package com.jojo.game.presentation.battle.timeline
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
-/**
- * Pure projection of BattleScreen._magicProcess's `l` (target) and `o`
- * (caster recovery) char-info groups.  Battle has already committed the
- * result; this planner retains the old visual value until `playMeff` ends.
- */
-
 object BattleMagicPresentation {
-
     data class Change(val unitId: String, val hpAdd: Int = 0, val mpAdd: Int = 0)
 
     fun changes(
@@ -39,8 +34,6 @@ object BattleMagicPresentation {
                     add(target.targetId, mp = -target.magicDrain)
                     add(casterId, mp = target.magicRecovery)
                 }
-                // MX (HP -> caster MP) stores target HP loss in damage and
-                // recovery in the caster's `o` char-info group.
                 magic?.type == 20 && magic.category == 24 && target.magicRecovery > 0 ->
                     add(casterId, mp = target.magicRecovery)
 
@@ -51,4 +44,3 @@ object BattleMagicPresentation {
         return values.values.filter { it.hpAdd != 0 || it.mpAdd != 0 }
     }
 }
-

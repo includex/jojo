@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.*
@@ -37,7 +38,7 @@ data class BattleTurnSettlementEnvironment(
     val onEquipmentUpgrade: (CampaignEquipmentExperienceResult) -> Unit,
 )
 
-/** Application coordinator: mutates live battle units and records pure settlement DTOs. */
+/** BattleTurnSettlementService: 실제 전투 유닛을 갱신하면서, 표현과 기록에 쓸 정산 DTO를 함께 만든다. */
 object BattleTurnSettlementService {
     private const val ENABLED_FEATURE_ZDBHSW = 32
 

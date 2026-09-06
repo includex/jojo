@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.round
 
 import com.jojo.game.domain.battle.*
@@ -11,8 +12,6 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.application.battle.BattleTurnSettlementEnvironment
-
-/** Builds the environment for start/end-of-camp state settlement. */
 internal object BattleTurnEnvironmentAssembler {
     fun build(
         configuration: BattleConfiguration,

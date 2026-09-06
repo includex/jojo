@@ -1,10 +1,11 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
 import com.jojo.game.domain.battle.*
-import com.jojo.game.UnitInfoLayer
+import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
 
 
-/** Behavioural implementation of Battle id27 / Global JiQiLayer. */
+/** 선택한 유닛의 기기 목록과 사용 가능 여부를 구성하고 선택 결과를 반환한다. */
 class JiQiLayer(val rates: List<Int>) {
     init {
         require(rates.size == 8)
@@ -24,8 +25,6 @@ class JiQiLayer(val rates: List<Int>) {
         const val TOUCH_END = 2
     }
 }
-
-/** Consumes the real UnitInfo button9 route request before creating id27. */
 object BattleUnitInfoJiqiRoute {
 
     fun open(unitInfo: UnitInfoLayer, rates: List<Int>, event: Int): JiQiLayer? {

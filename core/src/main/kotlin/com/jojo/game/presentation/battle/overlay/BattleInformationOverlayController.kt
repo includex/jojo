@@ -1,22 +1,20 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
 import com.badlogic.gdx.graphics.Texture
-import com.jojo.game.PropertyLayer
-import com.jojo.game.TerrainLayer
-import com.jojo.game.TerrainLayerInput
-import com.jojo.game.TreasureLayer
-import com.jojo.game.presentation.battle.BattlePropertyOverlayView
-import com.jojo.game.presentation.battle.BattlePropertyRowView
-import com.jojo.game.presentation.battle.BattleTerrainOverlayView
-import com.jojo.game.presentation.battle.BattleTerrainRowView
-import com.jojo.game.presentation.battle.BattleTerrainValueView
+import com.jojo.game.presentation.shared.overlay.TerrainLayer
+import com.jojo.game.presentation.shared.overlay.TerrainLayerInput
+import com.jojo.game.presentation.shared.overlay.PropertyLayer
+import com.jojo.game.presentation.shared.overlay.TreasureLayer
 
+/** 전투 보물 목록의 제목, 행 데이터, 현재 선택 상태를 렌더러에 전달한다. */
 internal data class BattleTreasureOverlayView(
     val title: String,
     val firstRow: Int,
     val rows: List<BattleTreasureRowView>,
 )
 
+/** 보물 하나의 식별자, 아이콘, 발견 여부와 선택 여부를 표현한다. */
 internal data class BattleTreasureRowView(
     val id: Int,
     val name: String,
@@ -24,12 +22,6 @@ internal data class BattleTreasureRowView(
     val discovered: Boolean,
     val selected: Boolean,
 )
-
-/**
- * Owns the mutually-exclusive property, terrain, and treasure overlay state.
- * Source-layer rules remain in [PropertyLayer], [TerrainLayer], and
- * [TreasureLayer]; this controller only adapts screen intents to those APIs.
- */
 internal class BattleInformationOverlayController(
     private val propertyLayer: PropertyLayer,
     private val terrainLayer: TerrainLayer,
@@ -37,8 +29,10 @@ internal class BattleInformationOverlayController(
     private val itemIcon: (Int) -> Texture?,
     private val terrainIcon: (Int) -> Texture?,
 ) {
+    /** 현재 표시 중인 속성·지형·보물 정보의 종류를 구분한다. */
     enum class Mode { PROPERTY, TERRAIN, TREASURE }
 
+    /** 속성·지형·보물 탭의 선택, 스크롤, 닫기를 요청하는 입력이다. */
     sealed interface Intent {
         data class Tap(val x: Float, val y: Float) : Intent
         data class Scroll(val rows: Int) : Intent
@@ -47,13 +41,14 @@ internal class BattleInformationOverlayController(
         data object Close : Intent
     }
 
+    /** 정보 오버레이가 소비한 입력과 닫힌 정보 종류를 보고한다. */
     sealed interface Effect {
         data object None : Effect
         data class Closed(val mode: Mode) : Effect
     }
-
     data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
 
+    /** 선택된 정보 종류와 스크롤 행·보물 선택을 보관한다. */
     private sealed interface State {
         data object Hidden : State
         data class Open(

@@ -1,9 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.overlay
 
-/**
- * Cocos InfoLayer reveals one printable character every .04 seconds.  Its
- * RichText tags are consumed as one unit, rather than being shown literally.
- */
+/** SourceTextReveal: 원본 문자열 표시이며, 시나리오 장면을 정확히 표시하기 위한 변환·갱신 규칙을 제공한다. */
 
 class SourceTextReveal {
     private var source = ""
@@ -27,7 +25,7 @@ class SourceTextReveal {
         }
     }
 
-    /** Returns true when a click was consumed to reveal the current line. */
+    /** revealAllIfPending: 진행 중인 글자 표시가 있으면 남은 문장을 즉시 모두 공개한다. */
     fun revealAllIfPending(): Boolean {
         if (isComplete) return false
         cursor = source.length
@@ -47,7 +45,6 @@ class SourceTextReveal {
             cursor++
             return
         }
-        // Match InfoLayer: consume a whole RichText tag during this tick.
         val end = source.indexOf('>', cursor)
         cursor = if (end == -1) cursor + 1 else end + 1
     }

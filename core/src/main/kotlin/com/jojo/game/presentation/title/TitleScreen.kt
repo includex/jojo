@@ -1,3 +1,4 @@
+// Presentation
 package com.jojo.game.presentation.title
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -10,7 +11,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.ScreenAdapter
 
-/** Title lifecycle and input controller; external observers receive immutable snapshots. */
+/** TitleScreen: 게임 시작 화면의 입력·메뉴·배경·선택 오버레이를 수명주기와 함께 조정한다. */
 class TitleScreen(
     private val game: JojoGame,
     initialSettingOpen: Boolean = false,
@@ -62,7 +63,7 @@ class TitleScreen(
         renderer.render(viewState())
     }
 
-    /** Core-local bridge for the neutral runtime observer port. */
+    /** runtimeProbe: 현재 타이틀 화면 상태를 런타임 검증용 관측값으로 반환한다. */
     internal fun runtimeProbe() = TitleRuntimeProbe(viewState())
 
     override fun resize(width: Int, height: Int) = renderer.resize(width, height)
@@ -91,7 +92,6 @@ class TitleScreen(
 
         override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
             if (registrationCheck.loading != null) return true
-            // InputAdapter reports logical window coordinates even for a Retina framebuffer.
             val x = screenX * LOGICAL_WIDTH / Gdx.graphics.width
             val y = (Gdx.graphics.height - screenY) * LOGICAL_HEIGHT / Gdx.graphics.height
             when (mode) {

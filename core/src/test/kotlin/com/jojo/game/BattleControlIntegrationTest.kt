@@ -1,4 +1,6 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.application.battle.Battle
 
@@ -11,13 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleControlIntegrationTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleControlIntegrationTest: BattleControlIntegration의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleControlIntegrationTest {
     @Test
@@ -52,8 +48,7 @@ class BattleControlIntegrationTest {
         val battle = Battle(
             units = listOf(
                 BattleUnit("player", "아군", Faction.PLAYER, 1, 0),
-                // The raw status score is positive, but Control.js deducts
-                // floor(1 * 100 / 1), leaving no candidate action.
+                // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
                 BattleUnit("enemy", "적군", Faction.ENEMY, 0, 0, attackOffsets = emptySet(),
                     magicPoints = 1, maxMagicPoints = 1, magic = listOf(paralysis)),
             ),
@@ -85,8 +80,7 @@ class BattleControlIntegrationTest {
                 BattleUnit("player", "대상", Faction.PLAYER, 0, 1, hitPoints = 96, maxHitPoints = 96, spirit = 21, armType = 2),
                 BattleUnit("caster", "곽가", Faction.ENEMY, 0, 0, ai = ControlAi.ACTIVE, movement = 0, attackOffsets = emptySet(),
                     magicPoints = 55, maxMagicPoints = 55, spirit = 71, level = 3, magic = listOf(moraleDown, poison)),
-                // Both occupy moraleDown's splash offsets but are the caster's
-                // allies. Source filterMagicEffareaUnit excludes them.
+                // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
                 BattleUnit("ally-left", "아군1", Faction.ENEMY, -1, 1, armType = 2),
                 BattleUnit("ally-right", "아군2", Faction.ENEMY, 1, 1, armType = 2),
             ),
@@ -102,16 +96,7 @@ class BattleControlIntegrationTest {
 
     @Test
     fun `move magic AI skips physical targets that can attack it unless WFJGJ clears flag two`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -160,8 +145,7 @@ class BattleControlIntegrationTest {
             id = 71, name = "화계", type = 0, target = 0,
             hitArea = GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), effectAreaId = 0,
             effectOffsets = emptySet(), expendMp = 1, power = 255, harmType = 1, category = 0,
-            // Control._AIProcess excludes MAGIC_ATTR_NAME.AIUSE=13 before
-            // checking conditions; this strategy is reserved for manual use.
+            // 테스트 근거: 전투 계산·난수 소비·경계값 (MAGIC_ATTR_NAME, AIUSE)을 검증한다.
             condition = 0, aiUse = 13,
         )
         val battle = Battle(
@@ -228,8 +212,7 @@ class BattleControlIntegrationTest {
 
         assertEquals(AiTurnResult(moves = 0, attacks = 0, holds = 1), result)
         assertEquals(100, battle.units.getValue("player").hitPoints)
-        // Control._process1 chooses temporary HOLD for paralysis; it does
-        // not persist that temporary controller into BattleUnit.ai.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (HOLD)을 검증한다.
         assertEquals(ControlAi.PASSIVE, battle.units.getValue("enemy").ai)
         assertTrue(battle.units.getValue("enemy").hasActed)
     }
@@ -298,9 +281,7 @@ class BattleControlIntegrationTest {
         )
         battle.roundLifecycle.endTurn()
 
-        // Control._process1 changes ControlManager's live controller to
-        // CtrlJSYD.  It does not persist AI=HOLD on the unit, and CtrlJSYD
-        // still evaluates attacks from its current point.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (HOLD)을 검증한다.
         assertEquals(AiTurnResult(0, 1, 0), battle.ai.resolveTurn())
         assertEquals(ControlAi.PASSIVE, battle.units.getValue("enemy").ai)
     }
@@ -399,19 +380,13 @@ class BattleControlIntegrationTest {
         battle.roundLifecycle.endTurn()
         battle.ai.resolveTurn()
 
-        // Control._zdmdd rejects remote (0,2), then _ganlu/AStar(flags=9)
-        // follows the only opening below the wall. Manhattan minimization
-        // incorrectly selected (4,2) instead of the route-constrained tile.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(5 to 4, battle.units.getValue("enemy").tileX to battle.units.getValue("enemy").tileY)
     }
 
     @Test
     fun `retreat AI finds an empty psHash detour by terrain cost rather than BFS order`() {
-        // With three movement points Control._AStar's last reachable node is
-        // the allied occupied (5,4) tile. findEmptyPos(psHash) enqueues
-        // (6,4) first, but that tile costs two while reachable (5,3) costs
-        // one; (4,4) lies outside psHash. The source cost order selects
-        // (5,3), whereas breadth-first insertion order selects (6,4).
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         val terrain = BattleTerrainGrid(7, 5, List(5) { y ->
             IntArray(7) { x -> if (x == 6 && y == 4) 1 else 0 }
         })
@@ -452,8 +427,7 @@ class BattleControlIntegrationTest {
         battle.ai.resolveTurn()
         val enemy = battle.units.getValue("enemy")
         assertEquals(1, enemy.tileX)
-        // `_cxpl` replaces only ControlManager's live controller; the
-        // configured unit AI remains passive after the temporary move.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(ControlAi.PASSIVE, enemy.ai)
     }
 
@@ -471,8 +445,7 @@ class BattleControlIntegrationTest {
         battle.roundLifecycle.endTurn()
         battle.ai.resolveTurn()
         assertEquals(ControlAi.PASSIVE, battle.units.getValue("enemy").ai)
-        // CtrlTZZDD._ganlu chooses the final unoccupied reachable tile on
-        // the A* route to the master at x=3: x=2, not the first step x=1.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(2, battle.units.getValue("enemy").tileX)
     }
 }

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
@@ -9,13 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-/**
- * class  `PhysicalTargetResolverTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** PhysicalTargetResolverTest: PhysicalTargetResolver의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class PhysicalTargetResolverTest {
 
@@ -138,7 +133,7 @@ class PhysicalTargetResolverTest {
     @Test
     fun `money shield mitigates damage to 1 by spending money`() {
         val attacker = unit(id = "attacker")
-        // Skill 125: 10 money per damage
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val target = unit(id = "target", faction = Faction.PLAYER, hitPoints = 50, skills = mapOf(125 to 10))
         val (env, getMoney) = mockEnvironment(playerMoney = 500)
 
@@ -151,7 +146,7 @@ class PhysicalTargetResolverTest {
             env = env,
         )
 
-        // Price = 30 * 10 = 300 <= 500
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(1, result.damage)
         assertEquals(300, result.moneyShieldSpent)
         assertEquals(200, getMoney().first)
@@ -173,11 +168,11 @@ class PhysicalTargetResolverTest {
             env = env,
         )
 
-        // Damage = 40
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(40, result.damage)
-        // Life steal = 50% * 40 = 20 -> attacker HP becomes 50 + 20 = 70
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(20, result.lifeStealHealing)
-        // Recoil = 20% * 40 = 8 -> attacker HP becomes 70 - 8 = 62
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(8, result.recoilDamage)
         assertEquals(62, attacker.hitPoints)
     }

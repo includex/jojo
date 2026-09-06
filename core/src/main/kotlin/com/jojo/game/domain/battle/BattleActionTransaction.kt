@@ -1,9 +1,10 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.*
 import com.jojo.game.domain.battle.BattleActionSnapshot
 
-/** 전투 애니메이션 단계에 맞춰 계산된 상태를 순차 반영한다. */
+/** BattleActionTransaction: 전투 동작 트랜잭션으로, 애니메이션 단계에 맞춰 계산된 유닛 상태를 순서대로 반영한다. */
 class BattleActionTransaction internal constructor(
     val actorId: String,
     private val before: BattleActionSnapshot,

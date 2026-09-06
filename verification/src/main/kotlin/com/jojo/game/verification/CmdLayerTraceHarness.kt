@@ -1,22 +1,33 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.CmdLayer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 복원된 CmdLayer 기능과 저장 부수효과 픽스처의 Kotlin 실행부이다. */
+/** CmdLayerTraceHarness: 복원된 CmdLayer 기능과 저장 부수효과 픽스처의 Kotlin 실행부이다. */
 object CmdLayerTraceHarness {
+    /** Case: case 관련 검증 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** name: 이름을 담는다. */
         val name: String,
+        /** rFlag: r flag 값을 보관해 검증 흐름에서 사용한다. */
         val rFlag: Int,
+        /** eFlag: e flag 값을 보관해 검증 흐름에서 사용한다. */
         val eFlag: Int,
+        /** deviceId: device id 값을 보관해 검증 흐름에서 사용한다. */
         val deviceId: String,
+        /** units: 무장 수를 담는다. */
         val units: Int,
+        /** inventory: 보유 아이템 목록을 담는다. */
         val inventory: List<CmdLayer.Item>,
+        /** events: 검증 이벤트 또는 추적 결과를 담는다. */
         val events: List<String>
     )
 
+    /** block: JSON 입력에서 지정한 필드 블록을 추출한다. */
     private fun block(s: String, at: Int): String {
         val open = s[at]
         val close = if (open == '{') '}' else ']'
@@ -30,6 +41,7 @@ object CmdLayerTraceHarness {
         }; error("unclosed")
     }
 
+    /** objs: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun objs(a: String): List<String> {
         val result = mutableListOf<String>()
         var i = 0; while (i < a.length) {
@@ -39,16 +51,20 @@ object CmdLayerTraceHarness {
         }; return result
     }
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(s: String, key: String) =
         Regex("\\\"$key\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").find(s)!!.groupValues[1].replace("\\\"", "\"")
             .replace("\\n", "\n").replace("\\\\", "\\")
 
+    /** int: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun int(s: String, key: String) = Regex("\\\"$key\\\"\\s*:\\s*(-?\\d+)").find(s)!!.groupValues[1].toInt()
+    /** field: JSON 입력에서 지정한 필드 블록을 추출한다. */
     private fun field(s: String, key: String): String {
         val p = s.indexOf("\"$key\"")
         val a = s.indexOfAny(charArrayOf('[', '{'), p); return block(s, a)
     }
 
+    /** parse: 외부 입력을 검증용 값으로 변환한다. */
     private fun parse(raw: String): List<Case> = objs(field(raw, "cases")).map { o ->
         val inv = objs(field(o, "inventory")).map {
             CmdLayer.Item(
@@ -70,6 +86,7 @@ object CmdLayerTraceHarness {
         )
     }
 
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = buildString {
         append('"'); s.forEach {
         when (it) {
@@ -78,6 +95,7 @@ object CmdLayerTraceHarness {
     }; append('"')
     }
 
+    /** any: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun any(x: Any?): String = when (x) {
         null -> "null"; is String -> q(x); is Boolean, is Int, is Long -> x.toString(); is Double -> if (x % 1.0 == 0.0) x.toInt()
             .toString() else x.toString(); is List<*> -> x.joinToString(
@@ -91,9 +109,11 @@ object CmdLayerTraceHarness {
         ) { q(it.key.toString()) + ":" + any(it.value) }; else -> q(x.toString())
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
-        /** CmdLayer의 현재 상태를 JSON 스냅샷으로 만든다. */
+        /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snap(l: CmdLayer, step: String): String {
             val fields = linkedMapOf<String, Any?>(
                 "step" to step,

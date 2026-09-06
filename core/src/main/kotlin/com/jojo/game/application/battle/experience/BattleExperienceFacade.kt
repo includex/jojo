@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.experience
 
 import com.jojo.game.domain.battle.*
@@ -11,13 +12,7 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.campaign.*
 
-/**
- * Owns battle EXP notifications and their deferred side effects.
- *
- * The facade keeps the callback-rich environment alive for the lifetime of a
- * battle.  Its journal-backed queues therefore remain the single source of
- * truth while callers retain the legacy Battle entry points.
- */
+/** BattleExperienceFacade: 전투 경험치 진입점이며, 관련 전투 기능을 묶어 안정적인 호출 경로를 제공한다. */
 class BattleExperienceFacade internal constructor(
     configuration: BattleConfiguration,
     private val journal: BattleStateJournal,

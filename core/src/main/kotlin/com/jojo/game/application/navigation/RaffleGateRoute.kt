@@ -1,6 +1,8 @@
+// Navigation
 package com.jojo.game.application.navigation
 import com.jojo.game.presentation.shared.overlay.*
 
+/** RaffleGateRoute: 홀 메뉴에서 추첨·설정 화면으로 이동할 때 입력 순서와 표시 계층을 유지한다. */
 class RaffleGateRoute {
 
     enum class Layer { HALL, HALL_MENU, SETTING, RAFFLE }

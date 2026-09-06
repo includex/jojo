@@ -1,6 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
-/** 로딩 차단 화면의 표시 상태를 관리합니다. */
+/** LoadingLayer: 지연 로딩 중 입력 차단막과 로딩 이미지를 언제 표시할지 계산하는 화면 상태다. */
 class LoadingLayer(private val flag: Int = 0) {
     var imageVisible: Boolean = flag and 3 == 0
         private set

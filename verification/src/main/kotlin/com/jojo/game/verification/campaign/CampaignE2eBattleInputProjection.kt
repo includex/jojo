@@ -1,14 +1,20 @@
+// Verification
 package com.jojo.game.verification.campaign
 
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
 import com.jojo.game.domain.battle.BattleStatus
 
+/** CampaignE2eActionInputs: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 internal data class CampaignE2eActionInputs(
+    /** manualAttack: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
     val manualAttack: CampaignE2eAttackInput?,
+    /** manualMagic: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
     val manualMagic: CampaignE2eMagicInput?,
 )
 
+/** CampaignE2eBattleInputProjection: 실행 상태를 검증용 모델로 변환하는 타입이다. */
 internal class CampaignE2eBattleInputProjection {
+    /** project: 실행 상태를 검증용 모델로 변환한다. */
     fun project(board: CampaignE2eBattlePlanningBoard, movePlan: CampaignE2eMovePlan): CampaignE2eActionInputs {
         val selected = board.selected ?: return CampaignE2eActionInputs(null, null)
         val current = selected.tile()

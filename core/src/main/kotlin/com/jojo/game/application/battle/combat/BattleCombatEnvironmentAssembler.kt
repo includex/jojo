@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -11,12 +12,6 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.magic.MagicEnvironment
 import com.jojo.game.domain.battle.combat.*
-
-/**
- * Assembles combat-facing environments.  Physical, magic, and tactical
- * inputs stay together because they share the combat callbacks, but no turn,
- * movement, or AI state is owned here.
- */
 internal object BattleCombatEnvironmentAssembler {
     fun tactical(battle: Battle): BattleTacticalActionEnvironment = BattleTacticalActionEnvironment(
         outcome = battle::outcome,

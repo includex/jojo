@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -5,24 +6,29 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Feats·JiQi·능력치·전용 UI의 이벤트 계약을 직접 검증한다. */
+/** CharacterAbilityTraceHarness: Feats·JiQi·능력치·전용 UI의 이벤트 계약을 직접 검증한다. */
 object CharacterAbilityTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun events(s: String) = Regex("\\\"events\\\":\\[(.*?)]").find(s)?.groupValues?.get(1)
         ?.let { Regex("\\\"([^\\\"]*)\\\"").findAll(it).map { m -> m.groupValues[1] }.toList() } ?: emptyList()
 
+    /** labels: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun labels(vararg xs: Pair<String, String>) =
         xs.sortedBy { it.first }.joinToString(",", "[", "]") { "[${q(it.first)},${q(it.second)}]" }
 
+    /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
     private fun snap(step: String, dead: Boolean, ls: String, layers: List<String>, exclusive: String? = null) =
         "{\"step\":${q(step)},\"dead\":$dead,\"labels\":$ls,\"layers\":[${layers.joinToString(",") { q(it) }}]${exclusive ?: ""}}"
 
+    /** run: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     private fun run(name: String, es: List<String>): String {
         var dead = false
         val layers = mutableListOf<String>()
         val out = mutableListOf<String>()
 
-        /** 현재 UI 상태의 스냅샷을 결과 목록에 추가한다. */
+        /** add: 검증 이벤트를 현재 기록에 추가한다. */
         fun add(step: String, ls: String, ex: String? = null) {
             out += snap(step, dead, ls, layers, ex)
         }
@@ -53,7 +59,7 @@ object CharacterAbilityTraceHarness {
                 var rows = listOf(1, 0)
                 var ls = labels("label0" to "Item1", "label1" to "Item2", "label2" to "----", "label3" to "T1")
 
-                /** 전용 패널과 버튼 상태를 JSON 조각으로 만든다. */
+                /** ex: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 fun ex() = ",\"sel\":$sel,\"flag\":$flag,\"panels\":[${panels.joinToString(",")}],\"buttons\":[${
                     buttons.joinToString(",")
                 }],\"rows\":[${rows.joinToString(",")}]"
@@ -73,6 +79,8 @@ object CharacterAbilityTraceHarness {
         return out.joinToString(",", "[", "]")
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val raw = Files.readString(Path.of(a[0]))

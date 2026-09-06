@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -10,11 +11,13 @@ import com.jojo.game.presentation.battle.preparation.HallPreparationFlow
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 전투 준비 화면의 입력과 렌더 상태를 추적한다. */
 
+/** HallPrepTraceHarness: 전투 준비 화면의 입력과 렌더 상태를 추적한다. */
 object HallPrepTraceHarness {
+    /** C: c 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class C(val id: String, val kind: String, val flag: Int, val events: List<String>)
 
+    /** bal: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun bal(s: String, p: Int): String {
         val o = s[p]
         val z = if (o == '{') '}' else ']'
@@ -30,6 +33,7 @@ object HallPrepTraceHarness {
         }; error("json")
     }
 
+    /** objs: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun objs(s: String): List<String> {
         val r = mutableListOf<String>()
         var i = 0; while (i < s.length) {
@@ -39,15 +43,19 @@ object HallPrepTraceHarness {
         }; return r
     }
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(s: String, k: String) = Regex("\\\"$k\\\"\\s*:\\s*\\\"([^\"]*)").find(s)!!.groupValues[1]
+    /** num: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun num(s: String, k: String) =
         Regex("\\\"$k\\\"\\s*:\\s*(\\d+)").find(s)?.groupValues?.get(1)?.toInt() ?: 0
 
+    /** arr: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun arr(s: String, k: String): String {
         val a = s.indexOf("\"$k\"")
         val p = s.indexOf('[', a); return bal(s, p)
     }
 
+    /** cases: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun cases(s: String) = objs(arr(s, "cases")).map { o ->
         C(
             str(o, "id"),
@@ -57,10 +65,12 @@ object HallPrepTraceHarness {
         )
     }
 
+    /** js: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun js(v: List<String>) = v.joinToString(",", "[", "]")
+    /** hall: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun hall(c: C): String {
         val x = HallPreparationFlow(); x.onCreate(c.flag)
-        /** 회관 준비 상태를 JSON 스냅샷으로 만든다. */
+        /** snap: 회관 준비 상태를 JSON 스냅샷으로 만든다. */
         fun snap(k: String) = "{\"step\":\"$k\",\"flag\":${x.flag},\"layers\":${js(x.layers.map { "\"$it\"" })}}"
         val r = mutableListOf(snap("create")); c.events.forEach { e ->
             x.command(
@@ -69,9 +79,10 @@ object HallPrepTraceHarness {
         }; return js(r)
     }
 
+    /** init: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun init(c: C): String {
         val x = BattleInitPresentationState(); x.create(c.flag)
-        /** 전투 초기화 상태를 JSON 스냅샷으로 만든다. */
+        /** snap: 전투 초기화 상태를 JSON 스냅샷으로 만든다. */
         fun snap(k: String) =
             "{\"step\":\"$k\",\"flag\":${x.flag},\"z\":${x.zIndex},\"sound\":[7],\"events\":[[\"BATTLE_INIT_START\"]],\"labels\":${
                 js(x.labels.map { "\"$it\"" })
@@ -86,10 +97,11 @@ object HallPrepTraceHarness {
         }; return js(r)
     }
 
+    /** sort: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun sort(c: C): String {
         val x = BattleSortModel()
 
-        /** 정렬 상태와 호출 기록을 JSON 스냅샷으로 만든다. */
+        /** snap: 정렬 상태와 호출 기록을 JSON 스냅샷으로 만든다. */
         fun snap(k: String) =
             "{\"step\":\"$k\",\"pos\":{\"x\":10,\"y\":20},\"attached\":${x.attached},\"calls\":${js(x.calls.map { it.toString() })}}"
 
@@ -101,10 +113,11 @@ object HallPrepTraceHarness {
         }; return js(r)
     }
 
+    /** start: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun start(c: C): String {
         val x = BattleRosterModel()
 
-        /** 배치 편성 상태를 JSON 스냅샷으로 만든다. */
+        /** snap: 배치 편성 상태를 JSON 스냅샷으로 만든다. */
         fun snap(k: String) =
             "{\"step\":\"$k\",\"slots\":${js(x.slots.map { it.toString() })},\"fights\":${js(x.fights.map { it.toString() })},\"label\":\"${x.label}\",\"ok\":${x.ok},\"events\":${
                 js(x.events.map { it.toString() })
@@ -115,6 +128,7 @@ object HallPrepTraceHarness {
         }; return js(r)
     }
 
+    /** startInit: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun startInit(): String {
         val x =
             BattleDeploymentRules(); return "[{\"step\":\"create\",\"max\":${x.max},\"min\":${x.min},\"must\":${js(x.must.map { it.toString() })},\"mustJoin\":${
@@ -123,6 +137,7 @@ object HallPrepTraceHarness {
         },\"units\":${js(x.units.map { it.toString() })},\"order\":${js(x.order.map { it.toString() })},\"button2\":${x.button2},\"sort\":${x.sort},\"descending\":${x.descending}}]"
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val out = cases(Files.readString(Path.of(a[0]))).joinToString(",", "{", "}") {

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game.verification.fixture
 
 import com.jojo.game.domain.battle.Faction

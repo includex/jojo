@@ -1,8 +1,8 @@
+// Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.intAt
 
-/** Source-compatible unit-attribute comparison rules used by stage.unitStateTest. */
+/** ScenarioUnitConditionRules: 스크립트 선택자와 유닛 상태를 대조해 조건식의 참·거짓을 판정한다. */
 internal object ScenarioUnitConditionRules {
     fun stateMatches(args: List<Any?>, environment: ScenarioConditionEnvironment): Boolean {
         val unitId = args.intAt(0)

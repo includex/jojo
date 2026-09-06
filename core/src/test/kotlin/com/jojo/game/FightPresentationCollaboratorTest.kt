@@ -1,9 +1,10 @@
+// Test
 package com.jojo.game
 
-import com.jojo.game.presentation.battle.FightActionPose
-import com.jojo.game.presentation.battle.FightPresentationEvent
-import com.jojo.game.presentation.battle.FightSide
-import com.jojo.game.presentation.battle.FightUnitPresentation
+import com.jojo.game.presentation.battle.fight.FightActionPose
+import com.jojo.game.presentation.battle.fight.FightPresentationEvent
+import com.jojo.game.presentation.battle.fight.FightSide
+import com.jojo.game.presentation.battle.fight.FightUnitPresentation
 import com.jojo.game.presentation.battle.fight.FightActionTimeline
 import com.jojo.game.presentation.battle.fight.FightSpeechLifecycle
 import com.jojo.game.presentation.battle.fight.FightSpriteTimeline

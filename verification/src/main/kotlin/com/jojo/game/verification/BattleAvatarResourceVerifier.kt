@@ -1,13 +1,14 @@
+// Verification
 package com.jojo.game.verification
 
 import com.badlogic.gdx.Gdx
-import com.jojo.game.presentation.battle.BattleAvatarResolver
+import com.jojo.game.domain.battle.BattleAvatarResolver
 import com.jojo.game.domain.battle.Faction
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
-/** 해석된 모든 전투 아바타가 패키지 스프라이트 계열과 일치하는지 검증한다. */
+/** BattleAvatarResourceVerifier: 해석된 모든 전투 아바타가 패키지 스프라이트 계열과 일치하는지 검증한다. */
 internal class BattleAvatarResourceVerifier(private val data: GameDataCatalog) {
-/** 전투 아바타 리소스 검증 결과를 반환한다. */
+    /** verify: 전투 아바타 리소스 검증 결과를 반환한다. */
     fun verify(): String {
         var checks = 0
         val missing = mutableListOf<String>()

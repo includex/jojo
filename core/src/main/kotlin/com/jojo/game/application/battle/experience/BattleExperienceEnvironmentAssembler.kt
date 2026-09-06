@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.experience
 
 import com.jojo.game.domain.battle.*
@@ -9,8 +10,6 @@ import com.jojo.game.application.battle.experience.*
 import com.jojo.game.application.battle.movement.*
 import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
-
-/** Builds the callback-rich environment used only by battle EXP settlement. */
 internal object BattleExperienceEnvironmentAssembler {
     fun build(
         configuration: BattleConfiguration,

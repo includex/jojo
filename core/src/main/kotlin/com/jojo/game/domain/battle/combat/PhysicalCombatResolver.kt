@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -34,10 +35,7 @@ internal data class PhysicalCombatEnvironment(
     val mrspDamage: (attacker: BattleUnit, target: BattleUnit) -> Int?,
 )
 
-/**
- * Orchestrates multi-pass physical combat resolution: active attacks, continuous/follow-ups,
- * counter attacks, counter follow-ups, damage transfers, and splash attacks.
- */
+/** PhysicalCombatResolver: 물리 전투 처리 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object PhysicalCombatResolver {
 
     fun executeAttack(

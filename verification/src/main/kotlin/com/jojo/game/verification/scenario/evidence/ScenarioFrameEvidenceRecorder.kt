@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -10,14 +11,20 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.scenario.hall.HallUnitRender
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
-/** Coordinates small evidence recorders over a completed frame snapshot. */
+/** ScenarioFrameEvidenceRecorder: 완료된 프레임 스냅샷 위에서 작은 증거 기록기들을 조정한다. */
 internal class ScenarioFrameEvidenceRecorder(
+    /** story: 이야기 정보 값을 보관한다. */
     private val story: ScenarioStoryEvidenceRecorder,
+    /** staticInfo: 정적 정보 상태를 검증 흐름에 전달한다. */
     private val staticInfo: ScenarioStaticHallInfoEvidenceRecorder,
+    /** property: 속성 값을 보관한다. */
     private val property: ScenarioPropertyEvidenceRecorder,
+    /** terrain: 지형 정보 상태를 검증 흐름에 전달한다. */
     private val terrain: ScenarioTerrainEvidenceRecorder,
+    /** treasure: 보물 정보 상태를 검증 흐름에 전달한다. */
     private val treasure: ScenarioTreasureEvidenceRecorder,
 ) {
+    /** record: 검증 이벤트와 산출물을 기록한다. */
     fun record(input: ScenarioFrameEvidenceInput): String {
         val street = input.street
         when {
@@ -44,6 +51,7 @@ internal class ScenarioFrameEvidenceRecorder(
         return log.jsonl()
     }
 
+    /** appendInfo: 검증 이벤트와 산출물을 기록한다. */
     private fun appendInfo(log: RenderEventLog, kind: ScenarioFrameHallInfo) {
         log.draw("hall-info", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1280f, 688f, "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>")
         log.draw("hall-info", "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1280f, 688f, "default_sprite_splash", opacity = .392f)
@@ -56,11 +64,13 @@ internal class ScenarioFrameEvidenceRecorder(
         }
     }
 
+    /** appendBackground: 검증 이벤트와 산출물을 기록한다. */
     private fun appendBackground(log: RenderEventLog, background: ScenarioFrameBackgroundEvidence, units: List<ScenarioFrameUnitEvidence>, drawUnits: Boolean) {
         log.draw("background", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1280f, 688f, if (background.equipFixture && background.id == 71) "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>" else "maps/${background.id}.jpg", blend = if (background.equipFixture) listOf(770, 771) else "DISABLED")
         if (drawUnits) units.forEach { unit -> log.draw("characters", "HallLayer", "Canvas/Layer/map/unit-${unit.id}", "sprite", (unit.visualX - unit.visualY + 42) * 16f - 41.28f, 1073.28f - (unit.visualX + unit.visualY) * 6.88f - 55.04f, 82.56f, 110.08f, "map-avatar:${unit.avatar}:direction:${unit.direction}") }
     }
 
+    /** appendCommands: 검증 이벤트와 산출물을 기록한다. */
     private fun appendCommands(log: RenderEventLog) {
         log.draw("controls", "HallCommandLayer", "Canvas/HallCommandLayer/menu", "sprite", 31f, 318.2f, 51.6f, 51.6f, "maps/ui/hall-command/menu.png")
         listOf("battle", "equip", "buy", "sell").forEachIndexed { index, name -> log.draw("controls", "HallCommandLayer", "Canvas/HallCommandLayer/$name", "sprite", 895.58f + index * 82.56f, 1.72f, 82.56f, 82.56f, "maps/ui/hall-command/$name.png") }

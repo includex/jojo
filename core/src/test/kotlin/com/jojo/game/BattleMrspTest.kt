@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -11,13 +12,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleMrspTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleMrspTest: BattleMrsp의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleMrspTest {
     @Test
@@ -32,8 +27,7 @@ class BattleMrspTest {
         assertEquals(40, BattleMrspDamage.percent(25))
         assertEquals(20, BattleMrspDamage.percent(26))
         assertEquals(20, BattleMrspDamage.percent(99))
-        // Model.random() is Tool.random(0, 100), so the inclusive upper
-        // endpoint is a real source outcome too.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(20, BattleMrspDamage.percent(100))
     }
 
@@ -44,17 +38,14 @@ class BattleMrspTest {
                 BattleUnit("attacker", "공격", Faction.PLAYER, 0, 0, attack = 999, critical = 100, morale = 100, skills = mapOf(156 to 0)),
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, hitPoints = 100, maxHitPoints = 100, defense = 999, critical = 1, morale = 1),
             ), events = emptyList(), random = object : Random() {
-                // countRate handles hit/critical/continuous deterministically;
-                // only MRSP itself consumes these two source random values.
+                // 테스트 근거: 전투 계산·난수 소비·경계값 (MRSP)을 검증한다.
                 private val values = intArrayOf(26, 26); private var index = 0
                 override fun nextInt(bound: Int) = values.getOrElse(index++) { 100 }.mod(bound)
             },
         )
 
         val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "target"))
-        // Every `_attack2` pass calls count_attackHarm. MRSP replaces both
-        // the initial strike and the continuous strike with its five-step
-        // max-HP roll.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (MRSP)을 검증한다.
         assertEquals(20, result.damage)
         assertEquals(20, result.followUpDamage)
         assertEquals(60, battle.units.getValue("target").hitPoints)

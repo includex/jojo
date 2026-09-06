@@ -1,10 +1,7 @@
+// Presentation
 package com.jojo.game.presentation.shared.overlay
 
-/**
- * Injectable implementation of `ui/HelperLayer.js` and its `Global/scene/HelperLayer`
- * prefab.  The string remains Cocos RichText markup until a renderer consumes
- * it; no colour information is discarded in this layer.
- */
+/** HelperLayer: 캠페인 안내 정보를 색상 리치 텍스트로 조합해 스크롤 가능한 도움말 화면에 표시한다. */
 
 class HelperLayer(private val model: Model, private val removeFromParent: () -> Unit = {}) {
 
@@ -43,7 +40,7 @@ class HelperLayer(private val model: Model, private val removeFromParent: () -> 
     private var attached = false
     private var richText = ""
 
-    /** Exact onCreate: set bg, build four coloured rows, then replace with flags 15. */
+    /** onCreate: 정보 항목을 색상 태그와 줄바꿈으로 조합하고 원본 특수 표기를 치환해 화면을 연다. */
     fun onCreate(): View {
         val rows = buildString {
             for ((type, _, text) in model.getInfo()) {
@@ -53,7 +50,7 @@ class HelperLayer(private val model: Model, private val removeFromParent: () -> 
                     3 -> append("<color=#0000ff>").append(text).append("</color>")
                     4 -> append("<color=#f000f0>").append(text).append("</color>")
                 }
-                // JS appends a break even for an unknown type.
+                // 원본 JS는 알 수 없는 유형에도 줄바꿈을 추가한다.
                 append("<br/>")
             }
         }
@@ -62,7 +59,7 @@ class HelperLayer(private val model: Model, private val removeFromParent: () -> 
         return view()
     }
 
-    /** `addTouchEventListener(button0, ..., 1)`: only TOUCH_END removes it. */
+    /** onButtonTouch: 확인 버튼의 터치 종료를 받으면 도움말 레이어를 제거하고 분리 상태를 갱신한다. */
     fun onButtonTouch(eventType: Int): View {
         if (eventType == TOUCH_END) {
             removeFromParent(); attached = false
@@ -80,7 +77,7 @@ class HelperLayer(private val model: Model, private val removeFromParent: () -> 
     }
 }
 
-/** Exact `Model.replaceSpeInfo(text, flags)` behavior needed by HelperLayer. */
+/** SourceInfoText: 원본 안내 문구의 유닛·전역 변수·색상 표기를 화면용 리치 텍스트로 치환한다. */
 object SourceInfoText {
     fun replace(
         input: String,

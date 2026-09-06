@@ -1,15 +1,20 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import kotlin.collections.ArrayDeque
 import kotlin.random.Random
 
-/** 캠페인 진행에 필요한 가변 상태를 모은 집합체이다. */
+/** CampaignState: 캠페인 진행 중 변하는 금전·유닛·인벤토리·전역 변수와 종료 정보를 보존한다. */
 class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive -> Random.nextInt(upperExclusive) }) {
+    /** injectedInfoTransferRandomValues: 정보 전달 스크립트의 결과를 재현하기 위해 우선 소비할 난수열이다. */
     private val injectedInfoTransferRandomValues = ArrayDeque<Int>()
 
+    /** extraInfo: 정보 전달로 획득한 문구·기술·분기 데이터를 순서대로 기록한다. */
     val extraInfo = mutableListOf<CampaignInfo>()
+    /** globalVariables: 시나리오와 전투가 공유하는 정수 주소 기반의 전역 값 저장소다. */
     val globalVariables = linkedMapOf<Int, Any?>()
+    /** money: 캠페인 상점·보상에서 사용하는 현재 금전이며 0 이상으로 제한된다. */
     var money: Int = 0
         private set
 

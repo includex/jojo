@@ -1,20 +1,13 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
 import com.jojo.game.domain.battle.*
 
 
-/**
- * Testable implementation of `battle/WinConBoxLayer.js`.
- *
- * The Cocos prefab owns `bg0/scrollview`, `bg0/button`, and `lab`; rendering
- * code may bind this state verbatim without giving the layer game authority.
- */
+/** 승리 조건 문구를 스크롤 패널 상태로 보관하고 확인 입력 뒤 닫힘을 알린다. */
 
 class WinConBoxLayer {
-
     data class CreateData(val info: String, val onClose: () -> Unit)
-
-    /** Serialized `Battle/scene/WinConBoxLayer` prefab geometry (1280×800 canvas). */
     data class Prefab(
         val rootName: String = "WinConBoxLayer", val backgroundNode: String = "bg0",
         val canvasWidth: Float = 1280f, val canvasHeight: Float = 800f,
@@ -27,15 +20,14 @@ class WinConBoxLayer {
         val buttonLocalX: Float = 341.298f, val buttonLocalY: Float = -281.796f,
         val buttonLabel: String = "짐이 알겠다.", val buttonFontSize: Int = 32, val buttonLineHeight: Int = 36,
         val titleNode: String = "bg0/Logo_3-1", val titleWidth: Float = 53f, val titleHeight: Float = 62f,
-        /** Fixture transform: Logo_3-1 scale=(2,2), not its raw atlas size. */
         val titleScale: Float = 2f,
         val richTextNode: String = "bg0/scrollview/view/content/richtext", val listenerPriority: Int = 2,
-        /** Full-screen BlockInputEvents node, invisible but part of the fixture stack. */
         val panelCancelNode: String = "Panel_cancel",
         val blocksUnderlyingInput: Boolean = true,
     )
 
 
+    /** 승리 조건 문구와 스크롤 위치, 입력 차단 여부를 렌더링 값으로 제공한다. */
     data class View(
         val prefab: Prefab, val label: String, val scrollAtTop: Boolean, val attached: Boolean,
         val blocksUnderlyingInput: Boolean = true,
@@ -46,7 +38,7 @@ class WinConBoxLayer {
     private var scrollAtTop = false
     private var label = ""
 
-    /** Source onCreate: `_setBg("bg0")`, assign lab, then scrollToTop(). */
+    /** 승리 조건 문구를 연결하고 스크롤 상자를 열린 상태로 초기화한다. */
     fun onCreate(data: CreateData): View {
         callback = data.onClose
         attached = true
@@ -55,11 +47,8 @@ class WinConBoxLayer {
         return view()
     }
 
-    /** Source listener invokes only for Cocos TOUCH_END (event type 2). */
+    /** 확인 버튼의 TOUCH_END에서 레이어를 닫고 등록된 종료 콜백을 호출한다. */
     fun onButtonTouch(eventType: Int): View {
-        // The recovered listener has no attachment guard.  A direct listener
-        // invocation after removeFromParent therefore repeats both effects;
-        // preserve that observable contract in the isolated game as well.
         if (eventType == TOUCH_END) {
             attached = false // removeFromParent precedes `t.func()` in source.
             callback?.invoke()
@@ -71,7 +60,7 @@ class WinConBoxLayer {
     fun view() = View(prefab = PREFAB, label = label, scrollAtTop = scrollAtTop, attached = attached)
 
     companion object {
-        /** Cocos.Event.EventTouch.TOUCH_END. */
+        /** PREFAB: 승리 조건 상자에 붙일 기본 프리팹 식별자이다. */
         const val TOUCH_END = 2
         val PREFAB = Prefab()
     }

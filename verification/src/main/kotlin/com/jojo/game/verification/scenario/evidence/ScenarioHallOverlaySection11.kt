@@ -1,11 +1,14 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendMagic: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendMagic(writer: ScenarioHallOverlayEventWriter) = with(writer) {
         val magic = requireNotNull(input.magic)
 
 
+        /** sprite: 스프라이트 렌더 이벤트를 구성한다. */
         fun sprite(
             path: String,
             type: String,
@@ -19,6 +22,7 @@ internal fun appendMagic(writer: ScenarioHallOverlayEventWriter) = with(writer) 
             event("MagicLayer", path, type, x, y, w, h, asset, "", opacity, true)
 
 
+        /** text: 텍스트 렌더 이벤트를 기록한다. */
         fun text(path: String, value: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             label("MagicLayer", path, value, x, y, w, h, true)
 

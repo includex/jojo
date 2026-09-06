@@ -1,4 +1,6 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.application.battle.Battle
 
@@ -11,13 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleSkillTempTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleSkillTempTest: BattleSkillTemp의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleSkillTempTest {
     private class ValuesRandom(private vararg val values: Int) : Random() {
@@ -47,16 +43,7 @@ class BattleSkillTempTest {
 
     @Test
     fun `CHGJ adds prior charge on active attack then defender accumulates one`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `charge` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(charge: Int) = Battle(
             units = listOf(
@@ -75,16 +62,7 @@ class BattleSkillTempTest {
 
     @Test
     fun `XU_SHI contributes once and clears its source temporary value`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `stored` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(stored: Int) = Battle(
             units = listOf(
@@ -116,17 +94,7 @@ class BattleSkillTempTest {
 
     @Test
     fun `CFGJ uses BattleScreen unitMove path node count minus one`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `attackerX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `targetX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(attackerX: Int, targetX: Int) = Battle(
             units = listOf(
@@ -144,17 +112,7 @@ class BattleSkillTempTest {
 
     @Test
     fun `count_attackHarm direct line and fixed skill additions match source arithmetic`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `attackerSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `targetSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(attackerSkills: Map<Int, Int>, targetSkills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -166,23 +124,13 @@ class BattleSkillTempTest {
         val modified = battle(mapOf(234 to 5, 184 to 0, 114 to 9), mapOf(6 to 4, 118 to 3, 245 to 0, 247 to 2, 275 to 8))
         val base = assertIs<TacticalActionResult.Attack>(plain.combat.attack("a", "t"))
         val result = assertIs<TacticalActionResult.Attack>(modified.combat.attack("a", "t"))
-        // These are source rate points: +5(WU_BIAN) +55(QJTJ) +9(JQGJ)
-        // -4(BA_HAI) -3(JQWLSH) -20(XZDD) +6(XLGJ) -2(ZHONG_ZHUANG).
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (WU_BIAN, QJTJ, JQGJ)을 검증한다.
         assertEquals(25, result.damage - base.damage)
     }
 
     @Test
     fun `count_attackHarm diagonal reductions follow JSXXSH and JUAN_WU`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -199,30 +147,20 @@ class BattleSkillTempTest {
 
     @Test
     fun `MRSP2 applies its inclusive random percentage before fixed additions`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
                 BattleUnit("a", "공격", Faction.PLAYER, 0, 0, attack = 80, critical = 1, morale = 1, skills = skills),
                 BattleUnit("t", "대상", Faction.ENEMY, 1, 0, hitPoints = 500, maxHitPoints = 500, defense = 20, critical = 1, morale = 1, attackOffsets = emptySet()),
-            // countRate consumes no Model.random; MRSP2 reads the first
-            // value directly through random(0, 5).
+            // 테스트 근거: 전투 계산·난수 소비·경계값 (MRSP2)을 검증한다.
             ), events = emptyList(), random = ValuesRandom(2),
         )
         val plain = battle(emptyMap())
         val boosted = battle(mapOf(292 to 0))
         val base = assertIs<TacticalActionResult.Attack>(plain.combat.attack("a", "t"))
         val result = assertIs<TacticalActionResult.Attack>(boosted.combat.attack("a", "t"))
-        // Base 56; source roll 10 + 2 makes it floor(56 * 112 / 100) = 62.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(6, result.damage - base.damage)
     }
 
@@ -233,16 +171,7 @@ class BattleSkillTempTest {
             GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)),
             0, emptySet(), 0, 100, 0, 0,
         )
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -261,22 +190,13 @@ class BattleSkillTempTest {
         val base = assertIs<TacticalActionResult.Magic>(battle(emptyMap()).combat.castMagic("a", "t", 0))
         val boosted = assertIs<TacticalActionResult.Magic>(battle(mapOf(292 to 0)).combat.castMagic("a", "t", 0))
 
-        // Base 59; source roll 10 + 2 makes floor(59 * 112 / 100) = 66.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(7, boosted.targets.single().damage - base.targets.single().damage)
     }
 
     @Test
     fun `JDGJ counts every existing BU_BING unit without a camp filter`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skill` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skill: Map<Int, Int>) = Battle(
             units = listOf(
@@ -294,18 +214,7 @@ class BattleSkillTempTest {
 
     @Test
     fun `JFGJ and JFGJ2 use target mov_final including weather and paralysis`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `weather` (`BattleWeather`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `targetSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `paralyzed` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(weather: BattleWeather, targetSkills: Map<Int, Int>, paralyzed: Boolean) = Battle(
             units = listOf(
@@ -320,26 +229,14 @@ class BattleSkillTempTest {
         val windyDamage = assertIs<TacticalActionResult.Attack>(windy.combat.attack("a", "t")).damage
         val bypassDamage = assertIs<TacticalActionResult.Attack>(rainBypass.combat.attack("a", "t")).damage
         val paralysisDamage = assertIs<TacticalActionResult.Attack>(paralyzed.combat.attack("a", "t")).damage
-        // Rate is applied to base damage before fixed additions and truncates.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(5, windyDamage - bypassDamage)
         assertEquals(14, paralysisDamage - windyDamage)
     }
 
     @Test
     fun `HMGJ applies original back side and front direction rates`() {
-/**
- * 공개 메서드 `damage`
- *
- * ### 파라미터
-- `attackerDirection` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `targetX` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `targetY` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
-- `skill` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Int`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** damage: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun damage(attackerDirection: Int, targetX: Int, targetY: Int, skill: Boolean): Int {
             val battle = Battle(
@@ -351,7 +248,7 @@ class BattleSkillTempTest {
             )
             return assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t")).damage
         }
-        // Incoming down(2): attacker faces down -> 1/3; faces right -> 1/2; faces up -> full.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(1, damage(2, 1, 2, true) - damage(2, 1, 2, false))
         assertEquals(2, damage(1, 1, 2, true) - damage(1, 1, 2, false))
         assertEquals(5, damage(0, 1, 2, true) - damage(0, 1, 2, false))
@@ -359,16 +256,7 @@ class BattleSkillTempTest {
 
     @Test
     fun `TJGJ is suppressed when countAtkHarm has a valid CTGJ target`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `withAreaTarget` (`Boolean`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(withAreaTarget: Boolean) = Battle(
             units = buildList {

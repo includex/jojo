@@ -1,12 +1,8 @@
+// Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.asInt
 
-/**
- * Resolves the condition API's immediate, variable, and emulated-address
- * operands. This is deliberately state-free; the environment owns the maps
- * that model the source stage's pvars and gvars memory.
- */
+/** ScenarioConditionOperandResolver: 조건식에 인코딩된 값 종류를 실제 변수·상수·전장 수치로 해석한다. */
 internal object ScenarioConditionOperandResolver {
     const val ADDRESS_INTVAR_START = 5_251_072
     const val ADDRESS_INTVAR_END = 5_255_168

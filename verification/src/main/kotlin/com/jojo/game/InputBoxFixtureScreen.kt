@@ -1,4 +1,7 @@
+// Verification
 package com.jojo.game
+
+import com.jojo.game.presentation.shared.KoreanFont
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
@@ -17,28 +20,44 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 
-/** 배포된 Global137 입력 상자 프리팹의 동작을 검증하는 화면이다. */
+/** InputBoxFixtureScreen: 배포된 Global137 입력 상자 프리팹의 동작을 검증하는 화면이다. */
 class InputBoxFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** viewport: 검증 화면의 좌표계와 카메라 상태를 담는다. */
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
+    /** batch: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val batch = SpriteBatch()
+    /** textures: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val textures = mutableListOf<Texture>()
+    /** texture: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun texture(path: String): Texture? = Gdx.files.internal(path).takeIf { it.exists() }
         ?.let(::Texture)?.also { textures += it }
 
+    /** background: 화면 배경 리소스를 담는다. */
     private val background = texture("maps/71.jpg")
+    /** logo9: 검증 흐름에서 사용하는 값을 담는다. */
     private val logo9 = texture("maps/ui/unit-info/logo9.png")
+    /** bg1: 검증 흐름에서 사용하는 값을 담는다. */
     private val bg1 = texture("maps/ui/input-box/bg1.png")
+    /** box1: 검증 흐름에서 사용하는 값을 담는다. */
     private val box1 = texture("maps/ui/input-box/box1.png")?.let { NinePatch(it, 3, 3, 3, 3) }
+    /** button: 검증 흐름에서 사용하는 값을 담는다. */
     private val button = texture("maps/ui/input-box/box3.png")?.let { NinePatch(it, 9, 9, 7, 11) }
+    /** font: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val font: BitmapFont = KoreanFont.create(40, "모드 다운로드웹 주소를 입력하세요확인취소https://example.invalid/mod.zip")
+    /** initial: 검증 흐름에서 사용하는 값을 담는다. */
     private val initial = if (state == "input-box-filled") "https://example.invalid/mod.zip" else null
+    /** persisted: 검증 흐름에서 사용하는 값을 담는다. */
     private var persisted: String? = initial
+    /** callbackValue: callback value 값을 보관해 검증 흐름에서 사용한다. */
     private var callbackValue: String? = null
+    /** model: 검증 흐름에서 사용하는 값을 담는다. */
     private val model = InputBoxRenderOracle(initial, { persisted = it }, { callbackValue = it })
 
+    /** show: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun show() {
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         Gdx.input.inputProcessor = object : InputAdapter() {
+            /** touchUp: 검증 입력을 현재 화면 상태에 반영한다. */
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, buttonCode: Int): Boolean {
                 val p = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 if (p.y in 312f..362f && p.x in 916.163f..1116.163f) model.touchButton(0, 2)
@@ -49,6 +68,7 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
         }
     }
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -63,6 +83,7 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
         game.captureFrameIfRequested()
     }
 
+    /** drawInputBox: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     private fun drawInputBox() {
         logo9?.let { batch.draw(it, 344.186f, 286f, 800f, 228f) }
         bg1?.let { batch.draw(it, 344.186f, 464f, 800f, 50f) }
@@ -80,14 +101,19 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
         font.draw(batch, "확인", 966.163f, 356f, 100f, Align.center, false)
     }
 
-    /** 입력 상자의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 입력 상자의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String = InputBoxRenderEvents.jsonl(state, model.value, model.attached)
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
+    /** persistedValue: persisted value에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     internal fun persistedValue(): String? = persisted
+    /** callbackResult: callback result에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     internal fun callbackResult(): String? = callbackValue
 
+    /** resize: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         batch.dispose()
         font.dispose()
@@ -95,19 +121,23 @@ class InputBoxFixtureScreen(private val game: JojoGame, private val state: Strin
     }
 }
 
-/** 복원된 호출자가 없는 프리팹의 캡처 전용 상태를 보관한다. */
+/** InputBoxRenderOracle: 복원된 호출자가 없는 프리팹의 캡처 전용 상태를 보관한다. */
 private class InputBoxRenderOracle(
     savedValue: String?,
+    /** persist: 검증 흐름에서 사용하는 값을 담는다. */
     private val persist: (String) -> Unit,
+    /** callback: 검증 흐름에서 사용하는 값을 담는다. */
     private val callback: (String?) -> Unit,
 ) {
+    /** value: 검증 흐름에서 사용하는 값을 담는다. */
     var value = savedValue ?: ""
         private set
+    /** attached: 검증 흐름에서 사용하는 값을 담는다. */
     var attached = true
         private set
 
-    /** 버튼 입력을 적용해 프리팹 상태를 갱신한다. */
 
+    /** touchButton: 버튼 입력을 적용해 프리팹 상태를 갱신한다. */
     fun touchButton(button: Int, event: Int) {
         if (!attached || event != 2 || button !in 0..1) return
         attached = false
@@ -116,19 +146,20 @@ private class InputBoxRenderOracle(
         } else callback(null)
     }
 
-    /** 바깥 영역 입력을 적용해 입력 상자를 닫는다. */
 
+    /** touchOutside: 바깥 영역 입력을 적용해 입력 상자를 닫는다. */
     fun touchOutside() = attached
 }
 
-/** 실제 addLayer 검증 결과에서 얻은 원본 그리기 이벤트를 제공한다. */
+/** InputBoxRenderEvents: 실제 addLayer 검증 결과에서 얻은 원본 그리기 이벤트를 제공한다. */
 object InputBoxRenderEvents {
-    /** 입력 상자 상태와 이벤트를 JSONL 한 줄로 직렬화한다. */
 
+    /** jsonl: 검증 상태를 JSONL 한 줄로 직렬화한다. */
     fun jsonl(state: String, value: String, attached: Boolean): String {
         if (!attached) return ""
         val log = RenderEventLog()
         val phase = "hall-$state-stable"
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", layer: String = "InputBox"

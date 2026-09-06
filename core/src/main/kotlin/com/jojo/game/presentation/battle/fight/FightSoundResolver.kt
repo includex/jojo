@@ -1,23 +1,14 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
 import com.jojo.game.domain.battle.*
-
-
-/** Result of FightUnit.__cb1 after resolving its optional `yidong` token. */
 data class FightSoundDispatch(
     val resolvedId: Int,
     val effectId: Int? = null,
     val backgroundId: Int? = null,
 )
-
-
 object FightSoundResolver {
-    /**
-     * Recovered BattleUnit.moveSound/FightUnit.__cb1 contract.
-     * ARM MOVESOUND 0/1/2 selects hoof/wheel/walk; 3 and negative values are
-     * silent, while values above 3 fall back to hoof. Callback IDs above 300
-     * address the background track after subtracting 300.
-     */
+    /** resolve: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
 
     fun resolve(value: String, armMoveSound: Int = -1): FightSoundDispatch {
         val resolved = if (value == "yidong") {

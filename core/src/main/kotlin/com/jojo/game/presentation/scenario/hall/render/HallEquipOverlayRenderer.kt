@@ -1,9 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Static EquipLayer confirmation overlay; its decision state stays with the controller. */
+/** HallEquipOverlayRenderer: 거점 Equip 오버레이 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallEquipOverlayRenderer {
     fun drawUnequipConfirmation(assets: ScenarioSceneAssets, batch: SpriteBatch) {
         val draw = HallRenderPrimitives(assets, batch)

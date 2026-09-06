@@ -1,5 +1,7 @@
+// Verification
 package com.jojo.game.verification.preparation
 
+/** writeUnitInfoAbilityEvents: 검증 이벤트와 산출물을 기록한다. */
 internal fun writeUnitInfoAbilityEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw("UnitInfoLayer", "Canvas/Layer/bg1/panel0/scrollview/view/content/bg2", "sliced-sprite", 831.486f * scale, 431.2f * scale, 438.0f * scale, 197.0f * scale, "box1", 1.0f, listOf(770, 771), true, "")
     context.draw("UnitInfoLayer", "Canvas/Layer/bg1/panel0/scrollview/view/content/bg2/bg1", "sprite", 845.841f * scale, 606.745f * scale, 163.9f * scale, 41.2f * scale, "bg1", 1.0f, listOf(770, 771), true, "")

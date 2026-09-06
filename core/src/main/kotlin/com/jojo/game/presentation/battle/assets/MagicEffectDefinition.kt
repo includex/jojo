@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.assets
 
 /** 전투 마법 효과를 그리는 데 필요한 프레임 정의입니다. */

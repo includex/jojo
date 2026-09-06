@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.domain.scenario
 
-/** A scripted battlefield object and the terrain tile it overlays. */
+/** ScenarioMapObject: 시나리오 지도에 배치되는 오브젝트의 좌표·지형·표시 상태를 나타낸다. */
 data class ScenarioMapObject(
     val x: Int,
     val y: Int,
@@ -9,7 +10,7 @@ data class ScenarioMapObject(
     val enabled: Boolean,
 )
 
-/** A scripted fire overlay on a battlefield tile. */
+/** ScenarioFire: 지도 위 불꽃 효과의 좌표와 표시 여부를 나타내는 시나리오 상태다. */
 data class ScenarioFire(
     val x: Int,
     val y: Int,

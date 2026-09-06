@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.ai
 
 import com.jojo.game.domain.battle.*
@@ -55,10 +56,6 @@ internal data class BattleAiCoordinatorEnvironment(
     val setStagedCompletionSideEffects: (MutableList<() -> Unit>?) -> Unit,
     val createActionTransaction: (String, BattleActionSnapshot, BattleActionSnapshot, List<() -> Unit>, List<() -> Unit>) -> BattleActionTransaction,
 )
-
-/**
- * Coordinates AI turn resolution, scoring, controller execution, and decision planning.
- */
 internal object BattleAiCoordinator {
 
     fun resolveAiTurn(

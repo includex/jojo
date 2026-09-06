@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -9,20 +10,31 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 공용 HallMenuLayer·HallCommandLayer 팩토리 픽스처의 Kotlin 실행부이다. */
+/** HallUiTraceHarness: 공용 HallMenuLayer·HallCommandLayer 팩토리 픽스처의 Kotlin 실행부이다. */
 object HallUiTraceHarness {
+    /** Case: case 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** id: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val id: String,
+        /** kind: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val kind: String,
+        /** edit: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val edit: Boolean,
+        /** eventName: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val eventName: String,
+        /** stageName: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val stageName: String,
+        /** ambition: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val ambition: Pair<Int, Int>?,
+        /** flag: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val flag: Int,
+        /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val events: List<String>
     )
 
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+    /** unesc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun unesc(s: String): String {
         val out = StringBuilder()
         var i = 0; while (i < s.length) {
@@ -34,6 +46,7 @@ object HallUiTraceHarness {
         }; return out.toString()
     }
 
+    /** balanced: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun balanced(s: String, at: Int): String {
         val open = s[at]
         val close = if (open == '{') '}' else ']'
@@ -47,6 +60,7 @@ object HallUiTraceHarness {
         }; error("unclosed JSON")
     }
 
+    /** objects: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun objects(s: String): List<String> {
         val out = mutableListOf<String>()
         var i = 0; while (i < s.length) {
@@ -56,21 +70,26 @@ object HallUiTraceHarness {
         }; return out
     }
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(o: String, key: String, default: String = ""): String {
         val m = Regex("\\\"$key\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").find(o)
             ?: return default; return unesc(m.groupValues[1])
     }
 
+    /** int: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun int(o: String, key: String, default: Int = 0) =
         Regex("\\\"$key\\\"\\s*:\\s*(-?\\d+)").find(o)?.groupValues?.get(1)?.toInt() ?: default
 
+    /** bool: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun bool(o: String, key: String) = Regex("\\\"$key\\\"\\s*:\\s*true").containsMatchIn(o)
+    /** block: 입력 데이터에서 지정한 블록을 추출한다. */
     private fun block(o: String, key: String): String? {
         val p = o.indexOf("\"$key\""); if (p < 0) return null
         var q = o.indexOf(':', p) + 1; while (q < o.length && o[q].isWhitespace()) q++
         return if (q < o.length && (o[q] == '{' || o[q] == '[')) balanced(o, q) else null
     }
 
+    /** parse: 외부 입력을 검증용 값으로 변환한다. */
     private fun parse(raw: String): List<Case> = objects(block(raw, "cases")!!).map { o ->
         val ambition = block(o, "ambition")?.takeIf { it.startsWith("[") }
             ?.let { Regex("-?\\d+").findAll(it).map { m -> m.value.toInt() }.toList() }?.let { it[0] to it[1] }
@@ -89,7 +108,9 @@ object HallUiTraceHarness {
         )
     }
 
+    /** jsonList: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun jsonList(items: List<String>) = items.joinToString(",", "[", "]")
+    /** menuSnap: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun menuSnap(x: HallMenuFlow, step: String): String {
         val buttons = jsonList((0..9).map { "[${x.active[it]},${x.tags[it]},${x.listeners[it]}]" })
         val labels = jsonList(x.labels.map { "\"${esc(it)}\"" })
@@ -101,14 +122,18 @@ object HallUiTraceHarness {
         return "{\"step\":\"${esc(step)}\",\"zIndex\":${x.zIndex},\"labels\":$labels,\"buttons\":$buttons,\"bar\":$frames,\"attached\":${x.attached},\"layers\":$routes,\"callbackCount\":${x.callbackCount},\"cancelPriority\":${x.cancelPriority ?: "null"},\"toasts\":[]}"
     }
 
+    /** commandSnap: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun commandSnap(x: HallCommandFlow, step: String): String {
 
+        /** bools: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun bools(v: List<Boolean>) = jsonList(v.map { it.toString() })
 
 
+        /** ints: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun ints(v: List<Int>) = jsonList(v.map { it.toString() })
 
 
+        /** nullableInts: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun nullableInts(v: List<Int?>) = jsonList(v.map { it?.toString() ?: "null" })
         return "{\"step\":\"${esc(step)}\",\"active\":${bools(x.active)},\"tags\":${ints(x.tags)},\"priorities\":${
             nullableInts(
@@ -117,6 +142,7 @@ object HallUiTraceHarness {
         },\"listeners\":${bools(x.listeners)},\"events\":${ints(x.events)},\"callbackCount\":${x.callbackCount},\"attached\":${x.attached}}"
     }
 
+    /** menu: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun menu(c: Case): String {
         val x = HallMenuFlow(c.edit); x.onCreate(c.eventName, c.stageName, c.ambition)
         val trace = mutableListOf(menuSnap(x, "create")); for (e in c.events) {
@@ -128,6 +154,7 @@ object HallUiTraceHarness {
         }; return jsonList(trace)
     }
 
+    /** command: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun command(c: Case): String {
         val x = HallCommandFlow(); x.onCreate(c.flag)
         val trace = mutableListOf(commandSnap(x, "create")); for (e in c.events) {
@@ -139,6 +166,7 @@ object HallUiTraceHarness {
         }; return jsonList(trace)
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val output = parse(Files.readString(Path.of(args[0]))).joinToString(

@@ -1,16 +1,17 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.BattleUnit
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.ScenarioBattleUnit
 import com.jojo.game.domain.scenario.ScenarioUnitFaction
 import com.jojo.game.domain.scenario.battleId
 
-/** Projects authored and persisted unit data into one live tactical unit. */
+/** BattleUnitProjector: 작성 데이터와 저장 데이터를 결합해 실제 전술 전투 유닛으로 변환한다. */
 internal class BattleUnitProjector(
     private val catalog: GameDataCatalog?,
     private val campaign: CampaignState?,

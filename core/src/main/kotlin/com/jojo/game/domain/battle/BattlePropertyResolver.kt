@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.domain.battle.*
@@ -5,15 +6,8 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.label
 
-/**
- * Pure Kotlin resolution for battle consumables and property item effects.
- */
+/** BattlePropertyResolver: 공격 뒤 자동 발동하는 속성 아이템을 판정하고 유닛 상태에 효과를 적용한다. */
 internal object BattlePropertyResolver {
-
-    /**
-     * Applies the effect of a property/consumable item to the target unit.
-     * Shared by player-initiated item usage and automatic combat consumption (ZDSY).
-     */
     fun applyProperty(
         item: BattlePropertyItem,
         target: BattleUnit,

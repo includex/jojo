@@ -1,10 +1,11 @@
+// Scenario
 package com.jojo.game.presentation.scenario.render
 
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
 import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueView
 
-/** Immutable scene projection; renderers never inspect the interpreter or campaign. */
+/** ScenarioBattlefieldRenderView: 시나리오 Battlefield 렌더링 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class ScenarioBattlefieldRenderView(
     val backgroundId: Int,
     val drawCharacters: Boolean,
@@ -35,7 +36,7 @@ internal data class ScenarioBattlefieldHeadView(
     val siblingOrder: Int,
 )
 
-/** Deterministic geometry/order contract shared by the battlefield renderer and tests. */
+/** ScenarioBattlefieldRenderGeometry: 시나리오 Battlefield 렌더링 Geometry이며, 시나리오 장면을 정확히 표시하기 위한 변환·갱신 규칙을 제공한다. */
 internal object ScenarioBattlefieldRenderGeometry {
     fun mapX(x: Float, y: Float): Float = (x - y + 42f) * 16f
     fun mapY(x: Float, y: Float): Float = 1073.28f - (x + y) * 6.88f

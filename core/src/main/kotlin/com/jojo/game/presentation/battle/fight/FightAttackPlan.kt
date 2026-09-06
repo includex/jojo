@@ -1,10 +1,8 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
 
 import com.jojo.game.domain.scenario.ScenarioFightCommand
-import com.jojo.game.presentation.battle.FightSide
 import kotlin.math.max
-
-/** Immutable source-action selection and join timing for one attack command. */
 internal data class FightAttackPlan(
     val attacker: FightSide,
     val defender: FightSide,
@@ -18,7 +16,6 @@ internal data class FightAttackPlan(
 ) {
     val duration: Float get() = max(attackerEndsAt, defenderEndsAt)
 }
-
 internal object FightAttackPlanner {
     fun attack1(command: ScenarioFightCommand.Attack1, duration: (Int) -> Float, hitTime: (Int) -> Float): FightAttackPlan {
         require(command.style in 0..4) { "FightLayer.attack1 style must be 0..4" }

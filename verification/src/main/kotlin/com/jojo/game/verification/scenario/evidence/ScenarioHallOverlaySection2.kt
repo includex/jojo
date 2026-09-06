@@ -1,9 +1,11 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.overlay.*
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendFixture2: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendFixture2(writer: ScenarioHallOverlayEventWriter) = with(writer) {
                 event(
                     "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f,
@@ -14,6 +16,7 @@ internal fun appendFixture2(writer: ScenarioHallOverlayEventWriter) = with(write
                 event("ExclusiveLayer", "Canvas/Layer/bg/bg1", "sprite", 136.186f, 703f, 1216f, 50f, "bg1")
                 label("ExclusiveLayer", "Canvas/Layer/bg/bg1/label", "장비 정보", 669.431f, 702.8f, 149.51f, 50.4f)
 
+                /** header: 검증 출력 헤더를 구성한다. */
                 fun header(
                     panel: String,
                     x: Float,
@@ -97,6 +100,7 @@ internal fun appendFixture2(writer: ScenarioHallOverlayEventWriter) = with(write
                     header("panel1", 568.186f, 643.3f, 780f, 883.431f, 149.51f, "특수 효과")
                 }
 
+                /** button: 버튼 입력 이벤트를 기록한다. */
                 fun button(name: String, x: Float, labelX: Float, labelWidth: Float, value: String) {
                     val path = "Canvas/Layer/bg/$name/Background"
                     event("ExclusiveLayer", path, "sliced-sprite", x, 54.533f, 200f, 54f, "box3")

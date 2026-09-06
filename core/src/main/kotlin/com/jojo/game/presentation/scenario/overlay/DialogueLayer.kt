@@ -1,9 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario.overlay
 
 import com.jojo.game.domain.battle.*
 
 
-/** Behavioral implementation of Global1 `ui/DialogueLayer.js` (not Battle SayLayer). */
+/** DialogueLayer: 시나리오 대사를 화자별 페이지로 나누고, 말풍선 위치·타이핑·닫기 상태를 제공한다. */
 class DialogueLayer(
     text: String,
     private val unitName: (Int) -> String,
@@ -51,7 +52,7 @@ class DialogueLayer(
         )
     }
 
-    /** One source typewriter callback: one character, or one complete markup tag. */
+    /** typeTick: 타이핑 속도에 따라 대사 본문에서 새로 공개할 글자를 계산한다. */
     fun typeTick(): Boolean {
         if (!attached || content == target) return false
         val start = content.length
@@ -61,9 +62,6 @@ class DialogueLayer(
             if (close >= 0) end = close + 1
         }
         content = target.substring(0, end.coerceAtMost(target.length))
-        // DialogueLayer temporarily balances an opening RichText color tag on
-        // every typewriter callback.  A panel tap bypasses this and publishes
-        // the untouched full source string.
         renderedContent = content + if (content.contains("<color=")) "</c>" else ""
         if (content == target) enableAutoClose()
         return true
@@ -77,7 +75,7 @@ class DialogueLayer(
         enableAutoClose()
     }
 
-    /** Full-panel TOUCH_END: finish typing first, then advance on the next tap. */
+    /** touch: 대사를 즉시 공개하거나 다음 페이지로 넘기고, 마지막 페이지에서는 닫기 콜백을 실행한다. */
     fun touch(event: Int): Boolean {
         if (!attached || event != TOUCH_END) return false
         if (content != target) completeTyping() else {
@@ -113,8 +111,6 @@ class DialogueLayer(
             return
         }
         val next = pages[pageIndex]
-        // The source only updates its static alternation state when Hall.unit
-        // resolves.  Missing units retain the currently selected bubble.
         val y = unitY(next.speakerId)
         if (y != null) {
             if (next.speakerId != lastSpeakerId) bubbleIndex++

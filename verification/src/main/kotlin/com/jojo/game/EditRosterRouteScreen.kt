@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
@@ -9,10 +10,13 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 
-/** HallMenu(8)에서 EditLayer4로 이어지는 편성 경로를 검증한다. */
+/** EditRosterRouteScreen: HallMenu(8)에서 EditLayer4로 이어지는 편성 경로를 검증한다. */
 class EditRosterRouteScreen(private val game: JojoGame, private val route: EditRosterRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** shapes: 검증 흐름에서 사용하는 값을 담는다. */
     private val shapes = ShapeRenderer()
+    /** menu: 검증 흐름에서 사용하는 값을 담는다. */
     private val menu = HallEditRosterRoute(editEnabled = true)
+    /** roster: 검증 흐름에서 사용하는 값을 담는다. */
     private val roster = EditRosterFlow(
         listOf(
             EditRosterFlow.UnitRow(0, "조조", false),
@@ -21,8 +25,10 @@ class EditRosterRouteScreen(private val game: JojoGame, private val route: EditR
         ),
         List(256) { "무장 $it" },
     )
+    /** installed: 검증 흐름에서 사용하는 값을 담는다. */
     private var installed = false
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         if (!installed) {
             check(menu.touch(8, true)) { "HallMenu button8 did not open EditLayer4" }
@@ -44,10 +50,12 @@ class EditRosterRouteScreen(private val game: JojoGame, private val route: EditR
         game.writeRenderEventLogIfRequested()
     }
 
-    /** 편성 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 편성 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String = EditRosterRenderEvents.jsonl(route)
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         shapes.dispose()
     }

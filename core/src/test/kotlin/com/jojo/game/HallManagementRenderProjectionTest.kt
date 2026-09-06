@@ -1,4 +1,6 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.presentation.scenario.hall.HallManagementViewFactory

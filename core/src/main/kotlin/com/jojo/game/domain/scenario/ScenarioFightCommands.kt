@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.domain.scenario
 
-/** Ordered framework-free commands emitted by a source battle script to FightLayer. */
+/** ScenarioFightCommand: 스크립트가 전투 시작·승패·보상 흐름에 전달하는 도메인 명령의 공통 타입이다. */
 sealed class ScenarioFightCommand(open val fightId: Long) {
     data class Start(
         override val fightId: Long,

@@ -1,10 +1,12 @@
+// Verification
 package com.jojo.game.verification.title
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Initial Login._launch -> StartItemLayer id5 production draw inventory. */
+/** StartItemRenderEvents: 초기 Login._launch에서 StartItemLayer id5로 이어지는 운영 그리기 목록이다. */
 object StartItemRenderEvents {
 
+    /** jsonl: 검증 상태를 JSONL 한 줄로 직렬화한다. */
     fun jsonl(): String {
         val log = RenderEventLog()
         val phase = "login-main-stable"

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -9,13 +10,7 @@ import com.jojo.game.domain.battle.command.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `BattleAiValueTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleAiValueTest: BattleAiValue의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleAiValueTest {
     @Test
@@ -24,9 +19,7 @@ class BattleAiValueTest {
         val enemy = BattleUnit("e", "enemy", Faction.ENEMY, 1, 0, aiValue = 77)
         val battle = Battle(listOf(player, enemy), emptyList())
 
-        // Player -> enemy.  BattleScreen's turn init clears the camp that is
-        // about to act; the inactive unit's AIValue remains available until
-        // its own next turn entry.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         battle.roundLifecycle.endTurn()
 
         assertEquals(99, player.aiValue)
@@ -35,16 +28,7 @@ class BattleAiValueTest {
 
     @Test
     fun `only active and hold Control subclasses persist selected action score`() {
-/**
- * 공개 메서드 `run`
- *
- * ### 파라미터
-- `ai` (`Int`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `BattleUnit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** run: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun run(ai: Int): BattleUnit {
             val enemy = BattleUnit("enemy-$ai", "적", Faction.ENEMY, 0, 0, ai = ai, attack = 100)
@@ -57,12 +41,11 @@ class BattleAiValueTest {
             return enemy
         }
 
-        // CtrlBDCJ extends base Control whose _AIProcess4 is empty. It can
-        // attack but must not retain the transient action score.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(0, run(ControlAi.PASSIVE).aiValue)
-        // CtrlZDCJ overrides _AIProcess4 and writes info.value.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         kotlin.test.assertTrue(run(ControlAi.ACTIVE).aiValue > 0)
-        // CtrlJSYD uses the same override on its current-tile decision.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         kotlin.test.assertTrue(run(ControlAi.HOLD).aiValue > 0)
     }
 }

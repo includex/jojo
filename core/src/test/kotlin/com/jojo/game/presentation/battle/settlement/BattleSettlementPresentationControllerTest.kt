@@ -1,6 +1,6 @@
+// Test
 package com.jojo.game.presentation.battle.settlement
 
-import com.jojo.game.presentation.battle.TurnSettlementOp
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.settlement.BattleSettlementPlan
 import com.jojo.game.domain.battle.settlement.CampSettlementStage

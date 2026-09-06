@@ -1,12 +1,13 @@
+// Battle
 package com.jojo.game.domain.battle
 
-/** Original BATTLE_CAMP: Mine, Friend, Enemy, Reinforcements. */
+/** Faction: 전투 유닛의 소속 진영을 나타내며, 턴 순서와 아군·적군 판정에 사용한다. */
 enum class Faction { PLAYER, FRIEND, ENEMY, REINFORCEMENTS }
 
 fun Faction.isEnemySide(): Boolean = this == Faction.ENEMY || this == Faction.REINFORCEMENTS
 fun Faction.isPlayerSide(): Boolean = !isEnemySide()
 
-/** Original BATTLE_UNIT_STATUS2 persistent abnormal states. */
+/** BattleStatus: 유닛에게 적용되는 전투 상태 이상 종류를 나타내며, 턴 정산과 행동 제약에 사용한다. */
 enum class BattleStatus {
     PARALYSIS, SILENCE, CONFUSION, POISON, LOST;
 
@@ -22,9 +23,10 @@ enum class BattleStatus {
     }
 }
 
-/** Original BATTLE_UNIT_STATUS2 0..5: temporary ability lift/down states. */
+/** BattleAttribute: 공격·방어·정신·필살·사기·이동의 전투 능력치 종류를 정의한다. */
 enum class BattleAttribute { ATTACK, DEFENSE, SPIRIT, CRITICAL, MORALE, MOVEMENT }
 
+/** BattleWeather: 전장에 적용되는 날씨 종류를 나타내며, 라운드 전환 시 지형과 능력치 효과에 사용한다. */
 enum class BattleWeather { CLEAR, CLOUDY, WINDY, HEAVY_RAIN, SNOW }
 
 fun BattleStatus.label(): String = when (this) {

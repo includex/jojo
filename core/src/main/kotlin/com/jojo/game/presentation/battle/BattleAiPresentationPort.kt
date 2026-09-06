@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle
 
 import com.jojo.game.domain.battle.*
@@ -8,9 +9,9 @@ import com.jojo.game.domain.battle.AiUnitResolution
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.turn.CollocatedPlayerMoveScriptEnd
 import com.jojo.game.domain.scenario.PlaybackState
+import com.jojo.game.presentation.battle.timeline.UnitMoveAnimation
 import com.jojo.game.presentation.battle.ai.AiPresentationCoordinator
-
-/** BattleScreen adapter for the production-neutral AI presentation coordinator. */
+/** 화면 전투 상태와 AI 연출 조정기를 연결하는 어댑터이다. */
 internal class BattleAiPresentationPort(
     private val screen: BattleScreen,
     private val coordinator: AiPresentationCoordinator,

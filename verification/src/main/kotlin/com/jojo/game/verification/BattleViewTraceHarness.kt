@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -7,8 +8,9 @@ import com.jojo.game.presentation.battle.render.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** tools/battle_view_source_trace_harness.js에 대응하는 기준 실행기이다. */
+/** BattleViewTraceHarness: tools/battle_view_source_trace_harness.js에 대응하는 기준 실행기이다. */
 object BattleViewTraceHarness {
+    /** block: JSON 입력에서 지정한 필드 블록을 추출한다. */
     private fun block(s: String, at: Int): String {
         val open = s[at]
         val close = if (open == '{') '}' else ']'
@@ -24,6 +26,7 @@ object BattleViewTraceHarness {
         }; error("unclosed")
     }
 
+    /** objects: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun objects(s: String): List<String> {
         val r = mutableListOf<String>()
         var i = 0; while (i < s.length) {
@@ -33,11 +36,17 @@ object BattleViewTraceHarness {
         }; return r
     }
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(s: String, k: String) = Regex("\\\"$k\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").find(s)!!.groupValues[1]
+    /** int: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun int(s: String, k: String) = Regex("\\\"$k\\\"\\s*:\\s*(-?\\d+)").find(s)!!.groupValues[1].toInt()
+    /** arr: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun arr(s: String, k: String) = block(s, s.indexOf('[', s.indexOf("\"$k\"")))
+    /** strings: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun strings(s: String) = Regex("\\\"([^\\\"]+)\\\"").findAll(s).map { it.groupValues[1] }.toList()
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val raw = Files.readString(Path.of(a[0]))
@@ -50,12 +59,14 @@ object BattleViewTraceHarness {
         Files.createDirectories(Path.of(a[1]).parent); Files.writeString(Path.of(a[1]), result); println(result)
     }
 
+    /** view: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun view(c: String): String {
         val x = BattleViewLayer()
         val ps = Regex("\\[(-?\\d+),(-?\\d+)]").findAll(arr(c, "pos"))
             .map { it.groupValues[1].toInt() to it.groupValues[2].toInt() }.toList(); x.onCreate(
             int(c, "map"),
             ps
+        /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
         ); fun snap(step: String): String {
             val m = x.markers().joinToString(
                 ",",
@@ -80,6 +91,7 @@ object BattleViewTraceHarness {
         }; return trace.joinToString(",", "[", "]")
     }
 
+    /** fight: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun fight(c: String): String {
         val p = Regex("\\[(-?\\d+),(-?\\d+),(-?\\d+)]").findAll(c).toList()
         val parent = p[0].groupValues
@@ -105,6 +117,7 @@ object BattleViewTraceHarness {
         },\"events\":[${x.events.joinToString(",") { q(it) }}]}]"
     }
 
+    /** dule: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun dule(c: String): String = strings(arr(c, "events")).joinToString(
         ",",
         "[",

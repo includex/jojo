@@ -1,8 +1,8 @@
+// Battle
 package com.jojo.game.presentation.battle.render
 
-/** State implementation of recovered battle/BattleViewLayer.js. */
+/** BattleViewLayer: 전투 표시 정보 레이어이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 class BattleViewLayer {
-
     data class Marker(val x: Int, val y: Int, val label: String, val red: Boolean?, val opacity: Int?)
 
     var mapPath = ""
@@ -16,14 +16,10 @@ class BattleViewLayer {
         mapPath = "Game/HM/HM_${map + 1}-1"
         markers.clear()
         pos.forEachIndexed { index, (x, y) ->
-            // `x * TITLE_SIZE - mapWidth / 2 + TITLE_SIZE / 2`, and its
-            // inverted source-y counterpart; the recovered texture is 480x384.
             markers += Marker(x * 48 - 216, 168 - y * 48, (index + 1).toString(), null, null)
         }
         initialized = true
     }
-
-    /** Source listener runs for every value, including no selection and out-of-range selection. */
     fun battleUnitN(index: Int) {
         markers.indices.forEach { i ->
             markers[i] = markers[i].copy(red = i == index, opacity = if (i == index) 255 else 128)

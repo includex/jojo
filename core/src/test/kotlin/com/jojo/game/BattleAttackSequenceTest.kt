@@ -1,4 +1,6 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.application.battle.Battle
 
@@ -13,13 +15,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleAttackSequenceTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleAttackSequenceTest: BattleAttackSequence의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleAttackSequenceTest {
     @Test
@@ -116,7 +112,7 @@ class BattleAttackSequenceTest {
                 BattleUnit("defender", "마법 방어", Faction.ENEMY, 1, 0, magicPoints = 40, maxMagicPoints = 40, skills = mapOf(2 to 0)),
             ),
             events = emptyList(),
-            // physical hit, then ZDGJ's inclusive `<= 50` check.
+            // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (ZDGJ)을 검증한다.
             random = FixedRandom(0, 50),
         )
 
@@ -140,8 +136,7 @@ class BattleAttackSequenceTest {
 
         battle.combat.attack("attacker", "defender", damage = 10)
 
-        // countRate owns continuous/hit gauges; only the one MBGJ status
-        // roll consumes Model.random, and the second attack reuses it.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (MBGJ)을 검증한다.
         assertEquals(1, random.calls)
         assertEquals(2, battle.units.getValue("defender").statuses[BattleStatus.PARALYSIS])
     }
@@ -150,9 +145,7 @@ class BattleAttackSequenceTest {
     fun `BJBLJ critical changes BattleScreen attack loop from one pass to two`() {
         val battle = Battle(
             units = listOf(
-                // Low morale makes the ordinary SJL countRate pass fail;
-                // GJJDMZ guarantees each physical hit and ZMYJGJ guarantees
-                // the critical that activates BJBLJ.
+                // 테스트 근거: 전투 계산·난수 소비·경계값 (SJL, GJJDMZ, ZMYJGJ)을 검증한다.
                 BattleUnit("attacker", "필살", Faction.PLAYER, 0, 0, morale = 1,
                     skills = mapOf(7 to 0, 92 to 0, 226 to 0, 270 to 0)),
                 BattleUnit("defender", "방어", Faction.ENEMY, 1, 0, morale = 100,
@@ -374,7 +367,7 @@ class BattleAttackSequenceTest {
 
         assertEquals(true, result.followUpDamage > 0)
         assertEquals(1_000, battle.units.getValue("defender").hitPoints)
-        // Enemy auto-use does not touch the player's item store in source.
+        // 테스트 근거: 저장·추적 자료의 순서와 직렬화 규칙을 검증한다.
         assertEquals(0, uses)
     }
 
@@ -429,8 +422,7 @@ class BattleAttackSequenceTest {
 
         val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
-        // The counterattacker took the primary 1-point hit first, so QXL
-        // is capped by its one missing HP before FTSH reflects full n.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (QXL, FTSH)을 검증한다.
         assertEquals(1, result.qxlHealing)
         assertEquals(result.counterDamage, result.recoilDamage)
         assertEquals(1_000 - result.counterDamage, battle.units.getValue("defender").hitPoints)
@@ -534,7 +526,7 @@ class BattleAttackSequenceTest {
 
         val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
-        // BattleUnit._pkdx picks 20 (defense), not the target's 100 CRI.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (CRI)을 검증한다.
         assertEquals(100, result.hitRate)
     }
 
@@ -550,8 +542,7 @@ class BattleAttackSequenceTest {
             events = emptyList(),
         )
 
-        // 75 + 12 loses to the opposing 88 gauge.  Rounding to 13 would
-        // incorrectly produce the second _attack2 pass at this boundary.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val result = battle.combat.attack("attacker", "defender") as TacticalActionResult.Attack
         assertEquals(0, result.followUpDamage)
     }
@@ -575,7 +566,7 @@ class BattleAttackSequenceTest {
 
         assertEquals(listOf(false, false, false, true), results.map(TacticalActionResult.Attack::hit))
         assertEquals(99, battle.units.getValue("defender").hitPoints)
-        // Source countRate wraps the winner and retains the loser's 75.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(0, battle.units.getValue("attacker").rateAccumulators[0])
         assertEquals(75, battle.units.getValue("defender").rateAccumulators[1])
     }
@@ -593,7 +584,7 @@ class BattleAttackSequenceTest {
         val result = battle.combat.attack("attacker", "defender", damage = 1) as TacticalActionResult.Attack
 
         assertEquals(false, result.hit)
-        // countAtkHarm calls countRate before FYYJGJ forces the miss.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (FYYJGJ)을 검증한다.
         assertEquals(25, battle.units.getValue("attacker").rateAccumulators[0])
         assertEquals(0, battle.units.getValue("defender").rateAccumulators[1])
     }
@@ -638,13 +629,12 @@ class BattleAttackSequenceTest {
     fun `SJZTGJ rolls only statuses absent from ordinary outgoing attack states`() {
         val battle = Battle(
             units = listOf(
-                // MBGJ first supplies paralysis; SJZTGJ must not roll MB
-                // again, then its JZ roll (71) supplies silence.
+                // 테스트 근거: 전투 계산·난수 소비·경계값 (MBGJ, SJZTGJ)을 검증한다.
                 BattleUnit("attacker", "공격", Faction.PLAYER, 0, 0, skills = mapOf(92 to 0, 226 to 0, 144 to 100, 204 to 0)),
                 BattleUnit("defender", "방어", Faction.ENEMY, 1, 0),
             ),
             events = emptyList(),
-            // getAtkStatus MB roll, then SJZTGJ JZ/HL/ZD. Hit uses countRate.
+            // 테스트 근거: 전투 계산·난수 소비·경계값 (SJZTGJ)을 검증한다.
             random = FixedRandom(0, 71, 0, 71),
         )
 
@@ -665,7 +655,7 @@ class BattleAttackSequenceTest {
                 BattleUnit("defender", "방어", Faction.ENEMY, 1, 0),
             ),
             events = emptyList(),
-            // _attack2 builds SJSXGJ ATT..MOV; hit uses countRate.
+            // 테스트 근거: 전투 계산·난수 소비·경계값 (SJSXGJ, ATT, MOV)을 검증한다.
             random = FixedRandom(61, 65, 71, 75, 81, 86),
         )
 
@@ -693,8 +683,7 @@ class BattleAttackSequenceTest {
 
         battle.combat.attack("attacker", "defender", damage = 30)
 
-        // The six SJSXGJ rolls are the only random operations; rate gauges
-        // handle continuous and hit decisions.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (SJSXGJ)을 검증한다.
         assertEquals(6, random.calls)
         assertEquals(emptyMap(), battle.units.getValue("defender").attributeLifts)
     }

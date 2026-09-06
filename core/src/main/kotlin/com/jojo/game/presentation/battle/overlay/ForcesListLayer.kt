@@ -1,28 +1,24 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 
 import com.jojo.game.domain.battle.*
 
 
-/** Stateful implementation of `ui/ForcesListLayer.js` (onCreate/_changeSel/_onClick). */
+/** 아군·적군 유닛을 탭별 행으로 정렬하고 능력치와 상태 색상을 계산한다. */
 class ForcesListLayer {
-
     data class Unit(
         val id: Int, val name: String, val post: String, val level: Int,
         val hp: Int, val maxHp: Int, val mp: Int, val maxMp: Int,
         val attack: Int, val defense: Int, val spirit: Int, val critical: Int, val morale: Int,
         val famous: Boolean = false, val status: Map<Int, Int> = emptyMap(),
-        /** BattleUnit.index() is distinct from Unit.id() in the original list sorter. */
         val battleIndex: Int = id,
         val poisoned: Boolean = false, val fengZhou: Boolean = false,
     )
-
-
     data class Row(val unit: Unit, val colors: List<RowColor>, val labels: List<String>)
-
-
     enum class RowColor { BLACK, RED, BLUE }
 
 
+    /** 선택 탭의 부대 행과 탭 표시 여부를 렌더링 입력으로 제공한다. */
     data class View(
         val selectedTab: Int,
         val rows: List<Row>,
@@ -41,8 +37,6 @@ class ForcesListLayer {
         this.mine = mine; this.enemy = enemy; this.flag = flag
         return changeSel(0)
     }
-
-    /** Toggles and the original famous/index sorting only exist in battle mode. */
     fun changeSel(tab: Int): View {
         require(tab in 0..1)
         if (tab == 1 && flag and 1 == 0) return view()
@@ -64,8 +58,6 @@ class ForcesListLayer {
             )
             Row(unit, values.indices.map { i ->
                 if (flag and 1 == 0) RowColor.BLACK else when {
-                    // Recovered JS colors label4 for poison and label5 for FengZhou.
-                    // Keep the original label indices, even though they look unusual.
                     i == 4 && unit.poisoned -> RowColor.RED
                     i == 5 && unit.fengZhou -> RowColor.RED
                     i < 5 -> RowColor.BLACK
@@ -78,14 +70,14 @@ class ForcesListLayer {
         return View(tab, rows, flag and 1 != 0, true).also { view = it }
     }
 
-    /** item listener opens UnitInfoLayer on TOUCH_END; host consumes selected index. */
+    /** 선택한 부대 행의 인덱스를 저장하고 해당 유닛을 콜백으로 전달한다. */
     fun onRowTouch(index: Int, event: Int): Unit? {
         if (event != TOUCH_END) return null
         val unit = view().rows.getOrNull(index)?.unit ?: return null
         view = view().copy(selectedIndex = index); return unit
     }
 
-    /** Panel_cancel and button0 both close only on TOUCH_END. */
+    /** 부대 목록을 닫고 다음 표시 요청에서 연결되지 않은 상태를 반환한다. */
     fun onClose(event: Int): Boolean {
         if (event != TOUCH_END) return false; view = view().copy(attached = false); return true
     }

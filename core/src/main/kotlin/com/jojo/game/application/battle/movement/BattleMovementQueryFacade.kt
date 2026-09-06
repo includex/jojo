@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.movement
 
 import com.jojo.game.domain.battle.*
@@ -12,7 +13,7 @@ import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.domain.battle.BattleMovementPlanner
 
-/** Owns movement planning dependencies and all movement queries for a battle. */
+/** BattleMovementQueryFacade: 전투 이동 조회 진입점이며, 관련 전투 기능을 묶어 안정적인 호출 경로를 제공한다. */
 class BattleMovementQueryFacade internal constructor(
     private val configuration: BattleConfiguration,
     private val journal: BattleStateJournal,

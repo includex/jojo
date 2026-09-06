@@ -1,8 +1,9 @@
+// Battle
 package com.jojo.game.domain.battle
 
 import com.jojo.game.*
 
-/** Shared source action IDs/selection used by the production attack timeline. */
+/** BattleAttackSequence: 공격 순서를 결정하는 규칙 집합으로, 유닛 상태에 맞는 일반·추가·반격 공격을 선택한다. */
 object BattleAttackSequence {
     const val HIT_ATTACK = 21
     const val GONG_JI2 = 25
@@ -15,7 +16,7 @@ object BattleAttackSequence {
     const val HARM_QING = 35
     const val HARM_ZHONG = 36
 
-    /** BattleScreen._attack2's `d ? ..._DELAY : ...` action choice. */
+    /** selectAttackAction: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     fun selectAttackAction(critical: Boolean, attackDelay: Boolean): Int = when {
         critical && attackDelay -> HIT_ATTACK_DELAY
         critical -> HIT_ATTACK

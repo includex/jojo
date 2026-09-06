@@ -1,15 +1,20 @@
+// Verification
 package com.jojo.game.verification.campaign
 
 import com.jojo.game.application.runtime.RuntimeBattleUnitSnapshot
 import com.jojo.game.domain.battle.Faction
 
+/** CampaignE2eMovePlan: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 internal data class CampaignE2eMovePlan(
+    /** manualMove: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
     val manualMove: CampaignE2eMoveInput?,
+    /** s57CriticalFinisherActive: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
     val s57CriticalFinisherActive: Boolean,
 )
 
-/** Chooses only a legal tile from the snapshot/query probe; it never mutates Battle. */
+/** CampaignE2eBattleMovePlanner: 스냅샷과 질의 결과에서 합법 칸만 선택하며 Battle을 변경하지 않는다. */
 internal class CampaignE2eBattleMovePlanner {
+    /** plan: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */
     fun plan(board: CampaignE2eBattlePlanningBoard): CampaignE2eMovePlan {
         val selected = board.selected
         val candidates = sequenceOf(selected).filterNotNull() + board.units.asSequence().filter {

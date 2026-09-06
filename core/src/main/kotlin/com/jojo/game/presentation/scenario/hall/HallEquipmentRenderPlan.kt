@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/** Source-authored EquipLayer geometry and paint-order contract. */
+/** HallEquipmentRenderPlan: 거점 장비 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallEquipmentRenderPlan {
     fun inventoryRowY(index: Int): Float = 515f - index * 68f
 

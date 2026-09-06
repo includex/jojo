@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -26,11 +27,6 @@ internal data class BattleTacticalActionEnvironment(
     val physicalCombatEnvironment: () -> PhysicalCombatEnvironment,
     val magicEnvironment: () -> MagicEnvironment,
 )
-
-/**
- * Validates prerequisites and coordinates the execution of player and scripted tactical actions:
- * physical attacks, magic casting, and property/item usage.
- */
 internal object BattleTacticalActionExecutor {
 
     fun attack(

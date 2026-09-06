@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.presentation.scenario.*

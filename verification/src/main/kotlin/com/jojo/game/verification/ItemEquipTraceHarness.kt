@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -5,12 +6,15 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Item·UseProperty·EquipConfirm·Equip 레이어의 입력 계약을 헤드리스로 검증한다. */
 
+/** ItemEquipTraceHarness: Item·UseProperty·EquipConfirm·Equip 레이어의 입력 계약을 헤드리스로 검증한다. */
 object ItemEquipTraceHarness {
+    /** DROP: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private const val DROP = "버릴 것을 결정하시겠습니까?I10?"
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
 
+    /** State: 검증 실행의 현재 상태를 표현하는 타입이다. */
     private class State {
         var dead = false
         var sel: Int? = null
@@ -20,7 +24,7 @@ object ItemEquipTraceHarness {
         val events = mutableListOf<String>()
         val toasts = mutableListOf<String>()
 
-        /** 추적 결과에 레이어 생성 이벤트를 기록한다. */
+        /** layer: 추적 결과에 레이어 생성 이벤트를 기록한다. */
         fun layer(name: String, txt: String? = null, values: List<Int>? = null) {
             val args = "{\"txt\":${txt?.let { "\"${esc(it)}\"" } ?: "null"},\"values\":${
                 values?.joinToString(
@@ -32,7 +36,7 @@ object ItemEquipTraceHarness {
             layers += "{\"layer\":\"$name\",\"args\":$args}"
         }
 
-        /** 현재 아이템·장비 레이어 상태를 JSON 스냅샷으로 만든다. */
+        /** snap: 현재 아이템·장비 레이어 상태를 JSON 스냅샷으로 만든다. */
         fun snap(step: String): String =
             "{\"step\":\"${esc(step)}\",\"dead\":$dead,\"layers\":[${layers.joinToString(",")}],\"events\":[${
                 events.joinToString(",") { "\"${esc(it)}\"" }
@@ -43,10 +47,12 @@ object ItemEquipTraceHarness {
             }],\"buttons\":[${buttons.joinToString(",")}] }".replace("] }", "]}")
     }
 
+    /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun events(block: String): List<String> =
         Regex("\\\"events\\\":\\[(.*?)\\]").find(block)?.groupValues?.get(1)
             ?.let { Regex("\\\"([^\\\"]*)\\\"").findAll(it).map { m -> m.groupValues[1] }.toList() } ?: emptyList()
 
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     private fun run(name: String, kind: String, es: List<String>): String {
         val s = State()
         var answer: ((Int) -> Unit)? = null
@@ -96,9 +102,7 @@ object ItemEquipTraceHarness {
                     "button" -> if (p[2] == "2") {
                         s.dead = true; if (p[1] == "0") s.events += "confirmed"
                     }
-                    // EquipConfirmLayer's cancel callback does not inspect the
-                    // touch phase; the recovered listener removes on every
-                    // delivered phase (unlike its two action buttons).
+                    // EquipConfirmLayer의 취소 콜백은 터치 단계를 검사하지 않아, 복원한 리스너는 두 행동 버튼과 달리 전달된 모든 단계에서 제거한다.
                     "cancel" -> s.dead = true
                 }
 
@@ -134,13 +138,13 @@ object ItemEquipTraceHarness {
         return out.joinToString(",", "[", "]")
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         require(args.size == 2) { "fixture output" }
         val input = Files.readString(Path.of(args[0]))
-        // The fixture contains a nested `item` object, so do not use a
-        // brace-regex to split cases.  Anchor each event array at its case
-        // name, exactly as the shared fixture schema defines it.
+        // 픽스처에는 중첩 `item` 객체가 있으므로 중괄호 정규식으로 사례를 나누지 않는다.
+        // 공용 픽스처 스키마와 동일하게 각 이벤트 배열을 사례 이름에 고정한다.
         val cases = Regex("\\\"name\\\":\\\"([^\\\"]+)\\\",\\\"kind\\\":\\\"([^\\\"]+)\\\"")
             .findAll(input).map { m ->
                 val name = m.groupValues[1]

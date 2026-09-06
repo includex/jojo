@@ -1,12 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/**
- * Exact HallUnit CreateAnime selection for the authored animeRR.json clips.
- *
- * HallUnit passes flag 5 (PROPERTY | FORCE_MIRROR) to UIFrame.CreateAnime.
- * Runtime sampling is authoritative here: the generated horizontal clips
- * select alternate Pmapobj2 sheets, rows 1/2, and a negative node scale.
- */
+import com.jojo.game.application.scenario.HallMoveTimeline
+
+/** HallUnitSpriteFrame: 거점 유닛을 그릴 때 사용할 스프라이트 원본 영역과 방향 정보를 나타낸다. */
 
 data class HallUnitSpriteFrame(
     val textureAssetId: Int,
@@ -20,11 +17,8 @@ object HallUnitRender {
     fun frame(mapAvatar: Int, action: Int, direction: Int, elapsedSeconds: Float): HallUnitSpriteFrame {
         val normalizedDirection = direction.takeIf { it in 0..3 } ?: 0
         val row = when (action) {
-            // anime0_* is a one-key standing clip at sprite idx 0.
             0 -> 0
-            // anime20_* loops its two three-tick keyframes.
             20 -> 1 + ((elapsedSeconds / .125f).toInt() and 1)
-            // anime21_* uses Normal wrap and therefore holds idx 2.
             21 -> 1 + if (elapsedSeconds >= .125f) 1 else 0
             in 1..17 -> action + 2
             18 -> 1
@@ -38,7 +32,7 @@ object HallUnitRender {
         )
     }
 
-    /** Deterministic actual-game logger for the four HallUnit._move2 signs. */
+    /** walkingRenderEventLog: 거점 유닛 이동을 검증하기 위해 프레임별 렌더링 이벤트를 기록한다. */
     fun walkingRenderEventLog(): String {
 
         data class Path(val direction: Int, val x: Int, val y: Int, val dx: Int, val dy: Int)
@@ -78,15 +72,13 @@ object HallUnitRender {
         }
     }
 
-    /** Dense actual _move2 corner/tween/z-order trace at 10 ms intervals. */
+    /** walkingMotionRenderEventLog: 거점 유닛의 보간 이동 좌표를 검증용 이벤트 목록으로 기록한다. */
     fun walkingMotionRenderEventLog(): String {
         val path = listOf(45 to 48, 46 to 48, 47 to 48, 47 to 49, 47 to 50)
         return buildString {
             (0..16).forEach { frame ->
                 val time = frame * .01f
                 val sample = HallMoveTimeline.sample(path, time)
-                // HallUnit.setAction restarts the newly selected directional
-                // clip at the corner (t=.08), independent of move wall time.
                 val clipTime = if (sample.direction == 2) time - .08f else time
                 val selected = frame(0, 20, sample.direction, clipTime.coerceAtLeast(0f))
                 val x = (sample.x - sample.y + 42f) * 16f - 41.28f

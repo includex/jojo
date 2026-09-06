@@ -1,12 +1,10 @@
+// Battle
 package com.jojo.game.domain.battle.magic
 
 import com.jojo.game.domain.battle.*
 
 
-/**
- * Pure Kotlin resolution of tactical magic/strategy actions, including area targeting,
- * status effects, healing, multi-pass resolution (CLLJ), and weather transformations.
- */
+/** MagicResolver: 마법 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object MagicResolver {
 
     fun castMagic(

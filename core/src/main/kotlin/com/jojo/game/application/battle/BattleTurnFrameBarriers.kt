@@ -1,5 +1,7 @@
+// Battle
 package com.jojo.game.application.battle
 
+/** EmptyAiCampFrameBarrier: 행동 유닛이 없는 AI 진영에서 한 프레임을 보존하는 동기화 장벽이다. */
 internal class EmptyAiCampFrameBarrier {
     private var pending = false
 
@@ -16,6 +18,7 @@ internal class EmptyAiCampFrameBarrier {
     }
 }
 
+/** CommittedPlayerMoveFrameBarrier: 플레이어 이동 확정 뒤 완료 상태를 한 프레임 노출하는 장벽이다. */
 internal class CommittedPlayerMoveFrameBarrier {
     private var exposed = false
 
@@ -32,6 +35,7 @@ internal class CommittedPlayerMoveFrameBarrier {
     }
 }
 
+/** ActionStatusFrameBarrier: 행동 상태 정산 결과를 다음 처리 전에 한 프레임 노출하는 장벽이다. */
 internal class ActionStatusFrameBarrier {
     private var settlementExposed = false
 
@@ -40,14 +44,7 @@ internal class ActionStatusFrameBarrier {
         settlementExposed = false
     }
 
-    /**
-     * After `_jiesuan(g_charinfo)` has synchronously published XD, source
-     * returns to the `_ai2` generator scheduler before selecting the next
-     * actor.  Keep that settled actor observable in the current episode;
-     * otherwise the next actor's decision and the previous actor's XD edge
-     * are sampled in one game frame and the state edge is attributed to the
-     * wrong episode.
-     */
+    /** yieldAfterCommit: 행동 확정 결과를 아직 노출하지 않았을 때 단일 대기 프레임을 요청한다. */
 
     fun yieldAfterCommit(hasAction: Boolean): Boolean {
         if (settlementExposed || !hasAction) return false
@@ -56,6 +53,7 @@ internal class ActionStatusFrameBarrier {
     }
 }
 
+/** CounterattackSettlementFrameBarrier: 물리 반격 정산 전의 유휴 프레임을 보존하는 장벽이다. */
 internal class CounterattackSettlementFrameBarrier {
     private var idleFramePending = false
 
@@ -72,6 +70,7 @@ internal class CounterattackSettlementFrameBarrier {
     }
 }
 
+/** ScriptedMovementCampTransitionFrameBarrier: 스크립트 이동 완료와 진영 전환 사이의 표시 프레임을 보존한다. */
 internal class ScriptedMovementCampTransitionFrameBarrier {
     private var completedMoveFramePending = false
 
@@ -95,6 +94,7 @@ internal class ScriptedMovementCampTransitionFrameBarrier {
     }
 }
 
+/** ConsecutiveNoResultFrameGate: 같은 렌더 주기에서 연속된 무결과 처리가 겹치지 않도록 제한한다. */
 internal class ConsecutiveNoResultFrameGate {
     private var completedInCurrentRender = false
 

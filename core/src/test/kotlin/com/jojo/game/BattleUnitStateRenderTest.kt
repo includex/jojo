@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.unit.*
@@ -7,13 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleUnitStateRenderTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleUnitStateRenderTest: BattleUnitStateRender의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleUnitStateRenderTest {
     @Test fun `render command follows scaled child positions and source draw order`() {
@@ -47,8 +42,7 @@ class BattleUnitStateRenderTest {
         val effect = BattleUnitStateAnimation.Effect(listOf(0, 2))
         val pausedBattleClock = 0f
         val first = requireNotNull(BattleUnitStateRender.command(effect, pausedBattleClock, 0f, 0f, 96f))
-        // StageLayer.pause only pauses PyManager; the visual elapsed clock
-        // still reaches the next cc.Animation frame after one third second.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         val visualElapsedDuringDialogue = 1f / 3f
         val next = requireNotNull(BattleUnitStateRender.command(effect, visualElapsedDuringDialogue, 0f, 0f, 96f))
         assertEquals(0, first.textureIndex)

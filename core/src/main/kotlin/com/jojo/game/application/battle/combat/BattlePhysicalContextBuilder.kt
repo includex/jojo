@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.combat
 
 import com.jojo.game.domain.battle.*
@@ -16,6 +17,7 @@ import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
 import com.jojo.game.domain.battle.BattleAttributeCalculator
 
+/** BattlePhysicalContextEnvironment: 물리 공격 계산에 필요한 전장 조회·상태 변경·확률 의존성을 전달한다. */
 internal data class BattlePhysicalContextEnvironment(
     val units: () -> Collection<BattleUnit>,
     val unitAt: (Int, Int) -> BattleUnit?,
@@ -32,6 +34,7 @@ internal data class BattlePhysicalContextEnvironment(
     val probabilityResolver: BattleProbabilityResolver,
 )
 
+/** BattlePhysicalContextBuilder: 물리 피해·피해율·필살 계산에 쓸 문맥 값을 유닛과 전장에서 조립한다. */
 internal object BattlePhysicalContextBuilder {
 
     fun basePhysicalDamageContext(

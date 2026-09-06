@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.overlay
 
-/** 시나리오 선택지와 명령 버튼의 상태를 관리합니다. */
+/** ChoiceLayer: 시나리오 선택지를 행으로 구성하고, 터치 완료 시 선택한 태그를 콜백으로 전달한다. */
 class ChoiceLayer(private val plainNewline: Boolean) {
     /** 선택지 한 줄의 태그와 표시 정보를 담습니다. */
     data class Row(val tag: Int, val text: String, val listenerPriority: Int = 1)
@@ -35,7 +36,7 @@ class ChoiceLayer(private val plainNewline: Boolean) {
     fun attached() = attached
 }
 
-/** 시나리오 명령 메뉴의 버튼 상태를 관리합니다. */
+/** CommandLayer: 활성화 비트 마스크에 맞는 시나리오 명령 버튼을 만들고, 선택 결과를 콜백으로 전달한다. */
 class CommandLayer {
     /** 명령 버튼의 태그와 활성화 상태입니다. */
     data class Button(val tag: Int, val interactable: Boolean, val priority: Int)

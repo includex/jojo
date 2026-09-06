@@ -1,13 +1,16 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.TreasureLayer
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** CLI game counterpart of the recovered-JS MenuLayer trace harness. */
+/** MenuLayerTraceHarness: 복원된 JS MenuLayer 추적 실행기에 대응하는 CLI 게임 구현이다. */
 object MenuLayerTraceHarness {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val fixture = Files.readString(Path.of(args.single()))
@@ -17,6 +20,7 @@ object MenuLayerTraceHarness {
         print(cases.joinToString(prefix = "[", postfix = "]") { trace(it) }); println()
     }
 
+    /** trace: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun trace(v: List<String>): String {
         val weather = MenuLayer.Weather.valueOf(v[2])
         val max = v[4].toInt()

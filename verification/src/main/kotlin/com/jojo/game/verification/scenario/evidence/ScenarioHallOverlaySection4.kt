@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendFixture4: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendFixture4(writer: ScenarioHallOverlayEventWriter) = with(writer) {
                 val property = fixture == "item-property"
                 val discard = fixture == "item-discard-confirm"
@@ -18,6 +20,7 @@ internal fun appendFixture4(writer: ScenarioHallOverlayEventWriter) = with(write
                 }
 
 
+                /** measuredWidth: 문자열 렌더링 폭을 계산한다. */
                 fun measuredWidth(value: String): Float =
                     value.count { it != ' ' } * 27.68f + value.count { it == ' ' } * 8.89f
                 event(

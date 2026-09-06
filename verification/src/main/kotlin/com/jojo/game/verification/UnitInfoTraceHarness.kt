@@ -1,11 +1,15 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
 
-/** Kotlin side of tools/unit_info_source_trace_harness.js. Both consume one fixture. */
+/** UnitInfoTraceHarness: tools/unit_info_source_trace_harness.js에 대응하며 두 실행기가 하나의 픽스처를 사용한다. */
 object UnitInfoTraceHarness {
+    /** Json: 검증 데이터를 JSON 형식으로 변환하는 타입이다. */
     private class Json(private val s: String) {
         var p = 0
+        /** value: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun value(): Any? {
             ws(); return when (s[p]) {
                 '{' -> obj(); '[' -> arr(); '"' -> str(); 't' -> {
@@ -18,15 +22,18 @@ object UnitInfoTraceHarness {
             }
         }
 
+        /** ws: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun ws() {
             while (p < s.length && s[p].isWhitespace()) p++
         }
 
+        /** str: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun str(): String {
             p++
             val a = p; while (s[p] != '"') p++; return s.substring(a, p++)
         }
 
+        /** obj: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun obj(): Map<String, Any?> {
             p++
             val r = linkedMapOf<String, Any?>(); ws(); while (s[p] != '}') {
@@ -36,6 +43,7 @@ object UnitInfoTraceHarness {
             }; p++; return r
         }
 
+        /** arr: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun arr(): List<Any?> {
             p++
             val r = mutableListOf<Any?>(); ws(); while (s[p] != ']') {
@@ -45,17 +53,21 @@ object UnitInfoTraceHarness {
             }; p++; return r
         }
 
+        /** num: JSON 입력의 지정된 값 형식을 읽어 반환한다. */
         fun num(): Int {
             val a = p; while (p < s.length && (s[p].isDigit() || s[p] == '-')) p++; return s.substring(a, p).toInt()
         }
     }
 
+    /** q: 문자열을 JSON 인용 형식으로 변환한다. */
     private fun q(x: String) =
         buildString { append('"'); x.forEach { if (it == '"' || it == '\\') append('\\'); append(it) }; append('"') }
 
+    /** routeJson: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun routeJson(r: UnitInfoLayer.RouteRequest, u: Int) =
         "{\"route\":${q(r.route.name)},\"index\":${r.index},\"value\":${q(r.value)},\"unit\":$u}"
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         @Suppress("UNCHECKED_CAST") val root =
@@ -67,6 +79,7 @@ object UnitInfoTraceHarness {
         ); println(result)
     }
 
+    /** run: 검증 시나리오 입력을 적용하고 추적 결과를 반환한다. */
     @Suppress("UNCHECKED_CAST")
     private fun run(c: Map<String, Any?>): String {
         val flag = c["flag"] as Int
@@ -101,6 +114,7 @@ object UnitInfoTraceHarness {
         val trace = mutableListOf<String>()
 
 
+        /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snap(step: String) {
             val v = l.ref()
             val routes = l.takeRoutes().joinToString(prefix = "[", postfix = "]") {
@@ -122,6 +136,7 @@ object UnitInfoTraceHarness {
         }
 
 
+        /** fire: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun fire(raw: String) {
             val (a, b) = raw.split(':')
             val ev = b.toInt(); when {
@@ -143,6 +158,7 @@ object UnitInfoTraceHarness {
         snap("create"); (c["events"] as List<String>).forEach(::fire); return "{\"case\":${q(c["id"] as String)},\"trace\":[${trace.joinToString()}]}"
     }
 
+    /** buttonActive: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun buttonActive(l: UnitInfoLayer, n: Int, flag: Int, edit: Boolean, feats: Boolean) = when (n) {
         in 0..7 -> true; 8 -> feats && l.ref().unit.mine; 9 -> edit && (flag and UnitInfoLayer.BATTLE_FLAG) != 0; 10 -> edit; else -> false
     }

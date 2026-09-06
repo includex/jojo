@@ -1,14 +1,17 @@
+// Battle
 package com.jojo.game.domain.battle.combat
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
+/** CombatPassRecord: 한 물리 공격 패스에서 확정한 주대상 결과와 실제 피해량을 기록한다. */
 internal data class CombatPassRecord(
     val result: PhysicalAttackTargetResult,
     val primaryResolvedHarm: Int,
 )
 
+/** CombatSettlementAccumulator: 여러 물리 공격 패스의 피해·회복·자금·경험치·장비 정산을 누적한다. */
 internal class CombatSettlementAccumulator(
     private val env: PhysicalCombatEnvironment,
 ) {

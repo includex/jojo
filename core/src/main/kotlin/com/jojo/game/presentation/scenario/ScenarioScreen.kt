@@ -1,5 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario
+import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.infrastructure.data.ScenarioCatalog
+import com.jojo.game.infrastructure.audio.GameAudioPlayer
 import com.jojo.game.presentation.shared.overlay.*
+import com.jojo.game.presentation.shared.StorySkipFlow
 
 import com.jojo.game.presentation.scenario.overlay.*
 
@@ -8,14 +13,13 @@ import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.hall.HallManagementCommandAdapter
-import com.jojo.game.application.runtime.ScenarioRuntimeProbe
-import com.jojo.game.application.runtime.RuntimeScenarioCommand
-import com.jojo.game.application.runtime.RuntimeScenarioFrame
 import com.jojo.game.application.runtime.RuntimeScenarioPresentation
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 import com.jojo.game.application.runtime.RuntimeScenarioScene
-import com.jojo.game.application.runtime.RuntimeScenarioCommand.ShowOverlay
-import com.jojo.game.application.runtime.RuntimeScenarioCommand.Present
+import com.jojo.game.application.runtime.RuntimeScenarioFrame
+import com.jojo.game.presentation.scenario.trace.ScenarioRandomTraceConfiguration
+import com.jojo.game.presentation.scenario.trace.ScenarioRuntimeTraceCoordinator
+import com.jojo.game.presentation.scenario.trace.ScenarioRuntimeTraceProbeInput
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
@@ -46,6 +50,7 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 
 
+/** ScenarioScreen: 시나리오 장면의 재생·전장·대사·거점 오버레이·입력을 한 화면 수명주기에서 조정한다. */
 class ScenarioScreen(
     internal val game: JojoGame,
     internal val moduleName: String,
@@ -63,8 +68,7 @@ class ScenarioScreen(
     private val scriptedBattleEnemyDefeated: Boolean,
     private val scriptedStartScene: String,
     private val scriptedStartLabel: String?,
-    private val stopAfterRandomTrace: Boolean,
-    private val stopAfterRandomTraceCount: Int?,
+    private val randomTraceConfiguration: ScenarioRandomTraceConfiguration,
     internal val campaign: CampaignState,
 ) : ScreenAdapter(), ScenarioInputPort, ScenarioHallInteractionPort {
 
@@ -72,9 +76,8 @@ class ScenarioScreen(
     private val shapes = ShapeRenderer()
     private val batch = SpriteBatch()
     internal val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
-        // `campaign.enter()` prepares a fresh module state. Apply explicit
-        // External globals are applied after campaign entry so a supplied
-        // loses its recovered source guard inputs at scene entry.
+        // `campaign.enter()`는 새 모듈 상태를 준비한다. 명시적으로 전달한 전역값은
+        // 캠페인 진입 뒤에 적용하여, 장면 시작 시 원본의 보호 입력값이 사라지지 않게 한다.
         scriptedGlobals.forEach { (id, value) -> campaign.globalVariables[id] = value }
         scriptedUnitAttributes.forEach { (unitId, attribute, value) ->
             campaign.setUnitAttribute(
@@ -86,11 +89,7 @@ class ScenarioScreen(
         campaign.setInfoTransferRandomSequence(scriptedInfoTransferRandomValues)
         scriptedAmbition?.let { stage.addAmbition(it - stage.ambition) }
         setRandomSequence(scriptedRandomValues)
-        if (stopAfterRandomTraceCount != null) {
-            stopAfterRandomTrace(stopAfterRandomTraceCount)
-        } else if (stopAfterRandomTrace) {
-            stopAfterNextRandomTrace()
-        }
+        randomTraceConfiguration.applyTo(this)
         setScriptVariables(scriptedVariables)
         setBattleContext(
             ScenarioBattleScriptContext(
@@ -145,7 +144,7 @@ class ScenarioScreen(
         playback = playback,
         playbackController = playbackController,
         navigation = scenarioNavigation,
-        isVerificationRun = ::isVerificationRun,
+        isVerificationRun = { runtimeTraceCoordinator.isVerificationRun() },
         isStreetPresentation = { runtimePresentation == RuntimeScenarioPresentation.STREET },
         autoCloseSettingEnabled = {
             settingsPreferences.getInteger(
@@ -155,6 +154,59 @@ class ScenarioScreen(
         },
         onAdvance = ::advance,
     )
+    /** 시나리오 검증 runtime과 Screen UI 상태 사이의 단일 adapter다. */
+    private val runtimeTraceCoordinator: ScenarioRuntimeTraceCoordinator by lazy {
+        ScenarioRuntimeTraceCoordinator(
+            driver = game.runtimeScenarioDriver(),
+            port = object : ScenarioRuntimeTraceCoordinator.Port {
+                override fun runtimeFrame(): RuntimeScenarioFrame = RuntimeScenarioFrame(
+                    module = moduleName,
+                    elapsedSeconds = playbackFrame.elapsed,
+                    playback = playback.state,
+                    choiceAvailable = playback.currentChoice != null,
+                )
+
+                override fun runtimeProbeInput(): ScenarioRuntimeTraceProbeInput {
+                    val battleButton = viewport.project(com.badlogic.gdx.math.Vector3(936.86f, 43f, 0f))
+                    return ScenarioRuntimeTraceProbeInput(
+                        module = moduleName,
+                        elapsedSeconds = playbackFrame.elapsed,
+                        playback = playback.state,
+                        options = playback.currentChoice?.options.orEmpty(),
+                        selectedChoice = playback.selectedChoice,
+                        sceneIndex = scenarioNavigation.naturalSceneIndex,
+                        startedScenes = scenarioNavigation.startedScenes(),
+                        backgroundId = playback.stage.backgroundId,
+                        unitIds = playback.stage.units.keys.toSet(),
+                        campaignStage = game.campaignStage(),
+                        menuVisible = playback.stage.menuVisible,
+                        dialogueText = playback.currentDialogue?.text,
+                        hallBattleScenePending = scenarioNavigation.hallBattleScenePending,
+                        battleButtonScreenX = battleButton.x.toInt(),
+                        battleButtonScreenY = (Gdx.graphics.height - battleButton.y).toInt(),
+                        choiceTrace = playback.choiceTrace.toList(),
+                        randomTrace = playback.randomTrace.toList(),
+                        randomDrawCount = playback.randomDrawCount,
+                        remainingInjectedRandomCount = playback.remainingInjectedRandomCount,
+                    )
+                }
+
+                override fun keepsScenarioOpen(): Boolean = game.externalScenarioDriverKeepsScreenOpen()
+                override fun playbackState() = playback.state
+                override fun applyPresentation(mode: RuntimeScenarioPresentation, detail: Int, scene: RuntimeScenarioScene) =
+                    this@ScenarioScreen.applyRuntimePresentation(mode, detail, scene)
+                override fun showOverlay(overlay: RuntimeScenarioOverlay, scene: RuntimeScenarioScene) {
+                    runtimeOverlayState = overlay
+                    pendingRuntimeOverlayScene = scene
+                }
+                override fun advanceDialogue() = playback.advanceDialogue()
+                override fun resumeModal() = playback.resumeModal()
+                override fun skipDelay() = playback.skipDelay()
+                override fun confirmChoice() = this@ScenarioScreen.confirmChoice()
+                override fun resetDialogueReveal() = playbackController.resetDialogueReveal()
+            },
+        )
+    }
     internal val scenarioViewState get() = playbackController.viewState
     private val glyphLayout = GlyphLayout()
     private val settingsPreferences by lazy { game.settingsPreferences() }
@@ -274,7 +326,7 @@ class ScenarioScreen(
     }
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
-        applyRuntimeScenarioCommands()
+        runtimeTraceCoordinator.applyRuntimeCommands()
         if (!runtimeOverlayInstalled && runtimeOverlay != null) {
             runtimeOverlayInstalled = true
             when (runtimeOverlay) {
@@ -357,8 +409,7 @@ class ScenarioScreen(
                         openHallUnitInfo(0)
                         openHallFeatsFromUnitInfo()
                         if (runtimeOverlay == RuntimeScenarioOverlay.FEATS_HELP) openHallFeatsHelp()
-                        // Render-event projections isolate Global127 after
-                        // exercising the actual Forces/UnitInfo route.
+                        // 렌더 이벤트 투영은 실제 Forces/UnitInfo 경로를 거친 뒤 Global127을 분리한다.
                         hallInfo = null
                         hallUnitInfoLayer = null
                     }
@@ -384,7 +435,7 @@ class ScenarioScreen(
         if (renderScenarioFrame() == ScenarioRenderPhaseResult.CAPTURED) return
     }
 
-    /** Draws the post-update scene and reports capture completion to its caller. */
+    /** renderScenarioFrame: 현재 재생 상태를 읽어 장면·대사·오버레이를 한 프레임에 렌더링한다. */
     private fun renderScenarioFrame(): ScenarioRenderPhaseResult {
         if (runtimePresentation == RuntimeScenarioPresentation.STREET) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         else Gdx.gl.glClearColor(0.08f, 0.11f, 0.15f, 1f)
@@ -444,61 +495,12 @@ class ScenarioScreen(
         )
     }
 
-    /** Read-only presentation snapshot; mutations still enter through the installed InputProcessor. */
-    internal fun runtimeProbe(): ScenarioRuntimeProbe {
-        val battleButton = viewport.project(com.badlogic.gdx.math.Vector3(936.86f, 43f, 0f))
-        return ScenarioRuntimeProbe(
-            module = moduleName,
-            elapsedSeconds = playbackFrame.elapsed,
-            playback = playback.state,
-            options = playback.currentChoice?.options.orEmpty(),
-            selectedChoice = playback.selectedChoice,
-            sceneIndex = scenarioNavigation.naturalSceneIndex,
-            startedScenes = scenarioNavigation.startedScenes(),
-            backgroundId = playback.stage.backgroundId,
-            unitIds = playback.stage.units.keys.toSet(),
-            campaignStage = game.campaignStage(),
-            menuVisible = playback.stage.menuVisible,
-            dialogueText = playback.currentDialogue?.text,
-            hallBattleScenePending = scenarioNavigation.hallBattleScenePending,
-            battleButtonScreenX = battleButton.x.toInt(),
-            battleButtonScreenY = (Gdx.graphics.height - battleButton.y).toInt(),
-            choiceTrace = playback.choiceTrace.toList(),
-            randomTrace = playback.randomTrace.toList(),
-            randomDrawCount = playback.randomDrawCount,
-            remainingInjectedRandomCount = playback.remainingInjectedRandomCount,
-        )
-    }
+    /** runtimeProbe: 현재 UI 상태 adapter를 trace coordinator의 런타임 관측값으로 변환한다. */
+    internal fun runtimeProbe() = runtimeTraceCoordinator.runtimeProbe()
 
     private fun confirmChoice() {
         playback.confirmChoice()
         playback.chosenOption?.let { game.recordChoice(moduleName, it) }
-    }
-
-    private fun isVerificationRun(): Boolean = game.externalScenarioDriverKeepsScreenOpen()
-
-    private fun applyRuntimeScenarioCommands() {
-        val frame = RuntimeScenarioFrame(
-            module = moduleName,
-            elapsedSeconds = playbackFrame.elapsed,
-            playback = playback.state,
-            choiceAvailable = playback.currentChoice != null,
-        )
-        game.runtimeScenarioDriver()?.commands(frame).orEmpty().forEach { command ->
-            when (command) {
-                is Present -> applyRuntimePresentation(command.presentation, command.detail, command.scene)
-                is ShowOverlay -> {
-                    runtimeOverlayState = command.overlay
-                    pendingRuntimeOverlayScene = command.scene
-                }
-                is RuntimeScenarioCommand.SetPresentation -> applyRuntimePresentation(command.mode, command.detail, RuntimeScenarioScene())
-                RuntimeScenarioCommand.AdvanceDialogue -> if (playback.state == PlaybackState.DIALOGUE) playback.advanceDialogue()
-                RuntimeScenarioCommand.ResumeModal -> if (playback.state == PlaybackState.MODAL) playback.resumeModal()
-                RuntimeScenarioCommand.SkipDelay -> if (playback.state == PlaybackState.DELAY) playback.skipDelay()
-                RuntimeScenarioCommand.ConfirmChoice -> if (playback.state == PlaybackState.CHOICE) confirmChoice()
-                RuntimeScenarioCommand.RevealDialogue -> playbackController.resetDialogueReveal()
-            }
-        }
     }
 
     private fun applyRuntimePresentation(
@@ -648,14 +650,13 @@ class ScenarioScreen(
             batch.draw(texture, 231.08f, 240.21f, 165.12f, 206.4f)
         }
         choice.options.take(3).forEachIndexed { index, option ->
-            // ChooseLayer has no keyboard focus/selected-row tint.  All
-            // source labels keep the same dark color until clicked.
+            // ChooseLayer에는 키보드 초점이나 선택 행 색조가 없어, 클릭 전까지 모든 원본 레이블이 같은 어두운 색을 유지한다.
             bodyFont.color = Color(0.06f, 0.06f, 0.06f, 1f)
             bodyFont.draw(batch, option, 482.88f, 407f - index * 42.14f)
         }
     }
 
-    /** Original Hall/scene/HallMenuLayer addAmbition presentation. */
+    /** drawHallMenu: 거점 메뉴의 선택 항목과 버튼 상태를 화면에 그린다. */
     private fun drawHallMenu(interactive: Boolean = false) {
         HallMenuRenderer.draw(
             sceneAssets,
@@ -698,7 +699,7 @@ class ScenarioScreen(
         HallExclusiveRenderer.draw(sceneAssets, batch, HallExclusiveView.from(layer))
     }
 
-    /** Global127 opened from UnitInfoLayer's GVar4074-gated button8. */
+    /** drawFeatsLayer: 거점 업적 목록과 완료 상태를 오버레이에 그린다. */
     private fun drawFeatsLayer(layer: FeatsLayer) {
         HallFeatsRenderer.draw(sceneAssets, batch, HallFeatsView.from(layer, hallFeatsHelpOpen))
     }
@@ -707,7 +708,7 @@ class ScenarioScreen(
         HallMagicRenderer.draw(sceneAssets, batch, HallMagicView.from(layer.magic))
     }
 
-    /** EquipLayer / BuyLayer / SellLayer shown by HallCommandLayer buttons 1..3. */
+    /** drawHallManagement: 거점 관리 화면의 선택 탭과 세부 목록을 렌더링한다. */
     private fun drawHallManagement(kind: HallManagement) {
         when (kind) {
             HallManagement.SELL -> HallManagementRenderer.draw(
@@ -754,7 +755,7 @@ class ScenarioScreen(
         }
     }
 
-    /** Source Hall/scene/EquipConfirmLayer, transformed from 1488.372x800 by .86. */
+    /** drawEquipConfirmation: 장비 교체 전 확인 모달의 대상·장비·버튼을 렌더링한다. */
     private fun drawEquipConfirmation(confirmation: HallEquipConfirmation) {
         HallEquipConfirmationRenderer.draw(
             sceneAssets,
@@ -763,8 +764,8 @@ class ScenarioScreen(
         )
     }
 
-    /** Source Global information layers opened by HallMenuLayer tags 4..9. */
-    /** ItemLayer uses Model.cfgItemTypeName(Item.itemType()) for consumables. */
+    /** propertyEffectName: 속성 아이템 식별자에 대응하는 효과 이름을 반환한다. */
+    /** propertyEffectName: 속성 아이템 식별자에 대응하는 효과 이름을 반환한다. */
     private fun propertyEffectName(item: GameDataCatalog.EquipmentProfile): String = when (item.id) {
         150 -> "HP 회복"
         else -> gameDataCatalog.equipmentTypeName(item.itemType)
@@ -945,13 +946,13 @@ class ScenarioScreen(
         bodyFont.draw(batch, playback.chosenOption ?: "시나리오 구간 완료", 95f, 145f)
     }
 
-    /** Immutable, serializer-free observation used by external artifact sinks. */
+    /** runtimeSnapshot: 현재 시나리오 재생·오버레이·전장 상태를 불변 화면 스냅샷으로 반환한다. */
     fun runtimeSnapshot(): ScenarioRuntimeSnapshot = ScenarioRuntimeSnapshot(
         frame = ScenarioRuntimeSnapshotProjector.renderInput(this),
         composition = ScenarioRuntimeCompositionProjector.project(this),
     )
 
-    /** HallLayer.turnPos: source's 100×100 isometric Hall coordinate transform. */
+    /** mapX: 맵 타일 X 좌표를 현재 카메라 기준 화면 좌표로 변환한다. */
     private fun mapX(x: Int, y: Int): Float = (x - y + 42) * 16f
     private fun mapY(x: Int, y: Int): Float = 1073.28f - (x + y) * 6.88f
     private fun mapX(x: Float, y: Float): Float = (x - y + 42f) * 16f
@@ -973,7 +974,7 @@ class ScenarioScreen(
 
     private fun portraitTexture(characterId: Int): Texture? = sceneAssets.portraitTexture(characterId)
 
-    /** Model.unitAttrFace2, which DialogueLayer uses before loading Head/<id>. */
+    /** dialoguePortrait: 대사 화자의 인물 정보로 초상화 텍스처와 표시 위치를 결정한다. */
     private fun dialoguePortrait(unitId: Int): Texture? = portraitTexture(dialoguePortraitId(unitId))
 
     private fun dialoguePortraitId(unitId: Int): Int {

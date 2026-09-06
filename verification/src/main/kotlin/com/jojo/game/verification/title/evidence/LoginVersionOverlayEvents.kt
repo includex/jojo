@@ -1,5 +1,7 @@
+// Verification
 package com.jojo.game.verification.title.evidence
 
+/** writeVersionOverlayEvents: 검증 이벤트와 산출물을 기록한다. */
 internal fun writeVersionOverlayEvents(context: LoginOptionalOverlayEventContext) {
     context.draw("Canvas/Layer/Panel_cancel", "sprite", 0.000000f, 0.000000f, 1279.999920f, 688.000000f, "default_sprite_splash", 0.392f, listOf(770, 771), "")
     context.draw("Canvas/Layer/Logo_12-1", "tiled-sprite", 259.019960f, 72.670000f, 761.960000f, 542.660000f, "Logo_12-1", 1f, listOf(770, 771), "")

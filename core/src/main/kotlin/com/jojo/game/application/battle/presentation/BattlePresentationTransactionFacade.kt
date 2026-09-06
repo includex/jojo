@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.presentation
 
 import com.jojo.game.domain.battle.*
@@ -17,7 +18,7 @@ data class BattleDeferredMoveResult(
     val path: List<Pair<Int, Int>>,
 )
 
-/** Owns runtime snapshots and deferred presentation transactions for a battle. */
+/** BattlePresentationTransactionFacade: 전투 표현 Transaction 진입점이며, 관련 전투 기능을 묶어 안정적인 호출 경로를 제공한다. */
 class BattlePresentationTransactionFacade internal constructor(
     private val battlefield: Battlefield,
     private val units: () -> Map<String, BattleUnit>,

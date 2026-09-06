@@ -1,11 +1,13 @@
+// Runtime
 package com.jojo.game.application.runtime
 
 import com.jojo.game.domain.battle.BattleStatus
 import com.jojo.game.domain.battle.Faction
 
-/** Immutable coordinate value used across the diagnostics boundary. */
+/** RuntimeGridPoint: 런타임 탐침이 좌표 질의 결과를 주고받을 때 사용하는 격자 위치다. */
 data class RuntimeGridPoint(val x: Int, val y: Int)
 
+/** RuntimeMagicSnapshot: 한 유닛이 현재 사용할 수 있는 마법의 비용·범위·위력을 고정한 조회 모델이다. */
 data class RuntimeMagicSnapshot(
     val id: Int,
     val target: Int,
@@ -16,6 +18,7 @@ data class RuntimeMagicSnapshot(
     val offsets: Set<RuntimeGridPoint>,
 )
 
+/** RuntimeBattleUnitSnapshot: 자동 전투 구동기가 판단에 사용하는 유닛의 위치·상태·행동 가능 정보를 담는다. */
 data class RuntimeBattleUnitSnapshot(
     val id: String,
     val faction: Faction,
@@ -39,17 +42,14 @@ data class RuntimeBattleUnitSnapshot(
     val hasAuthoredY: Boolean,
 )
 
+/** BattleRuntimeSnapshot: 현재 라운드와 진영, 전장 유닛 목록을 한 번에 조회하는 전투 상태 스냅샷이다. */
 data class BattleRuntimeSnapshot(
     val round: Int,
     val activeFaction: Faction,
     val units: List<RuntimeBattleUnitSnapshot>,
 )
 
-/**
- * A read-only live query facade paired with an immutable [snapshot].  The
- * queries have no mutation capability and retain tactical calculations inside
- * core while allowing diagnostics to choose their own projection policy.
- */
+/** BattleRuntimeProbe: 화면 구현을 노출하지 않고 자동 구동기에 전장 질의와 좌표 변환을 제공하는 계약이다. */
 interface BattleRuntimeProbe {
     val snapshot: BattleRuntimeSnapshot
 

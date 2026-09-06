@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
@@ -7,12 +8,16 @@ import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.ScenarioRunConfiguration
 
-/** Verification-owned LWJGL entry point for deterministic scenario fixtures. */
+/** ScenarioTraceDesktopLauncher: 결정적인 시나리오 픽스처를 실행하는 검증 전용 LWJGL 진입점이다. */
 object ScenarioTraceDesktopLauncher {
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic fun main(args: Array<String>) {
         val options = args.toList()
+        /** value: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun value(prefix: String) = options.firstOrNull { it.startsWith(prefix) }?.removePrefix(prefix)
+        /** ints: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun ints(prefix: String) = value(prefix)?.takeIf(String::isNotBlank)?.split(',')?.map { it.trim().toInt() }.orEmpty()
+        /** map: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun map(prefix: String) = value(prefix)?.takeIf(String::isNotBlank)?.split(',')?.associate { token ->
             token.trim().split(':', limit = 2).let { it[0].toInt() to it[1].toInt() }
         }.orEmpty()

@@ -1,10 +1,7 @@
+// Runtime
 package com.jojo.game.application.runtime
 
-/**
- * Neutral adapter for the read-only battle runtime contract.  Screen code
- * supplies domain queries; diagnostics receive only immutable coordinates and
- * snapshots, with no dependency on a LibGDX screen or capture route.
- */
+/** BattleRuntimeProbeFactory: 화면이 제공한 전장 조회 함수를 자동 구동기용 BattleRuntimeProbe로 조립한다. */
 internal class BattleRuntimeProbeFactory(
     private val initialSnapshot: BattleRuntimeSnapshot,
     private val reachable: (String) -> Set<RuntimeGridPoint>,

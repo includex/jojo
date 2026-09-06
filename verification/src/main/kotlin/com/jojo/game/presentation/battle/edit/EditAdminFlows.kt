@@ -1,45 +1,62 @@
+// Verification
 package com.jojo.game.presentation.battle.edit
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.*
 
-/** Hall/scene/EditLayer4에서 복원한 편성 계약을 순수 상태로 표현한다. */
+/** EditRosterFlow: Hall/scene/EditLayer4에서 복원한 편성 계약을 순수 상태로 표현한다. */
 class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>) {
 
+    /** UnitRow: unit row 관련 검증 상태와 동작을 제공하는 타입이다. */
     data class UnitRow(val id: Int, val name: String, val leave: Boolean)
+    /** Effect: effect 관련 검증 상태와 동작을 제공하는 타입이다. */
     sealed interface Effect {
+        /** OpenGlobalEditor: open global editor 관련 검증 상태와 동작을 제공하는 타입이다. */
         data object OpenGlobalEditor : Effect
 
 
+        /** OpenUnitSelector: open unit selector 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class OpenUnitSelector(val names: List<String>) : Effect
 
 
+        /** AskJoin: ask join 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class AskJoin(val id: Int, val text: String) : Effect
 
 
+        /** Info: info 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class Info(val text: String) : Effect
+        /** Close: close 관련 검증 상태와 동작을 제공하는 타입이다. */
         data object Close : Effect
 
 
+        /** Join: join 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class Join(val id: Int, val camp: Int = 0, val order: Int = 0) : Effect
 
 
+        /** Leave: leave 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class Leave(val id: Int, val camp: Int = 255, val order: Int = 0) : Effect
 
 
+        /** Toast: toast 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class Toast(val text: String) : Effect
+        /** Refresh: refresh 관련 검증 상태와 동작을 제공하는 타입이다. */
         data object Refresh : Effect
+        /** OpenLearnUnitSkill: open learn unit skill 관련 검증 상태와 동작을 제공하는 타입이다. */
         data object OpenLearnUnitSkill : Effect
 
 
+        /** AskLeave: ask leave 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class AskLeave(val id: Int, val text: String) : Effect
     }
 
+    /** joined: 검증 흐름에서 사용하는 값을 담는다. */
     private val joined = initial.associateByTo(linkedMapOf()) { it.id }
+    /** pendingUnitId: pending unit id 값을 보관해 검증 흐름에서 사용한다. */
     var pendingUnitId: Int? = null
         private set
 
 
+    /** button: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     fun button(tag: Int): List<Effect> = when (tag) {
         0 -> listOf(Effect.OpenGlobalEditor)
         1 -> listOf(Effect.OpenUnitSelector(unitNames))
@@ -56,6 +73,7 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
     }
 
 
+    /** selectUnit: select unit에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     fun selectUnit(id: Int): List<Effect> {
         if (id < 0) return emptyList()
         require(id in unitNames.indices)
@@ -68,6 +86,7 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
     }
 
 
+    /** joinAnswer: join answer에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     fun joinAnswer(answer: Int): List<Effect> {
         val id = pendingUnitId ?: return emptyList()
         if (answer != 0) return emptyList()
@@ -76,6 +95,7 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
     }
 
 
+    /** tapRow: tap row에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     fun tapRow(rowIndex: Int): List<Effect> {
         val row = joined.values.elementAt(rowIndex)
         pendingUnitId = row.id
@@ -83,6 +103,7 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
     }
 
 
+    /** leaveAnswer: leave answer에 필요한 검증 동작을 실행하고 결과를 반환한다. */
     fun leaveAnswer(answer: Int): List<Effect> {
         val id = pendingUnitId ?: return emptyList()
         if (answer != 0) return emptyList()
@@ -92,35 +113,42 @@ class EditRosterFlow(initial: List<UnitRow>, private val unitNames: List<String>
     }
 
 
+    /** rows: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     fun rows(): List<UnitRow> = joined.values.toList()
 }
 
 
+/** EditRosterRoute: edit roster route 관련 검증 상태와 동작을 제공하는 타입이다. */
 enum class EditRosterRoute(val key: String) {
     DEFAULT("edit4-default"), SELECT("edit4-select");
 
     companion object {
 
+        /** parse: 외부 상태를 검증 경로 값으로 변환한다. */
         fun parse(state: String?): EditRosterRoute? = entries.firstOrNull { "hall-${it.key}-fixture" == state }
     }
 }
 
-/** EDIT 조건의 HallMenu tag8 전달 경로를 Helper tag9와 분리해 표현한다. */
+/** HallEditRosterRoute: EDIT 조건의 HallMenu tag8 전달 경로를 Helper tag9와 분리해 표현한다. */
 class HallEditRosterRoute(private val editEnabled: Boolean) {
 
+    /** touch: 검증 입력을 현재 상태에 적용한다. */
     fun touch(tag: Int, touchEnd: Boolean): Boolean = touchEnd && editEnabled && tag == 8
 }
 
-/** HallMenu button8에서 Hall15로 이어지는 렌더 계약을 표현한다. */
+/** EditRosterRenderEvents: HallMenu button8에서 Hall15로 이어지는 렌더 계약을 표현한다. */
 object EditRosterRenderEvents {
+    /** alpha: 렌더링 투명도 규칙을 담는다. */
     private val alpha = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
 
+    /** jsonl: 검증 상태를 JSONL 한 줄로 직렬화한다. */
     fun jsonl(route: EditRosterRoute): String {
         val log = RenderEventLog()
         val phase = "hall-${route.key}-stable"
 
 
+        /** d: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun d(
             layer: String,
             path: String,
@@ -212,6 +240,7 @@ object EditRosterRenderEvents {
         )
         d("EditLayer4", "Canvas/Layer/bg/scrollview0", "sliced-sprite", 433.686f, 167f, 621f, 488f, "box5")
 
+        /** Row: row 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class Row(
             val id: String,
             val name: String,
@@ -251,6 +280,7 @@ object EditRosterRenderEvents {
             d("EditLayer4", "$p/label2", "label", 914.286f, row.y + 4.8f, 103.8f, 50.4f, text = "참전함", blend = alpha)
         }
 
+        /** Button: button 관련 검증 상태와 동작을 제공하는 타입이다. */
         data class Button(
             val i: Int,
             val x: Float,

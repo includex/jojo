@@ -1,6 +1,7 @@
+// Battle
 package com.jojo.game.domain.battle.magic
 
-/** Immutable tactical spell contract consumed by battle policy. */
+/** BattleMagicProfile: 전투 마법 프로필이며, 전투 계층 사이에서 필요한 동작과 데이터를 약속한다. */
 interface BattleMagicProfile {
     val id: Int
     val name: String
@@ -21,7 +22,7 @@ interface BattleMagicProfile {
     val intro: String
 }
 
-/** Immutable tactical cast-range value. */
+/** BattleMagicHitArea: 전투 마법 Hit 범위이며, 전투 계층 사이에서 필요한 동작과 데이터를 약속한다. */
 interface BattleMagicHitArea {
     val id: Int
     val offsets: Set<Pair<Int, Int>>

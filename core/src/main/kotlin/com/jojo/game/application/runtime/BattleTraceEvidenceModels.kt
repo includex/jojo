@@ -1,11 +1,7 @@
+// Runtime
 package com.jojo.game.application.runtime
 
-/**
- * Immutable screen snapshot consumed by the full-battle evidence recorder.
- *
- * The view deliberately contains only value data and already projected JSON
- * fragments.  It has no renderer, game, Battle, or mutable model dependency.
- */
+/** RuntimeBattleTraceView: 전투 재현 검증에 필요한 프레임·화면·행동 상태를 직렬화 가능한 형태로 투영한 값이다. */
 data class RuntimeBattleTraceView(
     val frame: Long,
     val elapsed: Float,

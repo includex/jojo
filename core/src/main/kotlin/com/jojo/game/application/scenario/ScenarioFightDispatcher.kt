@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
@@ -6,10 +7,7 @@ import com.jojo.game.application.scenario.*
 
 import com.jojo.game.domain.scenario.*
 
-/**
- * Dispatches authored FightLayer scripting commands to ScenarioStage and coordinates
- * presentation suspension for live Fight animations.
- */
+/** ScenarioFightDispatcher: 시나리오 스크립트의 전투 시작·종료 호출을 전장 흐름과 캠페인 상태에 연결한다. */
 internal object ScenarioFightDispatcher {
 
     fun startFight(

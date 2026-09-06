@@ -1,8 +1,9 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.utils.Align
 
-/** Pure source-order plan for Hall/scene/UnitListLayer. */
+/** HallUnitRosterRenderPlan: 거점 유닛 명단 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallUnitRosterRenderPlan {
     fun commands(view: HallUnitRosterView): List<HallUnitRosterDrawCommand> = buildList {
         tiled("maps/ui/start-battle/logo9.png", 924.186f, 248.3f, 360f, 409.7f)

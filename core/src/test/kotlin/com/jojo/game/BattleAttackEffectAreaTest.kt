@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -9,13 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleAttackEffectAreaTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleAttackEffectAreaTest: BattleAttackEffectArea의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleAttackEffectAreaTest {
     @Test
@@ -35,8 +30,7 @@ class BattleAttackEffectAreaTest {
         val splash = result.splashTargets.single()
         assertEquals("splash", splash.targetId)
         assertEquals(100, splash.hitRate)
-        // Same defense/stat fixture: CTGJ rate is 80%, applied before the
-        // final normal/critical multiplier; critical is disabled above.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (CTGJ)을 검증한다.
         assertEquals(result.damage * 80 / 100, splash.damage)
         assertEquals(100 - splash.damage, battle.units.getValue("splash").hitPoints)
     }
@@ -54,11 +48,9 @@ class BattleAttackEffectAreaTest {
 
         val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("attacker", "primary"))
         assertEquals(true, result.critical)
-        // Missing ZMYJZS returns 255, which is truthy in source JavaScript:
-        // 180 - 20 = 160, so floor(75 * 160 / 100) = 120.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (ZMYJZS)을 검증한다.
         assertEquals(120, result.splashTargets.single().damage)
-        // countAtkHarm retains 120 for presentation while _attack3 can only
-        // subtract the target's remaining 100 HP.  Both values are required.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(100, result.physicalPasses.single().targets.single { it.targetId == "splash" }.damage)
     }
 
@@ -69,7 +61,7 @@ class BattleAttackEffectAreaTest {
                 BattleUnit("attacker", "공격", Faction.PLAYER, 0, 0, attack = 100, morale = 1, critical = 1,
                     skills = mapOf(92 to 0, 226 to 0), attackEffectAreaId = 4),
                 BattleUnit("primary", "주대상", Faction.ENEMY, 1, 0, defense = 1, morale = 100, critical = 100),
-                // EFFAREA.LIANGGE's _filter3 starts one cell beyond target.
+                // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (EFFAREA, LIANGGE)을 검증한다.
                 BattleUnit("behind", "후방", Faction.ENEMY, 2, 0, defense = 1, morale = 100, critical = 1),
             ), events = emptyList(),
         )

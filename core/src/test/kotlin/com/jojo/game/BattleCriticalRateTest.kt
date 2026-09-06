@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.application.battle.Battle
@@ -10,13 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/**
- * class  `BattleCriticalRateTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleCriticalRateTest: BattleCriticalRate의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleCriticalRateTest {
     private class ValuesRandom(private vararg val values: Int) : Random() {
@@ -26,16 +21,7 @@ class BattleCriticalRateTest {
 
     @Test
     fun `counterattack uses source 75 percent default and QHFJ removes only that penalty`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `counterSkills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(counterSkills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -45,23 +31,14 @@ class BattleCriticalRateTest {
         )
         val normal = assertIs<TacticalActionResult.Attack>(battle(emptyMap()).combat.attack("a", "t"))
         val qhfj = assertIs<TacticalActionResult.Attack>(battle(mapOf(181 to 0)).combat.attack("a", "t"))
-        // Counter base is 56; original default is floor(56 * 75 / 100).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(42, normal.counterDamage)
         assertEquals(56, qhfj.counterDamage)
     }
 
     @Test
     fun `missing ZMYJZS keeps the source JS truthy 180 percent multiplier while explicit zero uses 150`() {
-/**
- * 공개 메서드 `battle`
- *
- * ### 파라미터
-- `skills` (`Map<Int, Int>`): 구현 기준으로 역할 및 허용 값 정의 필요
- *
- * ### 응답 스펙
- * - 반환 타입: `Unit`
- * - 반환값: 동작 결과의 도메인 값입니다.
- */
+/** battle: 지정한 조건의 테스트 장면을 구성하거나 결과를 검증하기 위한 보조 함수다. */
 
         fun battle(skills: Map<Int, Int>) = Battle(
             units = listOf(
@@ -86,9 +63,7 @@ class BattleCriticalRateTest {
             events = emptyList(),
         )
 
-        // 75 + trunc((80 / 50 * .18 - .16) * 100) = 87, while the
-        // opponent's source gauge becomes 88: no critical.  A rounded 13
-        // would reverse this countRate boundary.
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val result = assertIs<TacticalActionResult.Attack>(battle.combat.attack("a", "t"))
         assertEquals(false, result.critical)
     }

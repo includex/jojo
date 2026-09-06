@@ -1,12 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
-
-/** StartBattleScreen button1_0 -> Hall BattleSortLayer id19 production route. */
 class StartBattleSortRoute {
+    /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     sealed interface Effect {
-
         data class Open(val x: Float, val y: Float) : Effect
-
-
         data class Sort(val field: Int, val descending: Boolean) : Effect
         data object Close : Effect
     }
@@ -25,7 +22,7 @@ class StartBattleSortRoute {
         return listOf(Effect.Open(worldX, worldY - buttonHeight / 2f))
     }
 
-    /** Selecting the current field toggles direction exactly as StartBattleScreen does. */
+    /** select: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     fun select(field: Int, touchEnd: Boolean): List<Effect> {
         if (!open || !touchEnd || field !in 0..4) return emptyList()
         if (selectedField == field) descending = !descending

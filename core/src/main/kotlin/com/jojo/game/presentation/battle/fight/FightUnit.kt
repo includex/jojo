@@ -1,6 +1,5 @@
+// Battle
 package com.jojo.game.presentation.battle.fight
-
-/** State implementation of recovered battle/FightUnit.js, excluding Cocos drawing primitives. */
 class FightUnit(
     var parentX: Int,
     var parentY: Int,
@@ -14,8 +13,6 @@ class FightUnit(
     var animation = ""
         private set
     val events = mutableListOf<String>()
-
-    /** Exact `_reset`: parent moves by 4 * child x, child is reset, then signs are normalized. */
     fun reset() {
         parentX += 4 * nodeX * if (parentScaleX < 0) -1 else 1
         nodeX = 0; nodeY = 0

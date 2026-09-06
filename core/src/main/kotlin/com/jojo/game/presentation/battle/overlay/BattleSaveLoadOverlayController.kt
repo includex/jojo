@@ -1,24 +1,17 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.LoadGameLayer
 import com.jojo.game.presentation.shared.overlay.SaveLayer
-import com.jojo.game.presentation.battle.BattleSaveLoadOverlayKind
-import com.jojo.game.presentation.battle.BattleSaveLoadOverlayView
-import com.jojo.game.presentation.battle.BattleSaveLoadRowView
-
-/**
- * Coordinates the source SaveLayer and LoadGameLayer protocols with one
- * mutually-exclusive overlay state.  It owns hit testing, scroll position,
- * press tracking, and source-layer lifecycle; callers observe only a view and
- * closure effects.
- */
 internal class BattleSaveLoadOverlayController(
     saveRepository: SaveLayer.Repository,
     loadRepository: LoadGameLayer.Repository,
 ) {
+    /** 현재 저장 목록을 조작하는지 불러오기 목록을 조작하는지 구분한다. */
     enum class Mode { SAVE, LOAD }
 
+    /** 저장·불러오기 목록의 누름, 스크롤, 취소 동작을 전달하는 입력이다. */
     sealed interface Intent {
         data class PointerDown(val x: Float, val y: Float) : Intent
         data class PointerUp(val x: Float, val y: Float) : Intent
@@ -26,13 +19,14 @@ internal class BattleSaveLoadOverlayController(
         data object Cancel : Intent
     }
 
+    /** 저장·불러오기 오버레이의 닫힘과 저장 성공 여부를 보고한다. */
     sealed interface Effect {
         data object None : Effect
         data class Closed(val mode: Mode, val saved: Boolean) : Effect
     }
-
     data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
 
+    /** 열린 목록의 종류, 스크롤 위치, 누른 행과 저장 완료 여부를 보관한다. */
     private sealed interface State {
         data object Hidden : State
         data class Open(
@@ -42,7 +36,6 @@ internal class BattleSaveLoadOverlayController(
             val saveCommitted: Boolean = false,
         ) : State
     }
-
     private sealed interface Press {
         data object None : Press
         data class Row(val index: Int) : Press

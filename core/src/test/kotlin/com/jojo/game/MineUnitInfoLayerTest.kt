@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.overlay.*
@@ -5,13 +6,7 @@ import com.jojo.game.presentation.battle.overlay.*
 import com.jojo.game.domain.battle.*
 
 import kotlin.test.*
-/**
- * class  `MineUnitInfoLayerTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** MineUnitInfoLayerTest: MineUnitInfoLayer의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class MineUnitInfoLayerTest {
  @Test fun `mine result panel carries all five progress values and completes once`(){var n=0;val u=BattleUnit("43","보병 ",Faction.FRIEND,10,17,119,119,11,11,level=1);val l=MineUnitInfoLayer();val v=l.onCreate(u,"경보병"){n++};assertEquals(listOf(119,119,11,11,0,100,0,0),listOf(v.hp,v.maxHp,v.mp,v.maxMp,v.exp,v.maxExp,v.weaponExp,v.armorExp));assertEquals(30,MineUnitInfoRenderEvents.jsonl(v).lineSequence().count{it.isNotBlank()});l.complete();l.complete();assertFalse(l.view().attached);assertEquals(1,n)}

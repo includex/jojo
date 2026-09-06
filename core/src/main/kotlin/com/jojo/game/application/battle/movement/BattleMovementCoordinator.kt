@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.movement
 
 import com.jojo.game.domain.battle.*
@@ -13,6 +14,7 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleMovementPlanner
 import com.jojo.game.domain.battle.BattleAttributeCalculator
 
+/** BattleMovementEnvironment: 전투 이동 계산에 필요한 전장 조회·활성 진영·표현 콜백을 전달한다. */
 internal data class BattleMovementEnvironment(
     val units: () -> Map<String, BattleUnit>,
     val unitAt: (Int, Int) -> BattleUnit?,
@@ -26,6 +28,7 @@ internal data class BattleMovementEnvironment(
     val onMoveExecuted: (id: String, path: List<Pair<Int, Int>>, nodes: Int) -> Unit,
 )
 
+/** BattleMovementCoordinator: 이동 범위·경로·방향·밀치기 위치를 전장 규칙에 따라 계산한다. */
 internal object BattleMovementCoordinator {
     private const val DEFAULT_TERRAIN_SIZE = 100
 

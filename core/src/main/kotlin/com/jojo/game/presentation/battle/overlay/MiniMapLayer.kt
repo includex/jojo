@@ -1,9 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Cocos-independent, source-faithful core of ui/MiniMapLayer.js. */
+/** 전투 지도의 크기와 날씨를 초기화하고 유닛·기지 표식을 좌표로 갱신한다. */
 class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = {}) {
-
     data class Marker(var x: Int = 0, var y: Int = 0, var frame: String? = null)
 
     var shown = false; private set
@@ -74,7 +74,6 @@ class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = 
             action == "action" -> 1; status == "ms" -> 3; status == "control" -> 2; else -> 0
         }; map[id]?.frame = "sf${base + offset - 1}"
     }
-    // click starts a Cocos move action; the node position is unchanged until that action advances.
 
     fun touch(event: Int) {
         if (event == 2) {
@@ -82,7 +81,7 @@ class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = 
         }
     }
 
-    /** Advances the authored 0.6-second quartic slide to its stable endpoint. */
+    /** advance: 현재 전투 상태를 다음 처리 단계로 진행한다. */
     fun advance(seconds: Float) {
         if (!sliding || size == null) return
         slideElapsed += seconds.coerceAtLeast(0f)
@@ -103,14 +102,7 @@ class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = 
     }
 }
 
-/**
- * Source Cocos MiniMapLayer submissions after its real 0.6-second slide has
- * reached an endpoint.  The marker ordering is BattleScreen insertion order,
- * not a coordinate sort, and therefore intentionally remains explicit.
- */
-
 object MiniMapRenderEvents {
-
     data class MarkerDraw(val asset: String, val x: Float, val y: Float)
 
     val yingchuanMarkers = listOf(
@@ -143,8 +135,6 @@ object MiniMapRenderEvents {
             draw("Canvas/Layer/bg/weather", "sprite", 1248.372f, 560f, 57.6f, 57.6f, "weather_0", 127f / 255f)
             draw("Canvas/Layer/bg/box", "sliced-sprite", 1286.372f, 570f, 186.047f, 100f, "box6")
         }
-        // At the hidden endpoint only the button remains inside the widened
-        // viewport; the bg quad starts exactly at its right edge.
         val buttonX = if (shown) 1174.372f else 1418.372f
         draw("Canvas/Layer/bg/btn/Background", "sliced-sprite", buttonX, 730f, 70f, 70f, "bg1")
         draw("Canvas/Layer/bg/btn/Background/tool11", "sprite", buttonX + .2f, 730.2f, 69.6f, 69.6f, "tool11")

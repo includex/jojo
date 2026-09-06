@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/** Immutable display projection for BuyLayer's left-hand catalog pane. */
+/** HallBuyCatalogView: 거점 Buy 목록 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallBuyCatalogView(
     val propertyTab: Boolean,
     val rows: List<HallBuyCatalogRowView>,

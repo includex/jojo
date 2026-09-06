@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.domain.battle.*
@@ -12,7 +13,7 @@ import com.jojo.game.domain.battle.settlement.CampSettlement
 import com.jojo.game.domain.battle.settlement.SettlementStateChange
 import com.jojo.game.domain.battle.settlement.SettlementUnitSnapshot
 
-/** Translates mutable battle aggregates into the immutable planner boundary. */
+/** BattleSettlementPlanningAdapter: 가변 전투 유닛을 정산 계획 입력으로 변환해, 계산 경계에 불변 값을 전달한다. */
 object BattleSettlementPlanningAdapter {
     fun plan(
         settlement: CampSettlement,

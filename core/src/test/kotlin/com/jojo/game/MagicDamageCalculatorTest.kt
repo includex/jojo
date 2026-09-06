@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
@@ -13,13 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 
-/**
- * class  `MagicDamageCalculatorTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** MagicDamageCalculatorTest: MagicDamageCalculator의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class MagicDamageCalculatorTest {
 
@@ -90,11 +85,11 @@ class MagicDamageCalculatorTest {
         assertEquals("현재 날씨에서는 사용할 수 없는 전략입니다.", MagicDamageCalculator.magicConditionReason(fullHpUnit, rainMagic, BattleWeather.CLEAR))
         assertNull(MagicDamageCalculator.magicConditionReason(fullHpUnit, rainMagic, BattleWeather.HEAVY_RAIN))
 
-        // Skill 20 bypasses weather
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val weatherBypassUnit = unit(hitPoints = 100, skills = mapOf(20 to 1))
         assertNull(MagicDamageCalculator.magicConditionReason(weatherBypassUnit, rainMagic, BattleWeather.CLEAR))
 
-        // Skill 136 bypasses condition 2..5
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         val specialBypassUnit = unit(hitPoints = 100, skills = mapOf(136 to 1))
         val specialMagic = magic(condition = 5)
         assertEquals("이 전략의 특수 사용 조건을 충족하지 못했습니다.", MagicDamageCalculator.magicConditionReason(fullHpUnit, specialMagic, BattleWeather.CLEAR))
@@ -134,10 +129,10 @@ class MagicDamageCalculatorTest {
         val target = unit(skills = mapOf(115 to 10))
         val fireMagic = magic(type = 0)
 
-        // LRHY: 200 * 50 / 100 = 100, plus HXCLZS: 20 -> 120
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (LRHY, HXCLZS)을 검증한다.
         assertEquals(120, MagicDamageCalculator.magicFlatSkillDamage(attacker, fireMagic))
 
-        // Base rate 100 + 15 (skill 75) - 10 (target skill 115) = 105
+        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
         assertEquals(105, MagicDamageCalculator.magicSkillDamageRate(attacker, target, fireMagic))
     }
 

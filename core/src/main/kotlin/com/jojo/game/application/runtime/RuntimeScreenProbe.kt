@@ -1,3 +1,4 @@
+// Runtime
 package com.jojo.game.application.runtime
 
 import com.jojo.game.domain.battle.*
@@ -10,31 +11,29 @@ import com.jojo.game.application.scenario.ScenarioRandomTrace
 import com.jojo.game.presentation.title.TitleViewState
 import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 
-/**
- * Read-only application boundary for external diagnostics that need to drive
- * the already-installed production input processor.  It deliberately exposes
- * state, not screens, so production never depends on a diagnostics module.
- */
+/** RuntimeScreenObserver: 화면 전환과 프레임 상태를 감시하여 자동 검증 흐름에 개입하는 관찰기 계약이다. */
 fun interface RuntimeScreenObserver {
     fun update(delta: Float, screen: RuntimeScreenProbe)
 
     fun scenarioStarted(module: String, index: Int) = Unit
 
-    /** External driver explicitly requests that ScenarioScreen not auto-route. */
+    /** keepsScenarioOpen: 관찰 작업이 끝날 때까지 시나리오 화면을 닫지 않아야 하는지 나타낸다. */
     val keepsScenarioOpen: Boolean get() = false
 }
 
+/** RuntimeScreenProbe: 현재 화면 종류별로 자동 구동에 필요한 읽기 전용 상태를 노출하는 공통 탐침이다. */
 sealed interface RuntimeScreenProbe {
     val screenName: String
 }
 
-/** Immutable title presentation state for external runtime observers. */
+/** TitleRuntimeProbe: 제목 화면의 표시 상태를 자동 시작 구동기에 전달하는 탐침 값이다. */
 data class TitleRuntimeProbe(
     val view: TitleViewState,
 ) : RuntimeScreenProbe {
     override val screenName: String = "TitleScreen"
 }
 
+/** ScenarioRuntimeProbe: 시나리오 진행·선택·배경·캠페인 상태를 자동 구동기에 전달하는 탐침 값이다. */
 data class ScenarioRuntimeProbe(
     val module: String,
     val elapsedSeconds: Float = 0f,
@@ -51,9 +50,9 @@ data class ScenarioRuntimeProbe(
     val hallBattleScenePending: Boolean,
     val battleButtonScreenX: Int,
     val battleButtonScreenY: Int,
-    /** Immutable diagnostic evidence; external observers own serialization. */
+    /** choiceTrace: 현재 재생에서 확정한 선택지의 순서를 검증용으로 보관한다. */
     val choiceTrace: List<ScenarioChoiceTrace> = emptyList(),
-    /** Immutable diagnostic evidence; external observers own serialization. */
+    /** randomTrace: 스크립트가 소비한 난수 결과를 검증용으로 보관한다. */
     val randomTrace: List<ScenarioRandomTrace> = emptyList(),
     val randomDrawCount: Int = 0,
     val remainingInjectedRandomCount: Int = 0,
@@ -61,6 +60,7 @@ data class ScenarioRuntimeProbe(
     override val screenName: String = "ScenarioScreen"
 }
 
+/** BattlePreparationRuntimeProbe: 전투 준비 화면의 편성 제한·선택·표시 상태를 전달하는 탐침 값이다. */
 data class BattlePreparationRuntimeProbe(
     val returnScenario: String,
     val sourceScenario: String,
@@ -75,6 +75,7 @@ data class BattlePreparationRuntimeProbe(
     override val screenName: String = "BattlePreparationScreen"
 }
 
+/** BattleRuntimeScreenProbe: 전투 화면의 진행 단계·모달·입력 좌표·전장 탐침을 묶은 자동 구동 입력이다. */
 data class BattleRuntimeScreenProbe(
     val scenario: String,
     val playback: PlaybackState,
@@ -120,4 +121,5 @@ data class BattleRuntimeScreenProbe(
     val activeFaction: Faction get() = battle.snapshot.activeFaction
 }
 
+/** OtherRuntimeProbe: 전용 탐침이 없는 화면의 이름만 전달하는 기본 탐침이다. */
 data class OtherRuntimeProbe(override val screenName: String) : RuntimeScreenProbe

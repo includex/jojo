@@ -1,14 +1,19 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
+/** ScenarioHallUnitListEvidenceRecorder: 거점 유닛 목록의 행·이름·직위 표시 이벤트를 기준 좌표로 기록한다. */
 internal class ScenarioHallUnitListEvidenceRecorder(
+    /** rows: 행 목록 상태를 검증 흐름에 전달한다. */
     private val rows: List<ScenarioHallUnitListEvidenceRow>,
 ) {
+    /** append: 검증 이벤트와 산출물을 기록한다. */
     fun append(log: RenderEventLog) {
         val scale = .86f; val sprites = listOf(770, 771); val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /** event: 단일 렌더 이벤트를 로그에 추가한다. */
         fun event(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") =
             log.draw("hall-unit-list-stable", "UnitListLayer", path, type, x * scale, y * scale, w * scale, h * scale, asset, blend = if (type == "label") labels else sprites, text = text)
         log.draw(

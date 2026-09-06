@@ -1,3 +1,4 @@
+// Presentation
 package com.jojo.game.presentation.title
 
 import com.badlogic.gdx.Gdx
@@ -10,7 +11,7 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.jojo.game.presentation.title.assets.TitleSceneAssets
 
-/** Draws immutable title snapshots without mutating title flows or navigating the game. */
+/** TitleSceneRenderer: 타이틀 배경·로고·메뉴·선택 오버레이를 정해진 화면 좌표에 그린다. */
 internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
     private val viewport = ScreenViewport(OrthographicCamera())
     private val batch = SpriteBatch()

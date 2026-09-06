@@ -1,6 +1,5 @@
+// Battle
 package com.jojo.game.presentation.battle.preparation
-
-/** Pure selection and pointer policy for battle preparation. */
 internal class BattlePreparationController(
     availableIds: List<Int>,
     requiredIds: List<Int>,
@@ -33,7 +32,7 @@ internal class BattlePreparationController(
 
     fun commit(): List<Int>? = selection.takeIf { canStart }
 
-    /** Hit order mirrors the scene: modal sort, roster, selected slots, buttons, then sort opener. */
+    /** touch: 입력 또는 이벤트를 반영해 전투 상태를 전환한다. */
     fun touch(x: Float, y: Float, sortOpen: Boolean): BattlePreparationAction {
         if (sortOpen) return if (x !in 658f..831f || y !in 32f..276f) {
             BattlePreparationAction.CancelSort
@@ -67,7 +66,6 @@ internal class BattlePreparationController(
         const val SCALE = .86f
     }
 }
-
 internal sealed interface BattlePreparationAction {
     data object None : BattlePreparationAction
     data object SelectionChanged : BattlePreparationAction
@@ -75,7 +73,5 @@ internal sealed interface BattlePreparationAction {
     data object Cancel : BattlePreparationAction
     data object OpenSort : BattlePreparationAction
     data object CancelSort : BattlePreparationAction
-
-
     data class SelectSort(val index: Int) : BattlePreparationAction
 }

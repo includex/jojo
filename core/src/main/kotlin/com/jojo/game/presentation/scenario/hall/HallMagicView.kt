@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.MagicUiList
+import com.jojo.game.presentation.shared.overlay.MagicUiList
 
 internal data class HallMagicView(
     val name: String,

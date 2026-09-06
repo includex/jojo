@@ -1,15 +1,18 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Static source traversals that intentionally have no mutable screen input. */
+/** ScenarioStaticHallInfoEvidenceRecorder: 가변 화면 입력 없이 원본 정적 순회만 기록한다. */
 internal class ScenarioStaticHallInfoEvidenceRecorder {
+    /** appendForces: 검증 이벤트와 산출물을 기록한다. */
     fun appendForces(log: RenderEventLog) {
         val scale = .86f
 
 
+        /** draw: 검증 렌더 이벤트를 구성하고 반환한다. */
         fun draw(path: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") {
             val type = when {
                 text.isNotEmpty() -> "label"
@@ -107,5 +110,6 @@ internal class ScenarioStaticHallInfoEvidenceRecorder {
         draw("Canvas/Layer/bg1/button0/Background/Label", 1169.071f, 90.823f, 100f, 40f, text = "폐쇄")
     }
 
+    /** appendHelper: 검증 이벤트와 산출물을 기록한다. */
     fun appendHelper(log: RenderEventLog) = ScenarioHelperEventWriter(log).append()
 }

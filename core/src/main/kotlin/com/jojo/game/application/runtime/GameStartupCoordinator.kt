@@ -1,4 +1,6 @@
+// Runtime
 package com.jojo.game.application.runtime
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.*
 
@@ -7,10 +9,7 @@ import com.jojo.game.application.scenario.*
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.domain.campaign.*
 
-/**
- * Coordinates campaign bootstrap and the final application entry point.
- * Screen construction remains behind narrow callbacks owned by [JojoGame].
- */
+/** GameStartupCoordinator: 시작 설정을 해석해 캠페인을 준비하고 제목·시나리오·전투 화면으로 분기한다. */
 internal class GameStartupCoordinator(
     private val configuration: GameLaunchConfiguration,
     private val campaignState: CampaignState,
@@ -89,11 +88,7 @@ internal class GameStartupCoordinator(
     }
 }
 
-/**
- * Fresh-profile prerequisite used by direct full-battle diagnostics.
- * Yingchuan needs Cao Cao only. Later battles honor their authored
- * setJoinBattle maximum, required and excluded unit IDs.
- */
+/** prepareDirectBattleCampaign: 지정 시나리오의 전투를 바로 열 수 있도록 캠페인 명단과 전장 상태를 구성한다. */
 internal fun prepareDirectBattleCampaign(
     state: CampaignState,
     scenario: String,
@@ -124,8 +119,6 @@ internal fun prepareDirectBattleCampaign(
     val data = GameDataCatalog.load()
     seeded.forEach {
         state.setUnitAttribute(it, 18, 3)
-        // Joining has already created concrete equipment. Preserve its
-        // initial level rather than recomputing it after a live unit level-up.
         state.inventory.ensureDefaultEquipment(it, data)
     }
     return seeded

@@ -1,18 +1,23 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.application.scenario.ScenarioStage
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** [ScenarioStage]의 Head 수명 주기를 픽스처 입력에 연결한다. */
+/** HeadTraceHarness: [ScenarioStage]의 Head 수명 주기를 픽스처 입력에 연결한다. */
 object HeadTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    /** cases: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun cases(raw: String) =
         Regex("\\{\"name\":\"([^\"]+)\",\"loadError\":(true|false),\"skip\":(true|false)(?:,\"move\":\\[(-?\\d+),(-?\\d+),(-?\\d+)])?}").findAll(
             raw
         )
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val output = cases(Files.readString(Path.of(args[0]))).joinToString(",", "{", "}") { m ->

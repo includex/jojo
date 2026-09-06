@@ -1,10 +1,11 @@
+// Battle
 package com.jojo.game.domain.battle.magic
 
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.BattleUnit
 
-/** Pure magic damage, terrain, weather and condition policy. */
+/** MagicDamageCalculator: 마법 피해 계산기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object MagicDamageCalculator {
     fun magicTerrainAllowed(magic: BattleMagicProfile, target: BattleUnit): Boolean = true
 

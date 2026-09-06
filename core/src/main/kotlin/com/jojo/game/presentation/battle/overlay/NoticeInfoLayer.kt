@@ -1,17 +1,12 @@
+// Battle
 package com.jojo.game.presentation.battle.overlay
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/**
- * Source-faithful state owned by Global117 NoticeInfoLayer.
- *
- * The real layer is persistent for the lifetime of BattleScreen. NOTICE_MSG is
- * deliberately ignored while hidden, and hiding returns every live row to
- * the node pool. The first pooled prefab is retained as a cloning seed, which
- * explains the source pool counts represented here.
- */
+/** 전투 알림을 큐에 보관하고 열림·닫힘 슬라이드와 표시 행 수를 관리한다. */
 
 class NoticeInfoLayer {
 
+    /** 알림 패널의 표시 위치, 슬라이드 상태, 현재 메시지 목록을 노출한다. */
     data class View(
         val shown: Boolean,
         val sliding: Boolean,
@@ -33,7 +28,7 @@ class NoticeInfoLayer {
     var bgY: Float = HIDDEN_Y
         private set
 
-    /** Authored button listener reacts only to UILayer TOUCH_END (event 2). */
+    /** TOUCH_END 입력으로 패널을 열거나 닫고 닫힘 시 메시지 큐를 비운다. */
     fun touch(eventType: Int): Boolean {
         if (eventType != TOUCH_END) return false
         slideStartY = bgY
@@ -47,8 +42,6 @@ class NoticeInfoLayer {
         }
         return true
     }
-
-    /** Queued Manager event delivery calls this listener on a later update. */
     fun noticeMessage(text: String): Boolean {
         if (!shown) return false
         check(poolSize > 0) { "NoticeInfoLayer lost its prefab cloning seed" }
@@ -67,7 +60,6 @@ class NoticeInfoLayer {
         if (!sliding) return
         slideElapsed = (slideElapsed + seconds.coerceAtLeast(0f)).coerceAtMost(SLIDE_SECONDS)
         val progress = slideElapsed / SLIDE_SECONDS
-        // cc.easeQuarticActionOut(): 1 - (1-t)^4
         val eased = 1f - (1f - progress) * (1f - progress) * (1f - progress) * (1f - progress)
         bgY = slideStartY + (slideTargetY - slideStartY) * eased
         if (slideElapsed >= SLIDE_SECONDS) {
@@ -87,8 +79,6 @@ class NoticeInfoLayer {
         const val SHOWN_Y = -200f
     }
 }
-
-/** A single actual draw submission produced by [NoticeInfoRenderer]. */
 data class NoticeDrawCommand(
     val path: String,
     val type: String,
@@ -100,11 +90,7 @@ data class NoticeDrawCommand(
     val text: String = "",
 )
 
-/**
- * Stable-endpoint NoticeInfo composition shared by BattleScreen drawing and
- * its render-event logger. Commands remain renderer-independent so the live
- * SpriteBatch path and JSONL path consume the same geometry and ordering.
- */
+/** 알림 패널의 배경·메시지 행·슬라이드 위치를 렌더 이벤트로 직렬화한다. */
 
 object NoticeInfoRenderer {
     private const val PATH = "Canvas/Layer/bg"
@@ -113,8 +99,6 @@ object NoticeInfoRenderer {
     fun commands(view: NoticeInfoLayer.View): List<NoticeDrawCommand> = buildList {
         if (view.shown) {
             add(NoticeDrawCommand(PATH, "tiled-sprite", 0f, 0f, 491f, 400f, "bg2"))
-            // Cocos ScrollView positions the newest ten 40.76px rows inside
-            // its 392px viewport. The final separator lies outside the clip.
             view.messages.takeLast(VISIBLE_ROWS).forEachIndexed { index, text ->
                 val y = -7.6f + ROW_HEIGHT * index
                 add(

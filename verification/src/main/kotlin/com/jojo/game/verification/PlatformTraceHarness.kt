@@ -1,25 +1,43 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.application.platform.DeviceIdentityService
+import com.jojo.game.application.platform.InstallationFlow
+import com.jojo.game.application.platform.LegalStatementFlow
+import com.jojo.game.application.platform.LoginEligibility
+import com.jojo.game.application.platform.NativeBoundary
+import com.jojo.game.application.platform.PrivacyConsentFlow
+import com.jojo.game.application.platform.TapTapSession
+import com.jojo.game.application.platform.UpdateFlow
+import com.jojo.game.application.platform.VersionInfoFlow
+import com.jojo.game.application.platform.VideoRewardFlow
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Canonical current-game trace driven by tools/platform_trace_cases.json. */
+/** PlatformTraceHarness: tools/platform_trace_cases.json을 기준으로 현재 게임 추적을 실행한다. */
 object PlatformTraceHarness {
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
+    /** obj: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun obj(vararg x: Pair<String, String>) = "{" + x.joinToString(",") { "\"${it.first}\":${it.second}" } + "}"
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String?) = s?.let { "\"${esc(it)}\"" } ?: "null"
+    /** rawCases: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun rawCases(s: String) =
         Regex("\\{[^{}]*\\}").findAll(s).map { it.value }.filter { "\"id\"" in it }.toList()
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(x: String, k: String, d: String = "") =
         (Regex("\"$k\"\\s*:\\s*\"([^\"]*)\"").find(x)?.groupValues?.get(1) ?: d).replace("\\n", "\n")
             .replace("\\\"", "\"").replace("\\\\", "\\")
 
+    /** num: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun num(x: String, k: String, d: Int = 0) =
         Regex("\"$k\"\\s*:\\s*(-?\\d+)").find(x)?.groupValues?.get(1)?.toInt() ?: d
 
+    /** base: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun base(
         kind: String,
         attached: Boolean,
@@ -35,6 +53,7 @@ object PlatformTraceHarness {
         "native" to native
     ).toMutableList()
 
+    /** one: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun one(c: String): Pair<String, String> {
         val id = str(c, "id")
         val kind = str(c, "kind")
@@ -46,6 +65,7 @@ object PlatformTraceHarness {
                 val native = mutableListOf<String>()
                 var cmds = mutableListOf<String>()
                 val p = PrivacyConsentFlow(object : NativeBoundary {
+                    /** call: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                     override fun call(name: String) {
                         native += name
                     }
@@ -135,6 +155,7 @@ object PlatformTraceHarness {
         return id to "[" + obj(*b.toTypedArray()) + "]"
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val result = rawCases(Files.readString(Path.of(args[0]))).joinToString(

@@ -1,26 +1,40 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
+import com.jojo.game.infrastructure.security.FoundationCodec
+import com.jojo.game.infrastructure.security.Md5Service
+import com.jojo.game.infrastructure.security.UserPreferencesStore
+import com.jojo.game.infrastructure.security.UuidCodec
+import com.jojo.game.infrastructure.security.StatusMachine
+import com.jojo.game.infrastructure.security.EventDispatcher
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Foundation 서비스와 상태 전이를 입력별로 추적한다. */
 
+/** FoundationTraceHarness: Foundation 서비스와 상태 전이를 입력별로 추적한다. */
 object FoundationTraceHarness {
+    /** q: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun q(s: String?) = s?.let { "\"${it.replace("\\", "\\\\").replace("\"", "\\\"")}\"" } ?: "null"
+    /** caseRaw: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun caseRaw(s: String) =
         Regex("\\{[^{}]*\\}").findAll(s).map { it.value }.filter { "\"id\"" in it }.toList()
 
+    /** str: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun str(s: String, k: String) = Regex("\"$k\"\\s*:\\s*\"([^\"]*)\"").find(s)?.groupValues?.get(1) ?: ""
+    /** kind: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun kind(s: String) = str(s, "kind")
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
+    /** arr: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun arr(a: Iterable<Any?>) = a.joinToString(",", "[", "]") {
         when (it) {
             is String -> q(it); null -> "null"; else -> it.toString()
         }
     }
 
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     private fun run(c: String): Pair<String, String> {
         val id = str(c, "id")
         val k = kind(c)
@@ -90,7 +104,7 @@ object FoundationTraceHarness {
                 val p = StatusMachine()
                 val o = mutableListOf<String>()
 
-                /** 상태 진입·이탈·갱신 콜백을 한 묶음으로 만든다. */
+                /** state: 상태 진입·이탈·갱신 콜백을 한 묶음으로 만든다. */
                 fun state(i: Int): Triple<() -> Unit, () -> Unit, () -> Unit> =
                     Triple({ o.add("enter$i") }, { o.add("exit$i") }, { o.add("update$i") })
                 p.states[0] = state(0); p.states[1] = state(1); p.change(0)
@@ -118,6 +132,7 @@ object FoundationTraceHarness {
         ) + fields.drop(1)).joinToString(",") { q(it.first) + ":" + it.second }) + "}]"
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(a: Array<String>) {
         val out = caseRaw(Files.readString(Path.of(a[0]))).joinToString(

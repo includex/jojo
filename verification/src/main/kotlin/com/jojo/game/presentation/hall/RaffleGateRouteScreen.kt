@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.presentation.hall
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
@@ -11,10 +12,15 @@ import com.jojo.game.JojoGame
 import com.jojo.game.application.navigation.RaffleGateRoute
 import com.jojo.game.presentation.hall.evidence.RaffleGateRenderEvents
 
+/** RaffleGateRouteScreen: 검증 화면의 상태와 입력·렌더링 동작을 제공하는 타입이다. */
 class RaffleGateRouteScreen(private val game: JojoGame) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** shapes: 검증 흐름에서 사용하는 값을 담는다. */
     private val shapes = ShapeRenderer()
+    /** route: 검증 흐름에서 사용하는 값을 담는다. */
     private val route = RaffleGateRoute()
+    /** entered: 검증 흐름에서 사용하는 값을 담는다. */
     private var entered = false
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         if (!entered) {
             route.openHallMenu(true); route.hallMenuButton(3, true); route.settingButton(
@@ -33,8 +39,11 @@ class RaffleGateRouteScreen(private val game: JojoGame) : ScreenAdapter(), Runti
         game.writeRenderEventLogIfRequested()
     }
 
+    /** renderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     fun renderEventLog(): String = RaffleGateRenderEvents.jsonl()
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
+    /** dispose: 화면과 렌더링 리소스를 해제한다. */
     override fun dispose() {
         shapes.dispose()
     }

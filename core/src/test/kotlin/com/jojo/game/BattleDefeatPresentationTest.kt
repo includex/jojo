@@ -1,8 +1,11 @@
+// Test
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.application.battle.Battle
 
 import com.jojo.game.application.battle.BattleScenarioFactory
+import com.jojo.game.application.scenario.ScenarioStage
 
 import com.jojo.game.domain.battle.*
 
@@ -18,13 +21,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.assertSame
 
-/**
- * class  `BattleDefeatPresentationTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleDefeatPresentationTest: BattleDefeatPresentation의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleDefeatPresentationTest {
     @Test
@@ -43,8 +40,7 @@ class BattleDefeatPresentationTest {
         assertFalse("target" in battle.units)
         assertEquals(10, assertNotNull(battle.presentation.presentationUnit("target")).maxHitPoints)
         assertEquals(0, battle.presentation.presentationUnit("target")!!.hitPoints)
-        // unitDeath removes this retained node only after its authored
-        // SHOU_GONG_JI3/death animation completes.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택 (SHOU_GONG_JI3)을 검증한다.
         battle.presentation.clearPresentationUnit("target")
         assertNull(battle.presentation.presentationUnit("target"))
     }

@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.round
 
 import com.jojo.game.domain.battle.*
@@ -14,7 +15,7 @@ import com.jojo.game.domain.battle.Battlefield
 import com.jojo.game.application.battle.BattleTurnSettlementService
 import com.jojo.game.domain.battle.settlement.*
 
-/** Owns camp settlement, round advancement, weather, and event lifecycle rules. */
+/** BattleRoundLifecycleFacade: 전투 라운드 수명 주기 진입점이며, 관련 전투 기능을 묶어 안정적인 호출 경로를 제공한다. */
 class BattleRoundLifecycleFacade internal constructor(
     private val configuration: BattleConfiguration,
     private val journal: BattleStateJournal,

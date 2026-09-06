@@ -1,21 +1,12 @@
+// Battle
 package com.jojo.game.application.battle.bootstrap
 
 import com.jojo.game.domain.battle.*
-
-
-/**
- * Coordinates the battle scene lifecycle recovered from `battle/Battle.js`.
- *
- * The source module is a UIScene container, rather than the tactical rules
- * model represented by [Battle].  Keeping this contract separate lets its
- * event and layer behaviour be tested without Cocos or JSON globals.
- */
 
 class BattleSceneCoordinator(
     private val factory: Factory,
     private val model: Model,
     private val manager: Manager,
-    /** Inspector-assigned source prefabs returned directly by getResource. */
     private val battleLayerResource: Any? = null,
     private val battleInitLayer: Any? = null,
     private val miniMapLayer: Any? = null,
@@ -23,10 +14,7 @@ class BattleSceneCoordinator(
 ) {
 
     interface BattleScreen {
-        /** BattleScreen.save(out). */
         fun save(out: MutableMap<String, Any?>)
-
-        /** BattleScreen.filterUnits(1187/1196). */
         fun filterUnits(flag: Int): List<Any?>
     }
 
@@ -45,15 +33,13 @@ class BattleSceneCoordinator(
 
 
         fun addForcesList(mine: List<Any?>, enemy: List<Any?>, flag: Int)
-
-        /** JSON.stringify payload; deliberately injectable for exact tests. */
         fun stringify(value: Map<String, Any?>): String
     }
 
 
     data class SaveRequest(val index: Int, val onComplete: (() -> Unit)? = null)
 
-    /** Source static `Battle.LAYER` IDs, including aliases used by getResource. */
+    /** Layer: 레이어이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
     enum class Layer(val id: Int) {
         BATTLE_LAYER(1), BATTLE_INIT_LAYER(2), TERRAIN_INFO_LAYER(3), BATTLE_UNIT_INFO_LAYER(4),
         COMMAND_LAYER(5), MINE_UNIT_INFO_LAYER(6), OTHER_UNIT_INFO_LAYER(7), SAY_LAYER(8),
@@ -65,23 +51,17 @@ class BattleSceneCoordinator(
 
     private var battleLayer: BattleScreen? = null
 
-    /** Battle.onCreate: only BattleScreen is eagerly constructed. */
+    /** onCreate: 입력 또는 이벤트를 반영해 전투 상태를 전환한다. */
     fun onCreate(data: Any?) {
         battleLayer = factory.addBattleScreen(data)
     }
-
-    /** Battle.getResource: only these four prefabs are exposed by the source. */
     fun getResource(layer: Layer): Any? = when (layer) {
-        // Battle.js returns the inspector prefab (`battleLayer`), not the
-        // private runtime instance (`_battleLayer`) created in onCreate.
         Layer.BATTLE_LAYER -> battleLayerResource
         Layer.BATTLE_INIT_LAYER -> battleInitLayer
         Layer.MINI_MAP_LAYER -> miniMapLayer
         Layer.NOTICE_INFO_LAYER -> noticeInfoLayer
         else -> null
     }
-
-    /** Registered SAVE_GAME listener. */
     fun saveGame(request: SaveRequest) {
         val layer = requireNotNull(battleLayer) { "Battle.onCreate must run before SAVE_GAME" }
         val battleSave = linkedMapOf<String, Any?>()
@@ -92,8 +72,6 @@ class BattleSceneCoordinator(
         manager.saveGame(request.index, factory.stringify(battleSave))
         request.onComplete?.invoke()
     }
-
-    /** Registered SHOW_CHARACTER_LIST listener. */
     fun showCharacterList() {
         val layer = requireNotNull(battleLayer) { "Battle.onCreate must run before SHOW_CHARACTER_LIST" }
         factory.addForcesList(layer.filterUnits(1187), layer.filterUnits(1196), flag = 1)

@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle
 
 import com.jojo.game.*
@@ -11,14 +12,7 @@ import com.jojo.game.application.runtime.BattleTraceRandomStreams
 
 import java.util.*
 
-/**
- * Immutable, non-progressive inputs for a [Battle].
- *
- * Keeping these values together is intentional: they describe the rules and
- * source data of a battle, while turn progress and presentation hand-off
- * state live in [BattleStateJournal].  The public Battle constructor remains
- * source compatible; it assembles this value once at the aggregate boundary.
- */
+/** BattleConfiguration: 전투 시작 시 확정되는 불변 구성으로, 규칙·원본 데이터·외부 콜백을 한곳에 묶는다. */
 internal class BattleConfiguration(
     val events: List<BattleEvent>,
     val terrain: BattleTerrainGrid?,
@@ -54,7 +48,7 @@ internal class BattleConfiguration(
     val onUnitRetreat: (BattleUnit) -> Unit,
 )
 
-/** Keeps the public Battle constructor as the compatibility boundary. */
+/** buildBattleConfiguration: 공개 생성자 입력을 전투 구성으로 묶어, 진행 상태와 초기 규칙을 분리한다. */
 internal fun buildBattleConfiguration(
     events: List<BattleEvent>,
     terrain: BattleTerrainGrid?,

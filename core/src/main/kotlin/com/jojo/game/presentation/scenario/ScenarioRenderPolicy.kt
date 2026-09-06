@@ -1,17 +1,18 @@
+// Scenario
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.domain.scenario.ScenarioCompletionRoute
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
-/** The terminal outcome of a render phase; callers must stop this frame for non-continuations. */
+/** ScenarioRenderPhaseResult: 시나리오 렌더링 단계 결과이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal enum class ScenarioRenderPhaseResult {
     CONTINUE,
     ROUTED,
     CAPTURED,
 }
 
-/** Pure predicates that keep ScenarioScreen's ordered frame phases explicit. */
+/** ScenarioRenderPolicy: 시나리오 재생 상태와 오버레이 점유 여부로 현재 프레임에서 그릴 장면 단계를 결정한다. */
 internal object ScenarioRenderPolicy {
     private val isolatedHallOverlays = setOf(
         RuntimeScenarioOverlay.INFO, RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT,

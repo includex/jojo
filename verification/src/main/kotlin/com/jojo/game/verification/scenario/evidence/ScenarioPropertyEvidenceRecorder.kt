@@ -1,14 +1,17 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** Records the source-authored, state-free PropertyLayer traversal. */
+/** ScenarioPropertyEvidenceRecorder: 원본에 작성된 상태 비보유 PropertyLayer 순회를 기록한다. */
 internal class ScenarioPropertyEvidenceRecorder {
+    /** append: 검증 이벤트와 산출물을 기록한다. */
     fun append(log: RenderEventLog, view: ScenarioStaticHallEvidenceView) {
         check(view.kind == ScenarioStaticHallEvidenceKind.PROPERTY)
         val scale = .86f
+        /** draw: 검증 렌더 이벤트를 구성하고 반환한다. */
         fun draw(path: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") {
             val type = when {
                 text.isNotEmpty() -> "label"

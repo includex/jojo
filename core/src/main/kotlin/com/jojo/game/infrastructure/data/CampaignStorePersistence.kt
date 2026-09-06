@@ -1,3 +1,4 @@
+// Infrastructure
 package com.jojo.game.infrastructure.data
 
 import com.badlogic.gdx.Preferences

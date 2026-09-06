@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
@@ -64,12 +65,12 @@ class ScenarioStaticHallEvidenceRecorderTest {
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"visible\":false"))
     }
 
-    /** A digest pins every byte of the deterministic JSONL contract, including event order. */
+    /** digest: 이벤트 순서를 포함한 결정적 JSONL 계약의 모든 바이트가 유지되는지 확인한다. */
     private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
         .digest(value.toByteArray())
         .joinToString("") { "%02x".format(it) }
 
-    /** JSON strings are byte-level evidence; this guards source traversal order, not just membership. */
+    /** JSON 문자열은 바이트 단위 증거이므로 포함 여부뿐 아니라 원본 순회 순서까지 검증한다. */
     private fun assertOrdered(json: String, vararg fragments: String) {
         fragments.fold(-1) { previous, fragment ->
             val next = json.indexOf(fragment, previous + 1)

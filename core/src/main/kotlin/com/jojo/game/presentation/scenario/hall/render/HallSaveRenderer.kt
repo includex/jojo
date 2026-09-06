@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -7,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Stateless SaveLayer renderer; save-controller state is fully projected by [HallSaveRenderView]. */
+/** HallSaveRenderer: 거점 저장 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallSaveRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallSaveRenderView) {
         fun texture(path: String) = assets.hallTexture(path)

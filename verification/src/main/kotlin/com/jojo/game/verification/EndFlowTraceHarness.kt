@@ -1,17 +1,24 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.battle.overlay.WinConBoxLayer
 
 import com.jojo.game.*
+import com.jojo.game.presentation.shared.LossFlow
+import com.jojo.game.presentation.shared.StorySkipFlow
+import com.jojo.game.presentation.shared.TerminalFlow
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 공용 종료 흐름 픽스처의 Kotlin 실행부이며 JS 기준 실행기와 키를 맞춘다. */
+/** EndFlowTraceHarness: 공용 종료 흐름 픽스처의 Kotlin 실행부이며 JS 기준 실행기와 키를 맞춘다. */
 object EndFlowTraceHarness {
+    /** Case: case 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(val name: String, val kind: String, val info: String, val events: List<String>)
 
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+    /** block: 입력 데이터에서 지정한 블록을 추출한다. */
     private fun block(s: String, at: Int): String {
         var n = 0
         var q = false
@@ -25,6 +32,7 @@ object EndFlowTraceHarness {
         }; error("unclosed")
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
@@ -38,7 +46,7 @@ object EndFlowTraceHarness {
             })
         }.toList()
 
-        /** 하나의 종료 흐름 사례를 실행해 상태 문자열을 만든다. */
+        /** run: 하나의 종료 흐름 사례를 실행해 상태 문자열을 만든다. */
         fun run(c: Case): String {
             val bg = mutableListOf<String>()
             var label = ""
@@ -59,35 +67,44 @@ object EndFlowTraceHarness {
             val win = if (c.kind == "wincon") WinConBoxLayer() else null
 
 
+            /** msg: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
             fun msg(t: String, fn: (Int) -> Unit) {
                 layers += "MsgBox"; pending = fn
             }
 
             val lose = if (c.kind == "lose") LossFlow(object : LossFlow.Sink {
+                /** sound: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun sound(id: Int) {
                     sounds += "LOSE"
                 }
 
+                /** schedule: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun schedule(seconds: Int, block: () -> Unit) {
                     scheduled += seconds; scheduledBlocks[seconds] = block
                 }
 
+                /** helper: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun helper(cmd: String) {
                     helpers += cmd
                 }
 
+                /** msgBox: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun msgBox(text: String, reply: (Int) -> Unit) = msg(text, reply)
+                /** login: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun login() {
                     scenes += "LOGIN"
                 }
 
+                /** endGame: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun endGame() {
                     cmds += "END_GAME"
                 }
             }) else null
             val end = if (c.kind == "end") TerminalFlow { scenes += "LOGIN" } else null
             val skip = if (c.kind == "skip") StorySkipFlow(object : StorySkipFlow.Sink {
+                /** msgBox: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun msgBox(text: String, reply: (Int) -> Unit) = msg(text, reply)
+                /** dispatch: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun dispatch(name: String) {
                     dispatches += name
                 }
@@ -99,9 +116,11 @@ object EndFlowTraceHarness {
                 }; "lose" -> lose!!.onCreate(); "end" -> end!!.onCreate(); "skip" -> skip!!.onCreate()
             }
 
+            /** js: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
             fun js(a: List<String>): String = a.joinToString(",", "[", "]") { "\"${esc(it)}\"" }
 
 
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snap(step: String): String {
                 if (skip != null) {
                     panel = skip.panel; button = skip.button; z = skip.zIndex
@@ -160,5 +179,6 @@ object EndFlowTraceHarness {
         ); Files.writeString(Path.of(args[1]), out); println(out)
     }
 
+    /** scheduledBlocks: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private val scheduledBlocks = linkedMapOf<Int, () -> Unit>()
 }

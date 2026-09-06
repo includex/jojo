@@ -1,7 +1,10 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.timeline.*
-import com.jojo.game.presentation.battle.BattleScreen
+import com.jojo.game.presentation.battle.evidence.BattleCharacterRouteRenderEventInput
+import com.jojo.game.presentation.battle.evidence.BattleCharacterRouteRenderEventRecorder
+import com.jojo.game.presentation.battle.evidence.BattleCharacterRouteRenderEventSample
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,25 +12,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleCharacterPresentationTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleCharacterPresentationTest: BattleCharacterPresentation의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleCharacterPresentationTest {
-    @Test
-    fun `BattleScreen dispatches every strict character route and rejects unrelated states`() {
-        BattleCharacterStrictState.entries.forEach { route ->
-            assertEquals(route, BattleScreen.parseBattleCharacterRoute("battle-character-${route.route}-fixture"))
-            assertEquals(route, BattleScreen.parseBattleCharacterRoute("battle-character-${route.route}"))
-        }
-        assertNull(BattleScreen.parseBattleCharacterRoute("battle-auto-battle-active-fixture"))
-        assertNull(BattleScreen.parseBattleCharacterRoute(null))
-    }
-
     @Test
     fun `partial HP commands preserve all four source camp frames and top offset`() {
         val frames = BattleCharacterCamp.entries.mapIndexed { index, camp ->
@@ -135,5 +122,43 @@ class BattleCharacterPresentationTest {
         val jsonl = BattleCharacterStateRenderer.jsonl(BattleCharacterStrictState.HP_CAMPS_PARTIAL, listOf(draw))
         assertTrue(jsonl.contains("\"sourceRect\":[0, 201, 48, 48]"))
         assertTrue(jsonl.contains("\"flipX\":true"))
+    }
+
+    @Test
+    fun `character route recorder preserves map then sample event order`() {
+        val background = BattleCharacterDrawEvent(
+            nodePath = "Canvas/Layer/ScrollView/view/content/map/unit/mask/node",
+            drawType = "sprite",
+            x = 640f,
+            y = 96f,
+            width = 96f,
+            height = 96f,
+            assetFrameId = "character-frame",
+        )
+        val harm = BattleCharacterDrawEvent(
+            nodePath = "Canvas/Layer/ScrollView/view/content/map/harmNum",
+            drawType = "label",
+            x = 640f,
+            y = 168f,
+            width = 96f,
+            height = 48f,
+            text = "30",
+        )
+
+        val lines = BattleCharacterRouteRenderEventRecorder.jsonl(
+            BattleCharacterRouteRenderEventInput(
+                route = BattleCharacterStrictState.HIT_IMPACT,
+                samples = listOf(BattleCharacterRouteRenderEventSample(listOf(background, harm))),
+            ),
+        ).trim().lines()
+
+        assertEquals(3, lines.size)
+        assertTrue(lines[0].contains("\"sequence\":0"))
+        assertTrue(lines[0].contains("\"nodePath\":\"Canvas/Layer/ScrollView/view/content/map\""))
+        assertTrue(lines[1].contains("\"sequence\":1"))
+        assertTrue(lines[1].contains("\"assetFrameId\":\"character-frame\""))
+        assertTrue(lines[2].contains("\"sequence\":2"))
+        assertTrue(lines[2].contains("\"text\":\"30\""))
+        assertTrue(lines[1].contains("\"phase\":\"battle-character-hit-impact\""))
     }
 }

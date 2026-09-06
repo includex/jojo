@@ -1,9 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.domain.scenario.PlaybackState
 
-/** Advances source playback before rendering each frame. */
+/** ScenarioPlaybackFrameUpdater: 시나리오 재생 프레임 Updater이며, 시나리오 장면을 정확히 표시하기 위한 변환·갱신 규칙을 제공한다. */
 internal class ScenarioPlaybackFrameUpdater(
     private val playback: ScenarioInterpreter,
     private val playbackController: ScenarioPlaybackController,

@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.*
@@ -9,26 +10,17 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * class  `BattleCameraTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattleCameraTest: BattleCamera의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleCameraTest {
     @Test fun `loaded map geometry preserves S00 coordinates and expands later maps`() {
-        // Source _loadBg stores JSON width/height; _countPos subtracts half of
-        // that live map size. The historical S_00 20x20 coordinates remain
-        // byte-for-byte identical.
+        // 테스트 근거: 저장·추적 자료의 순서와 직렬화 규칙 (JSON, S_00)을 검증한다.
         assertEquals(-320f, SourceBattleMapGeometry.boardLeft(20, 0f), .0001f)
         assertEquals(1728f, SourceBattleMapGeometry.boardBottom(20, 0f), .0001f)
         assertEquals(-96f, SourceBattleMapGeometry.mapBottom(20, 0f), .0001f)
         assertEquals(-272f to 1776f, SourceBattleMapGeometry.tileCenter(0f, 0f, 20, 20, 0f, 0f))
 
-        // S52 is 20x24 and S57 is 40x40. Their origin shift is what keeps
-        // rendering, hit-testing, and camera focus in one coordinate space.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서 (S52, S57)을 검증한다.
         assertEquals(1920f, SourceBattleMapGeometry.boardBottom(24, 0f), .0001f)
         assertEquals(-288f, SourceBattleMapGeometry.mapBottom(24, 0f), .0001f)
         assertEquals(-1280f, SourceBattleMapGeometry.boardLeft(40, 0f), .0001f)
@@ -42,8 +34,7 @@ class BattleCameraTest {
         val firstSlot = BattleUnit("enemy-0", "first", Faction.ENEMY, 5, 10, visible = false, hitPoints = 0)
         assertEquals(firstSlot, firstCampCameraUnit(listOf(later, firstSlot), Faction.ENEMY))
 
-        // Source `_firstUnit` calls unit(i, 1), so LOST/effective-faction and
-        // visibility do not alter the object selected by its authored slot.
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (LOST)을 검증한다.
         firstSlot.statuses[BattleStatus.LOST] = 1
         assertEquals(firstSlot, firstCampCameraUnit(listOf(later, firstSlot), Faction.REINFORCEMENTS))
     }
@@ -56,8 +47,7 @@ class BattleCameraTest {
     }
 
     @Test fun `first friend probe preserves source disjoint range bug`() {
-        // createFriend writes 40+local, while _firstUnit(FRIEND) probes
-        // [BATTLE_MINE_N, BATTLE_FRIEND_N) = [20,40).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건 (FRIEND, BATTLE_MINE_N, BATTLE_FRIEND_N)을 검증한다.
         val friend = BattleUnit("friend-0", "friend", Faction.FRIEND, 0, 0)
         assertEquals(null, firstCampCameraUnit(listOf(friend), Faction.FRIEND))
     }
@@ -73,7 +63,7 @@ class BattleCameraTest {
         val (nodeX, nodeY) = c.sourceNodeScreenPoint(7, 9, authoredX = false, authoredY = false)
         assertEquals(640f, nodeX, .0001f)
         assertEquals(864f, nodeY, .0001f)
-        // After source setPos/move2 writes the tile, both axes use _countPos.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         val (movedX, movedY) = c.sourceNodeScreenPoint(7, 9, authoredX = true, authoredY = true)
         assertEquals(400f, movedX, .0001f)
         assertEquals(912f, movedY, .0001f)
@@ -101,8 +91,7 @@ class BattleCameraTest {
         c.pan(10000f, 0f)
         val clamped = c.contentX
 
-        // Point remains outside the left edge but content is already at its
-        // positive horizontal limit. Source still dispatches MAP_SCROLLING.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (MAP_SCROLLING)을 검증한다.
         assertEquals(false, c.ensureVisible(0f, 400f))
         assertEquals(clamped, c.contentX, .0001f)
         assertEquals(1, c.mapScrollingDispatchCount)
@@ -110,12 +99,11 @@ class BattleCameraTest {
 
     @Test fun `authored zero row show establishes camp camera before move callbacks`() {
         val c = BattleCamera()
-        // The preceding cut-scene has placed content at (215.814, -176).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         c.pan(320f, -640f)
         val shown = c.sourceNodeScreenPoint(6, 0, authoredX = true, authoredY = true)
         assertTrue(c.ensureVisible(shown.first, shown.second))
-        // BattleUnit.show calls centerUnit immediately. move2's first timer
-        // update is sentinel-only, so this is retained until its callback.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(215.81395f, c.contentX, .0001f)
         assertEquals(-560f, c.contentY, .0001f)
     }
@@ -163,7 +151,7 @@ class BattleCameraTest {
         val nodeCenterX = -272f + tileX * 96f + c.x
         val nodeCenterY = 1776f - tileY * 96f + c.y
         c.forceCenter(nodeCenterX - 48f, nodeCenterY + 48f)
-        // BattleScreen.center(9,14) => (960-9*96, 14*96-960).
+        // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         assertEquals(96f, c.contentX, .0001f)
         assertEquals(384f, c.contentY, .0001f)
     }
@@ -186,11 +174,9 @@ class BattleCameraTest {
         assertEquals(listOf(6f to 17f), cursor.crossed(path, timeline, .08f).map { it.x to it.y })
         assertEquals(emptyList(), cursor.crossed(path, timeline, .08f))
         assertEquals(listOf(7.5f to 17f), cursor.crossed(path, timeline, .20f).map { it.x to it.y })
-        // CallbackTimer resets elapsed to zero after firing, discarding the
-        // overshoot rather than keeping an absolute ideal-tick threshold.
+        // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(emptyList(), cursor.crossed(path, timeline, .24f))
-        // By the next timer crossing moveTo has already entered its final
-        // delay, so the completion callback removes the schedule first.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(emptyList(), cursor.crossed(path, timeline, .28f))
     }
 
@@ -211,8 +197,7 @@ class BattleCameraTest {
         val inFlight = cursor.crossed(path, timeline, .526f).single()
         assertEquals(9f, inFlight.x, .0001f)
         assertEquals(6.575f, inFlight.y, .0001f)
-        // moveTo(.56) + delay(.1) completes in this render. The due timer
-        // reads the preceding 6.575 node position before it is unscheduled.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         val completion = cursor.crossed(path, timeline, .66f).single()
         assertEquals(9f, completion.x, .0001f)
         assertEquals(6.575f, completion.y, .0001f)
@@ -258,8 +243,7 @@ class BattleCameraTest {
 
         assertEquals(emptyList(), cursor.crossed(listOf(8 to 9), null, 10f))
 
-        // A later real move must start a fresh schedule rather than inherit
-        // the tick count retained by the pre-no-op path.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(emptyList(), cursor.crossed(movingPath, movingTimeline, 0f))
         assertEquals(listOf(8f to 9f), cursor.crossed(movingPath, movingTimeline, .08f).map { it.x to it.y })
     }

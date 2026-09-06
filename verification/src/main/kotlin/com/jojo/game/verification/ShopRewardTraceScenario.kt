@@ -1,22 +1,35 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.scenario.overlay.*
 
-/** Runs one complete Buy/Sell/Reward fixture and preserves its observable trace. */
+/** ShopRewardTraceScenario: 하나의 Buy·Sell·Reward 픽스처를 끝까지 실행하고 관찰 가능한 추적을 보존한다. */
 object ShopRewardTraceScenario {
+    /** run: 검증 시나리오 입력을 적용하고 추적 결과를 반환한다. */
     fun run(fixture: ShopRewardFixture): String = ShopRewardTraceState(fixture).run()
 }
 
+/** ShopRewardTraceState: 검증 추적 데이터와 증거를 표현하는 타입이다. */
 private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
+    /** byId: 검증 대상의 현재 상태 값을 담는다. */
     private val byId = fixture.items.associateBy { it.id }
+    /** money: 보유 금액을 담는다. */
     private var money = fixture.money
+    /** properties: 검증 대상 목록을 담는다. */
     private val properties = linkedMapOf<Int, Int>()
+    /** actions: 검증 대상 목록을 담는다. */
     private val actions = mutableListOf<String>()
+    /** overlays: 검증 대상 목록을 담는다. */
     private val overlays = mutableListOf<String>()
+    /** buyRows: 검증 대상의 현재 상태 값을 담는다. */
     private var buyRows = emptyList<Int>()
+    /** sellTab: 검증 대상의 현재 상태 값을 담는다. */
     private var sellTab = 0
+    /** helper: 검증 대상의 현재 상태 값을 담는다. */
     private var helper = false
+    /** cardRuns: 검증 대상의 현재 상태 값을 담는다. */
     private var cardRuns = 0
+    /** finalDeleted: 검증 대상의 현재 상태 값을 담는다. */
     private val finalDeleted = if (fixture.events.any { it == "sell:msgbox2:0" }) {
         fixture.items.firstOrNull { it.type != "property" && it.sell != 255 }?.let { listOf(it.id) } ?: emptyList()
     } else {
@@ -27,6 +40,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         fixture.items.filter { it.type == "property" }.forEach { properties[it.id] = fixture.owned }
     }
 
+    /** run: 검증 시나리오 입력을 적용하고 추적 결과를 반환한다. */
     fun run(): String {
         val trace = mutableListOf<String>()
         initialize(trace)
@@ -44,6 +58,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         return ShopRewardJson.array(trace)
     }
 
+    /** initialize: 검증 실행에 필요한 초기 상태를 준비한다. */
     private fun initialize(trace: MutableList<String>) {
         action(ShopRewardJson.string("bg"), ShopRewardJson.string("bg1"))
         trace += snapshot(
@@ -75,6 +90,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         trace += snapshot("reward:create", listOf("factory" to ShopRewardJson.string("RewardLayer"), "helper" to "false"))
     }
 
+    /** handle: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun handle(event: String, trace: MutableList<String>) {
         val parts = event.split(':')
         when {
@@ -102,6 +118,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         }
     }
 
+    /** buyEquip: 구매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun buyEquip(parts: List<String>) {
         val item = byId.getValue(parts[2].toInt())
         layer("DialogueLayer", ShopRewardJson.objectValue(
@@ -110,6 +127,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         layer("MsgBox2", ShopRewardJson.string("[callback]"))
     }
 
+    /** buyEquipConfirm: 구매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun buyEquipConfirm(parts: List<String>) {
         if (parts[2] != "0") return
         val item = fixture.items.first { it.type != "property" }
@@ -119,6 +137,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         action(ShopRewardJson.string("equipItem"), item.id.toString(), item.level.toString(), "3", "1", "null")
     }
 
+    /** buyProperty: 구매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun buyProperty(event: String, parts: List<String>, trace: MutableList<String>) {
         buyRows = fixture.items.filter { it.type == "property" && it.price != 255 }.sortedBy { it.id }.map { it.id }
         val item = byId.getValue(parts[2].toInt())
@@ -144,6 +163,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         }
     }
 
+    /** buyPropertyConfirm: 구매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun buyPropertyConfirm(parts: List<String>) {
         val quantity = parts[2].toInt()
         if (quantity == 0) return
@@ -155,6 +175,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         action(ShopRewardJson.string("property"), item.id.toString(), quantity.toString())
     }
 
+    /** sell: 판매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun sell(event: String, parts: List<String>, trace: MutableList<String>) {
         val item = byId.getValue(parts[2].toInt())
         action(ShopRewardJson.string("schedule"), "1")
@@ -182,6 +203,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         }
     }
 
+    /** sellWeaponConfirm: 판매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun sellWeaponConfirm(parts: List<String>) {
         if (parts[2] != "0") return
         val item = fixture.items.first { it.type != "property" && it.sell != 255 }
@@ -194,6 +216,7 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         action(ShopRewardJson.string("weaponDelete"), item.id.toString())
     }
 
+    /** sellPropertyConfirm: 판매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun sellPropertyConfirm(parts: List<String>) {
         val quantity = parts[2].toInt()
         if (quantity == 0) return
@@ -205,23 +228,29 @@ private class ShopRewardTraceState(private val fixture: ShopRewardFixture) {
         action(ShopRewardJson.string("money"), (item.sell * quantity).toString(), money.toString())
     }
 
+    /** action: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun action(vararg values: String) {
         actions += ShopRewardJson.array(values.toList())
     }
 
+    /** layer: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun layer(kind: String, argument: String) {
         action(ShopRewardJson.string("addLayer"), ShopRewardJson.string(kind), argument)
         overlays += ShopRewardJson.objectValue(listOf("kind" to ShopRewardJson.string(kind), "arg" to argument))
     }
 
+    /** propertiesJson: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun propertiesJson() = ShopRewardJson.objectValue(properties.map { it.key.toString() to it.value.toString() })
 
+    /** ids: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun ids(values: List<Int>) = ShopRewardJson.array(values.sorted().map(Int::toString))
 
+    /** sellRows: 판매 검증 입력을 적용하고 결과 상태를 반환한다. */
     private fun sellRows() = ids(fixture.items.filter {
         if (sellTab == 0) it.type != "property" else it.type == "property"
     }.filter { if (sellTab == 0) true else (properties[it.id] ?: 0) > 0 }.map { it.id })
 
+    /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
     private fun snapshot(step: String, extra: List<Pair<String, String>> = emptyList()): String {
         val fields = listOf(
             "step" to ShopRewardJson.string(step),

@@ -1,3 +1,4 @@
+// Campaign
 package com.jojo.game.domain.campaign
 
 /** 원본 정보 전달에서 추가된 무장 기술을 나타낸다. */

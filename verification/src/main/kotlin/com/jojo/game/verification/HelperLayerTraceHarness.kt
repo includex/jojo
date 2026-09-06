@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -6,17 +7,25 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 복원된 HelperLayer 격리 원본·게임 추적 픽스처의 Kotlin 실행부이다. */
+/** HelperLayerTraceHarness: 복원된 HelperLayer 격리 원본·게임 추적 픽스처의 Kotlin 실행부이다. */
 object HelperLayerTraceHarness {
+    /** Case: case 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** name: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val name: String,
+        /** info: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val info: List<HelperLayer.Info>,
+        /** replacement: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val replacement: List<Pair<String, String>>,
+        /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         val events: List<String>
     )
 
+    /** json: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun json(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+    /** unjson: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun unjson(s: String) = s.replace("\\n", "\n").replace("\\\"", "\"").replace("\\\\", "\\")
+    /** balanced: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun balanced(text: String, from: Int): String {
         val open = text[from]
         val close = if (open == '[') ']' else '}'
@@ -30,11 +39,13 @@ object HelperLayerTraceHarness {
         }; error("unclosed JSON block")
     }
 
+    /** fieldBlock: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun fieldBlock(obj: String, key: String): String {
         val at = obj.indexOf("\"$key\""); require(at >= 0)
         val start = obj.indexOfAny(charArrayOf('[', '{'), at); return balanced(obj, start)
     }
 
+    /** splitObjects: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun splitObjects(array: String): List<String> {
         val out = mutableListOf<String>()
         var i = 0; while (i < array.length) {
@@ -44,6 +55,7 @@ object HelperLayerTraceHarness {
         }; return out
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
@@ -66,15 +78,18 @@ object HelperLayerTraceHarness {
             Case(name, info, replacement, events)
         }
 
-        /** 하나의 Helper 픽스처 사례를 실행한다. */
+        /** run: 하나의 Helper 픽스처 사례를 실행한다. */
         fun run(spec: Case): String {
             val calls = mutableListOf<Pair<String, Int>>()
             var removeCount = 0
             val layer = HelperLayer(object : HelperLayer.Model {
+                /** getInfo: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun getInfo() = spec.info
+                /** replaceSpeInfo: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun replaceSpeInfo(text: String, flags: Int): String {
                     calls += text to flags; return spec.replacement.fold(text) { acc, (a, b) -> acc.replace(a, b) }
                 }
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             }) { removeCount++ }; layer.onCreate(); fun snap(step: String): String {
                 val v = layer.view()
                 val callsJson = calls.joinToString(",", "[", "]") { "[\"${json(it.first)}\",${it.second}]" }

@@ -1,3 +1,4 @@
+// Android
 package com.jojo.game.android
 
 import android.os.Bundle

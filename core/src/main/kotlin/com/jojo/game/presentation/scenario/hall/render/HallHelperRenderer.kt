@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall.render
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -7,7 +8,7 @@ import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.hall.HallHelperView
 
-/** Stateless HelperLayer renderer over a ready-to-draw text snapshot. */
+/** HallHelperRenderer: 거점 도움말 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallHelperRenderer {
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallHelperView) {
         val draw = HallRenderPrimitives(assets, batch)

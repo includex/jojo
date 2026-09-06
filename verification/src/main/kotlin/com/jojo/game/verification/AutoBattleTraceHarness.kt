@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
@@ -5,12 +6,15 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** TuoGuanLayer와 MsgBox4의 자동 전투·지속 상태 계약을 검증한다. */
+/** AutoBattleTraceHarness: TuoGuanLayer와 MsgBox4의 자동 전투·지속 상태 계약을 검증한다. */
 object AutoBattleTraceHarness {
+    /** events: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun events(raw: String) = Regex("\\\"events\\\":\\[(.*?)]").findAll(raw)
         .map { m -> Regex("\\\"([^\\\"]*)\\\"").findAll(m.groupValues[1]).map { it.groupValues[1] }.toList() }.toList()
 
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
@@ -30,12 +34,12 @@ object AutoBattleTraceHarness {
             val dispatches = mutableListOf<String>()
             val calls = mutableListOf<Int>()
 
-            /** 검증 모델을 초기 상태로 생성한다. */
+            /** create: 검증에 필요한 초기 상태를 생성한다. */
             fun create() {
                 removed = 0; if (kind == "msg4") checked = persisted == 1
             }
 
-            /** 현재 자동 전투 상태를 JSON 조각으로 기록한다. */
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snap(step: String) =
                 "{\"step\":\"${esc(step)}\",\"attached\":${removed == 0},\"dispatches\":[${dispatches.joinToString(",") { "\"$it\"" }}],\"calls\":[${
                     calls.joinToString(",")

@@ -1,4 +1,7 @@
+// Game
 package com.jojo.game
+import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.infrastructure.preferences.GamePreferenceProvider
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.domain.scenario.*
@@ -9,7 +12,6 @@ import com.jojo.game.application.runtime.RuntimeBattleDriver
 import com.jojo.game.application.runtime.RuntimeTitleStartupDriver
 import com.jojo.game.application.runtime.RuntimeBattlePresentation
 import com.jojo.game.application.runtime.RuntimeBattleObserver
-import com.jojo.game.application.runtime.RuntimeBattleReferenceAssets
 import com.jojo.game.application.runtime.RuntimeBattlePreparationDriver
 import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 import com.jojo.game.application.runtime.GameLaunchConfiguration
@@ -110,12 +112,8 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun titleLoadGameLayer(): LoadGameLayer = screenNavigator.titleLoadGameLayer()
 
 
-    /**
-     * Desktop replacement for Login.registerCheck. The original waits on the platform Python
-     * manager and may call register with a returned activation payload. This game deliberately
-     * has no network/hot-update backend, so it completes asynchronously with "not registered";
-     * TitleScreen still preserves the source LoadingLayer attach/callback/detach lifecycle.
-     */
+    /** Login.registerCheck의 데스크톱 대체 경로이다.
+     * 네트워크 갱신 서버가 없으므로 비동기로 미등록 결과를 전달하면서 LoadingLayer의 연결·콜백·해제 수명 주기는 유지한다. */
     internal fun requestRegistrationCheck(complete: (Boolean) -> Unit) {
         Gdx.app.log("JojoGame", "CHECK_REGISTER requested; platform registerCheck is unsupported")
         Gdx.app.postRunnable { complete(false) }
@@ -168,7 +166,6 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     fun runtimeTitleStartupDriver(): RuntimeTitleStartupDriver? = configuration.runtimeTitleStartupDriver
     fun runtimeBattlePresentation(): RuntimeBattlePresentation = configuration.runtimeBattlePresentation
     fun runtimeBattleObserver(): RuntimeBattleObserver? = configuration.runtimeBattleObserver
-    fun runtimeBattleReferenceAssets(): RuntimeBattleReferenceAssets? = configuration.runtimeBattleReferenceAssets
     fun runtimeBattlePreparationDriver(): RuntimeBattlePreparationDriver? = configuration.runtimeBattlePreparationDriver
 
     /** 프레임버퍼를 읽지 않고 렌더러 메타데이터를 기록한다. */
@@ -177,10 +174,6 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
         notifyArtifact(RuntimeArtifactEvent.EventLog(screenshotState, screen))
         return true
     }
-
-
-    fun requestedMapTextureDumpPath(): String? = null
-
 
     fun requestedMapDither(): Boolean? = null
 
@@ -192,20 +185,13 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
 
     /** 맵 표본 좌표를 실제 프레임버퍼 픽셀 중심에 맞춘다. */
     fun requestedFragmentCoordinateMapSampler(): Boolean = true
-    /**
-     * Keep the logical Cocos quad unshifted. An explicit map-only option is
-     * retained solely for regression sweeps; the source-faithful default uses
-     * physical framebuffer pixel-centre sampling in BattleScreen.
-     */
+    /** 논리적인 Cocos 사각형을 이동하지 않고 유지한다.
+     * 지도 전용 옵션은 회귀 검사에만 사용하며, 기본 경로는 BattleScreen의 실제 프레임버퍼 중심을 표본화한다. */
 
     fun requestedMapSampleOffset(): Pair<Float, Float> = 0f to 0f
 
-    /**
-     * Isolated R_00 map-quad candidate metadata.  This is emitted by the
-     * same live renderer that supplies the framebuffer; it intentionally
-     * records the Cocos source texture identity and quad contract rather
-     * than treating a PNG position as an oracle.
-     */
+    /** R_00 지도 사각형 후보 메타데이터를 별도로 기록한다.
+     * 프레임버퍼를 제공하는 실제 렌더러가 원본 텍스처 식별자와 사각형 계약을 기록하며 PNG 위치를 정답으로 간주하지 않는다. */
 
     fun writeMapQuadCandidateSidecar() = notifyArtifact(RuntimeArtifactEvent.MapSidecar(screenshotState))
 

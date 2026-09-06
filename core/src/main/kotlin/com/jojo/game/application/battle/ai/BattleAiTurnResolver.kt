@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.ai
 
 import com.jojo.game.domain.battle.*
@@ -45,10 +46,7 @@ internal data class BattleAiTurnEnvironment(
     val controllerEnv: BattleAiControllerEnvironment,
 )
 
-/**
- * Resolves AI turn execution for a camp in tactical combat, managing unit ordering,
- * controller dispatch, side-effect staging, and deferred mutation transactions.
- */
+/** BattleAiTurnResolver: 전투 Ai 턴 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object BattleAiTurnResolver {
 
     private fun distance(a: BattleUnit, b: BattleUnit): Int =

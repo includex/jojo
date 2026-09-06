@@ -1,7 +1,9 @@
+// Verification
 package com.jojo.game.verification.scenario.evidence
 
 import com.jojo.game.presentation.scenario.*
 
+/** appendHelperPart0: 검증 이벤트와 산출물을 기록한다. */
 internal fun appendHelperPart0(writer: ScenarioHelperEventWriter) = with(writer) {
         draw("Canvas/Layer/Logo_12-1", "tiled-sprite", 147.686f, 24.5f, 1193.0f, 751.0f, "Logo_9-1", "", true)
         draw("Canvas/Layer/Logo_12-1/box4", "sliced-sprite", 147.686f, 24.5f, 1193.0f, 751.0f, "box4", "", true)

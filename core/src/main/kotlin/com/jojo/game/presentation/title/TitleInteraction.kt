@@ -1,9 +1,10 @@
+// Presentation
 package com.jojo.game.presentation.title
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.SettingLayer
 
-/** Renderer-independent hit and route contract for the title scene. */
+/** TitleInteraction: 타이틀 메뉴 입력을 해석해 시작·불러오기·설정·종료 화면 동작으로 변환한다. */
 object TitleInteraction {
 
     enum class MainAction { NEW_GAME, LOAD, SETTINGS, EXIT }
@@ -65,7 +66,7 @@ object TitleInteraction {
         return LoadAction.SelectVisualRow(((517 - y) / 45).coerceAtLeast(0))
     }
 
-    /** Coordinate contract used by the real SettingLayer overlay, not the title framebuffer oracle. */
+    /** settingActionAt: 설정 메뉴에서 선택 위치에 대응하는 변경 동작을 반환한다. */
     fun settingActionAt(x: Int, y: Int): SettingAction? {
         if (x in 965..1112 && y in 37..93) return SettingAction.Confirm
         if (x in 180..630) {
@@ -86,7 +87,7 @@ object TitleInteraction {
         return null
     }
 
-    /** Applies the same action that TitleScreen receives from natural pointer input. */
+    /** applySetting: 전달한 설정 변경 동작을 타이틀 화면 상태에 적용한다. */
     fun applySetting(action: SettingAction, layer: SettingLayer): Boolean = when (action) {
         SettingAction.Confirm -> layer.close(SettingLayer.TOUCH_END)
         is SettingAction.Toggle -> {
@@ -127,7 +128,7 @@ object TitleInteraction {
         fun requestExit()
     }
 
-    /** Keeps the source button ordering and the R_00 new-game destination explicit and testable. */
+    /** dispatch: 타이틀 입력을 메뉴 선택·설정·장면 전환 결과로 변환한다. */
     fun dispatch(action: MainAction, routes: MainRoutes) = when (action) {
         MainAction.NEW_GAME -> routes.newGame("R_00")
         MainAction.LOAD -> routes.openLoad()

@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.battle.*
@@ -8,19 +9,11 @@ import com.jojo.game.domain.scenario.ScenarioUnitHideRequest
 import com.jojo.game.domain.scenario.ScenarioUnitPostsRequest
 import com.jojo.game.domain.scenario.ScenarioUnitShowRequest
 import com.jojo.game.presentation.battle.timeline.UnitDeathPresentation
-
-/**
- * Drives the native callbacks for Stage/BattleUnit hide, show and setPosts.
- *
- * The coordinator owns the consume/start/finish ordering; the port only
- * exposes model, camera and resource side effects.  In particular, a resume
- * may synchronously enqueue another request, so a completed request is removed
- * from [lifecycle] before the port is asked to resume the script.
- */
 internal class ScriptedUnitCallbackCoordinator(
     private val lifecycle: ScriptedUnitPresentationLifecycle,
     private val port: Port,
 ) {
+    /** Port: 전투 표현 계층이 외부 기능과 연결할 때 사용하는 계약이다. */
     internal interface Port {
         fun now(): Float
         fun consumeHide(): ScenarioUnitHideRequest?
@@ -53,7 +46,6 @@ internal class ScriptedUnitCallbackCoordinator(
         fun publishLoadedAvatar(unitId: String, avatarId: Int)
         fun resumeScript()
     }
-
     internal data class ShowStart(val unitId: String, val duration: Float)
 
     val hideBusy: Boolean get() = lifecycle.hideBusy

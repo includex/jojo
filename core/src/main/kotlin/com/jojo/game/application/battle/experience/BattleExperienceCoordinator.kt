@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.application.battle.experience
 
 import com.jojo.game.domain.battle.*
@@ -12,6 +13,7 @@ import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.battle.BattleEquipmentExperienceKind
 
+/** BattleExperienceEnvironment: 전투 경험치와 장비 성장 정산에 필요한 콜백·유닛·임시 효과 저장소를 전달한다. */
 internal data class BattleExperienceEnvironment(
     val units: () -> Map<String, BattleUnit>,
     val onEquipmentExperienceAward: ((BattleUnit, BattleUnit, Int, BattleEquipmentExperienceKind) -> List<CampaignEquipmentExperienceResult>)?,
@@ -28,6 +30,7 @@ internal data class BattleExperienceEnvironment(
     val stagedCompletionSideEffects: () -> MutableList<() -> Unit>?,
 )
 
+/** BattleExperienceCoordinator: 피해·격파 결과를 유닛과 장비 경험치로 계산하고, 표현 시점에 맞춰 반영한다. */
 internal object BattleExperienceCoordinator {
 
 

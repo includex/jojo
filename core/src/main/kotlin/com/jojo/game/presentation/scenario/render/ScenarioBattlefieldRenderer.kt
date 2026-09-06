@@ -1,3 +1,4 @@
+// Scenario
 package com.jojo.game.presentation.scenario.render
 
 import com.badlogic.gdx.Gdx
@@ -10,7 +11,7 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** Renders only immutable battlefield geometry with borrowed assets and batches. */
+/** ScenarioBattlefieldRenderer: 시나리오 Battlefield 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object ScenarioBattlefieldRenderer {
     fun draw(
         assets: ScenarioSceneAssets,

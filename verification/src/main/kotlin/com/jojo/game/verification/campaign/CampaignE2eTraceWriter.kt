@@ -1,24 +1,37 @@
+// Verification
 package com.jojo.game.verification.campaign
 
 import com.badlogic.gdx.Gdx
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Verification artifact writer; it owns the JSON marker contract, not screen driving. */
+/** CampaignE2eTraceWriter: 화면 구동이 아닌 JSON 표식 계약을 소유하는 검증 산출물 작성기이다. */
 internal object CampaignE2eTraceWriter {
+    /** Snapshot: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     data class Snapshot(
+        /** route: 검증 실행 계획을 담는다. */
         val route: List<String>,
+        /** inputs: 검증 입력 목록을 담는다. */
         val inputs: List<String>,
+        /** inputRecords: 검증 대상 목록을 담는다. */
         val inputRecords: List<CampaignE2eInputRecord>,
+        /** transitionEnterCount: 검증 누적 횟수를 담는다. */
         val transitionEnterCount: Int,
+        /** playerMoveBeforeScene1: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
         val playerMoveBeforeScene1: Boolean,
+        /** committedPlayerMove: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
         val committedPlayerMove: String?,
+        /** initialBattleScenes: 검증 대상 목록을 담는다. */
         val initialBattleScenes: Set<String>,
+        /** campaignStages: 검증 대상 목록을 담는다. */
         val campaignStages: List<Int>,
+        /** battlePreparations: 검증 대상 목록을 담는다. */
         val battlePreparations: List<String>,
+        /** sawR01DepartureDialogue: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
         val sawR01DepartureDialogue: Boolean,
     )
 
+    /** write: 검증 이벤트와 산출물을 기록한다. */
     fun write(
         config: CampaignE2eTraceConfig,
         snapshot: Snapshot,
@@ -74,5 +87,6 @@ internal object CampaignE2eTraceWriter {
         )
     }
 
+    /** escape: JSON 특수 문자를 이스케이프한다. */
     private fun escape(value: String) = value.replace("\\", "\\\\").replace("\"", "\\\"")
 }

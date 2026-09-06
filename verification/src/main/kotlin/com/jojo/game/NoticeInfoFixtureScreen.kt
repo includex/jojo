@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
@@ -9,14 +10,15 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.GL20
 
-/** BattleScreen의 NoticeInfoLayer 상태 변경과 메시지 경로를 표현한다. */
 
+/** BattleNoticeRoute: BattleScreen의 NoticeInfoLayer 상태 변경과 메시지 경로를 표현한다. */
 class BattleNoticeRoute private constructor(val notice: NoticeInfoLayer) {
+    /** attachedLayerIds: attached layer ids 값을 보관해 검증 흐름에서 사용한다. */
     val attachedLayerIds = listOf(1, 25)
 
     companion object {
-        /** 요청된 상태에 맞는 공지 경로를 초기화한다. */
 
+        /** initialize: 요청된 상태에 맞는 공지 경로를 초기화한다. */
         fun initialize(state: String): BattleNoticeRoute {
             val route = BattleNoticeRoute(NoticeInfoLayer())
             when (state) {
@@ -47,25 +49,29 @@ class BattleNoticeRoute private constructor(val notice: NoticeInfoLayer) {
     }
 }
 
-/** 프레임 버퍼 대신 공지 이벤트 로그만 제공하는 검증 화면이다. */
+/** NoticeInfoFixtureScreen: 프레임 버퍼 대신 공지 이벤트 로그만 제공하는 검증 화면이다. */
 class NoticeInfoFixtureScreen(private val game: JojoGame, private val state: String) : ScreenAdapter(), RuntimeRenderEventLogProvider {
+    /** route: 검증 흐름에서 사용하는 값을 담는다. */
     private val route = BattleNoticeRoute.initialize(state)
 
+    /** render: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         game.writeRenderEventLogIfRequested()
     }
 
-    /** 공지 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
 
+    /** renderEventLog: 공지 화면의 렌더 이벤트를 비교용 문자열로 반환한다. */
     fun renderEventLog(): String = NoticeInfoBattleRenderEvents.jsonl(state, route)
+    /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
 }
 
-/** 공지 화면 상태를 원본 그리기 이벤트로 직렬화한다. */
 
+/** NoticeInfoBattleRenderEvents: 공지 화면 상태를 원본 그리기 이벤트로 직렬화한다. */
 object NoticeInfoBattleRenderEvents {
+    /** UnitDraw: unit draw 관련 검증 상태와 동작을 제공하는 타입이다. */
     private data class UnitDraw(val x: Float, val y: Float, val atlas: String, val barWidth: Float, val bar: String)
 
     private val units = listOf(
@@ -90,15 +96,15 @@ object NoticeInfoBattleRenderEvents {
         UnitDraw(544f, 0f, "19/19ac1287-4d09-45f4-bf9a-f5eb8b21795c.89d84", 88f, "Mark_3-1"),
     )
 
-    /** 공지 경로의 그리기 이벤트를 JSONL 한 줄로 만든다. */
 
+    /** jsonl: 검증 상태를 JSONL 한 줄로 직렬화한다. */
     fun jsonl(state: String, route: BattleNoticeRoute): String {
         check(route.attachedLayerIds == listOf(1, 25))
         val name = state.removePrefix("notice-")
         val phase = "battle-notice-$name"
         val log = RenderEventLog()
 
-        /** 공지 화면의 단일 그리기 이벤트를 로그에 추가한다. */
+        /** draw: 검증 대상의 현재 렌더 이벤트를 출력한다. */
         fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String) =
             log.draw(phase, "HallLayer", path, type, x, y, w, h, asset)
         draw(

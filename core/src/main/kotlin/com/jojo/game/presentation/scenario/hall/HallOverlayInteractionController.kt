@@ -1,6 +1,7 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-/** Typed Hall overlay input routing; it owns hit testing but never mutates a campaign. */
+/** HallInfoInputKind: 거점 Info 입력 Kind이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal enum class HallInfoInputKind { FORCES, PROPERTY, TERRAIN, TREASURE, HELPER }
 internal sealed interface HallInfoInputIntent {
     data object None : HallInfoInputIntent

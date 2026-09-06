@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.script
 
 import com.jojo.game.domain.battle.*
@@ -7,18 +8,7 @@ import com.jojo.game.domain.scenario.ScenarioUnitHideRequest
 import com.jojo.game.domain.scenario.ScenarioUnitPostsRequest
 import com.jojo.game.domain.scenario.ScenarioUnitShowRequest
 import com.jojo.game.domain.scenario.ScriptedUnitAction
-import com.jojo.game.presentation.battle.ScriptedUnitVisual
-
-/**
- * Owns the callback lifetimes emitted by scripted Stage/BattleUnit calls.
- *
- * The native renderer still performs the model, camera and audio side effects,
- * but it no longer owns the state which decides whether a callback is pending.
- * This distinction is important: a script can resume synchronously from a
- * callback, so these transitions must be committed before the callback leaves
- * the screen.  The individual channels are intentionally kept here rather
- * than represented by nullable fields in BattleScreen.
- */
+import com.jojo.game.presentation.battle.unit.ScriptedUnitVisual
 internal class ScriptedUnitPresentationLifecycle {
     internal data class ActiveHide(
         val request: ScenarioUnitHideRequest,
@@ -26,28 +16,23 @@ internal class ScriptedUnitPresentationLifecycle {
         val endsAt: Float,
         val originalHp: Int,
     )
-
     internal data class PendingHide(
         val request: ScenarioUnitHideRequest,
         val battleUnitId: String,
     )
-
     internal data class ActiveShow(
         val request: ScenarioUnitShowRequest,
         val battleUnitId: String,
         val endsAt: Float,
     )
-
     internal data class ActivePosts(
         val request: ScenarioUnitPostsRequest,
         val battleUnitId: String,
     )
-
     internal data class ActiveMap(
         val request: ScenarioMapPresentationRequest,
         val endsAt: Float,
     )
-
     internal data class ActiveAction(
         val request: ScriptedUnitAction,
         val battleUnitId: String,
@@ -60,8 +45,6 @@ internal class ScriptedUnitPresentationLifecycle {
     private var posts: ActivePosts? = null
     private var map: ActiveMap? = null
     private var action: ActiveAction? = null
-
-    /** Persistent setAction/setAction2 poses, including move2's anime20. */
     private val visualStates = mutableMapOf<String, ScriptedUnitVisual>()
 
     fun visual(unitId: String): ScriptedUnitVisual? = visualStates[unitId]

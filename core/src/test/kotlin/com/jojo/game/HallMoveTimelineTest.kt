@@ -1,17 +1,12 @@
+// Test
 package com.jojo.game
 
-import com.jojo.game.presentation.scenario.hall.*
+import com.jojo.game.application.scenario.HallMoveTimeline
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `HallMoveTimelineTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** HallMoveTimelineTest: HallMoveTimeline의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class HallMoveTimelineTest {
     private fun close(expected: Float, actual: Float) = assertEquals(expected, actual, .0001f)
@@ -22,7 +17,7 @@ class HallMoveTimelineTest {
         close(45.5f, sample.x)
         close(48f, sample.y)
         assertEquals(1, sample.direction)
-        // _moveDuring has not fired yet: z remains at the origin.
+        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         close(-52f, sample.zIndex)
     }
 

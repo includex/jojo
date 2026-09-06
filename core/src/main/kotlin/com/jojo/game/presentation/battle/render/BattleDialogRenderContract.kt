@@ -1,11 +1,9 @@
+// Battle
 package com.jojo.game.presentation.battle.render
 
-import com.jojo.game.MagicUiList
+import com.jojo.game.presentation.shared.overlay.MagicUiList
 import com.jojo.game.presentation.battle.assets.BattleUiAssets
-
-/** Literal Cocos SpriteFrame geometry for the battle MagicLayer fixture. */
 object BattleDialogRenderContract {
-
     data class Sprite(val path: String, val x: Float, val y: Float, val width: Float, val height: Float)
 
 

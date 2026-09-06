@@ -1,9 +1,10 @@
+// Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
 
-/** Projects the campaign read model into the immutable EquipLayer display contract. */
+/** HallEquipViewProjector: 거점 Equip 표시 정보 변환기이며, 도메인 데이터를 화면에 바로 쓸 수 있는 표시 모델로 변환한다. */
 internal class HallEquipViewProjector(
     private val campaign: CampaignState,
     private val catalog: GameDataCatalog,

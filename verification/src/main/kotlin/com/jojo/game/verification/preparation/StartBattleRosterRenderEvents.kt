@@ -1,5 +1,7 @@
+// Verification
 package com.jojo.game.verification.preparation
 
+/** writeStartBattleRosterEvents: 검증 이벤트와 산출물을 기록한다. */
 internal fun writeStartBattleRosterEvents(context: StartBattleRenderEventContext) = with(context) {
     context.draw(startBattleScreen, "Canvas/Layer/bg/scrollview/view/content/node/testet", "sprite", 176.086f * scale, 624.602f * scale, 115.2f * scale, 115.2f * scale, if (spiritSorted) "assets/Game/native/ab/abd7ecf9-86cb-40a9-93b3-d5f6749a6c0e.c8ba0.png#<unnamed-frame>" else "assets/Game/native/1c/1c30efbe-adcc-4d44-872d-4afaeba84443.b7fcb.png#<unnamed-frame>", 1.0f, listOf(770, 771), true, "")
     context.draw("StartBattleScreen", "Canvas/Layer/bg/scrollview/view/content/node/label", "label", 168.744f * scale, 642.355f * scale, 58.82f * scale, 54.4f * scale, null, 1.0f, listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), true, "Lv.")

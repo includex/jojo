@@ -1,10 +1,12 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.*
 import com.jojo.game.presentation.battle.edit.*
 
-/** 각 픽스처를 담당 상태 머신으로 전달해 실행한다. */
+/** EditMutationScenarioRunner: 각 픽스처를 담당 상태 머신으로 전달해 실행한다. */
 object EditMutationScenarioRunner {
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     fun run(scenario: EditMutationCase): String = when (scenario.owner) {
         "battle" -> EditBattleMutationScenario.run(scenario)
         "unit" -> EditUnitMutationScenario.run(scenario)
@@ -14,7 +16,9 @@ object EditMutationScenarioRunner {
     }
 }
 
+/** EditBattleMutationScenario: edit battle mutation scenario 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 object EditBattleMutationScenario {
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     fun run(scenario: EditMutationCase): String {
         var attached = true
         var weather = 0
@@ -24,10 +28,12 @@ object EditBattleMutationScenario {
         val edit = BattleEditLayer2(weather, round, (scenario.flag and 4) != 0)
         val output = mutableListOf<String>()
 
+        /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snapshot(step: String) = EditMutationTraceJson.snapshot(
             step, attached, emptyList(), toasts, dispatch, "\"weather\":$weather,\"round\":$round"
         )
 
+        /** apply: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun apply(effects: List<BattleEditLayer2.Effect>) {
             effects.forEach { effect ->
                 when (effect) {
@@ -56,13 +62,16 @@ object EditBattleMutationScenario {
     }
 }
 
+/** EditUnitMutationScenario: edit unit mutation scenario 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 object EditUnitMutationScenario {
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     fun run(scenario: EditMutationCase): String {
         var attached = true
         var level = 1
         val toasts = mutableListOf<String>()
         val output = mutableListOf<String>()
 
+        /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snapshot(step: String) = EditMutationTraceJson.snapshot(
             step, attached, emptyList(), toasts, emptyList(), "\"level\":$level"
         )
@@ -84,7 +93,9 @@ object EditUnitMutationScenario {
     }
 }
 
+/** EditGlobalMutationScenario: edit global mutation scenario 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 object EditGlobalMutationScenario {
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     fun run(scenario: EditMutationCase): String {
         var attached = true
         var ambition = 10
@@ -97,6 +108,7 @@ object EditGlobalMutationScenario {
         val flow = EditGlobalSourceOracle(ambition, money, stage, List(10) { "S$it" })
         val output = mutableListOf<String>()
 
+        /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snapshot(step: String) = EditMutationTraceJson.snapshot(
             step,
             attached,
@@ -106,6 +118,7 @@ object EditGlobalMutationScenario {
             "\"ambition\":$ambition,\"money\":$money,\"stage\":$stage,\"clears\":$clears"
         )
 
+        /** apply: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun apply(effects: List<EditGlobalSourceOracle.Effect>) {
             effects.forEach { effect ->
                 when (effect) {
@@ -141,7 +154,9 @@ object EditGlobalMutationScenario {
     }
 }
 
+/** EditRosterMutationScenario: edit roster mutation scenario 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 object EditRosterMutationScenario {
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     fun run(scenario: EditMutationCase): String {
         var attached = true
         val flow = EditRosterFlow(
@@ -152,6 +167,7 @@ object EditRosterMutationScenario {
         val toasts = mutableListOf<String>()
         val output = mutableListOf<String>()
 
+        /** apply: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
         fun apply(effects: List<EditRosterFlow.Effect>) {
             effects.forEach { effect ->
                 when (effect) {
@@ -164,6 +180,7 @@ object EditRosterMutationScenario {
             }
         }
 
+        /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snapshot(step: String) = EditMutationTraceJson.snapshot(
             step,
             attached,
@@ -183,7 +200,9 @@ object EditRosterMutationScenario {
     }
 }
 
+/** EditAvatarMutationScenario: edit avatar mutation scenario 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
 object EditAvatarMutationScenario {
+    /** run: 검증 실행에 필요한 상태를 구성한다. */
     fun run(scenario: EditMutationCase): String {
         var attached = true
         var avatar: String? = null
@@ -192,6 +211,7 @@ object EditAvatarMutationScenario {
         val toasts = mutableListOf("선택하려면 최소한 하나의 모드를 설치해야 합니다!")
         val output = mutableListOf<String>()
 
+        /** snapshot: 현재 추적 상태를 스냅샷으로 만든다. */
         fun snapshot(step: String) = EditMutationTraceJson.snapshot(
             step,
             attached,

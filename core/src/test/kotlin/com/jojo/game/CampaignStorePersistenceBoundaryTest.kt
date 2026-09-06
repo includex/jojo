@@ -1,11 +1,14 @@
+// Test
 package com.jojo.game
+
+import com.jojo.game.infrastructure.preferences.InMemoryPreferences
 
 import com.jojo.game.infrastructure.data.CampaignStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/** Verifies the application store contract after persistence responsibilities are split out. */
+/** CampaignStorePersistenceBoundaryTest: 저장 책임 분리 뒤에도 CampaignStore가 유지해야 하는 응용 저장소 계약을 검증한다. */
 class CampaignStorePersistenceBoundaryTest {
     @Test
     fun `store restores snapshot and runtime state through its persistence boundary`() {

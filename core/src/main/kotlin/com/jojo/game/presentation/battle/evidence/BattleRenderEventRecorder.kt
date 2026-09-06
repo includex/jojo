@@ -1,3 +1,4 @@
+// Battle
 package com.jojo.game.presentation.battle.evidence
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
@@ -15,8 +16,10 @@ internal data class BattleRenderEventView(
     val reward: BattleRenderEventRewardView? = null,
 )
 
+/** BattleRenderEventRoute: 전투 화면 흐름에서 현재 처리 종류를 구분한다. */
 internal enum class BattleRenderEventRoute { INIT, DIALOGUE_BLEND, WIN_COMPACT, WIN_FULL, ITEM_UPGRADE, REWARD }
 
+/** BattleRenderEventUnitView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventUnitView(
     val x: Float,
     val y: Float,
@@ -25,15 +28,20 @@ internal data class BattleRenderEventUnitView(
     val healthBar: BattleRenderEventHealthBarView?,
 )
 
+/** BattleRenderEventHealthBarView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventHealthBarView(val x: Float, val y: Float, val width: Float, val asset: String)
+/** BattleRenderEventMarkerView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventMarkerView(val x: Float, val y: Float)
+/** BattleRenderEventDialogueView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventDialogueView(val headAsset: String?, val text: String, val speakerName: String)
+/** BattleRenderEventWinConditionsView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventWinConditionsView(
     val first: String,
     val second: String,
     val childLabels: List<String> = emptyList(),
 )
 
+/** BattleRenderEventItemUpgradeView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventItemUpgradeView(
     val iconAsset: String,
     val itemName: String,
@@ -44,6 +52,7 @@ internal data class BattleRenderEventItemUpgradeView(
     val newValue: Int,
 )
 
+/** BattleRenderEventRewardView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventRewardView(
     val phase: BattleRenderEventRewardPhase,
     val money: Int = 0,
@@ -51,7 +60,9 @@ internal data class BattleRenderEventRewardView(
     val items: List<BattleRenderEventRewardItemView> = emptyList(),
 )
 
+/** BattleRenderEventRewardPhase: 전투 화면 흐름에서 현재 처리 종류를 구분한다. */
 internal enum class BattleRenderEventRewardPhase { MONEY, ITEMS, NONE }
+/** BattleRenderEventRewardItemView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 internal data class BattleRenderEventRewardItemView(val iconAsset: String, val name: String)
 
 /** 불변 화면 모델을 원본 그리기 순서의 JSONL로 기록합니다. */
@@ -78,7 +89,6 @@ internal object BattleRenderEventRecorder {
         }
     }.jsonl()
 }
-
 private object BattleBattlefieldRenderEvents {
     fun append(log: RenderEventLog, view: BattleRenderEventView) {
         draw(log, view.phase, "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, view.mapBottom, 1920f, 1920f,
@@ -91,7 +101,6 @@ private object BattleBattlefieldRenderEvents {
         draw(log, view.phase, "HallLayer", "Canvas/Layer/menu_button/Background", "sprite", 1353.9535f, 8f, 60f, 60f, "menu")
     }
 }
-
 private object BattleInitRenderEvents {
     fun append(log: RenderEventLog, phase: String) {
         val layer = "BattleInitLayer"
@@ -104,7 +113,6 @@ private object BattleInitRenderEvents {
         draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
     }
 }
-
 private object BattleDialogueBlendRenderEvents {
     fun append(log: RenderEventLog, view: BattleRenderEventView) {
         val dialogue = requireNotNull(view.dialogue)
@@ -115,7 +123,6 @@ private object BattleDialogueBlendRenderEvents {
         draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/label", "label", 304.804f, 485.639f, 97.42f, 49.36f, text = dialogue.speakerName, blend = labels)
     }
 }
-
 private object BattleWinConditionRenderEvents {
     fun appendCompact(log: RenderEventLog, phase: String, text: String) {
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0", "tiled-sprite", 249.686f, 65f, 989f, 670f, "Logo_9-1")
@@ -140,7 +147,6 @@ private object BattleWinConditionRenderEvents {
         texts.forEachIndexed { index, text -> draw(log, phase, "HallLayer", "Canvas/Layer/$name/RICHTEXT_CHILD", "label", x, labelY - index * 120f, widths[index], 151.2f, text = text, blend = labels) }
     }
 }
-
 private object BattleChromeRenderEvents {
     fun append(log: RenderEventLog, phase: String, layer: String) {
         draw(log, phase, layer, "Canvas/Layer/bg/button/Background", "sliced-sprite", .843f, .731f, 68f, 68f, "bg1")
@@ -149,7 +155,6 @@ private object BattleChromeRenderEvents {
         draw(log, phase, layer, "Canvas/Layer/bg/btn/Background/tool11", "sprite", 1418.5721f, 730.2f, 69.6f, 69.6f, "tool11")
     }
 }
-
 private object BattleTitleRenderEvents {
     private const val asset = "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1"
     fun append(log: RenderEventLog, phase: String, layer: String) {
@@ -161,7 +166,6 @@ private object BattleTitleRenderEvents {
         draw(log, phase, "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.3721f, 800f, "default_sprite_splash", 50f / 255f)
     }
 }
-
 private object BattleItemUpgradeRenderEvents {
     fun append(log: RenderEventLog, phase: String, view: BattleRenderEventItemUpgradeView) {
         fun event(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") =
@@ -179,7 +183,6 @@ private object BattleItemUpgradeRenderEvents {
         event("Canvas/Layer/bg/scrollview/view/content/label", "label", 554.836f, 361.5f, 379.5f, 50.4f, text = "${view.attributeName} ${view.oldValue} -> ${view.newValue}")
     }
 }
-
 private object BattleRewardRenderEvents {
     fun append(log: RenderEventLog, phase: String, reward: BattleRenderEventRewardView?) = when (reward?.phase ?: BattleRenderEventRewardPhase.NONE) {
         BattleRenderEventRewardPhase.MONEY -> {

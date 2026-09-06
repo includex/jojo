@@ -1,3 +1,4 @@
+// Campaign
 package com.jojo.game.domain.campaign
 import com.jojo.game.domain.campaign.CampaignInventory
 

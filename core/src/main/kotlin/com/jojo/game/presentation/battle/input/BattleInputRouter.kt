@@ -1,14 +1,7 @@
+// Battle
 package com.jojo.game.presentation.battle.input
 
 import com.jojo.game.domain.battle.*
-
-/**
- * Value-only description of the input surfaces currently mounted by BattleScreen.
- *
- * The router deliberately knows nothing about Battle, LibGDX, assets, or a
- * scenario.  BattleScreen projects its mutable presentation state into this
- * description and consumes the intents returned by [BattleInputRouter].
- */
 data class BattleInputSurface(
     val dialogue: Boolean = false,
     val settlementInfo: Boolean = false,
@@ -44,7 +37,6 @@ data class BattleInputSurface(
     val interactiveRoute: BattleInteractiveInput.Route = BattleInteractiveInput.Route.PLAYER_INPUT,
     val hitRegions: List<BattleInputHitRegion> = emptyList(),
 ) {
-    /** Precedence is the same top-to-bottom ownership order as BattleScreen. */
     fun pointerCapture(x: Float? = null, y: Float? = null): BattleInputCapture = when {
         dialogue -> BattleInputCapture.DIALOGUE
         settlementInfo -> BattleInputCapture.SETTLEMENT_INFO
@@ -107,7 +99,6 @@ data class BattleInputSurface(
         .firstOrNull { it.contains(x, y) }
         ?.target
 }
-
 enum class BattleInputCapture {
     DIALOGUE, SETTLEMENT_INFO, ROUND, RESULT, MODAL_INFO, LOSE, COMMAND,
     USE_PROPERTY_DETAIL, USE_PROPERTY, MAGIC_INFO, MAGIC_LIST, JIQI, REWARD,
@@ -116,9 +107,7 @@ enum class BattleInputCapture {
     AUTO_TUOGUAN, CHOICE, SCRIPT_PAUSED, BATTLE_MENU, MINI_MAP, MENU_HUD, MAP,
     PLAYER,
 }
-
 enum class BattleInputTarget { MENU_HUD, MINI_MAP, BATTLE_MENU, MAP }
-
 data class BattleInputHitRegion(
     val target: BattleInputTarget,
     val left: Float,
@@ -129,6 +118,7 @@ data class BattleInputHitRegion(
     fun contains(x: Float, y: Float): Boolean = x in left..right && y in bottom..top
 }
 
+/** BattleInputIntent: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
 sealed interface BattleInputIntent {
     data class KeyDown(val keycode: Int, val capture: BattleInputCapture) : BattleInputIntent
     data class PointerDown(
@@ -137,7 +127,6 @@ sealed interface BattleInputIntent {
         val capture: BattleInputCapture,
         val target: BattleInputTarget?,
     ) : BattleInputIntent
-
     data class PointerDrag(
         val x: Float,
         val y: Float,
@@ -145,7 +134,6 @@ sealed interface BattleInputIntent {
         val deltaY: Float,
         val moved: Boolean,
     ) : BattleInputIntent
-
     data class PointerUp(
         val x: Float,
         val y: Float,
@@ -155,8 +143,6 @@ sealed interface BattleInputIntent {
         val moved: Boolean,
     ) : BattleInputIntent
 }
-
-/** Stateful only with respect to one pointer gesture; all game state stays in the caller. */
 class BattleInputRouter {
     private var pressedCapture: BattleInputCapture? = null
     private var pressedTarget: BattleInputTarget? = null

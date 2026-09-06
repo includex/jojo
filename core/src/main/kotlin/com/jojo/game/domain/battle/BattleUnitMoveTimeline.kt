@@ -1,11 +1,11 @@
+// Battle
 package com.jojo.game.domain.battle
 
-/** Pure implementation of BattleUnit.move2's directional action schedule. */
+/** BattleUnitMoveTimeline: 유닛 이동 경로를 시간별 화면 좌표로 변환해 이동 애니메이션에 제공한다. */
 object BattleUnitMoveTimeline {
 
     data class Segment(
         val direction: Int,
-        /** Index in the source path, which includes the start point. */
         val startIndex: Int,
         val endIndex: Int,
         val startedAt: Float,
@@ -16,26 +16,15 @@ object BattleUnitMoveTimeline {
     data class Timeline(
         val secondsPerTile: Float,
         val segments: List<Segment>,
-        /** move2's final delayTime(.1), after the final moveTo. */
         val idleAt: Float,
-        /** Scheduled terrain/movement update times from Animation.schedule. */
         val movementTicks: List<Float>,
     )
-
-    /** The position/action state of the Cocos moveTo sequence at [elapsed]. */
     data class Sample(
         val x: Float,
         val y: Float,
-        /** BattleUnit.setAction2(MOVE, { dir, loop: true }) direction. */
         val direction: Int,
-        /** False only during move2's final delayTime(.1). */
         val moving: Boolean,
     )
-
-    /**
-     * [path] is BattleScreen.unitMove's `s` array: it contains start followed
-     * by every point selected by A*. `fastMove` is BattleUnit.moveSpeed().
-     */
 
     fun schedule(path: List<Pair<Int, Int>>, fastMove: Boolean): Timeline {
         require(path.size >= 2) { "move2 needs a start and destination point" }
@@ -61,19 +50,12 @@ object BattleUnitMoveTimeline {
         val count = path.lastIndex - start
         segments += Segment(direction, start, path.lastIndex, elapsed, count * seconds)
         elapsed += count * seconds
-        // Cocos schedule(handle, i, o - 2, i) treats repeat as the number of
-        // repeats *after* the first invocation.  It therefore invokes the
-        // callback o - 1 times: i through (path.size - 1) * i, including the
-        // instant at which the final moveTo reaches the destination.
+        // 원본 스케줄 함수는 첫 호출 뒤의 반복 횟수를 받는다.
+        // 따라서 목적지에 도착하는 시점을 포함해 i부터 (path.size - 1) * i까지
+        // 총 o - 1회 콜백을 호출한다.
         val ticks = (1 until path.size).map { it * seconds }
         return Timeline(seconds, segments, elapsed + .1f, ticks)
     }
-
-    /**
-     * Samples the same piecewise-linear cc.moveTo sequence constructed by
-     * move2. The final .1s delay holds the destination while defaultAction is
-     * restored, so it is intentionally not interpolated as another tile.
-     */
 
     fun sample(path: List<Pair<Int, Int>>, timeline: Timeline, elapsed: Float): Sample {
         require(path.size >= 2) { "move2 needs a start and destination point" }

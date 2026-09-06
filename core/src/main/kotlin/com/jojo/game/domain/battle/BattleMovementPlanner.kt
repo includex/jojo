@@ -1,9 +1,7 @@
+// Battle
 package com.jojo.game.domain.battle
 
-/**
- * Pure tactical movement algorithms. Mutable battle state is observed only
- * through the collaborators supplied at construction time.
- */
+/** BattleMovementPlanner: 이동력·지형 비용·점유 상태를 고려해 이동 범위와 실제 경로를 계산한다. */
 internal class BattleMovementPlanner<Actor : Any>(
     private val isInside: (Point) -> Boolean,
     private val terrainCost: (Actor, Point) -> Int,
@@ -47,11 +45,6 @@ internal class BattleMovementPlanner<Actor : Any>(
             return path.asReversed()
         }
     }
-
-    /**
-     * Remaining-movement flood fill. A tile adjacent to an enemy is retained
-     * as a destination but is not expanded unless [MovementRules] allows it.
-     */
     fun movePoints(
         actor: Actor,
         movement: Int,
@@ -74,8 +67,7 @@ internal class BattleMovementPlanner<Actor : Any>(
         val processed = linkedMapOf<Point, MovePoint>()
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
-            // Reinsert revisits so final iteration order matches the authored
-            // FIFO pop order rather than the first insertion order.
+            // 재방문 좌표를 다시 넣어, 최초 삽입 순서가 아닌 원본의 선입선출 꺼냄 순서를 유지한다.
             processed.remove(current.point)
             processed[current.point] = MovePoint(current.remaining, current.parent)
             if (current.blockedByEnemyNear) continue
@@ -104,10 +96,7 @@ internal class BattleMovementPlanner<Actor : Any>(
         return MovePoints(processed, start)
     }
 
-    /**
-     * Stable weighted path search. Equal costs keep [orderedMovementOffsets]
-     * order while [rules] describes how occupied enemy tiles are handled.
-     */
+    /** findPath: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     fun findPath(
         actor: Actor,
         start: Point,
@@ -127,8 +116,7 @@ internal class BattleMovementPlanner<Actor : Any>(
             if (current.point == target) return buildPath(current.point, parents)
             orderedMovementOffsets.forEach { offset ->
                 val next = current.point + offset
-                // Marking a coordinate before validation is intentional and
-                // matches the authored traversal's visited-set behavior.
+                // 검증 전에 좌표를 방문 처리하는 것은 의도된 동작으로, 원본 순회의 방문 집합 규칙과 같다.
                 if (!visited.add(next)) return@forEach
                 if (!isInside(next) || isBlocked(next)) return@forEach
                 var cost = terrainCost(actor, next)
@@ -147,7 +135,7 @@ internal class BattleMovementPlanner<Actor : Any>(
         return null
     }
 
-    /** Finds the first passable, unoccupied tile in authored FIFO order. */
+    /** findScriptedDestination: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     fun findScriptedDestination(
         actor: Actor,
         seed: Point,
@@ -170,10 +158,7 @@ internal class BattleMovementPlanner<Actor : Any>(
         return null
     }
 
-    /**
-     * Weighted empty-position lookup constrained to the current reachable
-     * set. Accumulated terrain cost wins before authored insertion order.
-     */
+    /** findEmptyPosition: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
     fun findEmptyPosition(
         actor: Actor,
         seed: Point,

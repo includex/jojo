@@ -1,7 +1,9 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.domain.battle.BattleWeather
 import com.jojo.game.domain.scenario.ScenarioMapObject
+import com.jojo.game.application.scenario.ScenarioStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

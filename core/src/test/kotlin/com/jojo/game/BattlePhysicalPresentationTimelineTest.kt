@@ -1,3 +1,4 @@
+// Test
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.timeline.*
@@ -7,13 +8,7 @@ import com.jojo.game.domain.battle.PhysicalTarget
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * class  `BattlePhysicalPresentationTimelineTest`
- *
- * 이 타입은 게임 핵심 로직의 공개 API 역할을 담당합니다.
- *
- * 클래스/타입의 책임, 입력 파라미터, 상태 영향도를 기준으로 세부 보강이 필요합니다.
- */
+/** BattlePhysicalPresentationTimelineTest: BattlePhysicalPresentationTimeline의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattlePhysicalPresentationTimelineTest {
     @Test
@@ -38,13 +33,11 @@ class BattlePhysicalPresentationTimelineTest {
 
     @Test
     fun `scripted attack resumes at hit plus target completion rather than attacker finish`() {
-        // Source anime21: hit=22, duration=40; anime25: hit=11, duration=29.
-        // playAtkAnime resumes at hit and waits anime32's 14 ticks, so both
-        // attacker clips are replaced by default four ticks before FINISHED.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (FINISHED)을 검증한다.
         assertEquals(36f / 24f, BattlePhysicalPresentationTimeline.scriptedAttackDuration(1))
         assertEquals(25f / 24f, BattlePhysicalPresentationTimeline.scriptedAttackDuration(0))
 
-        // ATTACK_FLAG bit 2 selects anime26 guard, whose duration is 17 ticks.
+        // 테스트 근거: 전투 계산·난수 소비·경계값 (ATTACK_FLAG)을 검증한다.
         assertEquals(28f / 24f, BattlePhysicalPresentationTimeline.scriptedAttackDuration(2))
         assertEquals(39f / 24f, BattlePhysicalPresentationTimeline.scriptedAttackDuration(3))
     }

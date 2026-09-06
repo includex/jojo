@@ -1,3 +1,4 @@
+// Verification
 package com.jojo.game.verification
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -7,21 +8,30 @@ import com.jojo.game.*
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** ChooseLayer·Choose2Layer·CommandLayer 공용 픽스처의 Kotlin 실행부이다. */
+/** ChoiceCommandTraceHarness: ChooseLayer·Choose2Layer·CommandLayer 공용 픽스처의 Kotlin 실행부이다. */
 object ChoiceCommandTraceHarness {
+    /** Case: case 관련 검증 상태와 동작을 제공하는 타입이다. */
     private data class Case(
+        /** name: 이름을 담는다. */
         val name: String,
+        /** kind: 종류를 담는다. */
         val kind: String,
+        /** info: 설명 정보를 담는다. */
         val info: String,
+        /** replace: 문자열 치환 규칙을 담는다. */
         val replace: List<Pair<String, String>>,
+        /** face: 얼굴 리소스 식별자를 담는다. */
         val face: Int,
+        /** mask: 표시 마스크 값을 담는다. */
         val mask: Int,
+        /** events: 검증 이벤트 또는 추적 결과를 담는다. */
         val events: List<String>
     )
 
+    /** esc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
 
-    /** JSON 문자열 조각을 해석하되 리터럴 줄바꿈 표기를 보존한다. */
+    /** unesc: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun unesc(s: String): String {
         val out = StringBuilder()
         var i = 0; while (i < s.length) {
@@ -37,6 +47,7 @@ object ChoiceCommandTraceHarness {
         }; return out.toString()
     }
 
+    /** balanced: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun balanced(s: String, at: Int): String {
         val open = s[at]
         val close = if (open == '{') '}' else ']'
@@ -52,6 +63,7 @@ object ChoiceCommandTraceHarness {
         }; error("unclosed")
     }
 
+    /** objects: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun objects(array: String): List<String> {
         val r = mutableListOf<String>()
         var i = 0; while (i < array.length) {
@@ -61,19 +73,23 @@ object ChoiceCommandTraceHarness {
         }; return r
     }
 
+    /** string: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun string(obj: String, key: String): String {
         val m = Regex("\\\"$key\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").find(obj)
             ?: error(key); return unesc(m.groupValues[1])
     }
 
+    /** int: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
     private fun int(obj: String, key: String) =
         Regex("\\\"$key\\\"\\s*:\\s*(-?\\d+)").find(obj)!!.groupValues[1].toInt()
 
+    /** block: JSON 입력에서 지정한 필드 블록을 추출한다. */
     private fun block(obj: String, key: String): String {
         val at = obj.indexOf("\"$key\"")
         val p = obj.indexOfAny(charArrayOf('{', '['), at); return balanced(obj, p)
     }
 
+    /** parse: 외부 입력을 검증용 값으로 변환한다. */
     private fun parse(raw: String): List<Case> = objects(block(raw, "cases")).map { obj ->
         val replace =
             Regex("\\\"((?:\\\\.|[^\\\"])*)\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").findAll(block(obj, "replace"))
@@ -92,9 +108,11 @@ object ChoiceCommandTraceHarness {
         )
     }
 
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
+    /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
     fun main(args: Array<String>) {
-        /** 하나의 선택·명령 픽스처를 실행해 결과를 만든다. */
+        /** run: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
         fun run(c: Case): String {
             val calls = mutableListOf<Int>()
             var removals = 0
@@ -105,7 +123,7 @@ object ChoiceCommandTraceHarness {
                 replaced,
                 c.face
             ) { calls += it; removals++ } else command!!.onCreate(c.mask) { calls += it; removals++ }
-            /** 현재 선택·명령 레이어 상태를 JSON으로 기록한다. */
+            /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             fun snap(step: String): String {
                 val rows = if (choice != null) choice.rows().joinToString(
                     ",",
@@ -138,6 +156,7 @@ object ChoiceCommandTraceHarness {
             return trace.joinToString(",", "[", "]")
         }
 
+        /** result: 검증 실행 결과를 담는다. */
         val result = parse(Files.readString(Path.of(args[0]))).joinToString(
             ",",
             "{",
