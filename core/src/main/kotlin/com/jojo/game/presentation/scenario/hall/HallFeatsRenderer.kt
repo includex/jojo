@@ -1,4 +1,4 @@
-// Scenario
+// 시나리오 거점 공훈 화면 렌더링
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.graphics.Color
@@ -8,10 +8,18 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
+/** HallFeatsRenderer: 공훈 단계별 진행도와 도움말 모달을 원본 거점 화면 배치로 렌더링한다. */
 internal object HallFeatsRenderer {
+    /** 원본 UI 좌표를 LibGDX 화면 배율로 환산하는 공통 비율이다. */
     private const val SCALE = .86f
 
+    /** draw: 공훈 행, 승급 진행 막대, 선택적으로 열린 도움말을 차례로 그린다. */
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallFeatsView) {
+        /**
+         * `texture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun texture(name: String): Texture? {
             val paths = when (name) {
                 "bg1", "box3" -> listOf("maps/ui/unit-info/$name.png", "maps/ui/win-condition/$name.png")
@@ -21,9 +29,19 @@ internal object HallFeatsRenderer {
             }
             return paths.firstNotNullOfOrNull(assets::hallTexture)
         }
+        /**
+         * `patch`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun patch(name: String): NinePatch? =
             (texture(name) ?: when (name) { "box4" -> texture("box1"); "mark5" -> texture("button"); else -> null })
                 ?.let { NinePatch(it, 3, 3, 3, 3) }
+        /**
+         * `tiled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tiled(texture: Texture, x: Float, y: Float, width: Float, height: Float) {
             val tileWidth = texture.width * SCALE
             val tileHeight = texture.height * SCALE
@@ -41,10 +59,20 @@ internal object HallFeatsRenderer {
                 dy += tileHeight
             }
         }
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun label(value: String, x: Float, y: Float, width: Float, align: Int = Align.center, wrap: Boolean = false) {
             assets.bodyFont.color = Color.BLACK
             assets.bodyFont.draw(batch, value, x * SCALE, (y + 42f) * SCALE, width * SCALE, align, wrap)
         }
+        /**
+         * `header`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun header(x: Float, y: Float, width: Float, height: Float, value: String, labelX: Float, labelWidth: Float) {
             patch("bg1")?.draw(batch, x * SCALE, y * SCALE, width * SCALE, height * SCALE)
             patch("box3")?.draw(batch, x * SCALE, y * SCALE, width * SCALE, height * SCALE)
@@ -60,8 +88,18 @@ internal object HallFeatsRenderer {
         texture("logo9")?.let { tiled(it, 277.686f * SCALE, 158.45f * SCALE, 933f * SCALE, 442.7f * SCALE) }
         texture("box2")?.let { tiled(it, 277.686f * SCALE, 158.45f * SCALE, 933f * SCALE, 442.7f * SCALE) }
         view.rows.forEachIndexed { index, row ->
+            /**
+             * `rowY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val rowY = 529.15f - index * 74f
             patch("box2")?.draw(batch, 279.686f * SCALE, rowY * SCALE, 929f * SCALE, 70f * SCALE)
+            /**
+             * `agility` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val agility = row.title == "민첩성"
             label(row.title, if (agility) 290.286f else 307.586f, rowY + 9.8f, if (agility) 107.8f else 73.2f)
             label(row.ability, 462.941f, rowY + 9.8f, 48.49f)

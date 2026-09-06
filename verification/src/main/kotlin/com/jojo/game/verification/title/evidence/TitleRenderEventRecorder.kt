@@ -191,11 +191,21 @@ internal class TitleRenderEventRecorder {
         )
         panel(2, 256.389f, 839.673f, 331.481f, 149.51f, "정보 설명")
         radios(2, 281.638f, view.notificationLevel, listOf("자세히", "보통", "요약"))
+        /**
+         * `panel3` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val panel3 = "Canvas/Layer/bg/scrollview/view/content/panel3"
         event(panel3, "sliced-sprite", 793.336f, 81.389f, 479.7f, 142f, "box1")
         event("$panel3/bg1", "sprite", 833.325f, 198.167f, 210f, 50f, "bg1")
         label("$panel3/bg1/label", "대화창 색상", 846.27f, 197.967f, 184.11f)
         floatArrayOf(831.12f, 933.12f, 1035.12f, 1137.12f).forEachIndexed { index, x ->
+            /**
+             * `path` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val path = "$panel3/item$index"
             event(path, "sliced-sprite", x, 92.703f, 100f, 100f, "box1")
             event("$path/Logo_9-1", "sprite", x + 2f, 94.703f, 96f, 96f, "Logo_${9 + index}-1")
@@ -211,7 +221,17 @@ internal class TitleRenderEventRecorder {
     private companion object {
         /** SCALE: 렌더링 배율 값을 보관한다. */
         const val SCALE = .86f
+        /**
+         * `SPRITE_BLEND` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val SPRITE_BLEND = listOf(770, 771)
+        /**
+         * `LABEL_BLEND` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val LABEL_BLEND = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
     }
 }

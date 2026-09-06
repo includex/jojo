@@ -5,19 +5,58 @@ import com.badlogic.gdx.Gdx
 
 /** BattleTraceRuntimeSession: 검증 전투 추적의 난수·프레임 기록·완료 통지를 한 실행 단위로 소유한다. */
 internal class BattleTraceRuntimeSession(
+    /**
+     * `configuration` (BattleTraceRuntimeConfig,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val configuration: BattleTraceRuntimeConfig,
+    /**
+     * `observer` (RuntimeBattleObserver?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val observer: RuntimeBattleObserver?,
 ) {
     /** randomSource: 추적 실행에서 전투에 주입할 결정적 원본 난수열이다. */
     val randomSource = BattleTraceRandomStreams(configuration.toolSeed, configuration.mathSeed)
 
+    /**
+     * `recorder` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val recorder = BattleTraceRecorder(randomSource)
+    /**
+     * `finished` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private var finished = false
+    /**
+     * `lastInput` (String?): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private var lastInput: String? = null
+    /**
+     * `lastMenuTap` (String?): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private var lastMenuTap: String? = null
 
+    /**
+     * `timeScale` (Float get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val timeScale: Float get() = configuration.timeScale
+    /**
+     * `exitOnFinish` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val exitOnFinish: Boolean get() = configuration.exitOnFinish
+    /**
+     * `isFinished` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val isFinished: Boolean get() = finished
 
     /** nextFrame: 일반 렌더 프레임 또는 그 직전 콜백의 trace 식별자를 반환한다. */

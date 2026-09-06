@@ -8,23 +8,108 @@ import com.jojo.game.presentation.scenario.overlay.*
 data class HallRoute(val layer: String, val payload: String?)
 
 
+/**
+ * `HallMenuFlow`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 class HallMenuFlow(private val edit: Boolean) {
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var attached = true
+    /**
+     * `zIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var zIndex = 0
+    /**
+     * `callbackCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var callbackCount = 0
+    /**
+     * `cancelPriority` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var cancelPriority: Int? = null
+    /**
+     * `labels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val labels = arrayOf("", "")
+    /**
+     * `active` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val active = MutableList(10) { true }
+    /**
+     * `tags` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val tags = MutableList(10) { 0 }
+    /**
+     * `listeners` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val listeners = MutableList(10) { false }
+    /**
+     * `outerFrame` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var outerFrame: String? = null
+    /**
+     * `innerFrame` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var innerFrame: String? = null
+    /**
+     * `startWidth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var startWidth = 100
+    /**
+     * `endWidth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var endWidth = 100
+    /**
+     * `flagActions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val flagActions = MutableList(2) { 0 }
+    /**
+     * `routes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val routes = mutableListOf<HallRoute>()
+    /**
+     * `msgBoxPending` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var msgBoxPending = false
 
+
+    /**
+     * `onCreate`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun onCreate(eventName: String, stageName: String, ambition: Pair<Int, Int>?) {
         zIndex = 99
@@ -43,11 +128,26 @@ class HallMenuFlow(private val edit: Boolean) {
     }
 
 
+    /**
+     * `canDeliverButton`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun canDeliverButton(id: Int) = id in 0..9 && active[id] && listeners[id]
 
 
+    /**
+     * `canDeliverCancel`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun canDeliverCancel() = cancelPriority != null
 
+
+    /**
+     * `button`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun button(id: Int, event: Int) {
         if (event != 2 || id !in 0..9) return; attached = false
@@ -70,10 +170,20 @@ class HallMenuFlow(private val edit: Boolean) {
     }
 
 
+    /**
+     * `msgBox`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun msgBox(result: Int) {
         if (msgBoxPending && result == 0) routes += HallRoute("scene:Login", null)
     }
 
+
+    /**
+     * `cancel`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun cancel(event: Int) {
         if (event == 2) attached = false
@@ -81,15 +191,60 @@ class HallMenuFlow(private val edit: Boolean) {
 }
 
 
+/**
+ * `HallCommandFlow`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 class HallCommandFlow {
+    /**
+     * `active` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val active = MutableList(6) { false }
+    /**
+     * `tags` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val tags = MutableList(5) { 0 }
+    /**
+     * `listeners` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val listeners = MutableList(6) { false }
+    /**
+     * `priorities` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val priorities = MutableList<Int?>(6) { null }
+    /**
+     * `events` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val events = mutableListOf<Int>()
+    /**
+     * `callbackCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var callbackCount = 0
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var attached = true
 
+
+    /**
+     * `onCreate`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun onCreate(flag: Int) {
         active[0] = flag and 1 != 0; repeat(5) { id -> active[id + 1] = flag and 2 != 0; tags[id] = id }; active[5] =
@@ -97,16 +252,36 @@ class HallCommandFlow {
     }
 
 
+    /**
+     * `canDeliverMenu`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun canDeliverMenu() = active[0] && listeners[0]
 
 
+    /**
+     * `canDeliverButton`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun canDeliverButton(id: Int) = id in 0..4 && active[id + 1] && listeners[id + 1]
 
+
+    /**
+     * `menu`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun menu(event: Int) {
         if (event == 2) events += -1
     }
 
+
+    /**
+     * `button`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun button(id: Int, event: Int) {
         if (event == 2 && id in 0..4) events += tags[id]

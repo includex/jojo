@@ -39,6 +39,11 @@ internal object CampaignE2eTraceWriter {
         actualSceneIndex: Int,
         forwardOvershoot: Boolean,
     ) {
+        /**
+         * `expected` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val expected = listOf(
             "TitleScreen",
             "ScenarioScreen:R_00",
@@ -58,15 +63,45 @@ internal object CampaignE2eTraceWriter {
         if (config.requireYingchuanBootstrapContract) check(snapshot.route == expected) { "campaign E2E route mismatch: ${snapshot.route}" }
         check(snapshot.transitionEnterCount == 0) { "campaign E2E required ${snapshot.transitionEnterCount} extra Enter inputs" }
         if (snapshot.initialBattleScenes.isNotEmpty()) checkNotNull(snapshot.committedPlayerMove) { "missing committed player move provenance" }
+        /**
+         * `output` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val output = Path.of(config.outputPath).toAbsolutePath()
         output.parent?.let(Files::createDirectories)
+        /**
+         * `route` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val route = snapshot.route.joinToString(",") { "\"${escape(it)}\"" }
+        /**
+         * `inputs` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val inputs = snapshot.inputs.joinToString(",") { "\"${escape(it)}\"" }
+        /**
+         * `inputRecords` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val inputRecords = snapshot.inputRecords.joinToString(",") { record ->
             "{\"event\":\"${escape(record.event)}\",\"accepted\":${record.accepted}," +
                     "\"before\":\"${escape(record.before)}\",\"after\":\"${escape(record.after)}\"}"
         }
+        /**
+         * `move` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val move = snapshot.committedPlayerMove?.let { "\"${escape(it)}\"" } ?: "null"
+        /**
+         * `preparations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val preparations = snapshot.battlePreparations.joinToString(",") { "\"${escape(it)}\"" }
         Files.writeString(
             output,
@@ -80,6 +115,11 @@ internal object CampaignE2eTraceWriter {
                 )
             }","sceneIndex":$actualSceneIndex},"completion":"${if (forwardOvershoot) "forward-overshoot" else "checkpoint"}","battlePreparations":[$preparations],"sawR01DepartureDialogue":${snapshot.sawR01DepartureDialogue}}""",
         )
+        /**
+         * `marker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val marker = if (forwardOvershoot) "CAMPAIGN_SCREEN_E2E_OVERSHOOT" else "CAMPAIGN_SCREEN_E2E_OK"
         Gdx.app.log(
             "JojoGame",

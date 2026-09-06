@@ -7,9 +7,24 @@ import com.jojo.game.domain.battle.BattleUnit
 
 /** MagicDamageCalculator: 마법 피해 계산기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object MagicDamageCalculator {
+    /**
+     * `magicTerrainAllowed`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun magicTerrainAllowed(magic: BattleMagicProfile, target: BattleUnit): Boolean = true
 
+    /**
+     * `magicConditionReason`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun magicConditionReason(attacker: BattleUnit, magic: BattleMagicProfile, weather: BattleWeather): String? {
+        /**
+         * `active`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun active(skill: Int) = attacker.skills[skill]?.and(255)?.let { it != 255 } == true
         if (magic.condition in 2..5 && active(136)) return null
         if (magic.condition == 1 && attacker.hitPoints < 40) return "HP가 40 미만이면 사용할 수 없는 전략입니다."
@@ -24,6 +39,11 @@ internal object MagicDamageCalculator {
         return if (magic.condition == 5) "이 전략의 특수 사용 조건을 충족하지 못했습니다." else null
     }
 
+    /**
+     * `magicWeatherRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun magicWeatherRate(magic: BattleMagicProfile, weather: BattleWeather): Int = if (when (magic.condition) {
         0 -> weather in setOf(BattleWeather.CLEAR, BattleWeather.CLOUDY, BattleWeather.WINDY)
         2 -> weather in setOf(BattleWeather.HEAVY_RAIN, BattleWeather.SNOW)
@@ -32,11 +52,21 @@ internal object MagicDamageCalculator {
         else -> true
     }) 100 else 85
 
+    /**
+     * `offensiveMagicTerrainRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun offensiveMagicTerrainRate(target: BattleUnit, magic: BattleMagicProfile, terrain: BattleTerrainGrid?, terrainMagicFlags: Map<Int, Int>): Int {
         if (magic.type !in 0..3) return 100
         val terrainId = terrain?.terrainAt(target.tileX, target.tileY) ?: return 100
         return if ((terrainMagicFlags[terrainId] ?: 0) and (1 shl magic.type) != 0) 100 else 85
     }
+
+    /**
+     * `healingTerrainRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun healingTerrainRate(attacker: BattleUnit, magic: BattleMagicProfile, terrain: BattleTerrainGrid?, terrainMagicFlags: Map<Int, Int>): Int {
         if (magic.type !in 0..3 || terrainMagicFlags.isEmpty()) return 100
@@ -46,14 +76,34 @@ internal object MagicDamageCalculator {
         return if (attacker.skills[19]?.and(255)?.let { it != 255 } == true) 85 else 0
     }
 
+    /**
+     * `magicFlatSkillDamage`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun magicFlatSkillDamage(attacker: BattleUnit, magic: BattleMagicProfile): Int {
+        /**
+         * `effect`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun effect(skill: Int) = attacker.skills[skill]?.and(255)?.takeIf { it != 255 }
         var addition = effect(141)?.let { BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) * it / 100 } ?: 0
         if (magic.type == 0) addition += effect(107) ?: 0
         return addition
     }
 
+    /**
+     * `magicSkillDamageRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun magicSkillDamageRate(attacker: BattleUnit, target: BattleUnit, magic: BattleMagicProfile, flagRandomBonus: Int = 0): Int {
+        /**
+         * `effect`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun effect(unit: BattleUnit, skill: Int) = unit.skills[skill]?.and(255)?.takeIf { it != 255 }
         var rate = 100
         effect(attacker, 292)?.let { rate += 10 + flagRandomBonus }
@@ -66,9 +116,19 @@ internal object MagicDamageCalculator {
         return maxOf(1, rate)
     }
 
+    /**
+     * `statusEffect`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun statusEffect(category: Int): BattleStatus? = when (category) {
         8 -> BattleStatus.CONFUSION; 9 -> BattleStatus.POISON; 10 -> BattleStatus.PARALYSIS; 11 -> BattleStatus.SILENCE; else -> null
     }
+
+    /**
+     * `attributeChange`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun attributeChange(category: Int): Pair<BattleAttribute, Int>? = when (category) {
         4 -> BattleAttribute.CRITICAL to -1; 5 -> BattleAttribute.MORALE to -1; 6 -> BattleAttribute.ATTACK to -1; 7 -> BattleAttribute.DEFENSE to -1

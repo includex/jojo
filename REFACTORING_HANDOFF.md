@@ -1,20 +1,20 @@
 # 리팩터링 인수인계
 
-기준일: 2026-09-05
+기준일: 2026-09-07
 작업 루트: `/Users/ain/workspace/jojo`
 참고 구현: `/Users/ain/workspace/jojo_mobile/sgccz-desktop`
 
 이 문서는 다른 AI 에이전트가 현재 작업 트리에서 바로 이어서 작업하기 위한 실행 문서다. 과거 구현은 동작을 확인하는 참고 자료일 뿐이며, 신규 게임의 이름과 구조를 결정하지 않는다.
 
+모든 수치는 2026-09-07 HEAD(`5a03d03`) 실측이다. 추정값이나 과거 스냅샷을 옮겨 적지 않는다.
+
 ## 목표와 완료 조건
 
 최종 목표는 다음 세 조건을 모두 만족하는 것이다.
 
-1. production 코드·패키지·설정·리소스에서 이전 이식 프로젝트의 정체성을 제거하고 신규 게임의 역할 이름을 사용한다.
-2. 다른 프레임워크의 객체 구조를 그대로 흉내 낸 거대 객체를 Kotlin/LibGDX에 맞는 domain, application, presentation, infrastructure, verification 경계로 재구성한다.
-3. 특별한 응집성 사유가 없는 300줄 초과 클래스는 실제 상태 또는 규칙 소유권 단위로 분리한다. 줄 수만 옮기는 wrapper/context/gateway는 완료로 인정하지 않는다.
-
-완료 판정 전에는 production 전체 검색, 클래스 선언 단위 크기 감사, Core 전체 테스트, headless 검증, Desktop/Android 컴파일, Python 도구 테스트가 모두 필요하다.
+1. production 코드·패키지·설정·리소스에서 이전 이식 프로젝트의 정체성을 제거하고 신규 게임의 역할 이름을 사용한다. **달성**
+2. 다른 프레임워크의 객체 구조를 그대로 흉내 낸 거대 객체를 Kotlin/LibGDX에 맞는 domain, application, presentation, infrastructure, verification 경계로 재구성한다. **패키지 분할은 달성, 의존 방향은 미달성** (아래 "패키지 경계 위반" 참고)
+3. 특별한 응집성 사유가 없는 300줄 초과 클래스는 실제 상태 또는 규칙 소유권 단위로 분리한다. 줄 수만 옮기는 wrapper/context/gateway는 완료로 인정하지 않는다. **6개 파일 남음**
 
 ## 아키텍처 원칙
 
@@ -45,13 +45,28 @@ verification ---> public application/domain observation contracts
 
 ## 현재 검증 기준선
 
-마지막으로 **전체 검증이 완료된 기준선**은 `PhysicalDamageCalculator`, `PhysicalTargetResolver`, `PhysicalAttackAreaResolver`, `PhysicalCombatAccumulator`, `PhysicalCombatResolver`, `BattlePropertyResolver` 추출 및 순수 단위 테스트, 전체 회귀 완료 직후다.
+2026-09-07 실측.
 
-- Core JUnit: 820개, 실패 0
-- `:verification:verifyAllHeadless`: 성공
-- 주요 marker: `VERIFY_ALL_SCENARIOS_OK`, `VERIFY_YINGCHUAN_ROUTE_OK`, `VERIFY_ALL_BATTLES_OK`, `AST_API_GAPS: none`
-- Desktop/Android Kotlin compile: 성공
-- Python 도구 테스트: 112개, 성공
+| 항목 | 결과 |
+|---|---|
+| `:core:compileKotlin` | 성공 |
+| Core JUnit | 989개, 실패 0 |
+| Python 도구 테스트 | 121개 중 **3개 실패** (`test_package_boundaries`) |
+| `:verification:verifyAllHeadless` | 미실행 (다음 작업자가 확인) |
+| Desktop/Android compile | 미실행 (다음 작업자가 확인) |
+
+Python 3건 실패는 도구 결함이 아니라 **실제 아키텍처 위반**이다. 아래 "패키지 경계 위반"이 최우선 과제다.
+
+## 미커밋 주석 diff (선행 확인 필요)
+
+작업 트리에 516파일 / +40,762줄의 미커밋 변경이 있다. 전량 자동 생성된 한글 주석이며 다음 문제를 안고 있다.
+
+- 새로 추가된 블록 주석 8,036개 중 **8,035개가 주석과 선언 사이에 빈 줄**이 있어 KDoc으로 연결되지 않는다 (508개 파일).
+- 내용이 정형문 반복이다. `보관한다` 4,264회, `반영된다` 3,711회, `수행한다` 1,573회.
+- 이 주석 때문에 300줄 초과 production 파일이 **6개 → 78개**로 늘고 `BattleScreen`은 7,094 → 11,471줄이 된다. 아래 감사표를 작업 트리에서 재계측하면 값이 맞지 않는다.
+- 순수 주석 diff인데 179줄의 코드 재포맷이 섞여 있다.
+
+컴파일은 통과한다. **이 문서의 모든 수치는 HEAD 기준이므로, 크기를 재계측할 때는 `git show HEAD:<path>`를 사용한다.**
 
 ## 완료된 작업
 
@@ -62,90 +77,104 @@ verification ---> public application/domain observation contracts
 - preferences: `jojo-game-campaign`, `jojo-game-settings`
 - `OriginalSaveCodec` -> `CampaignSaveCodec`
 - `OriginalMagicEffect` -> `MagicEffectDefinition`
-- `BattleState = Battle` typealias와 71개 호출자 제거
-- 전투 모델 명명:
-  - `sourceCharacterId` -> `characterId`
-  - `sourceBattleSlot` -> `battleSlot`
-  - `SourceBattleSlots` -> `BattleSlotLayout`
-  - `sourceTileX/YAuthored` -> `hasAuthoredTileX/Y`
-  - `applySourceAttributeLift` -> `applyAttributeLift`
-  - old harm-source parameter -> `resolvedHarm`
-- 외부 비교 trace schema의 JSON key `sourceCharacterId` 한 건은 의도적으로 유지한다.
+- `BattleState = Battle` typealias와 71개 호출자 제거 (현재 잔존 0건)
+- 전투 모델 명명: `sourceCharacterId` -> `characterId`, `sourceBattleSlot` -> `battleSlot`, `SourceBattleSlots` -> `BattleSlotLayout`, `sourceTileX/YAuthored` -> `hasAuthoredTileX/Y`, `applySourceAttributeLift` -> `applyAttributeLift`, old harm-source parameter -> `resolvedHarm`
+- 외부 비교 trace schema의 JSON key `sourceCharacterId` 한 건은 의도적으로 유지한다. 현재 잔존은 정확히 이 1건뿐이다.
 
-현재 targeted identity 검색은 0건이어야 한다.
+legacy identity 잔존은 **0건**이다.
 
-```bash
-legacy_identity='p''ort'
-rg -n "\\b${legacy_identity}(ing)?\\b|com\\.jojo\\.${legacy_identity}" \
-  settings.gradle.kts core/src desktop/src android/src verification/src tools *.md
+### 도메인·애플리케이션 분해 (완료)
+
+문서 2026-09-05판이 "다음 순서"로 남겨 둔 1·2단계는 모두 완료됐다.
+
+| 클래스 | 09-05 문서 | 현재 HEAD | 상태 |
+|---|---:|---:|---|
+| `Battle` | 787 | **288** | 완료 |
+| `ScenarioStage` (`ScenarioRuntime.kt`) | 468 | **293** | 완료 |
+| `ScenarioInterpreter` | 277 | **268** | 완료 |
+| `GameDataCatalog` | 823 | **246** | 완료 (catalog 15파일로 분할) |
+| `JojoGame` | 252 | **219** | 완료 |
+| `CampaignState` | 247 | **225** | 완료 |
+| `BattleCampaignE2eAdapter` | 583 | 삭제 | verification 이전 완료 |
+| `CampaignE2eDriver` | 320 | 삭제 | verification 이전 완료 |
+| `BattleScenarioFactory` | 302 | **47** | 완료 |
+
+`Battle`은 `application/battle` 아래 18개 파일과 `ai`/`bootstrap`/`combat`/`experience`/`movement`/`presentation`/`round` 하위 패키지로, 전투 규칙은 `domain/battle`의 23파일 + `combat`/`command`/`magic`/`settlement`/`turn` 하위 패키지로 분리됐다.
+
+### 모듈 경계
+
+`verification`은 168개 production 파일을 가진 독립 모듈이다. core 474 / desktop 2 / android 1 / verification 168. production에서 `verification`으로 향하는 Gradle 의존성은 0건이다.
+
+## 남은 과제
+
+### P0 — 패키지 경계 위반 (`tools/test_package_boundaries.py` 3건 실패)
+
+의존 방향이 세 곳에서 역류하고 있으며, 그중 하나는 **순환**이다.
+
+**(1) domain -> infrastructure, 6건**
+
+```
+domain/campaign/CampaignState.kt:4                     import ...infrastructure.data.GameDataCatalog
+domain/campaign/CampaignEquipmentProgression.kt:4      import ...infrastructure.data.GameDataCatalog
+domain/campaign/CampaignInventory.kt:4                 import ...infrastructure.data.GameDataCatalog
+domain/campaign/CampaignInventoryEquipmentManager.kt:4 import ...infrastructure.data.GameDataCatalog
+domain/battle/BattleUnit.kt:3                          import ...infrastructure.data.GameDataCatalog
+domain/battle/BattleAvatarResolver.kt:4                import ...infrastructure.data.GameDataCatalog
 ```
 
-### 이미 분리된 주요 경계
+**(2) infrastructure -> presentation/application, 3건**
 
-| 기존 책임 | 현재 경계 | 상태 |
-|---|---|---|
-| 게임 데이터 I/O·복호화 | `GameDataRepository`, `EncryptedGameDataCodec` | 완료 |
-| 캠페인 inventory/equipment/roster | `CampaignInventory`, `CampaignEquipmentProgression`, `CampaignRoster` | 완료 |
-| 시작 라우팅 | `GameStartupCoordinator`, `CaptureFixtureStartupRouter` | 1차 완료 |
-| 타이틀 화면 | controller/view/renderer/assets/recorder | 완료 |
-| 전투 준비 화면 | controller/view/renderer/assets/recorder | 완료 |
-| 전투 유닛 표시 상태 | `BattleUnitPresentationState` | 완료 |
-| 이동 규칙 | `BattleMovementPlanner` (213줄) | 완료 |
-| 능력치 규칙 | `BattleAttributeCalculator` (79줄) | 완료 |
-| 확률·난수 판정 | `BattleProbabilityResolver` (214줄), `BattleRateGauge` | 완료 |
-| active/퇴각 연출 topology | `Battlefield` (201줄) | 완료 |
-| 유닛 깊은 snapshot | `BattleUnitMemento` (127줄) | 완료 |
-| 계산/애니메이션 commit | `BattleActionSnapshot`, `BattleActionTransaction` (210줄) | 완료 |
-| 물리 피해·수치 계산 규칙 | `PhysicalDamageCalculator` (234줄), `PhysicalDamageCalculatorTest` (278줄) | 완료 |
-| 물리 단일 대상 효과 해결 | `PhysicalTargetResolver` (284줄), `PhysicalTargetResolverTest` (215줄) | 완료 |
-| 물리 범위·스플래시·피해전이 | `PhysicalAttackAreaResolver` (107줄), `PhysicalAttackAreaResolverTest` (106줄) | 완료 |
-| 물리 전투 다단계 정산 누적 | `PhysicalCombatAccumulator` (120줄) | 완료 |
-| 물리 전투 패스 오케스트레이션 | `PhysicalCombatResolver` (334줄, object 선언 298줄) | 완료 |
-| 전투 소모품·속성 아이템 효과 | `BattlePropertyResolver` (73줄), `BattlePropertyResolverTest` (115줄) | 완료 |
-| 전투 화면 자원 수명 | 역할별 `Battle*Assets`, `BattleDynamicTextureRepository` | 1차 완료 |
-| Fight 렌더링 | `FightPresentationView`, `BattleFightRenderer` | 완료 |
-| batch 검증 화면 | production에서 삭제, `:verification` headless app으로 이동 | 1차 완료 |
+```
+infrastructure/data/GameDataCatalog.kt:4           import ...presentation.scenario.overlay.*
+infrastructure/data/GameDataCatalogUnitDomain.kt:4 import ...presentation.shared.overlay.TerrainLayer
+infrastructure/audio/GameAudioPlayer.kt:7          import ...application.scenario.ScenarioStage
+```
 
-`BattleActionTransaction` 추출 중 shared `BattleUnit` 객체의 현재 좌표를 before/after에서 비교해 이동 여부가 항상 false가 될 수 있던 오류를 발견했다. 현재 코드는 memento에 캡처된 좌표를 비교하며 `commitAll()` 단독 경로 테스트가 이를 고정한다.
+(1)+(2)가 `domain -> infrastructure -> presentation` 순환을 만든다. `GameDataCatalog`가 매듭이다.
 
-## 현재 파일 상태
+**(3) presentation -> infrastructure, 22건 / 18파일**
 
-- `Battle.kt`: 787줄 (기존 3,468줄에서 2,681줄 감축, 20개 순수 Kotlin SRP 협력 객체 분리 완료)
-- `ScenarioInterpreter.kt`: 277줄 (기존 1,844줄에서 1,567줄 감축, 19개 순수 Kotlin SRP 협력 객체 분리 완료, 300줄 이하 엄수)
-- `ScenarioRuntime.kt` (`ScenarioStage`): 468줄 (기존 1,082줄에서 614줄 감축, 5개 협력 객체 분리 완료)
-- 전체 회귀: Core JUnit 841개 올그린, headless 전체 통과, Python 112개 통과, Desktop/Android 컴파일 성공
+`ScenarioScreen`(3), `BattleScreen`(3), hall 계열 6파일, battle combat/timeline/preparation/assets 계열이 `infrastructure.data`를 직접 import한다.
 
-## 다음 리팩터링 순서
+권장 순서:
+1. domain이 필요로 하는 조회만 담은 read-only 조회 interface를 `domain`에 정의하고 `GameDataCatalog`가 이를 구현하게 해 (1)을 끊는다.
+2. `GameDataCatalog`가 참조하는 `presentation.*.overlay` 타입(`TerrainLayer` 등)을 domain 또는 중립 데이터 타입으로 옮겨 (2)를 끊는다. `GameAudioPlayer`의 `ScenarioStage` 의존은 좁은 콜백/interface로 역전한다.
+3. presentation은 application이 조립해 넘긴 조회 interface만 받게 해 (3)을 줄인다.
 
-### 1단계: ScenarioStage 최종 300줄 이하 진입 (현재 468줄)
-1. `ScenarioStageMapObjectsManager`: `mapObjects`, `mapObjectsCallJournal`, `setMapObjects`, `fires` 관리 위임 (~80줄)
-2. `ScenarioStageWeatherEnvironment`: `battleWeatherSchedule`, `initialBattleWeather`, `setBattleGlobalData` 관리 위임 (~50줄)
-3. 완료 시 `ScenarioStage` 250줄 이하로 진입하여 목표 완수.
+각 단계 후 `python3 -m unittest tools.test_package_boundaries`가 통과해야 한다.
 
-### 2단계: Battle 최종 300줄 이하 진입 (현재 787줄)
-1. `BattleConfiguration`: 전투 시나리오 메타데이터, 보상/승리 조건, 글로벌 플래그 설정 캡슐화 (~150줄)
-2. `BattleStateJournal`: 전투 턴/페이즈/진행 로그 및 히스토리 관리 위임 (~150줄)
-3. 완료 시 `Battle` 오케스트레이터 300줄 이하로 진입하여 목표 완수.
+### P0 — `BattleScreen` 분리 (7,094줄, 단일 클래스)
 
-### 3단계: 대형 presentation 화면 분리
-1. `BattleScreen` (9,578줄): `BattleInputController`, `BattlePresentationCoordinator`, `BattleSceneRenderer`, verification observer
-2. `ScenarioScreen` (4,534줄): `ScenarioPlaybackController`, `HallController`, `ScenarioRenderer`, `HallRenderer`, 화면별 input handler
+파일 전체가 하나의 `class BattleScreen` 선언이다. 멤버 함수 209개, 프로퍼티 245개, 생성자 파라미터 6개.
 
-## 현재 300줄 초과 production 클래스 인벤토리
+이미 자원 수명(`assets/` 7파일), Fight 렌더(`fight/` 10파일), overlay(`overlay/` 29파일), render(`render/` 11파일), timeline(`timeline/` 9파일), input(`input/` 3파일)이 분리돼 있다. 즉 협력 객체는 충분히 만들어졌고, **화면이 여전히 그 조립과 진행 제어를 전부 쥐고 있는 것**이 남은 문제다.
 
-| 클래스 | 현재 크기 | 판단 |
+다음 tranche 후보:
+1. `BattleInputController` — 터치/키 입력 해석과 커서·선택 상태 소유
+2. `BattlePresentationCoordinator` — 프레임별 연출 큐 진행과 timeline 전환 소유
+3. `BattleSceneRenderer` — 남은 draw 순서 소유
+4. verification observer 잔여분을 `:verification`으로 이전
+
+### P1 — `ScenarioScreen` 분리 (987줄, 단일 클래스)
+
+멤버 함수 66개, 프로퍼티 82개, **생성자 파라미터 19개**. hall 기능은 `presentation/scenario/hall`의 51+12파일로 이미 분리됐다. 남은 문제는 생성자 파라미터 19개가 드러내는 조립 책임 과다다. `ScenarioScreenDependencies` 같은 묶음 타입이 아니라, 재생 제어와 회관 진입 라우팅을 실제 소유자에게 넘겨 파라미터 자체를 줄인다.
+
+### P2 — 300줄 경계 조율
+
+HEAD 기준 300줄 초과 production 파일은 6개뿐이며, 그중 4개는 경계선이다.
+
+| 파일 | HEAD | 판단 |
 |---|---:|---|
-| `BattleScreen` | 9,578 | 분리 계속 필요 |
-| `ScenarioScreen` | 4,534 | 분리 필요 |
-| `GameDataCatalog` | 823 | catalog별 분리 필요 |
-| `Battle` | 787 | 300줄 이하 최종 조율 (기존 3,468에서 대폭 감축) |
-| `BattleCampaignE2eAdapter` | 583 | verification 이동 필요 |
-| `ScenarioStage` (`ScenarioRuntime.kt`) | 468 | 300줄 이하 최종 조율 (기존 1,082에서 대폭 감축) |
-| `FightPresentationState` | 약 431 | 응집된 상태 머신 예외 |
-| `CampaignE2eDriver` | 약 320 | verification 내부 분리 필요 |
-| `BattleScenarioFactory` | 약 302 | 선언적 데이터 예외 |
+| `presentation/battle/BattleScreen.kt` | 7,094 | P0 |
+| `presentation/scenario/ScenarioScreen.kt` | 987 | P1 |
+| `presentation/battle/fight/FightPresentationState.kt` | 343 | 응집된 상태 머신, 예외 유지 |
+| `application/scenario/ScenarioTacticalActionDispatcher.kt` | 314 | dispatch 분기, 콘텐츠 증가 시 분리 |
+| `domain/battle/combat/PhysicalCombatResolver.kt` | 313 | 패스 오케스트레이션, 예외 인정 |
+| `domain/battle/magic/MagicTargetResolver.kt` | 302 | 경계선, 유지 |
 
-파일이 300줄을 넘어도 개별 클래스가 작은 경우는 클래스 감사 대상에서 제외한다. 자세한 기존 분석은 [`LARGE_CLASS_REFACTORING.md`](LARGE_CLASS_REFACTORING.md), 의존 방향은 [`GAME_ARCHITECTURE.md`](GAME_ARCHITECTURE.md)를 함께 읽는다.
+### P3 — 미커밋 주석 diff 정리
+
+위 "미커밋 주석 diff" 참고. 커밋 전 최소한 주석-선언 사이 빈 줄 8,035곳을 제거해 KDoc이 실제로 연결되게 하고, 정형문 주석은 정보가 있는 곳만 남긴다.
 
 ## 전투 불변식
 
@@ -160,6 +189,8 @@ rg -n "\\b${legacy_identity}(ing)?\\b|com\\.jojo\\.${legacy_identity}" \
 - `BattleProbabilityResolver`의 일반 RNG와 flag RNG 채널 및 gauge 소비 순서를 바꾸지 않는다.
 - skill 47 follow-up short-circuit, skill 269 magic critical gauge 우회를 유지한다.
 - 일반·반격·강제 공격의 private-defense 적용과 splash/magic의 비적용 차이를 유지한다.
+
+`BattleActionTransaction` 추출 중 shared `BattleUnit` 객체의 현재 좌표를 before/after에서 비교해 이동 여부가 항상 false가 될 수 있던 오류를 발견했다. 현재 코드는 memento에 캡처된 좌표를 비교하며 `commitAll()` 단독 경로 테스트가 이를 고정한다.
 
 ## 작업 방식
 
@@ -190,19 +221,32 @@ rg -n "\\b${legacy_identity}(ing)?\\b|com\\.jojo\\.${legacy_identity}" \
 python3 -m unittest discover -s tools -p 'test_*.py'
 ```
 
-추가 감사:
+패키지 경계만 빠르게 확인:
 
 ```bash
-# identity
+python3 -m unittest tools.test_package_boundaries
+```
+
+크기 감사는 미커밋 주석 diff의 영향을 피하기 위해 HEAD를 대상으로 한다.
+
+```bash
+git ls-tree -r HEAD --name-only \
+  | grep -E '^(core|desktop|android)/src/main/.*\.kt$' \
+  | while read f; do echo "$(git show HEAD:$f | wc -l) $f"; done \
+  | sort -rn | awk '$1>300'
+```
+
+identity 감사. 이전 명령은 hexagonal `Port` 역할 이름 387건을 오탐하므로 대소문자와 package 형태로 좁힌다.
+
+```bash
 legacy_identity='p''ort'
-rg -n "\\b${legacy_identity}(ing)?\\b|com\\.jojo\\.${legacy_identity}" \
+rg -n "com\\.jojo\\.${legacy_identity}\\b|\\b${legacy_identity}ing\\b" \
   settings.gradle.kts core/src desktop/src android/src verification/src tools *.md
+```
 
-# 현재 물리 계산기 금지 의존
-rg -n 'Battle\b|Battlefield|Screen|Gdx|GameDataCatalog|Campaign|Random|SourceRandomStreams' \
-  core/src/main/kotlin/com/jojo/game/PhysicalDamageCalculator.kt
+기존 전투 모델 이름 잔존. `sourceCharacterId` JSON schema 한 건만 허용한다.
 
-# 기존 전투 모델 이름 잔존. sourceCharacterId JSON schema 한 건만 허용
+```bash
 rg -n 'sourceCharacterId|sourceBattleSlot|sourceTileXAuthored|sourceTileYAuthored|SourceBattleSlots' \
   core/src/main/kotlin core/src/test/kotlin verification/src/main/kotlin
 ```
@@ -212,5 +256,10 @@ rg -n 'sourceCharacterId|sourceBattleSlot|sourceTileXAuthored|sourceTileYAuthore
 - 저장 namespace fallback을 추가하지 않는다. 이 프로젝트는 신규 게임이므로 이전 `jojo-original-*` 저장소 migration은 요구사항이 아니다.
 - 오래 실행 중인 사용자 `:desktop:run` 프로세스가 있을 수 있다. 리팩터링 검증을 위해 임의 종료하지 않는다.
 - build 산출물에는 이전 package 문자열이 남을 수 있다. identity 완료 판정은 먼저 source/config/resource를 대상으로 하고, 마지막 단계에서 안전하게 clean build를 수행한다.
-- 현재 저장소에는 Git metadata가 없을 수 있다. diff에 의존하지 말고 검색, 파일 내용, 테스트 결과를 근거로 상태를 판단한다.
 - 과거 구현의 이름이나 coroutine callback 순서를 production API 이름으로 복제하지 않는다. 동작 순서는 characterization test로만 보존한다.
+- 크기·경계 수치를 문서에 적을 때는 반드시 재계측한다. 2026-09-05판 문서는 실제보다 최대 3배 큰 값을 담고 있었다.
+
+## 관련 문서
+
+- [`LARGE_CLASS_REFACTORING.md`](LARGE_CLASS_REFACTORING.md) — 300줄 초과 클래스 전수 감사와 예외 판단
+- [`GAME_ARCHITECTURE.md`](GAME_ARCHITECTURE.md) — 목표 의존 방향과 현재 위반 목록

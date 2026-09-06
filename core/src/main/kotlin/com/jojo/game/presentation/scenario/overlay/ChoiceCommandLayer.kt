@@ -6,9 +6,29 @@ class ChoiceLayer(private val plainNewline: Boolean) {
     /** 선택지 한 줄의 태그와 표시 정보를 담습니다. */
     data class Row(val tag: Int, val text: String, val listenerPriority: Int = 1)
 
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var attached = true
+    /**
+     * `callback` (((Int) -> Unit)?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var callback: ((Int) -> Unit)? = null
+    /**
+     * `rows` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val rows = mutableListOf<Row>()
+    /**
+     * `zIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var zIndex = 0; private set
 
     /** 얼굴 번호가 -1이 아닐 때 요청한 초상화 번호입니다. */
@@ -33,6 +53,11 @@ class ChoiceLayer(private val plainNewline: Boolean) {
 
     /** 현재 선택지 목록의 복사본을 반환합니다. */
     fun rows() = rows.toList()
+    /**
+     * `attached`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun attached() = attached
 }
 
@@ -41,8 +66,23 @@ class CommandLayer {
     /** 명령 버튼의 태그와 활성화 상태입니다. */
     data class Button(val tag: Int, val interactable: Boolean, val priority: Int)
 
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var attached = true
+    /**
+     * `callback` (((Int) -> Unit)?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var callback: ((Int) -> Unit)? = null
+    /**
+     * `buttons` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val buttons = mutableListOf<Button>()
 
     /** 활성화 비트 마스크로 명령 버튼을 구성합니다.
@@ -77,5 +117,10 @@ class CommandLayer {
 
     /** 현재 명령 버튼 목록의 복사본을 반환합니다. */
     fun buttons() = buttons.toList()
+    /**
+     * `attached`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun attached() = attached
 }

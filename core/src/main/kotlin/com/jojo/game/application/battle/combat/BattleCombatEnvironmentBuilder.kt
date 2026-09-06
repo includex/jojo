@@ -16,6 +16,11 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
 
+/**
+ * `BattleCombatEnvironmentContext` 클래스: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class BattleCombatEnvironmentContext(
     val units: () -> Collection<BattleUnit>,
     val pendingPresentationUnits: () -> Collection<BattleUnit>,
@@ -58,8 +63,18 @@ internal data class BattleCombatEnvironmentContext(
     val consumeMpAttackSkill: (BattleUnit) -> Unit,
     val mrspDamage: (BattleUnit, BattleUnit) -> Int?,
 )
+/**
+ * `BattleCombatEnvironmentBuilder` 싱글턴 객체: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal object BattleCombatEnvironmentBuilder {
 
+
+    /**
+     * `statusDuration`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun statusDuration(status: BattleStatus, unit: BattleUnit, statusRoundFor: (BattleStatus) -> Int): Int = when {
         !unit.isPlayerSide() && status == BattleStatus.CONFUSION -> 1
@@ -67,17 +82,37 @@ internal object BattleCombatEnvironmentBuilder {
         else -> statusRoundFor(status)
     }.coerceIn(0, 3)
 
+    /**
+     * `resolveCriticalSpeech`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun resolveCriticalSpeech(
         unit: BattleUnit,
         criticalFlag: Boolean,
         probabilityResolver: BattleProbabilityResolver,
     ): String? {
         if (!criticalFlag) return null
+        /**
+         * `show` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val show = unit.criticalSpeechChecks % 2 == 0
         unit.criticalSpeechChecks++
         if (!show) return null
+        /**
+         * `speech` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val speech = unit.criticalSpeech
         if (speech.texts.isEmpty()) return null
+        /**
+         * `index` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val index = when {
             !speech.randomized || speech.texts.size == 1 -> 0
             speech.flagRandom -> probabilityResolver.flagRandom(0, speech.texts.lastIndex)
@@ -86,6 +121,11 @@ internal object BattleCombatEnvironmentBuilder {
         return speech.texts[index]
     }
 
+
+    /**
+     * `buildMagicEnvironment`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun buildMagicEnvironment(ctx: BattleCombatEnvironmentContext): MagicEnvironment = MagicEnvironment(
         probabilityResolver = ctx.probabilityResolver,
@@ -110,6 +150,11 @@ internal object BattleCombatEnvironmentBuilder {
     )
 
 
+    /**
+     * `buildPhysicalTargetEnvironment`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun buildPhysicalTargetEnvironment(ctx: BattleCombatEnvironmentContext): PhysicalTargetEnvironment =
         PhysicalTargetEnvironment(
             random100 = { ctx.probabilityResolver.random100() },
@@ -131,6 +176,11 @@ internal object BattleCombatEnvironmentBuilder {
             applyProperty = ctx.applyProperty,
         )
 
+
+    /**
+     * `buildPhysicalCombatEnvironment`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun buildPhysicalCombatEnvironment(ctx: BattleCombatEnvironmentContext): PhysicalCombatEnvironment {
         val targetEnv = buildPhysicalTargetEnvironment(ctx)

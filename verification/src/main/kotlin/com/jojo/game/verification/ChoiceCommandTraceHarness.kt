@@ -111,6 +111,11 @@ object ChoiceCommandTraceHarness {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         /** run: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
         fun run(c: Case): String {
@@ -138,12 +143,32 @@ object ChoiceCommandTraceHarness {
                     val f =
                         choice!!.requestedFace; "{\"request\":${if (f == null) "[]" else "[\"head/$f\"]"},\"size\":${if (f == null) "[0,0]" else "[60,120]"}}"
                 } else "null"
+                /**
+                 * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val attached = choice?.attached() ?: command!!.attached()
+                /**
+                 * `callsJson` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val callsJson = calls.joinToString(",", "[", "]")
                 return "{\"step\":\"${esc(step)}\",\"zIndex\":${choice?.zIndex ?: 0},\"rows\":$rows,\"face\":$face,\"attached\":$attached,\"removeCount\":$removals,\"calls\":$callsJson,\"cancelPriority\":${if (command == null) "null" else "2"},\"keyboardBindings\":0}"
             }
 
+            /**
+             * `trace` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val trace = mutableListOf(snap("create")); c.events.forEach { event ->
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = event.split(':'); when (p[0]) {
                 "row" -> choice!!.onRowTouch(
                     p[1].toInt(),

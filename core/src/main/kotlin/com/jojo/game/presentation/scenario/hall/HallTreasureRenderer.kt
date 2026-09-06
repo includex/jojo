@@ -7,11 +7,26 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** HallTreasureRenderer: 거점 Treasure 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** HallTreasureRenderer: 발견한 보물 행과 보상 아이콘을 거점 보물 패널에 렌더링한다. */
 internal object HallTreasureRenderer {
+    /**
+     * `SCALE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val SCALE = .86f
 
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallTreasureView) {
+        /**
+         * `tiled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tiled(texture: Texture, x: Float, y: Float, width: Float, height: Float) {
             val tileWidth = texture.width * SCALE
             val tileHeight = texture.height * SCALE
@@ -43,6 +58,11 @@ internal object HallTreasureRenderer {
                     batch.draw(it, command.x, command.y, command.width, command.height)
                 }
                 HallTreasureDrawKind.TEXT -> {
+                    /**
+                     * `font` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val font = if (command.font == HallTreasureFont.TITLE) assets.titleFont else assets.bodyFont
                     font.color = Color.BLACK
                     font.draw(batch, command.text, command.x, command.y, command.width, command.align, false)

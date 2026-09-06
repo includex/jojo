@@ -5,10 +5,20 @@ import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 
+/**
+ * `AttackStatusBatch` 클래스: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class AttackStatusBatch(
     val statuses: Set<BattleStatus>,
     val downAttributes: Set<BattleAttribute>,
 )
+
+/**
+ * `PhysicalTargetEnvironment` 클래스: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
 
 internal data class PhysicalTargetEnvironment(
     val random100: () -> Int,
@@ -32,8 +42,18 @@ internal data class PhysicalTargetEnvironment(
 
 /** PhysicalTargetResolver: 물리 대상 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object PhysicalTargetResolver {
+    /**
+     * `rollAttackStatusBatch`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun rollAttackStatusBatch(attacker: BattleUnit, random100: () -> Int): AttackStatusBatch {
         val statuses = linkedSetOf<BattleStatus>()
+
+        /**
+         * `chance`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
 
         fun chance(skillId: Int, status: BattleStatus) {
             attacker.skills[skillId]?.and(255)?.takeIf { it != 255 }?.let { rate ->
@@ -51,6 +71,11 @@ internal object PhysicalTargetResolver {
                 .filterNot(statuses::contains)
                 .forEach { status -> if (random100() > 70) statuses += status }
         }
+        /**
+         * `staticAttributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val staticAttributes = linkedSetOf<BattleAttribute>()
         mapOf(
             170 to BattleAttribute.ATTACK, 169 to BattleAttribute.DEFENSE, 171 to BattleAttribute.SPIRIT,
@@ -58,8 +83,18 @@ internal object PhysicalTargetResolver {
         ).forEach { (skill, attribute) ->
             if (attacker.skills[skill]?.and(255)?.let { it != 255 } == true) staticAttributes += attribute
         }
+        /**
+         * `down` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val down = staticAttributes.toMutableSet()
         if (attacker.skills[203]?.and(255)?.let { it != 255 } == true) {
+            /**
+             * `threshold` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             var threshold = 60
             BattleAttribute.entries.forEach { attribute ->
                 if (attribute !in staticAttributes && random100() > threshold) down += attribute
@@ -68,11 +103,21 @@ internal object PhysicalTargetResolver {
         }
         return AttackStatusBatch(statuses, down)
     }
+    /**
+     * `applyIncomingAttackStatuses`: 현재 상태를 갱신한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun applyIncomingAttackStatuses(
         batch: AttackStatusBatch,
         target: BattleUnit,
         statusDuration: (BattleStatus, BattleUnit) -> Int,
     ) {
+        /**
+         * `newlyApplied` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val newlyApplied = batch.statuses.filterTo(linkedSetOf()) { it !in target.statuses }
         batch.statuses.forEach { status -> target.statuses[status] = statusDuration(status, target) }
         if (target.skills[42]?.and(255)?.let { it != 255 } == true) newlyApplied.forEach(target.statuses::remove)
@@ -92,23 +137,98 @@ internal object PhysicalTargetResolver {
         activeAttack: Boolean,
         env: PhysicalTargetEnvironment,
     ): PhysicalAttackTargetResult {
+        /**
+         * `targetXBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val targetXBefore = target.tileX
+        /**
+         * `targetYBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val targetYBefore = target.tileY
+        /**
+         * `statusesBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val statusesBefore = target.statuses.toMap()
+        /**
+         * `liftsBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val liftsBefore = target.attributeLifts.toMap()
+        /**
+         * `liftRoundsBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val liftRoundsBefore = target.attributeLiftRounds.toMap()
+        /**
+         * `n` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var n = resolvedHarm.coerceAtLeast(0)
+        /**
+         * `blockRetaliations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val blockRetaliations = mutableListOf<PhysicalBlockRetaliation>()
+        /**
+         * `mpShieldDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var mpShieldDamage = 0
+        /**
+         * `moneyShieldSpent` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var moneyShieldSpent = 0
+        /**
+         * `hpDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var hpDamage = 0
+        /**
+         * `lifeStealHealing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var lifeStealHealing = 0
+        /**
+         * `qxlHealing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var qxlHealing = 0
+        /**
+         * `playerMoneyDelta` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var playerMoneyDelta = 0
+        /**
+         * `enemyMoneyDelta` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var enemyMoneyDelta = 0
 
         if (n == 0) {
             target.skills[153]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+                /**
+                 * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val harm = attacker.maxHitPoints * rate / 100
                 attacker.addHpcur(-harm)
                 attacker.statuses[BattleStatus.CONFUSION] = env.statusDuration(BattleStatus.CONFUSION, attacker)
@@ -118,6 +238,11 @@ internal object PhysicalTargetResolver {
                 )
             }
             target.skills[161]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+                /**
+                 * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val harm = attacker.maxHitPoints * rate / 100
                 attacker.addHpcur(-harm)
                 attacker.statuses[BattleStatus.PARALYSIS] = env.statusDuration(BattleStatus.PARALYSIS, attacker)
@@ -135,7 +260,17 @@ internal object PhysicalTargetResolver {
             } else {
                 target.skills[125]?.and(255)?.takeIf { it != 255 }?.let { costPerDamage ->
                     if (target.hitPoints >= costPerDamage) {
+                        /**
+                         * `price` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                         */
+
                         val price = kotlin.math.abs(n) * costPerDamage
+                        /**
+                         * `available` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                         */
+
                         val available = if (target.isPlayerSide()) env.getPlayerMoney() else env.getEnemyMoney()
                         if (available >= price) {
                             if (target.isPlayerSide()) {
@@ -153,10 +288,30 @@ internal object PhysicalTargetResolver {
                 target.addHpcur(-n)
 
                 attacker.skills[238]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+                    /**
+                     * `resolvedRate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     var resolvedRate = rate
                     if (!env.canAttack(attacker, target)) resolvedRate /= 2
+                    /**
+                     * `healing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     var healing = resolvedRate * n / 100
+                    /**
+                     * `attackerIsMine` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val attackerIsMine = attacker.isPlayerSide()
+                    /**
+                     * `currentCampIsMine` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val currentCampIsMine = env.activeFaction.isPlayerSide()
                     if (attackerIsMine != currentCampIsMine) healing = minOf(rate, healing)
                     lifeStealHealing = minOf(attacker.maxHitPoints - attacker.hitPoints, healing)
@@ -167,6 +322,11 @@ internal object PhysicalTargetResolver {
                     attacker.addHpcur(qxlHealing)
                 }
                 attacker.skills[237]?.and(255)?.takeIf { it != 255 }?.let { effect ->
+                    /**
+                     * `amount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val amount = n * effect
                     if (amount >= 1) {
                         if (attacker.isPlayerSide()) {
@@ -197,22 +357,62 @@ internal object PhysicalTargetResolver {
 
         env.notifyPhysicalDamage(attacker, target, n)
 
+        /**
+         * `recoilDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val recoilDamage = target.skills[40]?.and(255)?.takeIf { it != 255 && n > 0 }
             ?.let { n * it / 100 }
             ?.takeIf { it >= 1 }
             ?: 0
         if (recoilDamage > 0) attacker.addHpcur(-recoilDamage, keepAlive = true)
 
+        /**
+         * `automaticPropertyId` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var automaticPropertyId: Int? = null
+        /**
+         * `automaticPropertyHpDelta` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var automaticPropertyHpDelta = 0
+        /**
+         * `automaticPropertyMpDelta` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var automaticPropertyMpDelta = 0
+        /**
+         * `automaticPropertyCallbackCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var automaticPropertyCallbackCount = 0
+        /**
+         * `automaticProperty` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val automaticProperty = if (n > 0) {
             target.skills[284]?.and(255)?.takeIf { itemId ->
                 itemId != 255 && target.hitPoints > 0 && target.hitPoints < target.maxHitPoints
             }?.let { itemId ->
                 automaticPropertyId = itemId
+                /**
+                 * `hpBeforeProperty` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val hpBeforeProperty = target.hitPoints
+                /**
+                 * `mpBeforeProperty` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val mpBeforeProperty = target.magicPoints
                 if (target.faction == Faction.PLAYER && env.zdsyGlobalValue == 0) {
                     env.notifyConsumeAutomaticProperty(itemId)
@@ -232,14 +432,29 @@ internal object PhysicalTargetResolver {
             null
         }
 
+        /**
+         * `defeated` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val defeated = target.hitPoints <= 0
         if (defeated) {
             env.onDefeat(target.id)
             env.notifyUnitDefeated(attacker, target)
         }
+        /**
+         * `backMove` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val backMove = if (target.tileX != targetXBefore || target.tileY != targetYBefore) {
             PhysicalBackMove(targetXBefore, targetYBefore, target.tileX, target.tileY)
         } else null
+        /**
+         * `localStatusSettlement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val localStatusSettlement = if (n > 0 &&
             (statuses.statuses.isNotEmpty() || statuses.downAttributes.isNotEmpty())
         ) {

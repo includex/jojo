@@ -89,6 +89,10 @@ class BattleUnitEditLayer(initialAttack: Int = 50, initialPosts: Int = 0) {
     }
 
     companion object {
+        /**
+         * `AVATAR_GATE_TOAST` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val AVATAR_GATE_TOAST = "죄송합니다. 이 기능은 모든 것이 활성화되어야 사용할 수 있습니다."
     }
 }

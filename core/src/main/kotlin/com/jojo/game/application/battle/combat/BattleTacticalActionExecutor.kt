@@ -15,6 +15,11 @@ import com.jojo.game.domain.battle.magic.MagicResolver
 import com.jojo.game.domain.battle.combat.*
 import com.jojo.game.domain.battle.BattlePropertyResolver
 
+/**
+ * `BattleTacticalActionEnvironment` 클래스: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class BattleTacticalActionEnvironment(
     val outcome: () -> BattleOutcome?,
     val units: () -> Map<String, BattleUnit>,
@@ -27,7 +32,17 @@ internal data class BattleTacticalActionEnvironment(
     val physicalCombatEnvironment: () -> PhysicalCombatEnvironment,
     val magicEnvironment: () -> MagicEnvironment,
 )
+/**
+ * `BattleTacticalActionExecutor` 싱글턴 객체: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal object BattleTacticalActionExecutor {
+
+    /**
+     * `attack`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun attack(
         attackerId: String,
@@ -36,7 +51,17 @@ internal object BattleTacticalActionExecutor {
         env: BattleTacticalActionEnvironment,
     ): TacticalActionResult {
         if (env.outcome() != null) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
+        /**
+         * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected("공격 유닛이 없습니다.")
+        /**
+         * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
         if (!attacker.visible || !target.visible) return TacticalActionResult.Rejected("아직 등장하지 않은 유닛입니다.")
         if (attacker.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected("현재 진영의 유닛만 조작할 수 있습니다.")
@@ -45,20 +70,45 @@ internal object BattleTacticalActionExecutor {
         )
         if (env.areAllied(attacker, target)) return TacticalActionResult.Rejected("아군을 공격할 수 없습니다.")
         if (attacker.hasActed) return TacticalActionResult.Rejected("이미 행동한 유닛입니다.")
+        /**
+         * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offset = target.tileX - attacker.tileX to target.tileY - attacker.tileY
         if (!attacker.attackAllScreen && offset !in attacker.attackOffsets) return TacticalActionResult.Rejected("공격 범위를 벗어난 적입니다.")
         return PhysicalCombatResolver.executeAttack(attacker, target, damage, env.physicalCombatEnvironment())
     }
+
+    /**
+     * `forcedAttack`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun forcedAttack(
         attackerId: String,
         targetId: String,
         env: BattleTacticalActionEnvironment,
     ): TacticalActionResult {
+        /**
+         * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected("공격 유닛이 없습니다.")
+        /**
+         * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
         return ForcedPhysicalCombatResolver.executeForcedAttack(attacker, target, env.physicalCombatEnvironment())
     }
+
+    /**
+     * `useProperty`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun useProperty(
         userId: String,
@@ -67,18 +117,48 @@ internal object BattleTacticalActionExecutor {
         env: BattleTacticalActionEnvironment,
     ): TacticalActionResult {
         if (env.outcome() != null) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
+        /**
+         * `user` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val user = env.units()[userId] ?: return TacticalActionResult.Rejected("사용 유닛이 없습니다.")
+        /**
+         * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
+        /**
+         * `item` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val item = env.propertyItems[itemId] ?: return TacticalActionResult.Rejected("사용할 수 없는 아이템입니다.")
         if (user.effectiveFaction() != env.activeFaction() || user.hasActed) return TacticalActionResult.Rejected("현재 행동할 수 없는 유닛입니다.")
         if (!env.areAllied(user, target)) return TacticalActionResult.Rejected("아군에게만 사용할 수 있습니다.")
+        /**
+         * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offset = target.tileX - user.tileX to target.tileY - user.tileY
         if (target != user && offset !in env.movementOffsets) return TacticalActionResult.Rejected("아이템 사용 범위를 벗어났습니다.")
+        /**
+         * `applied` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val applied = applyProperty(item, target, { env.consumeSelectedProperty(itemId) }, env.notifyPermanentProperty)
             ?: return TacticalActionResult.Rejected("아이템을 사용할 수 없습니다.")
         user.markActionComplete()
         return applied
     }
+
+    /**
+     * `applyProperty`: 현재 상태를 갱신한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun applyProperty(
         item: BattlePropertyItem,
@@ -92,6 +172,11 @@ internal object BattleTacticalActionExecutor {
         notifyPermanentProperty = notifyPermanentProperty,
     )
 
+    /**
+     * `castMagic`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun castMagic(
         attackerId: String,
         targetId: String,
@@ -102,6 +187,11 @@ internal object BattleTacticalActionExecutor {
     ): TacticalActionResult = MagicResolver.castMagic(
         attackerId, targetId, magicId, reaction, bypassCondition, env.magicEnvironment(),
     )
+
+    /**
+     * `castMagicAt`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun castMagicAt(
         attackerId: String,

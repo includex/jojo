@@ -49,11 +49,21 @@ internal class ScenarioStaticHallInfoEvidenceRecorder {
         draw("Canvas/Layer/bg1/bg1/bg1", 165.686f, 79.5f, 1157f, 641f, "box1")
         draw("Canvas/Layer/bg1/bg1/box2", 169.686f, 139.5f, 1149f, 527f, "box2")
 
+        /**
+         * `rows` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val rows = listOf(
             listOf("조조", "군웅", "3", "123/123", "36/36", "60", "68", "55", "49", "51"),
             listOf("허자장", "풍수사", "3", "115/115", "112/112", "33", "41", "49", "36", "36"),
             listOf("병사 ", "경보병", "3", "127/127", "103/103", "46", "49", "36", "36", "36"),
         )
+        /**
+         * `labelX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val labelX = floatArrayOf(
             180.186f,
             315.186f,
@@ -66,16 +76,41 @@ internal class ScenarioStaticHallInfoEvidenceRecorder {
             1132.786f,
             1228.786f
         )
+        /**
+         * `labelW` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val labelW = floatArrayOf(120f, 160f, 86.8f, 147.3f, 92.2f, 82.8f, 82.8f, 82.8f, 82.8f, 82.8f)
         rows.forEachIndexed { row, values ->
+            /**
+             * `item` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val item = if (row % 2 == 0) "item0" else "item1"
+            /**
+             * `path` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val path = "Canvas/Layer/bg1/bg1/box2/scrollview/view/content/$item"
+            /**
+             * `y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val y = 544.85f - row * 62f
             draw(path, 171.686f, y, 1145f, 60f, if (row % 2 == 0) "bg2" else "885a69b4-08ed-4c78-8896-ffb04eb2bd20")
             values.forEachIndexed { column, value ->
                 draw("$path/label$column", labelX[column], y + 4.8f, labelW[column], 50.4f, text = value)
             }
         }
+
+        /**
+         * `headers` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val headers = listOf(
             floatArrayOf(172.286f, 605.5f, 133.8f, 60f, 187.286f, 610.3f, 103.8f) to "무장명",

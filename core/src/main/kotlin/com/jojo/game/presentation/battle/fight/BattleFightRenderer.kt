@@ -19,16 +19,30 @@ import kotlin.math.abs
 
 /** BattleFightRenderer: 전투 전투 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 internal class BattleFightRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `dialogueFont` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val dialogueFont: BitmapFont,
+    /** `viewport` (Viewport): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val viewport: Viewport,
+    /** `hudAssets` (BattleHudAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val hudAssets: BattleHudAssets,
+    /** `dynamicTextures` (BattleDynamicTextureRepository): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val dynamicTextures: BattleDynamicTextureRepository,
+    /** `timeline` (FightSpriteTimeline): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val timeline: FightSpriteTimeline,
+    /** `highlightShader` (() -> ShaderProgram): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val highlightShader: () -> ShaderProgram,
+    /** `grayShader` (() -> ShaderProgram): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val grayShader: () -> ShaderProgram,
 ) {
+
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun draw(view: FightPresentationView) {
         val centerX = viewport.worldWidth / 2f
@@ -82,6 +96,11 @@ internal class BattleFightRenderer(
         batch.end()
     }
 
+    /**
+     * `drawIntro`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawIntro(
         view: FightPresentationView,
         centerX: Float,
@@ -111,6 +130,11 @@ internal class BattleFightRenderer(
         }
     }
 
+    /**
+     * `drawPortrait`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawPortrait(
         fighter: FightFighterView,
         centerX: Float,
@@ -119,13 +143,48 @@ internal class BattleFightRenderer(
         localY: Float,
         alpha: Float,
     ) {
+        /**
+         * `faceId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val faceId = fighter.portraitFaceId ?: return
+        /**
+         * `texture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val texture = dynamicTextures.head(faceId) ?: return
+        /**
+         * `scale` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scale = 120f / maxOf(texture.width, texture.height) * 1.4f
+        /**
+         * `width` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val width = texture.width * scale
+        /**
+         * `height` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val height = texture.height * scale
         batch.color = Color(1f, 1f, 1f, alpha)
+        /**
+         * `mask` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mask = Rectangle(centerX + localX - 64f, centerY + localY - 80f, 128f, 160f)
+        /**
+         * `scissors` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scissors = Rectangle()
         ScissorStack.calculateScissors(viewport.camera, batch.transformMatrix, mask, scissors)
         batch.flush()
@@ -136,6 +195,11 @@ internal class BattleFightRenderer(
         }
     }
 
+    /**
+     * `drawIntroName`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawIntroName(
         fighter: FightFighterView,
         centerX: Float,
@@ -145,11 +209,21 @@ internal class BattleFightRenderer(
         color: Color,
         alpha: Float,
     ) {
+        /**
+         * `name` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name = fighter.introName ?: return
         font.data.setScale(54f / 26f)
         font.color = Color(color.r, color.g, color.b, alpha)
         font.draw(batch, name, centerX + localX - 70f, centerY + localY + 27f, 140f, Align.center, false)
     }
+
+    /**
+     * `drawName`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawName(fighter: FightFighterView, x: Float, y: Float, width: Float, align: Int, color: Color) {
         val name = fighter.name ?: return
@@ -159,6 +233,11 @@ internal class BattleFightRenderer(
         font.color = color
         font.draw(batch, name, x, y + 65f, width, align, false)
     }
+
+    /**
+     * `drawUnit`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawUnit(fighter: FightFighterView, centerX: Float, centerY: Float) {
         val action = fighter.action ?: return
@@ -202,6 +281,11 @@ internal class BattleFightRenderer(
         }
         batch.color = Color.WHITE
     }
+
+    /**
+     * `drawSpeech`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawSpeech(fighter: FightFighterView, centerX: Float, centerY: Float) {
         if (!fighter.speech.active) return

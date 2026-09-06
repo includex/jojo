@@ -56,6 +56,11 @@ internal class BattleRuntimeTraceCoordinator(
     configuration: BattleTraceRuntimeConfig,
     observer: RuntimeBattleObserver?,
 ) {
+    /**
+     * `session` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val session = BattleTraceRuntimeSession(configuration, observer)
 
     /** 결정적 난수열: 전투가 trace 실행 중일 때 사용할 재현 가능한 난수 공급원이다. */

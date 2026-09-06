@@ -12,6 +12,11 @@ import java.nio.file.Path
 object TerrainLayerTraceHarness {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val events = Regex("\"(DOWN|END|SCROLL):(\\d+)\"")
             .findAll(Files.readString(Path.of(args.single())))
@@ -71,7 +76,17 @@ object TerrainLayerTraceHarness {
     /** payload: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     private fun payload(panel: TerrainLayer.Panel): String =
         panel.rows.joinToString(prefix = "[", postfix = "]") { row ->
+            /**
+             * `skills` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val skills = row.enabledSkills.joinToString(prefix = "[", postfix = "]")
+            /**
+             * `values` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val values = row.values.joinToString(prefix = "[", postfix = "]") { "\"${it.text}\"" }
             "{\"id\":${row.terrainId},\"name\":\"${row.terrainName}\",\"icon\":${row.iconIndex},\"skills\":$skills,\"arms\":$values}"
         }

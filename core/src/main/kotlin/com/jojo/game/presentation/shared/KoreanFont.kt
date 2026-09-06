@@ -20,6 +20,11 @@ object KoreanFont {
         borderColor: Color = Color.CLEAR,
         fillColor: Color = Color.WHITE,
     ): BitmapFont {
+        /**
+         * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val candidates = listOfNotNull(
             System.getenv("JOJO_FONT_PATH"),
             // 안드로이드 시스템 글꼴을 우선 사용해 APK가 데스크톱 전용 글꼴에 의존하지 않게 한다.
@@ -29,8 +34,18 @@ object KoreanFont {
             "/System/Library/Fonts/AppleSDGothicNeo.ttc",
             "/System/Library/Fonts/Supplemental/AppleGothic.ttf",
         )
+        /**
+         * `fontPath` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val fontPath = candidates.firstOrNull { File(it).isFile }
             ?: error("한국어 글꼴을 찾지 못했습니다. JOJO_FONT_PATH를 설정하세요.")
+        /**
+         * `generator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val generator = FreeTypeFontGenerator(FileHandle(File(fontPath)))
         return try {
             generator.generateFont(

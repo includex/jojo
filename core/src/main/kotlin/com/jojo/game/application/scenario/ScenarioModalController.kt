@@ -9,29 +9,96 @@ import java.util.*
 
 /** 시나리오 모달의 표시 내용, 타이핑, 자동 닫힘 시간을 관리한다. */
 internal class ScenarioModalController(
+    /**
+     * `stage` (ScenarioStage,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val stage: ScenarioStage,
+    /**
+     * `onStateChange` ((PlaybackState) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onStateChange: (PlaybackState) -> Unit,
+    /**
+     * `onResumeExecution` (() -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onResumeExecution: () -> Unit,
 ) {
+    /**
+     * `currentModalText` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentModalText: String? = null
         internal set
+    /**
+     * `currentModalKind` (ScenarioModalKind?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentModalKind: ScenarioModalKind? = null
         internal set
+    /**
+     * `currentModalFixedText` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentModalFixedText: String = ""
         internal set
+    /**
+     * `ambitionFrom` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var ambitionFrom: Int = 0
         internal set
+    /**
+     * `ambitionTo` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var ambitionTo: Int = 0
         internal set
+    /**
+     * `ambitionElapsedSeconds` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var ambitionElapsedSeconds: Float = 0f
         internal set
+    /**
+     * `ambitionIndicatorEnabled` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var ambitionIndicatorEnabled: Boolean = true
         internal set
 
+    /**
+     * `modalNextText` (String?): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal var modalNextText: String? = null
+    /**
+     * `modalQueuedTexts` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal val modalQueuedTexts = ArrayDeque<String>()
+    /**
+     * `mapInfoContent` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal var mapInfoContent = ""
+    /**
+     * `modalRemainingSeconds` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal var modalRemainingSeconds = 0f
+    /**
+     * `modalPostTypingDelaySeconds` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal var modalPostTypingDelaySeconds = 1f
 
     /** 모달 표시와 대기 상태를 초기화한다. */
@@ -98,11 +165,21 @@ internal class ScenarioModalController(
         modalRemainingSeconds = modalPostTypingDelaySeconds
     }
 
+    /**
+     * `suspendForInfo`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun suspendForInfo(
         text: String,
         kind: ScenarioModalKind = ScenarioModalKind.EVENT,
         postTypingDelaySeconds: Float = 1f,
     ) {
+        /**
+         * `pages` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val pages = if (kind == ScenarioModalKind.INFO) splitInfoPages(text) else listOf(text)
         currentModalText = pages.firstOrNull().orEmpty()
         pages.drop(1).forEach(modalQueuedTexts::addLast)
@@ -160,6 +237,11 @@ internal class ScenarioModalController(
         modalRemainingSeconds = 2.5f
         onStateChange(PlaybackState.MODAL)
     }
+
+    /**
+     * `splitInfoPages`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun splitInfoPages(text: String): List<String> {
         val pages = mutableListOf<String>()

@@ -17,6 +17,11 @@ internal object BattleJiqiRenderEventRecorder {
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
+        /**
+         * `draw`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", opacity: Float = 1f, owner: String = "JiQiLayer"

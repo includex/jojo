@@ -7,9 +7,19 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** HallEquipConfirmationRenderer: 거점 Equip Confirmation 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** HallEquipConfirmationRenderer: 장비 교체 전후 능력치와 확인·취소 버튼을 비교 모달에 그린다. */
 internal object HallEquipConfirmationRenderer {
+    /**
+     * `SCALE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val SCALE = .86f
+
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallEquipConfirmationView) {
         HallEquipConfirmationRenderPlan.commands(view).forEach { command ->

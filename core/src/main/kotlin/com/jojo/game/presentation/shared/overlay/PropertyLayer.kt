@@ -6,21 +6,71 @@ import com.jojo.game.infrastructure.data.GameDataCatalog
 
 class PropertyLayer(private val items: List<Item>, private val inventory: Map<Int, Int>) {
 
+    /**
+     * `Item`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Item(
+        /**
+         * `id` (Int, val name: String, val itemType: Int, val icon: Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val id: Int, val name: String, val itemType: Int, val icon: Int,
+        /**
+         * `level` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val level: Int = 0, val owner: String? = null, val exp: Int = 0,
+        /**
+         * `expLimit` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val expLimit: Int = 0, val typeName: String? = null,
     )
 
 
+    /**
+     * `Tab`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     enum class Tab { WEAPON, ARMOR, AUXILIARY, PROPERTY }
 
 
+    /**
+     * `Row`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Row(val item: Item, val quantity: Int, val labels: List<String>)
 
+    /**
+     * `selected` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var selected = Tab.WEAPON; private set
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var attached = true; private set
+    /**
+     * `scrollRow` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var scrollRow = 0; private set
+    /**
+     * `propertyPanelInitialized` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var propertyPanelInitialized = false
 
     /** 생성 직후 첫 번째 항목을 선택한다. */
@@ -28,6 +78,11 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
         attached = true; selected = Tab.WEAPON; scrollRow = 0; return rows()
     }
 
+
+    /**
+     * `select`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun select(tab: Tab): List<Row> {
         selected = tab
@@ -54,8 +109,18 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
     fun onRowTouch(index: Int, event: Int): Int? = if (event == 2) rows().getOrNull(index)?.item?.id else null
 
 
+    /**
+     * `panelInitialized`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun panelInitialized(): Boolean = propertyPanelInitialized
 
+
+    /**
+     * `rows`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun rows(): List<Row> = when (selected) {
         Tab.PROPERTY -> {
@@ -70,10 +135,25 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
         Tab.AUXILIARY -> equipment { it.isAuxiliary() }
     }
 
+    /**
+     * `equipment`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun equipment(filter: (Item) -> Boolean) = items.filter(filter).sortedBy { it.id }.map { item ->
+        /**
+         * `owner` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val owner = item.owner ?: "창고"
         // 무기와 방어구에는 lv()를 적용하고 보조 장비만 초기 "---" 값을 유지한다.
         val level = if (item.isAuxiliary()) "---" else item.level.toString()
+        /**
+         * `nameProperty` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val nameProperty = item.typeName ?: when {
             item.isAuxiliary() -> "보조"; item.isArmor() -> "방어구"; else -> "무기"
         }
@@ -84,12 +164,37 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
         )
     }
 
+    /**
+     * `Item`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Item.isWeapon() = itemType in 0..19
+    /**
+     * `Item`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Item.isArmor() = itemType in 20..25
+    /**
+     * `Item`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Item.isProperty() = itemType in 26..45
+    /**
+     * `Item`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Item.isAuxiliary() = !isWeapon() && !isArmor() && !isProperty()
 
     companion object {
+
+        /**
+         * `fromCatalog`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun fromCatalog(data: GameDataCatalog, inventory: Map<Int, Int>): PropertyLayer = PropertyLayer(
             // 아이템 순회는 플레이어 저장소 항목만 상세 화면에 전달한다. 원본 추적

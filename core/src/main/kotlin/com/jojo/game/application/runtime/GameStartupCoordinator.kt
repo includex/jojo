@@ -11,14 +11,47 @@ import com.jojo.game.domain.campaign.*
 
 /** GameStartupCoordinator: 시작 설정을 해석해 캠페인을 준비하고 제목·시나리오·전투 화면으로 분기한다. */
 internal class GameStartupCoordinator(
+    /**
+     * `configuration` (GameLaunchConfiguration,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val configuration: GameLaunchConfiguration,
+    /**
+     * `campaignState` (CampaignState,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val campaignState: CampaignState,
+    /**
+     * `routeRuntimeStartup` (() -> Boolean,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val routeRuntimeStartup: () -> Boolean,
+    /**
+     * `showBattle` (() -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val showBattle: () -> Unit,
+    /**
+     * `showTitle` (() -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val showTitle: () -> Unit,
+    /**
+     * `showScenario` ((String) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val showScenario: (String) -> Unit,
+    /**
+     * `savedScenario` (() -> String,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val savedScenario: () -> String,
 ) {
+
+    /**
+     * `start`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun start() {
         if (configuration.yingchuanEntryFlowTracePath != null) campaignState.reset()
@@ -54,6 +87,11 @@ internal class GameStartupCoordinator(
             }
         }
     }
+
+    /**
+     * `prepareYingchuanBattleCampaign`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun prepareYingchuanBattleCampaign() {
         campaignState.reset()
@@ -94,16 +132,46 @@ internal fun prepareDirectBattleCampaign(
     scenario: String,
     entryLimit: ScenarioJoinBattleLimit? = null,
 ): List<Int> {
+    /**
+     * `match` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val match = Regex("S_(\\d{2})").matchEntire(scenario)
+    /**
+     * `index` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val index = match?.groupValues?.get(1)?.toIntOrNull()
     require(index != null && index in 0..57) { "full-battle scenario must be S_00 through S_57: $scenario" }
+    /**
+     * `seeded` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val seeded = if (index == 0) {
         listOf(0)
     } else {
+        /**
+         * `limit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val limit = requireNotNull(entryLimit) {
             "$scenario direct full-battle trace requires its authored R-module setJoinBattle contract"
         }
+        /**
+         * `excluded` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val excluded = limit.excludedUnitIds.toSet()
+        /**
+         * `mandatory` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mandatory = buildList {
             if (0 !in excluded) add(0)
             limit.requiredUnitIds.forEach { id -> if (id !in excluded && id !in this) add(id) }
@@ -116,6 +184,11 @@ internal fun prepareDirectBattleCampaign(
     state.reset()
     state.joinedUnits += seeded
     state.roster.seedStartupRoster(seeded)
+    /**
+     * `data` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val data = GameDataCatalog.load()
     seeded.forEach {
         state.setUnitAttribute(it, 18, 3)

@@ -5,6 +5,11 @@ import com.jojo.game.domain.scenario.PlaybackState
 
 /** RuntimeScenarioDriver: 시나리오 프레임을 읽고 대화·선택·오버레이 자동 조작을 생성하는 전략 계약이다. */
 fun interface RuntimeScenarioDriver {
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun commands(frame: RuntimeScenarioFrame): List<RuntimeScenarioCommand>
 }
 
@@ -20,26 +25,86 @@ data class RuntimeScenarioFrame(
 sealed interface RuntimeScenarioCommand {
     /** Present: 지정 시간만큼 현재 시나리오 화면을 유지하도록 요청하는 명령이다. */
     data class Present(
+        /**
+         * `presentation` (RuntimeScenarioPresentation,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val presentation: RuntimeScenarioPresentation,
+        /**
+         * `detail` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val detail: Int = -1,
+        /**
+         * `scene` (RuntimeScenarioScene): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scene: RuntimeScenarioScene = RuntimeScenarioScene(),
     ) : RuntimeScenarioCommand
 
     /** ShowOverlay: 검증할 시나리오 오버레이를 화면에 열도록 요청하는 명령이다. */
     data class ShowOverlay(
+        /**
+         * `overlay` (RuntimeScenarioOverlay,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val overlay: RuntimeScenarioOverlay,
+        /**
+         * `scene` (RuntimeScenarioScene): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scene: RuntimeScenarioScene = RuntimeScenarioScene(),
     ) : RuntimeScenarioCommand
 
     /** SetPresentation: 화면 배경과 연출 방식을 지정한 표현 유형으로 바꾸는 명령이다. */
     data class SetPresentation(
+        /**
+         * `mode` (RuntimeScenarioPresentation,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mode: RuntimeScenarioPresentation,
+        /**
+         * `detail` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val detail: Int = -1,
     ) : RuntimeScenarioCommand
+    /**
+     * `AdvanceDialogue` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object AdvanceDialogue : RuntimeScenarioCommand
+    /**
+     * `ResumeModal` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object ResumeModal : RuntimeScenarioCommand
+    /**
+     * `SkipDelay` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object SkipDelay : RuntimeScenarioCommand
+    /**
+     * `ConfirmChoice` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object ConfirmChoice : RuntimeScenarioCommand
+    /**
+     * `RevealDialogue` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object RevealDialogue : RuntimeScenarioCommand
 }
 

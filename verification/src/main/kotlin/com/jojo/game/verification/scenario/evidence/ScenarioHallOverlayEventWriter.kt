@@ -12,6 +12,11 @@ internal class ScenarioHallOverlayEventWriter(
     /** input: 검증 입력 정보를 담는다. */
     val input: ScenarioHallOverlayEvidenceInput,
 ) {
+    /**
+     * `fixture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val fixture = input.variant.artifactKey
     /** spriteBlend: 스프라이트 혼합 규칙 상태를 검증 흐름에 전달한다. */
     private val spriteBlend = listOf(770, 771)

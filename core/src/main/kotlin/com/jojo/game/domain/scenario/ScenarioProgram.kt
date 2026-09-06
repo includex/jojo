@@ -15,9 +15,29 @@ sealed interface ScriptStep {
 
     /** 변수 값에 따라 다음 단계 목록을 선택한다. */
     data class Conditional(
+        /**
+         * `variable` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val variable: String,
+        /**
+         * `expected` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val expected: Int,
+        /**
+         * `whenTrue` (List<ScriptStep>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val whenTrue: List<ScriptStep>,
+        /**
+         * `whenFalse` (List<ScriptStep>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val whenFalse: List<ScriptStep>
     ) : ScriptStep
 }

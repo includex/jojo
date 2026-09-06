@@ -36,6 +36,11 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
     private val font = KoreanFont.create(40, "재능의 첫 징후")
     /** panel: 화면 패널 리소스를 담는다. */
     private val panel: Texture by lazy {
+        /**
+         * `bytes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val bytes = Files.readAllBytes(
             Path.of(
                 "/Users/ain/workspace/jojo/.verification-work/raw-framebuffer-common-space/" +
@@ -43,6 +48,11 @@ class InfoLayerFixtureScreen(private val game: JojoGame) : ScreenAdapter(), Runt
             )
         )
         require(bytes.size == 19 * 17 * 4) { "source InfoLayer DynamicAtlas crop is not 19x17 RGBA" }
+        /**
+         * `pixmap` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val pixmap = Pixmap(19, 17, Pixmap.Format.RGBA8888)
         pixmap.pixels.put(bytes).flip()
         Texture(pixmap).also { texture ->

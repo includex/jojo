@@ -17,7 +17,9 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Json
 import com.badlogic.gdx.utils.viewport.ExtendViewport
@@ -50,6 +52,8 @@ import com.jojo.game.presentation.battle.bootstrap.BattleBootstrapCallbackState
 import com.jojo.game.presentation.battle.bootstrap.BattleInitLayer
 import com.jojo.game.presentation.battle.bootstrap.completeInitialBattleOperation
 import com.jojo.game.presentation.battle.combat.*
+import com.jojo.game.presentation.battle.dialogue.BattleDialogueSessionAdapter
+import com.jojo.game.presentation.battle.dialogue.BattleDialoguePlacementPolicy
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2RenderEvents
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2Route
@@ -75,70 +79,277 @@ import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
 import com.jojo.game.presentation.scenario.overlay.SourceTextReveal
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.KoreanFont
+import com.jojo.game.presentation.shared.dialogue.DialogueOverlayModel
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderModel
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
+import com.jojo.game.presentation.shared.dialogue.DialogueScene2dAssets
+import com.jojo.game.presentation.shared.dialogue.DialogueScene2dHost
+import com.jojo.game.presentation.shared.dialogue.DialoguePortraitGeometry
+import com.jojo.game.presentation.shared.dialogue.DialogueScene2dView
+import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
+import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.shared.overlay.*
 
 /** 전투 화면: 입력·전장 렌더링·전술 행동·모달·시나리오 표현을 한 프레임 흐름으로 연결하는 최상위 조정자다. */
 
 class BattleScreen(
+    /** `game` (JojoGame): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val game: JojoGame,
+    /** `verification` (BattleVerificationRuntime): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val verification: BattleVerificationRuntime,
+    /** `sourceScenario` (String): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val sourceScenario: String,
+    /** `returnScenario` (String): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val returnScenario: String,
+    /** `campaign` (CampaignState): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val campaign: CampaignState,
+    /** `loadTerrain` ((Int) -> BattleTerrainGrid): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val loadTerrain: (Int) -> BattleTerrainGrid,
 ) : ScreenAdapter() {
+    /**
+     * `CampaignEquipmentSlot`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun CampaignEquipmentSlot.attributeLabel() = when (this) {
         CampaignEquipmentSlot.WEAPON -> "공격력"
         CampaignEquipmentSlot.ARMOR -> "방어력"
         CampaignEquipmentSlot.AUXILIARY -> "정신력"
     }
 
+    /**
+     * `SelectAreaFrame`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private enum class SelectAreaFrame(val assetName: String) {
         RED("range-red"), GREEN("range-green"), BLUE("range-blue"), RED_BOX("range-red-box"), GREEN_BOX("range-green-box"),
     }
 
+    /**
+     * `SelectAreaTile`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class SelectAreaTile(val x: Int, val y: Int, val frame: SelectAreaFrame)
 
+    /**
+     * `initialPlayerCampScriptStarted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var initialPlayerCampScriptStarted = false
+
+    /**
+     * `bootstrapPhase` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var bootstrapPhase = if (verification.active) {
         BattleBootstrapPhase.COMPLETE
     } else {
         BattleBootstrapPhase.SCENE0
     }
+
+    /**
+     * `resultScene1Observed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var resultScene1Observed = false
+
+    /**
+     * `battleRouteCompleted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleRouteCompleted = false
+
+    /**
+     * `battleInfoPanelPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleInfoPanelPressed = false
+
+    /**
+     * `rewardTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
+
+    /**
+     * `sectionTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val sectionTitleFont: BitmapFont = KoreanFont.create(120, "영천의 전투")
+
+    /**
+     * `overlayAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val overlayAssets = BattleOverlayAssets()
+
+    /**
+     * `runtimeBattlePresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val runtimeBattlePresentation = game.runtimeBattlePresentation()
+
+    /**
+     * `presentationConfiguration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val presentationConfiguration = BattlePresentationConfiguration(runtimeBattlePresentation)
+
+    /**
+     * `captureFixtureConfiguration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val captureFixtureConfiguration = BattleCaptureFixtureConfiguration(runtimeBattlePresentation)
+
+    /**
+     * `otherUnitInfoLayer` (OtherUnitInfoLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var otherUnitInfoLayer: OtherUnitInfoLayer? = null
+
+    /**
+     * `mineUnitInfoLayer` (MineUnitInfoLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var mineUnitInfoLayer: MineUnitInfoLayer? = null
+
+    /**
+     * `battleEdit2` (BattleEditLayer2?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleEdit2: BattleEditLayer2? = null
+
+    /**
+     * `battleEdit3Open` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleEdit3Open = false
+
+    /**
+     * `battleEdit3ScenePanelOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleEdit3ScenePanelOpen = false
+
+    /**
+     * `battleRegisterRoute` (BattleRegisterRoute?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleRegisterRoute: BattleRegisterRoute? = null
+
+    /**
+     * `battleCharacterRouteFixtureCoordinator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCharacterRouteFixtureCoordinator = BattleCharacterRouteFixtureCoordinator()
+
+    /**
+     * `battleCharacterRouteFixturePort` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCharacterRouteFixturePort = object : BattleCharacterRouteFixturePort {
+        /**
+         * `unit`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun unit(characterId: Int): BattleUnit? = battle.units.values.firstOrNull {
             it.characterId == characterId && battleAvatarId(it) != null
         }
 
+        /**
+         * `spriteFrame`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun spriteFrame(action: Int, direction: Int, elapsed: Float, loop: Boolean): UnitSpriteFrame? =
             unitSpriteFrameResolver.clipFrame(action, direction, elapsed, loop)
 
+        /**
+         * `idleSpriteFrame`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun idleSpriteFrame(unit: BattleUnit): UnitSpriteFrame = unitSpriteFrameResolver.idleFrame(unit)
     }
+
+    /**
+     * `itemUpgradeRouteFixtureController` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val itemUpgradeRouteFixtureController = BattleItemUpgradeRouteFixtureController()
+
+    /**
+     * `miniMapLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val miniMapLayer = MiniMapLayer(setting = 0)
+
+    /**
+     * `miniMapReady` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var miniMapReady = false
+
+    /**
+     * `miniMapRouteInstalled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var miniMapRouteInstalled = false
+
+    /**
+     * `roundRouteInstalled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var roundRouteInstalled = false
+
+    /**
+     * `roundRouteCallbackCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var roundRouteCallbackCount = 0
+
+    /**
+     * `losePressedAnswer` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var losePressedAnswer: Int? = null
+
+    /**
+     * `compositionTrace`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun compositionTrace(): String = BattleCompositionEvidenceRecorder.record(compositionEvidenceView())
 
     /** 증거 화면 구성: 현재 전투·대화·경로 상태를 증거 투영기가 소비할 불변 입력으로 묶는다. */
@@ -222,8 +433,26 @@ class BattleScreen(
     // Cocos는 SHOW_ALL 방식의 1280×800 기준 캔버스를 사용하므로, 1.86:1 데스크톱 창에서는
     // 전투를 1280×688 FitViewport로 줄이지 않고 보이는 월드를 1488×800으로 넓힌다.
     private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
+
+    /**
+     * `shapes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val shapes = ShapeRenderer()
+
+    /**
+     * `batch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val batch = SpriteBatch()
+
+    /**
+     * `cocos8MapSampler` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val cocos8MapSampler = lazy {
         ShaderProgram(
             """attribute vec4 a_position;
@@ -263,6 +492,12 @@ void main() {
 }"""
         ).also { check(it.isCompiled) { "Cocos8 map shader failed: ${it.log}" } }
     }
+
+    /**
+     * `cocosHighlightSampler` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val cocosHighlightSampler = lazy {
         ShaderProgram(
             """attribute vec4 a_position;
@@ -285,6 +520,12 @@ void main() {
 }""",
         ).also { check(it.isCompiled) { "Cocos highlight shader failed: ${it.log}" } }
     }
+
+    /**
+     * `cocosGraySampler` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val cocosGraySampler = lazy {
         ShaderProgram(
             """attribute vec4 a_position;
@@ -307,22 +548,88 @@ void main() {
 }""",
         ).also { check(it.isCompiled) { "Cocos gray shader failed: ${it.log}" } }
     }
+
+    /**
+     * `scriptRuntime` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val scriptRuntime = ScenarioInterpreter.load(sourceScenario, campaign).apply {
         enableExternalBattlePresentation()
         enableExternalFightPresentation()
         start("scene0")
     }
+
+    /**
+     * `battleTraceCoordinator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleTraceCoordinator = game.requestedBattleTraceRuntime()?.let { configuration ->
         BattleRuntimeTraceCoordinator(configuration, game.runtimeBattleObserver())
     }
+
+    /**
+     * `yingchuanEntryFlowTracePath` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val yingchuanEntryFlowTracePath = game.requestedYingchuanEntryFlowTracePath()
+
+    /**
+     * `yingchuanEntryFlowSawInit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var yingchuanEntryFlowSawInit = false
+
+    /**
+     * `yingchuanEntryFlowWritten` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var yingchuanEntryFlowWritten = false
+
+    /**
+     * `fullTraceRandom` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val fullTraceRandom get() = battleTraceCoordinator?.randomSource
+
+    /**
+     * `gameDataCatalog` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val gameDataCatalog = GameDataCatalog.load()
+
+    /**
+     * `battleInitLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleInitLayer = BattleInitLayer()
+
+    /**
+     * `terrainLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val terrainLayer by lazy { gameDataCatalog.terrainLayer() }
+
+    /**
+     * `propertyLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val propertyLayer by lazy { PropertyLayer.fromCatalog(gameDataCatalog, campaign.inventory.items) }
+
+    /**
+     * `treasureLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val treasureLayer by lazy {
         TreasureLayer(
             gameDataCatalog.treasureProfiles().map {
@@ -331,21 +638,92 @@ void main() {
             campaign.inventory.discoveredTreasures,
         )
     }
+
+    /**
+     * `battleSprites` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleSprites = BattleSpriteTimeline.load()
 
     /** 유닛 frame 판정은 resolver에 위임하고, Screen은 현재 route·animation·unit 조회만 제공한다. */
     private val unitSpriteFrameResolver = BattleUnitSpriteFrameResolver(
         object : BattleUnitSpriteFrameResolver.Port {
+            /**
+             * `dialogueOneRoute`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dialogueOneRoute(): Boolean = dialogueOneRoute
+
+            /**
+             * `hudRoute`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun hudRoute(): Boolean = hudRoute
+
+            /**
+             * `rewardRouteActive`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun rewardRouteActive(): Boolean = rewardRouteState != null
+
+            /**
+             * `itemUpgradeRouteActive`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun itemUpgradeRouteActive(): Boolean = itemUpgradeRouteState != null
+
+            /**
+             * `battleDialogueBlendRoute`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun battleDialogueBlendRoute(): Boolean = battleDialogueBlendRoute
+
+            /**
+             * `winConditionRouteActive`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun winConditionRouteActive(): Boolean = winConditionRouteState != null
+
+            /**
+             * `animationClock`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun animationClock(): Float = this@BattleScreen.animationClock()
+
+            /**
+             * `elapsed`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun elapsed(): Float = elapsed
+
+            /**
+             * `returnScenario`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun returnScenario(): String = returnScenario
+
+            /**
+             * `avatarId`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun avatarId(unit: BattleUnit): Int? = battleAvatarId(unit)
+
+            /**
+             * `defaultAction`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun defaultAction(unit: BattleUnit) = unitPresentationStore.stateFor(unit).defaultAction(
                 BattleUnitPresentationState.DefaultActionInput(
                     visible = unit.visible,
@@ -358,6 +736,11 @@ void main() {
                 ),
             )
 
+            /**
+             * `transientAnimation`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun transientAnimation(unitId: String): UnitActionAnimation? {
                 val now = animationClock()
                 return actionAnimation?.takeIf { now < it.endsAt && it.unitId == unitId }
@@ -365,24 +748,75 @@ void main() {
                     ?: deathAnimations[unitId]?.takeIf { now in it.startedAt..<it.endsAt }
             }
 
+            /**
+             * `movementAnimation`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun movementAnimation(unitId: String): UnitMoveAnimation? =
                 movementAnimation?.takeIf { animationClock() < it.endsAt && it.unitId == unitId }
 
+            /**
+             * `scriptedVisual`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun scriptedVisual(unitId: String): ScriptedUnitVisual? = scriptedUnitPresentation.visual(unitId)
+
+            /**
+             * `presentationUnit`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun presentationUnit(unitId: String): BattleUnit? = battle.presentation.presentationUnit(unitId)
+
+            /**
+             * `timelineFrame`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun timelineFrame(action: Int, direction: Int, elapsed: Float, loop: Boolean) =
                 battleSprites.frame(action, direction, elapsed, loop)
         },
     )
+
+    /**
+     * `magicEffects` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val magicEffects = MagicEffectCatalog.load()
+
+    /**
+     * `unitInfoAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val unitInfoAssets = BattleUnitInfoAssets()
 
+    /**
+     * `loadedBattleMapIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val loadedBattleMapIndex = scriptRuntime.requestedBattleBackgroundMapIndex
+
+    /**
+     * `terrainGrid` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val terrainGrid = loadTerrain(loadedBattleMapIndex).also { grid ->
         grid.resetOverlays()
         grid.applyObjectOverlays(scriptRuntime.stage.mapObjects.values)
         grid.applyFires(scriptRuntime.stage.fires.values)
     }
+
+    /**
+     * `battle` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val battle = (if (verification.usesTutorialBattle) {
         BattleScenarioFactory.tutorialBattle()
     } else {
@@ -405,9 +839,33 @@ void main() {
         else state.setMaxRounds(scenarioMaxRound())
         scriptRuntime.stage.setBattleMovePathResolver(state.movement::scriptedMovePath)
     }
+
+    /**
+     * `unitPresentationStore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val unitPresentationStore = BattleUnitPresentationStore()
+
+    /**
+     * `pendingFightCommands` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val pendingFightCommands = ArrayDeque<ScenarioFightCommand>()
+
+    /**
+     * `fightSprites` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val fightSprites by lazy { FightSpriteTimeline.load() }
+
+    /**
+     * `fightPresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val fightPresentation by lazy {
         FightPresentationState(
             isMineUnit = { characterId ->
@@ -417,24 +875,87 @@ void main() {
             actionSoundsCrossed = fightSprites::soundEventsCrossed,
         )
     }
+
+    /**
+     * `activeFightCommand` (ScenarioFightCommand?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var activeFightCommand: ScenarioFightCommand? = null
+
+    /**
+     * `fightCommandSequence` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var fightCommandSequence = 0L
+
+    /**
+     * `fightOverlayActive` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var fightOverlayActive = false
 
+    /**
+     * `mapFile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val mapFile = battleMapFile(loadedBattleMapIndex + 1)
+
+    /**
+     * `materializedBattleUnitIds` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val materializedBattleUnitIds = battle.units.keys.toMutableSet()
 
+    /**
+     * `ScriptUnitBaseline`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class ScriptUnitBaseline(
-        val x: Int, val y: Int, val visible: Boolean, val ai: Int,
-        val targetId: Int, val targetX: Int, val targetY: Int,
+        /**
+         * `x` (Int, val y: Int, val visible: Boolean, val ai: Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val x: Int,
+        val y: Int, val visible: Boolean, val ai: Int,
+        /**
+         * `targetId` (Int, val targetX: Int, val targetY: Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val targetId: Int,
+        val targetX: Int, val targetY: Int,
     )
 
+    /**
+     * `scriptUnitBaseline` (Map<Int, ScriptUnitBaseline>?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var scriptUnitBaseline: Map<Int, ScriptUnitBaseline>? = null
+
+    /**
+     * `scriptedMovementCameraCursors` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedMovementCameraCursors = mutableMapOf<Int, MovementCameraTickCursor>()
+
+    /**
+     * `mapTexture` (Texture?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val mapTexture: Texture? = mapFile?.let(::Texture)?.also {
-            it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
-            it.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
-        }
+        it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+        it.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge)
+    }
 
     /** 전장 배경 로드 완료: 지도 텍스처가 준비되면 유닛 텍스처를 선적하고 대기 중인 스크립트를 재개한다. */
     private fun completeBattleBackgroundLoadIfReady() {
@@ -443,7 +964,18 @@ void main() {
         scriptRuntime.completeBattleBackgroundLoad()
     }
 
+    /**
+     * `dynamicTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dynamicTextures = BattleDynamicTextureRepository()
+
+    /**
+     * `informationOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val informationOverlay by lazy {
         BattleInformationOverlayController(
             propertyLayer = propertyLayer,
@@ -453,7 +985,19 @@ void main() {
             terrainIcon = dynamicTextures::terrainIcon,
         )
     }
+
+    /**
+     * `hudAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hudAssets = BattleHudAssets()
+
+    /**
+     * `battleMapRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleMapRenderer by lazy {
         BattleMapRenderer(
             batch = batch,
@@ -464,8 +1008,26 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleMapObjectRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleMapObjectRenderer by lazy { BattleMapObjectRenderer(batch) }
+
+    /**
+     * `battleGridMapSurfaceRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleGridMapSurfaceRenderer by lazy { BattleGridMapSurfaceRenderer(batch) }
+
+    /**
+     * `battleActorEffectRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleActorEffectRenderer by lazy {
         BattleActorEffectRenderer(batch, hudAssets) { cocosHighlightSampler.value }
     }
@@ -473,37 +1035,134 @@ void main() {
     /** Actor/effect renderer 입력은 live 상태를 이 Port로만 노출해 composer가 조립한다. */
     private val battleActorEffectViewComposer = BattleActorEffectViewComposer(
         object : BattleActorEffectViewComposer.Port {
+            /**
+             * `boardLeft`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun boardLeft(): Float = this@BattleScreen.boardLeft
+
+            /**
+             * `boardBottom`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun boardBottom(): Float = this@BattleScreen.boardBottom
+
+            /**
+             * `tileSize`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun tileSize(): Float = boardTile
+
+            /**
+             * `animationClock`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun animationClock(): Float = this@BattleScreen.animationClock()
+
+            /**
+             * `stateEffectAnimationClock`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun stateEffectAnimationClock(): Float = this@BattleScreen.stateEffectAnimationClock()
+
+            /**
+             * `dialogueBlendRoute`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dialogueBlendRoute(): Boolean = battleDialogueBlendRoute
+
+            /**
+             * `battleMenuOpen`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun battleMenuOpen(): Boolean = this@BattleScreen.battleMenuOpen
+
+            /**
+             * `sourceScenario`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun sourceScenario(): String = this@BattleScreen.sourceScenario
+
+            /**
+             * `spriteFrame`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun spriteFrame(unit: BattleUnit): UnitSpriteFrame = unitSpriteFrameResolver.frame(unit)
+
+            /**
+             * `activeAction`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun activeAction(unitId: String, now: Float): UnitActionAnimation? =
                 actionAnimation?.takeIf { now < it.endsAt && it.unitId == unitId }
                     ?: hitReactionAnimations[unitId]?.takeIf { now in it.startedAt..<it.endsAt }
                     ?: deathAnimations[unitId]?.takeIf { now in it.startedAt..<it.endsAt }
 
+            /**
+             * `deathAnimationActive`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun deathAnimationActive(unitId: String, now: Float): Boolean =
                 deathAnimations[unitId]?.let { now in it.startedAt..<it.endsAt } == true
 
+            /**
+             * `scriptedVisual`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun scriptedVisual(unitId: String): ScriptedUnitVisual? = scriptedUnitPresentation.visual(unitId)
+
+            /**
+             * `texture`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun texture(unit: BattleUnit, source: UnitSpriteSource): Texture? = when (source) {
                 UnitSpriteSource.ATTACK -> attackTexture(unit) ?: unitTexture(unit)
                 UnitSpriteSource.SPECIAL -> specialTexture(unit) ?: unitTexture(unit)
                 UnitSpriteSource.MOVEMENT -> unitTexture(unit)
             }
 
+            /**
+             * `visualTile`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun visualTile(unit: BattleUnit): Pair<Float, Float> = this@BattleScreen.visualTile(unit)
+
+            /**
+             * `terrainAt`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun terrainAt(unit: BattleUnit): Int = terrainGrid.terrainAt(unit.tileX, unit.tileY)
+
+            /**
+             * `terrainMask`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun terrainMask(terrain: Int): Texture? = when (terrain) {
                 10 -> hudAssets.terrainMask19
                 1 -> hudAssets.terrainMask21
                 else -> null
             }
+
+            /**
+             * `hpTexture`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun hpTexture(unit: BattleUnit): Texture? = when (unit.type()) {
                 Faction.PLAYER -> hudAssets.mineHpBarTexture
@@ -511,24 +1170,93 @@ void main() {
                 Faction.ENEMY, Faction.REINFORCEMENTS -> if (unit.famous) hudAssets.famousEnemyHpBarTexture else hudAssets.enemyHpBarTexture
             }
 
+            /**
+             * `hpRatio`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun hpRatio(unit: BattleUnit, now: Float): Float =
                 (healthTimeline.shownHp(unit.id, now, unit.hitPoints)
                     .toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
 
+            /**
+             * `attributeStatuses`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun attributeStatuses(unit: BattleUnit) = unitPresentationStore.stateFor(unit).attributeStatusIcons
+
+            /**
+             * `otherNodesVisible`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun otherNodesVisible(unit: BattleUnit): Boolean = unit.otherNodesVisible
+
+            /**
+             * `stateEffect`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun stateEffect(unit: BattleUnit) = unitPresentationStore.stateFor(unit).stateAnimation.current()
+
+            /**
+             * `stateTexture`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun stateTexture(textureIndex: Int): Texture? =
                 hudAssets.battleStateTextures.getOrNull(textureIndex)
 
+            /**
+             * `magicEffectAnimations`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun magicEffectAnimations(): List<MagicEffectAnimation> = magicEffectAnimations.toList()
+
+            /**
+             * `magicEffect`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun magicEffect(effectId: Int) = magicEffects.effect(effectId)
+
+            /**
+             * `magicEffectTexture`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun magicEffectTexture(effectId: Int): Texture? = dynamicTextures.effect(effectId)
+
+            /**
+             * `presentationUnit`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun presentationUnit(unitId: String): BattleUnit? = battle.presentation.presentationUnit(unitId)
+
+            /**
+             * `sayTexture`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun sayTexture(): Texture? = hudAssets.battleSayTexture
+
+            /**
+             * `dialogueSpeakerId`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dialogueSpeakerId(): Int? = scriptRuntime.currentDialogue?.speakerId?.toIntOrNull()
         },
     )
+
+    /**
+     * `fightRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val fightRenderer by lazy {
         BattleFightRenderer(
             batch = batch,
@@ -542,11 +1270,50 @@ void main() {
             grayShader = { cocosGraySampler.value },
         )
     }
+
+    /**
+     * `audio` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val audio = GameAudioPlayer()
+
+    /**
+     * `dialogueReveal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dialogueReveal = SourceTextReveal()
+
+    /** 전투 스크립트 상태를 공용 대화 세션으로 투영하는 어댑터다. */
+    private val dialogueSessionAdapter = BattleDialogueSessionAdapter()
+
+    /**
+     * `battleInfoReveal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleInfoReveal = SourceTextReveal()
+
+    /**
+     * `sayAutoClose` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val sayAutoClose = SayLayerAutoClose()
+
+    /**
+     * `settingsPreferences` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settingsPreferences by lazy { game.settingsPreferences() }
+
+    /**
+     * `font` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val font: BitmapFont = KoreanFont.create(26, buildString {
         append("전술 전투 원본 맵 라운드 아군 적군 단계 턴 최종 종료 증원군 도착 조조 병사 황건적 시나리오로 돌아가기 일대일 대결 대화 아이템 ${scriptRuntime.stage.stageName}")
         append(gameDataCatalog.allBattleNames().joinToString())
@@ -557,7 +1324,7 @@ void main() {
         append(gameDataCatalog.terrainLayer().select(TerrainLayer.Tab.RISE).rows.joinToString { it.terrainName })
         append(
             gameDataCatalog.terrainLayer()
-            .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
+                .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
         Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
         append("기본 능력 무력 지력 지휘 민첩성 운기 무장 소개 인물 특기 일람 없음 출진 횟수 퇴각 ★◎○△×●--")
@@ -566,11 +1333,84 @@ void main() {
         append("보물 도감 발견되지 않음 지금까지 발견한 보물 종료 부대 정보 일람 무장명 부대 속성 레벨 체력 공격 방어 정신 폭발 사기 폐쇄 창고 일람 이름 속성 경험치 소지자 무기 방어구 보조")
         append("모든 부대의 명령을 종료하시겠습니까? 자동 전투 위임 예 아니오 취소")
     })
+
+    /**
+     * `dialogueFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dialogueFont: BitmapFont = KoreanFont.create(36, buildString {
         append(gameDataCatalog.allUnitNames().joinToString())
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
     })
+
+    /** 전투 대사 좌표·HUD 자원을 공용 대화 렌더러에 연결하는 어댑터다. */
+    private val battleDialogueRendererAdapter by lazy {
+        BattleDialogueRendererAdapter(
+            renderer = DialogueRenderer(
+                DialogueRenderLayout(
+                    width = 1488.3721f,
+                    height = 800f,
+                    panelLeftX = 245.65f,
+                    panelRightX = 245.65f,
+                    panelY = 282f,
+                    panelWidth = 796f,
+                    panelHeight = 212f,
+                    portraitWidth = 192f,
+                    portraitHeight = 240f,
+                    portraitLeftX = 1064.62f,
+                    portraitRightX = 1064.62f,
+                    speakerLeftX = 307.23f,
+                    speakerRightX = 307.23f,
+                    speakerOffsetY = 189.4f,
+                    textLeftX = 278.705f,
+                    textRightX = 278.705f,
+                    textOffsetY = 99.814f,
+                    textWidth = 728f,
+                ),
+            ),
+            assets = BattleDialogueRendererAssetsAdapter(
+                dialoguePanel = hudAssets.dialoguePanelTexture,
+                bodyFont = dialogueFont,
+                speakerFont = dialogueFont,
+                titleFont = dialogueFont,
+                portraitProvider = { portraitId -> dynamicTextures.head(portraitId) },
+            ),
+        )
+    }
+
+    /** 전투 Scene2D 대화가 공유하는 Stage다. 기존 InputProcessor에는 연결하지 않는다. */
+    private val battleDialogueScene2dStage = lazy { Stage(viewport) }
+
+    /** 전투 Scene2D 스타일의 수명은 전투 화면이 관리한다. */
+    private val battleDialogueScene2dSkin = lazy { Skin() }
+
+    /** 전투 대화·선택·모달을 Scene2D 공용 위젯으로 표시하는 호스트다. */
+    private val battleDialogueScene2dHost = lazy {
+        DialogueScene2dHost(
+            stage = battleDialogueScene2dStage.value,
+            view = DialogueScene2dView(battleDialogueScene2dSkin.value, DialogueScene2dAssets(
+                dialoguePanel = hudAssets.dialoguePanelTexture,
+                portrait = { portraitId -> dynamicTextures.head(portraitId) },
+                bodyFont = dialogueFont,
+                speakerFont = dialogueFont,
+                titleFont = dialogueFont,
+            )),
+        )
+    }
+
+    /**
+     * `itemUpgradeFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val itemUpgradeFont: BitmapFont = KoreanFont.create(36, "단검유비장비Lv공격력방어력정신력 -> 0123456789")
+
+    /**
+     * `battleRewardOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleRewardOverlayRenderer by lazy {
         BattleRewardOverlayRenderer(
             batch = batch,
@@ -585,6 +1425,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleAutoOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleAutoOverlayRenderer by lazy {
         BattleAutoOverlayRenderer(
             batch = batch,
@@ -599,6 +1445,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleTerrainOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleTerrainOverlayRenderer by lazy {
         BattleTerrainOverlayRenderer(
             batch = batch,
@@ -612,6 +1464,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleSettingsOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleSettingsOverlayRenderer by lazy {
         BattleSettingsOverlayRenderer(
             batch = batch,
@@ -622,6 +1480,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleUnitInfoOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleUnitInfoOverlayRenderer by lazy {
         BattleUnitInfoOverlayRenderer(
             batch = batch,
@@ -642,6 +1506,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleHelperOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleHelperOverlayRenderer by lazy {
         BattleHelperOverlayRenderer(
             batch = batch,
@@ -654,6 +1524,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleSaveLoadOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleSaveLoadOverlayRenderer by lazy {
         BattleSaveLoadOverlayRenderer(
             batch = batch,
@@ -666,6 +1542,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battleForcesOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleForcesOverlayRenderer by lazy {
         BattleForcesOverlayRenderer(
             batch = batch,
@@ -679,6 +1561,12 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `battlePropertyOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battlePropertyOverlayRenderer by lazy {
         BattlePropertyOverlayRenderer(
             batch = batch,
@@ -692,107 +1580,555 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `eventMessage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var eventMessage = "턴 종료로 라운드와 이벤트를 확인하세요"
+
+    /**
+     * `battleMenuOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleMenuOpen = false
+
+    /**
+     * `battleMenuLayer` (MenuLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleMenuLayer: MenuLayer? = null
+
+    /**
+     * `battleMenuOpenedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleMenuOpenedAt = 0f
+
+    /**
+     * `battleMenuPressedIndex` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleMenuPressedIndex: Int? = null
+
+    /**
+     * `autoBattlePreferences` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val autoBattlePreferences by lazy { game.preferences("jojo-auto-battle") }
+
+    /**
+     * `autoBattleFlow` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val autoBattleFlow by lazy {
         AutoBattleFlow(battleTraceCoordinator == null && autoBattlePreferences.getInteger("TUOGUAN", 0) == 1)
     }
+
+    /**
+     * `autoBattleRouteFixtureController` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val autoBattleRouteFixtureController = BattleAutoBattleRouteFixtureController()
+
+    /**
+     * `autoBattlePressedTag` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var autoBattlePressedTag: Int? = null
+
+    /**
+     * `autoBattleTogglePressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var autoBattleTogglePressed = false
+
+    /**
+     * `autoBattlePanelPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var autoBattlePanelPressed = false
+
+    /**
+     * `saveLoadOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val saveLoadOverlay = BattleSaveLoadOverlayController(
         saveRepository = object : SaveLayer.Repository {
+            /**
+             * `load`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun load(index: Int): String? = game.savedCampaignSlot(index)
+
+            /**
+             * `save`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun save(index: Int) {
                 game.saveCampaign(index)
             }
         },
         loadRepository = object : LoadGameLayer.Repository {
+            /**
+             * `load`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun load(index: Int) = game.loadCampaignSlot(index)
+
+            /**
+             * `savedPage`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun savedPage() = game.savedLoadPage()
+
+            /**
+             * `savePage`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun savePage(page: Int) = game.saveLoadPage(page)
+
+            /**
+             * `featureEnabled`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun featureEnabled(name: String) = name == "ZDBHSW"
+
+            /**
+             * `versionCode`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun versionCode() = 1
+
+            /**
+             * `restore`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun restore(index: Int, raw: String, route: LoadGameLayer.RestoreRoute) =
                 game.restoreCampaignSlot(index, raw, route)
         },
     )
+
+    /**
+     * `settingLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settingLayer by lazy {
         SettingLayer(object : SettingLayer.Store {
+            /**
+             * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             private val p = settingsPreferences
+
+            /**
+             * `getInt`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun getInt(key: String, default: Int) = p.getInteger(key, default)
+
+            /**
+             * `putInt`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun putInt(key: String, value: Int) {
                 p.putInteger(key, value).flush()
             }
         }, featureEnvironment = { game.settingFeatureEnvironment("Battle") })
     }
+
+    /**
+     * `settingsOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settingsOverlay by lazy { BattleSettingsOverlayController(settingLayer) }
+
+    /**
+     * `forcesOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val forcesOverlay = BattleForcesOverlayController()
+
+    /**
+     * `unitInfoOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val unitInfoOverlay = BattleUnitInfoOverlayController()
+
+    /**
+     * `jiqiLayer` (JiQiLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var jiqiLayer: JiQiLayer? = null
+
+    /**
+     * `jiqiPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var jiqiPressed = false
+
+    /**
+     * `jiqiRouteFixture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val jiqiRouteFixture = presentationConfiguration.jiqiRoute
+
+    /**
+     * `jiqiRouteFixtureController` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val jiqiRouteFixtureController = BattleJiqiRouteFixtureController()
+
+    /**
+     * `magickListLayer` (MagicUiList?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magickListLayer: MagicUiList? = null
+
+    /**
+     * `magickInfoLayer` (MagicInfoLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magickInfoLayer: MagicInfoLayer? = null
+
+    /**
+     * `magickPressedRow` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magickPressedRow: Int? = null
+
+    /**
+     * `magickPressedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magickPressedAt = 0f
+
+    /**
+     * `magickCancelPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magickCancelPressed = false
+
+    /**
+     * `magickInfoSuppressRelease` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magickInfoSuppressRelease = false
+
+    /**
+     * `magickRouteFixtureController` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val magickRouteFixtureController = BattleMagickRouteFixtureController()
+
+    /**
+     * `magickRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val magickRouteState get() = presentationConfiguration.magickRoute
+
+    /**
+     * `usePropertyLayer` (UsePropertyLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var usePropertyLayer: UsePropertyLayer? = null
+
+    /**
+     * `usePropertyDetail` (UsePropertyLayer.Property?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var usePropertyDetail: UsePropertyLayer.Property? = null
+
+    /**
+     * `usePropertyPressedRow` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var usePropertyPressedRow: Int? = null
+
+    /**
+     * `usePropertyCancelPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var usePropertyCancelPressed = false
+
+    /**
+     * `usePropertyPanelPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var usePropertyPanelPressed = false
+
+    /**
+     * `usePropertyDetailSuppressRelease` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var usePropertyDetailSuppressRelease = false
+
+    /**
+     * `usePropertyRouteFixtureController` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val usePropertyRouteFixtureController = BattleUsePropertyRouteFixtureController()
+
+    /**
+     * `usePropertyRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val usePropertyRouteState get() = presentationConfiguration.usePropertyRoute
+
+    /**
+     * `helperOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val helperOverlay = BattleHelperOverlayController()
+
+    /**
+     * `winConditionOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var winConditionOpen = false
+
+    /**
+     * `scriptWinConditions` (WinConditionsLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var scriptWinConditions: WinConditionsLayer? = null
+
+    /**
+     * `winConditionLayer` (WinConBoxLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var winConditionLayer: WinConBoxLayer? = null
+
+    /**
+     * `winConditionButtonPressed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var winConditionButtonPressed = false
+
+    /**
+     * `noActionIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var noActionIndex = 0
+
+    /**
+     * `battleCamera` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCamera = BattleCamera(
         mapWidth = terrainGrid.width * 96f,
         mapHeight = terrainGrid.height * 96f,
     )
+
+    /**
+     * `battleInputRouter` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleInputRouter = BattleInputRouter()
+
+    /**
+     * `elapsed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var elapsed = 0f
+
+    /**
+     * `battleElapsed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleElapsed = 0f
+
+    /**
+     * `positionedDialogueRevision` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var positionedDialogueRevision = -1L
+
+    /**
+     * `actionAnimation` (UnitActionAnimation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var actionAnimation: UnitActionAnimation? = null
+
+    /**
+     * `scriptedAttackCallbackEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var scriptedAttackCallbackEndsAt = Float.NEGATIVE_INFINITY
+
+    /**
+     * `movementAnimation` (UnitMoveAnimation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var movementAnimation: UnitMoveAnimation? = null
+
+    /**
+     * `backMoveAnimations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val backMoveAnimations = mutableMapOf<String, BackMoveAnimation>()
+
+    /**
+     * `pendingBattleScriptPassesAfterAction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleScriptPassesAfterAction = 0
+
+    /**
+     * `pendingBattleActionCommitted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleActionCommitted = false
+
+    /**
+     * `pendingBattleSettlementActorId` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleSettlementActorId: String? = null
+
+    /**
+     * `pendingBattleCompletedScriptPasses` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleCompletedScriptPasses = 0
+
+    /**
+     * `hitReactionAnimations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hitReactionAnimations = mutableMapOf<String, UnitActionAnimation>()
+
+    /**
+     * `deathAnimations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val deathAnimations = mutableMapOf<String, UnitActionAnimation>()
+
+    /**
+     * `deathTimeline` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val deathTimeline = BattleDeathPresentationTimeline(object : BattleDeathPresentationTimeline.Port {
+        /**
+         * `now` (Float get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         override val now: Float get() = animationClock()
+
+        /**
+         * `scriptComplete` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         override val scriptComplete: Boolean get() = scriptRuntime.state == PlaybackState.COMPLETE
+
+        /**
+         * `dialogueActive` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         override val dialogueActive: Boolean get() = scriptRuntime.currentDialogue != null
+
+        /**
+         * `collectDyingUnits`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         override fun collectDyingUnits(): List<BattleDeathPresentationTimeline.DeathUnit> =
             collectDyingPresentationUnits()
+
+        /**
+         * `runScript`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         override fun runScript() {
             runBattleScript()
         }
 
+        /**
+         * `focusUnit`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun focusUnit(unitId: String) {
             battle.presentation.presentationUnit(unitId)?.let(::focusCameraOn)
         }
+
+        /**
+         * `presentRetireDialogue`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         override fun presentRetireDialogue(unit: BattleDeathPresentationTimeline.DeathUnit) {
             scriptRuntime.presentExternalBattleDialogue(
@@ -800,11 +2136,21 @@ void main() {
             )
         }
 
+        /**
+         * `startDeathAnimation`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun startDeathAnimation(
             unit: BattleDeathPresentationTimeline.DeathUnit,
             startsAt: Float,
             endsAt: Float,
         ) {
+            /**
+             * `battleUnit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val battleUnit = battle.presentation.presentationUnit(unit.unitId) ?: return
             battleUnit.retreatFlag = true
             battleUnit.otherNodesVisible = false
@@ -819,6 +2165,11 @@ void main() {
             )
         }
 
+        /**
+         * `completeDeathAnimation`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun completeDeathAnimation(unit: BattleDeathPresentationTimeline.DeathUnit) {
             deathAnimations.remove(unit.unitId)
             battle.presentation.presentationUnit(unit.unitId)?.let { battleUnit ->
@@ -832,6 +2183,11 @@ void main() {
             battle.presentation.completeScriptedUnitHide(unit.unitId)
         }
 
+        /**
+         * `completeCheckpoint`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun completeCheckpoint(checkpoint: BattleDeathPresentationTimeline.Checkpoint) {
             when (checkpoint) {
                 BattleDeathPresentationTimeline.Checkpoint.CAMP_START -> turnController.completeCampDeathPresentation()
@@ -842,59 +2198,224 @@ void main() {
             }
         }
     })
+
+    /**
+     * `settlementPresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settlementPresentation = BattleSettlementPresentationController()
+
+    /**
+     * `settlementOperationCoordinator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settlementOperationCoordinator = BattleSettlementOperationCoordinator()
+
+    /**
+     * `settlementOperationPort` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settlementOperationPort = object : BattleSettlementOperationPort {
+        /**
+         * `unitsById`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun unitsById(): Map<String, BattleUnit> =
             (battle.units.values + battle.presentation.pendingPresentationUnits()).associateBy { it.id }
 
+        /**
+         * `presentationUnit`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun presentationUnit(unitId: String): BattleUnit? = battle.presentation.presentationUnit(unitId)
+
+        /**
+         * `statusMeff`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun statusMeff(sourceStatusIndex: Int, meffSlot: Int): Int? =
             gameDataCatalog.statusMeff(sourceStatusIndex, meffSlot)
 
+        /**
+         * `skillName`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun skillName(skillId: Int): String = gameDataCatalog.skillName(skillId)
+
+        /**
+         * `magicName`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun magicName(magicId: Int): String? = gameDataCatalog.magicProfile(magicId)?.name
+
+        /**
+         * `namedMeff`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun namedMeff(name: String): Int? = gameDataCatalog.namedMeff(name)
+
+        /**
+         * `actionDuration`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun actionDuration(actionId: Int, direction: Int): Float =
             requireSourceActionDuration(actionId, direction)
 
+        /**
+         * `meffDuration`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun meffDuration(effectId: Int): Float? = magicEffects.effect(effectId)?.duration
+
+        /**
+         * `autoCloseInfo2`: 상태와 자원을 정리한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun autoCloseInfo2(text: String): Boolean = text.length < 10 || settingsPreferences.getInteger(
             SettingLayer.GAME_SETTING,
             SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
         ) and SettingLayer.AUTO_CLOSE != 0
     }
+
+    /**
+     * `settlementMeffEndsAt` (Float?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var settlementMeffEndsAt: Float? = null
+
+    /**
+     * `settlementItemUpgradeStarted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var settlementItemUpgradeStarted = false
+
+    /**
+     * `scriptedUnitPresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedUnitPresentation = ScriptedUnitPresentationLifecycle()
+
+    /**
+     * `scriptedUnitCallbacks` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedUnitCallbacks = ScriptedUnitCallbackCoordinator(
         scriptedUnitPresentation,
         object : ScriptedUnitCallbackCoordinator.Port {
+            /**
+             * `now`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun now() = animationClock()
+
+            /**
+             * `consumeHide`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumeHide() = scriptRuntime.stage.consumeUnitHideRequest()
+
+            /**
+             * `consumeShow`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumeShow() = scriptRuntime.stage.consumeUnitShowRequest()
+
+            /**
+             * `consumePosts`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumePosts() = scriptRuntime.stage.consumeUnitPostsRequest()
+
+            /**
+             * `dialogueIsActive`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dialogueIsActive() = scriptRuntime.currentDialogue != null
+
+            /**
+             * `presentDialogue`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun presentDialogue(dialogue: Dialogue) = scriptRuntime.presentExternalBattleDialogue(dialogue)
+
+            /**
+             * `hideUnit`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun hideUnit(request: ScenarioUnitHideRequest): BattleUnit? =
                 (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { candidate ->
                     request.battleUnitId?.let { candidate.id == it }
                         ?: (candidate.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId)
                 }
 
+            /**
+             * `showUnit`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun showUnit(request: ScenarioUnitShowRequest): BattleUnit? =
                 (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
                     it.id == scriptRuntime.stage.battleUnitForCharacterId(request.unitId)?.battleId
                 }
 
+            /**
+             * `postsUnit`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun postsUnit(request: ScenarioUnitPostsRequest): BattleUnit? = scriptBattleUnit(request.unitId)
+
+            /**
+             * `isMineMaster`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun isMineMaster(unitId: String) = isScriptMineMaster(unitId)
+
+            /**
+             * `focus`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun focus(unit: BattleUnit) {
                 focusCameraOn(unit)
             }
 
+            /**
+             * `sourceActionDuration`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun sourceActionDuration(action: Int, direction: Int) =
                 requireSourceActionDuration(action, direction)
+
+            /**
+             * `beginHideModel`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun beginHideModel(unit: BattleUnit, request: ScenarioUnitHideRequest, originalHp: Int) {
                 unit.retreatFlag = true
@@ -902,15 +2423,30 @@ void main() {
                 unit.setHpcur(0)
             }
 
+            /**
+             * `registerHideAnimation`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun registerHideAnimation(unit: BattleUnit, sourceAction: Int, startedAt: Float, endsAt: Float) {
                 deathAnimations[unit.id] = UnitActionAnimation(
                     unit.id, UnitAnimationKind.DEATH, unit.direction, startedAt, endsAt, sourceAction,
                 )
             }
 
+            /**
+             * `removeHideAnimation`: 상태와 자원을 정리한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun removeHideAnimation(unitId: String) {
                 deathAnimations.remove(unitId)
             }
+
+            /**
+             * `completeHideModel`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun completeHideModel(unit: BattleUnit, request: ScenarioUnitHideRequest, originalHp: Int) {
                 if (request.hideType != 0) battle.presentation.incrementUnitRetreat(unit)
@@ -919,15 +2455,48 @@ void main() {
                 battle.presentation.completeScriptedUnitHide(unit.id)
             }
 
+            /**
+             * `completeUnitHide`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun completeUnitHide(request: ScenarioUnitHideRequest) =
                 scriptRuntime.stage.completeUnitHide(request)
+
+            /**
+             * `prepareShow`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun prepareShow(
                 unit: BattleUnit, request: ScenarioUnitShowRequest
             ): ScriptedUnitCallbackCoordinator.ShowStart {
+                /**
+                 * `restored` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val restored = battle.presentation.restorePresentationUnit(unit.id) ?: unit
+
+                /**
+                 * `requestedX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val requestedX = request.x.takeIf { it >= 0 } ?: restored.tileX
+
+                /**
+                 * `requestedY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val requestedY = request.y.takeIf { it >= 0 } ?: restored.tileY
+
+                /**
+                 * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val target = if (battle.unitAt(requestedX, requestedY)?.let { it !== restored } == true) {
                     listOf(
                         requestedX to requestedY - 1,
@@ -949,13 +2518,34 @@ void main() {
                 }
                 scriptRuntime.stage.setBattleUnitVisibility(request.unitId, true)
                 focus(restored)
+                /**
+                 * `revive` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val revive = request.flags and 1 != 0
                 restored.otherNodesVisible = !revive
+                /**
+                 * `startedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val startedAt = animationClock()
+
+                /**
+                 * `duration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val duration = if (revive) requireSourceActionDuration(46, restored.direction) else .2f
                 if (revive) scriptedUnitPresentation.setVisual(restored.id, ScriptedUnitVisual(46, startedAt))
                 return ScriptedUnitCallbackCoordinator.ShowStart(restored.id, duration)
             }
+
+            /**
+             * `finishShow`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun finishShow(unitId: String, request: ScenarioUnitShowRequest) {
                 battle.presentation.presentationUnit(unitId)?.let { unit ->
@@ -965,32 +2555,85 @@ void main() {
                 }
             }
 
+            /**
+             * `setVisibleWhenShowUnitMissing`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun setVisibleWhenShowUnitMissing(unitId: Int) =
                 scriptRuntime.stage.setBattleUnitVisibility(unitId, true)
+
+            /**
+             * `setOldAvatar`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun setOldAvatar(unitId: String, avatarId: Int) {
                 loadedBattleAvatarIds[unitId] = avatarId
             }
 
+            /**
+             * `publishLoadedAvatar`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun publishLoadedAvatar(unitId: String, avatarId: Int) {
                 loadedBattleAvatarIds[unitId] = avatarId
             }
 
+            /**
+             * `resumeScript`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun resumeScript() = scriptRuntime.resumeExternalDelay()
         },
     )
+
+    /**
+     * `scriptedUnitTimed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedUnitTimed = ScriptedUnitTimedCoordinator(
         scriptedUnitPresentation,
         object : ScriptedUnitTimedCoordinator.Port {
+            /**
+             * `now`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun now() = animationClock()
+
+            /**
+             * `consumeMap`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumeMap() = scriptRuntime.stage.consumeMapPresentationRequest()
+
+            /**
+             * `focusMap`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun focusMap(x: Int, y: Int) {
                 focusCameraOnTile(x.toFloat(), y.toFloat(), forceCenter = true)
             }
 
+            /**
+             * `consumeCameraCenters`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumeCameraCenters() = scriptRuntime.stage.consumeCameraCenterRequests().map {
                 ScriptedUnitTimedCoordinator.CameraCenter(it.x, it.y)
             }
+
+            /**
+             * `centerCamera`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun centerCamera(request: ScriptedUnitTimedCoordinator.CameraCenter) {
                 configureSourceCameraViewport()
@@ -1002,116 +2645,308 @@ void main() {
                 )
             }
 
+            /**
+             * `resumeScript`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun resumeScript() = scriptRuntime.resumeExternalDelay()
         },
     )
+
+    /**
+     * `scriptedUnitActions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedUnitActions = ScriptedUnitActionCoordinator(
         scriptedUnitPresentation,
         object : ScriptedUnitActionCoordinator.Port {
+            /**
+             * `now`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun now() = animationClock()
+
+            /**
+             * `consumeActions`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumeActions() = scriptRuntime.stage.consumeScriptedUnitActions()
+
+            /**
+             * `unit`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun unit(action: ScriptedUnitAction) = liveScriptBattleUnit(action.unitId)
+
+            /**
+             * `applyDirection`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun applyDirection(unit: BattleUnit, direction: Int) {
                 unit.direction = direction
             }
 
+            /**
+             * `clearVisual`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun clearVisual(unitId: String) {
                 scriptedUnitPresentation.clearVisual(unitId)
             }
+
+            /**
+             * `setVisual`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun setVisual(unitId: String, action: Int, startedAt: Float) {
                 scriptedUnitPresentation.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
             }
 
+            /**
+             * `startSourceAction`: 흐름을 실행하거나 다음 단계로 전달한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun startSourceAction(unit: BattleUnit, action: Int) {
                 actionAnimation = sourceActionAnimation(unit.id, action, unit.direction)
             }
 
+            /**
+             * `actionDuration`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun actionDuration(action: Int, direction: Int) = battleSprites.duration(action, direction)
+
+            /**
+             * `focus`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun focus(unit: BattleUnit) {
                 focusCameraOn(unit)
             }
+
+            /**
+             * `clearSourceAction`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun clearSourceAction(unitId: String) {
                 if (actionAnimation?.unitId == unitId) actionAnimation = null
             }
 
+            /**
+             * `defaultAction`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun defaultAction(unitId: String) {
                 battle.presentation.presentationUnit(unitId)?.let(unitSpriteFrameResolver::defaultAction)
             }
 
+            /**
+             * `resumeScript`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun resumeScript() = scriptRuntime.resumeExternalDelay()
         },
     )
+
+    /**
+     * `loadedBattleAvatarIds` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val loadedBattleAvatarIds = mutableMapOf<String, Int>()
+
+    /**
+     * `scriptPresentationTimeline` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptPresentationTimeline = ScriptPresentationTimeline()
+
+    /**
+     * `scriptedUnitTargetSelector` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedUnitTargetSelector = ScriptedUnitTargetSelector(
         visibleUnits = { (battle.units.values + battle.presentation.pendingPresentationUnits()).filter { it.visible } },
         isMineMaster = ::isScriptMineMaster,
         byCharacter = { liveScriptBattleUnit(it, visibleOnly = true) },
     )
+
+    /**
+     * `scriptedPresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedPresentation = ScriptedPresentationCoordinator(
         scriptPresentationTimeline,
         object : ScriptedPresentationCoordinator.Port {
+            /**
+             * `now`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun now() = animationClock()
+
+            /**
+             * `modalActive`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun modalActive() = scriptRuntime.state == PlaybackState.MODAL
+
+            /**
+             * `consumeRequest`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun consumeRequest() = scriptRuntime.stage.consumeScriptPresentationRequest()
+
+            /**
+             * `clearVisual`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun clearVisual(unitId: String) {
                 scriptedUnitPresentation.clearVisual(unitId)
             }
+
+            /**
+             * `defaultAction`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun defaultAction(unitId: String) {
                 battle.presentation.presentationUnit(unitId)?.let(unitSpriteFrameResolver::defaultAction)
             }
 
+            /**
+             * `playGetItemSound`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun playGetItemSound() {
                 audio.playBattleEffect(14)
             }
+
+            /**
+             * `presentItemMessage`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun presentItemMessage(message: String) {
                 scriptRuntime.presentExternalBattleInfo(message)
             }
 
+            /**
+             * `dismissUnitInfo`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dismissUnitInfo() {
                 unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
             }
+
+            /**
+             * `resumeScript`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun resumeScript() {
                 scriptRuntime.resumeExternalDelay()
             }
 
+            /**
+             * `focusRectangle`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun focusRectangle(x1: Int, y1: Int, x2: Int, y2: Int) {
                 focusCameraOnTile((x1 + x2) / 2f, (y1 + y2) / 2f, forceCenter = true)
             }
 
+            /**
+             * `unitTarget`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun unitTarget(unitId: Int) = scriptBattleUnit(unitId)?.let {
                 ScriptedPresentationCoordinator.Target(it.id, it.direction)
             }
+
+            /**
+             * `focusUnit`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun focusUnit(unitId: String) {
                 (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.id == unitId }
                     ?.let(::focusCameraOn)
             }
 
+            /**
+             * `openUnitInfo`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun openUnitInfo(unitId: Int) {
                 openUnitInfoLayer(unitId)
             }
+
+            /**
+             * `itemTarget`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun itemTarget(selector: Int) = scriptedUnitTargetSelector.select(selector)?.let {
                 ScriptedPresentationCoordinator.Target(it.id, it.direction)
             }
 
+            /**
+             * `setVisual`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun setVisual(unitId: String, action: Int, startedAt: Float) {
                 scriptedUnitPresentation.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
             }
 
+            /**
+             * `sourceActionDuration`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun sourceActionDuration(action: Int, direction: Int) =
                 requireSourceActionDuration(action, direction)
+
+            /**
+             * `focusMapObjects`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun focusMapObjects(request: ScenarioScriptPresentationRequest.MapObjects) {
                 request.objects.lastOrNull()
                     ?.let { focusCameraOnTile(it.x.toFloat(), it.y.toFloat(), forceCenter = true) }
             }
+
+            /**
+             * `statusTarget`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun statusTarget(values: List<Map<String, Any?>>): ScriptedPresentationCoordinator.Target? =
                 values.asSequence().mapNotNull { (it["unit"] as? ScenarioUnitReference)?.id }.firstOrNull()
@@ -1120,9 +2955,26 @@ void main() {
                     }
         },
     )
+
+    /**
+     * `outcomePresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val outcomePresentation = BattleOutcomePresentationCoordinator(
         object : BattleOutcomePresentationCoordinator.Port {
+            /**
+             * `visibleOutcome`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun visibleOutcome() = visibleBattleOutcome()
+
+            /**
+             * `rewardRequest`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun rewardRequest(): ResolvedBattleReward? {
                 val request = scriptRuntime.stage.consumeRewardRequest() ?: return null
                 val resolved = BattleRewardResolver.resolve(
@@ -1145,43 +2997,112 @@ void main() {
                 return resolved
             }
 
+            /**
+             * `resumeRewardModal`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun resumeRewardModal() {
                 if (scriptRuntime.state == PlaybackState.MODAL) scriptRuntime.resumeModal()
             }
+
+            /**
+             * `syncScriptedUnits`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun syncScriptedUnits() {
                 this@BattleScreen.syncScriptedUnits()
             }
 
+            /**
+             * `scene2Available`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun scene2Available() = "scene2" in scriptRuntime.functionNames
+
+            /**
+             * `startScene2`: 흐름을 실행하거나 다음 단계로 전달한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun startScene2() {
                 scriptRuntime.start("scene2")
             }
 
+            /**
+             * `scriptIsBlocked`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun scriptIsBlocked() = scriptRuntime.state != PlaybackState.COMPLETE
+
+            /**
+             * `scriptState`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun scriptState() = scriptRuntime.state
+
+            /**
+             * `openSaveLayer`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun openSaveLayer() {
                 saveLoadOverlay.openSave()
             }
 
+            /**
+             * `nextScenario`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun nextScenario(): String = this@BattleScreen.nextScenario()
+
+            /**
+             * `completeBattle`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun completeBattle(nextScenario: String) {
                 scriptRuntime.stage.sceneJumpStage?.let(game::setCampaignStage) ?: game.advanceCampaignStage()
                 game.completeBattle(returnScenario, nextScenario)
                 battleRouteCompleted = true
             }
 
+            /**
+             * `showNextScenario`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun showNextScenario(nextScenario: String) {
                 game.showNextScenario(nextScenario)
             }
+
+            /**
+             * `finishTrace`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun finishTrace() {
                 if (battleTraceCoordinator?.exitOnFinish == false) battleTraceCoordinator.finish("battle-end")
             }
 
+            /**
+             * `showVictoryPrompt`: 화면 표시 상태를 렌더링한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun showVictoryPrompt() {
                 eventMessage = "게임 저장하시겠습니까?"
             }
+
+            /**
+             * `campaignEquipmentUpgrade`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun campaignEquipmentUpgrade(): BattleOutcomePresentationCoordinator.UpgradePresentation? {
                 val request = battle.experience.consumeEquipmentUpgrade() ?: return null
@@ -1193,8 +3114,18 @@ void main() {
                 )
             }
 
+            /**
+             * `equipmentUpgradeAllowed`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun equipmentUpgradeAllowed() =
                 !settlementPresentation.isActive() && (itemUpgradeRouteState != null || (actionAnimation?.let { animationClock() < it.endsAt } != true && movementAnimation?.let { animationClock() < it.endsAt } != true && hitReactionAnimations.values.none { animationClock() < it.endsAt }))
+
+            /**
+             * `settlementUpgrade`: 현재 상태를 갱신한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun settlementUpgrade(request: CampaignEquipmentExperienceResult) =
                 BattleOutcomePresentationCoordinator.UpgradePresentation(
@@ -1205,55 +3136,297 @@ void main() {
                     request.slot.attributeLabel(),
                 )
 
+            /**
+             * `itemUpgradeCompleted`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun itemUpgradeCompleted() = Unit
+
+            /**
+             * `createLoseScene`: 객체나 결과를 생성한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun createLoseScene() =
                 LoseSceneFlow(openLogin = game::showTitleScreen, endGame = { Gdx.app.exit() })
 
+            /**
+             * `transitionBusy`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun transitionBusy() = combatPresentationBusy() || outcomeCallbacksPending()
+
+            /**
+             * `naturalTransitionAllowed`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun naturalTransitionAllowed() =
                 !verification.active && !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()
 
+            /**
+             * `routeCompleted`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun routeCompleted() = battleRouteCompleted
+
+            /**
+             * `battleEndedByScript`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun battleEndedByScript() = scriptRuntime.stage.battleEndedByScript
+
+            /**
+             * `runNaturalScene1`: 흐름을 실행하거나 다음 단계로 전달한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun runNaturalScene1() {
                 runBattleScript()
             }
         },
     )
+
+    /**
+     * `harmNumberAnimations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val harmNumberAnimations = mutableMapOf<String, HarmNumberAnimation>()
+
+    /**
+     * `healthTimeline` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val healthTimeline = BattleHealthPresentation()
+
+    /**
+     * `healthTimelineHoldUntil` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val healthTimelineHoldUntil = mutableMapOf<String, Float>()
+
+    /**
+     * `timedBattleMutations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val timedBattleMutations = mutableListOf<TimedBattleMutation>()
+
+    /**
+     * `queuedCounterPresentation` (CounterPresentation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var queuedCounterPresentation: CounterPresentation? = null
+
+    /**
+     * `queuedFollowUpPresentation` (FollowUpPresentation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var queuedFollowUpPresentation: FollowUpPresentation? = null
+
+    /**
+     * `queuedCounterFollowUpPresentation` (CounterFollowUpPresentation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var queuedCounterFollowUpPresentation: CounterFollowUpPresentation? = null
+
+    /**
+     * `queuedPhysicalPresentation` (PhysicalPassPresentationQueue?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var queuedPhysicalPresentation: PhysicalPassPresentationQueue? = null
+
+    /**
+     * `queuedMagicPresentation` (MagicPassPresentationQueue?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var queuedMagicPresentation: MagicPassPresentationQueue? = null
+
+    /**
+     * `pendingCriticalSpeechAction` (PendingCriticalSpeechAction?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingCriticalSpeechAction: PendingCriticalSpeechAction? = null
+
+    /**
+     * `activeCounterMagicPresentation` (ActiveCounterMagicPresentation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var activeCounterMagicPresentation: ActiveCounterMagicPresentation? = null
+
+    /**
+     * `magicEffectAnimations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val magicEffectAnimations = mutableListOf<MagicEffectAnimation>()
+
+    /**
+     * `selectedUnitId` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var selectedUnitId: String? = null
+
+    /**
+     * `battleCommandFlow` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCommandFlow = BattleCommandFlow()
+
+    /**
+     * `battleCommandRouteFixture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCommandRouteFixture = BattleCommandRouteFixtureController()
+
+    /**
+     * `battleCommandPressedTag` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var battleCommandPressedTag: Int? = null
+
+    /**
+     * `pendingBattleCommandUnit` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleCommandUnit: String? = null
+
+    /**
+     * `pendingBattleCommandScriptStarted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleCommandScriptStarted = false
+
+    /**
+     * `pendingBattleCommandMoveProvenance` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingBattleCommandMoveProvenance: String? = null
+
+    /**
+     * `emptyAiCampFrameBarrier` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val emptyAiCampFrameBarrier = EmptyAiCampFrameBarrier()
+
+    /**
+     * `committedPlayerMoveFrameBarrier` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val committedPlayerMoveFrameBarrier = CommittedPlayerMoveFrameBarrier()
+
+    /**
+     * `actionStatusFrameBarrier` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val actionStatusFrameBarrier = ActionStatusFrameBarrier()
+
+    /**
+     * `counterattackSettlementFrameBarrier` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val counterattackSettlementFrameBarrier = CounterattackSettlementFrameBarrier()
+
+    /**
+     * `scriptedMovementCampTransitionFrameBarrier` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scriptedMovementCampTransitionFrameBarrier = ScriptedMovementCampTransitionFrameBarrier()
+
+    /**
+     * `consecutiveNoResultFrameGate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val consecutiveNoResultFrameGate = ConsecutiveNoResultFrameGate()
+
+    /**
+     * `playerMoveCommitted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var playerMoveCommitted = false
+
+    /**
+     * `committedPlayerMove` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var committedPlayerMove: String? = null
 
+    /**
+     * `magicMode` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var magicMode = false
+
+    /**
+     * `selectedMagicIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var selectedMagicIndex = 0
+
+    /**
+     * `propertyMode` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var propertyMode = false
+
+    /**
+     * `selectedPropertyIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var selectedPropertyIndex = 0
+
+    /**
+     * `activeRoundLayer` (RoundLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var activeRoundLayer: RoundLayer? = null
+
+    /**
+     * `activeRoundLayerElapsed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var activeRoundLayerElapsed = 0f
+
+    /**
+     * `turnController` (BattleTurnController by lazy): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val turnController: BattleTurnController by lazy {
         BattleTurnController(
             battle = battle,
@@ -1290,64 +3463,380 @@ void main() {
             },
         )
     }
+
+    /**
+     * `aiPresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val aiPresentation = AiPresentationCoordinator(
         { coordinator -> BattleAiPresentationPort(this, coordinator) },
     )
+
+    /**
+     * `presentationReady` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var presentationReady = false
+
+    /**
+     * `actionCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val actionCapture = captureFixtureConfiguration.actionSample
+
+    /**
+     * `captureFixtureCoordinator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val captureFixtureCoordinator =
         BattleCaptureFixtureCoordinator(captureFixtureConfiguration, presentationConfiguration)
+
+    /**
+     * `captureFixturePort` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val captureFixturePort = object : BattleCaptureFixtureCoordinator.Port {
+        /**
+         * `advanceFixtureDialogue`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun advanceFixtureDialogue() = advanceCaptureFixtureDialogue()
+
+        /**
+         * `advanceDialogueStep`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun advanceDialogueStep() = advanceBattleDialogue()
+
+        /**
+         * `playbackState`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun playbackState(): PlaybackState = scriptRuntime.state
+
+        /**
+         * `dialogueSpeakerId`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         override fun dialogueSpeakerId(): String? = scriptRuntime.currentDialogue?.speakerId
     }
+
+    /**
+     * `rewardRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val rewardRouteState get() = presentationConfiguration.rewardRouteState
+
+    /**
+     * `itemUpgradeRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val itemUpgradeRouteState get() = presentationConfiguration.itemUpgradeRouteState
+
+    /**
+     * `loseRestartRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val loseRestartRoute get() = presentationConfiguration.loseRestartRoute
+
+    /**
+     * `roundRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val roundRouteState get() = presentationConfiguration.roundRouteState
+
+    /**
+     * `winConditionRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val winConditionRouteState get() = presentationConfiguration.winConditionRouteState
+
+    /**
+     * `miniMapRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val miniMapRouteState get() = presentationConfiguration.miniMapRouteState
+
+    /**
+     * `autoBattleRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val autoBattleRouteState get() = presentationConfiguration.autoBattleRouteState
+
+    /**
+     * `battleCommandRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCommandRouteState get() = presentationConfiguration.battleCommandRouteState
+
+    /**
+     * `battleCharacterRouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleCharacterRouteState get() = presentationConfiguration.battleCharacterRouteState
+
+    /**
+     * `battleEdit2RouteState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleEdit2RouteState get() = presentationConfiguration.battleEdit2RouteState
+
+    /**
+     * `otherUnitInfoRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val otherUnitInfoRoute get() = presentationConfiguration.otherUnitInfoRoute
+
+    /**
+     * `mineUnitInfoRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val mineUnitInfoRoute get() = presentationConfiguration.mineUnitInfoRoute
+
+    /**
+     * `actionCaptureMode` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val actionCaptureMode get() = captureFixtureConfiguration.actionSampleMode
+
+    /**
+     * `cutsceneAttackCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val cutsceneAttackCapture get() = captureFixtureConfiguration.cutsceneAttackCapture
+
+    /**
+     * `cutscenePostHitCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val cutscenePostHitCapture get() = captureFixtureConfiguration.cutscenePostHitCapture
+
+    /**
+     * `cutscene477Capture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val cutscene477Capture get() = captureFixtureConfiguration.cutscene477Capture
+
+    /**
+     * `battleDialogueBlendRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleDialogueBlendRoute get() = presentationConfiguration.battleDialogueBlendRoute
+
+    /**
+     * `battleInitRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleInitRoute get() = presentationConfiguration.battleInitRoute
+
+    /**
+     * `battleTerrainRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleTerrainRoute get() = presentationConfiguration.battleTerrainRoute
+
+    /**
+     * `battleMenuRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleMenuRoute get() = presentationConfiguration.battleMenuRoute
+
+    /**
+     * `helperRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val helperRoute get() = presentationConfiguration.helperRoute
+
+    /**
+     * `winModalRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val winModalRoute get() = presentationConfiguration.winModalRoute
+
+    /**
+     * `unitInfoRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val unitInfoRoute get() = presentationConfiguration.unitInfoRoute
+
+    /**
+     * `loseResultRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val loseResultRoute get() = presentationConfiguration.loseResultRoute
+
+    /**
+     * `winResultRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val winResultRoute get() = presentationConfiguration.winResultRoute
+
+    /**
+     * `openingSayRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val openingSayRoute get() = presentationConfiguration.openingSayRoute
+
+    /**
+     * `hudRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hudRoute get() = presentationConfiguration.hudRoute
+
+    /**
+     * `dialogueOneRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dialogueOneRoute get() = presentationConfiguration.dialogueOneRoute
+
+    /**
+     * `enemyTurnRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val enemyTurnRoute get() = presentationConfiguration.enemyTurnRoute
+
+    /**
+     * `dialogueStepCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dialogueStepCapture get() = captureFixtureConfiguration.dialogueStepCapture
+
+    /**
+     * `dialogueComponentStage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dialogueComponentStage get() = presentationConfiguration.dialogueComponentStage
+
+    /**
+     * `mapOnlyCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val mapOnlyCapture get() = captureFixtureConfiguration.mapOnlyCapture
+
+    /**
+     * `selectionOverlayCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val selectionOverlayCapture get() = captureFixtureConfiguration.selectionOverlayCapture
+
+    /**
+     * `initialModalRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val initialModalRoute get() = captureFixtureConfiguration.initialModalRoute
+
+    /**
+     * `modalRenderCapture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val modalRenderCapture get() = captureFixtureConfiguration.modalRenderCapture
+
+    /**
+     * `boardLeft` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var boardLeft = 120f
+
+    /**
+     * `boardBottom` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var boardBottom = 130f
+
+    /**
+     * `boardTile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var boardTile = 64f
+
+    /**
+     * `boardMaxX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var boardMaxX = 1
+
+    /**
+     * `boardMaxY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var boardMaxY = 1
+
+    /**
+     * `animationClock`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun animationClock(): Float =
         presentationConfiguration.animationClock(elapsed, battleElapsed, actionCaptureMode)
 
+    /**
+     * `mapObjectAnimationClock`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun mapObjectAnimationClock(): Float = presentationConfiguration.mapObjectAnimationClock(elapsed)
+
+    /**
+     * `stateEffectAnimationClock`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun stateEffectAnimationClock(): Float = presentationConfiguration.mapObjectAnimationClock(elapsed)
+
+    /**
+     * `battleMapFile`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleMapFile(index: Int) =
         sequenceOf("png", "jpg", "webp").map { Gdx.files.internal("maps/battle-maps/$index.$it") }
             .firstOrNull { it.exists() }
@@ -1392,6 +3881,11 @@ void main() {
         }
         when (rewardRouteState) {
             RuntimeBattleRoute.REWARD_BASIC, RuntimeBattleRoute.REWARD_CARD1, RuntimeBattleRoute.REWARD_CARD2 -> {
+                /**
+                 * `cards` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val cards =
                     if (rewardRouteState == RuntimeBattleRoute.REWARD_BASIC) emptyList() else listOf(150, 0, 151, 0)
                 scriptRuntime.stage.reward(items = cards)
@@ -1405,6 +3899,11 @@ void main() {
         }
         if (battleMenuRoute) openBattleMenu()
         if (otherUnitInfoRoute) {
+            /**
+             * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unit = requireNotNull(battle.units.values.firstOrNull { it.characterId == 210 && it.visible }) {
                 "R_00 OtherUnitInfoLayer production unit 210 is missing"
             }
@@ -1413,6 +3912,11 @@ void main() {
             }
         }
         if (mineUnitInfoRoute) {
+            /**
+             * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unit = requireNotNull(battle.units.values.firstOrNull { it.characterId == 210 && it.visible })
             mineUnitInfoLayer = MineUnitInfoLayer().also {
                 it.onCreate(
@@ -1473,6 +3977,11 @@ void main() {
             }
         }
         if (unitInfoRoute) {
+            /**
+             * `first` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val first = battle.units.values.filter { it.visible && it.isPlayerSide() }
                 .sortedBy { it.characterId ?: Int.MAX_VALUE }.firstOrNull()
             first?.characterId?.let(::openUnitInfoLayer)
@@ -1498,6 +4007,11 @@ void main() {
             }
         }
         Gdx.input.inputProcessor = object : InputAdapter() {
+            /**
+             * `inputSurface`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             private fun inputSurface(): BattleInputSurface = BattleInputSurface(
                 dialogue = BattleInteractiveInput.route(
                     scriptRuntime.state,
@@ -1545,6 +4059,11 @@ void main() {
                     ),
                 ),
             )
+
+            /**
+             * `keyDown`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun keyDown(keycode: Int): Boolean {
                 val keyboardIntent = battleInputRouter.keyDown(keycode, inputSurface())
@@ -1697,6 +4216,11 @@ void main() {
                 return true
             }
 
+            /**
+             * `touchDown`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 val pointerIntent = battleInputRouter.pointerDown(world.x, world.y, inputSurface())
@@ -1829,6 +4353,11 @@ void main() {
                 return true
             }
 
+            /**
+             * `touchDragged`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 val intent = battleInputRouter.pointerDragged(world.x, world.y, inputSurface())
@@ -1836,6 +4365,11 @@ void main() {
                 battleCamera.pan(intent.deltaX, intent.deltaY)
                 return true
             }
+
+            /**
+             * `touchUp`: 입력을 규칙에 따라 계산·변환한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
@@ -2029,6 +4563,11 @@ void main() {
                 return true
             }
 
+            /**
+             * `scrolled`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun scrolled(amountX: Float, amountY: Float): Boolean {
                 if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Scroll(amountY.toInt())).consumed) return true
                 return informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(amountY.toInt())).consumed
@@ -2063,6 +4602,11 @@ void main() {
         if (completed) finishFightCommand(command)
     }
 
+    /**
+     * `fullTraceFightCommandObservation`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun fullTraceFightCommandObservation(command: ScenarioFightCommand): String = when (command) {
         is ScenarioFightCommand.Start -> "transition:fight:start:${command.firstUnitId}:${command.secondUnitId}:${command.backgroundIndex}"
 
@@ -2078,6 +4622,11 @@ void main() {
         is ScenarioFightCommand.Death -> "transition:fight:death:${command.enemy}"
         is ScenarioFightCommand.End -> "transition:fight:end:"
     }
+
+    /**
+     * `finishFightCommand`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun finishFightCommand(command: ScenarioFightCommand) {
         if (activeFightCommand != command) return
@@ -2100,6 +4649,11 @@ void main() {
         }
     }
 
+    /**
+     * `playFightSound`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun playFightSound(event: FightPresentationEvent.Sound) {
         val characterId = fightPresentation.unit(event.side).characterId
         val moveType = characterId?.let(::liveScriptBattleUnit)?.armMoveSound ?: -1
@@ -2111,6 +4665,11 @@ void main() {
             "FIGHT_SOUND: side=${event.side} action=${event.action} at=${event.atActionSeconds} raw=${event.value} resolved=${dispatch.resolvedId}",
         )
     }
+
+    /**
+     * `render`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun render(rawDelta: Float) {
         updateBattleFrame(rawDelta)?.let(::renderBattleRoutes)
@@ -2153,6 +4712,9 @@ void main() {
                 SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
             ) and SettingLayer.AUTO_CLOSE != 0
         )
+        // 전투 런타임이 갱신된 뒤 공용 세션에도 같은 대사·선택·모달 스냅샷을 투영한다.
+        dialogueSessionAdapter.synchronize(scriptRuntime)
+        dialogueSessionAdapter.update(delta, autoAdvanceEnabled = false)
         battle.syncScriptedOutcome(scriptRuntime.stage.scriptedBattleOutcome)
         if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
             scriptRuntime.currentModalText?.let { battleInfoReveal.update(it, delta) }
@@ -2242,6 +4804,11 @@ void main() {
         return delta
     }
 
+    /**
+     * `applyRuntimeBattleCommand`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun applyRuntimeBattleCommand(command: RuntimeBattleCommand) {
         when (command) {
             RuntimeBattleCommand.AdvanceDialogue -> advanceBattleDialogue()
@@ -2252,10 +4819,20 @@ void main() {
         }
     }
 
+    /**
+     * `renderBattleRoutes`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun renderBattleRoutes(delta: Float) {
         if (renderDedicatedBattleRoute(delta)) return
         renderBattlefieldRoute(delta)
     }
+
+    /**
+     * `renderDedicatedBattleRoute`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun renderDedicatedBattleRoute(delta: Float): Boolean {
         if (winConditionRouteState != null) {
@@ -2355,6 +4932,11 @@ void main() {
         }
         return false
     }
+
+    /**
+     * `renderBattlefieldRoute`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun renderBattlefieldRoute(delta: Float) {
         val requestedDither = if (mapOnlyCapture) game.requestedMapDither() else null
@@ -2547,25 +5129,93 @@ void main() {
         )
     }
 
+    /**
+     * `battleTraceFightJson`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleTraceFightJson(): String =
         BattleFightTraceSerializer.serialize(fightOverlayActive, fightPresentation, fightSprites)
+
+    /**
+     * `recordBattleTraceFrame`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun recordBattleTraceFrame(
         delta: Float,
         observation: String? = null,
         advanceFrame: Boolean = true,
     ) {
+        /**
+         * `coordinator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val coordinator = battleTraceCoordinator ?: return
+
+        /**
+         * `bootstrapComplete` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val bootstrapComplete = bootstrapPhase == BattleBootstrapPhase.COMPLETE
+
+        /**
+         * `traceCamp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val traceCamp = if (bootstrapComplete) battle.activeFaction.ordinal else -1
+
+        /**
+         * `traceOutcome` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val traceOutcome = battle.outcome().takeIf { bootstrapComplete }
+
+        /**
+         * `dialogueSourceText` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueSourceText = scriptRuntime.currentDialogueSourceText
+
+        /**
+         * `dialogueText` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueText =
             dialogueSourceText?.let { ScenarioInterpreter.parseDialogueBlocks(it) }?.joinToString("\n") { it.text }
                 .orEmpty()
+
+        /**
+         * `aiResolution` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val aiResolution = aiPresentation.resolution
+
+        /**
+         * `aiTrace` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val aiTrace = aiResolution?.let { resolution ->
+            /**
+             * `actor` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val actor = battle.presentation.presentationUnit(resolution.actorId)?.characterId ?: -1
+
+            /**
+             * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val target = resolution.targetId?.let(battle.presentation::presentationUnit)
             coordinator.projectAiPresentation(
                 aiPresentation.stage.toString(), resolution, actor, target?.characterId ?: -1,
@@ -2573,6 +5223,12 @@ void main() {
                 battle.pendingActionTransaction != null,
             )
         }
+
+        /**
+         * `units` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val units =
             battle.presentation.presentationUnits().sortedWith(compareBy<BattleUnit>({ it.faction.ordinal }, { it.id }))
                 .map { unit ->
@@ -2639,11 +5295,26 @@ void main() {
         )
     }
 
+    /**
+     * `recordFullBattleInput`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun recordFullBattleInput(context: String) {
         battleTraceCoordinator?.recordInput(context)
     }
 
+    /**
+     * `runtimeProbe`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun runtimeProbe(): BattleRuntimeScreenProbe {
+        /**
+         * `screenPoint`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun screenPoint(x: Int, y: Int): Pair<Int, Int> {
             val projected = viewport.project(
                 Vector2(
@@ -2654,10 +5325,20 @@ void main() {
             return projected.x.toInt() to (Gdx.graphics.height - projected.y).toInt()
         }
 
+        /**
+         * `projectWorldPointAt`: 객체나 결과를 생성한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun projectWorldPointAt(worldX: Float, worldY: Float): Pair<Int, Int> {
             val projected = viewport.project(Vector2(worldX, worldY))
             return projected.x.toInt() to (Gdx.graphics.height - projected.y).toInt()
         }
+
+        /**
+         * `autoView` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val autoView = autoBattleFlow.view()
         return BattleRuntimeProbeCoordinator.create(
@@ -2695,15 +5376,43 @@ void main() {
                 selectedUnitId,
             ),
             object : BattleRuntimeProbePort {
+                /**
+                 * `round` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 override val round get() = battle.round
+
+                /**
+                 * `activeFaction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 override val activeFaction get() = battle.activeFaction
+
+                /**
+                 * `units`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun units() = battle.units.values
+
+                /**
+                 * `reachableTiles`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun reachableTiles(unitId: String): Set<RuntimeGridPoint> =
                     battle.movement.reachableTiles(unitId).keys.mapTo(linkedSetOf()) {
                         RuntimeGridPoint(
                             it.first, it.second
                         )
                     }
+
+                /**
+                 * `canEnterTilesIgnoringEnemyWithinMoves`: 조건과 입력 상태를 검증한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun canEnterTilesIgnoringEnemyWithinMoves(
                     unitId: String,
@@ -2716,11 +5425,26 @@ void main() {
                     targetTiles.mapTo(linkedSetOf()) { it.x to it.y }, moves,
                 )
 
+                /**
+                 * `physicalDamagePreview`: 상태나 데이터를 조회한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun physicalDamagePreview(attackerId: String, targetId: String) =
                     battle.combat.physicalDamagePreview(attackerId, targetId)
 
+                /**
+                 * `screenPoint`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun screenPoint(tile: RuntimeGridPoint) =
                     screenPoint(tile.x, tile.y).let { RuntimeGridPoint(it.first, it.second) }
+
+                /**
+                 * `projectWorldPoint`: 객체나 결과를 생성한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun projectWorldPoint(x: Float, y: Float) =
                     projectWorldPointAt(x, y).let { RuntimeGridPoint(it.first, it.second) }
@@ -2728,10 +5452,21 @@ void main() {
         )
     }
 
+    /**
+     * `resize`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, true)
+        if (battleDialogueScene2dHost.isInitialized()) battleDialogueScene2dHost.value.resize(width, height)
         configureSourceCameraViewport()
     }
+
+    /**
+     * `endTurn`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun endTurn() {
         battle.outcome()?.let {
@@ -2742,28 +5477,97 @@ void main() {
         if (!turnController.endPlayerTurn()) eventMessage = "턴 전환을 시작할 수 없습니다."
     }
 
+    /**
+     * `scheduleCombatPresentation`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun scheduleCombatPresentation(
         result: TacticalActionResult,
         actorId: String?,
         targetId: String?,
         healthBeforeAction: Map<String, Int>,
     ) {
+        /**
+         * `attack` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attack = result as? TacticalActionResult.Attack ?: return
+
+        /**
+         * `actor` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val actor = actorId ?: return
+
+        /**
+         * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val target = targetId ?: return
+
+        /**
+         * `animation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val animation = actionAnimation ?: return
+
+        /**
+         * `hitAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hitAt =
             animation.startedAt + requireNotNull(battleSprites.hitTime(animation.sourceAction, animation.direction)) {
                 "원본 BRAnime anime${animation.sourceAction} 방향 ${animation.direction}에 hit 이벤트가 없습니다"
             }
+
+        /**
+         * `targetUnit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val targetUnit = battle.presentation.presentationUnit(target) ?: return
+
+        /**
+         * `before` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val before = healthBeforeAction[target] ?: targetUnit.hitPoints
+
+        /**
+         * `deferredMutation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val deferredMutation = battle.pendingActionTransaction?.takeIf { it.actorId == actor }
+
+        /**
+         * `unitVisualStates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unitVisualStates = combatPresentationUnitVisualStates()
+
+        /**
+         * `deferredInitialMp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val deferredInitialMp = unitVisualStates.keys.associateWith { id -> deferredMutation?.initialMp(id) }
         BattleCombatPresentationQueueCoordinator.hitPhysicalQueuePlan(
             attack, actor, target, healthBeforeAction, deferredInitialMp, unitVisualStates,
         )?.let { plan ->
+            /**
+             * `queue` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val queue = PhysicalPassPresentationQueue(
                 passes = plan.passes,
                 nextPassIndex = plan.nextPassIndex,
@@ -2775,6 +5579,12 @@ void main() {
                 counterCasterId = plan.counterCasterId,
                 counterTargetId = plan.counterTargetId,
             )
+
+            /**
+             * `passEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val passEndsAt = schedulePhysicalPassTargets(
                 pass = plan.passes.first(),
                 animation = animation,
@@ -2806,7 +5616,18 @@ void main() {
             }
         }
         if (!attack.hit) {
+            /**
+             * `direction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val direction = battleDirection(target, actor)
+
+            /**
+             * `reactionEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val reactionEndsAt = hitAt + requireSourceActionDuration(26, direction)
             actionAnimation = animation.copy(endsAt = reactionEndsAt)
             scheduleHitReaction(target, direction, hitAt, reactionEndsAt, 26)
@@ -2828,6 +5649,11 @@ void main() {
             return
         }
         if (attack.damage == 0 && attack.mpShieldDamage == 0) return
+        /**
+         * `hitSequence` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hitSequence = BattlePhysicalPresentationTimeline.sequence(
             primaryId = target,
             primaryDamage = attack.damage,
@@ -2835,10 +5661,21 @@ void main() {
             hitAt = hitAt,
             durationFor = { id -> requireSourceActionDuration(32, battleDirection(id, actor)) },
         )
+
+        /**
+         * `primaryHit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val primaryHit = hitSequence.first()
         primaryHit.endsAt - primaryHit.startsAt
         actionAnimation = animation.copy(endsAt = hitSequence.last().endsAt)
         scheduleHitReaction(target, battleDirection(target, actor), primaryHit.startsAt, primaryHit.endsAt, 32)
+        /**
+         * `firstTo` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val firstTo = (before - attack.damage).coerceAtLeast(0)
         if (attack.damage > 0) healthTimeline.schedule(target, before, firstTo, primaryHit.startsAt)
         harmNumberAnimations[target] = HarmNumberAnimation(
@@ -2848,8 +5685,25 @@ void main() {
             endsAt = primaryHit.endsAt,
         )
         hitSequence.drop(1).forEach { splashHit ->
+            /**
+             * `splashUnit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val splashUnit = battle.presentation.presentationUnit(splashHit.targetId) ?: return@forEach
+
+            /**
+             * `splashBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val splashBefore = healthBeforeAction[splashHit.targetId] ?: (splashUnit.hitPoints + splashHit.damage)
+
+            /**
+             * `splashAfter` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val splashAfter = (splashBefore - splashHit.damage).coerceAtLeast(0)
             scheduleHitReaction(
                 splashHit.targetId, battleDirection(splashHit.targetId, actor),
@@ -2869,6 +5723,11 @@ void main() {
             harmNumberAnimations[splashHit.targetId] =
                 HarmNumberAnimation(splashHit.damage, true, splashHit.startsAt, splashHit.endsAt)
         }
+        /**
+         * `areaEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val areaEndsAt = hitSequence.last().endsAt
         when (BattlePhysicalPresentationPlanner.followUpOrCounter(
             BattleFollowUpCounterPlanInput(
@@ -2895,7 +5754,18 @@ void main() {
             )
 
             BattleFollowUpCounterDecision.COUNTER -> {
+                /**
+                 * `actorUnit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val actorUnit = battle.presentation.presentationUnit(actor) ?: return
+
+                /**
+                 * `actorBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val actorBefore = healthBeforeAction[actor] ?: actorUnit.hitPoints
                 queuedCounterPresentation = CounterPresentation(
                     attackerId = target,
@@ -2915,6 +5785,11 @@ void main() {
         }
     }
 
+    /**
+     * `scheduleMagicPresentation`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun scheduleMagicPresentation(
         result: TacticalActionResult.Magic,
         casterId: String?,
@@ -2924,25 +5799,94 @@ void main() {
         effectAnimations: List<MagicEffectAnimation> = magicEffectAnimations,
         reaction: Boolean = false,
     ) {
+        /**
+         * `caster` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val caster = casterId ?: return
+
+        /**
+         * `visualHp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val visualHp = healthBeforeAction.toMutableMap()
+
+        /**
+         * `deferredMutation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val deferredMutation = battle.pendingActionTransaction?.takeIf { reaction || it.actorId == caster }
+
+        /**
+         * `visualMp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val visualMp = initialMp.toMutableMap()
+
+        /**
+         * `fallbackMagicPoints` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val fallbackMagicPoints = battle.presentation.presentationUnits().associate { unit ->
             unit.id to (deferredMutation?.initialMp(unit.id) ?: unit.magicPoints)
         }
         result.passes.forEachIndexed { passIndex, pass ->
+            /**
+             * `effect` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val effect = effectAnimations.getOrNull(passIndex)
+
+            /**
+             * `effectStartedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val effectStartedAt = effect?.startedAt ?: (actionAnimation?.endsAt ?: animationClock())
+
+            /**
+             * `effectEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val effectEndsAt = effect?.endsAt ?: effectStartedAt
+
+            /**
+             * `targetInputs` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val targetInputs = pass.mapNotNull { target ->
+                /**
+                 * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val unit = battle.presentation.presentationUnit(target.targetId) ?: return@mapNotNull null
+
+                /**
+                 * `sourceAction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val sourceAction = if (target.hit) 3 else 26
                 BattleMagicPresentationPlanner.TargetInput(
                     target,
                     requireSourceActionDuration(sourceAction, unit.direction),
                 )
             }
+
+            /**
+             * `plan` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val plan = BattleMagicPresentationPlanner.plan(
                 BattleMagicPresentationPlanner.Input(
                     casterId = caster,
@@ -2975,6 +5919,11 @@ void main() {
                 )
             }
             plan.changes.forEach { change ->
+                /**
+                 * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val unit = battle.presentation.presentationUnit(change.unitId) ?: return@forEach
                 if (change.hpAdd != 0) {
                     healthTimeline.schedule(change.unitId, change.hpBefore, change.hpAfter, plan.effectAt)
@@ -2986,6 +5935,11 @@ void main() {
                     }
                 }
                 if (change.harmNumberValue != 0) {
+                    /**
+                     * `duration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val duration = requireSourceActionDuration(change.harmNumberAction, unit.direction)
                     harmNumberAnimations[change.unitId] = HarmNumberAnimation(
                         change.harmNumberValue,
@@ -2999,6 +5953,11 @@ void main() {
             visualHp.putAll(plan.nextVisualState.hitPoints)
             visualMp.clear()
             visualMp.putAll(plan.nextVisualState.magicPoints)
+            /**
+             * `localSettlement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val localSettlement = result.localSettlements.getOrNull(passIndex) ?: MagicLocalSettlement(emptyList())
             scheduleBattleMutation(effectEndsAt) {
                 localSettlement.entries.forEach { entry ->
@@ -3143,6 +6102,11 @@ void main() {
         if (queue.nextPassIndex >= queue.result.passes.size) queuedMagicPresentation = null
     }
 
+    /**
+     * `advanceMagicVisualState`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun advanceMagicVisualState(
         pass: List<MagicTarget>,
         casterId: String,
@@ -3150,6 +6114,11 @@ void main() {
         hp: MutableMap<String, Int>,
         mp: MutableMap<String, Int>,
     ) {
+        /**
+         * `next` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val next = BattleCombatPresentationQueueCoordinator.advanceMagicVisualState(
             pass,
             casterId,
@@ -3249,21 +6218,78 @@ void main() {
         )
     }
 
+    /**
+     * `schedulePhysicalPassTargets`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun schedulePhysicalPassTargets(
         pass: PhysicalAttackPass,
         animation: UnitActionAnimation,
         hitAt: Float,
         queue: PhysicalPassPresentationQueue,
     ): Float {
+        /**
+         * `cursor` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var cursor = hitAt
         pass.targets.forEach { result ->
+            /**
+             * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val target = battle.presentation.presentationUnit(result.targetId) ?: return@forEach
+
+            /**
+             * `reactionDirection` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val reactionDirection = battleDirection(target.id, pass.attackerId)
+
+            /**
+             * `hpBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val hpBefore = queue.visualHp[result.targetId] ?: target.hitPoints
+
+            /**
+             * `mpBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val mpBefore = queue.visualMp[result.targetId] ?: target.magicPoints
+
+            /**
+             * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val attacker = battle.presentation.presentationUnit(pass.attackerId)
+
+            /**
+             * `attackerHpBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val attackerHpBefore = queue.visualHp[pass.attackerId] ?: attacker?.hitPoints ?: 0
+
+            /**
+             * `attackerHealing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val attackerHealing = result.lifeStealHealing + result.qxlHealing
+
+            /**
+             * `targetPlan` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val targetPlan = BattlePhysicalPresentationPlanner.target(
                 BattlePhysicalPassTargetPlanInput(
                     resolvedHarm = result.resolvedHarm,
@@ -3288,15 +6314,56 @@ void main() {
                     ),
                 ),
             )
+
+            /**
+             * `guard` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val guard = targetPlan.guard
+
+            /**
+             * `reactionAction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val reactionAction = targetPlan.reactionAction
+
+            /**
+             * `reactionEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val reactionEndsAt = targetPlan.reactionEndsAt
+
+            /**
+             * `hpAfterHarm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val hpAfterHarm = targetPlan.targetHpAfterHarm
+
+            /**
+             * `mpAfterHarm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val mpAfterHarm = targetPlan.targetMpAfterHarm
+
+            /**
+             * `attackerHpAfterHealing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val attackerHpAfterHealing = targetPlan.attackerHpAfterHealing
             val (playerMoneyDelta, enemyMoneyDelta) = result.hitCallbackEconomyDelta(target.isPlayerSide())
             scheduleHitReaction(target.id, reactionDirection, cursor, reactionEndsAt, reactionAction)
             result.backMove?.let { move ->
+                /**
+                 * `moveEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val moveEndsAt = cursor + move.durationSeconds
                 backMoveAnimations[result.targetId] = BackMoveAnimation(result.targetId, move, cursor, moveEndsAt)
                 scheduleBattleMutation(moveEndsAt) {
@@ -3336,10 +6403,32 @@ void main() {
             queue.visualMp[result.targetId] = mpAfterHarm
             if (attackerHealing > 0) queue.visualHp[pass.attackerId] = attackerHpAfterHealing
 
+            /**
+             * `retaliationDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val retaliationDamage = result.blockRetaliations.sumOf { it.damage }
+
+            /**
+             * `postReactionDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val postReactionDamage = retaliationDamage + result.recoilDamage
             if (postReactionDamage > 0) {
+                /**
+                 * `attackerBefore` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val attackerBefore = attackerHpAfterHealing
+
+                /**
+                 * `attackerAfter` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val attackerAfter = targetPlan.attackerHpAfterRetaliation
                 scheduleBattleMutation(reactionEndsAt) {
                     healthTimeline.schedule(pass.attackerId, attackerBefore, attackerAfter, reactionEndsAt)
@@ -3348,10 +6437,26 @@ void main() {
                 queue.visualHp[pass.attackerId] = attackerAfter
             }
 
+            /**
+             * `automaticEndsAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val automaticEndsAt = targetPlan.automaticEndsAt
             if (result.automaticPropertyHpDelta != 0 || result.automaticPropertyMpDelta != 0) {
                 healthTimelineHoldUntil[result.targetId] = automaticEndsAt
+                /**
+                 * `hpAfterProperty` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val hpAfterProperty = targetPlan.targetHpAfterAutomaticProperty
+
+                /**
+                 * `mpAfterProperty` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val mpAfterProperty = targetPlan.targetMpAfterAutomaticProperty
                 scheduleBattleMutation(cursor) {
                     if (result.automaticPropertyHpDelta != 0) {
@@ -3375,13 +6480,36 @@ void main() {
                     }
                 }
             }
+            /**
+             * `localSettlement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val localSettlement = result.localStatusSettlement
+
+            /**
+             * `localOperationPlan` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val localOperationPlan = if (localSettlement.entries.isNotEmpty()) {
                 settlementOperationCoordinator.magicLocalSettlement(
                     localSettlement, pass.attackerId, settlementOperationPort,
                 )
             } else null
+
+            /**
+             * `localPlan` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val localPlan = localOperationPlan?.settlementPlan
+
+            /**
+             * `localOperations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val localOperations = localOperationPlan?.operations.orEmpty()
             if (result.hasLocalStatusSettlement) {
                 scheduleBattleMutation(automaticEndsAt) {
@@ -3397,6 +6525,11 @@ void main() {
         actionAnimation = animation.copy(endsAt = cursor)
         return cursor
     }
+
+    /**
+     * `startQueuedFollowUpPresentation`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun startQueuedFollowUpPresentation() {
         val queued = queuedFollowUpPresentation ?: return
@@ -3459,6 +6592,11 @@ void main() {
             )
         }
     }
+
+    /**
+     * `startQueuedCounterPresentation`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun startQueuedCounterPresentation() {
         val queued = queuedCounterPresentation ?: return
@@ -3565,10 +6703,20 @@ void main() {
             HarmNumberAnimation(queued.harm, queued.mpShieldDamage == 0, timeline.hitAt, timeline.reactionEndsAt)
     }
 
+    /**
+     * `scheduleBattleMutation`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun scheduleBattleMutation(at: Float, mutation: () -> Unit) {
         timedBattleMutations += TimedBattleMutation(at, mutation)
         timedBattleMutations.sortBy(TimedBattleMutation::at)
     }
+
+    /**
+     * `applyDueBattleMutations`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun applyDueBattleMutations() {
         if (settlementPresentation.isActive()) return
@@ -3579,15 +6727,25 @@ void main() {
         }
     }
 
+    /**
+     * `commitDeferredBattleAction`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun commitDeferredBattleAction(settlementActorId: String? = null) {
         settlementActorId?.let(battle.presentation::presentationUnit)?.let(::focusCameraOn)
         battle.pendingActionTransaction?.commitAll()
         battle.presentation.pendingPresentationUnits().filter {
-                it.hitPoints > 0 && it.id !in hitReactionAnimations && it.id !in deathAnimations && !deathTimeline.containsPending(
-                    it.id
-                )
-            }.map { it.id }.forEach(battle.presentation::clearPresentationUnit)
+            it.hitPoints > 0 && it.id !in hitReactionAnimations && it.id !in deathAnimations && !deathTimeline.containsPending(
+                it.id
+            )
+        }.map { it.id }.forEach(battle.presentation::clearPresentationUnit)
     }
+
+    /**
+     * `collectDyingPresentationUnits`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     internal fun collectDyingPresentationUnits(): List<BattleDeathPresentationTimeline.DeathUnit> {
         syncScriptedUnits()
@@ -3614,6 +6772,11 @@ void main() {
         }
     }
 
+    /**
+     * `presentTurnSettlement`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun presentTurnSettlement(settlement: CampSettlement): Boolean {
         check(!settlementPresentation.isActive()) { "overlapping BattleScreen._jiesuan presentations" }
         val operationPlan = settlementOperationCoordinator.turnSettlement(settlement, settlementOperationPort)
@@ -3627,6 +6790,11 @@ void main() {
             if (immediate) refreshSettlementUnits(plan)
         }
     }
+
+    /**
+     * `presentMagicLocalSettlement`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun presentMagicLocalSettlement(settlement: MagicLocalSettlement, casterId: String) {
         if (settlement.entries.isEmpty()) return
@@ -3642,6 +6810,11 @@ void main() {
         startLocalSettlement(plan, operations)
     }
 
+    /**
+     * `startLocalSettlement`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun startLocalSettlement(plan: BattleSettlementPlan, operations: List<TurnSettlementOp>) {
         check(!settlementPresentation.isActive()) { "overlapping callback-local BattleScreen._jiesuan presentation" }
         if (operations.isEmpty()) {
@@ -3650,6 +6823,11 @@ void main() {
         }
         if (settlementPresentation.start(plan, operations, local = true)) refreshSettlementUnits(plan)
     }
+
+    /**
+     * `driveSettlementPresentationController`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun driveSettlementPresentationController() {
         val now = animationClock()
@@ -3745,9 +6923,19 @@ void main() {
         }
     }
 
+    /**
+     * `closeSettlementInfo2`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun closeSettlementInfo2() {
         if (settlementPresentation.dismissInfo2(animationClock())) driveSettlementPresentationController()
     }
+
+    /**
+     * `refreshSettlementUnits`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun refreshSettlementUnits(plan: BattleSettlementPlan) {
         plan.units.forEach { unitPlan ->
@@ -3758,6 +6946,11 @@ void main() {
         }
     }
 
+    /**
+     * `finishManualUnitDeathCallbacks`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun finishManualUnitDeathCallbacks() {
         pendingBattleScriptPassesAfterAction = 0
         pendingBattleCompletedScriptPasses = 0
@@ -3766,7 +6959,17 @@ void main() {
         deathTimeline.finishPostActionCallbacks()
     }
 
+    /**
+     * `driveScriptPresentation`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun driveScriptPresentation() = scriptedPresentation.drive()
+
+    /**
+     * `liveScriptBattleUnit`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun liveScriptBattleUnit(characterId: Int, visibleOnly: Boolean = false): BattleUnit? {
         val units = battle.units.values + battle.presentation.pendingPresentationUnits()
@@ -3775,26 +6978,41 @@ void main() {
             ?: units.firstOrNull { it.characterId == characterId && (!visibleOnly || it.visible) }
     }
 
+    /**
+     * `scriptBattleUnit`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun scriptBattleUnit(characterId: Int): BattleUnit? = liveScriptBattleUnit(characterId, visibleOnly = true)
+
+    /**
+     * `isScriptMineMaster`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun isScriptMineMaster(unitId: String): Boolean =
         scriptRuntime.stage.battleUnitForCharacterId(scriptRuntime.stage.mineMasterInstanceId)?.battleId == unitId
+
+    /**
+     * `pruneCombatPresentation`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun pruneCombatPresentation() {
         val now = animationClock()
         val completedHitIds = hitReactionAnimations.entries.filter { now >= it.value.endsAt }.map { it.key }
         hitReactionAnimations.entries.filter {
-                now >= it.value.endsAt && !isPresentationNeededByQueuedExchange(it.key) && battle.presentation.presentationUnit(
-                    it.key
-                )?.hitPoints?.let { hp -> hp > 0 } != false
-            }.map { it.key }.forEach(battle.presentation::clearPresentationUnit)
+            now >= it.value.endsAt && !isPresentationNeededByQueuedExchange(it.key) && battle.presentation.presentationUnit(
+                it.key
+            )?.hitPoints?.let { hp -> hp > 0 } != false
+        }.map { it.key }.forEach(battle.presentation::clearPresentationUnit)
         hitReactionAnimations.entries.removeIf { now >= it.value.endsAt }
         completedHitIds.filter { healthTimelineHoldUntil[it]?.let { until -> now >= until } != false }
             .forEach(healthTimeline::clear)
         healthTimelineHoldUntil.entries.filter { now >= it.value }.map { it.key }.forEach { id ->
-                healthTimeline.clear(id)
-                healthTimelineHoldUntil.remove(id)
-            }
+            healthTimeline.clear(id)
+            healthTimelineHoldUntil.remove(id)
+        }
         deathAnimations.entries.filter { now >= it.value.endsAt }.map { it.key }
             .forEach(battle.presentation::clearPresentationUnit)
         deathAnimations.entries.removeIf { now >= it.value.endsAt }
@@ -3804,11 +7022,21 @@ void main() {
         }
     }
 
+    /**
+     * `isPresentationNeededByQueuedExchange`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun isPresentationNeededByQueuedExchange(id: String): Boolean =
         queuedPhysicalPresentation?.passes?.drop(queuedPhysicalPresentation?.nextPassIndex ?: 0)
             ?.any { pass -> pass.attackerId == id || pass.targets.any { it.targetId == id } } == true || queuedPhysicalPresentation?.let { queue ->
             queue.counterMagic != null && (queue.counterCasterId == id || queue.counterTargetId == id)
         } == true || activeCounterMagicPresentation?.unitIds?.contains(id) == true || queuedFollowUpPresentation?.targetId == id || queuedCounterPresentation?.targetId == id || queuedCounterFollowUpPresentation?.targetId == id || deathAnimations[id]?.let { animationClock() < it.endsAt } == true
+
+    /**
+     * `completeTurnScriptIfReady`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun completeTurnScriptIfReady() {
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
@@ -3840,6 +7068,11 @@ void main() {
         }
     }
 
+    /**
+     * `bootstrapPresentationBusyReasons`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun bootstrapPresentationBusyReasons(): List<String> {
         val now = animationClock()
         return BattleBootstrapCallbackState(
@@ -3851,6 +7084,11 @@ void main() {
         ).blockingReasons()
     }
 
+    /**
+     * `showTurnResult`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun showTurnResult(result: TurnResult, prefix: String) {
         eventMessage = if (result.firedEvents.isEmpty()) {
             "${prefix}라운드 ${result.round} · ${result.activeFaction.label()} 차례"
@@ -3859,13 +7097,28 @@ void main() {
         }
     }
 
+    /**
+     * `combatPresentationBusy`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun combatPresentationBusy(): Boolean {
         val now = animationClock()
         return (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) || movementAnimation?.let { now < it.endsAt } == true || actionAnimation?.let { now < it.endsAt } == true || hitReactionAnimations.values.any { now < it.endsAt } || deathAnimations.values.any { now < it.endsAt } || deathTimeline.isBusy() || scriptedUnitCallbacks.hideBusy || scriptedUnitCallbacks.showBusy || scriptedUnitTimed.busy || scriptPresentationTimeline.isActive() || scriptedUnitActions.busy || magicEffectAnimations.any { now < it.endsAt } || queuedMagicPresentation != null || activeCounterMagicPresentation?.let { now < it.endsAt } == true || queuedPhysicalPresentation != null || queuedFollowUpPresentation != null || queuedCounterPresentation != null || queuedCounterFollowUpPresentation != null || pendingCriticalSpeechAction != null || settlementPresentation.isActive()
     }
 
+    /**
+     * `outcomeCallbacksPending`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun outcomeCallbacksPending(): Boolean =
         pendingBattleScriptPassesAfterAction > 0 || aiPresentation.unitDeathScriptPass > 0 || deathTimeline.startedPostActionDeaths() || aiPresentation.resolution != null || aiPresentation.hasActiveCamp || activeRoundLayer != null || settlementPresentation.isActive()
+
+    /**
+     * `handleTileClick`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun handleTileClick(x: Int, y: Int) {
         if (movementAnimation?.let { animationClock() < it.endsAt } == true) return
@@ -3951,6 +7204,11 @@ void main() {
         }
     }
 
+    /**
+     * `battleCommandMask`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleCommandMask(unit: BattleUnit): Int {
         var mask = 0
         if (battle.units.values.any { target ->
@@ -3971,6 +7229,11 @@ void main() {
         return mask
     }
 
+    /**
+     * `openBattleCommand`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openBattleCommand(unit: BattleUnit) {
         if (battleCommandFlow.phase == BattleCommandFlow.Phase.IDLE || battleCommandFlow.phase == BattleCommandFlow.Phase.COMMITTED || battleCommandFlow.phase == BattleCommandFlow.Phase.ROLLED_BACK) battleCommandFlow.beginMove(
             unit.id,
@@ -3985,6 +7248,11 @@ void main() {
         pendingBattleCommandUnit = null
         eventMessage = "${unit.name} 명령 선택"
     }
+
+    /**
+     * `moveSelectedForCommand`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun moveSelectedForCommand(unit: BattleUnit, x: Int, y: Int) {
         focusCameraOn(unit)
@@ -4016,6 +7284,11 @@ void main() {
             else -> Unit
         }
     }
+
+    /**
+     * `completePendingBattleCommand`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun completePendingBattleCommand() {
         val unitId = pendingBattleCommandUnit ?: return
@@ -4057,6 +7330,11 @@ void main() {
         battle.units[unitId]?.let(::openBattleCommand)
     }
 
+    /**
+     * `battleCommandTagAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleCommandTagAt(x: Float, y: Float): Int? = when {
         x in 743.6f..863.6f && y in 291.175f..411.175f -> 0
         x in 871.6f..991.6f && y in 291.175f..411.175f -> 1
@@ -4067,6 +7345,11 @@ void main() {
         x in 842.65f..1024.55f && y in 106.491f..156.491f -> 6
         else -> null
     }
+
+    /**
+     * `dispatchBattleCommand`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun dispatchBattleCommand(tag: Int) {
         val selected = selectedUnitId?.let(battle.units::get) ?: return
@@ -4097,6 +7380,11 @@ void main() {
         }
     }
 
+    /**
+     * `applyAction`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun applyAction(
         result: TacticalActionResult,
         unitName: String,
@@ -4108,6 +7396,11 @@ void main() {
         continueBattleScript: Boolean = true,
         criticalSpeechPresented: Boolean = false,
     ) {
+        /**
+         * `firstCriticalSpeech` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val firstCriticalSpeech = when (result) {
             is TacticalActionResult.Attack -> result.physicalPasses.firstOrNull()?.criticalSpeech
             is TacticalActionResult.Magic -> result.criticalSpeeches.firstOrNull()
@@ -4118,21 +7411,53 @@ void main() {
                 result, unitName, actorId, magicId, targetId, healthBeforeAction, moveActorId, continueBattleScript,
             )
             battle.presentation.presentationUnit(actorId)?.let(::focusCameraOn)
+            /**
+             * `characterId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val characterId = battle.presentation.presentationUnit(actorId)?.characterId
             scriptRuntime.presentExternalBattleDialogue(Dialogue(characterId?.toString(), firstCriticalSpeech))
             return
         }
         movementAnimation = if (result == TacticalActionResult.Success && moveActorId != null) {
+            /**
+             * `path` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val path = battle.lastMovePath(moveActorId)
             if (path.size < 2) null else {
+                /**
+                 * `timeline` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val timeline = BattleUnitMoveTimeline.schedule(path, battle.units[moveActorId]?.fastMove ?: true)
                 UnitMoveAnimation(moveActorId, path, timeline, animationClock())
             }
         } else if (result !is TacticalActionResult.Rejected) null else movementAnimation
         actionAnimation = when (result) {
             is TacticalActionResult.Attack -> actorId?.let { id ->
+                /**
+                 * `delayed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val delayed = battle.presentation.presentationUnit(id)?.attackDelay == true
+
+                /**
+                 * `visualCritical` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val visualCritical = result.physicalPasses.firstOrNull()?.critical ?: result.critical
+
+                /**
+                 * `sourceAction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val sourceAction = BattleAttackSequence.selectAttackAction(visualCritical, delayed)
                 sourceActionAnimation(id, sourceAction, battleDirection(id, targetId))
             }
@@ -4156,24 +7481,71 @@ void main() {
         (result as? TacticalActionResult.Magic)?.let { magic ->
             actorId?.let { casterId ->
                 battle.pendingActionTransaction?.takeIf { it.actorId == casterId }?.let { deferred ->
-                        deferred.commitVitals(
-                            casterId,
-                            mp = deferred.initialMp(casterId)?.minus(magic.cost)?.coerceAtLeast(0),
-                        )
-                    }
+                    deferred.commitVitals(
+                        casterId,
+                        mp = deferred.initialMp(casterId)?.minus(magic.cost)?.coerceAtLeast(0),
+                    )
+                }
             }
+            /**
+             * `casterId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val casterId = actorId ?: return@let
+
+            /**
+             * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val profile = magicId?.let(gameDataCatalog::magicProfile)
+
+            /**
+             * `effectId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val effectId = profile?.effectId ?: 255
+
+            /**
+             * `effect` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val effect = magicEffects.effect(effectId)
+
+            /**
+             * `firstPass` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val firstPass = magic.passes.firstOrNull().orEmpty()
+
+            /**
+             * `firstResult` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val firstResult = magic.copy(
                 targets = firstPass,
                 passes = listOf(firstPass),
                 criticalSpeeches = listOf(magic.criticalSpeeches.firstOrNull()),
                 localSettlements = listOf(magic.localSettlements.firstOrNull() ?: MagicLocalSettlement(emptyList())),
             )
+
+            /**
+             * `startedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val startedAt = actionAnimation?.endsAt ?: animationClock()
+
+            /**
+             * `firstEffect` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val firstEffect = effect?.let {
                 MagicEffectAnimation(
                     effectId,
@@ -4185,8 +7557,25 @@ void main() {
             scheduleMagicPresentation(
                 firstResult, casterId, profile, healthBeforeAction, effectAnimations = listOfNotNull(firstEffect)
             )
+            /**
+             * `unitVisualStates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unitVisualStates = combatPresentationUnitVisualStates()
+
+            /**
+             * `deferred` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val deferred = battle.pendingActionTransaction
+
+            /**
+             * `visualMp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val visualMp =
                 unitVisualStates.mapValues { (id, unit) -> deferred?.initialMp(id) ?: unit.magicPoints }.toMutableMap()
             visualMp[casterId] = ((deferred?.initialMp(casterId) ?: unitVisualStates[casterId]?.magicPoints
@@ -4236,6 +7625,11 @@ void main() {
         }
     }
 
+    /**
+     * `resumeCriticalSpeechAction`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun resumeCriticalSpeechAction() {
         val pending = pendingCriticalSpeechAction ?: return
         if (scriptRuntime.state != PlaybackState.COMPLETE || scriptRuntime.currentDialogue != null) return
@@ -4247,19 +7641,39 @@ void main() {
         )
     }
 
+    /**
+     * `usableProperties`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun usableProperties(): List<BattlePropertyItem> = campaign.inventory.items.keys.mapNotNull { itemId ->
         gameDataCatalog.equipmentProfile(itemId)
             ?.takeIf { (it.itemType in 26..37 || it.itemType in 42..43) && (campaign.inventory.items[itemId] ?: 0) > 0 }
             ?.let { BattlePropertyItem(it.id, it.name, it.itemType, it.value) }
     }
 
+    /**
+     * `outcomeText`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun outcomeText(outcome: BattleOutcome): String = when (outcome) {
         BattleOutcome.PLAYER_VICTORY -> "승리! Enter로 다음 시나리오 · Esc로 돌아가기"
         BattleOutcome.ENEMY_VICTORY -> "패배… Enter로 전투 재시작 · Esc로 돌아가기"
     }
 
+    /**
+     * `visibleBattleOutcome`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun visibleBattleOutcome(): BattleOutcome? =
         battle.outcome().takeIf { bootstrapPhase == BattleBootstrapPhase.COMPLETE }
+
+    /**
+     * `victorySaveAnswerAt`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun victorySaveAnswerAt(x: Float, y: Float): Int? = when {
         x in 460f..620f && y in 285f..365f -> 0 // 예
@@ -4267,17 +7681,22 @@ void main() {
         else -> null
     }
 
+    /**
+     * `settlementAnimatedValues`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun settlementAnimatedValues(overlay: SettlementInfoView): Map<Int, Int> {
         val values = buildList {
             overlay.deltas.forEach { delta ->
                 add(
                     InfoBaseValueAnimation.Value(
                         if (delta.kind == SettlementInfoKind.HP) 0 else 1,
-                    delta.before, delta.after,
-                    battle.presentation.presentationUnit(overlay.unitId)?.let {
-                        if (delta.kind == SettlementInfoKind.HP) it.maxHitPoints else it.maxMagicPoints
-                    } ?: delta.after.coerceAtLeast(1),
-                ))
+                        delta.before, delta.after,
+                        battle.presentation.presentationUnit(overlay.unitId)?.let {
+                            if (delta.kind == SettlementInfoKind.HP) it.maxHitPoints else it.maxMagicPoints
+                        } ?: delta.after.coerceAtLeast(1),
+                    ))
             }
             overlay.grants.forEach { grant ->
                 when (grant.kind) {
@@ -4325,6 +7744,11 @@ void main() {
         }
         return current
     }
+
+    /**
+     * `drawSettlementOverlays`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawSettlementOverlays() {
         settlementPresentation.infoView()?.let { overlay ->
@@ -4407,6 +7831,11 @@ void main() {
         }
     }
 
+    /**
+     * `drawScriptPresentationOverlay`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawScriptPresentationOverlay() {
         val active = scriptPresentationTimeline.snapshot() ?: return
         val elapsed = (animationClock() - active.startedAt).coerceAtLeast(0f)
@@ -4464,6 +7893,11 @@ void main() {
         }
     }
 
+    /**
+     * `battleRewardOverlayView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleRewardOverlayView(): BattleRewardOverlayView {
         val flow = outcomePresentation.rewardFlow
         val phase = flow?.phase?.let {
@@ -4496,6 +7930,11 @@ void main() {
         )
     }
 
+    /**
+     * `drawRewardSectionOverlay`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRewardSectionOverlay() {
         batch.projectionMatrix = viewport.camera.combined
         battleRewardOverlayRenderer.draw(
@@ -4507,6 +7946,11 @@ void main() {
             ),
         )
     }
+
+    /**
+     * `installItemUpgradeRoute`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun installItemUpgradeRoute() {
         itemUpgradeRouteFixtureController.install(
@@ -4521,17 +7965,44 @@ void main() {
                 )
             },
             object : BattleItemUpgradeRouteFixtureController.Commands {
+                /**
+                 * `markRouteInstalled`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun markRouteInstalled() {
                     outcomePresentation.markItemUpgradeRouteInstalled()
                 }
+
+                /**
+                 * `seedUpgrade`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun seedUpgrade(
                     owner: BattleItemUpgradeRouteFixtureController.Unit,
                     target: BattleItemUpgradeRouteFixtureController.Unit,
                     sample: BattleItemUpgradeRouteFixtureController.UpgradeSample,
                 ) {
+                    /**
+                     * `ownerId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val ownerId = requireNotNull(owner.characterId)
+
+                    /**
+                     * `oldExperience` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val oldExperience = gameDataCatalog.equipmentExperienceLimit(sample.itemId, sample.oldLevel) - 1
+
+                    /**
+                     * `current` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val current = campaign.inventory.equipment[ownerId] ?: CampaignEquipment(
                         sample.weaponStorageId,
                         sample.oldLevel,
@@ -4551,14 +8022,29 @@ void main() {
                     battle.experience.addEquipmentExperience(owner.id, target.id, sample.gainedExperience)
                 }
 
+                /**
+                 * `openUpgrade`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun openUpgrade() {
                     outcomePresentation.openEquipmentUpgradeIfNeeded()
                 }
+
+                /**
+                 * `upgradeOpened`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun upgradeOpened(): Boolean = outcomePresentation.itemUpgradeFlow?.request?.leveledUp == true
             },
         )
     }
+
+    /**
+     * `drawBattleEdit2Route`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleEdit2Route() {
         val route = battleEdit2RouteState ?: return
@@ -4578,6 +8064,11 @@ void main() {
         batch.begin()
         batch.color = Color.WHITE
 
+        /**
+         * `tiled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tiled(x: Float, y: Float, w: Float, h: Float) {
             var yy = 0f; while (yy < h) {
                 var xx = 0f; while (xx < w) {
@@ -4588,6 +8079,11 @@ void main() {
             }
         }
 
+
+        /**
+         * `button`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun button(x: Float, y: Float, text: String) {
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, 238.8f, 56.6f); font.color =
@@ -4611,6 +8107,11 @@ void main() {
             batch.begin(); batch.color = Color.WHITE
             NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.878f, 308.794f, 169.8f, 179.5f)
             BattleEditLayer2.weatherNames.forEachIndexed { i, text ->
+                /**
+                 * `y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val y = 463.854f - i * 50f; NinePatch(
                 unitInfoAssets.unitInfoBox1, 3, 3, 3, 3
             ).draw(batch, 767.878f, y, 169.8f, 50f); font.draw(batch, text, 800f, y + 41f)
@@ -4621,6 +8122,11 @@ void main() {
         if (battleEdit3ScenePanelOpen) drawBattleEdit3ScenePanel()
         if (route == BattleEditLayer2Route.REGISTER && battleRegisterRoute?.view()?.registerAttached == true) drawBattleRegisterLayer()
     }
+
+    /**
+     * `drawBattleEdit3Child`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleEdit3Child() {
         shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .314f); shapes.rect(
@@ -4635,9 +8141,19 @@ void main() {
             }; yy += 96f
         }
 
+        /**
+         * `box`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun box(x: Float, y: Float, w: Float, h: Float) =
             NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, x, y, w, h)
 
+
+        /**
+         * `btn`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun btn(x: Float, y: Float, w: Float, h: Float, text: String) {
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, w, h); font.draw(
@@ -4657,6 +8173,11 @@ void main() {
         batch.end()
     }
 
+    /**
+     * `drawBattleEdit3ScenePanel`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBattleEdit3ScenePanel() {
         shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
             0f, 0f, 1488.372f, 800f
@@ -4674,6 +8195,11 @@ void main() {
         batch.end()
     }
 
+    /**
+     * `drawBattleRegisterLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBattleRegisterLayer() {
         batch.begin(); batch.color = Color.WHITE
         for (ty in 0..4) for (tx in 0..8) batch.draw(
@@ -4690,6 +8216,11 @@ void main() {
         font.draw(batch, "생성 공유", 939.408f, 222f); font.draw(batch, "취소", 748.334f, 229f)
         batch.end()
     }
+
+    /**
+     * `drawItemUpgrade`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawItemUpgrade(flow: ItemUpgradeFlow) {
         batch.projectionMatrix = viewport.camera.combined
@@ -4723,6 +8254,11 @@ void main() {
         batch.end()
     }
 
+    /**
+     * `writeYingchuanEntryFlowIfReady`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun writeYingchuanEntryFlowIfReady() {
         val output = yingchuanEntryFlowTracePath ?: return
         if (yingchuanEntryFlowWritten || !yingchuanEntryFlowSawInit) return
@@ -4731,11 +8267,21 @@ void main() {
         val json = Json()
 
 
+        /**
+         * `stateText`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun stateText(init: Boolean): String {
             val dialogue = if (init) "null" else "{\"name\":\"SayLayer\",\"active\":true}"
             val tailLayer = if (init) "BattleInitLayer" else "SayLayer"
             return "{\"scene\":\"Battle\",\"isDraw\":${!init},\"paused\":true,\"round\":${battle.round},\"camp\":-1," + "\"battleInit\":$init,\"dialogue\":$dialogue,\"modal\":null," + "\"layers\":[\"BattleScreen\",\"NoticeInfoLayer\",\"MiniMapLayer\",\"$tailLayer\"]}"
         }
+
+        /**
+         * `records` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val records = listOf(
             "battle-init" to stateText(true), "dialogue" to stateText(false)
@@ -4746,11 +8292,27 @@ void main() {
                 )
             }}"
         }
+
+        /**
+         * `file` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val file = Gdx.files.absolute(output)
         file.parent().mkdirs()
         file.writeString(records.joinToString("\n") + "\n", false)
+        /**
+         * `stateOutput` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val stateOutput = output.removeSuffix(".jsonl") + ".state.json"
 
+
+        /**
+         * `quoted`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun quoted(value: String?): String = value?.let { json.toJson(it, String::class.java) } ?: "null"
         Gdx.files.absolute(stateOutput).writeString(
@@ -4774,6 +8336,11 @@ void main() {
         Gdx.app.exit()
     }
 
+
+    /**
+     * `renderEventLog`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun renderEventLog(): String {
         if (mineUnitInfoRoute) return MineUnitInfoRenderEvents.jsonl(requireNotNull(mineUnitInfoLayer).view())
@@ -4828,15 +8395,61 @@ void main() {
     /** 현재 화면 객체를 evidence coordinator가 소비하는 불변 입력 Port로만 노출한다. */
     private fun battleRenderEventEvidenceCoordinator() = BattleRenderEventEvidenceCoordinator(
         object : BattleRenderEventEvidenceCoordinator.Port {
+            /**
+             * `unitInputs`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun unitInputs() = battleRenderEventUnitInputs()
+
+            /**
+             * `dialogueMarker`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dialogueMarker() = battleDialogueMarkerInput()
+
+            /**
+             * `dialogue`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun dialogue() = battleDialogueRenderEventInput()
+
+            /**
+             * `winConditions`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun winConditions(route: BattleRenderEventProjectionWinRoute) =
                 battleWinConditionsRenderEventInput(route)
 
+            /**
+             * `itemUpgrade`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun itemUpgrade() = itemUpgradeRenderEventInput()
+
+            /**
+             * `reward`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun reward() = rewardRenderEventInput()
+
+            /**
+             * `roundView`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun roundView() = activeRoundLayer?.view
+
+            /**
+             * `usePropertyView`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun usePropertyView() = BattleUsePropertyRenderEventView(
                 route = usePropertyRouteState,
                 rows = usePropertyLayer?.rows?.map {
@@ -4853,6 +8466,11 @@ void main() {
                 postNames = (0 until 39).map(gameDataCatalog::postsName),
             )
 
+            /**
+             * `magickView`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun magickView() = BattleMagickRenderEventView(
                 route = magickRouteState,
                 list = magickListLayer?.let { layer ->
@@ -4867,6 +8485,11 @@ void main() {
                 },
             )
 
+            /**
+             * `jiqiRates`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun jiqiRates() = jiqiLayer?.rates?.toList()
         },
     )
@@ -4878,7 +8501,7 @@ void main() {
                 it.id
             )
         }).asSequence().filter { it.visible }.filter { !battleInitRoute }.sortedWith(
-                if (battleDialogueBlendRoute) {
+            if (battleDialogueBlendRoute) {
                 val order = listOf(
                     480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211
                 )
@@ -5004,13 +8627,28 @@ void main() {
     /** JiQi 화면 입력을 coordinator가 기존 evidence recorder JSONL로 조립한다. */
     private fun jiqiRenderEventLog(): String = battleRenderEventEvidenceCoordinator().jiqiJsonl()
 
+    /**
+     * `installBattleCharacterRoute`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun installBattleCharacterRoute() {
         battleCharacterRouteFixtureCoordinator.install(battleCharacterRouteState, battleCharacterRouteFixturePort)
     }
 
+    /**
+     * `battleCharacterRouteRenderEventLog`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleCharacterRouteRenderEventLog(): String = battleCharacterRouteFixtureCoordinator.jsonl(
         requireNotNull(battleCharacterRouteState), battleCharacterRouteFixturePort,
     )
+
+    /**
+     * `drawBattleCharacterRoute`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleCharacterRoute() {
         battleCharacterRouteFixtureCoordinator.drawSamples(battleCharacterRouteFixturePort).forEach { drawSample ->
@@ -5025,6 +8663,11 @@ void main() {
                 ); UnitSpriteSource.MOVEMENT -> unitTexture(sample.unit)
             }
             texture?.let { atlas ->
+
+                /**
+                 * `spriteAt`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 fun spriteAt(x: Float, y: Float) = batch.draw(
                     atlas,
@@ -5088,6 +8731,11 @@ void main() {
         }
     }
 
+    /**
+     * `nextScenario`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun nextScenario(): String {
         scriptRuntime.stage.sceneJumpStage?.let { targetStage ->
             val target = targetStage / 2
@@ -5099,9 +8747,19 @@ void main() {
         return candidate.takeIf { it in ScenarioCatalog.rModuleNames() } ?: returnScenario
     }
 
+    /**
+     * `fightPresentationView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun fightPresentationView(): FightPresentationView {
         val snapshot = fightPresentation.renderSnapshot()
 
+
+        /**
+         * `identity`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun identity(fighter: FightFighterSnapshot): FightUnitRenderIdentity {
             val characterId = fighter.characterId ?: return FightUnitRenderIdentity(
@@ -5125,9 +8783,19 @@ void main() {
         )
     }
 
+    /**
+     * `fightAvatarId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun fightAvatarId(characterId: Int): Int? =
         battle.units.values.firstOrNull { it.characterId == characterId }?.let(::battleAvatarId)
             ?: gameDataCatalog.unitProfile(characterId)?.battleAvatar
+
+    /**
+     * `drawGrid`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawGrid() {
         configureSourceCameraViewport()
@@ -5158,6 +8826,11 @@ void main() {
         drawMagicEffect()
         batch.end()
     }
+
+    /**
+     * `battleGridMapSurfaceView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun battleGridMapSurfaceView(): BattleGridRenderView {
         val useCocos8Sampler = game.requestedCocos8MapSampler()
@@ -5207,6 +8880,11 @@ void main() {
         return BattleGridRenderView(map, miniMap)
     }
 
+    /**
+     * `drawBattleGridActorLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBattleGridActorLayer() {
         val mapObjectView = battleMapObjectRenderView()
         battleMapObjectRenderer.drawGates(mapObjectView)
@@ -5240,10 +8918,10 @@ void main() {
         tileSize = boardTile,
         animationClock = mapObjectAnimationClock(),
         gates = scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId > 3 }.mapNotNull { gate ->
-                dynamicTextures.gate(gate.objectId)?.let { texture ->
-                    BattleMapGateRender(gate.objectId, gate.x, gate.y, texture)
-                }
-            },
+            dynamicTextures.gate(gate.objectId)?.let { texture ->
+                BattleMapGateRender(gate.objectId, gate.x, gate.y, texture)
+            }
+        },
         fires = scriptRuntime.stage.fires.values.filter { it.enabled }
             .map { fire -> BattleMapFireRender(fire.x, fire.y) },
         objects = scriptRuntime.stage.mapObjects.values.filter { it.enabled && it.objectId in 0..2 }
@@ -5255,6 +8933,11 @@ void main() {
     private fun battleActorEffectRenderView(visibleUnits: List<BattleUnit>): BattleActorEffectRenderView =
         battleActorEffectViewComposer.compose(visibleUnits)
 
+    /**
+     * `playPendingMagicEffectSounds`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun playPendingMagicEffectSounds() {
         val now = animationClock()
         magicEffectAnimations.filter { !it.soundPlayed && now >= it.startedAt }.forEach { animation ->
@@ -5265,11 +8948,27 @@ void main() {
         magicEffectAnimations.removeAll { now >= it.endsAt }
     }
 
+    /**
+     * `drawMagicEffect`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawMagicEffect() {
         battleActorEffectRenderer.drawEffects(battleActorEffectRenderView(emptyList()))
     }
 
+    /**
+     * `tileBottom`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun tileBottom(sourceY: Int): Float = tileBottom(sourceY.toFloat())
+
+    /**
+     * `tileBottom`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun tileBottom(sourceY: Float): Float = boardBottom - sourceY * boardTile
 
     /** 선택 가능 타일 계산: AI 연출·마법·아이템·일반 명령 상태에 맞는 선택 테두리 목록을 만든다. */
@@ -5328,11 +9027,27 @@ void main() {
         }
     }
 
+    /**
+     * `battleMapView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleMapView(
         selectionTiles: List<SelectAreaTile>,
         visibleUnits: List<BattleUnit>,
     ): BattleMapView {
+        /**
+         * `selected` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val selected = selectedUnitId?.let(battle.units::get)
+
+        /**
+         * `terrainImpacts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val terrainImpacts = if (magicMode || propertyMode || selected == null) {
             emptyList()
         } else {
@@ -5340,9 +9055,26 @@ void main() {
                 BattleMapTerrainImpact(x, y, selected.terrainImpacts[terrainGrid.terrainAt(x, y)] ?: 100)
             }
         }
+
+        /**
+         * `now` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val now = animationClock()
+
+        /**
+         * `harmNumbers` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val harmNumbers = harmNumberAnimations.mapNotNull { (unitId, animation) ->
             if (now < animation.startedAt || now >= animation.endsAt) return@mapNotNull null
+            /**
+             * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unit = visibleUnits.firstOrNull { it.id == unitId } ?: return@mapNotNull null
             val (visualX, visualY) = visualTile(unit)
             BattleMapHarmNumber(visualX, visualY, animation.amount, animation.isHp)
@@ -5358,8 +9090,18 @@ void main() {
         )
     }
 
+    /**
+     * `unitsAreAllied`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun unitsAreAllied(left: BattleUnit, right: BattleUnit): Boolean =
         left.isPlayerSide() == right.isPlayerSide()
+
+    /**
+     * `drawHud`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawHud() {
         batch.projectionMatrix = viewport.camera.combined
@@ -5375,6 +9117,11 @@ void main() {
         font.draw(batch, "클릭: 선택/이동/공격 · M: 전략 · B: 아이템 · T: 턴 종료 · Esc: 돌아가기", 520f, 52f)
         batch.end()
     }
+
+    /**
+     * `drawBattleHudChrome`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleHudChrome() {
         batch.projectionMatrix = viewport.camera.combined
@@ -5392,6 +9139,11 @@ void main() {
         hudAssets.battleMenuTexture?.let { batch.draw(it, miniButtonX + .2f, 730.2f, 69.6f, 69.6f) }
         batch.end()
     }
+
+    /**
+     * `drawBattleMenu`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleMenu() {
         batch.projectionMatrix = viewport.camera.combined
@@ -5435,6 +9187,11 @@ void main() {
         dialogueFont.color = Color.WHITE
         batch.end()
     }
+
+    /**
+     * `drawTreasureLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTreasureLayer(view: BattleTreasureOverlayView) {
         // TreasureLayer/bg1의 중심은 (744.186,400), 크기는 970×632이다.
@@ -5487,11 +9244,21 @@ void main() {
         font.color = Color.WHITE; font.data.setScale(1f); batch.end()
     }
 
+    /**
+     * `handleSaveLoadEffect`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun handleSaveLoadEffect(effect: BattleSaveLoadOverlayController.Effect) {
         if (effect !is BattleSaveLoadOverlayController.Effect.Closed || effect.mode != BattleSaveLoadOverlayController.Mode.SAVE) return
         if (effect.saved) eventMessage = "진행 상황을 저장했습니다."
         if (outcomePresentation.postBattleSaveLayer) outcomePresentation.finishVictoryRoute()
     }
+
+    /**
+     * `handleForcesOverlayEffect`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun handleForcesOverlayEffect(effect: BattleForcesOverlayController.Effect) {
         val selected = effect as? BattleForcesOverlayController.Effect.UnitSelected ?: return
@@ -5501,9 +9268,19 @@ void main() {
         eventMessage = "${unit.name} · ${unit.post} · Lv${unit.level} · HP ${unit.hp}/${unit.maxHp}"
     }
 
+    /**
+     * `handleUnitInfoOverlayEffect`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun handleUnitInfoOverlayEffect(effect: BattleUnitInfoOverlayController.Effect) {
         if (effect is BattleUnitInfoOverlayController.Effect.JiqiOpened) jiqiLayer = effect.layer
     }
+
+    /**
+     * `menuIndexAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun menuIndexAt(x: Float, y: Float): Int? {
         if (y !in 116.29f..204.29f || x !in 15.13372f..1159.1337f) return null
@@ -5511,11 +9288,21 @@ void main() {
         return if (visualSlot >= 12) 13 else visualSlot
     }
 
+    /**
+     * `closeBattleMenu`: 상태와 자원을 정리한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun closeBattleMenu() {
         battleMenuLayer?.onCancel(MenuLayer.TOUCH_END)
         battleMenuLayer = null
         battleMenuOpen = false
     }
+
+    /**
+     * `handleBattleMenuTap`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun handleBattleMenuTap(index: Int) {
         val command = MenuLayer.Command.entries[index]
@@ -5557,11 +9344,21 @@ void main() {
         }
     }
 
+    /**
+     * `openBattleMenu`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openBattleMenu() {
         battleMenuLayer = MenuLayer().also { it.onCreate(menuCreateData()) }
         battleMenuOpenedAt = elapsed
         battleMenuOpen = true
     }
+
+    /**
+     * `battleAutoOverlayView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun battleAutoOverlayView(): BattleAutoOverlayView {
         val state = autoBattleFlow.view()
@@ -5573,13 +9370,28 @@ void main() {
         return BattleAutoOverlayView(overlay = overlay, checked = state.checked)
     }
 
+    /**
+     * `autoBattlePromptButtonAt`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun autoBattlePromptButtonAt(x: Float, y: Float): Int? = when {
         x in 844.536f..994.536f && y in 270.197f..320.197f -> 0
         x in 674.536f..824.536f && y in 270.197f..320.197f -> 1
         else -> null
     }
 
+    /**
+     * `autoBattleToggleAt`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun autoBattleToggleAt(x: Float, y: Float): Boolean = x in 518.416f..640.457f && y in 267.997f..322.397f
+
+    /**
+     * `answerAutoBattle`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun answerAutoBattle(tag: Int) {
         val before = autoBattleFlow.view().endRoundRequests
@@ -5599,23 +9411,53 @@ void main() {
         }
     }
 
+    /**
+     * `installAutoBattleRouteFixture`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun installAutoBattleRouteFixture() {
         autoBattleRouteFixtureController.install(
             autoBattleRouteState,
             object : BattleAutoBattleRouteFixtureController.Commands {
+                /**
+                 * `openBattleMenu`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun openBattleMenu() {
                     this@BattleScreen.openBattleMenu()
                 }
+
+                /**
+                 * `tapAutoBattleMenu`: 입력을 규칙에 따라 계산·변환한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun tapAutoBattleMenu() {
                     this@BattleScreen.handleBattleMenuTap(8)
                 }
 
+                /**
+                 * `view`: 상태나 데이터를 조회한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun view(): AutoBattleFlow.View = autoBattleFlow.view()
+
+                /**
+                 * `togglePrompt`: 입력을 규칙에 따라 계산·변환한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun togglePrompt() {
                     this@BattleScreen.autoBattleFlow.toggle()
                 }
+
+                /**
+                 * `confirmPrompt`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun confirmPrompt() {
                     this@BattleScreen.answerAutoBattle(0)
@@ -5628,6 +9470,11 @@ void main() {
     private fun autoBattleRenderEventLog(): String = BattleAutoRenderEventRecorder.jsonl(
         BattleAutoRenderEventInput(requireNotNull(autoBattleRouteState), autoBattleFlow.view()),
     )
+
+    /**
+     * `menuCreateData`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun menuCreateData() = MenuLayer.CreateData(
         weather = when (battle.weather) {
@@ -5643,8 +9490,18 @@ void main() {
         editEnabled = false,
     )
 
+    /**
+     * `openHelperLayer`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openHelperLayer() {
         val model = object : HelperLayer.Model {
+            /**
+             * `getInfo`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun getInfo(): Iterable<HelperLayer.Info> {
                 val live = campaign.extraInfo.map { HelperLayer.Info(it.type, it.reserved, it.text) }
                 if (live.isNotEmpty()) return live
@@ -5657,6 +9514,11 @@ void main() {
                     ?.takeIf { it.isNotBlank() }
                 return guide?.let { listOf(HelperLayer.Info(1, text = it)) }.orEmpty()
             }
+
+            /**
+             * `replaceSpeInfo`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun replaceSpeInfo(text: String, flags: Int): String = SourceInfoText.replace(
                 text, flags,
@@ -5674,9 +9536,24 @@ void main() {
         helperOverlay.open(model)
     }
 
+    /**
+     * `openForcesListLayer`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openForcesListLayer() {
 
+        /**
+         * `asSource`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun asSource(unit: BattleUnit): ForcesListLayer.Unit {
+
+            /**
+             * `liftStatus`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             fun liftStatus(attribute: BattleAttribute) = when {
                 (unit.attributeLifts[attribute] ?: 0) < 0 -> 0
@@ -5698,7 +9575,18 @@ void main() {
             )
         }
 
+        /**
+         * `mine` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mine = battle.units.values.filter { it.visible && it.isPlayerSide() }.map(::asSource)
+
+        /**
+         * `enemy` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val enemy = battle.units.values.filter { it.visible && it.type().isEnemySide() }.map(::asSource)
         forcesOverlay.open(mine, enemy, 1)
         eventMessage = "부대 정보 일람: 아군/적군 탭을 선택할 수 있습니다."
@@ -5708,6 +9596,11 @@ void main() {
     private fun openUnitInfoLayer(selectedCharacterId: Int) {
         val source = battle.units.values.filter { it.visible }
 
+
+        /**
+         * `row`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun row(u: BattleUnit) = UnitInfoLayer.Unit(
             u.characterId ?: 0,
@@ -5730,10 +9623,20 @@ void main() {
         unitInfoOverlay.open(rows, index)
     }
 
+    /**
+     * `toMagicUi`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun toMagicUi(profile: BattleMagicProfile) = MagicUiList.Magic(
         profile.id, profile.name, profile.expendMp, profile.power, profile.icon,
         profile.hitArea.id, profile.effectAreaId, profile.intro,
     )
+
+    /**
+     * `openMagickList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun openMagickList(unit: BattleUnit) {
         val rows = unit.magic.map(::toMagicUi)
@@ -5741,6 +9644,11 @@ void main() {
         magickInfoLayer = null
         magickPressedRow = null
     }
+
+    /**
+     * `installBattleCommandRouteFixture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun installBattleCommandRouteFixture() {
         battleCommandRouteFixture.install(
@@ -5755,15 +9663,30 @@ void main() {
             },
             activeFaction = battle.activeFaction,
             commands = object : BattleCommandRouteFixtureController.Commands {
+                /**
+                 * `clearInventory`: 현재 상태를 갱신한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun clearInventory() {
                     campaign.inventory.removeItemStack(150)
                     campaign.inventory.removeItemStack(151)
                 }
 
+                /**
+                 * `seedInventory`: 입력을 규칙에 따라 계산·변환한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun seedInventory() {
                     campaign.inventory.addItem(150, 3)
                     campaign.inventory.addItem(151, 2)
                 }
+
+                /**
+                 * `openCommand`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun openCommand(unit: BattleCommandRouteFixtureController.Unit) {
                     val battleUnit = battle.units.getValue(unit.id)
@@ -5777,7 +9700,17 @@ void main() {
                     check(battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) { "unitMove did not open CommandLayer" }
                 }
 
+                /**
+                 * `cancelCommand`: 조건과 입력 상태를 검증한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun cancelCommand() = dispatchBattleCommand(6)
+
+                /**
+                 * `openMagicCommand`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun openMagicCommand() {
                     dispatchBattleCommand(1)
@@ -5789,10 +9722,20 @@ void main() {
                     )
                 }
 
+                /**
+                 * `openPropertyCommand`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun openPropertyCommand() = dispatchBattleCommand(2)
             },
         )
     }
+
+    /**
+     * `drawBattleCommandLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleCommandLayer() {
         shapes.projectionMatrix = viewport.camera.combined
@@ -5847,6 +9790,11 @@ void main() {
     private fun battleCommandRenderEventLog(): String =
         BattleCommandRenderEventRecorder.jsonl(requireNotNull(battleCommandRouteState))
 
+    /**
+     * `showRoundCard`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun showRoundCard(round: Int?, max: Int?, complete: () -> Unit) {
         activeRoundLayerElapsed = 0f
         activeRoundLayer = RoundLayer(
@@ -5854,6 +9802,11 @@ void main() {
             complete = complete,
         ).apply { onCreate(round, max) }
     }
+
+    /**
+     * `installRoundRouteFixture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun installRoundRouteFixture() {
         roundRouteInstalled = true
@@ -5886,17 +9839,32 @@ void main() {
         miniMapReady = true
     }
 
+    /**
+     * `installMiniMapRouteFixture`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun installMiniMapRouteFixture() {
         miniMapRouteInstalled = true
         initializeMiniMap()
         BattleRouteFixtureController.applyMiniMap(miniMapRouteState, miniMapLayer)
     }
 
+    /**
+     * `miniMapButtonAt`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun miniMapButtonAt(x: Float, y: Float): Boolean {
         if (y !in 730f..800f) return false
         val left = if (miniMapLayer.shown) 1174.372f else 1418.372f
         return x in left..(left + 70f)
     }
+
+    /**
+     * `drawRoundLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawRoundLayer(layer: RoundLayer) {
         shapes.projectionMatrix = viewport.camera.combined
@@ -5906,13 +9874,29 @@ void main() {
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
         font.data.setScale(120f / 26f)
 
+        /**
+         * `text`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun text(value: String, x: Float, y: Float, width: Float, color: Color) {
             font.color = color; font.draw(batch, value, x, y + 125f, width, Align.center, false)
         }
         if (layer.view.roundLabelsVisible) {
             text("아군 단계", 526.713f, 380.09f, 448.54f, Color.RED)
             text("아군 단계", 519.916f, 385.09f, 448.54f, Color.WHITE)
+            /**
+             * `width` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val width = if (layer.view.roundText == "최종 턴") 344.74f else 274.34f
+
+            /**
+             * `x` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val x = if (layer.view.roundText == "최종 턴") 578.613f else 613.813f
             text(layer.view.roundText, x, 247.7f, width, Color(1f, .5f, .5f, 1f))
             text(layer.view.roundText, x - 6.797f, 252.7f, width, Color.WHITE)
@@ -5923,10 +9907,20 @@ void main() {
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
+    /**
+     * `propertyEffectName`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun propertyEffectName(profile: GameDataCatalog.EquipmentProfile): String = when (profile.itemType) {
         26 -> "HP 회복"
         else -> gameDataCatalog.equipmentTypeName(profile.itemType)
     }
+
+    /**
+     * `usePropertyRows`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun usePropertyRows(): List<UsePropertyLayer.Property> = usableProperties().mapNotNull { item ->
         gameDataCatalog.equipmentProfile(item.id)?.let { profile ->
@@ -5939,6 +9933,11 @@ void main() {
             )
         }
     }
+
+    /**
+     * `openUsePropertyLayer`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun openUsePropertyLayer() {
         val rows = usePropertyRows()
@@ -5970,18 +9969,44 @@ void main() {
         usePropertyPanelPressed = false
     }
 
+    /**
+     * `usePropertyCancelAt`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun usePropertyCancelAt(x: Float, y: Float) = x in 1131.145f..1281.145f && y in 394.896f..444.896f
+
+    /**
+     * `usePropertyPanelAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun usePropertyPanelAt(x: Float, y: Float) = x in 795.536f..1286.536f && y in 390f..800f
+
+    /**
+     * `usePropertyRowAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun usePropertyRowAt(x: Float, y: Float): Int? {
         if (x !in 803.536f..1278.536f || y !in 448f..796f) return null
         return ((791f - y) / 112f).toInt().coerceAtLeast(0).takeIf { it in 0 until (usePropertyLayer?.rows?.size ?: 0) }
     }
 
+    /**
+     * `installUsePropertyRouteFixture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun installUsePropertyRouteFixture() {
         usePropertyRouteFixtureController.install(
             usePropertyRouteState,
             object : BattleUsePropertyRouteFixtureController.Commands {
+                /**
+                 * `seedInventory`: 입력을 규칙에 따라 계산·변환한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun seedInventory() {
                     campaign.inventory.removeItemStack(150)
                     campaign.inventory.removeItemStack(151)
@@ -5989,22 +10014,47 @@ void main() {
                     campaign.inventory.addItem(151, 2)
                 }
 
+                /**
+                 * `selectPlayerUnit`: 흐름을 실행하거나 다음 단계로 전달한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun selectPlayerUnit() {
                     selectedUnitId = battle.units.values.firstOrNull { it.visible && it.isPlayerSide() }?.id
                 }
 
+                /**
+                 * `openPropertyLayer`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun openPropertyLayer() = openUsePropertyLayer()
+
+                /**
+                 * `inspectFirstProperty`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun inspectFirstProperty() {
                     usePropertyLayer?.touchStart(0)
                     usePropertyLayer?.update(UsePropertyLayer.LONG_PRESS_SECONDS)
                 }
 
+                /**
+                 * `selectFirstProperty`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun selectFirstProperty() {
                     usePropertyLayer?.touchStart(0)
                     usePropertyLayer?.touchEnd(0)
                     usePropertyLayer = null
                 }
+
+                /**
+                 * `cancelPropertyLayer`: 조건과 입력 상태를 검증한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun cancelPropertyLayer() {
                     usePropertyLayer?.closeTouchEnd()
@@ -6013,6 +10063,11 @@ void main() {
             },
         )
     }
+
+    /**
+     * `drawUsePropertyLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawUsePropertyLayer() {
         val layer = usePropertyLayer ?: return
@@ -6047,6 +10102,11 @@ void main() {
         font.draw(batch, "취소", 1156.145f + ox, 442f + oy)
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
+
+    /**
+     * `drawUsePropertyDetail`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawUsePropertyDetail() {
         val item = usePropertyDetail ?: return
@@ -6084,6 +10144,11 @@ void main() {
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
+    /**
+     * `selectMagick`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun selectMagick(selected: MagicUiList.Magic) {
         val unit = selectedUnitId?.let(battle.units::get) ?: return
         val index = unit.magic.indexOfFirst { it.id == selected.id }
@@ -6101,7 +10166,17 @@ void main() {
         }
     }
 
+    /**
+     * `magickCancelAt`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun magickCancelAt(x: Float, y: Float) = x in 775.892f..955.892f && y in 97.683f..147.683f
+
+    /**
+     * `magickRowAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun magickRowAt(x: Float, y: Float): Int? {
         if (x !in 480.186f..1006.186f || y !in 0f..645.5f) return null
@@ -6110,9 +10185,19 @@ void main() {
         return (line * 2 + column).takeIf { it in 0 until (magickListLayer?.rows?.size ?: 0) }
     }
 
+    /**
+     * `fixtureMagics`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun fixtureMagics(): List<MagicUiList.Magic> = listOf(
         39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56
     ).mapNotNull(gameDataCatalog::magicProfile).map(::toMagicUi)
+
+    /**
+     * `installMagickRouteFixture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun installMagickRouteFixture() {
         magickRouteFixtureController.install(magickRouteState, ::fixtureMagics)?.let { state ->
@@ -6120,6 +10205,11 @@ void main() {
             magickInfoLayer = state.info
         }
     }
+
+    /**
+     * `drawMagickListLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawMagickListLayer() {
         val layer = magickListLayer ?: return
@@ -6164,6 +10254,11 @@ void main() {
         font.draw(batch, "취소", 815.892f, 145f); font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
+    /**
+     * `drawBattleMagicInfoLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBattleMagicInfoLayer() {
         val magic = magickInfoLayer?.magic ?: return
         shapes.projectionMatrix = viewport.camera.combined; shapes.begin(ShapeRenderer.ShapeType.Filled)
@@ -6197,17 +10292,37 @@ void main() {
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
+    /**
+     * `installJiqiRouteFixture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun installJiqiRouteFixture() {
         jiqiRouteFixtureController.install(
             RuntimeBattleRoute.JIQI,
             battle.units.values.firstOrNull()?.characterId ?: 0,
             object : BattleJiqiRouteFixtureController.Commands {
+                /**
+                 * `openUnitInfo`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun openUnitInfo(characterId: Int) = openUnitInfoLayer(characterId)
+
+                /**
+                 * `openJiqi`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun openJiqi() {
                     val result = unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.OpenJiqi)
                     handleUnitInfoOverlayEffect(result.effect)
                 }
+
+                /**
+                 * `dismissUnitInfo`: 조건과 입력 상태를 검증한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun dismissUnitInfo() {
                     unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
@@ -6215,6 +10330,11 @@ void main() {
             },
         )
     }
+
+    /**
+     * `drawJiqiLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawJiqiLayer() {
         val layer = jiqiLayer ?: return
@@ -6263,6 +10383,11 @@ void main() {
         winConditionOpen = layer.view().attached
     }
 
+    /**
+     * `winConditionInfo`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun winConditionInfo(): String {
         val stage = scriptRuntime.stage
         val hidden = stage.itemVariables.flatMap { (variables, positions) ->
@@ -6284,6 +10409,11 @@ void main() {
             variable = { id -> (campaign.globalVariables[id] as? Number)?.toInt() ?: 0 },
         ).ifEmpty { "적군을 전멸시키십시오." }
     }
+
+    /**
+     * `drawScriptWinConditions`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawScriptWinConditions(layer: WinConditionsLayer) {
         val lines = layer.view().second.replace("<br/>", "\n").replace(Regex("<[^>]+>"), "").lines()
@@ -6307,6 +10437,11 @@ void main() {
         font.color = Color.WHITE
         batch.end()
     }
+
+    /**
+     * `drawWinConditionBox`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawWinConditionBox() {
         batch.projectionMatrix = viewport.camera.combined
@@ -6350,6 +10485,11 @@ void main() {
         batch.end()
     }
 
+    /**
+     * `drawLoseScene`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawLoseScene() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
@@ -6357,11 +10497,21 @@ void main() {
         batch.end()
     }
 
+    /**
+     * `loseAnswerAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun loseAnswerAt(x: Float, y: Float): Int? = when {
         x in 754.186f..934.186f && y in 271.285f..321.285f -> 0
         x in 554.186f..734.186f && y in 271.285f..321.285f -> 1
         else -> null
     }
+
+    /**
+     * `drawLosePrompt`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawLosePrompt() {
         batch.projectionMatrix = viewport.camera.combined
@@ -6384,6 +10534,11 @@ void main() {
         batch.end()
     }
 
+    /**
+     * `drawSavePrompt`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawSavePrompt() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color(0f, 0f, 0f, .65f)
@@ -6395,6 +10550,11 @@ void main() {
         dialogueFont.draw(batch, "예", 510f, 330f); dialogueFont.draw(batch, "비", 740f, 330f)
         batch.end()
     }
+
+    /**
+     * `focusNextNoActionUnit`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun focusNextNoActionUnit() {
         val candidates = battle.units.values.filter { it.type() == Faction.PLAYER && it.visible && !it.hasActed }
@@ -6409,9 +10569,19 @@ void main() {
         eventMessage = "미행동 부대: ${unit.name}"
     }
 
+    /**
+     * `focusFirstCampCameraUnit`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun focusFirstCampCameraUnit(camp: Faction) {
         firstCampCameraUnit(battle.units.values, camp)?.let(::focusCameraOn)
     }
+
+    /**
+     * `focusCameraOn`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun focusCameraOn(unit: BattleUnit, forceCenter: Boolean = false): Boolean {
         configureSourceCameraViewport()
@@ -6424,6 +10594,11 @@ void main() {
         if (forceCenter) return focusCameraOnTile(unit.tileX.toFloat(), unit.tileY.toFloat(), true)
         return battleCamera.ensureVisible(screenX, screenY)
     }
+
+    /**
+     * `focusCameraOnTile`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     internal fun focusCameraOnTile(tileX: Float, tileY: Float, forceCenter: Boolean = false): Boolean {
         configureSourceCameraViewport()
@@ -6445,7 +10620,17 @@ void main() {
         return battleCamera.ensureVisible(screenX, screenY)
     }
 
+    /**
+     * `recordSourceCameraCenter`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun recordSourceCameraCenter(tileX: Float, tileY: Float) {
+
+        /**
+         * `jsNumber`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun jsNumber(value: Float): String =
             if (value.isFinite() && value == value.toInt().toFloat()) value.toInt().toString() else value.toString()
@@ -6456,12 +10641,27 @@ void main() {
         )
     }
 
+    /**
+     * `configureSourceCameraViewport`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun configureSourceCameraViewport() {
         battleCamera.configureViewport(1488.3721f, 800f)
     }
 
+    /**
+     * `drawScriptDialogue`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawScriptDialogue(componentStage: String? = null) {
         val dialogue = scriptRuntime.currentDialogue ?: return
+        // 프레임·렌더 이벤트 캡처는 기존 SpriteBatch 좌표 경로를 보존하고, 실제 전투 화면은 공용 Scene2D 창을 쓴다.
+        if (componentStage == null && !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()) {
+            drawSharedBattleDialogue(dialogue)
+            return
+        }
         val includePortrait =
             componentStage == null || componentStage in setOf("portrait", "speaker", "text", "background", "characters")
         val includeSpeaker =
@@ -6470,21 +10670,18 @@ void main() {
         val speakerUnit = dialogue.speakerId?.toIntOrNull()?.let { characterId ->
             (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
         }
-        val speakerScreenCenterY = speakerUnit?.let { unit ->
-            val (_, visualY) = visualTile(unit)
-            1776f + battleCamera.y - visualY * 96f
-        }
-        val dialoguePanelY = speakerScreenCenterY?.let { centerY ->
-            if (centerY < viewport.worldHeight / 2f) centerY + 92f else centerY - 328f
-        } ?: 282f
-        val dialogueFaceY = dialoguePanelY - 2f
-        val dialogueTextY = dialoguePanelY + 40.314f
+        val dialoguePlacement = battleDialoguePlacement(speakerUnit)
+        val dialoguePanelY = dialoguePlacement.panelY
+        val dialogueFaceY = dialoguePlacement.portraitY
+        val dialogueTextY = dialoguePlacement.textBaselineY - 59.5f
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         // DialogueLayer/bg0/bg2는 이 Cocos 월드 위치에서 U_select_11-1을 344×84에서 796×212로 나인 슬라이스한다.
         batch.color = Color.WHITE
-        hudAssets.dialoguePanelTexture?.let { texture -> batch.draw(texture, 245.65f, dialoguePanelY, 796f, 212f) }
+        hudAssets.dialoguePanelTexture?.let { texture ->
+            batch.draw(texture, dialoguePlacement.panelX, dialoguePanelY, dialoguePlacement.panelWidth, dialoguePlacement.panelHeight)
+        }
         val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
         speaker?.takeIf { includePortrait }?.let { profile ->
             val headId = profile.face + 8
@@ -6496,30 +10693,43 @@ void main() {
             texture?.let {
                 batch.color = Color.WHITE
                 // 실제 Cocos 노드는 96×120에 2배 배율이므로, 프레임버퍼에서 (1160.62, 450) 주변의 192×240 영역을 차지한다.
-                batch.draw(texture, 1064.62f, dialogueFaceY, 192f, 240f)
+                val portraitBounds = DialoguePortraitGeometry.fit(
+                    it,
+                    dialoguePlacement.portraitX,
+                    dialogueFaceY,
+                    dialoguePlacement.portraitWidth,
+                    dialoguePlacement.portraitHeight,
+                )
+                batch.draw(
+                    texture,
+                    portraitBounds.x,
+                    portraitBounds.y,
+                    portraitBounds.width,
+                    portraitBounds.height,
+                )
             }
         }
         if (includeSpeaker) dialogueFont.color = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f)
         if (includeSpeaker && dialogue.speakerId == "477" && hudAssets.yingchuan477SpeakerTexture != null) {
             batch.color = Color.WHITE
-            batch.draw(hudAssets.yingchuan477SpeakerTexture, 306.65f, dialoguePanelY + 160.9f, 93.8f, 33.2f)
+            batch.draw(hudAssets.yingchuan477SpeakerTexture, dialoguePlacement.speakerX - .58f, dialoguePanelY + 160.9f, 93.8f, 33.2f)
         } else if (includeSpeaker) {
             dialogueFont.data.setScale(1.013f, 1.04f)
             val speakerText = speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty()
-            val speakerBaselineY = dialoguePanelY + 189.40f
+            val speakerBaselineY = dialoguePlacement.speakerBaselineY
             dialogueFont.color = Color(102f / 255f, 1f, 1f, 1f)
             listOf(
                 -2f to 0f, 2f to 0f, 0f to -2f, 0f to 2f,
                 -1.414f to -1.414f, -1.414f to 1.414f,
                 1.414f to -1.414f, 1.414f to 1.414f,
             ).forEach { (dx, dy) ->
-                dialogueFont.draw(batch, speakerText, 307.23f + dx, speakerBaselineY + dy)
+                dialogueFont.draw(batch, speakerText, dialoguePlacement.speakerX + dx, speakerBaselineY + dy)
             }
             dialogueFont.color = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f)
             dialogueFont.draw(
                 batch,
                 speakerText,
-                307.23f,
+                dialoguePlacement.speakerX,
                 speakerBaselineY,
             )
         }
@@ -6527,7 +10737,7 @@ void main() {
         if (includeBody && dialogue.speakerId == "477" && dialogueReveal.visibleText == "아!" && hudAssets.yingchuan477BodyTexture != null) {
             batch.color = Color.BLACK
             // Cocos 캔버스 글리프 잘라내기는 2배 맵 변환 뒤 폭이 30px이다.
-            batch.draw(hudAssets.yingchuan477BodyTexture, 273.9f, dialoguePanelY + 108.4f, 37.5f, 33.6f)
+            batch.draw(hudAssets.yingchuan477BodyTexture, dialoguePlacement.textX - 4.805f, dialoguePanelY + 108.4f, 37.5f, 33.6f)
             batch.color = Color.WHITE
         } else if (includeBody) {
             val cocosTexture = dynamicTextures.richText(dialogueReveal.visibleText)
@@ -6536,14 +10746,14 @@ void main() {
                 batch.draw(
                     cocosTexture.texture,
                     cocosTexture.worldX - .58f,
-                    dialoguePanelY + 99.814f - .58f,
+                    dialoguePlacement.textBaselineY - .58f,
                     cocosTexture.drawWidth,
                     cocosTexture.drawHeight,
                 )
             } else {
                 dialogueFont.data.setScale(1f, .98f)
                 dialogueFont.draw(
-                    batch, dialogueReveal.visibleText, 278.705f, dialogueTextY - 0.58f, 728f, Align.left, true
+                batch, dialogueReveal.visibleText, dialoguePlacement.textX, dialogueTextY - 0.58f, dialoguePlacement.textWidth, Align.left, true
                 )
                 dialogueFont.data.setScale(1f)
             }
@@ -6552,7 +10762,48 @@ void main() {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
     }
 
+    /** 전투 대사 블렌드 경로를 공용 DialogueRenderer로 그린다. */
+    private fun drawSharedBattleDialogue(dialogue: Dialogue) {
+        val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
+        val speakerUnit = dialogue.speakerId?.toIntOrNull()?.let { characterId ->
+            (battle.units.values + battle.presentation.pendingPresentationUnits())
+                .firstOrNull { it.characterId == characterId && it.visible }
+        }
+        val placement = battleDialoguePlacement(speakerUnit)
+        val model = DialogueOverlayModel(
+            dialogue = DialogueRenderModel(
+                speaker = speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
+                visibleText = dialogueReveal.visibleText,
+                portraitId = speaker?.face?.plus(8),
+                panelXOverride = placement.panelX,
+                panelYOverride = placement.panelY,
+                componentPlacement = placement,
+            ),
+        )
+        battleDialogueScene2dHost.value.render(model, 0f)
+    }
+
+    /** 원본 SayLayer의 화자 카메라 중심 좌표를 공용 Scene2D 대화 구성 요소의 배치값으로 변환한다. */
+    private fun battleDialoguePlacement(speakerUnit: BattleUnit?) = BattleDialoguePlacementPolicy.place(
+        speakerScreenCenterY = speakerUnit?.let { unit ->
+            val (_, visualY) = visualTile(unit)
+            1776f + battleCamera.y - visualY * 96f
+        },
+        viewportHeight = viewport.worldHeight,
+    )
+
+    /**
+     * `advanceBattleDialogue`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun advanceBattleDialogue() {
+        val sessionTransition = dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm)
+        if (sessionTransition == DialogueSessionTransition.TextRevealed) {
+            dialogueReveal.revealAllIfPending()
+            sayAutoClose.reset()
+            return
+        }
         if (dialogueReveal.revealAllIfPending()) {
             sayAutoClose.reset()
             return
@@ -6572,11 +10823,23 @@ void main() {
         syncScriptedUnits()
     }
 
+    /**
+     * `confirmBattleChoice`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun confirmBattleChoice() {
+        val sessionTransition = dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm)
+        if (sessionTransition !is DialogueSessionTransition.ChoiceConfirmed && sessionTransition != DialogueSessionTransition.Ignored) return
         scriptRuntime.confirmChoice()
         syncScriptedUnits()
         completeTurnScriptIfReady()
     }
+
+    /**
+     * `drawScriptChoice`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawScriptChoice() {
         val choice = scriptRuntime.currentChoice ?: return
@@ -6601,6 +10864,11 @@ void main() {
         font.draw(batch, "↑↓ 선택 · Enter / 클릭 확정", 850f, 72f)
         batch.end()
     }
+
+    /**
+     * `drawScriptInfoLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawScriptInfoLayer() {
         if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) return
@@ -6627,6 +10895,11 @@ void main() {
         font.data.setScale(1f)
         batch.end()
     }
+
+    /**
+     * `runBattleScript`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     internal fun runBattleScript(clickedCharacterId: Int? = null, contextCampOverride: Int? = null) {
         if (verification.active || scriptRuntime.state != PlaybackState.COMPLETE) return
@@ -6681,6 +10954,11 @@ void main() {
         scriptRuntime.stage.scriptedBattleOutcome?.let(battle::setScriptedOutcome)
     }
 
+    /**
+     * `syncDialogueSpeakerPresentation`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun syncDialogueSpeakerPresentation() {
         val dialogue = scriptRuntime.currentDialogue
         if (dialogue == null) {
@@ -6692,8 +10970,13 @@ void main() {
         positionedDialogueRevision = scriptRuntime.dialogueRevision
         val characterId = dialogue.speakerId?.toIntOrNull() ?: return
         (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
-            ?.let(::focusCameraOn)
+            ?.let { unit -> focusCameraOn(unit, forceCenter = true) }
     }
+
+    /**
+     * `syncScriptedUnits`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun syncScriptedUnits() {
         if (scriptRuntime.stage.battleMaxRoundsIncludesFeature) battle.setResolvedMaxRounds(scenarioMaxRound())
@@ -6733,25 +11016,25 @@ void main() {
         }
         scriptRuntime.stage.units.values.forEach { scripted ->
             (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
-                    it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
-                }?.apply {
-                    val before = scriptUnitBaseline?.get(scripted.id)
-                    if (scripted.moveDuration <= 0f && before != null && (scripted.x != before.x || scripted.y != before.y)) {
-                        tileX = scripted.x
-                        tileY = scripted.y
-                        hasAuthoredTileX = true
-                        hasAuthoredTileY = true
-                    }
-                    if (before == null || scripted.visible != before.visible) {
-                        visible = scripted.visible
-                        if (before != null && visible) focusCameraOn(this)
-                    }
-                    if (before == null || scripted.ai != before.ai) ai = scripted.ai
-                    if (before == null || scripted.aiTargetId != before.targetId) aiTargetCharacterId =
-                        scripted.aiTargetId
-                    if (before == null || scripted.aiTargetX != before.targetX) aiTargetX = scripted.aiTargetX
-                    if (before == null || scripted.aiTargetY != before.targetY) aiTargetY = scripted.aiTargetY
+                it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
+            }?.apply {
+                val before = scriptUnitBaseline?.get(scripted.id)
+                if (scripted.moveDuration <= 0f && before != null && (scripted.x != before.x || scripted.y != before.y)) {
+                    tileX = scripted.x
+                    tileY = scripted.y
+                    hasAuthoredTileX = true
+                    hasAuthoredTileY = true
                 }
+                if (before == null || scripted.visible != before.visible) {
+                    visible = scripted.visible
+                    if (before != null && visible) focusCameraOn(this)
+                }
+                if (before == null || scripted.ai != before.ai) ai = scripted.ai
+                if (before == null || scripted.aiTargetId != before.targetId) aiTargetCharacterId =
+                    scripted.aiTargetId
+                if (before == null || scripted.aiTargetX != before.targetX) aiTargetX = scripted.aiTargetX
+                if (before == null || scripted.aiTargetY != before.targetY) aiTargetY = scripted.aiTargetY
+            }
         }
         scriptRuntime.stage.consumeScriptedUnitLevelChanges().forEach { change ->
             val scripted = scriptRuntime.stage.battleUnitForCharacterId(change.unitId) ?: return@forEach
@@ -6799,39 +11082,39 @@ void main() {
         }
         scriptRuntime.stage.consumeScriptedUnitDirections().forEach { (characterId, direction) ->
             (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
-                    it.id == scriptRuntime.stage.battleUnitForCharacterId(characterId)?.battleId
-                }?.direction = direction
+                it.id == scriptRuntime.stage.battleUnitForCharacterId(characterId)?.battleId
+            }?.direction = direction
         }
         scriptRuntime.stage.units.values.forEach { scripted ->
             (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
-                    it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
-                }?.let { unit ->
-                    if (scripted.moveDuration > 0f) {
-                        unit.direction = scripted.direction
-                        scriptedUnitPresentation.setVisual(
-                            unit.id,
-                            ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed),
-                        )
-                        scriptedMovementCameraCursors.getOrPut(scripted.id, ::MovementCameraTickCursor).crossed(
-                                scripted.movePath,
-                                BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
-                                scripted.moveElapsed,
-                            ).forEach { sample ->
-                                focusCameraOnTile(sample.x, sample.y)
-                            }
-                    } else if (scriptedUnitPresentation.visual(unit.id)?.action == 20) {
-                        scriptedMovementCameraCursors[scripted.id]?.crossed(
-                                scripted.movePath,
-                                BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
-                                scripted.moveElapsed,
-                            )?.forEach { sample ->
-                                focusCameraOnTile(sample.x, sample.y)
-                            }
-                        scriptedUnitPresentation.clearVisual(unit.id)
-                        scriptedMovementCameraCursors.remove(scripted.id)
-                        unit.direction = scripted.direction
+                it.id == scriptRuntime.stage.battleUnitForCharacterId(scripted.id)?.battleId
+            }?.let { unit ->
+                if (scripted.moveDuration > 0f) {
+                    unit.direction = scripted.direction
+                    scriptedUnitPresentation.setVisual(
+                        unit.id,
+                        ScriptedUnitVisual(20, animationClock() - scripted.animationElapsed),
+                    )
+                    scriptedMovementCameraCursors.getOrPut(scripted.id, ::MovementCameraTickCursor).crossed(
+                        scripted.movePath,
+                        BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
+                        scripted.moveElapsed,
+                    ).forEach { sample ->
+                        focusCameraOnTile(sample.x, sample.y)
                     }
+                } else if (scriptedUnitPresentation.visual(unit.id)?.action == 20) {
+                    scriptedMovementCameraCursors[scripted.id]?.crossed(
+                        scripted.movePath,
+                        BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
+                        scripted.moveElapsed,
+                    )?.forEach { sample ->
+                        focusCameraOnTile(sample.x, sample.y)
+                    }
+                    scriptedUnitPresentation.clearVisual(unit.id)
+                    scriptedMovementCameraCursors.remove(scripted.id)
+                    unit.direction = scripted.direction
                 }
+            }
         }
         applyScriptedAttacks()
         scriptedUnitActions.consumeStarts()
@@ -6843,6 +11126,11 @@ void main() {
             )
         }
     }
+
+    /**
+     * `applyScriptedAttacks`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun applyScriptedAttacks() {
         scriptRuntime.stage.consumeScriptedAttacks().forEach { action ->
@@ -6870,6 +11158,11 @@ void main() {
             )
         }
     }
+
+    /**
+     * `applyScriptedStatuses`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun applyScriptedStatuses() {
         scriptRuntime.stage.consumeUnitStatuses().forEach { change ->
@@ -6939,6 +11232,11 @@ void main() {
         }
     }
 
+    /**
+     * `battleStatus`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleStatus(sourceState: Int): BattleStatus? = when (sourceState) {
         7 -> BattleStatus.PARALYSIS
         8 -> BattleStatus.SILENCE
@@ -6948,7 +11246,17 @@ void main() {
         else -> null
     }
 
+    /**
+     * `battleAttribute`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun battleAttribute(sourceState: Int): BattleAttribute? = BattleAttribute.entries.getOrNull(sourceState)
+
+    /**
+     * `Faction`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun Faction.label(): String = when (this) {
         Faction.PLAYER -> "아군"
@@ -6957,12 +11265,22 @@ void main() {
         Faction.REINFORCEMENTS -> "적 증원군"
     }
 
+    /**
+     * `Faction`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Faction.scriptCamp(): Int = when (this) {
         Faction.PLAYER -> 0
         Faction.FRIEND -> 1
         Faction.ENEMY -> 2
         Faction.REINFORCEMENTS -> 3
     }
+
+    /**
+     * `BattleWeather`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun BattleWeather.label(): String = when (this) {
         BattleWeather.CLEAR -> "맑음"
@@ -6972,9 +11290,19 @@ void main() {
         BattleWeather.SNOW -> "눈"
     }
 
+    /**
+     * `scenarioMaxRound`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun scenarioMaxRound(): Int = scriptRuntime.stage.battleMaxRounds.takeIf { it != 99 }
         ?: Regex("턴\\s*수가\\s*(\\d+)").find(scriptRuntime.stage.winCondition)?.groupValues?.getOrNull(1)?.toIntOrNull()
         ?: 99
+
+    /**
+     * `battleAvatarId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun battleAvatarId(unit: BattleUnit): Int? {
         loadedBattleAvatarIds[unit.id]?.let { return it }
@@ -6983,11 +11311,31 @@ void main() {
             ?.also { loadedBattleAvatarIds[unit.id] = it }
     }
 
+    /**
+     * `unitTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun unitTexture(unit: BattleUnit): Texture? = battleAvatarId(unit)?.let(dynamicTextures::unitMovement)
+
+    /**
+     * `attackTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun attackTexture(unit: BattleUnit): Texture? = battleAvatarId(unit)?.let(dynamicTextures::attack)
 
+    /**
+     * `specialTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun specialTexture(unit: BattleUnit): Texture? = battleAvatarId(unit)?.let(dynamicTextures::special)
+
+    /**
+     * `battleDirection`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun battleDirection(actorId: String, targetId: String?): Int {
         val actor = battle.units[actorId] ?: return 2
@@ -7000,15 +11348,30 @@ void main() {
         } else if (actor.tileX > target.tileX) 3 else 1
     }
 
+    /**
+     * `sourceActionAnimation`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun sourceActionAnimation(
         unitId: String, action: Int, direction: Int, startedAt: Float = animationClock()
     ): UnitActionAnimation {
+        /**
+         * `duration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val duration = requireSourceActionDuration(action, direction)
         battle.presentation.presentationUnit(unitId)?.direction = direction
         return UnitActionAnimation(
             unitId, UnitAnimationKind.ATTACK, direction, startedAt, startedAt + duration, sourceAction = action
         )
     }
+
+    /**
+     * `scheduleHitReaction`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun scheduleHitReaction(unitId: String, direction: Int, startsAt: Float, endsAt: Float, sourceAction: Int) {
         val previousDirection = battle.presentation.presentationUnit(unitId)?.direction
@@ -7030,6 +11393,11 @@ void main() {
         )
     }
 
+    /**
+     * `requireSourceActionDuration`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun requireSourceActionDuration(action: Int, direction: Int): Float =
         requireNotNull(battleSprites.duration(action, direction).takeIf { it > 0f }) {
             "원본 BRAnime anime$action 방향 $direction 클립이 없습니다"
@@ -7044,19 +11412,24 @@ void main() {
             BattleUnitMoveTimeline.sample(move.path, move.timeline, elapsed.coerceAtMost(move.timeline.idleAt))
         if (animationClock() < move.endsAt) unit.direction = current.direction
         move.cameraTickCursor.crossed(move.path, move.timeline, elapsed).forEach { sample ->
-                focusCameraOnTile(sample.x, sample.y)
-            }
+            focusCameraOnTile(sample.x, sample.y)
+        }
     }
+
+    /**
+     * `visualTile`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun visualTile(unit: BattleUnit): Pair<Float, Float> {
         backMoveAnimations[unit.id]?.takeIf { animationClock() < it.endsAt }?.let { animation ->
-                val fraction =
-                    ((animationClock() - animation.startedAt) / (animation.endsAt - animation.startedAt)).coerceIn(
-                        0f,
-                        1f
-                    )
-                return (animation.move.fromX + (animation.move.toX - animation.move.fromX) * fraction) to (animation.move.fromY + (animation.move.toY - animation.move.fromY) * fraction)
-            }
+            val fraction =
+                ((animationClock() - animation.startedAt) / (animation.endsAt - animation.startedAt)).coerceIn(
+                    0f,
+                    1f
+                )
+            return (animation.move.fromX + (animation.move.toX - animation.move.fromX) * fraction) to (animation.move.fromY + (animation.move.toY - animation.move.fromY) * fraction)
+        }
         movementAnimation?.takeIf { it.unitId == unit.id && animationClock() < it.endsAt }
             ?.let { move -> BattleUnitMoveTimeline.sample(move.path, move.timeline, animationClock() - move.startedAt) }
             ?.let { return it.x to it.y }
@@ -7065,8 +11438,15 @@ void main() {
         return unit.tileX.toFloat() to unit.tileY.toFloat()
     }
 
+    /**
+     * `dispose`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun dispose() {
         unitPresentationStore.clear()
+        if (battleDialogueScene2dHost.isInitialized()) battleDialogueScene2dHost.value.dispose()
+        if (battleDialogueScene2dSkin.isInitialized()) battleDialogueScene2dSkin.value.dispose()
         audio.dispose()
         font.dispose()
         dialogueFont.dispose()
@@ -7085,6 +11465,11 @@ void main() {
     }
 
 }
+
+/**
+ * `BattleDeathCheckpoint`: 조건과 입력 상태를 검증한다.
+ * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
 
 private fun BattleDeathCheckpoint.toDeathTimelineCheckpoint(): BattleDeathPresentationTimeline.Checkpoint =
     when (this) {

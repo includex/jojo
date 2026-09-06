@@ -8,23 +8,88 @@ class NoticeInfoLayer {
 
     /** 알림 패널의 표시 위치, 슬라이드 상태, 현재 메시지 목록을 노출한다. */
     data class View(
+        /**
+         * `shown` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val shown: Boolean,
+        /**
+         * `sliding` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sliding: Boolean,
+        /**
+         * `bgY` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val bgY: Float,
+        /**
+         * `messages` (List<String>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val messages: List<String>,
+        /**
+         * `poolSize` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val poolSize: Int,
     )
 
+    /**
+     * `messages` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val messages = ArrayDeque<String>()
+    /**
+     * `poolSize` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var poolSize = 1
+    /**
+     * `slideElapsed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var slideElapsed = 0f
+    /**
+     * `slideStartY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var slideStartY = HIDDEN_Y
+    /**
+     * `slideTargetY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var slideTargetY = HIDDEN_Y
+
+    /**
+     * `shown` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     var shown: Boolean = false
         private set
+    /**
+     * `sliding` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var sliding: Boolean = false
         private set
+    /**
+     * `bgY` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var bgY: Float = HIDDEN_Y
         private set
 
@@ -42,6 +107,11 @@ class NoticeInfoLayer {
         }
         return true
     }
+    /**
+     * `noticeMessage`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun noticeMessage(text: String): Boolean {
         if (!shown) return false
         check(poolSize > 0) { "NoticeInfoLayer lost its prefab cloning seed" }
@@ -56,6 +126,11 @@ class NoticeInfoLayer {
     }
 
 
+    /**
+     * `advance`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun advance(seconds: Float) {
         if (!sliding) return
         slideElapsed = (slideElapsed + seconds.coerceAtLeast(0f)).coerceAtMost(SLIDE_SECONDS)
@@ -69,16 +144,51 @@ class NoticeInfoLayer {
     }
 
 
+    /**
+     * `view`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun view() = View(shown, sliding, bgY, messages.toList(), poolSize)
 
     companion object {
+        /**
+         * `TOUCH_END` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val TOUCH_END = 2
+        /**
+         * `SLIDE_SECONDS` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val SLIDE_SECONDS = .6f
+        /**
+         * `MAX_MESSAGES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val MAX_MESSAGES = 50
+        /**
+         * `HIDDEN_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val HIDDEN_Y = -600f
+        /**
+         * `SHOWN_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val SHOWN_Y = -200f
     }
 }
+/**
+ * `NoticeDrawCommand`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class NoticeDrawCommand(
     val path: String,
     val type: String,
@@ -93,8 +203,18 @@ data class NoticeDrawCommand(
 /** 알림 패널의 배경·메시지 행·슬라이드 위치를 렌더 이벤트로 직렬화한다. */
 
 object NoticeInfoRenderer {
+    /**
+     * `PATH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val PATH = "Canvas/Layer/bg"
 
+
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun commands(view: NoticeInfoLayer.View): List<NoticeDrawCommand> = buildList {
         if (view.shown) {
@@ -133,6 +253,11 @@ object NoticeInfoRenderer {
     }
 
 
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, route: String, view: NoticeInfoLayer.View) {
         val phase = "battle-notice-$route"
         commands(view).forEach { command ->
@@ -153,9 +278,24 @@ object NoticeInfoRenderer {
     }
 
 
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun jsonl(route: String, view: NoticeInfoLayer.View): String =
         RenderEventLog().also { append(it, route, view) }.jsonl()
 
+    /**
+     * `ROW_HEIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val ROW_HEIGHT = 40.76f
+    /**
+     * `VISIBLE_ROWS` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val VISIBLE_ROWS = 10
 }

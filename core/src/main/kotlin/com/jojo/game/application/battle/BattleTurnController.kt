@@ -21,21 +21,69 @@ import com.jojo.game.domain.battle.turn.BattleTurnSnapshot
 
 /** BattleTurnController: 전투 턴 수명주기 조정기로, 진영 전환·표현 콜백·라운드 처리를 정해진 순서로 진행한다. */
 class BattleTurnController(
+    /**
+     * `battle` (Battle,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val battle: Battle,
+    /**
+     * `showCamp` ((BattleCampCard) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val showCamp: (BattleCampCard) -> Unit,
+    /**
+     * `runCampScript` ((Faction) -> Boolean,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val runCampScript: (Faction) -> Boolean,
+    /**
+     * `runAi` ((Faction) -> AiTurnResult,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val runAi: (Faction) -> AiTurnResult,
+    /**
+     * `hasPendingAiPresentation` (() -> Boolean): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val hasPendingAiPresentation: () -> Boolean = { false },
+    /**
+     * `presentCampState` ((CampSettlement) -> Boolean): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val presentCampState: (CampSettlement) -> Boolean = { true },
+    /**
+     * `presentDeaths` ((BattleDeathCheckpoint) -> Boolean): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val presentDeaths: (BattleDeathCheckpoint) -> Boolean = { true },
+    /**
+     * `presentCampRestore` ((CampSettlement) -> Boolean): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val presentCampRestore: (CampSettlement) -> Boolean = { true },
+    /**
+     * `runRoundScript` ((RoundAdvance) -> Boolean): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val runRoundScript: (RoundAdvance) -> Boolean = { true },
     /** deferSynchronousRoundScriptCompletion: 동기 라운드 스크립트 완료를 다음 프레임으로 미룰지 나타내는 제어 값이다. */
     private val deferSynchronousRoundScriptCompletion: Boolean = false,
+    /**
+     * `presentWeather` ((WeatherTransition) -> Boolean): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val presentWeather: (WeatherTransition) -> Boolean = { true },
+    /**
+     * `onCampEvents` ((TurnResult) -> Unit): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onCampEvents: (TurnResult) -> Unit = {},
     initialPhase: BattleTurnPhase = BattleTurnPhase.PLAYER_INPUT,
 ) {
+    /**
+     * `state` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val state = BattleTurnRuntimeState(initialPhase)
 
     /** snapshot: 표현 계층과 테스트가 읽는 현재 턴 상태의 불변 투영이다. */
@@ -79,6 +127,11 @@ class BattleTurnController(
     }
 
 
+    /**
+     * `completeCampStatePresentation`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun completeCampStatePresentation() {
         check(state.phase == BattleTurnPhase.CAMP_STATE) { "state completion outside camp-state phase" }
         val fired = battle.roundLifecycle.runActiveCampEvents()
@@ -94,6 +147,11 @@ class BattleTurnController(
         if (presentDeaths(BattleDeathCheckpoint.CAMP_START)) completeCampDeathPresentation()
     }
 
+
+    /**
+     * `completeCampDeathPresentation`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun completeCampDeathPresentation() {
         check(state.phase == BattleTurnPhase.CAMP_DEATHS) { "death completion outside camp-death phase" }
@@ -125,12 +183,22 @@ class BattleTurnController(
     }
 
 
+    /**
+     * `completeCampRestorePresentation`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun completeCampRestorePresentation() {
         check(state.phase == BattleTurnPhase.CAMP_RESTORE) { "restore completion outside camp-restore state.phase" }
         state.phase = BattleTurnPhase.CAMP_RESTORE_DEATHS
         if (presentDeaths(BattleDeathCheckpoint.CAMP_RESTORE)) completeCampRestoreDeathPresentation()
     }
 
+
+    /**
+     * `completeCampRestoreDeathPresentation`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun completeCampRestoreDeathPresentation() {
         check(state.phase == BattleTurnPhase.CAMP_RESTORE_DEATHS) { "death completion outside restore-death phase" }
@@ -139,12 +207,22 @@ class BattleTurnController(
     }
 
 
+    /**
+     * `completeRoundScript`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun completeRoundScript() {
         check(state.phase == BattleTurnPhase.ROUND_SCRIPT) { "round script completion outside round-script phase" }
         state.phase = BattleTurnPhase.ROUND_DEATHS
         if (presentDeaths(BattleDeathCheckpoint.ROUND_START)) completeRoundDeathPresentation()
     }
 
+
+    /**
+     * `completeRoundDeathPresentation`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun completeRoundDeathPresentation() {
         check(state.phase == BattleTurnPhase.ROUND_DEATHS) { "death completion outside round-death phase" }
@@ -157,10 +235,20 @@ class BattleTurnController(
     }
 
 
+    /**
+     * `completeWeatherPresentation`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun completeWeatherPresentation() {
         check(state.phase == BattleTurnPhase.WEATHER) { "weather completion outside weather phase" }
         enterNextCamp()
     }
+
+    /**
+     * `beginCampRestore`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun beginCampRestore() {
         // 원본은 종료 조건이 복원·사망 처리를 건너뛰지 않게 한다. 치명적인
@@ -171,6 +259,11 @@ class BattleTurnController(
         if (presentCampRestore(settlement)) completeCampRestorePresentation()
     }
 
+    /**
+     * `beginRoundBoundary`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun beginRoundBoundary() {
         val advance = battle.roundLifecycle.advanceRound()
         state.lastRoundAdvance = advance
@@ -178,6 +271,11 @@ class BattleTurnController(
         val completedSynchronously = runRoundScript(advance)
         if (completedSynchronously && !deferSynchronousRoundScriptCompletion) completeRoundScript()
     }
+
+    /**
+     * `enterNextCamp`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun enterNextCamp() {
         if (finishIfBattleEnded()) return
@@ -194,6 +292,11 @@ class BattleTurnController(
         }
     }
 
+    /**
+     * `beginCampState`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun beginCampState() {
         val settlement = battle.roundLifecycle.settleActiveCampStart()
         state.lastCampSettlement = settlement
@@ -201,10 +304,20 @@ class BattleTurnController(
         if (presentCampState(settlement)) completeCampStatePresentation()
     }
 
+    /**
+     * `beginCampScript`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun beginCampScript() {
         state.phase = BattleTurnPhase.CAMP_SCRIPT
         if (runCampScript(battle.activeFaction)) completeCampScript()
     }
+
+    /**
+     * `finishIfBattleEnded`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun finishIfBattleEnded(): Boolean {
         if (battle.outcome() == null) return false

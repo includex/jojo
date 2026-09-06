@@ -147,6 +147,11 @@ internal class VerificationArtifactObserver(
     }
 }
 
+/**
+ * `Screen`: 타입의 핵심 동작을 수행한다.
+ * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
+
 private fun Screen?.eventLog(state: String?): String = when (this) {
     is CmdRouteScreen -> renderEventLog()
     is ModalLoadRouteScreen -> renderEventLog()
@@ -155,6 +160,11 @@ private fun Screen?.eventLog(state: String?): String = when (this) {
     is BattleScreen -> renderEventLog()
     else -> "{\"state\":\"unavailable\"}\n"
 }
+
+/**
+ * `Screen`: 타입의 핵심 동작을 수행한다.
+ * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
 
 private fun Screen?.compositionTrace(): String = when (this) {
     is ScenarioScreen -> ScenarioCompositionEvidenceRecorder().record(runtimeSnapshot().composition)

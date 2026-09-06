@@ -4,11 +4,36 @@ import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
+/**
+ * `RaffleGateRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 object RaffleGateRenderEvents {
+    /**
+     * `PHASE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val PHASE = "hall-raffle-gated-stable"
+    /**
+     * `alpha` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val alpha = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun jsonl(): String = RenderEventLog().apply {
+
+        /**
+         * `d`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun d(
             layer: String,
@@ -25,6 +50,11 @@ object RaffleGateRenderEvents {
         ) =
             draw(PHASE, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
 
+        /**
+         * `e`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun e(
             path: String,
             type: String,
@@ -38,6 +68,11 @@ object RaffleGateRenderEvents {
             blend: Any = listOf(770, 771)
         ) =
             d("SettingLayer", path, type, x, y, w, h, asset, text, opacity, blend)
+
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 50.4f) =
             e(path, "label", x, y, w, h, text = text, blend = alpha)
@@ -98,6 +133,11 @@ object RaffleGateRenderEvents {
             label("$p/Label", text, r[2], r[1] - 6f, 526f, 40f)
         }
 
+        /**
+         * `panel`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun panel(i: Int, y: Float, bx: Float, by: Float, bw: Float, title: String) {
             val p = "Canvas/Layer/bg/scrollview/view/content/panel$i"; e(
                 p,
@@ -117,6 +157,11 @@ object RaffleGateRenderEvents {
                 "bg1"
             ); label("$p/bg1/label", title, bx, by, bw)
         }
+
+        /**
+         * `radios`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun radios(i: Int, y: Float, selected: Int, values: List<String>) {
             val xs = floatArrayOf(818.346f, 974.286f, 1119.419f)
@@ -161,6 +206,11 @@ object RaffleGateRenderEvents {
             "default_radio_button_off"
         )
         panel(2, 256.389f, 839.673f, 331.481f, 149.51f, "정보 설명"); radios(2, 281.638f, 1, listOf("자세히", "보통", "요약"))
+        /**
+         * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val p = "Canvas/Layer/bg/scrollview/view/content/panel3"
         e(p, "sliced-sprite", 793.336f, 81.389f, 479.7f, 142f, "box1"); e(
         "$p/bg1",
@@ -172,6 +222,11 @@ object RaffleGateRenderEvents {
         "bg1"
     ); label("$p/bg1/label", "대화창 색상", 846.27f, 197.967f, 184.11f)
         floatArrayOf(831.12f, 933.12f, 1035.12f, 1137.12f).forEachIndexed { i, x ->
+            /**
+             * `q` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val q = "$p/item$i"; e(
             q,
             "sliced-sprite",

@@ -30,8 +30,11 @@ data class BattleAutoOverlayAssets(
 
 /** 자동 전투 확인창과 위임 안내를 그리는 렌더러입니다. */
 class BattleAutoOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `labelFont` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val labelFont: BitmapFont,
+    /** `assets` (BattleAutoOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleAutoOverlayAssets,
 ) {
     /** 현재 오버레이 상태를 화면에 그립니다. */
@@ -47,6 +50,11 @@ class BattleAutoOverlayRenderer(
         batch.color = Color.WHITE
         batch.end()
     }
+
+    /**
+     * `drawPrompt`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawPrompt(checked: Boolean) {
         for (ty in 0..3) for (tx in 0..6) {
@@ -68,6 +76,11 @@ class BattleAutoOverlayRenderer(
             labelFont.draw(batch, label, x + 25f, 310f, 100f, Align.center, false)
         }
     }
+
+    /**
+     * `drawTuoGuan`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTuoGuan() {
         batch.draw(assets.banner, 0f, 0f, 1488.372f, 264f)

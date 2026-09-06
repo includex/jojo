@@ -12,6 +12,11 @@ import java.nio.file.Path
 object CampaignE2eDesktopLauncher {
     /** main: 검증 실행 환경을 초기화하고 진입 흐름을 시작한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val options = CampaignE2eLaunchOptions.parse(args)
         val configuration = Lwjgl3ApplicationConfiguration().apply {

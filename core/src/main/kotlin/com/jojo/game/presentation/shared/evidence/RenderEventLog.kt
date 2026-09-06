@@ -5,7 +5,17 @@ import java.util.*
 
 /** RenderEventLog: 프레임별 그리기 호출을 결정적 JSONL 행으로 축적해 렌더링 비교 자료를 만든다. */
 class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int = 0) {
+    /**
+     * `lines` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val lines = mutableListOf<String>()
+
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun draw(
         phase: String,
@@ -22,6 +32,11 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
         visible: Boolean = true,
         text: String = "",
     ) {
+        /**
+         * `sequence` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sequence = sequenceOffset + lines.size
         lines += "{" +
                 // 검증 픽스처는 결정적인 시간을 사용한다. 실행 시간은 공용 스키마에 포함되지만 의미적 동등성 비교에는 사용하지 않는다.
@@ -40,9 +55,24 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
     }
 
 
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun jsonl(): String = lines.joinToString(separator = "\n", postfix = if (lines.isEmpty()) "" else "\n")
 
+    /**
+     * `number`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun number(value: Float): String = String.format(Locale.US, "%.3f", value)
+
+    /**
+     * `jsonValue`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun jsonValue(value: Any): String = when (value) {
         is String -> "\"${escape(value)}\""
@@ -54,6 +84,11 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
 
         else -> "\"${escape(value.toString())}\""
     }
+
+    /**
+     * `escape`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun escape(value: String): String = buildString(value.length) {
         value.forEach { char ->

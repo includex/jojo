@@ -36,6 +36,11 @@ object SpriteMatrixDump {
                 value("ticks").split(',').filter(String::isNotBlank).map(String::toInt),
             ))
         HeadlessApplication(object : ApplicationAdapter() {
+            /**
+             * `create`: 객체나 결과를 생성한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun create() {
                 if (profileIds.isNotEmpty()) {
                     val data = GameDataCatalog.load()

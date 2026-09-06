@@ -36,13 +36,24 @@ data class BattleRewardOverlayAssets(
 
 /** BattleRewardOverlayRenderer: 전투 보상 모달을 그리며, 단계에 따라 금전·아이템·종료 안내를 배치한다. */
 class BattleRewardOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `shapes` (ShapeRenderer): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val shapes: ShapeRenderer,
+    /** `titleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val titleFont: BitmapFont,
+    /** `bodyFont` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val bodyFont: BitmapFont,
+    /** `sectionTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val sectionTitleFont: BitmapFont,
+    /** `assets` (BattleRewardOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleRewardOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleRewardOverlayView) {
         view.phase?.let { phase ->
             shapes.projectionMatrix = batch.projectionMatrix
@@ -66,12 +77,22 @@ class BattleRewardOverlayRenderer(
         }
     }
 
+    /**
+     * `drawMoney`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawMoney(view: BattleRewardOverlayView) {
         labelPair("전투 종료", 527.747f, 615.617f, 519.916f, 627.594f)
         labelPair("보상금", 282.777f, 399.692f, 274.533f, 405.6f)
         labelPair(view.money.toString(), 967.617f, 399.007f, 958.035f, 405.6f)
         labelPair(view.stars, 531.389f, 204.017f, 521.806f, 207.313f)
     }
+
+    /**
+     * `drawItems`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawItems(view: BattleRewardOverlayView) {
         labelPair("전리품", 596.73f, 726.144f, 588.486f, 739.142f)
@@ -86,10 +107,20 @@ class BattleRewardOverlayRenderer(
         bodyFont.color = Color.WHITE
     }
 
+    /**
+     * `drawEnd`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawEnd(view: BattleRewardOverlayView) {
         labelPair("전투 종료", 527.747f, 488.023f, 519.916f, 500f)
         labelPair(view.money.toString(), 658f, 322f, 650f, 330f)
     }
+
+    /**
+     * `drawSection`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawSection() {
         batch.color = Color.WHITE
@@ -100,6 +131,11 @@ class BattleRewardOverlayRenderer(
         sectionTitleFont.draw(batch, "영천의 전투", 421.986f, 488.2f)
         batch.color = Color.WHITE
     }
+
+    /**
+     * `labelPair`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun labelPair(text: String, shadowX: Float, shadowBaseline: Float, x: Float, baseline: Float) {
         titleFont.color = Color(.3f, .3f, .3f, 1f)

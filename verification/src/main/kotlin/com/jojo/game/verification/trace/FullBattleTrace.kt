@@ -120,8 +120,18 @@ class FullBattleTraceRecorder(
     private val inputs = mutableListOf<String>()
     /** written: 기록 완료 여부 여부를 나타낸다. */
     private var written = false
+    /**
+     * `frameNumber` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var frameNumber = 0L
         private set
+
+    /**
+     * `recordedRowCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     var recordedRowCount = 0L
         private set

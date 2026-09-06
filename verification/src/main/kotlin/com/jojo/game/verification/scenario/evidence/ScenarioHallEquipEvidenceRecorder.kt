@@ -29,7 +29,17 @@ internal class ScenarioHallEquipEvidenceRecorder(
         }
         /** width: 렌더링 폭을 계산한다. */
         fun width(value: String) = if (value == "조조" || value == "군웅") 69.2f else 103.8f
+        /**
+         * `nameWidth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val nameWidth = width(input.unitName)
+        /**
+         * `postsWidth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val postsWidth = width(input.postsName)
         event("Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", opacity = .392f)
         event("Canvas/Layer/bg1", "tiled-sprite", 138.186f, 33.5f, 1212f, 733f, "Logo_9-1")
@@ -41,6 +51,11 @@ internal class ScenarioHallEquipEvidenceRecorder(
         button("Canvas/Layer/bg1/button7", "종료", 748.527f, 44f, 97f, 747.027f, 52f, 100f)
         button("Canvas/Layer/bg1/button8", "모두 해제", 573.685f, 44f, 173.2f, 580.285f, 52f, 160f)
         listOf("전부", "무기", "보구", "보조").forEachIndexed { index, value ->
+            /**
+             * `x` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val x = 144.186f + index * 150f; button("Canvas/Layer/bg1/button${10 + index}", value, x, 659f, 150f, x - 5f, 667f, 160f)
         }
         button("Canvas/Layer/bg1/button14", "정보", 145.76f, 44f, 99.7f, 115.61f, 52f, 160f)
@@ -51,6 +66,11 @@ internal class ScenarioHallEquipEvidenceRecorder(
         event("Canvas/Layer/bg1/button0/vline", "sprite", 1101.186f, 664.15f, 6f, 47.7f, "vline")
         label("Canvas/Layer/bg1/button0/label0", input.unitName, 1014.039f - nameWidth / 2f, 663.8f, nameWidth)
         label("Canvas/Layer/bg1/button0/label1", input.postsName, 1196.1f - postsWidth / 2f, 663.8f, postsWidth)
+        /**
+         * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val base = "Canvas/Layer/bg1/scrollview/view/content/box1"
         event("$base/face", "sprite", 894.812f, 413.337f, 192f, 240f, input.faceFrame.toString())
         if (input.variant == RuntimeScenarioOverlay.UNIT_LIST_CLOSE) event("$base/face/bg0", "sliced-sprite", 894.812f, 413.337f, 192f, 240f, "box2")
@@ -62,6 +82,11 @@ internal class ScenarioHallEquipEvidenceRecorder(
         listOf("HP" to (878.401f to 359.72f), "MP" to (1126.186f to 359.72f), "공격력" to (886.286f to 300.72f), "정신력" to (1134.286f to 300.72f), "방어력" to (886.286f to 240.72f), "폭발력" to (1134.286f to 240.72f), "사기" to (883.586f to 181.72f), "이동력" to (1134.286f to 181.72f)).forEach { (name, position) ->
             label("$base/label", name, position.first, position.second, if (name == "HP") 55.57f else if (name == "MP") 60f else if (name == "사기") 69.2f else 103.8f)
         }
+        /**
+         * `boxes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val boxes = listOf(floatArrayOf(1008.186f,359.92f,1014.816f,359.72f,66.74f), floatArrayOf(1257.186f,359.92f,1274.941f,359.72f,44.49f), floatArrayOf(1008.186f,300.92f,1025.941f,300.72f,44.49f), floatArrayOf(1257.186f,300.92f,1274.941f,300.72f,44.49f), floatArrayOf(1008.186f,240.92f,1025.941f,240.72f,44.49f), floatArrayOf(1257.186f,240.92f,1274.941f,240.72f,44.49f), floatArrayOf(1008.186f,181.92f,1025.941f,181.72f,44.49f), floatArrayOf(1257.186f,181.92f,1286.061f,181.72f,22.25f))
         boxes.forEachIndexed { index, box -> val value = input.stats.getOrElse(index) { 0 }.toString(); val w = if (value == "115" || value == "112") 63.77f else box[4]; event("$base/bg$index", "sliced-sprite", box[0], box[1], 80f, 50f, "box2"); label("$base/bg$index/label", value, box[0] + (80f - w) / 2f, box[3], w) }
         input.slots.take(3).forEachIndexed { index, slot -> appendSlot(event = ::event, label = ::label, index = index, slot = slot) }

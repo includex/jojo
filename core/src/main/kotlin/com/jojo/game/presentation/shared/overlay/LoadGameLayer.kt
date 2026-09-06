@@ -10,19 +10,49 @@ class LoadGameLayer(private val repository: Repository) {
     enum class RestoreRoute { HALL, BATTLE, HALL_AFTER_BATTLE }
 
 
+    /**
+     * `Repository`: 관련 상태와 동작을 묶는 interface다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     interface Repository {
+
+        /**
+         * `load`: 상태나 데이터를 조회한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun load(index: Int): String?
 
 
+        /**
+         * `savedPage`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun savedPage(): Int
 
+
+        /**
+         * `savePage`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun savePage(page: Int)
 
 
+        /**
+         * `featureEnabled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun featureEnabled(name: String): Boolean
 
+
+        /**
+         * `versionCode`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun versionCode(): Int
 
@@ -31,31 +61,126 @@ class LoadGameLayer(private val repository: Repository) {
     }
 
 
+    /**
+     * `Row`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Row(
+        /**
+         * `index` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val index: Int,
+        /**
+         * `time` (Long,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val time: Long,
+        /**
+         * `number` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val number: String,
+        /**
+         * `stage` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val stage: String,
+        /**
+         * `name` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name: String,
+        /**
+         * `occupied` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val occupied: Boolean,
     )
 
 
+    /**
+     * `Confirmation`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Confirmation(val index: Int, val message: String)
 
 
+    /**
+     * `View`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class View(
+        /**
+         * `page` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val page: Int,
+        /**
+         * `rows` (List<Row>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val rows: List<Row>,
+        /**
+         * `pageTogglesVisible` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val pageTogglesVisible: Boolean,
+        /**
+         * `attached` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attached: Boolean,
+        /**
+         * `confirmation` (Confirmation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val confirmation: Confirmation? = null,
+        /**
+         * `notice` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val notice: String? = null,
     )
 
+    /**
+     * `page` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var page = -1
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var attached = false
+    /**
+     * `pendingIndex` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingIndex: Int? = null
+    /**
+     * `view` (View?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var view: View? = null
 
     /** onCreate: 마지막으로 열었던 저장 페이지를 읽어 불러오기 화면을 초기화한다. */
@@ -126,15 +251,35 @@ class LoadGameLayer(private val repository: Repository) {
     }
 
 
+    /**
+     * `view`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun view(): View = requireNotNull(view) { "LoadGameLayer.onCreate must run before access" }
 
 
+    /**
+     * `pendingSlot`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun pendingSlot(): Int? = pendingIndex
+
+    /**
+     * `fail`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun fail(notice: String): Boolean {
         view = view().copy(confirmation = null, notice = notice)
         return false
     }
+
+    /**
+     * `decodeRow`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun decodeRow(index: Int): Row {
         val root = repository.load(index)?.takeIf { it.startsWith('{') }
@@ -152,9 +297,15 @@ class LoadGameLayer(private val repository: Repository) {
         )
     }
 
+    /**
+     * `number`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun number(index: Int) = "No.${(index + 1).toString().padStart(3, ' ')}"
 
     companion object {
+        /** `TOUCH_END` (상태 값): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
         const val TOUCH_END = 2
     }
 }

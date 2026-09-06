@@ -10,12 +10,47 @@ import java.nio.file.Path
 object ModelTraceHarness {
     /** Model: model 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private class Model {
+        /**
+         * `events` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val events = mutableListOf<String>()
+        /**
+         * `property` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val property = IntArray(8)
+        /**
+         * `vars` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val vars = linkedMapOf<String, Any>()
+        /**
+         * `gvars` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val gvars = linkedMapOf<String, Any>()
+        /**
+         * `pvars` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val pvars = linkedMapOf<String, Any>()
+        /**
+         * `event` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var event = ""
+        /**
+         * `stageName` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var stageName = ""
 
 
@@ -45,6 +80,11 @@ object ModelTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(a: Array<String>) {
         val m = Model()
         val body = when (a[2]) {

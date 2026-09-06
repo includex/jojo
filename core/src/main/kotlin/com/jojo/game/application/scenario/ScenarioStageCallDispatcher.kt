@@ -5,6 +5,11 @@ import com.badlogic.gdx.utils.JsonValue
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.PlaybackState
 
+/**
+ * `ScenarioStageCallEnvironment` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class ScenarioStageCallEnvironment(
     val moduleName: String,
     val stage: ScenarioStage,
@@ -31,7 +36,17 @@ internal data class ScenarioStageCallEnvironment(
     val conditionEnvironment: () -> ScenarioConditionEnvironment,
 )
 
+/**
+ * `interface`: 타입의 핵심 동작을 수행한다.
+ * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
+
 internal fun interface ScenarioStageCallFamily {
+    /**
+     * `dispatch`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun dispatch(
         path: String,
         node: JsonValue,
@@ -41,8 +56,22 @@ internal fun interface ScenarioStageCallFamily {
     ): ScenarioStageCallDispatcher.Result?
 }
 
+/**
+ * `ScenarioStageCallDispatcher` 싱글턴 객체: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal object ScenarioStageCallDispatcher {
+    /**
+     * `Result` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     class Result(val value: Any?)
+
+    /**
+     * `families` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
 
     private val families = listOf(
         ScenarioStageCallStateDispatcher,
@@ -50,6 +79,11 @@ internal object ScenarioStageCallDispatcher {
         ScenarioStageCallPresentationDispatcher,
         ScenarioStageCallConditionDispatcher,
     )
+
+    /**
+     * `dispatch`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun dispatch(
         path: String,

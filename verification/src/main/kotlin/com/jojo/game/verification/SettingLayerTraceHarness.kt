@@ -14,11 +14,21 @@ object SettingLayerTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
         val cases =
             Regex("""(?s)\{\s*"name"\s*:\s*"([^"]+)"\s*,\s*"initial"\s*:\s*\{([^}]*)}\s*,\s*"events"\s*:\s*\[([^]]*)]""")
                 .findAll(raw).map { m ->
+                    /**
+                     * `values` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val values = LinkedHashMap<String, Int>()
                     Regex(""""([^"]+)"\s*:\s*(-?\d+)""").findAll(m.groupValues[2])
                         .forEach { v -> values[v.groupValues[1]] = v.groupValues[2].toInt() }
@@ -46,6 +56,11 @@ object SettingLayerTraceHarness {
                     spec.values[key] = value; writes += key to value
                 }
             }
+            /**
+             * `sound` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val sound = object : SettingLayer.Sound {
                 /** music: 검증 입력을 처리하고 관련 상태를 갱신한다. */
                 override fun music(on: Boolean) {
@@ -57,6 +72,11 @@ object SettingLayerTraceHarness {
                     events += "effect:$on"
                 }
             }
+            /**
+             * `layer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val layer = SettingLayer(store, sound) { events += "applySpeed" }
             layer.onCreate()
 
@@ -69,8 +89,18 @@ object SettingLayerTraceHarness {
                 return "{\"step\":\"${json(step)}\",\"attached\":${v.attached},\"flags\":${v.flags},\"speed\":${v.speed},\"values\":{$values},\"writes\":$writeText,\"events\":$eventText}"
             }
 
+            /**
+             * `trace` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val trace = mutableListOf(snap("create"))
             spec.events.forEach { event ->
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = event.split(':')
                 when (p[0]) {
                     "flag" -> layer.check(p[1].toInt(), p[2].toBoolean())
@@ -84,6 +114,11 @@ object SettingLayerTraceHarness {
             }
             return trace.joinToString(",", "[", "]")
         }
+
+        /**
+         * `output` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val output = cases.joinToString(",", "{", "}") { "\"${json(it.name)}\":${run(it)}" }
         Files.createDirectories(Path.of(args[1]).parent)

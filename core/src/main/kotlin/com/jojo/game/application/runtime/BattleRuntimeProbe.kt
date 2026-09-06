@@ -51,9 +51,24 @@ data class BattleRuntimeSnapshot(
 
 /** BattleRuntimeProbe: 화면 구현을 노출하지 않고 자동 구동기에 전장 질의와 좌표 변환을 제공하는 계약이다. */
 interface BattleRuntimeProbe {
+    /**
+     * `snapshot` (BattleRuntimeSnapshot): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val snapshot: BattleRuntimeSnapshot
 
+    /**
+     * `reachableTiles`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun reachableTiles(unitId: String): Set<RuntimeGridPoint>
+
+    /**
+     * `canEnterTilesIgnoringEnemyWithinMoves`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun canEnterTilesIgnoringEnemyWithinMoves(
         unitId: String,
@@ -63,9 +78,24 @@ interface BattleRuntimeProbe {
         moves: Int = 2,
     ): Boolean
 
+    /**
+     * `physicalDamagePreview`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun physicalDamagePreview(attackerId: String, targetId: String): Int
 
+    /**
+     * `screenPoint`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun screenPoint(tile: RuntimeGridPoint): RuntimeGridPoint
+
+    /**
+     * `projectWorldPoint`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun projectWorldPoint(x: Float, y: Float): RuntimeGridPoint
 }

@@ -12,6 +12,11 @@ import com.jojo.game.application.runtime.ScenarioRunConfiguration
 object ScenarioTraceDesktopLauncher {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic fun main(args: Array<String>) {
+        /**
+         * `options` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val options = args.toList()
         /** value: 검증 입력을 처리하고 관련 상태를 갱신한다. */
         fun value(prefix: String) = options.firstOrNull { it.startsWith(prefix) }?.removePrefix(prefix)
@@ -21,19 +26,54 @@ object ScenarioTraceDesktopLauncher {
         fun map(prefix: String) = value(prefix)?.takeIf(String::isNotBlank)?.split(',')?.associate { token ->
             token.trim().split(':', limit = 2).let { it[0].toInt() to it[1].toInt() }
         }.orEmpty()
+        /**
+         * `positions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val positions = value("--verify-positions=")?.takeIf(String::isNotBlank)?.split(',')?.associate { token ->
             token.split(':').let { it[0].toInt() to (it[1].toInt() to it[2].toInt()) }
         }.orEmpty()
+        /**
+         * `campPositions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val campPositions = value("--verify-camp-positions=")?.takeIf(String::isNotBlank)?.split(',')
             ?.map { it.split(':').map(String::toInt) }?.groupBy({ it[0] }, { it[1] to it[2] }).orEmpty()
+        /**
+         * `attributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attributes = value("--verify-attributes=")?.takeIf(String::isNotBlank)?.split(',')
             ?.map { it.split(':').map(String::toInt) }?.groupBy({ it[0] }, { it[1] to it[2] })
             ?.mapValues { (_, values) -> values.associate { it } }.orEmpty()
+        /**
+         * `unitAttributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unitAttributes = value("--verify-unit-attrs=")?.takeIf(String::isNotBlank)?.split(',')?.map { token ->
             token.split(':').let { Triple(it[0].toInt(), it[1].toInt(), it[2].toInt()) }
         }.orEmpty()
+        /**
+         * `scenario` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scenario = value("--scenario=")?.uppercase() ?: "R_00"
+        /**
+         * `observer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val observer = ScenarioTraceRuntimeObserverFactory.create(options)
+        /**
+         * `configuration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val configuration = Lwjgl3ApplicationConfiguration().apply {
             setTitle("Jojo scenario trace verification"); setWindowedMode(1280, 688); setWindowPosition(0, 0)
             setForegroundFPS(60); setIdleFPS(60); setPauseWhenMinimized(false); setPauseWhenLostFocus(false); disableAudio(true)

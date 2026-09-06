@@ -9,49 +9,145 @@ import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2ChildRend
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2RegisterRenderEvents
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2ScenePanelRenderEvents
 import com.jojo.game.presentation.battle.edit.evidence.BattleEditLayer2WeatherRenderEvents
+/**
+ * `BattleEditLayer2`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 class BattleEditLayer2(
     initialWeather: Int,
     initialRound: Int,
+    /** `canApplyRound` (Boolean): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val canApplyRound: Boolean,
 ) {
     /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     sealed interface Effect {
+        /**
+         * `SetWeather`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class SetWeather(val value: Int) : Effect
+        /**
+         * `SetRound`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class SetRound(val value: Int) : Effect
+        /**
+         * `Toast`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class Toast(val text: String) : Effect
+        /**
+         * `OpenGlobalEditor`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object OpenGlobalEditor : Effect
+        /**
+         * `KillAll`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class KillAll(val flag: Int) : Effect
+        /**
+         * `Remove`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object Remove : Effect
     }
 
     companion object {
+        /**
+         * `weatherNames` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val weatherNames = listOf("맑음", "어두움", "바람", "비", "설")
+        /**
+         * `ROUND_DISABLED_TOAST` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val ROUND_DISABLED_TOAST = "'활성화' 미적용. 난이도가 한 단계 낮아질 때마다 최대 턴 수가 늘어남 기능"
     }
 
+    /**
+     * `original` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val original = mapOf(0 to initialWeather, 1 to initialRound)
+    /**
+     * `pending` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val pending = linkedMapOf<Int, Int>()
+    /**
+     * `editChanged` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var editChanged = false
+
+    /**
+     * `weatherLabel` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     var weatherLabel: String = weatherNames[initialWeather]
         private set
+    /**
+     * `roundText` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var roundText: String = initialRound.toString()
         private set
+    /**
+     * `weatherPanelVisible` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var weatherPanelVisible: Boolean = false
         private set
+    /**
+     * `removed` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var removed: Boolean = false
         private set
 
+
+    /**
+     * `openWeatherPanel`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun openWeatherPanel() {
         weatherPanelVisible = true
     }
 
 
+    /**
+     * `closeWeatherPanel`: 상태와 자원을 정리한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun closeWeatherPanel() {
         weatherPanelVisible = false
     }
 
+
+    /**
+     * `selectWeather`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun selectWeather(value: Int) {
         require(value in weatherNames.indices)
@@ -60,11 +156,21 @@ class BattleEditLayer2(
     }
 
 
+    /**
+     * `textChanged`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun textChanged(value: String) {
         roundText = value
         editChanged = true
     }
 
+
+    /**
+     * `editingDidEnd`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun editingDidEnd() {
         if (!editChanged) return
@@ -73,6 +179,11 @@ class BattleEditLayer2(
         if (value == original.getValue(1)) pending.remove(1) else pending[1] = value
     }
 
+
+    /**
+     * `touchButton`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun touchButton(tag: Int, phase: Int = 2): List<Effect> {
         if (phase != 2) return emptyList()
@@ -97,6 +208,11 @@ class BattleEditLayer2(
     }
 
 
+    /**
+     * `pendingValues`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun pendingValues(): Map<Int, Int> = pending.toMap()
 }
 
@@ -109,6 +225,11 @@ enum class BattleEditLayer2Route(val key: String) {
 
     companion object {
 
+        /**
+         * `parse`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun parse(state: String?): BattleEditLayer2Route? {
             val normalized = state?.removeSuffix("-fixture") ?: return null
             if (normalized == "battle-register-open") return REGISTER
@@ -118,13 +239,33 @@ enum class BattleEditLayer2Route(val key: String) {
         }
     }
 }
+/**
+ * `BattleEditLayer2RenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 object BattleEditLayer2RenderEvents {
+    /**
+     * `alphaBlend` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
+
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun jsonl(route: BattleEditLayer2Route, model: BattleEditLayer2): String {
         val log = RenderEventLog()
         val phase = if (route == BattleEditLayer2Route.REGISTER) "battle-register-open" else "battle-edit2-${route.key}"
+        /**
+         * `draw`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", opacity: Float = 1f, blend: Any = listOf(770, 771)
@@ -161,7 +302,17 @@ object BattleEditLayer2RenderEvents {
         return log.jsonl()
     }
 
+    /**
+     * `appendEdit2`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun appendEdit2(log: RenderEventLog, phase: String, layer: String, model: BattleEditLayer2) {
+
+        /**
+         * `d`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun d(
             path: String,

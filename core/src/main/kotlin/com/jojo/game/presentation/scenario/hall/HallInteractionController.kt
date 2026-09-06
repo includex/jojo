@@ -9,36 +9,116 @@ internal data class HallInteractionView(
     val sellTabIndex: Int,
 )
 
+/**
+ * `HallInteractionIntent`: 관련 상태와 동작을 묶는 interface다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal sealed interface HallInteractionIntent {
+    /**
+     * `None`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object None : HallInteractionIntent
+    /**
+     * `MenuClosed`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object MenuClosed : HallInteractionIntent
+    /**
+     * `OpenMenu`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object OpenMenu : HallInteractionIntent
+    /**
+     * `StartBattle`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object StartBattle : HallInteractionIntent
+    /**
+     * `OpenManagement`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class OpenManagement(val kind: ManagementKind) : HallInteractionIntent
+    /**
+     * `MenuSelection`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class MenuSelection(val index: Int) : HallInteractionIntent
+
+    /**
+     * `ManagementKind`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
 
     enum class ManagementKind { EQUIP, BUY, SELL }
 }
 
 /** HallInteractionController: 거점 Interaction 제어기이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 internal class HallInteractionController {
+    /**
+     * `menuOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var menuOpen = false
+    /**
+     * `equipTabIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var equipTabIndex = 1
+    /**
+     * `buyTabIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var buyTabIndex = 0
+    /**
+     * `sellTabIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var sellTabIndex = 0
+
+    /**
+     * `view` (HallInteractionView): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     val view: HallInteractionView
         get() = HallInteractionView(menuOpen, equipTabIndex, buyTabIndex, sellTabIndex)
 
+    /**
+     * `openMenu`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun openMenu() {
         menuOpen = true
     }
+
+    /**
+     * `closeMenu`: 상태와 자원을 정리한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun closeMenu(): Boolean {
         if (!menuOpen) return false
         menuOpen = false
         return true
     }
+
+    /**
+     * `mainTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun mainTap(x: Float, y: Float): HallInteractionIntent {
         if (menuOpen) {
@@ -55,15 +135,30 @@ internal class HallInteractionController {
         }
     }
 
+    /**
+     * `selectEquipTabAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun selectEquipTabAt(x: Float, y: Float): Boolean {
         if (y !in 566f..610f || x !in 123f..639f) return false
         selectEquipTab(((x - 123f) / 129f).toInt())
         return true
     }
 
+    /**
+     * `selectEquipTab`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun selectEquipTab(index: Int) {
         if (index in 0 until EQUIP_TAB_COUNT) equipTabIndex = index
     }
+
+    /**
+     * `selectBuyTabAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun selectBuyTabAt(x: Float, y: Float): Boolean {
         if (y !in 521f..566f) return false
@@ -75,9 +170,19 @@ internal class HallInteractionController {
         return true
     }
 
+    /**
+     * `selectBuyTab`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun selectBuyTab(index: Int) {
         if (index in 0..1) buyTabIndex = index
     }
+
+    /**
+     * `selectSellTabAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun selectSellTabAt(x: Float, y: Float): Boolean {
         if (y !in 75f..128f) return false
@@ -89,9 +194,19 @@ internal class HallInteractionController {
         return true
     }
 
+    /**
+     * `selectSellTab`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun selectSellTab(index: Int) {
         if (index in 0..1) sellTabIndex = index
     }
+
+    /**
+     * `menuSelection`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun menuSelection(x: Float, y: Float): HallInteractionIntent {
         if (y !in 44.3f..120f) return HallInteractionIntent.None
@@ -103,7 +218,17 @@ internal class HallInteractionController {
     }
 
     private companion object {
+        /**
+         * `MENU_BOTTOM` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val MENU_BOTTOM = 125.56f
+        /**
+         * `EQUIP_TAB_COUNT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val EQUIP_TAB_COUNT = 4
     }
 }

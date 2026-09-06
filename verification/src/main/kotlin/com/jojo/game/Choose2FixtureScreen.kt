@@ -157,6 +157,10 @@ class Choose2FixtureScreen(private val game: JojoGame, private val state: String
     }
 
     private companion object {
+        /**
+         * `TOUCH_END` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val TOUCH_END = 2
     }
 }

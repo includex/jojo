@@ -40,21 +40,91 @@ data class CampSettlement(
 
 /** SettlementSubflow: 진영 정산 중 표시할 지역 오라와 성장 결과의 공통 흐름이다. */
 sealed interface SettlementSubflow {
+    /**
+     * `LocalAura` 클래스: settlement 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data class LocalAura(
+        /**
+         * `casterId` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val casterId: String,
+        /**
+         * `skillId` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val skillId: Int,
+        /**
+         * `skillValue` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val skillValue: Int,
+        /**
+         * `focusDelaySeconds` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val focusDelaySeconds: Float = .3f,
+        /**
+         * `soundIndex` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val soundIndex: Int = 39,
+        /**
+         * `infoSkillId` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val infoSkillId: Int = skillId,
+        /**
+         * `actionId` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val actionId: Int = 30,
+        /**
+         * `meffName` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val meffName: String? = null,
+        /**
+         * `targets` (List<String>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val targets: List<String>,
+        /**
+         * `nestedChanges` (List<BattleUnitTurnChange>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val nestedChanges: List<BattleUnitTurnChange>,
     ) : SettlementSubflow
 
+    /**
+     * `Growth` 클래스: settlement 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data class Growth(
+        /**
+         * `unitId` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unitId: String,
+        /**
+         * `grants` (List<SettlementGrowthGrant>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val grants: List<SettlementGrowthGrant>,
     ) : SettlementSubflow
 }
@@ -69,14 +139,39 @@ data class SettlementGrowthGrant(
     val unitResult: CampaignExperienceResult? = null,
     val equipmentResult: CampaignEquipmentExperienceResult? = null,
 ) {
+    /**
+     * `requiresLevelUpPresentation` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val requiresLevelUpPresentation: Boolean
         get() = unitResult?.leveledUp == true || equipmentResult?.leveledUp == true
+    /**
+     * `requiresItemUpgradeCallback` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val requiresItemUpgradeCallback: Boolean get() = equipmentResult?.leveledUp == true
 }
 
 /** RestoreGrowthResolution: 복원 효과의 성장 정산이 적용 가능·불가·적용 완료 중 어디에 속하는지 나타낸다. */
 sealed interface RestoreGrowthResolution<out T> {
+    /**
+     * `NotApplicable` 싱글턴 객체: settlement 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object NotApplicable : RestoreGrowthResolution<Nothing>
+    /**
+     * `Unavailable` 싱글턴 객체: settlement 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object Unavailable : RestoreGrowthResolution<Nothing>
+    /**
+     * `Applied` 클래스: settlement 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data class Applied<T>(val value: T) : RestoreGrowthResolution<T>
 }

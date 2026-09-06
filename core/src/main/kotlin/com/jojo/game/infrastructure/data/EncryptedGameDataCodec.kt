@@ -5,8 +5,17 @@ import java.security.MessageDigest
 
 /** EncryptedGameDataCodec: 패키지에 포함된 암호화 게임 데이터를 바이트 단위로 복호화한다. */
 object EncryptedGameDataCodec {
+    /**
+     * `KEY` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private const val KEY = "ccz65Sha08GeZ1Fu"
 
+
+    /**
+     * `decode`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun decode(raw: ByteArray): String? = runCatching {
         val decrypted = ByteArray(raw.size) { index ->
@@ -28,6 +37,11 @@ object EncryptedGameDataCodec {
             (((value shl shift) and 0xff) or (value ushr (8 - shift))).toByte()
         }
     }
+
+    /**
+     * `md5`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun md5(value: String): String = MessageDigest.getInstance("MD5")
         .digest(value.toByteArray(Charsets.UTF_8))

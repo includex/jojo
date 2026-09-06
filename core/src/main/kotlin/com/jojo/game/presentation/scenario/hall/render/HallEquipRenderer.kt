@@ -13,6 +13,11 @@ import com.jojo.game.presentation.scenario.hall.HallEquipView
 
 /** HallEquipRenderer: 거점 Equip 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallEquipRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, viewport: Viewport, view: HallEquipView) {
         val draw = HallRenderPrimitives(assets, batch)
         batch.color = Color.WHITE
@@ -32,6 +37,11 @@ internal object HallEquipRenderer {
         draw.resetColor()
     }
 
+    /**
+     * `footer`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun footer(draw: HallRenderPrimitives) {
         draw.button("이전 무장", 842.53f, 37.84f, 152.22f, 43f, 31f)
         draw.button("다음 무장", 994.75f, 37.84f, 152.22f, 43f, 31f)
@@ -39,6 +49,11 @@ internal object HallEquipRenderer {
         draw.button("모두 해제", 493.37f, 37.84f, 148.95f, 43f, 31f)
         draw.button("정보", 125.35f, 37.84f, 85.74f, 43f, 31f)
     }
+
+    /**
+     * `tabs`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun tabs(draw: HallRenderPrimitives, batch: SpriteBatch, selectedTab: Int) {
         listOf("전부", "무기", "보구", "보조").forEachIndexed { index, value ->
@@ -56,6 +71,11 @@ internal object HallEquipRenderer {
         draw.ui("box2")?.let { batch.draw(it, 730.56f, 33.84f, 5.16f, 582.31f) }
     }
 
+    /**
+     * `inventory`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun inventory(draw: HallRenderPrimitives, batch: SpriteBatch, view: HallEquipView) {
         view.inventoryRows.forEachIndexed { index, item ->
             val y = HallEquipmentRenderPlan.inventoryRowY(index)
@@ -68,12 +88,22 @@ internal object HallEquipRenderer {
         }
     }
 
+    /**
+     * `unitHeader`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun unitHeader(draw: HallRenderPrimitives, batch: SpriteBatch, unit: HallEquipUnitView) {
         draw.patch("button", 9)?.draw(batch, 794.8f, 565.88f, 309.6f, 48.16f)
         draw.ui("box2")?.let { batch.draw(it, 947.02f, 571.17f, 5.16f, 41.02f) }
         draw.text(unit.name, 842.32f, 604f, 59.51f, centered = true)
         draw.text(unit.armName, 998.89f, 604f, 59.51f, centered = true)
     }
+
+    /**
+     * `unitSummary`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun unitSummary(draw: HallRenderPrimitives, batch: SpriteBatch, assets: ScenarioSceneAssets, unit: HallEquipUnitView) {
         assets.portraitTexture(unit.portraitId)?.let { batch.draw(it, 769.54f, 355.47f, 165.12f, 206.4f) }
@@ -96,6 +126,11 @@ internal object HallEquipRenderer {
         unit.slots.forEach { slot -> drawSlot(draw, batch, slot.index, slot.label, slot.name, slot.icon, slot.level, slot.experience) }
     }
 
+    /**
+     * `drawSlot`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawSlot(draw: HallRenderPrimitives, batch: SpriteBatch, index: Int, label: String, name: String, icon: Int?, level: String?, experience: String?) {
         val y = HallEquipmentRenderPlan.slotY(index)
         draw.patch("box1")?.draw(batch, 745.74f, y, 402.57f, 129f)
@@ -111,6 +146,11 @@ internal object HallEquipRenderer {
             draw.text(experience, 994.28f, y + 39.63f, 86.09f, centered = true)
         }
     }
+
+    /**
+     * `clipped`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun clipped(viewport: Viewport, batch: SpriteBatch, draw: () -> Unit) {
         val scissors = Rectangle()

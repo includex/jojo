@@ -18,14 +18,29 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
     var money: Int = 0
         private set
 
+    /**
+     * `addMoney`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun addMoney(delta: Int) {
         money = (money.toLong() + delta).coerceIn(0L, 9_999_999L).toInt()
     }
+
+    /**
+     * `setInfoTransferRandomSequence`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun setInfoTransferRandomSequence(values: Iterable<Int>) {
         injectedInfoTransferRandomValues.clear()
         values.forEach { injectedInfoTransferRandomValues.addLast(it) }
     }
+
+    /**
+     * `random`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun random(upperExclusive: Int): Int {
         if (injectedInfoTransferRandomValues.isEmpty()) return randomSource(upperExclusive)
@@ -34,17 +49,72 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         }
     }
 
+    /**
+     * `unitAttributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val unitAttributes = linkedMapOf<Int, MutableMap<Int, Int>>()
+    /**
+     * `unitNames` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val unitNames = linkedMapOf<Int, String>()
+    /**
+     * `joinedUnits` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val joinedUnits = linkedSetOf<Int>()
+    /**
+     * `extraMagic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val extraMagic = linkedMapOf<Pair<Int, Int>, CampaignMagic>()
+    /**
+     * `talents` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val talents = linkedMapOf<Pair<Int, Int>, CampaignTalent>()
+    /**
+     * `formationTalents` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val formationTalents = mutableListOf<String>()
+    /**
+     * `inventory` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val inventory = CampaignInventory(joinedUnitIds = { joinedUnits }, unitAttribute = ::unitAttribute)
+    /**
+     * `equipmentProgression` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val equipmentProgression = CampaignEquipmentProgression(inventory)
+    /**
+     * `roster` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val roster = CampaignRoster { joinedUnits }
+    /**
+     * `endingId` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var endingId: Int? = null
         private set
+
+    /**
+     * `reset`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun reset() {
         money = 0
@@ -61,12 +131,27 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         endingId = null
     }
 
+    /**
+     * `unitAttribute`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun unitAttribute(unitId: Int, attribute: Int, default: Int = 0): Int =
         unitAttributes[unitId]?.get(attribute) ?: default
+
+    /**
+     * `setUnitAttribute`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun setUnitAttribute(unitId: Int, attribute: Int, value: Int) {
         unitAttributes.getOrPut(unitId) { linkedMapOf() }[attribute] = value
     }
+
+    /**
+     * `setUnitPosts`: 현재 상태를 갱신한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun setUnitPosts(
         unitId: Int,
@@ -75,17 +160,52 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         data: GameDataCatalog,
         registeredFeatures: Int = 0,
     ): CampaignUnitPostsChange? {
+        /**
+         * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val profile = data.unitProfile(unitId) ?: return null
+        /**
+         * `oldPosts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val oldPosts = unitAttribute(unitId, UNIT_ATTR_POSTS, profile.posts)
+        /**
+         * `postsWritten` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val postsWritten = flags and 2 == 0 || oldPosts != posts
         if (postsWritten) setUnitAttribute(unitId, UNIT_ATTR_POSTS, posts)
+        /**
+         * `mine` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mine = unitAttribute(unitId, UNIT_ATTR_JOIN, 0) != 0
+        /**
+         * `refreshAbility` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val refreshAbility = flags and 8 == 0 && mine && (
             flags and 4 != 0 ||
                 (globalVariables[GLOBAL_SJCS] as? Number)?.toInt() == 1 ||
                 registeredFeatures and ENABLED_FEATURE_ZZSJCS != 0
             )
+        /**
+         * `derived` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val derived = if (refreshAbility) {
+            /**
+             * `level` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val level = unitAttribute(unitId, UNIT_ATTR_LEVEL, profile.level).coerceAtLeast(1)
             data.unitLevelDerivedAttributes(
                 unitId,
@@ -101,28 +221,78 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         )
     }
 
+    /**
+     * `addUnitLevels`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun addUnitLevels(
         unitId: Int,
         delta: Int,
         data: GameDataCatalog,
         registeredFeatures: Int = 0,
     ): CampaignUnitLevelChange? {
+        /**
+         * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val profile = data.unitProfile(unitId) ?: return null
+        /**
+         * `oldLevel` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val oldLevel = unitAttribute(unitId, UNIT_ATTR_LEVEL, profile.level)
+        /**
+         * `newLevel` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val newLevel = (oldLevel + delta).coerceIn(1, data.unitLevelLimit())
         if (newLevel == oldLevel) return null
         if (unitAttributes[unitId]?.containsKey(UNIT_ATTR_POSTS) != true) setUnitAttribute(unitId, UNIT_ATTR_POSTS, profile.posts)
         setUnitAttribute(unitId, UNIT_ATTR_LEVEL, newLevel)
+        /**
+         * `posts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val posts = unitAttribute(unitId, UNIT_ATTR_POSTS, profile.posts)
+        /**
+         * `mine` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mine = unitAttribute(unitId, UNIT_ATTR_JOIN, 0) != 0
+        /**
+         * `refreshAll` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val refreshAll = mine && (
             (globalVariables[GLOBAL_SJCS] as? Number)?.toInt() == 1 ||
                 registeredFeatures and ENABLED_FEATURE_ZZSJCS != 0
             )
+        /**
+         * `attributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attributes = if (refreshAll) {
             data.unitLevelDerivedAttributes(unitId, posts, newLevel, mine = true, campaign = this)
         } else {
+            /**
+             * `growth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val growth = data.unitLevelGrowth(unitId, posts, this)
+            /**
+             * `defaults` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val defaults = data.unitLevelDerivedAttributes(unitId, posts, oldLevel, mine, this)
             linkedMapOf<Int, Int>().apply {
                 growth.forEach { (attribute, perLevel) ->
@@ -134,6 +304,11 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         return CampaignUnitLevelChange(unitId, oldLevel, newLevel, attributes)
     }
 
+    /**
+     * `averageJoinedLevel`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun averageJoinedLevel(): Int {
         if (joinedUnits.isEmpty()) return 1
         val levels = joinedUnits.map { unitAttribute(it, UNIT_ATTR_LEVEL, 1) }.sortedDescending()
@@ -141,11 +316,21 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         return levels.subList(trim, levels.size - trim).sum() / (levels.size - trim * 2)
     }
 
+    /**
+     * `info`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun info(type: Int, text: String) {
         val normalized = text.replace("\n", "<br/>")
         val open = extraInfo.filter { it.reserved.isEmpty() }
         if (open.isNotEmpty()) open.forEach { it.text = normalized } else extraInfo += CampaignInfo(type, "", normalized)
     }
+
+    /**
+     * `promote`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun promote(unitId: Int, fallbackPosts: Int, fallbackLevel: Int, data: GameDataCatalog): Int? {
         val posts = unitAttribute(unitId, UNIT_ATTR_POSTS, fallbackPosts)
@@ -154,6 +339,11 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         setUnitAttribute(unitId, UNIT_ATTR_POSTS, upgraded)
         return upgraded
     }
+
+    /**
+     * `grantExperience`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun grantExperience(unitId: Int, fallbackLevel: Int, amount: Int, data: GameDataCatalog): CampaignExperienceResult {
         var level = unitAttribute(unitId, UNIT_ATTR_LEVEL, fallbackLevel).coerceAtLeast(1)
@@ -177,6 +367,11 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         setUnitAttribute(unitId, UNIT_ATTR_EXPERIENCE, experience)
         return CampaignExperienceResult(gained, level, experience, level != oldLevel, oldLevel, oldExperience)
     }
+
+    /**
+     * `applyInfoTransfer`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun applyInfoTransfer(type: Int, payload: String, selectedUnitId: Int = 0) {
         when (type) {
@@ -204,6 +399,11 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
         }
     }
 
+    /**
+     * `normalizeJoinedUnitLevels`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun normalizeJoinedUnitLevels() {
         if (joinedUnits.isEmpty()) return
         val levels = joinedUnits.map { unitAttribute(it, UNIT_ATTR_LEVEL, 1) }.sortedDescending()
@@ -214,12 +414,40 @@ class CampaignState(private val randomSource: (Int) -> Int = { upperExclusive ->
     }
 
     private companion object {
+        /**
+         * `UNIT_ATTR_LEVEL` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val UNIT_ATTR_LEVEL = 18
+        /**
+         * `UNIT_ATTR_EXPERIENCE` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val UNIT_ATTR_EXPERIENCE = 19
+        /**
+         * `UNIT_ATTR_POSTS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val UNIT_ATTR_POSTS = 17
+        /**
+         * `UNIT_ATTR_JOIN` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val UNIT_ATTR_JOIN = 16
+        /**
+         * `GLOBAL_SJCS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val GLOBAL_SJCS = 4094
+        /**
+         * `ENABLED_FEATURE_ZZSJCS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val ENABLED_FEATURE_ZZSJCS = 4
+        /**
+         * `DEFAULT_SKILL_INTRO` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val DEFAULT_SKILL_INTRO = "기본 설명"
     }
 }

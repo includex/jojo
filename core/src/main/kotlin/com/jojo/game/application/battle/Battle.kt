@@ -83,6 +83,10 @@ class Battle(
     initialEnemyMoney: Int = 0,
     onUnitRetreat: (BattleUnit) -> Unit = {},
 ) {
+    /**
+     * `configuration` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal val configuration = buildBattleConfiguration(
         events, terrain, enemyMasterUnitId, weatherSchedule, weatherOffset, terrainMagicFlags,
         terrainResumeRates, terrainResumeMp, enabledFeatures, skillTempResetTypes,
@@ -92,18 +96,44 @@ class Battle(
         onEquipmentExperienceAward, onEquipmentExperience, onRestoreUnitExperience,
         onRestoreEquipmentExperience, random, sourceRandomStreams, onUnitRetreat,
     )
+    /**
+     * `journal` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal val journal = BattleStateJournal(initialWeather, initialPlayerMoney, initialEnemyMoney, blockedTiles)
+    /**
+     * `skillTemps` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal val skillTemps =
         BattleSkillTemp { configuration.skillTempResetTypes[it] ?: BattleSkillTemp.ResetType.RESET }
+    /**
+     * `probabilityResolver` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal val probabilityResolver = BattleProbabilityResolver(random, sourceRandomStreams)
 
     /** lastMovePath: 유닛이 마지막으로 확정한 이동 경로를 반환해 이동 표현에 제공한다. */
     fun lastMovePath(id: String): List<Pair<Int, Int>> = journal.lastMovePath(id)
+    /**
+     * `battlefield` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     internal val battlefield = Battlefield(units)
 
     /** units: 전장에 남아 있는 전투 유닛을 식별자별로 조회하는 읽기 전용 맵이다. */
     val units: Map<String, BattleUnit> = battlefield.activeMap
+    /**
+     * `experience` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val experience by lazy { BattleExperienceFacade(configuration, journal) { this.units } }
+    /**
+     * `presentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val presentation by lazy {
         BattlePresentationTransactionFacade(
             battlefield = battlefield,
@@ -124,8 +154,23 @@ class Battle(
             onUnitRetreat = configuration.onUnitRetreat,
         )
     }
+    /**
+     * `combat` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val combat by lazy { BattleCombatFacade(this) }
+    /**
+     * `ai` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val ai by lazy { BattleAiFacade(this) }
+    /**
+     * `movement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val movement by lazy {
         BattleMovementQueryFacade(
             configuration = configuration,
@@ -138,6 +183,11 @@ class Battle(
             areAllied = ::areAllied,
         )
     }
+    /**
+     * `roundLifecycle` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val roundLifecycle by lazy {
         BattleRoundLifecycleFacade(
             configuration,
@@ -173,18 +223,38 @@ class Battle(
         private set(value) {
             journal.setPlayerMoney(value)
         }
+    /**
+     * `enemyMoney` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var enemyMoney: Int
         get() = journal.enemyMoney
         private set(value) {
             journal.setEnemyMoney(value)
         }
 
+    /**
+     * `firedEventIds` (LinkedHashSet<String> get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val firedEventIds: LinkedHashSet<String> get() = journal.mutableFiredEventIds()
+    /**
+     * `round` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var round: Int
         get() = journal.round
         private set(value) {
             journal.setRound(value)
         }
+    /**
+     * `activeFaction` (Faction): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var activeFaction: Faction
         get() = journal.activeFaction
         private set(value) {
@@ -197,33 +267,77 @@ class Battle(
         activeFaction = faction
     }
 
+    /**
+     * `outcomeCoordinator` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val outcomeCoordinator = BattleOutcomeCoordinator(
         units = { this.units.values },
         getRound = { round },
         enabledFeatures = { configuration.enabledFeatures },
         initialMaxRounds = 99,
     )
+    /**
+     * `maxRounds` (Int get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val maxRounds: Int get() = outcomeCoordinator.maxRounds
+    /**
+     * `scriptedOutcome` (BattleOutcome? get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val scriptedOutcome: BattleOutcome? get() = outcomeCoordinator.scriptedOutcome
+    /**
+     * `weather` (BattleWeather): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var weather: BattleWeather
         get() = journal.weather
         private set(value) {
             journal.setWeather(value)
         }
 
+    /**
+     * `setWeatherFromCombat`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     internal fun setWeatherFromCombat(value: BattleWeather) {
         weather = value
     }
+
+    /**
+     * `setPlayerMoneyFromEnvironment`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     internal fun setPlayerMoneyFromEnvironment(value: Int) {
         playerMoney = value
     }
 
+    /**
+     * `setEnemyMoneyFromEnvironment`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     internal fun setEnemyMoneyFromEnvironment(value: Int) {
         enemyMoney = value
     }
 
+    /**
+     * `unitAt`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun unitAt(tileX: Int, tileY: Int): BattleUnit? = battlefield.unitAt(tileX, tileY)
+
+    /**
+     * `outcome`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun outcome(): BattleOutcome? = outcomeCoordinator.outcome()
 
@@ -233,6 +347,11 @@ class Battle(
     /** setResolvedMaxRounds: 시나리오에서 해석한 라운드 제한을 결과 조정기에 반영한다. */
     fun setResolvedMaxRounds(value: Int) = outcomeCoordinator.setResolvedMaxRounds(value)
 
+    /**
+     * `enabledFeatureMask`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun enabledFeatureMask(): Int = configuration.enabledFeatures
 
     /** applyEditedWeather: 편집 화면에서 전달한 날씨 번호를 안전한 전장 날씨로 적용한다. */
@@ -240,16 +359,36 @@ class Battle(
         weather = BattleWeather.entries[value.coerceIn(BattleWeather.entries.indices)]
     }
 
+    /**
+     * `applyEditedRound`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun applyEditedRound(value: Int) {
         round = value.coerceAtLeast(1)
     }
 
     /** skillTemp: 유닛 스킬의 현재 임시값을 조회하고, 값이 없으면 기본값을 반환한다. */
     fun skillTemp(unitId: String, skillId: Int, default: Int = 0): Int = skillTemps.value(unitId, skillId, default)
+    /**
+     * `setSkillTemp`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun setSkillTemp(unitId: String, skillId: Int, amount: Int, recordedRound: Int = round) =
         skillTemps.set(unitId, skillId, amount, recordedRound)
 
+    /**
+     * `incSkillTemp`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun incSkillTemp(unitId: String, skillId: Int): Int = skillTemps.increment(unitId, skillId, round)
+    /**
+     * `setBlockedTiles`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun setBlockedTiles(values: Collection<Pair<Int, Int>>) {
         journal.clearBlockedTiles()
         journal.addBlockedTiles(values)
@@ -260,6 +399,11 @@ class Battle(
 
     /** syncScriptedOutcome: 외부 스크립트 결과와 현재 전투 승패 상태를 동기화한다. */
     fun syncScriptedOutcome(value: BattleOutcome?) = outcomeCoordinator.syncScriptedOutcome(value)
+
+    /**
+     * `addUnit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun addUnit(unit: BattleUnit) {
         battlefield.add(unit)
@@ -275,11 +419,26 @@ class Battle(
     /** rollStatusDuration: 상태 이상 적용 시 사용할 지속 라운드를 난수 규칙으로 결정한다. */
     fun rollStatusDuration(): Int = probabilityResolver.rollStatusDuration()
 
+    /**
+     * `canAttack`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     internal fun canAttack(attacker: BattleUnit, target: BattleUnit): Boolean =
         BattleAiScorer.canAttack(attacker, target)
 
+    /**
+     * `areAllied`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     internal fun areAllied(left: Faction, right: Faction): Boolean =
         left.isPlayerSide() == right.isPlayerSide()
+
+    /**
+     * `areAllied`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     internal fun areAllied(left: BattleUnit, right: BattleUnit): Boolean =
         areAllied(left.effectiveFaction(), right.effectiveFaction())

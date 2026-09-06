@@ -1,4 +1,4 @@
-// Scenario
+// 시나리오 실행 증거 입력 투영
 package com.jojo.game.presentation.scenario
 
 import com.jojo.game.presentation.scenario.*
@@ -11,8 +11,9 @@ import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueStages
 import com.jojo.game.presentation.scenario.hall.HallManagement
 
-/** ScenarioRuntimeSnapshotProjector: 시나리오 실행 스냅샷 변환기이며, 도메인 데이터를 화면에 바로 쓸 수 있는 표시 모델로 변환한다. */
+/** ScenarioRuntimeSnapshotProjector: Screen의 현재 상태를 검증기가 소비할 프레임 증거 입력으로 읽어낸다. */
 internal object ScenarioRuntimeSnapshotProjector {
+    /** 증거에 독립적인 오버레이 상세를 포함해야 하는 runtime 종류다. */
     private val observableOverlays = setOf(
         RuntimeScenarioOverlay.INFO, RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT,
         RuntimeScenarioOverlay.GET_ITEM_PROPERTY, RuntimeScenarioOverlay.ITEM_EQUIPMENT,
@@ -24,6 +25,7 @@ internal object ScenarioRuntimeSnapshotProjector {
         RuntimeScenarioOverlay.FEATS_HELP,
     )
 
+    /** renderInput: 현재 대사·배경·유닛·거점 오버레이를 불변 프레임 입력으로 투영한다. */
     fun renderInput(screen: ScenarioScreen): ScenarioFrameEvidenceInput {
         val dialogue = screen.playback.currentDialogue
         if (screen.hallOverlayVariant == RuntimeScenarioOverlay.SKIP_OPEN) {
@@ -73,6 +75,11 @@ internal object ScenarioRuntimeSnapshotProjector {
         )
     }
 
+    /**
+     * `overlayInput`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun overlayInput(screen: ScenarioScreen, variant: RuntimeScenarioOverlay) = ScenarioHallOverlayEvidenceInput(
         variant = variant,
         featsRows = screen.hallFeatsLayer?.view()?.rows.orEmpty().map {
@@ -92,6 +99,11 @@ internal object ScenarioRuntimeSnapshotProjector {
         postsNames = (0..80).map(screen.gameDataCatalog::postsName),
     )
 
+    /**
+     * `equipInput`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun equipInput(screen: ScenarioScreen): ScenarioHallEquipEvidenceInput {
         val unitId = screen.hallEquipUnitId()
         val catalog = screen.gameDataCatalog
@@ -104,11 +116,21 @@ internal object ScenarioRuntimeSnapshotProjector {
             catalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1)
         } ?: GameDataCatalog.EquipmentBonus()
         val equipped = screen.campaign.inventory.equippedItems().filter { it.unitId == unitId }
+        /**
+         * `slot`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun slot(matches: (Int) -> Boolean): ScenarioHallEquipEvidenceSlot {
             val item = equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let(matches) == true }
             val itemProfile = item?.let { catalog.equipmentProfile(it.itemId) }
             return ScenarioHallEquipEvidenceSlot(itemProfile?.name ?: "없음", item?.level ?: 1, item?.experience ?: 0, itemProfile?.icon)
         }
+        /**
+         * `face` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val face = when (unitId) {
             0 -> (unit?.face ?: unitId).let { if (it <= 3) it + 1 else it }
             157 -> 214
@@ -124,6 +146,11 @@ internal object ScenarioRuntimeSnapshotProjector {
             listOf(slot { it < 20 }, slot { it in 20..25 }, ScenarioHallEquipEvidenceSlot("없음", 1, 0, null)),
         )
     }
+
+    /**
+     * `managementInput`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun managementInput(screen: ScenarioScreen, kind: HallManagement): ScenarioHallManagementEvidenceInput {
         val unitId = screen.hallEquipUnitId()
@@ -154,5 +181,10 @@ internal object ScenarioRuntimeSnapshotProjector {
         )
     }
 }
+
+/**
+ * `String`: 타입의 핵심 동작을 수행한다.
+ * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
 
 private fun String.sanitizeEvidenceText(): String = replace(Regex("\\[C[0-9A-Fa-f]+"), "").replace('☆', '★')

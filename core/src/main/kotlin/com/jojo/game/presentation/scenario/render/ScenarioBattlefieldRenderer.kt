@@ -11,8 +11,13 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** ScenarioBattlefieldRenderer: 시나리오 Battlefield 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** ScenarioBattlefieldRenderer: 배경·배치 유닛·이동 보간 좌표를 시나리오 전장 레이어에 그린다. */
 internal object ScenarioBattlefieldRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(
         assets: ScenarioSceneAssets,
         batch: SpriteBatch,
@@ -20,6 +25,11 @@ internal object ScenarioBattlefieldRenderer {
         camera: Camera,
         view: ScenarioBattlefieldRenderView,
     ) {
+        /**
+         * `background` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val background = assets.backgroundTexture(view.backgroundId)
         batch.projectionMatrix = camera.combined
         batch.begin()
@@ -38,6 +48,11 @@ internal object ScenarioBattlefieldRenderer {
 
         batch.projectionMatrix = camera.combined
         batch.begin()
+        /**
+         * `entries` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val entries = buildList {
             if (view.drawCharacters) {
                 if (view.drawUnits) view.units.filter { it.visible }.forEach { add(Entry(it.zIndex, it.siblingOrder, unit = it)) }
@@ -52,12 +67,22 @@ internal object ScenarioBattlefieldRenderer {
         batch.end()
     }
 
+    /**
+     * `drawFallback`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawFallback(shapes: ShapeRenderer, unit: ScenarioBattlefieldUnitView) {
         val x = ScenarioBattlefieldRenderGeometry.mapX(unit.visualX, unit.visualY); val y = ScenarioBattlefieldRenderGeometry.mapY(unit.visualX, unit.visualY)
         val color = when (unit.id) { 0 -> Color(.23f, .45f, .20f, 1f); 157 -> Color(.32f, .24f, .60f, 1f); else -> Color(.72f, .12f, .10f, 1f) }
         shapes.color = Color(.05f, .05f, .06f, .38f); shapes.circle(x + 30f, y - 4f, 26f)
         shapes.color = color; shapes.circle(x + 30f, y + 30f, 25f); shapes.rect(x + 8f, y, 44f, 38f)
     }
+
+    /**
+     * `drawHead`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawHead(assets: ScenarioSceneAssets, batch: SpriteBatch, camera: Camera, head: ScenarioBattlefieldHeadView) {
         assets.portraitTexture(head.portraitId)?.let { texture ->
@@ -74,6 +99,11 @@ internal object ScenarioBattlefieldRenderer {
         }
     }
 
+    /**
+     * `drawUnit`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawUnit(assets: ScenarioSceneAssets, batch: SpriteBatch, unit: ScenarioBattlefieldUnitView) {
         assets.unitTexture(unit.textureAssetId)?.let { texture ->
             val x = ScenarioBattlefieldRenderGeometry.mapX(unit.visualX, unit.visualY); val y = ScenarioBattlefieldRenderGeometry.mapY(unit.visualX, unit.visualY)
@@ -82,6 +112,11 @@ internal object ScenarioBattlefieldRenderer {
             if (unit.showSpeechBubble) assets.streetSpeechBubbleTexture?.let { batch.draw(it, x + 20.64f, y + 34.4f, 41.28f, 41.28f) }
         }
     }
+
+    /**
+     * `Entry`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
 
     private data class Entry(val zIndex: Float, val siblingOrder: Int, val unit: ScenarioBattlefieldUnitView? = null, val head: ScenarioBattlefieldHeadView? = null)
 }

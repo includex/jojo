@@ -9,14 +9,36 @@ import com.jojo.game.presentation.battle.route.BattlePresentationConfiguration
  * 캡처마다 필요한 대사 진행, 프레임 기록 시점, 한 번만 남겨야 하는 진단 기록을 화면 렌더링과 분리한다.
  */
 internal class BattleCaptureFixtureTimeline(
+    /** `configuration` (BattleCaptureFixtureConfiguration): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val configuration: BattleCaptureFixtureConfiguration,
+    /** `routeConfiguration` (BattlePresentationConfiguration): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val routeConfiguration: BattlePresentationConfiguration,
 ) {
     /** 캡처 시간 계산에 필요한 현재 화면 상태를 묶는다. */
     data class Frame(
+        /**
+         * `elapsed` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val elapsed: Float,
+        /**
+         * `dialogueState` (PlaybackState,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueState: PlaybackState,
+        /**
+         * `dialogueVisible` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueVisible: Boolean,
+        /**
+         * `dialogueComplete` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueComplete: Boolean,
     )
 
@@ -27,12 +49,47 @@ internal class BattleCaptureFixtureTimeline(
         DIALOGUE_STEP,
     }
 
+    /**
+     * `cutsceneAttackStartedAt` (Float?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var cutsceneAttackStartedAt: Float? = null
+    /**
+     * `cutscene477StartedAt` (Float?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var cutscene477StartedAt: Float? = null
+    /**
+     * `dialogueStepStartedAt` (Float?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var dialogueStepStartedAt: Float? = null
+    /**
+     * `dialogueStepInputs` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var dialogueStepInputs = 0
+    /**
+     * `actionCaptureLogged` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var actionCaptureLogged = false
+    /**
+     * `dialogueCaptureLogged` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var dialogueCaptureLogged = false
+    /**
+     * `selectionCaptureLogged` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var selectionCaptureLogged = false
 
     /** 현재 대사 상태에서 자동 진행해야 할 캡처 작업을 반환한다. */

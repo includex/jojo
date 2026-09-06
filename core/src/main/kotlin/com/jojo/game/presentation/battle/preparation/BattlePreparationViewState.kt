@@ -39,11 +39,18 @@ data class BattlePreparationUnitView(
 
 /** 게임 데이터를 분리된 불변 준비 화면 모델로 변환합니다. */
 internal class BattlePreparationViewStateFactory(
+    /** `data` (GameDataCatalog): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val data: GameDataCatalog,
+    /** `unitAttribute` ((unitId: Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val unitAttribute: (unitId: Int, attribute: Int, default: Int) -> Int,
 ) {
     /** 선택한 유닛 ID 목록을 준비 화면 모델로 변환합니다. */
     fun units(ids: List<Int>): List<BattlePreparationUnitView> = ids.mapNotNull(::unit)
+
+    /**
+     * `unit`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun unit(id: Int): BattlePreparationUnitView? {
         val profile = data.unitProfile(id) ?: return null
@@ -77,8 +84,23 @@ internal class BattlePreparationViewStateFactory(
     }
 
     private companion object {
+        /**
+         * `ATTR_POSTS` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val ATTR_POSTS = 17
+        /**
+         * `ATTR_LEVEL` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val ATTR_LEVEL = 18
+        /**
+         * `ATTR_EXP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val ATTR_EXP = 19
     }
 }

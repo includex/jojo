@@ -4,13 +4,21 @@ import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.MenuLayer
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
+
+/** 전투 메뉴 렌더 증거: 메뉴 뷰를 원본 노드 경로·좌표·자원 식별자가 담긴 JSONL로 직렬화한다. */
 object BattleMenuRenderEvents {
 
+    /** JSONL 생성: 현재 전투명·턴·날씨·진행률을 메뉴의 고정 출력 순서로 기록한다. */
     fun jsonl(view: MenuLayer.View): String {
         val log = RenderEventLog()
         val phase = "battle-menu"
         val spriteBlend = listOf(770, 771)
         val labelBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /**
+         * `draw`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", blend: Any = spriteBlend
@@ -20,6 +28,11 @@ object BattleMenuRenderEvents {
                 path, type, x, y, w, h, asset, blend = blend, text = text
             )
 
+
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
             draw(path, "label", x, y, w, h, text = text, blend = labelBlend)

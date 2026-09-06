@@ -10,6 +10,11 @@ internal data class ScenarioConditionEnvironment(
     val stageUnitAttribute: (Int, Int) -> Int,
 )
 
+/**
+ * `sourceUnitTypeMatches`: 타입의 핵심 동작을 수행한다.
+ * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+ */
+
 internal fun sourceUnitTypeMatches(camp: Int, selector: Int): Boolean = when (selector) {
     0, 1, 2, 3 -> camp == selector
     4 -> camp <= 1
@@ -20,9 +25,27 @@ internal fun sourceUnitTypeMatches(camp: Int, selector: Int): Boolean = when (se
 
 /** 시나리오의 변수, 위치, 유닛 상태 조건을 평가한다. */
 internal object ScenarioConditionEvaluator {
+    /**
+     * `ADDRESS_INTVAR_START` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     const val ADDRESS_INTVAR_START = ScenarioConditionOperandResolver.ADDRESS_INTVAR_START
+    /**
+     * `ADDRESS_INTVAR_END` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     const val ADDRESS_INTVAR_END = ScenarioConditionOperandResolver.ADDRESS_INTVAR_END
+    /**
+     * `DEFAULT_CARDINAL_NEAR_OFFSETS` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val DEFAULT_CARDINAL_NEAR_OFFSETS = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
+    /**
+     * `DEFAULT_INFANTRY_NEAR_OFFSETS` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val DEFAULT_INFANTRY_NEAR_OFFSETS = DEFAULT_CARDINAL_NEAR_OFFSETS + setOf(1 to 1, -1 to 1, 1 to -1, -1 to -1)
 
     /** 종류와 값으로 지정된 시나리오 변수 값을 해석한다. */

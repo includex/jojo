@@ -6,9 +6,29 @@ import com.jojo.game.domain.campaign.CampaignState
 
 /** CampaignStore: 화면 전환에 필요한 캠페인 상태와 환경설정 기반 저장 슬롯을 함께 보관한다. */
 class CampaignStore(private val preferences: Preferences) {
+    /**
+     * `Snapshot` 클래스: data 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data class Snapshot(
+        /**
+         * `currentScenario` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val currentScenario: String = "R_00",
+        /**
+         * `completed` (Set<String>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val completed: Set<String> = emptySet(),
+        /**
+         * `choices` (Map<String, String>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val choices: Map<String, String> = emptyMap(),
         /** stage: 전투 진입과 복원 시 이어갈 캠페인 진행 단계를 기록한다. */
         val stage: Int = 0,
@@ -16,7 +36,16 @@ class CampaignStore(private val preferences: Preferences) {
 
     /** state: 이벤트·홀·전투 화면이 같은 게임 실행에서 공유하는 가변 캠페인 상태다. */
     val state = CampaignState()
+    /**
+     * `persistence` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val persistence = CampaignStorePersistence(preferences, state)
+    /**
+     * `snapshot` (Snapshot): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var snapshot: Snapshot = persistence.read()
         private set
 
@@ -87,6 +116,10 @@ class CampaignStore(private val preferences: Preferences) {
     }
 
     private companion object {
+        /**
+         * `SAVE_PAGE_KEY` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val SAVE_PAGE_KEY = "SAVE_PAGE"
     }
 }

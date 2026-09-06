@@ -37,10 +37,18 @@ data class BattleTerrainOverlayAssets(
 
 /** 전투 지형 목록 렌더러: 지형별 기술 가능 여부와 병과 효과를 등급 색상으로 출력한다. */
 class BattleTerrainOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattleTerrainOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleTerrainOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleTerrainOverlayView) {
         batch.begin()
         batch.color = Color.WHITE
@@ -73,6 +81,11 @@ class BattleTerrainOverlayRenderer(
         batch.end()
     }
 
+    /**
+     * `drawRow`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRow(index: Int, row: BattleTerrainRowView) {
         val y = PANEL_Y + 488f - index * 75f
         (if (index % 2 == 0) assets.rowEven else assets.rowOdd)?.draw(
@@ -103,6 +116,11 @@ class BattleTerrainOverlayRenderer(
         }
     }
 
+    /**
+     * `drawTiledBackground`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawTiledBackground() {
         assets.background?.let { texture ->
             var y = PANEL_Y
@@ -118,11 +136,41 @@ class BattleTerrainOverlayRenderer(
     }
 
     private companion object {
+        /**
+         * `PANEL_X` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val PANEL_X = 274f
+        /**
+         * `PANEL_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val PANEL_Y = 100f
+        /**
+         * `PANEL_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val PANEL_WIDTH = 1021f
+        /**
+         * `PANEL_HEIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val PANEL_HEIGHT = 600f
+        /**
+         * `TILE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val TILE = 96f
+        /**
+         * `COLUMN_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val COLUMN_WIDTH = 53f
     }
 }

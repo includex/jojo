@@ -42,10 +42,18 @@ data class BattleSaveLoadOverlayAssets(
 
 /** 저장·불러오기 모달을 공통 슬롯 목록으로 그립니다. */
 class BattleSaveLoadOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattleSaveLoadOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleSaveLoadOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleSaveLoadOverlayView) {
         batch.begin()
         batch.color = Color.WHITE
@@ -57,6 +65,11 @@ class BattleSaveLoadOverlayRenderer(
         font.data.setScale(1f)
         batch.end()
     }
+
+    /**
+     * `drawSave`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawSave(view: BattleSaveLoadOverlayView) {
         val x = 278f
@@ -84,6 +97,11 @@ class BattleSaveLoadOverlayRenderer(
         }
     }
 
+    /**
+     * `drawLoad`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawLoad(view: BattleSaveLoadOverlayView) {
         val x = 278f
         val y = 97.5f
@@ -110,6 +128,11 @@ class BattleSaveLoadOverlayRenderer(
         }
     }
 
+    /**
+     * `drawRows`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRows(rows: List<BattleSaveLoadRowView>, firstRow: Int, count: Int, firstBaseline: Float) {
         rows.drop(firstRow).take(count).forEachIndexed { index, row ->
             val rowY = firstBaseline - index * 52f
@@ -120,6 +143,11 @@ class BattleSaveLoadOverlayRenderer(
             font.draw(batch, row.name, 578f, rowY)
         }
     }
+
+    /**
+     * `drawTiledBackground`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiledBackground(x: Float, y: Float, width: Float, height: Float) {
         assets.background?.let { texture ->

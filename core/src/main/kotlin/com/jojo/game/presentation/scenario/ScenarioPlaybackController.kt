@@ -5,6 +5,8 @@ import com.jojo.game.presentation.scenario.overlay.*
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioModalKind
 import com.jojo.game.application.scenario.ScenarioStage
+import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
+import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
 
 import com.jojo.game.domain.scenario.PlaybackState
 
@@ -13,25 +15,40 @@ internal data class ScenarioViewState(
     val dialogueVisibleText: String,
     val modalVisibleText: String,
     val routedAfterCompletion: Boolean,
+    /** 공용 세션이 계산한 현재 대화창 좌우 순번이다. */
+    val dialogueSide: Int = 0,
+    /** 공용 세션이 Hall unit YPos로 계산한 상단 배치 여부다. */
+    val dialogueAtTop: Boolean = false,
 )
 
 /** 시나리오 텍스트 표시, 자동 닫기, 오디오, 일회성 이동을 조정합니다. */
 internal class ScenarioPlaybackController(
     val playback: ScenarioInterpreter,
+    /** `syncAudio` ((ScenarioStage) -> Unit): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val syncAudio: (ScenarioStage) -> Unit,
+    /** `disposeAudio` (() -> Unit): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val disposeAudio: () -> Unit,
 ) {
-    private val dialogueReveal = SourceTextReveal()
-    private val sayAutoClose = SayLayerAutoClose()
-    private val modalReveal = SourceTextReveal()
+    /** 공용 대화 세션으로 스크립트 표시 상태와 입력 전이를 연결한다. */
+    private val dialogueSession = ScenarioDialogueSessionAdapter()
+    /**
+     * `routeGate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val routeGate = ScenarioRouteGate()
-    private var revealedModalSource: String? = null
+    /**
+     * `viewState` (ScenarioViewState): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     val viewState: ScenarioViewState
         get() = ScenarioViewState(
-            dialogueVisibleText = dialogueReveal.visibleText,
-            modalVisibleText = modalReveal.visibleText,
+            dialogueVisibleText = dialogueSession.view.dialogueVisibleText,
+            modalVisibleText = dialogueSession.view.modalVisibleText,
             routedAfterCompletion = routeGate.isRouted,
+            dialogueSide = dialogueSession.view.dialogue?.side ?: 0,
+            dialogueAtTop = dialogueSession.view.dialogue?.atTop ?: false,
         )
 
     /** 시나리오 해석기의 재생 시간을 진행합니다. */
@@ -47,18 +64,9 @@ internal class ScenarioPlaybackController(
         onAdvance: () -> Unit,
     ) {
         syncAudio(playback.stage)
-        playback.currentDialogue?.let {
-            dialogueReveal.update(it.text, delta)
-            if (sayAutoClose.update(dialogueReveal.isComplete, autoCloseEnabled, delta)) onAdvance()
-        } ?: sayAutoClose.reset()
-        if (revealDialogueImmediately) dialogueReveal.revealAllIfPending()
-        playback.currentModalText?.let { text ->
-            if (revealedModalSource != text) {
-                revealedModalSource = text
-                modalReveal.reset()
-            }
-            modalReveal.update(text, delta)
-        } ?: run { revealedModalSource = null }
+        dialogueSession.synchronize(playback)
+        if (dialogueSession.update(delta, autoCloseEnabled) == DialogueSessionTransition.AutoAdvance) onAdvance()
+        if (revealDialogueImmediately) dialogueSession.dispatch(DialogueSessionInput.RevealAll)
     }
 
     /** 현재 입력에 따라 대화, 선택, 모달 또는 다음 화면으로 진행합니다. */
@@ -70,13 +78,9 @@ internal class ScenarioPlaybackController(
     ) {
         when (playback.state) {
             PlaybackState.DIALOGUE -> {
-                if (dialogueReveal.revealAllIfPending()) {
-                    sayAutoClose.reset()
-                    return
-                }
-                sayAutoClose.reset()
+                if (dialogueSession.dispatch(DialogueSessionInput.Confirm) == DialogueSessionTransition.TextRevealed) return
                 playback.advanceDialogue()
-                dialogueReveal.reset()
+                dialogueSession.resetDialogueReveal()
             }
 
             PlaybackState.CHOICE -> onConfirmChoice()
@@ -87,7 +91,7 @@ internal class ScenarioPlaybackController(
                         ScenarioModalKind.INFO,
                         ScenarioModalKind.MAP_INFO
                     ) &&
-                    modalReveal.revealAllIfPending()
+                    dialogueSession.dispatch(DialogueSessionInput.RevealAll) == DialogueSessionTransition.TextRevealed
                 ) {
                     playback.completeModalTyping()
                     return
@@ -102,7 +106,7 @@ internal class ScenarioPlaybackController(
     }
 
     /** 대화 텍스트 표시 진행을 초기화합니다. */
-    fun resetDialogueReveal() = dialogueReveal.reset()
+    fun resetDialogueReveal() = dialogueSession.resetDialogueReveal()
 
     /** 이동 콜백이 한 번만 실행되도록 보장합니다. */
     fun routeOnce(action: () -> Unit) = routeGate.routeOnce(action)
@@ -113,6 +117,11 @@ internal class ScenarioPlaybackController(
 
 /** 시나리오 완료 후 이동 콜백의 중복 실행을 막습니다. */
 internal class ScenarioRouteGate {
+    /**
+     * `isRouted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var isRouted = false
         private set
 

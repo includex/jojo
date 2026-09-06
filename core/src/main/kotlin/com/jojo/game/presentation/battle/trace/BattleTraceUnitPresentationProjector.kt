@@ -35,17 +35,57 @@ internal object BattleTraceUnitPresentationProjector {
         input: BattleTraceUnitPresentationInput,
         spriteFrame: (action: Int, direction: Int, elapsed: Float, loop: Boolean) -> UnitSpriteFrame?,
     ): RuntimeBattleTraceUnitInput {
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = input.unit
+        /**
+         * `movement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val movement = input.movement?.takeIf { it.unitId == unit.id && input.now < it.endsAt }
+        /**
+         * `movementSample` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val movementSample = movement?.let {
             BattleUnitMoveTimeline.sample(it.path, it.timeline, input.now - it.startedAt)
         }
+        /**
+         * `active` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val active = input.action?.takeIf { it.unitId == unit.id && input.now < it.endsAt }
             ?: input.hitReaction?.takeIf { input.now in it.startedAt..<it.endsAt }
             ?: input.death?.takeIf { input.now in it.startedAt..<it.endsAt }
+        /**
+         * `action` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val action = if (movement != null) 20 else active?.sourceAction ?: input.scriptedVisual?.action ?: input.defaultAction
+        /**
+         * `direction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val direction = movementSample?.direction ?: active?.direction ?: unit.direction
+        /**
+         * `animationTime` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val animationTime = (input.now - (movement?.startedAt ?: active?.startedAt ?: input.scriptedVisual?.startedAt ?: input.idleStartedAt)).coerceAtLeast(0f)
+        /**
+         * `sprite` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sprite = spriteFrame(action, direction, animationTime, movement != null)
         return RuntimeBattleTraceUnitInput(
             unit.id.substringAfterLast('-').toIntOrNull() ?: -1, unit.characterId ?: -1, unit.type().ordinal,

@@ -41,6 +41,11 @@ internal object ScenarioRuntimeCompositionProjector {
             hallInfo = hallInfo(screen),
         )
 
+    /**
+     * `hallMenu`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun hallMenu(screen: ScenarioScreen): ScenarioEvidenceHallMenu? {
         val ambition = screen.playback.state.name == "MODAL" && screen.playback.currentModalKind?.name == "AMBITION"
         if (!screen.hallMenuOpen && !ambition) return null
@@ -52,6 +57,11 @@ internal object ScenarioRuntimeCompositionProjector {
             else screen.playback.ambitionFrom + (screen.playback.ambitionTo - screen.playback.ambitionFrom) * tween,
         )
     }
+
+    /**
+     * `hallInfo`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun hallInfo(screen: ScenarioScreen): ScenarioEvidenceHallInfo? = screen.hallInfo?.let { kind ->
         val rows = when (kind) {
@@ -66,7 +76,17 @@ internal object ScenarioRuntimeCompositionProjector {
         ScenarioEvidenceHallInfo(kind.name.lowercase(), rows)
     }
 
+    /**
+     * `propertyRows`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun propertyRows(screen: ScenarioScreen): List<ScenarioEvidenceRect> {
+        /**
+         * `accepts`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun accepts(id: Int): Boolean = screen.gameDataCatalog.equipmentProfile(id)?.itemType?.let { type ->
             when (screen.hallPropertyTab) {
                 HallPropertyTab.WEAPON -> type < 20
@@ -75,9 +95,19 @@ internal object ScenarioRuntimeCompositionProjector {
                 HallPropertyTab.PROPERTY -> id >= 150 || type in 26..45
             }
         } ?: false
+        /**
+         * `equipped` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val equipped = if (screen.hallPropertyTab == HallPropertyTab.PROPERTY) 0 else {
             screen.campaign.inventory.equippedItems().count { accepts(it.itemId) }
         }
+        /**
+         * `count` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val count = (equipped + screen.campaign.inventory.items.count { accepts(it.key) }).coerceAtMost(7)
         return (0 until count).map { ScenarioEvidenceRect(217.42f, 481.58f - it * 67.08f, 846.56f, 65.36f) }
     }

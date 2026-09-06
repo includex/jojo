@@ -105,7 +105,17 @@ internal object BattleMagickRenderEventRecorder {
         append("MagickListLayer", "Canvas/Layer/bg1/button/Background/Label", "label", 898.564f, 152.022f, 100f, 40f, text = "확인")
     }
 
+    /**
+     * `rowWidths` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val rowWidths = listOf(218.71f, 138.4f, 103.8f, 69.2f, 69.2f, 149.51f, 69.2f, 103.8f, 69.2f, 149.51f)
+    /**
+     * `mapAsset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val mapAsset = "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
 }
 

@@ -34,46 +34,226 @@ sealed interface TacticalActionResult {
 
     /** Attack: 물리 공격의 대상 피해·반격·회복·추가 효과를 한 결과로 보관한다. */
     data class Attack(
+        /**
+         * `damage` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val damage: Int,
+        /**
+         * `defeated` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val defeated: Boolean,
+        /**
+         * `hitRate` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hitRate: Int = 100,
+        /**
+         * `hit` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hit: Boolean = true,
+        /**
+         * `critical` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val critical: Boolean = false,
+        /**
+         * `counterDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterDamage: Int = 0,
+        /**
+         * `attackerDefeated` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attackerDefeated: Boolean = false,
+        /**
+         * `lifeStealHealing` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val lifeStealHealing: Int = 0,
+        /**
+         * `followUpDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val followUpDamage: Int = 0,
+        /**
+         * `followUpMpShieldDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val followUpMpShieldDamage: Int = 0,
+        /**
+         * `counterFollowUpDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterFollowUpDamage: Int = 0,
+        /**
+         * `counterMpShieldDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterMpShieldDamage: Int = 0,
+        /**
+         * `counterFollowUpMpShieldDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterFollowUpMpShieldDamage: Int = 0,
+        /**
+         * `counterLifeStealHealing` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterLifeStealHealing: Int = 0,
+        /**
+         * `followUpCritical` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val followUpCritical: Boolean = false,
+        /**
+         * `counterCritical` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterCritical: Boolean = false,
+        /**
+         * `counterFollowUpCritical` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterFollowUpCritical: Boolean = false,
+        /**
+         * `splashTargets` (List<PhysicalTarget>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val splashTargets: List<PhysicalTarget> = emptyList(),
+        /**
+         * `mpShieldDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mpShieldDamage: Int = 0,
+        /**
+         * `qxlHealing` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val qxlHealing: Int = 0,
+        /**
+         * `recoilDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val recoilDamage: Int = 0,
+        /**
+         * `blockRetaliationDamage` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val blockRetaliationDamage: Int = 0,
+        /**
+         * `moneyShieldSpent` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val moneyShieldSpent: Int = 0,
+        /**
+         * `playerMoneyDelta` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val playerMoneyDelta: Int = 0,
+        /**
+         * `enemyMoneyDelta` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val enemyMoneyDelta: Int = 0,
+        /**
+         * `counterMagic` (Magic?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterMagic: Magic? = null,
+        /**
+         * `counterMagicId` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterMagicId: Int? = null,
+        /**
+         * `automaticProperty` (Item?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val automaticProperty: Item? = null,
+        /**
+         * `physicalPasses` (List<PhysicalAttackPass>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val physicalPasses: List<PhysicalAttackPass> = emptyList(),
     ) : TacticalActionResult
 
 
     /** Magic: 마법 사용에 따른 비용·대상·피해·지역 정산 결과를 보관한다. */
     data class Magic(
+        /**
+         * `name` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name: String,
+        /**
+         * `cost` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val cost: Int,
+        /**
+         * `targets` (List<MagicTarget>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val targets: List<MagicTarget>,
+        /**
+         * `passes` (List<List<MagicTarget>>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val passes: List<List<MagicTarget>> = listOf(targets),
+        /**
+         * `critical` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val critical: Boolean = false,
+        /**
+         * `criticalSpeeches` (List<String?>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val criticalSpeeches: List<String?> = List(passes.size) { null },
+        /**
+         * `localSettlements` (List<MagicLocalSettlement>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val localSettlements: List<MagicLocalSettlement> = List(passes.size) { MagicLocalSettlement(emptyList()) },
     ) : TacticalActionResult
 

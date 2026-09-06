@@ -5,11 +5,41 @@ import com.badlogic.gdx.utils.Align
 
 /** HallTerrainRenderPlan: 거점 지형 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallTerrainRenderPlan {
+    /**
+     * `X` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val X = 235.84f
+    /**
+     * `Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val Y = 86f
+    /**
+     * `WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val WIDTH = 878.15f
+    /**
+     * `HEIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val HEIGHT = 516f
+    /**
+     * `COLUMN_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val COLUMN_WIDTH = 51.6f
+
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun commands(view: HallTerrainView): List<HallTerrainDrawCommand> = buildList {
         tiled("maps/ui/start-battle/logo9.png", X, Y, WIDTH, HEIGHT)
@@ -51,9 +81,19 @@ internal object HallTerrainRenderPlan {
         button("확인", 1001.72f, 95.46f, 103.2f)
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallTerrainDrawCommand>.tiled(asset: String, x: Float, y: Float, width: Float, height: Float) {
         add(HallTerrainDrawCommand(HallTerrainDrawKind.TILED, asset, x = x, y = y, width = width, height = height))
     }
+
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun MutableList<HallTerrainDrawCommand>.patch(
         asset: String, x: Float, y: Float, width: Float, height: Float, inset: Int = 3,
@@ -61,9 +101,19 @@ internal object HallTerrainRenderPlan {
         add(HallTerrainDrawCommand(HallTerrainDrawKind.PATCH, asset, x = x, y = y, width = width, height = height, inset = inset))
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallTerrainDrawCommand>.sprite(asset: String, x: Float, y: Float, width: Float, height: Float) {
         add(HallTerrainDrawCommand(HallTerrainDrawKind.SPRITE, asset, x = x, y = y, width = width, height = height))
     }
+
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun MutableList<HallTerrainDrawCommand>.text(
         value: String, x: Float, y: Float, width: Float,
@@ -74,10 +124,20 @@ internal object HallTerrainRenderPlan {
         add(HallTerrainDrawCommand(HallTerrainDrawKind.TEXT, text = value, x = x, y = y, width = width, font = font, color = color, align = align))
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallTerrainDrawCommand>.button(value: String, x: Float, y: Float, width: Float) {
         patch("maps/ui/start-battle/button.png", x, y, width, 51.6f, inset = 9)
         text(value, x, y + 35f, width)
     }
+
+    /**
+     * `String`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun String.color(): HallTerrainTextColor = when (this) {
         "★", "◎" -> HallTerrainTextColor.ORANGE
@@ -85,8 +145,18 @@ internal object HallTerrainRenderPlan {
         else -> HallTerrainTextColor.BLACK
     }
 
+    /**
+     * `headers` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val headers = listOf("마왕", "보병", "기병", "궁기", "포차", "무술", "군주", "보병", "기병", "궁기", "포차", "무술", "무술")
 }
+
+/**
+ * `HallTerrainDrawCommand`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal data class HallTerrainDrawCommand(
     val kind: HallTerrainDrawKind,
@@ -102,6 +172,21 @@ internal data class HallTerrainDrawCommand(
     val align: Int = Align.center,
 )
 
+/**
+ * `HallTerrainDrawKind`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallTerrainDrawKind { TILED, PATCH, SPRITE, TEXT }
+/**
+ * `HallTerrainFont`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallTerrainFont { TITLE, BODY, SMALL }
+/**
+ * `HallTerrainTextColor`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallTerrainTextColor { BLACK, ORANGE, GREEN }

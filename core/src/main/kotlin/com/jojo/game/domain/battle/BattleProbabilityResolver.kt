@@ -10,6 +10,11 @@ import java.util.*
 
 /** BattleRandomSource: 전투 확률 계산에 필요한 난수 공급 계약으로, 재현 가능한 전투 기록을 지원한다. */
 interface BattleRandomSource {
+    /**
+     * `random`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun random(min: Int, max: Int, flag: Int = 0): Int
 }
 
@@ -27,9 +32,22 @@ internal enum class BattleRateGauge(val index: Int) {
 
 /** BattleProbabilityResolver: 명중·필살·상태 이상 등의 확률을 난수원과 누적 게이지로 판정한다. */
 internal class BattleProbabilityResolver(
+    /**
+     * `fallbackRandom` (Random,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val fallbackRandom: Random,
+    /**
+     * `sourceRandomStreams` (BattleRandomSource?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val sourceRandomStreams: BattleRandomSource?,
 ) {
+    /**
+     * `countRate`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun countRate(
         attacker: BattleUnit,
         defender: BattleUnit,
@@ -37,24 +55,64 @@ internal class BattleProbabilityResolver(
         defenderGauge: BattleRateGauge,
         rate: Int,
     ): Boolean {
+        /**
+         * `incoming` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var incoming = rate
         if (attacker.skills[111]?.and(255)?.let { it != 255 } == true) incoming = incoming shl 1
+        /**
+         * `own` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var own = (attacker.rateAccumulators[attackerGauge.index] ?: 0) + incoming
+        /**
+         * `other` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var other = (defender.rateAccumulators[defenderGauge.index] ?: 0) + 100 - rate
+        /**
+         * `success` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val success = other < own
         if (success) own -= 100 else other -= 100
         attacker.rateAccumulators[attackerGauge.index] = own.coerceIn(0, 255)
         defender.rateAccumulators[defenderGauge.index] = other.coerceIn(0, 255)
         return success
     }
+    /**
+     * `defaultRandom`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun defaultRandom(min: Int, max: Int): Int =
         sourceRandomStreams?.random(min, max, 0) ?: (fallbackRandom.nextInt(max - min + 1) + min)
+    /**
+     * `flagRandom`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun flagRandom(min: Int, max: Int): Int =
         sourceRandomStreams?.random(min, max, 1) ?: (fallbackRandom.nextInt(max - min + 1) + min)
 
 
+    /**
+     * `random100`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun random100(): Int = defaultRandom(0, 100)
 
+
+    /**
+     * `initializeRateGauges`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun initializeRateGauges(unit: BattleUnit) {
         if (unit.rateAccumulators.isNotEmpty()) return
@@ -62,9 +120,19 @@ internal class BattleProbabilityResolver(
             unit.rateAccumulators[gauge.index] = random100()
         }
     }
+    /**
+     * `rollStatusDuration`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun rollStatusDuration(): Int =
         if (sourceRandomStreams != null) defaultRandom(1, 3) else 3
 
+
+    /**
+     * `physicalHitRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun physicalHitRate(attackerCritical: Int, defenderCritical: Int): Int {
         val attacker = attackerCritical.toDouble()
@@ -79,6 +147,11 @@ internal class BattleProbabilityResolver(
     }
 
 
+    /**
+     * `physicalHitRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun physicalHitRate(attacker: BattleUnit, target: BattleUnit): Int {
         val baseline = physicalHitRate(
             BattleAttributeCalculator.effective(attacker, BattleAttribute.CRITICAL),
@@ -88,6 +161,11 @@ internal class BattleProbabilityResolver(
                 baseline - effect(target, 64) - effect(target, 71) + effect(attacker, 66)
                 ).coerceIn(25, 100)
     }
+    /**
+     * `physicalHit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun physicalHit(attacker: BattleUnit, target: BattleUnit, hitRate: Int): Boolean {
         val rolled = countRate(
             attacker,
@@ -103,6 +181,11 @@ internal class BattleProbabilityResolver(
     }
 
 
+    /**
+     * `criticalRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun criticalRate(attackerMorale: Int, defenderMorale: Int): Int {
         val attacker = attackerMorale.coerceAtLeast(1)
         val defender = defenderMorale.coerceAtLeast(1)
@@ -115,6 +198,11 @@ internal class BattleProbabilityResolver(
         return rate.coerceIn(0, 100)
     }
 
+
+    /**
+     * `criticalHit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun criticalHit(attacker: BattleUnit, target: BattleUnit): Boolean {
         val rate = if (hasSkill(attacker, 270)) {
@@ -134,14 +222,34 @@ internal class BattleProbabilityResolver(
         )
     }
 
+    /**
+     * `magicHitRate`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun magicHitRate(
         attackerSpirit: Int,
         attackerMorale: Int,
         defenderSpirit: Int,
         defenderMorale: Int,
     ): Int {
+        /**
+         * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attacker = (attackerSpirit + attackerMorale).toDouble()
+        /**
+         * `defender` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val defender = (defenderSpirit + defenderMorale).coerceAtLeast(1).toDouble()
+        /**
+         * `rate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val rate = when {
             attacker >= 2 * defender -> 100.0
             attacker >= defender -> 10 * (attacker - defender) / defender + 90
@@ -150,6 +258,11 @@ internal class BattleProbabilityResolver(
         }
         return rate.toInt().coerceIn(25, 100)
     }
+
+    /**
+     * `magicHitRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun magicHitRate(attacker: BattleUnit, target: BattleUnit, magic: BattleMagicProfile): Int {
         val base = magicHitRate(
@@ -176,6 +289,11 @@ internal class BattleProbabilityResolver(
         }
         return rate.coerceIn(25, 100)
     }
+    /**
+     * `magicHit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun magicHit(attacker: BattleUnit, target: BattleUnit, hitRate: Int): Boolean {
         val rolled = countRate(
             attacker,
@@ -186,6 +304,11 @@ internal class BattleProbabilityResolver(
         )
         return rolled && target.skills[17]?.and(255)?.let { it == 255 } != false
     }
+    /**
+     * `continuousAttack`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun continuousAttack(attacker: BattleUnit, target: BattleUnit): Boolean {
         val forced = hasSkill(attacker, 197) || hasSkill(attacker, 276)
         val own = BattleAttributeCalculator.effective(attacker, BattleAttribute.CRITICAL).toDouble()
@@ -210,8 +333,18 @@ internal class BattleProbabilityResolver(
         return forced || rolled
     }
 
+    /**
+     * `hasSkill`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun hasSkill(unit: BattleUnit, skillId: Int): Boolean =
         unit.skills[skillId]?.and(255)?.let { it != 255 } == true
+
+    /**
+     * `effect`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun effect(unit: BattleUnit, skillId: Int): Int =
         unit.skills[skillId]?.and(255)?.takeIf { it != 255 } ?: 0

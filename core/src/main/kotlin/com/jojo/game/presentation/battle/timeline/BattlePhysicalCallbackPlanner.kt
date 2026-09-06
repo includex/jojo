@@ -25,6 +25,11 @@ internal object BattlePhysicalCallbackPlanner {
         input.globalSettlementUnitIds.forEach { unitId -> add(Step.GlobalSettlement(unitId)) }
     }
 
+    /**
+     * `Invocation`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Invocation.isCounter(): Boolean =
         kind == InvocationKind.COUNTER || kind == InvocationKind.COUNTER_FOLLOW_UP
 }
@@ -36,6 +41,11 @@ internal object BattlePhysicalTargetCallbackPlanner {
         steps += Step.AttackUntilHit(invocation.kind, invocation.attackerId)
         invocation.targets.forEach { target -> appendTarget(steps, invocation, target) }
     }
+
+    /**
+     * `appendTarget`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun appendTarget(
         steps: MutableList<Step>,
@@ -50,6 +60,11 @@ internal object BattlePhysicalTargetCallbackPlanner {
         }
     }
 
+    /**
+     * `appendGuard`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun appendGuard(
         steps: MutableList<Step>,
         invocation: Invocation,
@@ -60,6 +75,11 @@ internal object BattlePhysicalTargetCallbackPlanner {
             steps += Step.BlockRetaliationCommitted(target.targetId, invocation.attackerId, retaliation)
         }
     }
+
+    /**
+     * `appendHit`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun appendHit(
         steps: MutableList<Step>,
@@ -79,6 +99,11 @@ internal object BattlePhysicalTargetCallbackPlanner {
         }
     }
 
+    /**
+     * `appendShieldAndHarm`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun appendShieldAndHarm(
         steps: MutableList<Step>,
         invocation: Invocation,
@@ -95,6 +120,11 @@ internal object BattlePhysicalTargetCallbackPlanner {
             mpDamage = target.mpShieldDamage,
         )
     }
+
+    /**
+     * `appendPreHurtBenefits`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun appendPreHurtBenefits(
         steps: MutableList<Step>,

@@ -3,7 +3,15 @@ package com.jojo.game.application.runtime
 
 /** 전투 검증 런타임: 자동 검증의 시작 조건과 완료 검사를 화면 구현에서 분리한다. */
 class BattleVerificationRuntime(
+    /**
+     * `tutorial` (Boolean,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val tutorial: Boolean,
+    /**
+     * `scripted` (Boolean,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val scripted: Boolean,
 ) {
     /** 활성 상태: 일반 전투 흐름을 중단해야 하는 자동 검증 실행 여부를 반환한다. */

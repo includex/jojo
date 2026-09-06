@@ -1,4 +1,4 @@
-// Scenario
+// 시나리오 거점 마법 상세 화면 렌더링
 package com.jojo.game.presentation.scenario.hall
 
 import com.badlogic.gdx.graphics.Color
@@ -8,16 +8,39 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
+/** HallMagicRenderer: 선택한 마법의 위력·MP·설명과 공격·효과 범위 미리보기를 그린다. */
 internal object HallMagicRenderer {
+    /** 원본 UI 좌표를 LibGDX 화면 배율로 환산하는 공통 비율이다. */
     private const val SCALE = .86f
 
+    /** draw: 마법 상세 값과 두 범위 아이콘, 확인 버튼을 하나의 모달 패널에 렌더링한다. */
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallMagicView) {
+        /**
+         * `texture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun texture(name: String): Texture? = assets.hallTexture("maps/ui/start-battle/$name.png")
+        /**
+         * `magicTexture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun magicTexture(name: String): Texture? = assets.hallTexture("maps/ui/magic-layer/$name.png")
+        /**
+         * `patch`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun patch(name: String, inset: Int = 3): NinePatch? =
             (texture(name) ?: if (name == "box3") texture("button") else null)?.let {
                 NinePatch(it, inset, inset, inset, inset)
             }
+        /**
+         * `tiled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tiled(texture: Texture, x: Float, y: Float, width: Float, height: Float) {
             val tileWidth = texture.width * SCALE
             val tileHeight = texture.height * SCALE
@@ -35,6 +58,11 @@ internal object HallMagicRenderer {
                 dy += tileHeight
             }
         }
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun label(value: String, x: Float, y: Float, width: Float, align: Int = Align.center, wrap: Boolean = false) {
             assets.bodyFont.color = Color.BLACK
             assets.bodyFont.draw(batch, value, x * SCALE, (y + 43f) * SCALE, width * SCALE, align, wrap)

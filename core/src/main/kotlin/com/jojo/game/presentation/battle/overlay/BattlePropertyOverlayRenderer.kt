@@ -34,10 +34,18 @@ data class BattlePropertyOverlayAssets(
 
 /** 전투 소지품 목록 렌더러: 선택 분류와 스크롤 위치에 맞는 장비·아이템 행을 출력한다. */
 class BattlePropertyOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattlePropertyOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattlePropertyOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattlePropertyOverlayView) {
         val x = 247f
         val y = 48f
@@ -84,6 +92,11 @@ class BattlePropertyOverlayRenderer(
         font.data.setScale(1f)
         batch.end()
     }
+
+    /**
+     * `drawTiledBackground`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiledBackground(x: Float, y: Float, width: Float, height: Float) {
         assets.background?.let { texture ->

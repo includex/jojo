@@ -6,9 +6,16 @@ import com.jojo.game.domain.campaign.CampaignState
 
 /** HallEquipViewProjector: 거점 Equip 표시 정보 변환기이며, 도메인 데이터를 화면에 바로 쓸 수 있는 표시 모델로 변환한다. */
 internal class HallEquipViewProjector(
+    /** `campaign` (CampaignState): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val campaign: CampaignState,
+    /** `catalog` (GameDataCatalog): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val catalog: GameDataCatalog,
 ) {
+    /**
+     * `project`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun project(unitId: Int, selectedTab: Int, notice: String?): HallEquipView {
         val unit = catalog.unitProfile(unitId) ?: catalog.unitProfile(0)
         val level = campaign.unitAttribute(unitId, 18, unit?.level ?: 1)
@@ -42,6 +49,11 @@ internal class HallEquipViewProjector(
         )
     }
 
+    /**
+     * `inventoryRows`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun inventoryRows(selectedTab: Int): List<HallEquipInventoryRowView> = campaign.inventory.items.entries
         .asSequence()
         .filter { (id, _) -> matchesTab(catalog.equipmentProfile(id)?.itemType, selectedTab) }
@@ -51,8 +63,23 @@ internal class HallEquipViewProjector(
             catalog.equipmentProfile(it.key)?.itemType ?: 255
         }.thenByDescending { it.key })
         .mapNotNull { (itemId, count) ->
+            /**
+             * `item` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val item = catalog.equipmentProfile(itemId) ?: return@mapNotNull null
+            /**
+             * `level` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val level = campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1
+            /**
+             * `experience` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val experience = campaign.inventory.itemExperiences(itemId).firstOrNull() ?: 0
             HallEquipInventoryRowView(
                 name = item.name + if (count > 1) "  ×$count" else "",
@@ -64,6 +91,11 @@ internal class HallEquipViewProjector(
         }
         .take(6)
         .toList()
+
+    /**
+     * `slots`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun slots(unitId: Int): List<HallEquipSlotView> {
         val equipped = campaign.inventory.equippedItems().filter { it.unitId == unitId }
@@ -85,6 +117,11 @@ internal class HallEquipViewProjector(
         }
     }
 
+    /**
+     * `matchesTab`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun matchesTab(itemType: Int?, selectedTab: Int): Boolean = when (selectedTab) {
         0 -> itemType != null && itemType < 150
         1 -> itemType != null && itemType in 0..19
@@ -92,6 +129,11 @@ internal class HallEquipViewProjector(
         3 -> itemType != null && itemType in 26..149
         else -> false
     }
+
+    /**
+     * `portraitId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun portraitId(unitId: Int): Int {
         val face = catalog.unitProfile(unitId)?.face ?: return unitId

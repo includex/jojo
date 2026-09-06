@@ -67,6 +67,11 @@ class SystemOverlayFixtureScreen(private val game: JojoGame, private val state: 
     }
     /** loading: 검증 흐름에서 사용하는 값을 담는다. */
     private val loading = state.takeIf { it.startsWith("loading-") }?.let {
+        /**
+         * `flag` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val flag = when {
             it == "loading-flag2-hidden" -> 2
             it.startsWith("loading-flag1-") -> 1
@@ -339,6 +344,10 @@ private class ProgressRenderOracle {
     }
 
     companion object {
+        /**
+         * `TIPS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val TIPS = "자원 로딩이 완료되면 게임에 접속하는 것이 빠를 거예요!"
     }
 }

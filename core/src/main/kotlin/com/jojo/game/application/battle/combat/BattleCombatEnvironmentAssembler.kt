@@ -12,7 +12,17 @@ import com.jojo.game.application.battle.presentation.*
 import com.jojo.game.application.battle.round.*
 import com.jojo.game.domain.battle.magic.MagicEnvironment
 import com.jojo.game.domain.battle.combat.*
+/**
+ * `BattleCombatEnvironmentAssembler` 싱글턴 객체: combat 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal object BattleCombatEnvironmentAssembler {
+    /**
+     * `tactical`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun tactical(battle: Battle): BattleTacticalActionEnvironment = BattleTacticalActionEnvironment(
         outcome = battle::outcome,
         units = { battle.units },
@@ -29,6 +39,11 @@ internal object BattleCombatEnvironmentAssembler {
         physicalCombatEnvironment = { physical(battle) },
         magicEnvironment = { magic(battle) },
     )
+
+    /**
+     * `physicalContext`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun physicalContext(battle: Battle): BattlePhysicalContextEnvironment = BattlePhysicalContextEnvironment(
         units = { battle.units.values },
@@ -47,6 +62,11 @@ internal object BattleCombatEnvironmentAssembler {
         },
         probabilityResolver = battle.probabilityResolver,
     )
+
+    /**
+     * `combatContext`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun combatContext(battle: Battle): BattleCombatEnvironmentContext = BattleCombatEnvironmentContext(
         units = { battle.units.values },
@@ -141,8 +161,18 @@ internal object BattleCombatEnvironmentAssembler {
         },
     )
 
+    /**
+     * `physical`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun physical(battle: Battle): PhysicalCombatEnvironment =
         BattleCombatEnvironmentBuilder.buildPhysicalCombatEnvironment(combatContext(battle))
+
+    /**
+     * `magic`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun magic(battle: Battle): MagicEnvironment =
         BattleCombatEnvironmentBuilder.buildMagicEnvironment(combatContext(battle))

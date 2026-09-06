@@ -7,7 +7,16 @@ import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
 
 /** ScenarioStageCallPresentationDispatcher: stage API의 화면·배경·인물 연출 호출을 표시 명령으로 해석한다. */
 internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamily {
+    /**
+     * `infoControlGlobal` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private const val infoControlGlobal = 4071
+
+    /**
+     * `dispatch`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun dispatch(
         path: String,
@@ -16,7 +25,17 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
         frame: Frame,
         env: ScenarioStageCallEnvironment,
     ): ScenarioStageCallDispatcher.Result? {
+        /**
+         * `stage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val stage = env.stage
+        /**
+         * `value` (Any): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val value: Any = when (path) {
             "stage.sectionName" -> {
                 stage.setSection(args.intAt(0), args.getOrNull(1).asText())
@@ -34,8 +53,23 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
             "stage.delay" -> { env.suspendFor(args.firstOrNull().asInt() * 0.1f); 0 }
             "stage.draw" -> { stage.drawBattle(); 0 }
             "stage.info" -> {
+                /**
+                 * `text` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val text = args.firstOrNull().asText()
+                /**
+                 * `delay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val delay = (args.getOrNull(1)?.asInt() ?: 1).coerceAtLeast(0).toFloat()
+                /**
+                 * `infoControl` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val infoControl = env.gvars.remove(infoControlGlobal).asInt()
                 if (env.stagePresentationSkipped) Unit
                 else if (infoControl != 0) stage.controlledInfo(infoControl, text)
@@ -60,10 +94,35 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
             "stage.jumpScene" -> { stage.jumpScene(args.intAt(0)); env.onEnd(); 0 }
             "stage.itemVars" -> { stage.addItemVariables(args.getOrNull(0).asList(), args.getOrNull(1).asList()); 0 }
             "stage.getItem" -> {
+                /**
+                 * `itemId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val itemId = args.intAt(0)
+                /**
+                 * `supplied` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val supplied = args.getOrNull(1).asInt()
+                /**
+                 * `addToInventory` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val addToInventory = args.getOrNull(2)?.asBooleanValue() ?: true
+                /**
+                 * `unitSelector` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val unitSelector = args.getOrNull(3)?.asInt() ?: 0
+                /**
+                 * `action` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val action = args.getOrNull(4)?.asInt() ?: 5
                 stage.getItem(itemId, supplied, addToInventory).let { message ->
                     if (env.moduleName.startsWith("R_")) env.suspendForInfo(message, ScenarioModalKind.INFO, 1f)

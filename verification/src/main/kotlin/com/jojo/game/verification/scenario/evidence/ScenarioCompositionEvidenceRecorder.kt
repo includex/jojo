@@ -7,6 +7,11 @@ import java.util.*
 
 /** ScenarioCompositionEvidenceRecorder: 화면 의존성 없이 원본 비교용 구성 계약을 직렬화한다. */
 internal class ScenarioCompositionEvidenceRecorder {
+    /**
+     * `record`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun record(view: ScenarioEvidenceView): String {
         val units = view.units.joinToString(",") { unit ->
             val x = mapX(unit.scriptX, unit.scriptY)
@@ -29,12 +34,47 @@ internal class ScenarioCompositionEvidenceRecorder {
                         )
                     }}"
         }
+        /**
+         * `dialogue` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogue = view.dialogue?.let { value ->
+            /**
+             * `left` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val left = value.side == 0
+            /**
+             * `dialogueY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val dialogueY = if (value.atTop) 373.24f else 0f
+            /**
+             * `panelX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val panelX = if (left) 274.54054f else 316.40878f
+            /**
+             * `faceX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val faceX = if (left) 84.8199f else 1030.2742f
+            /**
+             * `speakerX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val speakerX = if (left) 323.44676f else 365.315f
+            /**
+             * `textX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val textX = if (left) 328.93882f else 370.80706f
             "{\"side\":${value.side},\"top\":${value.atTop}," +
                     "\"speakerId\":${value.speakerId ?: -1}," +
@@ -43,6 +83,11 @@ internal class ScenarioCompositionEvidenceRecorder {
                     "\"speakerBaseline\":[${f(speakerX)},${f(202.5f + dialogueY)}]," +
                     "\"textBaseline\":[${f(textX)},${f(163.5f + dialogueY)}],\"text\":\"${escape(value.visibleText)}\"}"
         } ?: "null"
+        /**
+         * `modal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val modal = view.modal?.let { value ->
             "{\"kind\":\"${value.kind}\",\"text\":\"${escape(value.text)}\",\"screenRect\":${
                 rect(
@@ -53,9 +98,24 @@ internal class ScenarioCompositionEvidenceRecorder {
                 )
             },\"contentCenter\":[640,344]}"
         } ?: "null"
+        /**
+         * `hallMenu` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hallMenu = view.hallMenu?.let { value ->
+            /**
+             * `buttonCenters` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val buttonCenters =
                 floatArrayOf(55.107f, 143.365f, 231.846f, 320.74f, 423.317f, 511.575f, 600.056f, 690.441f, 789.44f)
+            /**
+             * `buttons` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val buttons =
                 buttonCenters.joinToString(",") { sourceX -> rect(sourceX * .86f - 37.84f, 44.30f, 75.68f, 75.68f) }
             "{\"panelRect\":${rect(0f, 0f, 1280f, 125.56f)},\"buttons\":[$buttons]," +
@@ -65,6 +125,11 @@ internal class ScenarioCompositionEvidenceRecorder {
                     "\"valueWidth\":${f(258f * value.displayedAmbition.coerceIn(0f, 100f) / 100f)}," +
                     "\"from\":${value.ambitionFrom},\"to\":${value.ambitionTo}}"
         } ?: "null"
+        /**
+         * `hallCommand` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hallCommand = if (view.hallCommandVisible) {
             "{\"menuRect\":${rect(31f, 318.2f, 51.6f, 51.6f)}," +
                     "\"battleRect\":${rect(895.58f, 1.72f, 82.56f, 82.56f)}," +
@@ -72,7 +137,17 @@ internal class ScenarioCompositionEvidenceRecorder {
                     "\"buyRect\":${rect(1060.70f, 1.72f, 82.56f, 82.56f)}," +
                     "\"sellRect\":${rect(1143.26f, 1.72f, 82.56f, 82.56f)}}"
         } else "null"
+        /**
+         * `hallManagement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hallManagement = view.hallManagement?.let { kind ->
+            /**
+             * `geometry` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val geometry = when (kind) {
                 ScenarioEvidenceHallManagement.EQUIP -> rect(118.84f, 28.81f, 1042.32f, 630.38f)
                 ScenarioEvidenceHallManagement.BUY -> rect(168.72f, 28.81f, 943.42f, 630.38f)
@@ -80,7 +155,17 @@ internal class ScenarioCompositionEvidenceRecorder {
             }
             "{\"kind\":\"${kind.name.lowercase()}\",\"rootRect\":$geometry}"
         } ?: "null"
+        /**
+         * `hallInfo` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hallInfo = view.hallInfo?.let { info ->
+            /**
+             * `geometry` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val geometry = when (info.kind) {
                 "forces" -> rect(142.49f, 68.37f, 995.02f, 551.26f)
                 "property" -> rect(212.42f, 40.42f, 854.84f, 607.16f)
@@ -89,6 +174,11 @@ internal class ScenarioCompositionEvidenceRecorder {
                 "helper" -> rect(127f, 21.07f, 1025.98f, 645.86f)
                 else -> error("Unknown Hall evidence kind: ${info.kind}")
             }
+            /**
+             * `rows` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val rows = info.contentRects.joinToString(",") { row -> rect(row.x, row.y, row.width, row.height) }
             "{\"kind\":\"${info.kind}\",\"rootRect\":$geometry,\"contentRects\":[$rows]}"
         } ?: "null"
@@ -97,11 +187,36 @@ internal class ScenarioCompositionEvidenceRecorder {
                 "\"hallManagement\":$hallManagement,\"hallInfo\":$hallInfo}"
     }
 
+    /**
+     * `f`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun f(value: Float): String = "%.3f".format(Locale.US, value)
+    /**
+     * `rect`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun rect(x: Float, y: Float, width: Float, height: Float): String =
         "[${f(x)},${f(y)},${f(width)},${f(height)}]"
 
+    /**
+     * `escape`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun escape(value: String): String = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+    /**
+     * `mapX`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun mapX(x: Float, y: Float): Float = (x - y + 42f) * 16f
+    /**
+     * `mapY`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun mapY(x: Float, y: Float): Float = 1073.28f - (x + y) * 6.88f
 }

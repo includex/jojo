@@ -33,6 +33,11 @@ object ForcesListLayerTraceHarness {
         ).map { c ->
             /** units: 원본 문자열에서 편성 유닛 목록을 읽는다. */
             fun units(raw: String): List<ForcesListLayer.Unit> = Regex("""\{([^{}]*)}""").findAll(raw).map { m ->
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = m.groupValues[1]
 
                 /** n: 이름 필드를 결과에 기록한다. */
@@ -40,6 +45,11 @@ object ForcesListLayerTraceHarness {
 
                 /** b: 버튼 필드를 결과에 기록한다. */
                 fun b(k: String) = p.contains("\"$k\":true")
+                /**
+                 * `status` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val status = Regex("\"status\":(\\d+)").find(p)?.groupValues?.get(1)?.toInt()
                 ForcesListLayer.Unit(
                     n("id"),
@@ -75,6 +85,11 @@ object ForcesListLayerTraceHarness {
     private fun e(x: String) = x.replace("\\", "\\\\").replace("\"", "\\\"")
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val all = cases(Files.readString(Path.of(args[0]))).joinToString(",", "{", "}") { c ->
             val layer = ForcesListLayer()
@@ -106,6 +121,11 @@ object ForcesListLayerTraceHarness {
             }
             layer.onCreate(c.mine, c.enemy, c.flag); rendered = layer.view().rows.size; trace += state("create")
             c.events.forEach { event ->
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = event.split(':')
                 when (p[0]) {
                     "tab" -> if (c.flag and 1 != 0 && p[2].toInt() == 2 && p[1].toInt() != layer.view().selectedTab) {

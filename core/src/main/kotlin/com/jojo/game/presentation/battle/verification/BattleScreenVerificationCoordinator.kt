@@ -24,7 +24,17 @@ internal data class BattleScreenVerificationInput(
 
 /** 전투 화면 검증 결과: 검증 완료 뒤 기록할 전투 상태를 종류별로 보관한다. */
 private sealed interface BattleScreenVerificationResult {
+    /**
+     * `Tutorial`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Tutorial(val round: Int, val firstEventId: String) : BattleScreenVerificationResult
+    /**
+     * `Scripted`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Scripted(val sourceScenario: String, val unitCount: Int) : BattleScreenVerificationResult
 }
 

@@ -46,6 +46,11 @@ internal data class RuntimeBattleTraceFrameInput(
     val combatPresentation: Boolean,
 )
 
+/**
+ * `RuntimeBattleTraceDialogueInput` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class RuntimeBattleTraceDialogueInput(
     val active: Boolean,
     val revision: Long,
@@ -53,6 +58,11 @@ internal data class RuntimeBattleTraceDialogueInput(
     val speakerId: String,
     val text: String,
 )
+
+/**
+ * `RuntimeBattleTraceAiPresentationInput` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
 
 internal data class RuntimeBattleTraceAiPresentationInput(
     val stage: String,
@@ -67,6 +77,11 @@ internal data class RuntimeBattleTraceAiPresentationInput(
     val hasAction: Boolean,
 )
 
+/**
+ * `RuntimeBattleTraceDriverInput` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class RuntimeBattleTraceDriverInput(
     val selectedUnitId: String?,
     val commandPhase: String,
@@ -75,6 +90,11 @@ internal data class RuntimeBattleTraceDriverInput(
     val eventMessage: String,
     val autoOverlay: String,
 )
+
+/**
+ * `RuntimeBattleTraceUnitInput` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
 
 internal data class RuntimeBattleTraceUnitInput(
     val internalIndex: Int,
@@ -118,11 +138,26 @@ internal data class RuntimeBattleTraceUnitInput(
     val visualY: Float,
 )
 
+/**
+ * `RuntimeBattleTraceSpriteInput` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class RuntimeBattleTraceSpriteInput(val sourceY: Int, val sourceWidth: Int, val sourceHeight: Int)
+/**
+ * `RuntimeBattleTracePoint` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class RuntimeBattleTracePoint(val x: Int, val y: Int)
 
 /** RuntimeBattleTraceFrameProjector: 원시 전투 프레임을 검증 파일용 RuntimeBattleTraceView로 직렬화한다. */
 internal object RuntimeBattleTraceFrameProjector {
+    /**
+     * `project`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun project(input: RuntimeBattleTraceFrameInput): RuntimeBattleTraceView = RuntimeBattleTraceView(
         frame = input.frame,
         elapsed = input.elapsed,
@@ -168,12 +203,27 @@ internal object RuntimeBattleTraceFrameProjector {
         combatPresentation = input.combatPresentation,
     )
 
+    /**
+     * `aiJson`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun aiJson(value: RuntimeBattleTraceAiPresentationInput?): String = value?.let {
         "{\"stage\":\"${it.stage}\",\"actor\":${it.actorCharacterId},\"from\":[${it.fromX},${it.fromY}],\"to\":[${it.toX},${it.toY}],\"target\":${it.targetCharacterId},\"targetHpBefore\":${it.targetHpBefore},\"deferred\":${it.deferred},\"hasAction\":${it.hasAction}}"
     } ?: "null"
 
+    /**
+     * `driverJson`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun driverJson(value: RuntimeBattleTraceDriverInput): String =
         "{\"selectedUnit\":${value.selectedUnitId?.let(::quoted) ?: "null"},\"commandPhase\":\"${value.commandPhase}\",\"lastInput\":${value.lastInput?.let(::quoted) ?: "null"},\"menuTap\":${value.menuTap?.let(::quoted) ?: "null"},\"eventMessage\":${quoted(value.eventMessage)},\"autoOverlay\":\"${value.autoOverlay}\"}"
+
+    /**
+     * `unitJson`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun unitJson(unit: RuntimeBattleTraceUnitInput): String {
         val abilities = unit.abilities.joinToString(",")
@@ -184,6 +234,11 @@ internal object RuntimeBattleTraceFrameProjector {
         val statusRounds = (0..14).joinToString(",") { statusRound(unit, it).toString() }
         return "[${unit.internalIndex},${unit.characterId},${unit.factionOrdinal},${unit.tileX},${unit.tileY},${unit.hitPoints},${unit.magicPoints},${unit.direction},${unit.action},${if (unit.visible) 1 else 0},1,${if (unit.hasActed) 1 else 0},${unit.ai},${unit.aiValue},\"anime${unit.action}_${unit.direction}\",${number(unit.animationTime)},$sprite,{\"abilities\":[$abilities],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience},\"growth\":{\"abilities\":[$abilities],\"level\":${unit.level},\"posts\":${unit.posts},\"arm\":${unit.armId},\"experience\":${unit.experience}},\"attackOffsets\":[$attackOffsets],\"terrain\":${unit.terrain},\"rates\":[${unit.rates.joinToString(",")}],\"skills\":[$skills],\"statuses\":[$statuses],\"statusRounds\":[$statusRounds],\"visual\":[${number(unit.visualX)},${number(unit.visualY)}]}]"
     }
+
+    /**
+     * `status`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun status(unit: RuntimeBattleTraceUnitInput, index: Int): Int = when (index) {
         in 0..5 -> (unit.attributeLifts.getOrElse(index) { 0 } + 1).coerceIn(0, 2)
@@ -196,6 +251,11 @@ internal object RuntimeBattleTraceFrameProjector {
         else -> 1
     }
 
+    /**
+     * `statusRound`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun statusRound(unit: RuntimeBattleTraceUnitInput, index: Int): Int = when (index) {
         in 0..5 -> unit.attributeLiftRounds.getOrElse(index) { 0 }
         7 -> unit.paralysisRound
@@ -207,7 +267,21 @@ internal object RuntimeBattleTraceFrameProjector {
         else -> 0
     }
 
+    /**
+     * `quoted`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun quoted(value: String): String = "\"${BattleTraceRecorder.escape(value)}\""
+    /**
+     * `number`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun number(value: Float): String = BattleTraceRecorder.number(value)
+    /**
+     * `SKILL_IDS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val SKILL_IDS = listOf(7, 43, 197, 262, 276)
 }

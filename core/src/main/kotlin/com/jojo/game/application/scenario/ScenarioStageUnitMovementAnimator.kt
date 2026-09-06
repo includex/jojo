@@ -15,6 +15,11 @@ import com.jojo.game.domain.scenario.TacticalUnit
 
 /** ScenarioStageUnitMovementAnimator: 이동 계획을 적용하고 홀·전투 화면의 이동 연출을 진행한다. */
 internal class ScenarioStageUnitMovementAnimator {
+    /**
+     * `begin`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun begin(
         unit: TacticalUnit,
         path: List<Pair<Int, Int>>,
@@ -24,6 +29,11 @@ internal class ScenarioStageUnitMovementAnimator {
         duration: Float,
         onScriptedDirection: (Pair<Int, Int>) -> Unit,
     ) {
+        /**
+         * `id` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val id = unit.id
         unit.moveFromX = unit.visualX
         unit.moveFromY = unit.visualY
@@ -34,6 +44,11 @@ internal class ScenarioStageUnitMovementAnimator {
         unit.moveZIndex = 4f * (unit.visualX + unit.visualY) - 424f
         unit.moveFinalDirection = direction
         unit.moveJustStarted = duration > 0f
+        /**
+         * `destination` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val destination = path.lastOrNull() ?: (requestedX to requestedY)
         unit.moveToX = destination.first.coerceIn(0, 99)
         unit.moveToY = destination.second.coerceIn(0, 99)
@@ -53,6 +68,11 @@ internal class ScenarioStageUnitMovementAnimator {
             onScriptedDirection(id to direction)
         }
     }
+
+    /**
+     * `update`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun update(delta: Float, units: Map<Int, TacticalUnit>, battleTimeline: Boolean) {
         val elapsedDelta = delta.coerceAtLeast(0f)
@@ -77,7 +97,17 @@ internal class ScenarioStageUnitMovementAnimator {
         }
     }
 
+    /**
+     * `finish`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun finish(units: Map<Int, TacticalUnit>) = units.values.forEach { finish(it, refreshZIndex = false) }
+
+    /**
+     * `finish`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun finish(unit: TacticalUnit, refreshZIndex: Boolean) {
         if (unit.moveDuration > 0f) {
@@ -92,5 +122,10 @@ internal class ScenarioStageUnitMovementAnimator {
         if (unit.movePath.isNotEmpty()) unit.direction = unit.moveFinalDirection
     }
 }
+
+/**
+ * `ScenarioMovementSample` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
 
 private data class ScenarioMovementSample(val x: Float, val y: Float, val direction: Int, val zIndex: Float)

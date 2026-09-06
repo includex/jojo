@@ -13,29 +13,96 @@ import com.jojo.game.domain.scenario.battleId
 
 /** BattleUnitProjector: 작성 데이터와 저장 데이터를 결합해 실제 전술 전투 유닛으로 변환한다. */
 internal class BattleUnitProjector(
+    /**
+     * `catalog` (GameDataCatalog?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val catalog: GameDataCatalog?,
+    /**
+     * `campaign` (CampaignState?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val campaign: CampaignState?,
+    /**
+     * `enemyEquipment` (Map<Int, List<Int>>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val enemyEquipment: Map<Int, List<Int>>,
 ) {
+    /**
+     * `project`: 필요한 객체나 결과를 생성한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun project(
         unit: ScenarioBattleUnit,
         forcedLevel: Int? = null,
         forcedPosts: Int? = null,
     ): BattleUnit {
+        /**
+         * `persistent` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val persistent = campaign?.unitAttributes?.get(unit.characterId).orEmpty()
+        /**
+         * `requestedLevel` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val requestedLevel = forcedLevel?.minus(1)?.coerceAtLeast(0)
             ?: persistent[18]?.minus(1)?.coerceAtLeast(0)
             ?: unit.level
+        /**
+         * `battleProfile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val battleProfile = catalog?.battleProfile(unit.characterId, requestedLevel, forcedPosts ?: persistent[17])
+        /**
+         * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val profile = battleProfile?.unit
+        /**
+         * `arm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val arm = battleProfile?.arm
+        /**
+         * `equipmentValues` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val equipmentValues = effectiveEquipmentValues(unit, battleProfile?.posts ?: 0, battleProfile?.level ?: 1)
+        /**
+         * `equipment` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val equipment = catalog?.equipmentBonus(equipmentValues, battleProfile?.level ?: 1)
+        /**
+         * `skills` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val skills = catalog?.mergeSkills(
             catalog.skillsForUnit(unit.characterId, battleProfile?.posts ?: 0, campaign),
             catalog.equipmentSkills(equipmentValues, battleProfile?.level ?: 1),
         ).orEmpty()
+        /**
+         * `abilities` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val abilities = BattleAbilityProjection(catalog, skills, battleProfile?.level ?: 1)
+        /**
+         * `attackArea` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attackArea = attackArea(battleProfile, skills)
 
         return BattleUnit(
@@ -99,6 +166,11 @@ internal class BattleUnitProjector(
         )
     }
 
+    /**
+     * `effectiveEquipmentValues`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun effectiveEquipmentValues(unit: ScenarioBattleUnit, posts: Int, level: Int): List<Int> {
         val equipped = if (unit.faction == ScenarioUnitFaction.MINE) {
             campaign?.inventory?.equipment?.get(unit.characterId)?.asScriptValues()
@@ -112,22 +184,47 @@ internal class BattleUnitProjector(
         )
     }
 
+    /**
+     * `List`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun List<Int>.valueOrDefault(index: Int, defaults: List<Int>): Int {
         val primaryIndex = if (index in 0..1) 0 else if (index in 2..3) 2 else 4
         return if (getOrElse(primaryIndex) { 0 } > 1) getOrElse(index) { 0 }
         else defaults.getOrElse(index) { 1 }
     }
 
+    /**
+     * `attackArea`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun attackArea(
         profile: GameDataCatalog.BattleProfile?,
         skills: Map<Int, Int>,
     ): GameDataCatalog.HitAreaProfile? {
+        /**
+         * `rangeSkill` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val rangeSkill = skills.skillValue(258)
+        /**
+         * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val base = rangeSkill?.let { catalog?.hitAreaProfile(it) } ?: profile?.hitArea
         return if (skills.skillValue(260) != rangeSkill) {
             base?.upgradeId?.let { catalog?.hitAreaProfile(it) } ?: base
         } else base
     }
+
+    /**
+     * `factionFor`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun factionFor(unit: ScenarioBattleUnit) = when (unit.faction) {
         ScenarioUnitFaction.MINE -> Faction.PLAYER
@@ -135,23 +232,65 @@ internal class BattleUnitProjector(
         ScenarioUnitFaction.ENEMY -> if (unit.reinforcement) Faction.REINFORCEMENTS else Faction.ENEMY
     }
 
+    /**
+     * `Map`: 입력을 규칙에 따라 계산·변환한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Map<Int, Int>.skillValue(id: Int): Int? =
         get(id)?.and(255)?.takeIf { it != 255 }
 
     private companion object {
+        /**
+         * `CARDINAL_OFFSETS` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val CARDINAL_OFFSETS = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
     }
 }
 
+/**
+ * `BattleAbilityProjection` 클래스: battle 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 private class BattleAbilityProjection(
+    /**
+     * `catalog` (GameDataCatalog?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val catalog: GameDataCatalog?,
+    /**
+     * `skills` (Map<Int, Int>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val skills: Map<Int, Int>,
+    /**
+     * `level` (Int,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val level: Int,
 ) {
+    /**
+     * `passive`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun passive(base: Int, skillId: Int): Int = catalog?.passiveAbility(base, skillId, skills) ?: base
+
+    /**
+     * `ability`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun ability(base: Int, sourceBase: Int, passiveSkill: Int): Int =
         passive(divineFloor(base, sourceBase), passiveSkill)
+
+    /**
+     * `divineFloor`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun divineFloor(base: Int, sourceBase: Int): Int {
         val growth = skills[190]?.and(255)?.takeIf { it != 255 } ?: return base

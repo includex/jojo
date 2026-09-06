@@ -18,15 +18,65 @@ internal data class CocosRichTextTexture(
 
 /** 전투 상태에 따라 선택되는 동적 텍스처를 캐시하고 해제합니다. */
 internal class BattleDynamicTextureRepository : Disposable {
+    /**
+     * `unitTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val unitTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `attackTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val attackTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `specialTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val specialTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `effectTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val effectTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `headTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val headTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `battleDialogTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val battleDialogTextures = mutableMapOf<String, Texture?>()
+    /**
+     * `richTextTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val richTextTextures = mutableMapOf<String, CocosRichTextTexture>()
+    /**
+     * `gateTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val gateTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `terrainIconTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val terrainIconTextures = mutableMapOf<Int, Texture>()
+    /**
+     * `itemIconTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val itemIconTextures = mutableMapOf<Int, Texture>()
 
     /** 이동 스프라이트를 우선순위 경로에서 찾아 반환합니다. */
@@ -126,15 +176,30 @@ internal class BattleDynamicTextureRepository : Disposable {
         else -> null
     }
 
+    /**
+     * `actionTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun actionTexture(kind: String, avatarId: Int, cache: MutableMap<Int, Texture>): Texture? {
         cache[avatarId]?.let { return it }
         val handle = firstExisting(BattleDynamicTexturePaths.action(kind, avatarId))
         return handle?.let(::linearTexture)?.also { cache[avatarId] = it }
     }
 
+    /**
+     * `firstExisting`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun firstExisting(paths: List<String>) = paths.asSequence()
         .map(Gdx.files::internal)
         .firstOrNull { it.exists() }
+
+    /**
+     * `indexedTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun indexedTexture(index: Int, cache: MutableMap<Int, Texture>, path: String): Texture? {
         cache[index]?.let { return it }
@@ -142,9 +207,19 @@ internal class BattleDynamicTextureRepository : Disposable {
         return handle.takeIf { it.exists() }?.let(::Texture)?.also { cache[index] = it }
     }
 
+    /**
+     * `linearTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun linearTexture(handle: com.badlogic.gdx.files.FileHandle): Texture = Texture(handle).also {
         it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
     }
+
+    /**
+     * `dispose`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun dispose() {
         sequenceOf(unitTextures, attackTextures, specialTextures, effectTextures, headTextures)

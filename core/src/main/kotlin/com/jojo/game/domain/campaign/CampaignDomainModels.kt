@@ -20,6 +20,11 @@ data class CampaignEquipment(
     val weaponExperience: Int = 0,
     val armorExperience: Int = 0,
 ) {
+    /**
+     * `asScriptValues`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun asScriptValues(): List<Int> = listOf(weapon, weaponLevel, armor, armorLevel, auxiliary)
 }
 
@@ -67,5 +72,10 @@ data class CampaignEquipmentExperienceResult(
     val oldValue: Int,
     val newValue: Int,
 ) {
+    /**
+     * `leveledUp` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val leveledUp: Boolean get() = newLevel > oldLevel
 }

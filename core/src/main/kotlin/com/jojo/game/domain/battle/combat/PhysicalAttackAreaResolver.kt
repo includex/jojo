@@ -8,6 +8,11 @@ import com.jojo.game.*
 /** PhysicalAttackAreaResolver: 물리 공격 범위 판별기이며, 입력 조건과 전투 규칙을 적용해 판정 결과를 계산한다. */
 internal object PhysicalAttackAreaResolver {
 
+    /**
+     * `physicalEffectPositions`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun physicalEffectPositions(attacker: BattleUnit, target: BattleUnit): Set<Pair<Int, Int>> {
         val effectArea =
             attacker.attackEffectAreaId ?: return attacker.attackEffectOffsets.mapTo(linkedSetOf()) { (dx, dy) ->
@@ -45,6 +50,11 @@ internal object PhysicalAttackAreaResolver {
         return attacker.attackEffectOffsets.mapTo(linkedSetOf()) { (x, y) -> anchor.tileX + x to anchor.tileY + y }
     }
 
+    /**
+     * `hasPhysicalEffectTargets`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun hasPhysicalEffectTargets(
         attacker: BattleUnit,
         target: BattleUnit,
@@ -54,6 +64,11 @@ internal object PhysicalAttackAreaResolver {
         .mapNotNull { (x, y) -> unitAt(x, y) }
         .any { it !== target && it.visible && !areAllied(attacker, it) }
 
+    /**
+     * `physicalDamageTransfer`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun physicalDamageTransfer(
         attacker: BattleUnit,
         defender: BattleUnit,
@@ -62,8 +77,18 @@ internal object PhysicalAttackAreaResolver {
         unitAt: (x: Int, y: Int) -> BattleUnit?,
         areAllied: (BattleUnit, BattleUnit) -> Boolean,
     ): Pair<BattleUnit, Int>? {
+        /**
+         * `percent` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val percent = defender.skills[277]?.and(255)?.takeIf { it != 255 } ?: return null
         if (resolvedHarm < defender.level || BattleStatus.CONFUSION in defender.statuses) return null
+        /**
+         * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val candidates = (if (defender.attackAllScreen) {
             units().asSequence()
         } else {
@@ -74,9 +99,19 @@ internal object PhysicalAttackAreaResolver {
             .filter { it !== attacker && !areAllied(defender, it) }
             .toList()
             .let { found -> if (found.size > 1) found.sortedBy { it.hitPoints } else found }
+        /**
+         * `recipient` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val recipient = candidates.firstOrNull() ?: return null
         return recipient to (resolvedHarm * percent / 100)
     }
+
+    /**
+     * `computePhysicalSplashHarms`: 입력을 규칙에 따라 계산·변환한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun computePhysicalSplashHarms(
         attacker: BattleUnit,
@@ -90,8 +125,23 @@ internal object PhysicalAttackAreaResolver {
         .mapNotNull { (x, y) -> env.unitAt(x, y) }
         .filter { it !== primaryTarget && it.visible && !env.areAllied(attacker, it) }
         .map { affected ->
+            /**
+             * `special` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val special = env.mrspDamage(attacker, affected)
+            /**
+             * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val harm = special ?: run {
+                /**
+                 * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val base = PhysicalDamageCalculator.basePhysicalDamage(
                     attacker,
                     affected,

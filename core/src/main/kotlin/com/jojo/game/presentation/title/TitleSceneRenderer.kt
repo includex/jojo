@@ -13,9 +13,24 @@ import com.jojo.game.presentation.title.assets.TitleSceneAssets
 
 /** TitleSceneRenderer: 타이틀 배경·로고·메뉴·선택 오버레이를 정해진 화면 좌표에 그린다. */
 internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
+    /**
+     * `viewport` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val viewport = ScreenViewport(OrthographicCamera())
+    /**
+     * `batch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val batch = SpriteBatch()
 
+
+    /**
+     * `render`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun render(state: TitleViewState) {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.05f, 1f)
@@ -41,10 +56,25 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
     }
 
 
+    /**
+     * `resize`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun resize(width: Int, height: Int) = viewport.update(width, height, true)
 
 
+    /**
+     * `dispose`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun dispose() = batch.dispose()
+
+    /**
+     * `drawLogin`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawLogin() {
         batch.draw(assets.loginBackground, 0f, 0f, viewport.worldWidth, viewport.worldHeight)
@@ -53,6 +83,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
             batch.draw(texture, 945.46f, sourceY * SCALE - 37.84f, 302.72f, 75.68f)
         }
     }
+
+    /**
+     * `drawDim`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawDim(alpha: Float) {
         batch.projectionMatrix = viewport.camera.combined
@@ -63,6 +98,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         batch.color = Color.WHITE
         batch.end()
     }
+
+    /**
+     * `drawLoadOverlay`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawLoadOverlay(state: TitleViewState) {
         drawTiled(assets.loadLogo9, 239.24f, 83.85f, 801.52f, 520.3f)
@@ -87,6 +127,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawCenteredLabelSource("취소", 1125.186f, 139.764f)
     }
 
+    /**
+     * `drawLoadConfirmation`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawLoadConfirmation(messageText: String) {
         drawTiled(assets.loadLogo9, 366.95f, 216.72f, 546.1f, 254.56f)
         assets.loadOuterPatch.draw(batch, 366.95f, 216.72f, 546.1f, 254.56f)
@@ -102,6 +147,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawCenteredLabelSource("불러오기", 844.186f, 299.085f)
         assets.uiFont.color = Color.BLACK
     }
+
+    /**
+     * `drawSettingOverlay`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawSettingOverlay(state: TitleViewState) {
         val view = requireNotNull(state.settings)
@@ -143,6 +193,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawCenteredLabelSource("확인", 1208.186f, 77.261f)
     }
 
+    /**
+     * `drawSettingPanel`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawSettingPanel(cy: Float, title: String, titleCy: Float, titleWidth: Float) {
         assets.settingBox1Patch.draw(batch, (1033.186f - 239.85f) * SCALE, (cy - 50f) * SCALE, 412.54f, 86f)
         batch.draw(
@@ -155,6 +210,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawLabelSource(title, 914.428f, titleCy, if (title == "텍스트 속도") 184.11f else 149.51f)
     }
 
+    /**
+     * `drawRadios`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRadios(cy: Float, selected: Int, labels: List<String>) {
         val centers = listOf(834.346f, 990.286f, 1135.419f)
         val labelCenters = listOf(900.731f, 1069.671f, 1214.804f)
@@ -164,6 +224,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
             drawLabelSource(labels[index], labelCenters[index], cy, 90f)
         }
     }
+
+    /**
+     * `drawOptionalOverlay`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawOptionalOverlay(route: LoginOptionalOverlayRoute) {
         batch.color = Color(0f, 0f, 0f, .392f)
@@ -179,6 +244,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         assets.settingBox1Patch.draw(batch, x, y + h - 52f, w, 52f)
     }
 
+    /**
+     * `drawRegistrationLoading`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRegistrationLoading(view: TitleLoadingView, elapsed: Float) {
         batch.color = Color(0f, 0f, 0f, view.blockerOpacity)
         batch.draw(assets.dimPixel, 0f, 0f, viewport.worldWidth, viewport.worldHeight)
@@ -189,14 +259,34 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         )
     }
 
+    /**
+     * `drawSourceNode`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawSourceNode(texture: Texture, cx: Float, cy: Float, width: Float, height: Float) =
         batch.draw(texture, (cx - width / 2f) * SCALE, (cy - height / 2f) * SCALE, width * SCALE, height * SCALE)
+
+    /**
+     * `drawLabelSource`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawLabelSource(text: String, cx: Float, cy: Float, width: Float) =
         assets.uiFont.draw(batch, text, (cx - width / 2f) * SCALE, cy * SCALE + 13f)
 
+    /**
+     * `drawCenteredLabelSource`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawCenteredLabelSource(text: String, cx: Float, cy: Float) =
         assets.uiFont.draw(batch, text, (cx - 100f) * SCALE, cy * SCALE + 13f, 200f * SCALE, Align.center, false)
+
+    /**
+     * `drawTiled`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiled(texture: Texture, x: Float, y: Float, width: Float, height: Float) {
         val tileWidth = texture.width * SCALE
@@ -229,6 +319,11 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
     }
 
     private companion object {
+        /**
+         * `SCALE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val SCALE = .86f
     }
 }

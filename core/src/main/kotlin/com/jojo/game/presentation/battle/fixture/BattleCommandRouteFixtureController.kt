@@ -22,7 +22,17 @@ internal class BattleCommandRouteFixtureController {
         commands.clearInventory()
         if (route in INVENTORY_ROUTES) commands.seedInventory()
 
+        /**
+         * `needsMagic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val needsMagic = route == RuntimeBattleRoute.COMMAND_MAGICK
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = units
             .asSequence()
             .filter { it.visible && it.faction.isPlayerSide() && (!needsMagic || it.hasMagic) }

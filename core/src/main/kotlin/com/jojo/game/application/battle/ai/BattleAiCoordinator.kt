@@ -18,6 +18,11 @@ import com.jojo.game.domain.battle.BattleMovementPlanner
 import com.jojo.game.domain.battle.BattleProbabilityResolver
 import com.jojo.game.domain.battle.BattleRateGauge
 
+/**
+ * `BattleAiCoordinatorEnvironment` 클래스: ai 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class BattleAiCoordinatorEnvironment(
     val units: () -> Map<String, BattleUnit>,
     val unitAt: (Int, Int) -> BattleUnit?,
@@ -56,23 +61,53 @@ internal data class BattleAiCoordinatorEnvironment(
     val setStagedCompletionSideEffects: (MutableList<() -> Unit>?) -> Unit,
     val createActionTransaction: (String, BattleActionSnapshot, BattleActionSnapshot, List<() -> Unit>, List<() -> Unit>) -> BattleActionTransaction,
 )
+/**
+ * `BattleAiCoordinator` 싱글턴 객체: ai 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal object BattleAiCoordinator {
+
+    /**
+     * `resolveAiTurn`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun resolveAiTurn(
         maxUnits: Int = Int.MAX_VALUE,
         deferMutations: Boolean = false,
         env: BattleAiCoordinatorEnvironment,
     ): AiTurnResult {
+        /**
+         * `turnEnv` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val turnEnv = createTurnEnvironment(env)
         return BattleAiTurnResolver.resolveAiTurn(maxUnits, deferMutations, turnEnv)
     }
+
+    /**
+     * `traceAiPlannerAtCurrentPoint`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun traceAiPlannerAtCurrentPoint(
         characterId: Int,
         aiFlags: Int = 1,
         env: BattleAiCoordinatorEnvironment,
     ): AiPlannerTrace? {
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = env.units().values.firstOrNull { it.visible && it.characterId == characterId } ?: return null
+        /**
+         * `value` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val value = BattleAiScorer.cocosAiBaseValueAt(
             unit, unit.tileX, unit.tileY, env.units().values, env.terrain, env.terrainResumeRates, env.areAllied,
         )
@@ -88,16 +123,36 @@ internal object BattleAiCoordinator {
         )
     }
 
+    /**
+     * `previewAiAttackValue`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun previewAiAttackValue(
         attackerId: String,
         targetId: String,
         env: BattleAiCoordinatorEnvironment,
     ): Int {
+        /**
+         * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attacker = env.units()[attackerId] ?: return 0
+        /**
+         * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val target = env.units()[targetId] ?: return 0
         return BattleAiScorer.estimatedAttackValue(attacker, target, createScoringEnvironment(env))
     }
 
+
+    /**
+     * `createScoringEnvironment`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun createScoringEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiScoringEnvironment =
         BattleAiScoringEnvironment(
@@ -112,6 +167,11 @@ internal object BattleAiCoordinator {
         )
 
 
+    /**
+     * `createDecisionEnvironment`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun createDecisionEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiDecisionEnvironment =
         BattleAiDecisionEnvironment(
             scoringEnv = createScoringEnvironment(env),
@@ -123,6 +183,11 @@ internal object BattleAiCoordinator {
             hasDiagnosticEntry = { prefix -> env.traceActions.any { it.startsWith(prefix) } },
         )
 
+
+    /**
+     * `createControllerEnvironment`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun createControllerEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiControllerEnvironment =
         BattleAiControllerEnvironment(
@@ -141,6 +206,11 @@ internal object BattleAiCoordinator {
             decisionEnv = createDecisionEnvironment(env),
         )
 
+
+    /**
+     * `createTurnEnvironment`: 필요한 객체나 결과를 생성한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun createTurnEnvironment(env: BattleAiCoordinatorEnvironment): BattleAiTurnEnvironment =
         BattleAiTurnEnvironment(

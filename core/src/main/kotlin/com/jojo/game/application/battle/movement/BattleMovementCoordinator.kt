@@ -30,12 +30,26 @@ internal data class BattleMovementEnvironment(
 
 /** BattleMovementCoordinator: 이동 범위·경로·방향·밀치기 위치를 전장 규칙에 따라 계산한다. */
 internal object BattleMovementCoordinator {
+    /**
+     * `DEFAULT_TERRAIN_SIZE` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private const val DEFAULT_TERRAIN_SIZE = 100
 
+
+    /**
+     * `distance`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun distance(a: BattleUnit, b: BattleUnit): Int =
         kotlin.math.abs(a.tileX - b.tileX) + kotlin.math.abs(a.tileY - b.tileY)
 
+
+    /**
+     * `facingDirection`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun facingDirection(fromX: Int, fromY: Int, toX: Int, toY: Int): Int {
         val dx = kotlin.math.abs(toX - fromX)
@@ -46,10 +60,20 @@ internal object BattleMovementCoordinator {
     }
 
 
+    /**
+     * `isInsideDefaultTerrainBounds`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun isInsideDefaultTerrainBounds(point: Pair<Int, Int>, terrain: BattleTerrainGrid?): Boolean =
         point.first >= 0 && point.second >= 0 &&
                 point.first < (terrain?.width ?: DEFAULT_TERRAIN_SIZE) &&
                 point.second < (terrain?.height ?: DEFAULT_TERRAIN_SIZE)
+
+    /**
+     * `backPosition`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun backPosition(
         defender: BattleUnit,
@@ -58,25 +82,50 @@ internal object BattleMovementCoordinator {
         blockedTiles: Set<Pair<Int, Int>>,
         unitAt: (Int, Int) -> BattleUnit?,
     ): Pair<Int, Int>? {
+        /**
+         * `dx` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dx = when {
             defender.tileX < attacker.tileX -> -1
             defender.tileX > attacker.tileX -> 1
             else -> 0
         }
+        /**
+         * `dy` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dy = when {
             defender.tileY < attacker.tileY -> -1
             defender.tileY > attacker.tileY -> 1
             else -> 0
         }
+        /**
+         * `point` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val point = Pair(defender.tileX + dx, defender.tileY + dy)
         if (point.first < 0 || point.second < 0) return null
         if (terrain?.let { point.first >= it.width || point.second >= it.height } == true) return null
         if (point in blockedTiles || unitAt(point.first, point.second) != null) return null
+        /**
+         * `terrainId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val terrainId = terrain?.terrainAt(point.first, point.second)
         if (terrainId?.let { defender.terrainMovementCosts[it] ?: 255 } ?: 1 >= 255) return null
         return point
     }
 
+
+    /**
+     * `movementRules`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun movementRules(unit: BattleUnit): BattleMovementPlanner.MovementRules {
         val ignoresTerrain = unit.skills[29]?.and(255)?.let { it != 255 } == true
@@ -89,6 +138,11 @@ internal object BattleMovementCoordinator {
             ignoresEnemyNear = canLeaveEnemyNear,
         )
     }
+
+    /**
+     * `movePoints`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun movePoints(
         unit: BattleUnit,
@@ -103,6 +157,11 @@ internal object BattleMovementCoordinator {
         ignoredEnemyId = ignoredEnemyId,
         startOverride = startOverride ?: (unit.tileX to unit.tileY),
     )
+
+    /**
+     * `findMovementPath`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun findMovementPath(
         unit: BattleUnit,
@@ -127,6 +186,11 @@ internal object BattleMovementCoordinator {
             ),
         )
 
+    /**
+     * `findReachableEmptyPosition`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun findReachableEmptyPosition(
         unit: BattleUnit,
         seed: Pair<Int, Int>,
@@ -136,6 +200,11 @@ internal object BattleMovementCoordinator {
     ): Pair<Int, Int>? =
         planner.findEmptyPosition(unit, seed, reachable) { isInsideDefaultTerrainBounds(it, terrain) }
 
+    /**
+     * `scriptedMovePath`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun scriptedMovePath(
         characterId: Int,
         targetX: Int,
@@ -144,23 +213,58 @@ internal object BattleMovementCoordinator {
         planner: BattleMovementPlanner<BattleUnit>,
         terrain: BattleTerrainGrid?,
     ): List<Pair<Int, Int>>? {
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = presentationUnits.firstOrNull { it.characterId == characterId } ?: return null
+        /**
+         * `clamped` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val clamped = targetX.coerceIn(0, (terrain?.width ?: 100) - 1) to
                 targetY.coerceIn(0, (terrain?.height ?: 100) - 1)
+        /**
+         * `destination` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val destination = planner.findScriptedDestination(unit, clamped) { isInsideDefaultTerrainBounds(it, terrain) }
         return destination?.let { findMovementPath(unit, it.first, it.second, planner) }
     }
+
+    /**
+     * `reachableTiles`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun reachableTiles(
         id: String,
         env: BattleMovementEnvironment,
     ): Map<Pair<Int, Int>, Int> {
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = env.units()[id] ?: return emptyMap()
         if (!unit.visible || BattleStatus.PARALYSIS in unit.statuses || unit.hasMoved || unit.hasActed) return emptyMap()
+        /**
+         * `movement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val movement = BattleAttributeCalculator.finalMovement(unit, env.weather())
         return movePoints(unit, movement, env.movementPlanner).points
             .mapValuesTo(linkedMapOf()) { (_, point) -> movement - point.remaining }
     }
+
+    /**
+     * `canEnterTilesIgnoringEnemyWithinMoves`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun canEnterTilesIgnoringEnemyWithinMoves(
         id: String,
@@ -170,14 +274,39 @@ internal object BattleMovementCoordinator {
         moves: Int = 2,
         env: BattleMovementEnvironment,
     ): Boolean {
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = env.units()[id] ?: return false
         if (!unit.visible || targetTiles.isEmpty() || moves < 1) return false
+        /**
+         * `movement` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val movement = BattleAttributeCalculator.finalMovement(unit, env.weather())
+        /**
+         * `frontier` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var frontier = linkedSetOf(start)
         repeat(moves) {
+            /**
+             * `next` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val next = linkedSetOf<Pair<Int, Int>>()
             frontier.forEach { origin ->
                 movePoints(unit, movement, env.movementPlanner, ignoredEnemyId, origin).points.keys.forEach { tile ->
+                    /**
+                     * `occupant` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val occupant = env.unitAt(tile.first, tile.second)
                     if (tile == origin || occupant == null || occupant.id == ignoredEnemyId) next += tile
                 }
@@ -189,6 +318,11 @@ internal object BattleMovementCoordinator {
         return false
     }
 
+    /**
+     * `moveUnit`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun moveUnit(
         id: String,
         targetX: Int,
@@ -197,6 +331,11 @@ internal object BattleMovementCoordinator {
         env: BattleMovementEnvironment,
     ): TacticalActionResult {
         if (env.isBattleEnded()) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = env.units()[id] ?: return TacticalActionResult.Rejected("유닛이 없습니다.")
         if (!unit.visible) return TacticalActionResult.Rejected("아직 등장하지 않은 유닛입니다.")
         if (BattleStatus.PARALYSIS in unit.statuses || BattleStatus.CONFUSION in unit.statuses) return TacticalActionResult.Rejected(
@@ -210,14 +349,34 @@ internal object BattleMovementCoordinator {
         }
         if (targetX to targetY in env.blockedTiles) return TacticalActionResult.Rejected("장애물이 있는 칸입니다.")
         if (env.unitAt(targetX, targetY) != null) return TacticalActionResult.Rejected("다른 유닛이 있는 칸입니다.")
+        /**
+         * `route` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val route = movePoints(
             unit,
             maxDistance ?: BattleAttributeCalculator.finalMovement(unit, env.weather()),
             env.movementPlanner
         )
+        /**
+         * `destination` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val destination = targetX to targetY
         if (destination !in route.points) return TacticalActionResult.Rejected("이동 범위를 벗어났습니다.")
+        /**
+         * `path` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val path = route.pathTo(destination)
+        /**
+         * `nodes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val nodes = path.size
         path.getOrNull(1)?.let { first ->
             unit.direction = facingDirection(unit.tileX, unit.tileY, first.first, first.second)
@@ -229,12 +388,22 @@ internal object BattleMovementCoordinator {
         return TacticalActionResult.Success
     }
 
+    /**
+     * `moveToward`: 입력을 규칙에 따라 계산·변환한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun moveToward(
         unit: BattleUnit,
         goalX: Int,
         goalY: Int,
         env: BattleMovementEnvironment,
     ): Boolean {
+        /**
+         * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val candidates = movePoints(
             unit,
             BattleAttributeCalculator.finalMovement(unit, env.weather()),
@@ -243,6 +412,11 @@ internal object BattleMovementCoordinator {
             .asSequence()
             .filter { it != (unit.tileX to unit.tileY) }
             .sortedBy { kotlin.math.abs(goalX - it.first) + kotlin.math.abs(goalY - it.second) }
+        /**
+         * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val target = candidates.firstOrNull { (x, y) -> (x to y) !in env.blockedTiles && env.unitAt(x, y) == null }
             ?: return false
         return moveUnit(unit.id, target.first, target.second, null, env) is TacticalActionResult.Success

@@ -12,7 +12,17 @@ data class TitleViewState(
     val elapsedSeconds: Float = 0f,
 )
 
+/**
+ * `TitleMode`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 enum class TitleMode { LOGIN, LOAD, SETTING }
+
+/**
+ * `TitleLoadRow`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 data class TitleLoadRow(
     val number: String,
@@ -21,6 +31,11 @@ data class TitleLoadRow(
     val occupied: Boolean,
 )
 
+/**
+ * `TitleSettingsView`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class TitleSettingsView(
     val flags: Int,
     val messageSpeed: Int,
@@ -28,6 +43,11 @@ data class TitleSettingsView(
     val background: Int,
     val gameSpeed: Float,
 )
+
+/**
+ * `TitleLoadingView`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 data class TitleLoadingView(
     val blockerOpacity: Float,

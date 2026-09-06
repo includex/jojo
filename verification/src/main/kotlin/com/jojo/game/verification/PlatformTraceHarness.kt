@@ -70,6 +70,11 @@ object PlatformTraceHarness {
                         native += name
                     }
                 }, { calls++ }, { cmds += "END_GAME" })
+                /**
+                 * `z` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val z = event.split(':'); p.touch(z[0].toInt(), z[1].toInt()); b[1] =
                     "attached" to p.attached.toString(); b[3] =
                     "cmds" to "[" + cmds.joinToString(",") { q(it) } + "]"; b[5] =
@@ -77,9 +82,29 @@ object PlatformTraceHarness {
             }
 
             "statement" -> {
+                /**
+                 * `ev` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val ev = mutableListOf<String>()
+                /**
+                 * `cmds` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val cmds = mutableListOf<String>()
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = LegalStatementFlow({ ev += it }, { cmds += "END_GAME" }); p.onCreate(num(c, "playerTimer"))
+                /**
+                 * `z` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val z = event.split(':'); p.touch(z[0].toInt(), z[1].toInt()); b[1] =
                     "attached" to p.attached.toString(); b[3] =
                     "cmds" to "[" + cmds.joinToString(",") { q(it) } + "]"; b[4] =
@@ -87,19 +112,49 @@ object PlatformTraceHarness {
             }
 
             "version" -> {
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = VersionInfoFlow(str(c, "version")); p.touch(event.substringAfter(':').toInt()); b[1] =
                     "attached" to p.attached.toString(); b += "lines" to p.lines.size.toString(); b += "first" to q(p.lines.first())
             }
 
             "install" -> {
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = InstallationFlow(true, str(c, "launch"), num(c, "mineFloor"))
+                /**
+                 * `z` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val z = event.split(':'); p.touch(z[0].toInt(), z[1].toInt()); b[1] =
                     "attached" to p.attached.toString(); b += "buttons" to p.buttons.joinToString(",", "[", "]")
             }
 
             "hot" -> {
+                /**
+                 * `ev` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val ev = mutableListOf<String>()
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = UpdateFlow { ev += it }; if (event == "over") p.over() else {
+                    /**
+                     * `buttons` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val buttons = p.setButtonFlag(5, true); b += "ini" to p.parseIni(
                         str(
                             c,
@@ -118,6 +173,11 @@ object PlatformTraceHarness {
             }
 
             "login" -> {
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = LoginEligibility(
                     num(c, "appId"),
                     num(c, "money"),
@@ -127,9 +187,24 @@ object PlatformTraceHarness {
             }
 
             "sdk" -> {
+                /**
+                 * `saved` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val saved = str(c, "saved").ifEmpty { null }
+                /**
+                 * `macs` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val macs = Regex("\"macs\"\\s*:\\s*\\[([^]]*)]").find(c)?.groupValues?.get(1)
                     ?.let { Regex("\"([^\"]*)\"").findAll(it).map { m -> m.groupValues[1] }.toList() } ?: emptyList()
+                /**
+                 * `device` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val device = DeviceIdentityService(
                     saved,
                     macs,
@@ -142,7 +217,17 @@ object PlatformTraceHarness {
             }
 
             "video" -> {
+                /**
+                 * `called` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var called = 0
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p =
                     VideoRewardFlow(Regex("\"loadError\"\\s*:\\s*true").containsMatchIn(c)) { called++ }; p.onCreate(); p.onEvent(
                     num(c, "event")
@@ -157,6 +242,11 @@ object PlatformTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val result = rawCases(Files.readString(Path.of(args[0]))).joinToString(
             ",",

@@ -7,25 +7,106 @@ import com.jojo.game.presentation.battle.timeline.UnitMoveAnimation
 
 /** BattleUnitSpriteFrameResolver: 현재 route·animation·unit 상태에서 전투 유닛의 단일 sprite frame을 선택한다. */
 internal class BattleUnitSpriteFrameResolver(
+    /** `port` (Port): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val port: Port,
 ) {
     /** Port: resolver가 frame 선택에 필요한 현재 Screen 상태를 읽기 전용으로 조회한다. */
     internal interface Port {
+        /**
+         * `dialogueOneRoute`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun dialogueOneRoute(): Boolean
+        /**
+         * `hudRoute`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun hudRoute(): Boolean
+        /**
+         * `rewardRouteActive`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun rewardRouteActive(): Boolean
+        /**
+         * `itemUpgradeRouteActive`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun itemUpgradeRouteActive(): Boolean
+        /**
+         * `battleDialogueBlendRoute`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun battleDialogueBlendRoute(): Boolean
+        /**
+         * `winConditionRouteActive`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun winConditionRouteActive(): Boolean
+        /**
+         * `animationClock`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun animationClock(): Float
+        /**
+         * `elapsed`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun elapsed(): Float
+        /**
+         * `returnScenario`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun returnScenario(): String
+        /**
+         * `avatarId`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun avatarId(unit: BattleUnit): Int?
+        /**
+         * `defaultAction`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun defaultAction(unit: BattleUnit): BattleUnitPresentationState.DefaultAction
+        /**
+         * `transientAnimation`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun transientAnimation(unitId: String): UnitActionAnimation?
+        /**
+         * `movementAnimation`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun movementAnimation(unitId: String): UnitMoveAnimation?
+        /**
+         * `scriptedVisual`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun scriptedVisual(unitId: String): ScriptedUnitVisual?
+        /**
+         * `presentationUnit`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun presentationUnit(unitId: String): BattleUnit?
+        /**
+         * `timelineFrame`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun timelineFrame(action: Int, direction: Int, elapsed: Float, loop: Boolean): BattleSpriteTimeline.Frame?
     }
 

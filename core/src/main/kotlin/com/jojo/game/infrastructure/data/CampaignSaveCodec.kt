@@ -5,7 +5,15 @@ import java.security.MessageDigest
 
 /** 캠페인 저장 봉투의 해시 검증과 바이트 회전을 담당한다. */
 object CampaignSaveCodec {
+    /**
+     * `KEY` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private const val KEY = "ccz65Sha08GeZ1Fu"
+    /**
+     * `SALT` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private const val SALT = "8015"
 
     /** JSON 저장 본문에 검증용 해시를 붙여 저장 형식으로 인코딩한다. */
@@ -24,6 +32,11 @@ object CampaignSaveCodec {
         json.takeIf { digest.equals(md5("${KEY}_${json}_${SALT}"), ignoreCase = true) }
     }.getOrNull()
 
+    /**
+     * `rotate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun rotate(bytes: ByteArray, decrypt: Boolean): ByteArray = ByteArray(bytes.size) { index ->
         val shift = KEY[index % KEY.length].code % 8
         val value = bytes[index].toInt() and 0xff
@@ -34,6 +47,11 @@ object CampaignSaveCodec {
         }
         rotated.toByte()
     }
+
+    /**
+     * `md5`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun md5(value: String): String = MessageDigest.getInstance("MD5")
         .digest(value.toByteArray(Charsets.UTF_8))

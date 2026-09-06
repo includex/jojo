@@ -74,6 +74,10 @@ object NoticeInfoBattleRenderEvents {
     /** UnitDraw: unit draw 관련 검증 상태와 동작을 제공하는 타입이다. */
     private data class UnitDraw(val x: Float, val y: Float, val atlas: String, val barWidth: Float, val bar: String)
 
+    /**
+     * `units` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val units = listOf(
         UnitDraw(160f, 768f, "31/31cc3c95-4d6e-4c10-848f-ef1ca165e78f.850f3", 88f, "Mark_68-1"),
         UnitDraw(448f, 768f, "31/31cc3c95-4d6e-4c10-848f-ef1ca165e78f.850f3", 88f, "Mark_68-1"),

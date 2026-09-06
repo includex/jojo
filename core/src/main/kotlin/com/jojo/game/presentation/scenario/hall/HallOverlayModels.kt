@@ -9,6 +9,11 @@ enum class HallManagement { EQUIP, BUY, SELL }
 /** HallInfo: 거점 정보 오버레이로, 선택 유닛이나 지형의 상세 정보를 표시하는 상태를 나타낸다. */
 enum class HallInfo { FORCES, PROPERTY, TERRAIN, TREASURE, HELPER }
 
+/**
+ * `HallPropertyTab`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 enum class HallPropertyTab { WEAPON, ARMOR, AUXILIARY, PROPERTY }
 
 /** HallEquipConfirmation: 장비 변경 전 확인 대화상자의 대상 유닛과 장비 정보를 나타낸다. */

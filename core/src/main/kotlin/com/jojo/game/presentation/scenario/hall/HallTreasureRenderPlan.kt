@@ -5,6 +5,11 @@ import com.badlogic.gdx.utils.Align
 
 /** HallTreasureRenderPlan: 거점 Treasure 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallTreasureRenderPlan {
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun commands(view: HallTreasureView): List<HallTreasureDrawCommand> = buildList {
         tiled("maps/ui/start-battle/logo9.png", 222.9f, 72.24f, 834.2f, 543.52f)
         patch("maps/ui/start-battle/box1.png", 222.9f, 72.24f, 834.2f, 543.52f)
@@ -29,9 +34,19 @@ internal object HallTreasureRenderPlan {
         text("종료", 921.05f, 111.5f, 129.52f)
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallTreasureDrawCommand>.tiled(asset: String, x: Float, y: Float, width: Float, height: Float) {
         add(HallTreasureDrawCommand(HallTreasureDrawKind.TILED, asset = asset, x = x, y = y, width = width, height = height))
     }
+
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun MutableList<HallTreasureDrawCommand>.patch(
         asset: String, x: Float, y: Float, width: Float, height: Float, inset: Int = 3,
@@ -39,9 +54,19 @@ internal object HallTreasureRenderPlan {
         add(HallTreasureDrawCommand(HallTreasureDrawKind.PATCH, asset = asset, x = x, y = y, width = width, height = height, inset = inset))
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallTreasureDrawCommand>.sprite(asset: String, x: Float, y: Float, width: Float, height: Float) {
         add(HallTreasureDrawCommand(HallTreasureDrawKind.SPRITE, asset = asset, x = x, y = y, width = width, height = height))
     }
+
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun MutableList<HallTreasureDrawCommand>.text(
         value: String, x: Float, y: Float, width: Float,
@@ -51,6 +76,11 @@ internal object HallTreasureRenderPlan {
         add(HallTreasureDrawCommand(HallTreasureDrawKind.TEXT, text = value, x = x, y = y, width = width, font = font, align = align))
     }
 }
+
+/**
+ * `HallTreasureDrawCommand`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal data class HallTreasureDrawCommand(
     val kind: HallTreasureDrawKind,
@@ -65,5 +95,15 @@ internal data class HallTreasureDrawCommand(
     val align: Int = Align.center,
 )
 
+/**
+ * `HallTreasureDrawKind`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallTreasureDrawKind { TILED, PATCH, SPRITE, TEXT }
+/**
+ * `HallTreasureFont`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallTreasureFont { TITLE, BODY }

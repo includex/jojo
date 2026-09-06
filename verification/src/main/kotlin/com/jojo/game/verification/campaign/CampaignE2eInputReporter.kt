@@ -14,8 +14,23 @@ internal class CampaignE2eInputReporter(
     /** inputRecords: 검증 대상 목록을 담는다. */
     private val inputRecords = mutableListOf<CampaignE2eInputRecord>()
 
+    /**
+     * `inputs` (List<String> get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val inputs: List<String> get() = acceptedInputs
+    /**
+     * `records` (List<CampaignE2eInputRecord> get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val records: List<CampaignE2eInputRecord> get() = inputRecords
+    /**
+     * `transitionEnterCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var transitionEnterCount = 0
         private set
 

@@ -34,6 +34,11 @@ object CharacterAbilityTraceHarness {
         }
         when (name) {
             "feats_rows_help_and_cancel" -> {
+                /**
+                 * `ls` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val ls = labels("Feats/label" to "7/14", "label0" to "운기", "label1" to "15", "label2" to "5")
                 add("create", ls); es.forEach { e ->
                     when (e) {
@@ -43,6 +48,11 @@ object CharacterAbilityTraceHarness {
             }
 
             "jiqi_rates_cancel" -> {
+                /**
+                 * `ls` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val ls = labels("bg/label0" to "100", "bg/label1" to "85", "bg/label2" to "70", "bg/label3" to "55")
                 add("create", ls); es.forEach { e -> if (e == "cancel:2") dead = true; add(e, ls) }
             }
@@ -52,11 +62,41 @@ object CharacterAbilityTraceHarness {
             }
 
             "exclusive_tabs_lazy_close" -> {
+                /**
+                 * `sel` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var sel = 0
+                /**
+                 * `flag` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var flag = 1
+                /**
+                 * `panels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var panels = listOf(true, false)
+                /**
+                 * `buttons` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var buttons = listOf(false, true, true)
+                /**
+                 * `rows` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var rows = listOf(1, 0)
+                /**
+                 * `ls` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var ls = labels("label0" to "Item1", "label1" to "Item2", "label2" to "----", "label3" to "T1")
 
                 /** ex: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
@@ -82,6 +122,11 @@ object CharacterAbilityTraceHarness {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(a: Array<String>) {
         val raw = Files.readString(Path.of(a[0]))
         val cases = Regex("\\\"name\\\":\\\"([^\\\"]+)\\\"").findAll(raw)

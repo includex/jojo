@@ -21,21 +21,96 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
 
     /** Frame: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class Frame(
+        /**
+         * `source` (UnitSpriteSource,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val source: UnitSpriteSource,
+        /**
+         * `sourceY` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceY: Int,
+        /**
+         * `sourceWidth` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceWidth: Int,
+        /**
+         * `sourceHeight` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceHeight: Int,
+        /**
+         * `flipX` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val flipX: Boolean,
+        /**
+         * `offsetX` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offsetX: Float = 0f,
+        /**
+         * `offsetY` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offsetY: Float = 0f,
     )
+    /**
+     * `Keyframe`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class Keyframe(
+        /**
+         * `ticks` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val ticks: Int,
+        /**
+         * `atlas` (Atlas?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val atlas: Atlas?,
+        /**
+         * `index` (Int?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val index: Int?,
+        /**
+         * `scaleX` (Int?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scaleX: Int?,
+        /**
+         * `offsetX` (Int?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offsetX: Int?,
+        /**
+         * `offsetY` (Int?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offsetY: Int?,
+        /**
+         * `hit` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hit: Boolean,
     )
 
@@ -48,9 +123,24 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
     }
 
 
+    /**
+     * `duration`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun duration(action: Int, direction: Int): Float =
         resolvedClip(action, direction)?.first?.sumOf(Keyframe::ticks)?.div(24f) ?: 0f
+    /**
+     * `clipNames`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun clipNames(): Set<String> = clips.keys
+    /**
+     * `hitTime`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun hitTime(action: Int, direction: Int): Float? {
         val clip = resolvedClip(action, direction)?.first ?: return null
         var ticks = 0
@@ -61,6 +151,11 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         return null
     }
 
+
+    /**
+     * `frame`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun frame(action: Int, direction: Int, elapsed: Float, loop: Boolean = false): Frame? {
         val (clip, mirror) = resolvedClip(action, direction) ?: return null
@@ -97,13 +192,33 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
     }
 
     companion object {
+        /**
+         * `cached` (BattleSpriteTimeline by lazy): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private val cached: BattleSpriteTimeline by lazy {
             fromRoot(JsonReader().parse(Gdx.files.internal("maps/battle-anime.json")))
         }
 
 
+        /**
+         * `load`: 상태나 데이터를 조회한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun load(): BattleSpriteTimeline = cached
+        /**
+         * `fromJson`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun fromJson(json: String): BattleSpriteTimeline = fromRoot(JsonReader().parse(json))
+
+        /**
+         * `fromRoot`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         private fun fromRoot(root: JsonValue): BattleSpriteTimeline {
             val parsed = linkedMapOf<String, List<Keyframe>>()
@@ -121,6 +236,11 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
             return BattleSpriteTimeline(parsed)
         }
 
+        /**
+         * `parseKeyframe`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         private fun parseKeyframe(value: JsonValue): Keyframe {
             val sprite = value.get("sprite")
             val atlas = sprite?.getInt("t", -1)?.let { ordinal -> Atlas.entries.getOrNull(ordinal) }
@@ -132,12 +252,22 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
                 event = event.next
             }
 
+            /**
+             * `prop`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             fun prop(name: String): Int? = props?.get(name)?.get(0)?.let { raw ->
                 when (raw.type()) {
                     JsonValue.ValueType.array -> raw.getInt(0)
                     else -> raw.asInt()
                 }
             }
+
+            /**
+             * `position` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
 
             val position = props?.get("position")?.get(0)
             return Keyframe(

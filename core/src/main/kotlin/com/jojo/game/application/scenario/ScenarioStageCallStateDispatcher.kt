@@ -6,6 +6,11 @@ import com.jojo.game.domain.scenario.ScenarioCommand
 
 /** ScenarioStageCallStateDispatcher: stage API의 시나리오 상태 변경 호출을 캠페인·무대 상태에 반영한다. */
 internal object ScenarioStageCallStateDispatcher : ScenarioStageCallFamily {
+    /**
+     * `dispatch`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun dispatch(
         path: String,
         node: JsonValue,
@@ -13,9 +18,24 @@ internal object ScenarioStageCallStateDispatcher : ScenarioStageCallFamily {
         frame: Frame,
         env: ScenarioStageCallEnvironment,
     ): ScenarioStageCallDispatcher.Result? {
+        /**
+         * `stage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val stage = env.stage
+        /**
+         * `value` (Any): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val value: Any = when (path) {
             "stage.setEventName" -> {
+                /**
+                 * `text` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val text = args.firstOrNull().asText()
                 stage.apply(ScenarioCommand.SetEventName(text))
                 if (!env.stagePresentationSkipped && stage.battleDrawRequested) {
@@ -25,6 +45,11 @@ internal object ScenarioStageCallStateDispatcher : ScenarioStageCallFamily {
             }
 
             "stage.setStageName" -> {
+                /**
+                 * `text` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val text = args.firstOrNull().asText()
                 stage.setStageName(text)
                 if (!env.stagePresentationSkipped && stage.battleDrawRequested) {
@@ -65,6 +90,11 @@ internal object ScenarioStageCallStateDispatcher : ScenarioStageCallFamily {
             "stage.setWinCondition" -> { stage.setWinCondition(args.firstOrNull().asText()); 0 }
             "stage.showWinCondition" -> { env.suspendForWinCondition(args.firstOrNull().asText()); 0 }
             "stage.bottomTxt" -> {
+                /**
+                 * `text` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val text = args.firstOrNull().asText()
                 if (env.moduleName.startsWith("R_")) {
                     env.suspendForMapInfo(

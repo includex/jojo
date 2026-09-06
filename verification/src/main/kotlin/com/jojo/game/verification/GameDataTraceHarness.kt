@@ -46,6 +46,11 @@ object GameDataTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val text = Files.readString(Path.of(args[0]))
         val name = Regex("\\\"name\\\"\\s*:\\s*\\\"([^\\\"]+)").find(text)!!.groupValues[1]
@@ -127,9 +132,19 @@ object GameDataTraceHarness {
         }
         snapshot("clear")
         for (event in events(text)) {
+            /**
+             * `parts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val parts = event.split(':')
             when (parts[0]) {
                 "prop" -> {
+                    /**
+                     * `id` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val id = parts[1].toInt()
                     props[id] = ((props[id] ?: 0) + parts[2].toInt()).coerceIn(0, 99)
                 }
@@ -140,6 +155,11 @@ object GameDataTraceHarness {
             }
             snapshot(event)
         }
+        /**
+         * `dest` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dest = Path.of(args[1]); Files.createDirectories(dest.parent); Files.writeString(dest, ob(name to ar(out)))
     }
 }

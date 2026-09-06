@@ -11,17 +11,52 @@ class MenuLayer {
 
     /** 메뉴 생성에 필요한 초기 상태입니다. */
     data class CreateData(
+        /**
+         * `weather` (Weather, val round: Int, val maxRound: Int, val battleName: String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val weather: Weather, val round: Int, val maxRound: Int, val battleName: String,
+        /**
+         * `editEnabled` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val editEnabled: Boolean = false, val flag: Int = 0, val switchWeather: Weather? = null,
     )
 
     /** 메뉴를 그리는 데 필요한 현재 상태입니다. */
     data class View(
+        /**
+         * `weather` (Weather, val round: Int, val maxRound: Int, val progress: Float, val battleName: String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val weather: Weather, val round: Int, val maxRound: Int, val progress: Float, val battleName: String,
+        /**
+         * `buttons` (Map<Command, Boolean>, val editingButtonVisible: Boolean, val attached: Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val buttons: Map<Command, Boolean>, val editingButtonVisible: Boolean, val attached: Boolean,
+        /**
+         * `weatherFrames` (List<Int>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val weatherFrames: List<Int>,
+        /**
+         * `switchWeather` (Weather?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val switchWeather: Weather? = null,
     )
+
+    /**
+     * `view` (View?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     private var view: View? = null
 
@@ -67,7 +102,17 @@ class MenuLayer {
         return weatherLoadCount == 2
     }
 
+    /**
+     * `weatherLoadCount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var weatherLoadCount = 0
+    /**
+     * `update`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun update(remove: Boolean): View {
         val next = requireNotNull(view).copy(attached = if (remove) false else view!!.attached)
         view = next
@@ -75,10 +120,20 @@ class MenuLayer {
     }
 
     companion object {
+        /**
+         * `TOUCH_END` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val TOUCH_END = 2
 
         /** 날씨 애니메이션의 초당 프레임 수입니다. */
         const val WEATHER_FPS = 6f
+        /**
+         * `WEATHER_FRAME_COUNT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val WEATHER_FRAME_COUNT = 4
 
         /** 날씨 종류를 원본 시트 번호로 변환합니다. */

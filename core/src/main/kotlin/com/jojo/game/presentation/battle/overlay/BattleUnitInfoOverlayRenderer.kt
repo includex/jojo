@@ -52,11 +52,20 @@ data class BattleUnitInfoOverlayAssets(
 
 /** 전투 유닛 정보 렌더러: 유닛 능력치와 탭별 상세 패널을 고정 원본 레이아웃으로 출력한다. */
 class BattleUnitInfoOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `shapes` (ShapeRenderer): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val shapes: ShapeRenderer,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattleUnitInfoOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleUnitInfoOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleUnitInfoOverlayView) {
         shapes.projectionMatrix = batch.projectionMatrix
         shapes.begin(ShapeRenderer.ShapeType.Filled)
@@ -111,6 +120,11 @@ class BattleUnitInfoOverlayRenderer(
         if (view.tab == 0) drawBaseLabels()
     }
 
+    /**
+     * `drawBaseLabels`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBaseLabels() {
         val labels = listOf(
             "기본 능력" to (927.791f to 627.345f), "무력" to (848.106f to 573.7f), "지력" to (848.106f to 520.7f),
@@ -127,6 +141,11 @@ class BattleUnitInfoOverlayRenderer(
         font.data.setScale(1f)
         batch.end()
     }
+
+    /**
+     * `patch`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun patch(texture: Texture, x: Float, y: Float, width: Float, height: Float, left: Int = 3, right: Int = 3, top: Int = 3, bottom: Int = 3) {
         NinePatch(texture, left, right, top, bottom).draw(batch, x, y, width, height)

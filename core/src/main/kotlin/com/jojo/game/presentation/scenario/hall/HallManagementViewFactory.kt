@@ -7,24 +7,67 @@ import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 
 /** HallManagementViewFactory: 거점 Management 표시 정보 생성기이며, 도메인 데이터를 화면에 바로 쓸 수 있는 표시 모델로 변환한다. */
 internal class HallManagementViewFactory(
+    /** `campaign` (CampaignState): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val campaign: CampaignState,
+    /** `catalog` (GameDataCatalog): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val catalog: GameDataCatalog,
     moduleName: String,
+    /** `overlayVariant` (RuntimeScenarioOverlay?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val overlayVariant: RuntimeScenarioOverlay?,
 ) {
+    /**
+     * `stageIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val stageIndex = moduleName.substringAfter('_').toIntOrNull() ?: 0
+    /**
+     * `equipProjector` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val equipProjector = HallEquipViewProjector(campaign, catalog)
+    /**
+     * `propertyProjector` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val propertyProjector = HallPropertyViewProjector(campaign, catalog)
+
+    /**
+     * `equip`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun equip(unitId: Int, selectedTab: Int, notice: String?): HallEquipView =
         equipProjector.project(unitId, selectedTab, notice)
 
+    /**
+     * `property`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun property(selectedTab: Int): HallPropertyView = propertyProjector.project(selectedTab)
+
+    /**
+     * `propertyItemIds`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun propertyItemIds(selectedTab: Int): List<Int> = propertyProjector.itemIds(selectedTab)
 
+    /**
+     * `unitRoster`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun unitRoster(unitIds: List<Int>): HallUnitRosterView = HallUnitRosterView(
         unitIds.take(6).map { id ->
+            /**
+             * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unit = catalog.unitProfile(id)
             HallUnitRosterRowView(
                 name = campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장",
@@ -32,6 +75,11 @@ internal class HallManagementViewFactory(
             )
         },
     )
+
+    /**
+     * `buyCandidates`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun buyCandidates(): List<GameDataCatalog.EquipmentProfile> {
         if (overlayVariant == RuntimeScenarioOverlay.BUY) return catalog.allEquipmentProfiles()
@@ -41,11 +89,21 @@ internal class HallManagementViewFactory(
             .filter { catalog.equipmentCategory(it) <= 2 }
     }
 
+    /**
+     * `buyProperties`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun buyProperties(): List<GameDataCatalog.EquipmentProfile> =
         (if (overlayVariant == RuntimeScenarioOverlay.BUY) catalog.allEquipmentProfiles()
         else catalog.hallBuyProfiles(stageIndex, campaign.averageJoinedLevel()))
             .filter { catalog.equipmentCategory(it) == 3 && it.price != 255 }
             .sortedBy { it.id }
+
+    /**
+     * `buyCatalog`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun buyCatalog(buyTabIndex: Int): HallBuyCatalogView {
         val propertyTab = buyTabIndex != 0
@@ -65,6 +123,11 @@ internal class HallManagementViewFactory(
             },
         )
     }
+
+    /**
+     * `buyUnitSummary`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun buyUnitSummary(unitId: Int): HallBuyUnitSummaryView {
         val unit = catalog.unitProfile(unitId) ?: catalog.unitProfile(0)
@@ -93,12 +156,37 @@ internal class HallManagementViewFactory(
         )
     }
 
+    /**
+     * `forces`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun forces(): HallForcesView = HallForcesView(
         rows = campaign.joinedUnits.take(7).mapNotNull { id ->
+            /**
+             * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unit = catalog.unitProfile(id) ?: return@mapNotNull null
+            /**
+             * `level` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val level = campaign.unitAttribute(id, 18, unit.level)
+            /**
+             * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val profile = catalog.battleProfile(id, (level - 1).coerceAtLeast(0), campaign.unitAttribute(id, 17, unit.posts))
                 ?: return@mapNotNull null
+            /**
+             * `bonus` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val bonus = campaign.inventory.equipment[id]?.let {
                 catalog.equipmentBonus(it.asScriptValues(), profile.level)
             } ?: GameDataCatalog.EquipmentBonus()
@@ -115,6 +203,11 @@ internal class HallManagementViewFactory(
         },
     )
 
+    /**
+     * `sellCandidates`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun sellCandidates(sellTabIndex: Int): List<HallInventoryItemView> = campaign.inventory.items.entries
         .asSequence()
         .filter { (_, count) -> count > 0 }
@@ -126,6 +219,11 @@ internal class HallManagementViewFactory(
         .sortedBy { it.key }
         .map { (itemId, count) -> HallInventoryItemView(itemId, count) }
         .toList()
+
+    /**
+     * `sell`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun sell(sellTabIndex: Int, notice: String?): HallSellView {
         val equipmentTab = sellTabIndex == 0
@@ -145,6 +243,11 @@ internal class HallManagementViewFactory(
         )
     }
 
+    /**
+     * `equipInventory`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun equipInventory(equipTabIndex: Int): List<HallInventoryItemView> = campaign.inventory.items.entries
         .asSequence()
         .filter { (itemId, _) -> matchesEquipTab(catalog.equipmentProfile(itemId)?.itemType, equipTabIndex) }
@@ -156,6 +259,11 @@ internal class HallManagementViewFactory(
         .map { (itemId, count) -> HallInventoryItemView(itemId, count) }
         .toList()
 
+    /**
+     * `matchesEquipTab`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun matchesEquipTab(itemType: Int?, equipTabIndex: Int): Boolean = when (equipTabIndex) {
         0 -> itemType != null && itemType < 150
         1 -> itemType != null && itemType in 0..19
@@ -163,6 +271,11 @@ internal class HallManagementViewFactory(
         3 -> itemType != null && itemType in 26..149
         else -> false
     }
+
+    /**
+     * `portraitId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun portraitId(unitId: Int): Int {
         val face = catalog.unitProfile(unitId)?.face ?: return unitId

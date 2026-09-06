@@ -8,6 +8,11 @@ import java.nio.file.Path
 object EditMutationTraceHarness {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val cases = EditMutationFixtureParser.parse(Files.readString(Path.of(args[0])))
         val out = cases.joinToString(",", "{", "}") { scenario ->

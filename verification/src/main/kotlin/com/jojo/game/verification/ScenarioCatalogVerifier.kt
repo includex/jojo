@@ -82,6 +82,11 @@ internal class ScenarioCatalogVerifier {
     }
 
     private companion object {
+        /**
+         * `TABLE_NAMES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val TABLE_NAMES = listOf(
             "unit", "arms", "posts", "unitPostsSkill", "magic", "item",
             "itemSkills", "config", "hitarea", "effarea", "defineSkill",

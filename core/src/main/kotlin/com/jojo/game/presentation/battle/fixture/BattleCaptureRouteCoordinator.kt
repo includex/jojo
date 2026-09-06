@@ -90,7 +90,22 @@ internal object BattleCaptureRouteCoordinator {
         }
     }
 
+    /**
+     * `RENDER_EVENT_LOG_DELAY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val RENDER_EVENT_LOG_DELAY = .25f
+    /**
+     * `MENU_LAYER` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val MENU_LAYER = "MenuLayer"
+    /**
+     * `WIN_CONDITION_LAYER` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val WIN_CONDITION_LAYER = "WinConBoxLayer"
 }

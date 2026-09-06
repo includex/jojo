@@ -5,6 +5,11 @@ import com.jojo.game.presentation.shared.overlay.*
 /** HallHelperView: 거점 도움말 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
 internal data class HallHelperView(val text: String) {
     companion object {
+        /**
+         * `default` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val default = HallHelperView(
             "6 [단축키 설명]\n☆ 일부 단축키 기능은 메뉴 — 설정을 통해 직접 설정할 수 있습니다.\n" +
                 "☆ 번호 0-4: 단계 속도 변화. 0가 원래 속도이며, 1-4가 가속.\n" +

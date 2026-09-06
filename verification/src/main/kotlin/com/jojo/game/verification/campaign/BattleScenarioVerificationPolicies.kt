@@ -84,7 +84,17 @@ internal fun s01PreferredAttackTargets(
     attackable: Collection<S01EnemyTarget>,
     visibleEnemyCount: Int,
 ): List<S01EnemyTarget> {
+    /**
+     * `leaderOrder` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val leaderOrder = mapOf(131 to 0, 129 to 1, 134 to 2)
+    /**
+     * `leaders` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val leaders = attackable.filter { it.characterId in leaderOrder }
         .sortedWith(compareBy<S01EnemyTarget> { it.hitPoints }
             .thenBy { leaderOrder[it.characterId] ?: Int.MAX_VALUE }.thenBy { it.unitId })
@@ -105,9 +115,19 @@ internal fun s01CaoCaoSafeLeaderAttack(
     targetTile: Pair<Int, Int>,
 ): Boolean {
     if (targetCharacterId !in setOf(134, 131, 129)) return false
+    /**
+     * `distance` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val distance =
         kotlin.math.abs(attackerTile.first - targetTile.first) + kotlin.math.abs(attackerTile.second - targetTile.second)
     if (distance != 1) return false
+    /**
+     * `counter` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val counter = maxOf(1, ((targetAttack - attackerDefense) / 2) + 25 + targetLevel)
     return attackerHitPoints > counter * 2
 }
@@ -142,7 +162,17 @@ internal fun s57GateDestination(
     fun fromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
 
+    /**
+     * `tieBreak` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val tieBreak = compareBy<Pair<Int, Int>>(::fromCurrent).thenBy { it.first }.thenBy { it.second }
+    /**
+     * `legal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val legal = reachableLegalTiles.distinct()
     legal.filter(::inGate).minWithOrNull(tieBreak)?.let { return it }
     legal.filter { it != current }.minWithOrNull(
@@ -168,6 +198,11 @@ internal data class S57FirstRoomLeader(
 internal fun s57FirstRoomEscortFocus(
     leaders: Collection<S57FirstRoomLeader>,
 ): S57FirstRoomLeader? {
+    /**
+     * `tieOrder` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val tieOrder = mapOf(162 to 0, 169 to 1, 165 to 2)
     return leaders.asSequence()
         .filter { it.characterId in tieOrder }
@@ -228,8 +263,18 @@ internal fun s57EscortFocusDestination(
     fun distanceFromCurrent(tile: Pair<Int, Int>) =
         kotlin.math.abs(tile.first - current.first) + kotlin.math.abs(tile.second - current.second)
 
+    /**
+     * `progressOrder` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val progressOrder = compareBy<Pair<Int, Int>>(::distanceToFocus)
         .thenBy(::distanceFromCurrent).thenBy { it.first }.thenBy { it.second }
+    /**
+     * `legal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val legal = reachableLegalTiles.distinct()
     if (current in legal && canAttack(current)) return current
     legal.filter { it != current && canAttack(it) }.minWithOrNull(progressOrder)?.let { return it }
@@ -300,14 +345,34 @@ internal fun s57EscortFocusBlockerFallback(
     fun distance(left: Pair<Int, Int>, right: Pair<Int, Int>) =
         kotlin.math.abs(left.first - right.first) + kotlin.math.abs(left.second - right.second)
 
+    /**
+     * `legal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val legal = (listOf(current) + reachableLegalTiles).distinct()
     // 현재 턴의 직접 공격이나 이동 후 장수 공격은 경비병 때문에 우선순위가 바뀌지 않는다.
     if (legal.any { canAttack(it, focusTile) }) return null
     if (attackAllScreen || attackOffsets.isEmpty()) return null
+    /**
+     * `stagingTiles` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val stagingTiles = attackOffsets.map { (dx, dy) -> focusTile.first - dx to focusTile.second - dy }.distinct()
+    /**
+     * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val candidates = guards.asSequence()
         .filter { it.tile in occupiedTiles }
         .mapNotNull { guard ->
+            /**
+             * `attackFrom` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val attackFrom = s57EscortAttackFrom(
                 current, legal, guard.tile, attackAllScreen, attackOffsets,
             )
@@ -317,6 +382,11 @@ internal fun s57EscortFocusBlockerFallback(
             val closestStagingDistance = legal.minOf { frontier ->
                 stagingTiles.minOf { staging -> distance(frontier, staging) }
             }
+            /**
+             * `blocksProgress` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val blocksProgress = legal.any { frontier ->
                 stagingTiles.minOf { staging -> distance(frontier, staging) } == closestStagingDistance &&
                         stagingTiles.any { staging ->

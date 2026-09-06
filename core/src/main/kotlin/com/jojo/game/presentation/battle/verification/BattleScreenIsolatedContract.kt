@@ -20,12 +20,30 @@ data class BattleScreenIsolatedView(
 
 /** 검증 harness가 전투 화면의 승리 조건 모달과 다음 행동 상태를 재현하도록 조정한다. */
 class BattleScreenIsolatedContract(
+    /** `units` (List<BattleScreenIsolatedUnit>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val units: List<BattleScreenIsolatedUnit>,
+    /** `collocation` (Boolean): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val collocation: Boolean,
+    /** `round` (Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val round: Int,
 ) {
+    /**
+     * `paused` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var paused = false
+    /**
+     * `modal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var modal = false
+    /**
+     * `pending` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val pending = mutableListOf<String>()
 
     /** 승리 조건 모달을 열고 검증 이벤트를 기록한다. */

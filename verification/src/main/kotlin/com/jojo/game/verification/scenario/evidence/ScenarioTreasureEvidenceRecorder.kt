@@ -36,10 +36,35 @@ internal class ScenarioTreasureEvidenceRecorder {
         draw("Canvas/Layer/bg1/button7/Background/Label", 1096.286f, 98.7f, 100f, 40f, text = "종료")
         draw("Canvas/Layer/bg1/label", 266.194f, 91.731f, 467.06f, 50.4f, text = "지금까지 발견한 보물 00 / 50")
         repeat(50) { index ->
+            /**
+             * `column` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val column = index % 2
+            /**
+             * `row` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val row = index / 2
+            /**
+             * `x` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val x = 270.186f + column * 477f
+            /**
+             * `y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val y = 480.5f - row * 193f
+            /**
+             * `itemPath` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val itemPath = "Canvas/Layer/bg1/scrollview/view/content/item"
             draw(itemPath, x, y, 471f, 190f, "box3")
             draw("$itemPath/New Node", x, y, 471f, 190f, "Logo_9-1")

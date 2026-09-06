@@ -5,6 +5,11 @@ import com.jojo.game.domain.campaign.*
 
 /** GameDataCatalogEquipmentDomain: 아이템, 상점, 장비 성장, 스크립트 장비 데이터를 해석한다. */
 internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : GameDataCatalogTableDomain(tables) {
+    /**
+     * `equipmentProfile`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun equipmentProfile(id: Int): GameDataCatalog.EquipmentProfile? {
         val value = items.getOrNull(id) ?: return null
         return GameDataCatalog.EquipmentProfile(
@@ -14,7 +19,17 @@ internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : Gam
         )
     }
 
+    /**
+     * `allEquipmentProfiles`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun allEquipmentProfiles(): List<GameDataCatalog.EquipmentProfile> = items.indices.mapNotNull(::equipmentProfile)
+    /**
+     * `hallBuyProfiles`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun hallBuyProfiles(stageIndex: Int, averageLevel: Int): List<GameDataCatalog.EquipmentProfile> {
         val explicit = generateSequence(shops.getOrNull(stageIndex)?.get("3")?.child) { it.next }.map { it.asInt() }
             .filter { it in items.indices && it != 255 }.mapNotNull(::equipmentProfile).toList()
@@ -27,29 +42,74 @@ internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : Gam
         return (explicit + common).distinctBy { it.id }
     }
 
+    /**
+     * `equipmentCategory`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun equipmentCategory(item: GameDataCatalog.EquipmentProfile): Int = when {
         item.id in 150 until 200 -> 3; item.itemType <= 19 -> 0; item.itemType <= 25 -> 1; else -> 2
     }
 
+    /**
+     * `purchasePrice`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun purchasePrice(item: GameDataCatalog.EquipmentProfile): Int = if (item.price == 255) 255 else item.price * 100
+    /**
+     * `sellingPrice`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun sellingPrice(item: GameDataCatalog.EquipmentProfile): Int =
         if (item.price == 255) 255 else purchasePrice(item) * 3 / 4
 
+    /**
+     * `equipmentTypeName`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun equipmentTypeName(itemType: Int): String = config.get("item")?.get(itemType.floorDiv(2))?.asString() ?: "아이템"
+    /**
+     * `treasureProfiles`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun treasureProfiles(): List<GameDataCatalog.EquipmentProfile> =
         allEquipmentProfiles().filter(GameDataCatalog.EquipmentProfile::treasure)
 
+    /**
+     * `battlePropertyItems`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun battlePropertyItems(): List<GameDataCatalog.EquipmentProfile> =
         allEquipmentProfiles().filter { it.itemType in 26..37 || it.itemType in 42..43 }
+
+    /**
+     * `equipmentExperienceLimit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun equipmentExperienceLimit(itemId: Int, level: Int): Int {
         val values = config.get(if ((equipmentProfile(itemId)?.itemType ?: 0) % 2 == 0) "comEquip" else "speEquip")
         return (values?.getInt("expLimit", 200) ?: 200) + if (level >= (values?.getInt("upgrade", 6) ?: 6)) 50 else 0
     }
 
+    /**
+     * `equipmentLevelLimit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun equipmentLevelLimit(itemId: Int): Int =
         config.get(if ((equipmentProfile(itemId)?.itemType ?: 0) % 2 == 0) "comEquip" else "speEquip")
             ?.getInt("lvLimit", 9) ?: 9
+
+    /**
+     * `equipmentBonus`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun equipmentBonus(scriptValues: List<Int>, unitLevel: Int): GameDataCatalog.EquipmentBonus {
         var attack = 0
@@ -70,8 +130,18 @@ internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : Gam
         return GameDataCatalog.EquipmentBonus(attack, defense, spirit)
     }
 
+    /**
+     * `defaultEquipmentBonus`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun defaultEquipmentBonus(postsId: Int, unitLevel: Int): GameDataCatalog.EquipmentBonus =
         equipmentBonus(defaultEquipment(postsId, unitLevel).asScriptValues(), unitLevel)
+
+    /**
+     * `defaultEquipment`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun defaultEquipment(postsId: Int, unitLevel: Int): CampaignEquipment {
         val allowed = generateSequence(posts.getOrNull(postsId)?.get("10")?.child) { it.next }.map { it.asInt() }
@@ -79,11 +149,21 @@ internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : Gam
         val field = (config.get("unit")?.getInt("lvLimit", 50) ?: 50).floorDiv(10).coerceAtLeast(1)
         val itemLevel = (unitLevel / field).coerceIn(0, 8) + 1
         val phase = (unitLevel / (3 * field)).coerceIn(0, 2)
+        /**
+         * `select`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun select(type: Int): GameDataCatalog.EquipmentProfile? = allEquipmentProfiles().asSequence()
             .filter { item -> item.price != 255 && item.value >= 1 && item.itemType in allowed && if (type == 0) item.itemType < 20 else item.itemType >= 20 }
             .take(3).toList().let { it.getOrNull(minOf(phase, it.lastIndex)) }
         return CampaignEquipment(select(0)?.id?.plus(2) ?: 1, itemLevel, select(1)?.id?.minus(68) ?: 1, itemLevel, 1)
     }
+
+    /**
+     * `equipmentSkills`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun equipmentSkills(scriptValues: List<Int>, unitLevel: Int): Map<Int, Int> {
         val index = itemSkills.get("index") ?: return emptyMap()
@@ -116,16 +196,36 @@ internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : Gam
         }
     }
 
+    /**
+     * `itemId`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun itemId(value: Int, offset: Int): Int? {
         if (value <= 1) return null
         val id = value - 2 + offset; return if (id >= 150) id + 105 else id
     }
 
+    /**
+     * `itemLevel`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun itemLevel(suppliedLevel: Int, unitLevel: Int): Int =
         if (suppliedLevel > 0) suppliedLevel else (unitLevel / levelField()).coerceIn(0, 8) + 1
 
+    /**
+     * `effectiveValue`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun effectiveValue(item: GameDataCatalog.EquipmentProfile, suppliedLevel: Int, unitLevel: Int): Int =
         item.value + (itemLevel(suppliedLevel, unitLevel) - 1) * item.upgradePerLevel
+
+    /**
+     * `levelField`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun levelField(): Int = (config.get("unit")?.get("lvLimit")?.asInt() ?: 50).floorDiv(10).coerceAtLeast(1)
 }

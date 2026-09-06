@@ -47,6 +47,11 @@ internal object BattleMapObjectAnimationPlanner {
         else -> sourceY(elapsed, startRow = 6, count = 2)
     }
 
+    /**
+     * `sourceY`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun sourceY(elapsed: Float, startRow: Int, count: Int): Int =
         BattleObjectAnimationTimeline.sourceY(BattleObjectAnimationTimeline.row(elapsed, startRow, count))
 }
@@ -56,7 +61,17 @@ internal data class BattleMapObjectBounds(val left: Float, val bottom: Float, va
 
 /** 전투 맵 오브젝트 렌더러: 오브젝트별 애니메이션 시작 시각을 관리하며 SpriteBatch 출력 순서를 보존한다. */
 internal class BattleMapObjectRenderer(private val batch: SpriteBatch) {
+    /**
+     * `fireAnimationStartedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val fireAnimationStartedAt = mutableMapOf<Pair<Int, Int>, Float>()
+    /**
+     * `objectAnimationStartedAt` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val objectAnimationStartedAt = mutableMapOf<Triple<Int, Int, Int>, Float>()
 
     /** 그리기: 게이트를 먼저 출력한 뒤 활성 화염과 선택 오브젝트의 atlas 프레임을 순서대로 출력한다. */

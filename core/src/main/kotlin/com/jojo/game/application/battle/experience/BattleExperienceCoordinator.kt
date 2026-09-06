@@ -34,8 +34,18 @@ internal data class BattleExperienceEnvironment(
 internal object BattleExperienceCoordinator {
 
 
+    /**
+     * `consumeEquipmentUpgrade`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun consumeEquipmentUpgrade(equipmentUpgrades: MutableList<CampaignEquipmentExperienceResult>): CampaignEquipmentExperienceResult? =
         equipmentUpgrades.removeFirstOrNull()
+
+    /**
+     * `equipmentExperienceAmount`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun equipmentExperienceAmount(
         recipient: BattleUnit,
@@ -47,6 +57,11 @@ internal object BattleExperienceCoordinator {
         BattleEquipmentExperienceKind.ARMOR -> if (resolvedHarm == 0) 1 else if (recipient.level <= opponent.level) 4 else 3
     }
 
+
+    /**
+     * `battleExperience`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun battleExperience(attacker: BattleUnit, target: BattleUnit, defeated: Boolean, enemyMasterUnitId: String?): Int {
         val difference = kotlin.math.abs(target.level - attacker.level)
@@ -60,6 +75,11 @@ internal object BattleExperienceCoordinator {
         return result
     }
 
+
+    /**
+     * `addEquipmentExperience`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun addEquipmentExperience(attackerId: String, targetId: String, damage: Int, env: BattleExperienceEnvironment) {
         val attacker = env.units()[attackerId] ?: return
@@ -92,6 +112,11 @@ internal object BattleExperienceCoordinator {
     }
 
 
+    /**
+     * `notifyPhysicalDamage`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun notifyPhysicalDamage(attacker: BattleUnit, target: BattleUnit, damage: Int, env: BattleExperienceEnvironment) {
         val apply = {
             env.onPhysicalDamage(attacker, target, damage)
@@ -103,6 +128,11 @@ internal object BattleExperienceCoordinator {
         env.stagedHitSideEffects()?.add(apply) ?: apply()
     }
 
+    /**
+     * `notifyEquipmentExperienceAward`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun notifyEquipmentExperienceAward(
         recipient: BattleUnit,
         opponent: BattleUnit,
@@ -110,17 +140,37 @@ internal object BattleExperienceCoordinator {
         kind: BattleEquipmentExperienceKind,
         env: BattleExperienceEnvironment,
     ) {
+        /**
+         * `award` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val award = env.onEquipmentExperienceAward ?: return
+        /**
+         * `apply` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val apply = { award(recipient, opponent, amount, kind).filterTo(env.equipmentUpgrades) { it.leveledUp }; Unit }
         env.stagedCompletionSideEffects()?.add(apply) ?: apply()
     }
 
+
+    /**
+     * `notifyUnitDefeated`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun notifyUnitDefeated(winner: BattleUnit, defeated: BattleUnit, env: BattleExperienceEnvironment) {
         val apply = { env.onUnitDefeated(winner, defeated) }
         env.stagedCompletionSideEffects()?.add(apply) ?: apply()
     }
 
+
+    /**
+     * `notifyBattleExperience`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun notifyBattleExperience(unit: BattleUnit, amount: Int, env: BattleExperienceEnvironment) {
         if (amount <= 0) return

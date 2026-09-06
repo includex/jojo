@@ -18,6 +18,11 @@ import com.jojo.game.domain.battle.BattleAttributeCalculator
 object BattleRoundCoordinator {
 
 
+    /**
+     * `advanceToNextCamp`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun advanceToNextCamp(currentFaction: Faction, round: Int): Pair<Faction, TurnResult> {
         val nextFaction = when (currentFaction) {
             Faction.PLAYER -> Faction.FRIEND
@@ -27,6 +32,11 @@ object BattleRoundCoordinator {
         }
         return nextFaction to TurnResult(round, nextFaction, emptyList())
     }
+
+    /**
+     * `runActiveCampEvents`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun runActiveCampEvents(
         events: List<BattleEvent>,
@@ -41,6 +51,11 @@ object BattleRoundCoordinator {
         }
         .map { it.id }
         .toList()
+
+    /**
+     * `prepareActiveCampOperation`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun prepareActiveCampOperation(
         faction: Faction,
@@ -65,6 +80,11 @@ object BattleRoundCoordinator {
     }
 
 
+    /**
+     * `advanceRound`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun advanceRound(activeFaction: Faction, currentRound: Int): Pair<Int, RoundAdvance> {
         check(activeFaction == Faction.REINFORCEMENTS) { "round may advance only after the reinforcements camp" }
         val completedRound = currentRound
@@ -73,10 +93,20 @@ object BattleRoundCoordinator {
     }
 
 
+    /**
+     * `resetCompletedRoundSkillTemps`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun resetCompletedRoundSkillTemps(completedRound: Int, currentRound: Int, skillTemps: BattleSkillTemp) {
         check(completedRound == currentRound - 1) { "only the just-completed round may be reset" }
         skillTemps.reset(completedRound)
     }
+
+    /**
+     * `applyScheduledWeather`: 현재 상태를 갱신한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun applyScheduledWeather(
         currentRound: Int,
@@ -84,7 +114,17 @@ object BattleRoundCoordinator {
         weatherOffset: Int,
         currentWeather: BattleWeather,
     ): Pair<BattleWeather, WeatherTransition> {
+        /**
+         * `previous` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val previous = currentWeather
+        /**
+         * `newWeather` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val newWeather = if (weatherSchedule.isNotEmpty()) {
             weatherSchedule[Math.floorMod(currentRound + weatherOffset, weatherSchedule.size)]
         } else {
@@ -92,6 +132,11 @@ object BattleRoundCoordinator {
         }
         return newWeather to WeatherTransition(previous, newWeather)
     }
+
+    /**
+     * `endTurn`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun endTurn(
         activeFaction: () -> Faction,
@@ -108,17 +153,37 @@ object BattleRoundCoordinator {
     ): TurnResult {
         settleActiveCampEnd()
         if (activeFaction() == Faction.REINFORCEMENTS) {
+            /**
+             * `advance` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val advance = advanceRound()
             resetCompletedRoundSkillTemps(advance.completedRound)
             applyScheduledWeather()
         }
+        /**
+         * `result` (TurnResult): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var result: TurnResult
+        /**
+         * `fired` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val fired = mutableListOf<String>()
         do {
             result = advanceToNextCamp()
             settleActiveCampStart()
             fired += runActiveCampEvents()
             prepareActiveCampOperation()
+            /**
+             * `currentCamp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val currentCamp = activeFaction()
             if (currentCamp == Faction.PLAYER || units().any {
                     it.visible && it.effectiveFaction() == currentCamp
@@ -126,6 +191,11 @@ object BattleRoundCoordinator {
             ) break
             settleActiveCampEnd()
             if (currentCamp == Faction.REINFORCEMENTS) {
+                /**
+                 * `advance` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val advance = advanceRound()
                 resetCompletedRoundSkillTemps(advance.completedRound)
                 applyScheduledWeather()

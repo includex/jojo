@@ -18,22 +18,82 @@ internal enum class AiPresentationStage {
 
 /** 전투 화면 밖에서 유지하는 AI 표시 이어하기 상태입니다. */
 internal class AiPresentationState {
+    /**
+     * `activeCamp` (Faction?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var activeCamp: Faction? = null
         private set
+    /**
+     * `resolution` (AiUnitResolution?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var resolution: AiUnitResolution? = null
         private set
+    /**
+     * `stage` (AiPresentationStage): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var stage: AiPresentationStage = AiPresentationStage.COMPLETE
+    /**
+     * `stageStartedAt` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var stageStartedAt: Float = 0f
+    /**
+     * `actionStarted` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var actionStarted: Boolean = false
+    /**
+     * `actionCommitted` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var actionCommitted: Boolean = false
+    /**
+     * `playerMoveScriptStarted` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var playerMoveScriptStarted: Boolean = false
+    /**
+     * `unitDeathScriptPass` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var unitDeathScriptPass: Int = 0
+    /**
+     * `turnMoves` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var turnMoves: Int = 0
         private set
+    /**
+     * `turnAttacks` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var turnAttacks: Int = 0
         private set
+    /**
+     * `turnHolds` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var turnHolds: Int = 0
         private set
+
+    /**
+     * `hasActiveCamp` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     val hasActiveCamp: Boolean get() = activeCamp != null
 

@@ -15,11 +15,26 @@ data class BattleTerrainGrid(
     private val overlays = mutableMapOf<Pair<Int, Int>, Int>()
 
 
+    /**
+     * `terrainAt`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun terrainAt(x: Int, y: Int): Int = overlays[x to y] ?: rows.getOrNull(y)?.getOrNull(x) ?: -1
 
 
+    /**
+     * `resetOverlays`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun resetOverlays() = overlays.clear()
 
+
+    /**
+     * `applyObjectOverlays`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun applyObjectOverlays(objects: Collection<ScenarioMapObject>) {
         objects.forEach { objectState ->
@@ -38,6 +53,10 @@ data class BattleTerrainGrid(
     }
 
     companion object {
+        /**
+         * `FIRE_TERRAIN_ID` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val FIRE_TERRAIN_ID = 26
 
     }

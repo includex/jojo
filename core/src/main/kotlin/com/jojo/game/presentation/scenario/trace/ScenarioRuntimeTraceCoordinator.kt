@@ -86,21 +86,78 @@ internal data class ScenarioRuntimeTraceProbeInput(
 
 /** ScenarioRuntimeTraceCoordinator: runtime driver 명령·verification 판별·probe 조립을 Screen Port 밖으로 분리한다. */
 internal class ScenarioRuntimeTraceCoordinator(
+    /** `driver` (RuntimeScenarioDriver?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val driver: RuntimeScenarioDriver?,
+    /** `port` (Port): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val port: Port,
 ) {
     /** Port: coordinator가 필요한 Screen UI snapshot과 최소 동작만 노출한다. */
     internal interface Port {
+        /**
+         * `runtimeFrame`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun runtimeFrame(): RuntimeScenarioFrame
+        /**
+         * `runtimeProbeInput`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun runtimeProbeInput(): ScenarioRuntimeTraceProbeInput
+        /**
+         * `keepsScenarioOpen`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun keepsScenarioOpen(): Boolean
+        /**
+         * `playbackState`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun playbackState(): PlaybackState
+        /**
+         * `applyPresentation`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun applyPresentation(mode: RuntimeScenarioPresentation, detail: Int, scene: RuntimeScenarioScene)
+        /**
+         * `showOverlay`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun showOverlay(overlay: RuntimeScenarioOverlay, scene: RuntimeScenarioScene)
+        /**
+         * `advanceDialogue`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun advanceDialogue()
+        /**
+         * `resumeModal`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun resumeModal()
+        /**
+         * `skipDelay`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun skipDelay()
+        /**
+         * `confirmChoice`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun confirmChoice()
+        /**
+         * `resetDialogueReveal`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun resetDialogueReveal()
     }
 

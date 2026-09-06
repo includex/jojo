@@ -5,15 +5,45 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** TerrainLayerRenderEvents: 지형 메뉴 경로에서 결정적으로 생성되는 그리기 항목이다. */
 object TerrainLayerRenderEvents {
+    /**
+     * `phase` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val phase = "battle-terrain-layer"
+    /**
+     * `layer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val layer = "TerrainLayer"
+    /**
+     * `root` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val root = "Canvas/Layer/bg"
+    /**
+     * `alphaBlend` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
+
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun jsonl(terrain: TerrainLayer): String {
         val log = RenderEventLog()
         val panel = terrain.select(TerrainLayer.Tab.RISE)
+        /**
+         * `draw`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", blend: Any = listOf(770, 771), opacity: Float = 1f
@@ -23,6 +53,11 @@ object TerrainLayerRenderEvents {
                 path, type, x, y, w, h, asset, opacity, blend, true, text
             )
 
+
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
             draw(path, "label", x, y, w, h, text = text, blend = alphaBlend)

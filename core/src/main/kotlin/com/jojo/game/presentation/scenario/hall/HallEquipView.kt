@@ -9,6 +9,11 @@ internal data class HallEquipView(
     val notice: String?,
 )
 
+/**
+ * `HallEquipUnitView`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal data class HallEquipUnitView(
     val portraitId: Int,
     val name: String,
@@ -18,7 +23,17 @@ internal data class HallEquipUnitView(
     val slots: List<HallEquipSlotView>,
 )
 
+/**
+ * `HallEquipStatView`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal data class HallEquipStatView(val name: String, val value: String)
+
+/**
+ * `HallEquipSlotView`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal data class HallEquipSlotView(
     val index: Int,
@@ -28,6 +43,11 @@ internal data class HallEquipSlotView(
     val level: String?,
     val experience: String?,
 )
+
+/**
+ * `HallEquipInventoryRowView`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal data class HallEquipInventoryRowView(
     val name: String,

@@ -46,12 +46,32 @@ data class RuntimeBattlePresentation(
 
 /** RuntimeBattleCommand: 자동 구동기가 전투 화면에 전달하는 조작 명령의 공통 타입이다. */
 sealed interface RuntimeBattleCommand {
+    /**
+     * `AdvanceDialogue` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object AdvanceDialogue : RuntimeBattleCommand
+    /**
+     * `Tap` 클래스: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data class Tap(val x: Float, val y: Float) : RuntimeBattleCommand
+    /**
+     * `EndTurn` 싱글턴 객체: runtime 패키지의 관련 상태와 동작을 묶는다.
+     * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+     */
+
     data object EndTurn : RuntimeBattleCommand
 }
 
 /** RuntimeBattleDriver: 프레임과 전장 탐침을 읽어 다음 자동 조작 명령을 결정하는 전략 계약이다. */
 fun interface RuntimeBattleDriver {
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun commands(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe): List<RuntimeBattleCommand>
 }

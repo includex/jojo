@@ -7,19 +7,61 @@ import java.util.*
 
 /** 대화형 스크립트의 대입, 선택, 조건 분기를 재생한다. */
 class ProgramPlayback(val program: ScenarioScript) {
+    /**
+     * `stage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val stage = ScenarioStage()
+    /**
+     * `state` (PlaybackState): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var state: PlaybackState = PlaybackState.COMPLETE
         private set
+    /**
+     * `currentDialogue` (Dialogue?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentDialogue: Dialogue? = null
         private set
+    /**
+     * `currentChoice` (Choice?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentChoice: Choice? = null
         private set
+    /**
+     * `selectedChoice` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var selectedChoice: Int = 0
         private set
+    /**
+     * `chosenOption` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var chosenOption: String? = null
         private set
+    /**
+     * `pendingChoiceVariable` (String?): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private var pendingChoiceVariable: String? = null
+    /**
+     * `variables` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val variables = mutableMapOf<String, Int>()
+    /**
+     * `queue` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val queue = ArrayDeque<ScriptStep>()
 
     init {
@@ -55,6 +97,11 @@ class ProgramPlayback(val program: ScenarioScript) {
         runUntilInput()
     }
 
+    /**
+     * `runUntilInput`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun runUntilInput() {
         while (queue.isNotEmpty()) {
             when (val step = queue.removeFirst()) {
@@ -82,6 +129,11 @@ class ProgramPlayback(val program: ScenarioScript) {
         }
         state = PlaybackState.COMPLETE
     }
+
+    /**
+     * `prepend`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun prepend(steps: List<ScriptStep>) {
         steps.asReversed().forEach(queue::addFirst)

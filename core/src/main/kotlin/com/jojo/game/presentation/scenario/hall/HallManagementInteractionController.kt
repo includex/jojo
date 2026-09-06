@@ -1,36 +1,146 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+/**
+ * `HallEquipInputIntent`: 관련 상태와 동작을 묶는 interface다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal sealed interface HallEquipInputIntent {
+    /**
+     * `None`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object None : HallEquipInputIntent
+    /**
+     * `SelectTab`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class SelectTab(val index: Int) : HallEquipInputIntent
+    /**
+     * `OpenExclusive`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object OpenExclusive : HallEquipInputIntent
+    /**
+     * `RequestUnequipConfirmation`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object RequestUnequipConfirmation : HallEquipInputIntent
+    /**
+     * `PreviousUnit`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object PreviousUnit : HallEquipInputIntent
+    /**
+     * `NextUnit`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object NextUnit : HallEquipInputIntent
+    /**
+     * `OpenUnitList`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object OpenUnitList : HallEquipInputIntent
+    /**
+     * `RequestWeaponUnequip`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object RequestWeaponUnequip : HallEquipInputIntent
+    /**
+     * `RequestEquipmentRow`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class RequestEquipmentRow(val row: Int) : HallEquipInputIntent
 }
 
+/**
+ * `HallBuyInputIntent`: 관련 상태와 동작을 묶는 interface다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal sealed interface HallBuyInputIntent {
+    /**
+     * `None`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object None : HallBuyInputIntent
+    /**
+     * `SelectTab`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class SelectTab(val index: Int) : HallBuyInputIntent
+    /**
+     * `Row`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Row(val index: Int) : HallBuyInputIntent
 }
 
+/**
+ * `HallSellInputIntent`: 관련 상태와 동작을 묶는 interface다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal sealed interface HallSellInputIntent {
+    /**
+     * `None`: 관련 상태와 동작을 묶는 object다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data object None : HallSellInputIntent
+    /**
+     * `SelectTab`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class SelectTab(val index: Int) : HallSellInputIntent
+    /**
+     * `Cell`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Cell(val row: Int, val column: Int) : HallSellInputIntent
 }
 
+/**
+ * `HallEquipConfirmationInputIntent`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallEquipConfirmationInputIntent { CONFIRM, CANCEL }
+/**
+ * `HallUnequipConfirmationInputIntent`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallUnequipConfirmationInputIntent { NONE, CONFIRM, CANCEL }
+/**
+ * `HallItemInputIntent`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallItemInputIntent { NONE, CLOSE, REQUEST_DISCARD, DISCARD_YES, DISCARD_NO }
 
 /** HallManagementInteractionController: 거점 Management Interaction 제어기이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 internal class HallManagementInteractionController {
+    /**
+     * `equipTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun equipTap(x: Float, y: Float): HallEquipInputIntent = when {
         y in 566f..610f && x in 123f..639f -> HallEquipInputIntent.SelectTab(((x - 123f) / 129f).toInt())
         x in 125f..212f && y in 37f..82f -> HallEquipInputIntent.OpenExclusive
@@ -43,6 +153,11 @@ internal class HallManagementInteractionController {
         else -> HallEquipInputIntent.None
     }
 
+    /**
+     * `buyTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun buyTap(x: Float, y: Float, buyTab: Int): HallBuyInputIntent = when {
         y in 521f..566f && x in 183f..338f -> HallBuyInputIntent.SelectTab(0)
         y in 521f..566f && x in 338f..493f -> HallBuyInputIntent.SelectTab(1)
@@ -52,6 +167,11 @@ internal class HallManagementInteractionController {
         buyTab != 0 && y in 132f..563f -> HallBuyInputIntent.Row(((562.64f - y) / 108f).toInt())
         else -> HallBuyInputIntent.None
     }
+
+    /**
+     * `sellTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun sellTap(x: Float, y: Float): HallSellInputIntent = when {
         y in 75f..128f && x in 523f..695f -> HallSellInputIntent.SelectTab(0)
@@ -63,15 +183,30 @@ internal class HallManagementInteractionController {
         else -> HallSellInputIntent.None
     }
 
+    /**
+     * `unequipConfirmationTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun unequipConfirmationTap(x: Float, y: Float): HallUnequipConfirmationInputIntent = when {
         x in 439f..623f && y in 291f..334f -> HallUnequipConfirmationInputIntent.CONFIRM
         x in 657f..841f && y in 291f..334f -> HallUnequipConfirmationInputIntent.CANCEL
         else -> HallUnequipConfirmationInputIntent.NONE
     }
 
+    /**
+     * `equipConfirmationTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun equipConfirmationTap(x: Float, y: Float): HallEquipConfirmationInputIntent =
         if (x in 472.30f..601.30f && y in 216.63f..259.63f) HallEquipConfirmationInputIntent.CONFIRM
         else HallEquipConfirmationInputIntent.CANCEL
+
+    /**
+     * `itemTap`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun itemTap(discardOpen: Boolean, x: Float, y: Float): HallItemInputIntent {
         val sourceX = x / .86f

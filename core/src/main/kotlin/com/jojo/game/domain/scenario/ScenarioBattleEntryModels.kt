@@ -1,6 +1,11 @@
 // Scenario
 package com.jojo.game.domain.scenario
 
+/**
+ * `ScenarioJoinBattleLimit` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 data class ScenarioJoinBattleLimit(
     val minimum: Int,
     val maximum: Int,
@@ -8,10 +13,20 @@ data class ScenarioJoinBattleLimit(
     val excludedUnitIds: List<Int>,
 )
 
+/**
+ * `ScenarioBattleEntryPlan` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 data class ScenarioBattleEntryPlan(
     val selectionLimit: ScenarioJoinBattleLimit,
     val directBattleRoster: List<Int>?,
 )
+
+/**
+ * `ScenarioJoinEquipment` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
 
 data class ScenarioJoinEquipment(
     val unitId: Int,
@@ -29,6 +44,11 @@ data class ScenarioRewardRequest(
     val end: Boolean = false,
 )
 
+/**
+ * `ScenarioUnitHideRequest` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 data class ScenarioUnitHideRequest(
     val unitId: Int,
     val hideType: Int,
@@ -37,6 +57,11 @@ data class ScenarioUnitHideRequest(
     val showsRetireMessage: Boolean = hideType == 1,
 )
 
+/**
+ * `ScenarioUnitShowRequest` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 data class ScenarioUnitShowRequest(
     val unitId: Int,
     val x: Int = -1,
@@ -44,6 +69,11 @@ data class ScenarioUnitShowRequest(
     val direction: Int = -1,
     val flags: Int = 0,
 )
+
+/**
+ * `ScenarioUnitPostsRequest` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
 
 data class ScenarioUnitPostsRequest(
     val unitId: Int,

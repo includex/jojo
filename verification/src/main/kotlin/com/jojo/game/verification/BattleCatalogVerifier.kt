@@ -112,6 +112,11 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
                         mergedSkills,
                     )
                 }
+                /**
+                 * `conversionMatches` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val conversionMatches = tactical.id == scripted.battleId &&
                     tactical.characterId == scripted.characterId &&
                     tactical.faction == scriptedFaction(scripted.faction, scripted.reinforcement) &&
@@ -157,11 +162,21 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
             }
 
             for (ignored in 0 until 3) {
+                /**
+                 * `turn` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val turn = tacticalState.roundLifecycle.endTurn()
                 if (turn.activeFaction == Faction.PLAYER) break
                 tacticalState.ai.resolveTurn()
                 automatedCampResolutions++
             }
+            /**
+             * `mapId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val mapId = runtime.stage.battleMapIndex + 1
             if (sequenceOf("jpg", "png", "webp").any {
                     Gdx.files.internal("maps/battle-maps/$mapId.$it").exists()
@@ -192,6 +207,11 @@ internal class BattleCatalogVerifier(private val gameData: GameDataCatalog) {
         check(mappedBattles == modules.size) {
             "맵 이미지를 찾지 못한 S 전투 스크립트: ${modules.size - mappedBattles}개"
         }
+        /**
+         * `topUnhandled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val topUnhandled = unhandledCalls.entries.sortedByDescending { it.value }.take(12)
             .joinToString { "${it.key}=${it.value}" }
         return BattleCatalogVerificationResult(

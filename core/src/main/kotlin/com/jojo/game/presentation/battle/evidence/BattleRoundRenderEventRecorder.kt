@@ -20,6 +20,11 @@ internal object BattleRoundRenderEventRecorder {
         val log = RenderEventLog()
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
+        /**
+         * `sprite`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun sprite(path: String, x: Float, y: Float, width: Float, height: Float, asset: String, opacity: Float = 1f) {
             log.draw(
                 phase,
@@ -38,6 +43,11 @@ internal object BattleRoundRenderEventRecorder {
             )
         }
 
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun label(path: String, text: String, x: Float, y: Float, width: Float, height: Float) {
             log.draw(phase, "HallLayer", path, "label", x, y, width, height, null, 1f, labels, true, text)
         }
@@ -54,7 +64,17 @@ internal object BattleRoundRenderEventRecorder {
         if (view.roundLabelsVisible) {
             label("Canvas/Layer/label02", "아군 단계", 526.713f, 380.09f, 448.54f, 151.2f)
             label("Canvas/Layer/label01", "아군 단계", 519.916f, 385.09f, 448.54f, 151.2f)
+            /**
+             * `width` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val width = if (view.roundText == "최종 턴") 344.74f else 274.34f
+            /**
+             * `shadowX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val shadowX = if (view.roundText == "최종 턴") 578.613f else 613.813f
             label("Canvas/Layer/label12", view.roundText, shadowX, 247.7f, width, 151.2f)
             label("Canvas/Layer/label11", view.roundText, shadowX - 6.797f, 252.7f, width, 151.2f)

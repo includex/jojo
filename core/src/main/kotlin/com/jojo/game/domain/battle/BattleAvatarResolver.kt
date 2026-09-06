@@ -13,8 +13,23 @@ object BattleAvatarResolver {
         armId: Int,
         faction: Faction,
     ): Int? {
+        /**
+         * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val profile = data.unitProfile(characterId) ?: return null
+        /**
+         * `specialAvatar` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var specialAvatar = profile.battleAvatar
+        /**
+         * `armAvatarType` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val armAvatarType = data.armProfile(armId)?.battleAvatarType ?: -1
         if (specialAvatar != 0 && profile.battleAvatarType != -1 && profile.battleAvatarType != armAvatarType) {
             specialAvatar = 0
@@ -24,6 +39,11 @@ object BattleAvatarResolver {
                 3 * (79 + specialAvatar) + 1 + if (posts < 60) posts % 3 else 0
             } else specialAvatar - 32 + 336
         }
+        /**
+         * `camp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val camp = when (faction) {
             Faction.PLAYER -> 0
             Faction.FRIEND -> 1

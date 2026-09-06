@@ -8,16 +8,36 @@ import com.jojo.game.domain.battle.label
 
 /** BattlePropertyResolver: 공격 뒤 자동 발동하는 속성 아이템을 판정하고 유닛 상태에 효과를 적용한다. */
 internal object BattlePropertyResolver {
+    /**
+     * `applyProperty`: 현재 상태를 갱신한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun applyProperty(
         item: BattlePropertyItem,
         target: BattleUnit,
         consume: () -> Boolean,
         notifyPermanentProperty: ((BattlePropertyItem, BattleUnit) -> Unit)? = null,
     ): TacticalActionResult.Item? {
+        /**
+         * `effect` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val effect = when (item.itemType) {
             26 -> {
                 if (target.hitPoints >= target.maxHitPoints || !consume()) return null
+                /**
+                 * `amount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val amount = if (item.value == 255) target.maxHitPoints else item.value
+                /**
+                 * `recovered` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val recovered = minOf(amount, target.maxHitPoints - target.hitPoints)
                 target.addHpcur(recovered)
                 "HP ${recovered} 회복"
@@ -25,13 +45,28 @@ internal object BattlePropertyResolver {
 
             27 -> {
                 if (target.magicPoints >= target.maxMagicPoints || !consume()) return null
+                /**
+                 * `amount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val amount = if (item.value == 255) target.maxMagicPoints else item.value
+                /**
+                 * `recovered` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val recovered = minOf(amount, target.maxMagicPoints - target.magicPoints)
                 target.addMpcur(recovered)
                 "MP ${recovered} 회복"
             }
 
             28, 29, 30, 31 -> {
+                /**
+                 * `status` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val status = listOf(
                     BattleStatus.CONFUSION,
                     BattleStatus.POISON,
@@ -50,6 +85,11 @@ internal object BattlePropertyResolver {
             }
 
             33, 34, 35, 36, 37 -> {
+                /**
+                 * `attribute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val attribute = listOf(
                     BattleAttribute.ATTACK,
                     BattleAttribute.SPIRIT,

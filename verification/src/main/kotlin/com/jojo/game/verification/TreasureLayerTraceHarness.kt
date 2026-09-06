@@ -27,6 +27,11 @@ object TreasureLayerTraceHarness {
     private fun cases(text: String): List<Case> =
         Regex("""\{\"name\":\"([^\"]+)\",\"treasures\":\[(.*?)]?,\"discovered\":\[(.*?)]?,\"events\":\[(.*?)]?}""")
             .findAll(text.replace(Regex("\\s+"), "")).map { m ->
+                /**
+                 * `items` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val items =
                     Regex("""\{\"id\":(\d+),\"name\":\"([^\"]*)\",\"icon\":(\d+),\"property\":(true|false),\"description\":\"([^\"]*)\"}""")
                         .findAll(m.groupValues[2]).map { x ->
@@ -38,7 +43,17 @@ object TreasureLayerTraceHarness {
                                 x.groupValues[5]
                             )
                         }.toList()
+                /**
+                 * `found` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val found = Regex("\\d+").findAll(m.groupValues[3]).map { it.value.toInt() }.toSet()
+                /**
+                 * `events` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val events = Regex("\"([^\"]+)\"").findAll(m.groupValues[4]).map { it.groupValues[1] }.toList()
                 Case(m.groupValues[1], items, found, events)
             }.toList()
@@ -61,6 +76,11 @@ object TreasureLayerTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val out = cases(Files.readString(Path.of(args[0]))).joinToString(",", "{", "}") { c ->
             val l = TreasureLayer(c.treasures, c.discovered)

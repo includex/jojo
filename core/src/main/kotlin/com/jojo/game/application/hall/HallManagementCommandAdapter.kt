@@ -13,9 +13,24 @@ class HallManagementCommandAdapter(
 ) {
     /** Result: 거점 관리 명령의 성공 여부와 사용자 알림 문구를 표현한다. */
     sealed interface Result {
+        /**
+         * `message` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val message: String
 
+        /**
+         * `Success` 클래스: hall 패키지의 관련 상태와 동작을 묶는다.
+         * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+         */
+
         data class Success(override val message: String) : Result
+        /**
+         * `Rejected` 클래스: hall 패키지의 관련 상태와 동작을 묶는다.
+         * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+         */
+
         data class Rejected(override val message: String) : Result
     }
 

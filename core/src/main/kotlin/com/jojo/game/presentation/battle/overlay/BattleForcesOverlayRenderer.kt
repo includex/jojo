@@ -30,10 +30,18 @@ data class BattleForcesOverlayAssets(
 
 /** 전투 부대 목록 렌더러: 확정된 부대 행과 선택 탭을 목록 레이아웃으로 출력한다. */
 class BattleForcesOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattleForcesOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleForcesOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleForcesOverlayView) {
         val x = 165.686f
         val y = 79.5f
@@ -75,6 +83,11 @@ class BattleForcesOverlayRenderer(
         font.data.setScale(1f)
         batch.end()
     }
+
+    /**
+     * `drawTiledBackground`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiledBackground(x: Float, y: Float, width: Float, height: Float) {
         assets.background?.let { texture ->

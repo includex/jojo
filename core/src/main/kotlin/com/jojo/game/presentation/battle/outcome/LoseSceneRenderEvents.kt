@@ -4,12 +4,27 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** LoseSceneRenderEvents: 패배 화면과 기록 경로가 함께 사용하는 표시 요청이다. */
 object LoseSceneRenderEvents {
+    /**
+     * `PHASE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val PHASE = "battle-lose-restart-prompt"
 
+
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun append(log: RenderEventLog, flow: LoseSceneFlow, phase: String = PHASE) {
         val sprites = listOf(770, 771)
         val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+        /**
+         * `draw`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = ""

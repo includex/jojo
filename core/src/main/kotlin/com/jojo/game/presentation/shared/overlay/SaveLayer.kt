@@ -10,6 +10,11 @@ import com.badlogic.gdx.utils.JsonReader
 
 class SaveLayer(private val repository: Repository, private val pageTogglesEnabled: Boolean = true) {
 
+    /**
+     * `Repository`: 관련 상태와 동작을 묶는 interface다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     interface Repository {
         /** load: 지정 저장 슬롯의 원본 데이터를 읽어 비어 있으면 null을 반환한다. */
         fun load(index: Int): String?
@@ -19,29 +24,114 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     }
 
 
+    /**
+     * `Row`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Row(
+        /**
+         * `index` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val index: Int,
+        /**
+         * `time` (Long,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val time: Long,
+        /**
+         * `number` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val number: String,
+        /**
+         * `stage` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val stage: String,
+        /**
+         * `name` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name: String,
+        /**
+         * `occupied` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val occupied: Boolean,
     )
 
 
+    /**
+     * `View`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class View(val page: Int, val rows: List<Row>, val pageTogglesVisible: Boolean, val attached: Boolean)
 
+    /**
+     * `page` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var page = -1
+    /**
+     * `tip` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var tip = true
+    /**
+     * `callback` ((() -> Unit)?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var callback: (() -> Unit)? = null
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var attached = false
+    /**
+     * `pendingIndex` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingIndex: Int? = null
 
     /** pendingPrompt: 사용자가 선택한 슬롯을 저장할지 확인할 때 표시할 안내 문구다. */
     private var pendingPrompt: String? = null
+    /**
+     * `completionTipOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var completionTipOpen = false
+    /**
+     * `view` (View?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var view: View? = null
+    /**
+     * `storedPage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var storedPage = 0
+    /**
+     * `lifecycle` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val lifecycle = mutableListOf<String>()
 
     /** onCreate: 저장 화면을 부착하고 완료 콜백·안내 표시 정책·마지막 페이지를 초기화한다. */
@@ -116,22 +206,57 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     fun showsCompletionTip(): Boolean = tip
 
 
+    /**
+     * `completionTipOpen`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun completionTipOpen(): Boolean = completionTipOpen
 
+
+    /**
+     * `pendingSlot`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun pendingSlot(): Int? = pendingIndex
 
 
+    /**
+     * `pendingPrompt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun pendingPrompt(): String? = pendingPrompt
 
+
+    /**
+     * `storedPage`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun storedPage(): Int = storedPage
 
 
+    /**
+     * `takeLifecycle`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun takeLifecycle(): List<String> = lifecycle.toList().also { lifecycle.clear() }
 
 
+    /**
+     * `view`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun view(): View = requireNotNull(view) { "SaveLayer.onCreate must run before access" }
+
+    /**
+     * `complete`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun complete() {
         callback?.invoke()
@@ -140,6 +265,11 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         attached = false
         view = view()?.copy(attached = false)
     }
+
+    /**
+     * `decodeRow`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun decodeRow(index: Int, page: Int): Row {
         val text = repository.load(index)
@@ -161,6 +291,7 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     }
 
     companion object {
+        /** `TOUCH_END` (상태 값): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
         const val TOUCH_END = 2
     }
 }

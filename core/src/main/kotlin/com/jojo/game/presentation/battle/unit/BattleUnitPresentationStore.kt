@@ -9,13 +9,43 @@ import com.jojo.game.domain.battle.BattleUnit
 class BattleUnitPresentationStore {
     /** DerivedState: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     private data class DerivedState(
+        /**
+         * `hitPoints` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hitPoints: Int,
+        /**
+         * `maxHitPoints` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val maxHitPoints: Int,
+        /**
+         * `statuses` (Map<BattleStatus, Int>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val statuses: Map<BattleStatus, Int>,
+        /**
+         * `attributeLifts` (Map<BattleAttribute, Int>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attributeLifts: Map<BattleAttribute, Int>,
     )
 
+    /**
+     * `states` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val states = linkedMapOf<String, BattleUnitPresentationState>()
+    /**
+     * `derivedStates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val derivedStates = linkedMapOf<String, DerivedState>()
 
     /** 유닛 상태를 동기화한 뒤 현재 화면용 투영 상태를 반환합니다. */

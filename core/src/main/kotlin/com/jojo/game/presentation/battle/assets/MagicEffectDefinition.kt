@@ -13,10 +13,35 @@ data class MagicEffectDefinition(
 ) {
     /** 개별 효과 프레임의 원본 위치와 타격 여부입니다. */
     data class Frame(
+        /**
+         * `sourceIndex` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceIndex: Int,
+        /**
+         * `alpha` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val alpha: Int,
+        /**
+         * `offsetX` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offsetX: Int,
+        /**
+         * `offsetY` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val offsetY: Int,
+        /**
+         * `hit` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hit: Boolean,
     )
 
@@ -26,6 +51,11 @@ data class MagicEffectDefinition(
     /** 첫 타격 프레임까지의 시간을 반환합니다. */
     val hitTime: Float
         get() {
+            /**
+             * `index` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val index = frames.indexOfFirst(Frame::hit)
             return if (index < 0) duration else index / (if (uses24Fps) 36f else 18f)
         }

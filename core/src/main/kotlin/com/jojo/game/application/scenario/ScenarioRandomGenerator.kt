@@ -11,12 +11,36 @@ import kotlin.random.Random
 internal class ScenarioRandomGenerator(
     initialSeed: Double = Random.nextDouble() * 1_000.0,
 ) {
+    /**
+     * `toolRandomSeed` (Double): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var toolRandomSeed: Double = initialSeed
         private set
+    /**
+     * `injectedRandomValues` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val injectedRandomValues = ArrayDeque<Int>()
+    /**
+     * `randomDrawCount` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var randomDrawCount: Int = 0
         private set
+    /**
+     * `remainingInjectedRandomCount` (Int get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val remainingInjectedRandomCount: Int get() = injectedRandomValues.size
+    /**
+     * `stopAfterRandomTraceCount` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var stopAfterRandomTraceCount: Int? = null
         private set
 

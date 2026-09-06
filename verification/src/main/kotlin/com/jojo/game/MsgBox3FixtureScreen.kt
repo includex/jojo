@@ -51,6 +51,11 @@ class MsgBox3FixtureScreen(private val game: JojoGame, private val state: String
     private val model: MsgBox3Layer
 
     init {
+        /**
+         * `buy` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val buy = ShopPurchaseModel(listOf(item), money = 70, owned = 0, capacity = 99)
         model = if (state == "quantity-buy-initial") {
             buy.openPropertyQuantity(item.id)

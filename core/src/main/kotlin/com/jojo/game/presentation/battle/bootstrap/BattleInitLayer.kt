@@ -14,7 +14,17 @@ class BattleInitLayer(private val effects: Effects = Effects.NONE) {
         companion object {
             /** 외부 사운드 연결이 없을 때 사용하는 무동작 구현이다. */
             val NONE = object : Effects {
+                /**
+                 * `playInitBattle`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun playInitBattle() = Unit
+                /**
+                 * `stopAllEffects`: 입력을 규칙에 따라 계산·변환한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun stopAllEffects() = Unit
             }
         }
@@ -23,8 +33,23 @@ class BattleInitLayer(private val effects: Effects = Effects.NONE) {
     /** 초기화 레이어를 그릴 때 필요한 불변 화면 상태다. */
     data class View(val flag: Int, val attached: Boolean, val labels: List<String>)
 
+    /**
+     * `flag` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var flag = 0
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var attached = false
+    /**
+     * `labels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var labels = listOf("", "")
 
     /** 초기화 레이어를 부착하고 전투 시작 사운드를 재생한다. */

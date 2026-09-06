@@ -24,6 +24,11 @@ object ScenarioProgramLoader {
         return ScenarioScript(moduleName, steps, text)
     }
 
+    /**
+     * `compileStatements`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun compileStatements(statements: List<JsonValue>, text: MutableList<String>): List<ScriptStep> =
         buildList {
             statements.forEach { statement ->
@@ -34,6 +39,11 @@ object ScenarioProgramLoader {
                 }
             }
         }
+
+    /**
+     * `compileAssignment`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun compileAssignment(statement: JsonValue, text: MutableList<String>): ScriptStep? {
         val value = statement.field("value")
@@ -55,6 +65,11 @@ object ScenarioProgramLoader {
         return null
     }
 
+    /**
+     * `compileConditional`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun compileConditional(statement: JsonValue, text: MutableList<String>): ScriptStep.Conditional? {
         val test = statement.field("test")
         if (test.typeName() != "Compare") return null
@@ -70,6 +85,11 @@ object ScenarioProgramLoader {
             compileStatements(statement.field("orelse").children().toList(), text)
         )
     }
+
+    /**
+     * `commandsFromCall`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun commandsFromCall(node: JsonValue, text: MutableList<String>): List<ScenarioCommand> {
         if (node.typeName() != "Call") return emptyList()
@@ -110,6 +130,11 @@ object ScenarioProgramLoader {
         }
     }
 
+    /**
+     * `showUnitCommands`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun showUnitCommands(node: JsonValue?): List<ScenarioCommand> {
         if (node?.typeName() != "List") return emptyList()
         return node.field("elts").children().mapNotNull { entry ->
@@ -124,6 +149,11 @@ object ScenarioProgramLoader {
             }
         }.toList()
     }
+
+    /**
+     * `unitMoveCommands`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun unitMoveCommands(node: JsonValue?): List<ScenarioCommand> {
         if (node?.typeName() != "List") return emptyList()
@@ -141,13 +171,33 @@ object ScenarioProgramLoader {
         }.toList()
     }
 
+    /**
+     * `toDialogue`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun toDialogue(raw: String): Dialogue {
         val match = Regex("""^&(\d+)\n(.*)$""", setOf(RegexOption.DOT_MATCHES_ALL)).matchEntire(raw)
         return if (match == null) Dialogue(null, raw) else Dialogue(match.groupValues[1], match.groupValues[2])
     }
 
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun JsonValue.typeName(): String = getString("type")
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun JsonValue.field(name: String): JsonValue = get("fields").get(name)
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun JsonValue.children(): Sequence<JsonValue> = sequence {
         var item = child
         while (item != null) {
@@ -156,6 +206,11 @@ object ScenarioProgramLoader {
         }
     }
 
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun JsonValue.expressionPath(): String? = when (typeName()) {
         "Name" -> field("id").asString()
         "Attribute" -> field("value").expressionPath()?.plus(".")?.plus(field("attr").asString())
@@ -163,20 +218,45 @@ object ScenarioProgramLoader {
         else -> null
     }
 
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun JsonValue.unitId(): Int {
         check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { "stage.unit(id) 호출이 필요합니다." }
         return field("args").children().first().asIntValue()
     }
 
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun JsonValue.listValues(): List<JsonValue> =
         if (typeName() == "List") field("elts").children().toList() else emptyList()
+
+    /**
+     * `JsonValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun JsonValue.asIntValue(): Int {
         check(typeName() == "Constant") { "정수 상수가 필요합니다: ${typeName()}" }
         return field("value").asString().toInt()
     }
 
+    /**
+     * `List`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun List<JsonValue>.intAt(index: Int): Int = getOrNull(index)?.asIntValue() ?: error("인수 ${index}가 없습니다.")
+    /**
+     * `List`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun List<JsonValue>.stringAt(index: Int): String {
         val value = getOrNull(index) ?: error("인수 ${index}가 없습니다.")
         check(value.typeName() == "Constant") { "문자열 상수가 필요합니다: ${value.typeName()}" }

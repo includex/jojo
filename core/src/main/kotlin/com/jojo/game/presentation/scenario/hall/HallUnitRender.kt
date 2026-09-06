@@ -12,7 +12,17 @@ data class HallUnitSpriteFrame(
 )
 
 
+/**
+ * `HallUnitRender`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 object HallUnitRender {
+
+    /**
+     * `frame`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun frame(mapAvatar: Int, action: Int, direction: Int, elapsedSeconds: Float): HallUnitSpriteFrame {
         val normalizedDirection = direction.takeIf { it in 0..3 } ?: 0
@@ -34,6 +44,11 @@ object HallUnitRender {
 
     /** walkingRenderEventLog: 거점 유닛 이동을 검증하기 위해 프레임별 렌더링 이벤트를 기록한다. */
     fun walkingRenderEventLog(): String {
+
+        /**
+         * `Path`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
 
         data class Path(val direction: Int, val x: Int, val y: Int, val dx: Int, val dy: Int)
 
@@ -86,6 +101,11 @@ object HallUnitRender {
                 val localX = ((x + 41.28f) - 640f) / 1.72f
                 val localY = ((y + 55.04f) - 344f) / 1.72f
 
+
+                /**
+                 * `number`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 fun number(value: Float) =
                     "%.4f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.').ifEmpty { "0" }

@@ -32,6 +32,11 @@ class GameAudioPlayer {
         if (enabled) playEffect(soundId, 1)
     }
 
+    /**
+     * `playBackground`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun playBackground(soundId: Int) {
         playingBackgroundId = soundId
         background?.dispose()
@@ -46,6 +51,11 @@ class GameAudioPlayer {
         }
         background = Gdx.audio.newMusic(file).also { it.isLooping = true; it.play() }
     }
+
+    /**
+     * `playEffect`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun playEffect(soundId: Int, mode: Int) {
         if (soundId < 0) return
@@ -64,6 +74,11 @@ class GameAudioPlayer {
         val instance = if (mode < 0) sound.loop() else sound.play()
         activeEffects[soundId] = instance
     }
+
+    /**
+     * `effectPath`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun effectPath(soundId: Int): String = when {
         soundId >= 200 -> "audio/Se_e_${(soundId - 200).toString().padStart(2, '0')}.mp3"

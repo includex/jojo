@@ -8,13 +8,43 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** HallSaveRenderer: 거점 저장 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** HallSaveRenderer: 저장 슬롯 행과 덮어쓰기 확인·완료 안내 모달을 그린다. */
 internal object HallSaveRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallSaveRenderView) {
+        /**
+         * `texture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun texture(path: String) = assets.hallTexture(path)
+        /**
+         * `start`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun start(name: String) = texture("maps/ui/start-battle/$name.png")
+        /**
+         * `patch`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun patch(name: String, inset: Int = 3) = start(name)?.let { NinePatch(it, inset, inset, inset, inset) }
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun label(value: String, x: Float, y: Float, w: Float, centered: Boolean = false) { assets.bodyFont.color=Color.BLACK; assets.bodyFont.draw(batch,value,x*.86f,y*.86f+35f,w*.86f,if(centered) Align.center else Align.left,false) }
+        /**
+         * `tiled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tiled(tex: com.badlogic.gdx.graphics.Texture, x: Float, y: Float, w: Float, h: Float) {
             val px=x*.86f; val py=y*.86f; val width=w*.86f; val height=h*.86f; val tw=tex.width*.86f; val th=tex.height*.86f
             var dy=0f; while(dy<height-.01f) { var dx=0f; while(dx<width-.01f) { val dw=minOf(tw,width-dx); val dh=minOf(th,height-dy); batch.draw(tex,px+dx,py+dy,dw,dh,0,0,(dw/.86f).toInt().coerceAtLeast(1),(dh/.86f).toInt().coerceAtLeast(1),false,false); dx+=tw }; dy+=th }

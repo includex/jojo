@@ -1,5 +1,10 @@
 # 조조전 원본 충실 게임 개발 — 현재 개발 인수인계
 
+> **2026-09-07 갱신.** 리팩터링·아키텍처 상태 판단은 [`REFACTORING_HANDOFF.md`](REFACTORING_HANDOFF.md)를 먼저 읽는다.
+> 이 문서에 적힌 클래스 크기·분해 진행도는 2026-09-05 이전 값이며 실제보다 최대 3배 크다
+> (`Battle` 787→288, `ScenarioScreen` 4,534→987, `BattleScreen` 9,578→7,094).
+> 아래 내용 중 **원본 시각 재현·검증 게이트 기록**은 여전히 유효한 참고 자료다.
+
 작성 기준: 2026-09-05 KST  
 게임 작업 공간: `/Users/ain/workspace/jojo`
 원본 작업 공간: `/Users/ain/workspace/jojo_mobile/sgccz-desktop`

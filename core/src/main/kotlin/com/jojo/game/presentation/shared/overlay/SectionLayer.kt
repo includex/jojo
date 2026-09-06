@@ -5,20 +5,85 @@ package com.jojo.game.presentation.shared.overlay
 class SectionLayer(private val setting: Int) {
     /** 구간 화면을 그리는 데 필요한 상태입니다. */
     data class View(
+        /**
+         * `label` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val label: String,
+        /**
+         * `count` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val count: Int,
+        /**
+         * `scheduled` (List<Int>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scheduled: List<Int>,
+        /**
+         * `callbacks` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val callbacks: Int,
+        /**
+         * `attached` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attached: Boolean
     )
 
+    /**
+     * `name` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var name = ""
+    /**
+     * `index` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var index = 0
+    /**
+     * `count` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var count = 0
+    /**
+     * `label` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var label = ""
+    /**
+     * `callbacks` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var callbacks = 0
+    /**
+     * `attached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var attached = true
+    /**
+     * `scheduled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scheduled = mutableListOf<Int>()
+    /**
+     * `fn` ((() -> Unit)?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var fn: (() -> Unit)? = null
 
     /** 구간 이름과 완료 콜백으로 화면을 초기화합니다. */
@@ -26,6 +91,11 @@ class SectionLayer(private val setting: Int) {
         this.index = idx; this.name = name; fn = callback; label =
             if (idx == 0) "서막" else chapter(idx); if (setting and AUTO_CLOSE != 0) scheduled += 3; return view()
     }
+
+    /**
+     * `chapter`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun chapter(n: Int): String {
         val r = listOf("십", "일", "2", "삼", "넷", "다섯", "육", "칠", "팔", "구")
@@ -61,7 +131,17 @@ class SectionLayer(private val setting: Int) {
     fun view() = View(label, count, scheduled.toList(), callbacks, attached)
 
     companion object {
+        /**
+         * `TOUCH_END` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val TOUCH_END = 2
+        /**
+         * `AUTO_CLOSE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val AUTO_CLOSE = 8
     }
 }

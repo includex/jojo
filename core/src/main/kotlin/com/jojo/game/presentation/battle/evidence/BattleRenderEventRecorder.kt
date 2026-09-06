@@ -89,7 +89,17 @@ internal object BattleRenderEventRecorder {
         }
     }.jsonl()
 }
+/**
+ * `BattleBattlefieldRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleBattlefieldRenderEvents {
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, view: BattleRenderEventView) {
         draw(log, view.phase, "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, view.mapBottom, 1920f, 1920f,
             "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>")
@@ -101,7 +111,17 @@ private object BattleBattlefieldRenderEvents {
         draw(log, view.phase, "HallLayer", "Canvas/Layer/menu_button/Background", "sprite", 1353.9535f, 8f, 60f, 60f, "menu")
     }
 }
+/**
+ * `BattleInitRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleInitRenderEvents {
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, phase: String) {
         val layer = "BattleInitLayer"
         draw(log, phase, layer, "Canvas/Layer/bg/button/Background", "sliced-sprite", .843f, .731f, 68f, 68f, "bg1")
@@ -113,7 +133,17 @@ private object BattleInitRenderEvents {
         draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
     }
 }
+/**
+ * `BattleDialogueBlendRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleDialogueBlendRenderEvents {
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, view: BattleRenderEventView) {
         val dialogue = requireNotNull(view.dialogue)
         dialogue.headAsset?.let { draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/face", "sprite", 1064.618f, 330f, 192f, 240f, it) }
@@ -123,7 +153,17 @@ private object BattleDialogueBlendRenderEvents {
         draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/label", "label", 304.804f, 485.639f, 97.42f, 49.36f, text = dialogue.speakerName, blend = labels)
     }
 }
+/**
+ * `BattleWinConditionRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleWinConditionRenderEvents {
+    /**
+     * `appendCompact`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun appendCompact(log: RenderEventLog, phase: String, text: String) {
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0", "tiled-sprite", 249.686f, 65f, 989f, 670f, "Logo_9-1")
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/box2", "tiled-sprite", 249.686f, 65f, 989f, 670f, "box3")
@@ -134,6 +174,11 @@ private object BattleWinConditionRenderEvents {
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/button/Background/Label", "label", 985.869f, 93.461f, 199.23f, 54.4f, text = "짐이 알겠다.", blend = labels)
     }
 
+    /**
+     * `appendFull`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun appendFull(log: RenderEventLog, phase: String, conditions: BattleRenderEventWinConditionsView) {
         val texts = conditions.childLabels
         val widths = listOf(367.43f, 537.49f, 537.49f, 531.39f)
@@ -142,12 +187,27 @@ private object BattleWinConditionRenderEvents {
         rich(log, phase, "richtext2", 27.323f, 267.913f, conditions.second, texts, widths, 627.913f)
     }
 
+    /**
+     * `rich`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun rich(log: RenderEventLog, phase: String, name: String, x: Float, y: Float, content: String, texts: List<String>, widths: List<Float>, labelY: Float) {
         draw(log, phase, "HallLayer", "Canvas/Layer/$name", "rich-text", x, y, 537.49f, 511.2f, text = content, blend = labels)
         texts.forEachIndexed { index, text -> draw(log, phase, "HallLayer", "Canvas/Layer/$name/RICHTEXT_CHILD", "label", x, labelY - index * 120f, widths[index], 151.2f, text = text, blend = labels) }
     }
 }
+/**
+ * `BattleChromeRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleChromeRenderEvents {
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, phase: String, layer: String) {
         draw(log, phase, layer, "Canvas/Layer/bg/button/Background", "sliced-sprite", .843f, .731f, 68f, 68f, "bg1")
         draw(log, phase, layer, "Canvas/Layer/bg/button/Background/tool11", "sprite", .043f, -.069f, 69.6f, 69.6f, "tool10")
@@ -155,19 +215,54 @@ private object BattleChromeRenderEvents {
         draw(log, phase, layer, "Canvas/Layer/bg/btn/Background/tool11", "sprite", 1418.5721f, 730.2f, 69.6f, 69.6f, "tool11")
     }
 }
+/**
+ * `BattleTitleRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleTitleRenderEvents {
+    /**
+     * `asset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val asset = "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1"
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, phase: String, layer: String) {
         draw(log, phase, layer, "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f, asset)
         draw(log, phase, layer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
         draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
     }
+    /**
+     * `appendOverlay`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun appendOverlay(log: RenderEventLog, phase: String) {
         draw(log, phase, "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.3721f, 800f, "default_sprite_splash", 50f / 255f)
     }
 }
+/**
+ * `BattleItemUpgradeRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleItemUpgradeRenderEvents {
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, phase: String, view: BattleRenderEventItemUpgradeView) {
+        /**
+         * `event`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun event(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") =
             draw(log, phase, "ItemUpgradeLayer", path, type, x, y, w, h, asset, text = text, blend = if (type == "label") labels else sprites)
         event("Canvas/Layer/bg", "tiled-sprite", 544.186f, 270.5f, 400f, 259f, "Logo_9-1")
@@ -183,10 +278,25 @@ private object BattleItemUpgradeRenderEvents {
         event("Canvas/Layer/bg/scrollview/view/content/label", "label", 554.836f, 361.5f, 379.5f, 50.4f, text = "${view.attributeName} ${view.oldValue} -> ${view.newValue}")
     }
 }
+/**
+ * `BattleRewardRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 private object BattleRewardRenderEvents {
+    /**
+     * `append`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun append(log: RenderEventLog, phase: String, reward: BattleRenderEventRewardView?) = when (reward?.phase ?: BattleRenderEventRewardPhase.NONE) {
         BattleRenderEventRewardPhase.MONEY -> {
             val value = requireNotNull(reward)
+            /**
+             * `label`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) = draw(log, phase, "BattleScreen", path, "label", x, y, w, h, text = text, blend = labels)
             label("Canvas/Layer/bg0/label", 527.747f, 464.417f, 448.54f, 151.2f, "전투 종료")
             label("Canvas/Layer/bg0/label", 519.916f, 476.394f, 448.54f, 151.2f, "전투 종료")
@@ -214,8 +324,23 @@ private object BattleRewardRenderEvents {
     }
 }
 
+/**
+ * `sprites` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+ * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+ */
+
 private val sprites = listOf(770, 771)
+/**
+ * `labels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+ * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+ */
+
 private val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+
+/**
+ * `draw`: 화면 표시 상태를 렌더링한다.
+ * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
 
 private fun draw(log: RenderEventLog, phase: String, layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, opacity: Float = 1f, text: String = "", blend: Any = sprites) {
     if (opacity <= 0f || x + w <= 0f || x >= 1488.3721f || y + h <= 0f || y >= 800f) return

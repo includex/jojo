@@ -5,6 +5,11 @@ import com.badlogic.gdx.utils.Align
 
 /** HallBuyCatalogRenderPlan: 거점 Buy 목록 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallBuyCatalogRenderPlan {
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun commands(view: HallBuyCatalogView): List<HallBuyCatalogDrawCommand> = buildList {
         patch("maps/ui/start-battle/box1.png", 176.42f, 89.01f, 480.74f, 503.1f)
         text("상품 목록", 193.72f, 595.19f, 240f, align = Align.left)
@@ -12,6 +17,11 @@ internal object HallBuyCatalogRenderPlan {
         button("상점", 337.85f, 521.28f, 154.8f)
         if (view.propertyTab) propertyRows(view.rows) else equipmentRows(view.rows)
     }
+
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun MutableList<HallBuyCatalogDrawCommand>.equipmentRows(rows: List<HallBuyCatalogRowView>) {
         rows.forEachIndexed { index, row ->
@@ -33,6 +43,11 @@ internal object HallBuyCatalogRenderPlan {
         }
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallBuyCatalogDrawCommand>.propertyRows(rows: List<HallBuyCatalogRowView>) {
         rows.forEachIndexed { index, row ->
             val y = 456f - index * 108f
@@ -45,25 +60,50 @@ internal object HallBuyCatalogRenderPlan {
         }
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallBuyCatalogDrawCommand>.patch(
         asset: String, x: Float, y: Float, width: Float, height: Float, inset: Int = 3,
     ) {
         add(HallBuyCatalogDrawCommand(HallBuyCatalogDrawKind.PATCH, asset = asset, x = x, y = y, width = width, height = height, inset = inset))
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallBuyCatalogDrawCommand>.sprite(asset: String, x: Float, y: Float, width: Float, height: Float) {
         add(HallBuyCatalogDrawCommand(HallBuyCatalogDrawKind.SPRITE, asset = asset, x = x, y = y, width = width, height = height))
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallBuyCatalogDrawCommand>.text(value: String, x: Float, y: Float, width: Float, align: Int = Align.center) {
         add(HallBuyCatalogDrawCommand(HallBuyCatalogDrawKind.TEXT, text = value, x = x, y = y, width = width, align = align))
     }
+
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun MutableList<HallBuyCatalogDrawCommand>.button(value: String, x: Float, y: Float, width: Float) {
         patch("maps/ui/start-battle/button.png", x, y, width, 43f, inset = 9)
         text(value, x, y + 31f, width)
     }
 }
+
+/**
+ * `HallBuyCatalogDrawCommand`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal data class HallBuyCatalogDrawCommand(
     val kind: HallBuyCatalogDrawKind,
@@ -76,5 +116,10 @@ internal data class HallBuyCatalogDrawCommand(
     val inset: Int = 0,
     val align: Int = Align.center,
 )
+
+/**
+ * `HallBuyCatalogDrawKind`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal enum class HallBuyCatalogDrawKind { PATCH, SPRITE, TEXT }

@@ -14,51 +14,261 @@ import com.jojo.game.domain.scenario.PlaybackState
 internal class AiPresentationCoordinator(
     portFactory: (AiPresentationCoordinator) -> Port,
 ) {
+    /**
+     * `state` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val state = AiPresentationState()
+    /**
+     * `port` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val port = portFactory(this)
 
+    /**
+     * `activeCamp` (Faction? get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val activeCamp: Faction? get() = state.activeCamp
+    /**
+     * `resolution` (AiUnitResolution? get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val resolution: AiUnitResolution? get() = state.resolution
+    /**
+     * `stage` (AiPresentationStage get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val stage: AiPresentationStage get() = state.stage
+    /**
+     * `unitDeathScriptPass` (Int get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val unitDeathScriptPass: Int get() = state.unitDeathScriptPass
+    /**
+     * `hasActiveCamp` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val hasActiveCamp: Boolean get() = state.hasActiveCamp
+    /**
+     * `playerMoveScriptStarted` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val playerMoveScriptStarted: Boolean get() = state.playerMoveScriptStarted
 
     /** Port: 전투 표현 계층이 외부 기능과 연결할 때 사용하는 계약이다. */
     internal interface Port {
+        /**
+         * `now`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun now(): Float
+        /**
+         * `resolve`: 상태나 데이터를 조회한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun resolve(camp: Faction): AiTurnResult
+        /**
+         * `lastResolution`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun lastResolution(): AiUnitResolution?
+        /**
+         * `hasPendingUnits`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun hasPendingUnits(): Boolean
+        /**
+         * `focusFirstCampUnit`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun focusFirstCampUnit(camp: Faction)
+        /**
+         * `beginEmptyCampBarrier`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun beginEmptyCampBarrier(hasActor: Boolean)
+        /**
+         * `yieldEmptyCampEntryFrame`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun yieldEmptyCampEntryFrame(): Boolean
+        /**
+         * `beginActorBarriers`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun beginActorBarriers(hasPhysicalCounter: Boolean)
+        /**
+         * `finishDeathCallbacks`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun finishDeathCallbacks()
+        /**
+         * `focusTile`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun focusTile(x: Float, y: Float)
+        /**
+         * `startMovement`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun startMovement(resolution: AiUnitResolution): Boolean
+        /**
+         * `movementActive`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun movementActive(): Boolean
+        /**
+         * `finishMovement`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun finishMovement(resolution: AiUnitResolution)
+        /**
+         * `commitMovement`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun commitMovement(resolution: AiUnitResolution, updateActionState: Boolean)
+        /**
+         * `markPlayerMove`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun markPlayerMove(resolution: AiUnitResolution)
+        /**
+         * `scriptState`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun scriptState(): PlaybackState
+        /**
+         * `runScript`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun runScript(): PlaybackState
+        /**
+         * `battleEndedByScript`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun battleEndedByScript(): Boolean
+        /**
+         * `playerMoveScriptFinished`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun playerMoveScriptFinished(): Boolean
+        /**
+         * `finishScriptEndedTurn`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun finishScriptEndedTurn()
+        /**
+         * `applyAction`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun applyAction(resolution: AiUnitResolution)
+        /**
+         * `combatBusy`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun combatBusy(): Boolean
+        /**
+         * `yieldCounterattackIdle`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun yieldCounterattackIdle(): Boolean
+        /**
+         * `commitAction`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun commitAction(actorId: String)
+        /**
+         * `yieldActionStatus`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun yieldActionStatus(hasAction: Boolean): Boolean
+        /**
+         * `yieldPlayerMoveCompletion`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun yieldPlayerMoveCompletion(isPlayer: Boolean, moved: Boolean): Boolean
+        /**
+         * `queuePostActionDeaths`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun queuePostActionDeaths(): Boolean
+        /**
+         * `startedPostActionDeaths`: 흐름을 실행하거나 다음 단계로 전달한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun startedPostActionDeaths(): Boolean
+        /**
+         * `setSummary`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun setSummary(camp: Faction, result: AiTurnResult)
+        /**
+         * `completeCamp`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun completeCamp(result: AiTurnResult)
+        /**
+         * `setActionMessage`: 현재 상태를 갱신한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun setActionMessage(camp: Faction, resolution: AiUnitResolution)
+        /**
+         * `beginNoResultFrameGate`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun beginNoResultFrameGate()
+        /**
+         * `yieldBeforeNextNoResult`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun yieldBeforeNextNoResult(nextIsNoResult: Boolean): Boolean
+        /**
+         * `markNoResultCompleted`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun markNoResultCompleted()
     }
 
@@ -72,6 +282,11 @@ internal class AiPresentationCoordinator(
         port.beginEmptyCampBarrier(state.resolution != null)
         return result
     }
+
+    /**
+     * `resolveNextActor`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun resolveNextActor(): AiTurnResult {
         val camp = state.activeCamp ?: return AiTurnResult(0, 0, 0)
@@ -209,6 +424,11 @@ internal class AiPresentationCoordinator(
             }
         }
     }
+
+    /**
+     * `finishScriptEndedTurn`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun finishScriptEndedTurn() {
         state.clearActor()

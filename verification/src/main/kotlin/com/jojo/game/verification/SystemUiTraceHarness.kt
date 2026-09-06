@@ -84,6 +84,11 @@ object SystemUiTraceHarness {
     private fun nullable(v: Any?) = v?.toString() ?: "null"
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
 
         /** run: 검증 시나리오 입력을 적용하고 추적 결과를 반환한다. */
@@ -180,6 +185,11 @@ object SystemUiTraceHarness {
 
             val out = mutableListOf(snapshot("create"))
             for (e in c.events) {
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = e.split(':'); when (p[0]) {
                     "button" -> when (c.kind) {
                         "msg" -> msg!!.touch(p[1].toInt(), p[2].toInt()); "msg2" -> msg2!!.touch(

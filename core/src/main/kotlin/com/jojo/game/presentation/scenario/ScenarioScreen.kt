@@ -5,6 +5,9 @@ import com.jojo.game.infrastructure.data.ScenarioCatalog
 import com.jojo.game.infrastructure.audio.GameAudioPlayer
 import com.jojo.game.presentation.shared.overlay.*
 import com.jojo.game.presentation.shared.StorySkipFlow
+import com.jojo.game.presentation.shared.dialogue.DialogueScene2dAssets
+import com.jojo.game.presentation.shared.dialogue.DialogueScene2dHost
+import com.jojo.game.presentation.shared.dialogue.DialogueScene2dView
 
 import com.jojo.game.presentation.scenario.overlay.*
 
@@ -46,35 +49,75 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 
 
 /** ScenarioScreen: 시나리오 장면의 재생·전장·대사·거점 오버레이·입력을 한 화면 수명주기에서 조정한다. */
 class ScenarioScreen(
+    /** `game` (JojoGame): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     internal val game: JojoGame,
+    /** `moduleName` (String): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     internal val moduleName: String,
+    /** `scriptedRandomValues` (List<Int>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedRandomValues: List<Int>,
+    /** `scriptedInfoTransferRandomValues` (List<Int>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedInfoTransferRandomValues: List<Int>,
+    /** `scriptedGlobals` (Map<Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedGlobals: Map<Int, Int>,
+    /** `scriptedUnitAttributes` (List<Triple<Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedUnitAttributes: List<Triple<Int, Int, Int>>,
+    /** `scriptedVariables` (Map<Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedVariables: Map<Int, Int>,
+    /** `scriptedAmbition` (Int?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedAmbition: Int?,
+    /** `scriptedBattleRound` (Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedBattleRound: Int,
+    /** `scriptedBattleCamp` (Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedBattleCamp: Int,
+    /** `scriptedBattleAttributes` (Map<Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedBattleAttributes: Map<Int, Map<Int, Int>>,
+    /** `scriptedBattlePositions` (Map<Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedBattlePositions: Map<Int, Pair<Int, Int>>,
+    /** `scriptedBattlePositionsByCamp` (Map<Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedBattlePositionsByCamp: Map<Int, List<Pair<Int, Int>>>,
+    /** `scriptedBattleEnemyDefeated` (Boolean): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedBattleEnemyDefeated: Boolean,
+    /** `scriptedStartScene` (String): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedStartScene: String,
+    /** `scriptedStartLabel` (String?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val scriptedStartLabel: String?,
+    /** `randomTraceConfiguration` (ScenarioRandomTraceConfiguration): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val randomTraceConfiguration: ScenarioRandomTraceConfiguration,
+    /** `campaign` (CampaignState): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     internal val campaign: CampaignState,
 ) : ScreenAdapter(), ScenarioInputPort, ScenarioHallInteractionPort {
 
+    /**
+     * `viewport` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
+    /**
+     * `shapes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val shapes = ShapeRenderer()
+    /**
+     * `batch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val batch = SpriteBatch()
+    /**
+     * `playback` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
         // `campaign.enter()`는 새 모듈 상태를 준비한다. 명시적으로 전달한 전역값은
         // 캠페인 진입 뒤에 적용하여, 장면 시작 시 원본의 보호 입력값이 사라지지 않게 한다.
@@ -104,8 +147,23 @@ class ScenarioScreen(
         game.scenarioStarted(moduleName, scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0)
         start(scriptedStartScene, scriptedStartLabel)
     }
+    /**
+     * `gameDataCatalog` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val gameDataCatalog = GameDataCatalog.load()
+    /**
+     * `hallManagementCommands` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallManagementCommands = HallManagementCommandAdapter(campaign, gameDataCatalog)
+    /**
+     * `sceneAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val sceneAssets = ScenarioSceneAssets {
         buildString {
             append("삼국지 조조전 LibGDX 게임 개발 직접 읽은 한국어 시나리오 인물 내레이션 선택 선택완료 Enter Space 클릭 다음 확정 처음으로 재능의 첫 징후 전투 병영 원본 궁정 대화 UI 비교 조조가 수저우 도겸과 전투를 벌였을 때 장비 장비 정보 매입 판매하기 상품 목록 창고 목록 무기점 상점 현금 종료 모두 해제 자동 장비 전부 무기 보구 보조 정보 조조 군웅 이전 무장 다음 무장 공격력 정신력 방어력 폭발력 사기 이동력 레벨 속성 검 이벤트 총합 가격 인벤토리 판매가 없음 부대 정보 일람 무장명 부대 속성 체력 공격 방어 정신 폭발 폐쇄 창고 일람 이름 경험치 소지자 아이템 확인 지형 정보 효과 기동력 소모 마왕 보병 기병 궁기 포차 무술 보물 도감 발견되지 않음 지금까지 발견한 역사 단축키 설명 메뉴 설정 단계 속도 변화 전용 목록 세트 목록 특수 효과 진영에 따라 다른 색상의 체력 바를 표시합니다 ★◎○△×—☆●")
@@ -114,25 +172,136 @@ class ScenarioScreen(
             append(Gdx.files.internal("scenarios/$moduleName.py").readString("UTF-8"))
         }
     }
+
+    /** Scene2D 대화 위젯이 공유할 Stage다. 기존 InputProcessor에는 연결하지 않는다. */
+    private val dialogueScene2dStage = lazy { Stage(viewport) }
+
+    /** Scene2D 스타일 수명은 시나리오 화면이 관리한다. */
+    private val dialogueScene2dSkin = lazy { Skin() }
+
+    /** 일반 대화·선택·모달을 Scene2D로 그리는 호스트다. 캡처 경로에서는 기존 렌더러를 사용한다. */
+    private val dialogueScene2dHost = lazy {
+        DialogueScene2dHost(
+            stage = dialogueScene2dStage.value,
+            view = DialogueScene2dView(dialogueScene2dSkin.value, DialogueScene2dAssets(
+                dialoguePanel = sceneAssets.dialoguePanelTexture,
+                choicePanel = sceneAssets.choicePanelTexture,
+                portrait = sceneAssets::portraitTexture,
+                bodyFont = sceneAssets.streetDialogueFont,
+                speakerFont = sceneAssets.streetSpeakerFont,
+                titleFont = sceneAssets.titleFont,
+            )),
+        )
+    }
+    /**
+     * `titleFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val titleFont get() = sceneAssets.titleFont
+    /**
+     * `sectionFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val sectionFont get() = sceneAssets.sectionFont
+    /**
+     * `bodyFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val bodyFont get() = sceneAssets.bodyFont
+    /**
+     * `smallUiFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val smallUiFont get() = sceneAssets.smallUiFont
+    /**
+     * `streetDialogueFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val streetDialogueFont get() = sceneAssets.streetDialogueFont
+    /**
+     * `streetSpeakerFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val streetSpeakerFont get() = sceneAssets.streetSpeakerFont
+    /**
+     * `hallMenuTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallMenuTextures get() = sceneAssets.hallMenuTextures
+    /**
+     * `overlayPixel` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val overlayPixel get() = sceneAssets.overlayPixel
+    /**
+     * `choicePanelTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val choicePanelTexture get() = sceneAssets.choicePanelTexture
+    /**
+     * `choiceRowTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val choiceRowTexture get() = sceneAssets.choiceRowTexture
+    /**
+     * `dialoguePanelTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val dialoguePanelTexture get() = sceneAssets.dialoguePanelTexture
+    /**
+     * `streetSpeechBubbleTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val streetSpeechBubbleTexture get() = sceneAssets.streetSpeechBubbleTexture
+    /**
+     * `runtimePresentation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var runtimePresentation = RuntimeScenarioPresentation.STANDARD
         private set
+    /**
+     * `runtimePresentationDetail` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var runtimePresentationDetail = -1
         private set
+    /**
+     * `infoPanelPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val infoPanelPatch get() = sceneAssets.infoPanelPatch
+    /**
+     * `audio` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val audio = GameAudioPlayer()
+    /**
+     * `playbackController` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val playbackController = ScenarioPlaybackController(playback, audio::sync, audio::dispose)
+    /**
+     * `scenarioNavigation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val scenarioNavigation = ScenarioNavigationCoordinator(
         game = game,
         moduleName = moduleName,
@@ -140,6 +309,11 @@ class ScenarioScreen(
         playback = playback,
         initialSceneIndex = scriptedStartScene.removePrefix("scene").toIntOrNull() ?: 0,
     )
+    /**
+     * `playbackFrame` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val playbackFrame = ScenarioPlaybackFrameUpdater(
         playback = playback,
         playbackController = playbackController,
@@ -159,12 +333,22 @@ class ScenarioScreen(
         ScenarioRuntimeTraceCoordinator(
             driver = game.runtimeScenarioDriver(),
             port = object : ScenarioRuntimeTraceCoordinator.Port {
+                /**
+                 * `runtimeFrame`: 흐름을 실행하거나 다음 단계로 전달한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun runtimeFrame(): RuntimeScenarioFrame = RuntimeScenarioFrame(
                     module = moduleName,
                     elapsedSeconds = playbackFrame.elapsed,
                     playback = playback.state,
                     choiceAvailable = playback.currentChoice != null,
                 )
+
+                /**
+                 * `runtimeProbeInput`: 흐름을 실행하거나 다음 단계로 전달한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
 
                 override fun runtimeProbeInput(): ScenarioRuntimeTraceProbeInput {
                     val battleButton = viewport.project(com.badlogic.gdx.math.Vector3(936.86f, 43f, 0f))
@@ -191,30 +375,120 @@ class ScenarioScreen(
                     )
                 }
 
+                /**
+                 * `keepsScenarioOpen`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun keepsScenarioOpen(): Boolean = game.externalScenarioDriverKeepsScreenOpen()
+                /**
+                 * `playbackState`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun playbackState() = playback.state
+                /**
+                 * `applyPresentation`: 현재 상태를 갱신한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun applyPresentation(mode: RuntimeScenarioPresentation, detail: Int, scene: RuntimeScenarioScene) =
                     this@ScenarioScreen.applyRuntimePresentation(mode, detail, scene)
+                /**
+                 * `showOverlay`: 화면 표시 상태를 렌더링한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun showOverlay(overlay: RuntimeScenarioOverlay, scene: RuntimeScenarioScene) {
                     runtimeOverlayState = overlay
                     pendingRuntimeOverlayScene = scene
                 }
+                /**
+                 * `advanceDialogue`: 현재 상태를 갱신한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun advanceDialogue() = playback.advanceDialogue()
+                /**
+                 * `resumeModal`: 입력을 규칙에 따라 계산·변환한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun resumeModal() = playback.resumeModal()
+                /**
+                 * `skipDelay`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun skipDelay() = playback.skipDelay()
+                /**
+                 * `confirmChoice`: 타입의 핵심 동작을 수행한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun confirmChoice() = this@ScenarioScreen.confirmChoice()
+                /**
+                 * `resetDialogueReveal`: 현재 상태를 갱신한다.
+                 * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+                 */
+
                 override fun resetDialogueReveal() = playbackController.resetDialogueReveal()
             },
         )
     }
+    /**
+     * `scenarioViewState` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val scenarioViewState get() = playbackController.viewState
+    /**
+     * `glyphLayout` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val glyphLayout = GlyphLayout()
+    /**
+     * `settingsPreferences` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val settingsPreferences by lazy { game.settingsPreferences() }
+    /**
+     * `runtimeOverlayInstalled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var runtimeOverlayInstalled = false
+    /**
+     * `pendingRuntimeOverlayScene` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var pendingRuntimeOverlayScene = RuntimeScenarioScene()
+    /**
+     * `hallInteraction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallInteraction = HallInteractionController()
+    /**
+     * `hallInteractionView` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallInteractionView get() = hallInteraction.view
+    /**
+     * `hallMenuOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val hallMenuOpen get() = hallInteractionView.menuOpen
+    /**
+     * `hallManagementFlow` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallManagementFlow by lazy {
         HallManagementCoordinator(
             campaign,
@@ -224,6 +498,11 @@ class ScenarioScreen(
             HallManagementViewFactory(campaign, gameDataCatalog, moduleName, hallOverlayVariant),
         )
     }
+    /**
+     * `hallInformationFlow` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallInformationFlow by lazy {
         HallInformationCoordinator(
             campaign,
@@ -233,84 +512,264 @@ class ScenarioScreen(
             hallManagementFlow::equipUnitIds,
         )
     }
+    /**
+     * `hallOverlayInteraction` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallOverlayInteraction = HallOverlayInteractionController()
+    /**
+     * `hallViews` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val hallViews get() = hallManagementFlow.views
+    /**
+     * `hallManagement` (HallManagement?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallManagement: HallManagement?
         get() = hallManagementFlow.management
         set(value) { hallManagementFlow.management = value }
+    /**
+     * `hallManagementNotice` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallManagementNotice: String?
         get() = hallManagementFlow.notice
         set(value) { hallManagementFlow.notice = value }
+    /**
+     * `hallSaveLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallSaveLayer by lazy {
         SaveLayer(object : SaveLayer.Repository {
+            /**
+             * `load`: 상태나 데이터를 조회한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun load(index: Int): String? = game.savedCampaignSlot(index)
+            /**
+             * `save`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun save(index: Int) {
                 game.saveCampaign(index)
             }
         })
     }
+    /**
+     * `hallSaveOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallSaveOpen = false
+
+    /**
+     * `hallItemDetail` (HallItemDetail?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     private var hallItemDetail: HallItemDetail?
         get() = hallInformationFlow.itemDetail
         set(value) { hallInformationFlow.itemDetail = value }
+    /**
+     * `hallItemLayer` (ItemLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallItemLayer: ItemLayer?
         get() = hallInformationFlow.itemLayer
         set(value) { hallInformationFlow.itemLayer = value }
+    /**
+     * `hallEquipUnitIndex` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallEquipUnitIndex: Int
         get() = hallManagementFlow.equipUnitIndex
         set(value) { hallManagementFlow.equipUnitIndex = value }
+    /**
+     * `hallEquipUnequipConfirmation` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallEquipUnequipConfirmation: Boolean
         get() = hallManagementFlow.unequipConfirmationOpen
         set(value) { hallManagementFlow.unequipConfirmationOpen = value }
+    /**
+     * `hallUnitListLayer` (HallUnitListLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallUnitListLayer: HallUnitListLayer?
         get() = hallManagementFlow.unitListLayer
         set(value) { hallManagementFlow.unitListLayer = value }
+    /**
+     * `hallEquipConfirmation` (HallEquipConfirmation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallEquipConfirmation: HallEquipConfirmation?
         get() = hallManagementFlow.equipConfirmation
         set(value) { hallManagementFlow.equipConfirmation = value }
+    /**
+     * `hallExclusiveLayer` (ExclusiveLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallExclusiveLayer: ExclusiveLayer?
         get() = hallManagementFlow.exclusiveLayer
         set(value) { hallManagementFlow.exclusiveLayer = value }
+    /**
+     * `hallMagicLayer` (MagicInfoLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallMagicLayer: MagicInfoLayer?
         get() = hallInformationFlow.magicLayer
         set(value) { hallInformationFlow.magicLayer = value }
+    /**
+     * `hallUnitInfoLayer` (UnitInfoLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallUnitInfoLayer: UnitInfoLayer?
         get() = hallInformationFlow.unitInfoLayer
         set(value) { hallInformationFlow.unitInfoLayer = value }
+    /**
+     * `hallFeatsLayer` (FeatsLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallFeatsLayer: FeatsLayer?
         get() = hallInformationFlow.featsLayer
         set(value) { hallInformationFlow.featsLayer = value }
+    /**
+     * `hallFeatsHelpOpen` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallFeatsHelpOpen: Boolean
         get() = hallInformationFlow.featsHelpOpen
         set(value) { hallInformationFlow.featsHelpOpen = value }
+    /**
+     * `hallInfo` (HallInfo?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallInfo: HallInfo?
         get() = hallInformationFlow.info
         set(value) { hallInformationFlow.info = value }
+    /**
+     * `hallPropertyTab` (HallPropertyTab): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal var hallPropertyTab: HallPropertyTab
         get() = hallInformationFlow.propertyTab
         set(value) { hallInformationFlow.propertyTab = value }
+    /**
+     * `hallTerrainTab` (TerrainLayer.Tab): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hallTerrainTab: TerrainLayer.Tab
         get() = hallInformationFlow.terrainTab
         set(value) { hallInformationFlow.terrainTab = value }
+    /**
+     * `hallBuyTab` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallBuyTab get() = hallInteractionView.buyTabIndex
+    /**
+     * `hallSellTab` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallSellTab get() = hallInteractionView.sellTabIndex
+    /**
+     * `prepareHallManagementDefaultEquipment`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun prepareHallManagementDefaultEquipment(kind: HallManagement) = hallManagementFlow.prepareDefaultEquipment(kind)
+    /**
+     * `prepareHallForcesDefaultEquipment`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun prepareHallForcesDefaultEquipment() = hallManagementFlow.prepareForcesDefaultEquipment()
+    /**
+     * `hallEquipUnitIds`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun hallEquipUnitIds(): List<Int> = hallManagementFlow.equipUnitIds()
+    /**
+     * `hallEquipUnitId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     internal fun hallEquipUnitId(): Int = hallManagementFlow.equipUnitId()
 
+    /**
+     * `runtimeOverlayState` (RuntimeScenarioOverlay?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var runtimeOverlayState: RuntimeScenarioOverlay? = null
+    /**
+     * `runtimeOverlay` (RuntimeScenarioOverlay? get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val runtimeOverlay: RuntimeScenarioOverlay? get() = runtimeOverlayState
+    /**
+     * `hallOverlayVariant` (RuntimeScenarioOverlay?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val hallOverlayVariant: RuntimeScenarioOverlay?
         get() = runtimeOverlay?.takeUnless { it == RuntimeScenarioOverlay.HALL }
+    /**
+     * `hallSkipDispatches` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val hallSkipDispatches = mutableListOf<String>()
+    /**
+     * `hallSkipLayer` (StorySkipFlow?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     internal val hallSkipLayer: StorySkipFlow? = if (runtimeOverlay == RuntimeScenarioOverlay.SKIP_OPEN) {
+        /**
+         * `hall` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
         check("SkipLayer" in hall.layers)
         StorySkipFlow(object : StorySkipFlow.Sink {
+            /**
+             * `msgBox`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
             override fun msgBox(text: String, reply: (Int) -> Unit) { /* initial state does not open confirmation */
             }
+
+            /**
+             * `dispatch`: 조건과 입력 상태를 검증한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
 
             override fun dispatch(name: String) {
                 hallSkipDispatches += name
@@ -324,6 +783,11 @@ class ScenarioScreen(
         }
         Gdx.app.log("JojoGame", "Loaded $moduleName Python AST runtime")
     }
+    /**
+     * `render`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
         runtimeTraceCoordinator.applyRuntimeCommands()
@@ -477,14 +941,34 @@ class ScenarioScreen(
         return ScenarioRenderPhaseResult.CONTINUE
     }
 
-    override fun resize(width: Int, height: Int) = viewport.update(width, height, true)
+    /**
+     * `resize`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    override fun resize(width: Int, height: Int) {
+        viewport.update(width, height, true)
+        if (dialogueScene2dHost.isInitialized()) dialogueScene2dHost.value.resize(width, height)
+    }
+
+    /**
+     * `dispose`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun dispose() {
         playbackController.dispose()
+        if (dialogueScene2dHost.isInitialized()) dialogueScene2dHost.value.dispose()
+        if (dialogueScene2dSkin.isInitialized()) dialogueScene2dSkin.value.dispose()
         sceneAssets.dispose()
         batch.dispose()
         shapes.dispose()
     }
+
+    /**
+     * `advance`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun advance() {
         playbackController.advance(
@@ -498,10 +982,20 @@ class ScenarioScreen(
     /** runtimeProbe: 현재 UI 상태 adapter를 trace coordinator의 런타임 관측값으로 변환한다. */
     internal fun runtimeProbe() = runtimeTraceCoordinator.runtimeProbe()
 
+    /**
+     * `confirmChoice`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun confirmChoice() {
         playback.confirmChoice()
         playback.chosenOption?.let { game.recordChoice(moduleName, it) }
     }
+
+    /**
+     * `applyRuntimePresentation`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun applyRuntimePresentation(
         mode: RuntimeScenarioPresentation,
@@ -512,6 +1006,11 @@ class ScenarioScreen(
         runtimePresentationDetail = detail
         if (scene != RuntimeScenarioScene()) playback.presentRuntimeScene(scene)
     }
+
+    /**
+     * `advanceSourceUntilChoice`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun advanceSourceUntilChoice() {
         var guard = 0
@@ -526,6 +1025,11 @@ class ScenarioScreen(
         }
     }
 
+    /**
+     * `drawBattlefield`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBattlefield(drawCharacters: Boolean = true, drawUnits: Boolean = drawCharacters) {
         ScenarioBattlefieldRenderer.draw(
             sceneAssets,
@@ -535,6 +1039,11 @@ class ScenarioScreen(
             battlefieldView(drawCharacters, drawUnits),
         )
     }
+
+    /**
+     * `battlefieldView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun battlefieldView(drawCharacters: Boolean, drawUnits: Boolean): ScenarioBattlefieldRenderView {
         val speakerId = playback.currentDialogue?.speakerId?.toIntOrNull()
@@ -570,15 +1079,28 @@ class ScenarioScreen(
     }
 
 
+    /**
+     * `drawOverlay`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawOverlay() {
         scenarioOverlayView()?.let { view ->
-            ScenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view)
+            val scene2dHost = if (!game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()) {
+                dialogueScene2dHost.value
+            } else null
+            ScenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view, scene2dHost)
             if (view.modal?.kind == ScenarioOverlayModalKind.AMBITION) {
                 batch.projectionMatrix = viewport.camera.combined
                 batch.begin(); drawHallMenu(); batch.end()
             }
         } ?: drawHallCompletionOverlay()
     }
+
+    /**
+     * `scenarioOverlayView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun scenarioOverlayView(): ScenarioOverlayRenderView? {
         val state = when (playback.state) {
@@ -605,6 +1127,11 @@ class ScenarioScreen(
         return ScenarioOverlayRenderView(state, streetDialogueView(), choice, modal)
     }
 
+    /**
+     * `drawHallCompletionOverlay`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawHallCompletionOverlay() {
         shapes.projectionMatrix = viewport.camera.combined
         Gdx.gl.glEnable(GL20.GL_BLEND)
@@ -630,6 +1157,11 @@ class ScenarioScreen(
         batch.end()
     }
 
+    /**
+     * `streetDialogueView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun streetDialogueView(): ScenarioStreetDialogueView {
         val dialogue = playback.currentDialogue
         val speakerId = dialogue?.speakerId?.toIntOrNull()
@@ -638,10 +1170,15 @@ class ScenarioScreen(
             portraitId = speakerId?.let(::dialoguePortraitId),
             speaker = speakerId?.let(::unitName).orEmpty(),
             visibleText = scenarioViewState.dialogueVisibleText,
-            isLeft = playback.currentDialogueSide == 0,
-            isAtTop = playback.currentDialogueAtTop,
+            isLeft = scenarioViewState.dialogueSide == 0,
+            isAtTop = scenarioViewState.dialogueAtTop,
         )
     }
+
+    /**
+     * `drawChoice`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawChoice() {
         val choice = playback.currentChoice ?: return
@@ -674,13 +1211,28 @@ class ScenarioScreen(
         )
     }
 
+    /**
+     * `drawHallCommand`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawHallCommand() {
+        /**
+         * `texture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun texture(name: String) = sceneAssets.hallTexture("maps/ui/hall-command/$name.png")
         HallCommandRenderer.draw(
             batch,
             HallCommandRenderView(texture("menu"), texture("battle"), texture("equip"), texture("buy"), texture("sell")),
         )
     }
+
+    /**
+     * `drawHallSave`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawHallSave() {
         val save = hallSaveLayer.view()
@@ -695,6 +1247,11 @@ class ScenarioScreen(
         )
     }
 
+    /**
+     * `drawExclusiveLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawExclusiveLayer(layer: ExclusiveLayer) {
         HallExclusiveRenderer.draw(sceneAssets, batch, HallExclusiveView.from(layer))
     }
@@ -703,6 +1260,11 @@ class ScenarioScreen(
     private fun drawFeatsLayer(layer: FeatsLayer) {
         HallFeatsRenderer.draw(sceneAssets, batch, HallFeatsView.from(layer, hallFeatsHelpOpen))
     }
+
+    /**
+     * `drawMagicLayer`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawMagicLayer(layer: MagicInfoLayer) {
         HallMagicRenderer.draw(sceneAssets, batch, HallMagicView.from(layer.magic))
@@ -771,6 +1333,11 @@ class ScenarioScreen(
         else -> gameDataCatalog.equipmentTypeName(item.itemType)
     }
 
+    /**
+     * `drawHallItem`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawHallItem(detail: HallItemDetail) {
         val item = gameDataCatalog.equipmentProfile(detail.itemId) ?: return
         val category = gameDataCatalog.equipmentCategory(item)
@@ -802,6 +1369,11 @@ class ScenarioScreen(
         )
     }
 
+    /**
+     * `hallItemTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun hallItemTexture(path: String): Texture? = hallMenuTextures[path] ?: Gdx.files.internal(path)
         .takeIf { it.exists() }
         ?.let(::Texture)
@@ -809,6 +1381,11 @@ class ScenarioScreen(
             it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
             hallMenuTextures[path] = it
         }
+
+    /**
+     * `drawHallInfo`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawHallInfo(kind: HallInfo) {
         when (kind) {
@@ -861,11 +1438,36 @@ class ScenarioScreen(
         }
     }
 
+    /**
+     * `openHallItem`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openHallItem(itemId: Int, level: String, experience: Int, canDrop: Boolean) =
         hallInformationFlow.openItem(itemId, level, experience, canDrop)
+    /**
+     * `openHallUnitInfo`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openHallUnitInfo(selectedUnitId: Int) = hallInformationFlow.openUnitInfo(selectedUnitId)
+    /**
+     * `openHallFeatsFromUnitInfo`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openHallFeatsFromUnitInfo() = hallInformationFlow.openFeatsFromUnitInfo()
+    /**
+     * `openHallFeatsHelp`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun openHallFeatsHelp() = hallInformationFlow.openFeatsHelp()
+
+    /**
+     * `hallState`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun hallState() = ScenarioInputRouter.HallState(
         playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
@@ -873,12 +1475,47 @@ class ScenarioScreen(
         hallSaveOpen, hallInfo != null, hallExclusiveLayer != null,
         hallManagement?.let { ScenarioInputRouter.Management.valueOf(it.name) }, hallUnitListLayer != null,
     )
+    /**
+     * `playbackState`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun playbackState(): PlaybackState = playback.state
+    /**
+     * `isAskChoice`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun isAskChoice(): Boolean = playback.isAskChoice
+    /**
+     * `choiceCount`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun choiceCount(): Int = playback.currentChoice?.options?.size ?: 0
+    /**
+     * `selectPrevious`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun selectPrevious() = playback.selectPrevious()
+    /**
+     * `selectNext`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun selectNext() = playback.selectNext()
+    /**
+     * `selectAndConfirm`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun selectAndConfirm(index: Int) { playback.selectChoice(index); confirmChoice() }
+
+    /**
+     * `dismissHallOverlay`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun dismissHallOverlay(): Boolean {
         if (hallFeatsLayer == null && hallUnitInfoLayer == null && hallMagicLayer == null && hallExclusiveLayer == null && hallInfo == null && hallManagement == null) return false
@@ -888,6 +1525,11 @@ class ScenarioScreen(
         else { hallInfo = null; hallManagement = null }
         return true
     }
+
+    /**
+     * `routeHallTouch`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     override fun routeHallTouch(route: ScenarioInputRouter.Touch.Hall, x: Float, y: Float) {
         when (route.layer) {
@@ -903,6 +1545,11 @@ class ScenarioScreen(
         }
     }
 
+    /**
+     * `applySaveInput`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun applySaveInput(command: ScenarioHallSaveInputRouter.Command) = when (command) {
         ScenarioHallSaveInputRouter.Command.CompletionTip -> hallSaveLayer.onCompletionTip(SaveLayer.TOUCH_END)
         is ScenarioHallSaveInputRouter.Command.Confirm -> hallSaveLayer.onConfirm(if (command.accepted) 1 else 0)
@@ -910,6 +1557,11 @@ class ScenarioScreen(
         is ScenarioHallSaveInputRouter.Command.SelectRow -> hallSaveLayer.view().rows.getOrNull(command.index)?.let { hallSaveLayer.onRowTouch(it.index, SaveLayer.TOUCH_END) }
         ScenarioHallSaveInputRouter.Command.None -> Unit
     }
+
+    /**
+     * `applyExclusiveInput`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun applyExclusiveInput(command: ScenarioExclusiveInputRouter.Command) {
         val layer = hallExclusiveLayer ?: return
@@ -922,8 +1574,23 @@ class ScenarioScreen(
         if (!layer.attached) hallExclusiveLayer = null
     }
 
+    /**
+     * `startBattle`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun startBattle() { if (!scenarioNavigation.beginHallBattleScene()) scenarioNavigation.routeAfterScenario() }
+    /**
+     * `openManagement`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun openManagement(kindName: String) { hallManagementFlow.open(HallManagement.valueOf(kindName)) }
+    /**
+     * `selectHallMenu`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     override fun selectHallMenu(index: Int) {
         when (index) {
             0 -> game.showTitleScreen()
@@ -938,6 +1605,11 @@ class ScenarioScreen(
             else -> Unit
         }
     }
+
+    /**
+     * `drawCompletion`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawCompletion() {
         titleFont.color = Color(0.98f, 0.85f, 0.52f, 1f)
@@ -954,34 +1626,94 @@ class ScenarioScreen(
 
     /** mapX: 맵 타일 X 좌표를 현재 카메라 기준 화면 좌표로 변환한다. */
     private fun mapX(x: Int, y: Int): Float = (x - y + 42) * 16f
+    /**
+     * `mapY`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun mapY(x: Int, y: Int): Float = 1073.28f - (x + y) * 6.88f
+    /**
+     * `mapX`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun mapX(x: Float, y: Float): Float = (x - y + 42f) * 16f
+    /**
+     * `mapY`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun mapY(x: Float, y: Float): Float = 1073.28f - (x + y) * 6.88f
+    /**
+     * `unitName`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun unitName(id: Int): String =
         gameDataCatalog.unitProfile(id)?.name?.takeIf(String::isNotBlank) ?: "유닛 $id"
+    /**
+     * `nextModule`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun nextModule(): String = offsetModule(1)
+    /**
+     * `previousModule`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun previousModule(): String = offsetModule(-1)
+    /**
+     * `offsetModule`: 현재 상태를 갱신한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun offsetModule(delta: Int): String {
         val modules = ScenarioCatalog.moduleNames().filter { it.startsWith("R_") }
         val index = modules.indexOf(moduleName).takeIf { it >= 0 } ?: 0
         return modules[Math.floorMod(index + delta, modules.size)]
     }
 
+    /**
+     * `matchingBattleModule`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun matchingBattleModule(): String {
         val candidate = moduleName.replaceFirst("R_", "S_")
         return candidate.takeIf { it in ScenarioCatalog.sModuleNames() } ?: "S_00"
     }
+
+    /**
+     * `portraitTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun portraitTexture(characterId: Int): Texture? = sceneAssets.portraitTexture(characterId)
 
     /** dialoguePortrait: 대사 화자의 인물 정보로 초상화 텍스처와 표시 위치를 결정한다. */
     private fun dialoguePortrait(unitId: Int): Texture? = portraitTexture(dialoguePortraitId(unitId))
 
+    /**
+     * `dialoguePortraitId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun dialoguePortraitId(unitId: Int): Int {
         val face = gameDataCatalog.unitProfile(unitId)?.face ?: return unitId
         return if (unitId == 0 && face <= 3) face + 1 else face + 8
     }
 
+    /**
+     * `backgroundTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun backgroundTexture(backgroundId: Int): Texture? = sceneAssets.backgroundTexture(backgroundId)
+    /**
+     * `unitTexture`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun unitTexture(assetId: Int): Texture? = sceneAssets.unitTexture(assetId)
 }

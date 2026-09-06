@@ -7,15 +7,33 @@ package com.jojo.game.presentation.shared.overlay
 class CmdLayer(
     val rFlag: Int,
     initialEFlag: Int,
+    /** `deviceId` (String): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val deviceId: String,
+    /** `unitCount` (Int): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val unitCount: Int,
+    /** `inventory` (List<Item>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val inventory: List<Item>,
 ) {
+
+    /**
+     * `Item`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
 
     data class Item(val id: Int, val treasure: Boolean, val property: Boolean)
 
 
+    /**
+     * `Layer`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Layer(val layer: String, val flag: Int?, val txt: String?)
+
+    /**
+     * `names` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     val names = listOf(
         "원클릭으로 모든 보물 획득", "벤치, 장비 업그레이드 활성화", "업그레이드/전직 시 재계산 활성화", "턴 제한 증가",
@@ -23,36 +41,136 @@ class CmdLayer(
         "스토리 건너뛰기 활성화", "과일로 오방위 능력치 상승", "전투 상태 패널 사용 불가", "조조 전 원본 아바타와 이미지 사용",
         "만렙 시작", "원클릭으로 모든 아이템"
     )
+    /**
+     * `gold` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val gold = listOf(10.0, 5.0, 5.0, 2.5, 2.5, 5.0, 20.0, 2.5, 2.5, 10.0, 2.5, 5.0, 5.0, 10.0)
+    /**
+     * `eFlag` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var eFlag = initialEFlag; private set
+    /**
+     * `sFlag` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var sFlag = 0; private set
+    /**
+     * `label` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var label = ""; private set
+    /**
+     * `selected` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val selected = MutableList(14) { false }
+    /**
+     * `checked` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val checked get() = MutableList(14) { eFlag and (1 shl it) != 0 }
+    /**
+     * `toasts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val toasts = mutableListOf<String>()
+    /**
+     * `writes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val writes = mutableListOf<List<Any>>()
+    /**
+     * `props` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val props = mutableListOf<List<Int>>()
+    /**
+     * `weapons` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val weapons = mutableListOf<List<Int>>()
+    /**
+     * `urls` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val urls = mutableListOf<String>()
+    /**
+     * `dispatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val dispatch = mutableListOf<List<Any>>()
+    /**
+     * `layers` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val layers = mutableListOf<Layer>()
+    /**
+     * `events` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val events = mutableListOf<String>()
+    /**
+     * `restart` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var restart = 0; private set
+    /**
+     * `prompt` (((Int) -> Unit)?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var prompt: ((Int) -> Unit)? = null
 
+
+    /**
+     * `onCreate`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun onCreate() {
         addLayer("MsgBox", 3, "내부 테스트 도구에 대해서는, 도움말 설명을 먼저 확인해 보시는 것을 권장합니다.") { if (it == 0) helper() }
     }
 
+    /**
+     * `addLayer`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun addLayer(layer: String, flag: Int?, txt: String?, fn: ((Int) -> Unit)? = null) {
         layers += Layer(layer, flag, txt); prompt = fn
     }
+
+    /**
+     * `helper`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun helper() {
         urls += "https://www.google.com"
     }
 
+
+    /**
+     * `item`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun item(index: Int, event: Int) {
         if (event != 2) return
@@ -63,6 +181,11 @@ class CmdLayer(
             toasts += (if (on) "활성화" else "사용 불가") + " " + names[index]
         } else select(index, !selected[index], 1)
     }
+
+    /**
+     * `select`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun select(index: Int, on: Boolean, source: Int = 0) {
         if (on && source and 1 != 0) { /* recovered config has no click restrictions */
@@ -80,6 +203,11 @@ class CmdLayer(
         }
         label = "선택했습니다${count}항, 총${minOf(total, 50.0).format()}원"; selected[index] = on
     }
+
+    /**
+     * `Double`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun Double.format() = if (this % 1.0 == 0.0) toInt().toString() else toString()
 
@@ -113,6 +241,11 @@ class CmdLayer(
         else -> 0
     }
 
+
+    /**
+     * `button`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun button(index: Int, event: Int) {
         if (event != 2) return; when (index) {
@@ -157,6 +290,11 @@ class CmdLayer(
         }
     }
 
+
+    /**
+     * `answer`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun answer(value: Int) {
         val fn = prompt; prompt = null; fn?.invoke(value)

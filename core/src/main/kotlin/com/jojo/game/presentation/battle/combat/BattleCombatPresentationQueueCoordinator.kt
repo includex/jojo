@@ -11,26 +11,91 @@ import com.jojo.game.presentation.battle.timeline.BattleMagicPresentation
 internal object BattleCombatPresentationQueueCoordinator {
     /** UnitVisualState: queue의 시각 HP·MP 계산에 필요한 유닛의 불변 상한·현재값이다. */
     internal data class UnitVisualState(
+        /**
+         * `hitPoints` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hitPoints: Int,
+        /**
+         * `maxHitPoints` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val maxHitPoints: Int,
+        /**
+         * `magicPoints` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val magicPoints: Int,
+        /**
+         * `maxMagicPoints` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val maxMagicPoints: Int,
     )
 
     /** VisualState: 다음 pass가 이어 받을 HP·MP snapshot이다. */
     internal data class VisualState(
+        /**
+         * `hitPoints` (Map<String, Int>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hitPoints: Map<String, Int>,
+        /**
+         * `magicPoints` (Map<String, Int>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val magicPoints: Map<String, Int>,
     )
 
     /** PhysicalQueuePlan: 첫 물리 pass 뒤에 사용할 queue 순서와 시각 자원 상태를 보관한다. */
     internal data class PhysicalQueuePlan(
+        /**
+         * `passes` (List<PhysicalAttackPass>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val passes: List<PhysicalAttackPass>,
+        /**
+         * `nextPassIndex` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val nextPassIndex: Int,
+        /**
+         * `visualState` (VisualState,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val visualState: VisualState,
+        /**
+         * `counterMagicId` (Int?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterMagicId: Int?,
+        /**
+         * `counterMagic` (TacticalActionResult.Magic?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterMagic: TacticalActionResult.Magic?,
+        /**
+         * `counterCasterId` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterCasterId: String,
+        /**
+         * `counterTargetId` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val counterTargetId: String,
     ) {
         /** 첫 pass가 끝난 뒤에도 queue 소비를 계속해야 하는지 반환한다. */
@@ -39,7 +104,17 @@ internal object BattleCombatPresentationQueueCoordinator {
 
     /** MagicQueuePlan: 첫 마법 pass 뒤의 remaining pass queue와 다음 시각에 적용할 시각 상태를 보관한다. */
     internal data class MagicQueuePlan(
+        /**
+         * `visualState` (VisualState,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val visualState: VisualState,
+        /**
+         * `nextPassIndex` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val nextPassIndex: Int = 1,
     )
 
@@ -53,10 +128,20 @@ internal object BattleCombatPresentationQueueCoordinator {
         units: Map<String, UnitVisualState>,
     ): PhysicalQueuePlan? {
         if (!result.hit || result.physicalPasses.firstOrNull()?.targets?.isEmpty() != false) return null
+        /**
+         * `visualMp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val visualMp = linkedMapOf<String, Int>()
         result.physicalPasses.flatMap(PhysicalAttackPass::targets)
             .groupBy { it.targetId }
             .forEach { (id, results) ->
+                /**
+                 * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val unit = units[id] ?: return@forEach
                 visualMp[id] = deferredInitialMp[id]
                     ?: (unit.magicPoints + results.sumOf { it.mpShieldDamage - it.automaticPropertyMpDelta })
@@ -82,8 +167,18 @@ internal object BattleCombatPresentationQueueCoordinator {
         deferredInitialMp: Map<String, Int?>,
         units: Map<String, UnitVisualState>,
     ): PhysicalQueuePlan? {
+        /**
+         * `passes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val passes = result.physicalPasses.drop(1)
         if (passes.isEmpty() && result.counterMagic == null) return null
+        /**
+         * `visualMp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val visualMp = listOf(actorId, targetId).mapNotNull { id ->
             units[id]?.let { unit -> id to (deferredInitialMp[id] ?: unit.magicPoints) }
         }.toMap()
@@ -106,9 +201,24 @@ internal object BattleCombatPresentationQueueCoordinator {
         current: VisualState,
         units: Map<String, UnitVisualState>,
     ): VisualState {
+        /**
+         * `hp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hp = current.hitPoints.toMutableMap()
+        /**
+         * `mp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mp = current.magicPoints.toMutableMap()
         BattleMagicPresentation.changes(pass, casterId, profile).forEach { change ->
+            /**
+             * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unit = units[change.unitId] ?: return@forEach
             hp[change.unitId] = ((hp[change.unitId] ?: unit.hitPoints) + change.hpAdd)
                 .coerceIn(0, unit.maxHitPoints)

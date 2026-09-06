@@ -8,6 +8,11 @@ import com.jojo.game.presentation.scenario.hall.HallPropertyView
 
 /** HallPropertyRenderer: 거점 속성 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallPropertyRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallPropertyView) {
         val draw = HallRenderPrimitives(assets, batch)
         val x = 212.42f
@@ -24,6 +29,11 @@ internal object HallPropertyRenderer {
         draw.button("확인", x + width - 135f, y + 5f, 125f)
         draw.resetColor()
     }
+
+    /**
+     * `table`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun table(draw: HallRenderPrimitives, batch: SpriteBatch, view: HallPropertyView, x: Float, y: Float, width: Float, height: Float) {
         val widths = floatArrayOf(323.06f, 168.13f, 91.24f, 87.69f, 176.44f)
@@ -48,6 +58,11 @@ internal object HallPropertyRenderer {
             }
         }
     }
+
+    /**
+     * `tabs`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun tabs(draw: HallRenderPrimitives, batch: SpriteBatch, selectedTab: Int) {
         listOf("무기", "방어구", "보조", "아이템").forEachIndexed { index, value ->

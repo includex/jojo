@@ -14,10 +14,30 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 
 /** BattlePreparationRenderer: 전투 준비 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 internal class BattlePreparationRenderer(private val assets: BattlePreparationAssets) {
+    /**
+     * `viewport` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val viewport = FitViewport(1280f, 688f, OrthographicCamera())
+    /**
+     * `batch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val batch = SpriteBatch()
+    /**
+     * `layout` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val layout = GlyphLayout()
 
+
+    /**
+     * `render`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun render(state: BattlePreparationViewState) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
@@ -52,14 +72,34 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
     }
 
 
+    /**
+     * `screenToWorld`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun screenToWorld(screenX: Int, screenY: Int): Pair<Float, Float> =
         viewport.unproject(Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
 
 
+    /**
+     * `resize`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun resize(width: Int, height: Int) = viewport.update(width, height, true)
 
 
+    /**
+     * `dispose`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun dispose() = batch.dispose()
+
+    /**
+     * `drawRoster`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawRoster(state: BattlePreparationViewState) {
         state.availableIds.forEachIndexed { index, id ->
@@ -92,6 +132,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         drawButton(657.56f, 278.64f, "부대 속성", true, 172f)
     }
 
+    /**
+     * `drawSelectedSlots`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawSelectedSlots(state: BattlePreparationViewState) {
         repeat(state.maximum) { index ->
             val centerX = (217.336f + index * 100f) * SCALE
@@ -112,6 +157,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
             }
         }
     }
+
+    /**
+     * `drawUnitInfo`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawUnitInfo(unit: BattlePreparationUnitView?) {
         unit ?: return
@@ -137,6 +187,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         }
     }
 
+    /**
+     * `drawBattleSortMenu`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawBattleSortMenu() {
         batch.color = Color(1f, 1f, 1f, 60f / 255f)
         batch.draw(assets.dim, 0f, 0f, 1280f, 688f)
@@ -147,6 +202,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
             centered(assets.font, value, 743.43f, 70f + (4 - index) * 46.44f)
         }
     }
+
+    /**
+     * `drawBattleView`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawBattleView(markerCount: Int) {
         batch.color = Color(1f, 1f, 1f, .667f)
@@ -162,6 +222,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         }
         assets.outerPatch?.draw(batch, 1008.372f * SCALE, 320f * SCALE, 480f * SCALE, 480f * SCALE)
     }
+
+    /**
+     * `drawUnitInfoOverlay`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawUnitInfoOverlay(state: BattlePreparationViewState) {
         batch.color = Color(1f, 1f, 1f, 100f / 255f)
@@ -201,6 +266,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         batch.color = Color.WHITE
     }
 
+    /**
+     * `drawButton`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawButton(x: Float, y: Float, text: String, enabled: Boolean, width: Float = 86f) {
         batch.color = if (enabled) Color.WHITE else Color(.55f, .55f, .55f, 1f)
         assets.outerPatch?.draw(batch, x, y, width, 43f)
@@ -209,15 +279,30 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         centered(assets.font, text, x + width / 2f, y + 31f)
     }
 
+    /**
+     * `centered`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun centered(font: BitmapFont, text: String, x: Float, y: Float) {
         layout.setText(font, text)
         font.draw(batch, text, x - layout.width / 2f, y)
     }
 
+    /**
+     * `right`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun right(font: BitmapFont, text: String, x: Float, y: Float) {
         layout.setText(font, text)
         font.draw(batch, text, x - layout.width, y)
     }
+
+    /**
+     * `drawTiled`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiled(texture: Texture, x: Float, y: Float, width: Float, height: Float) {
         val tileWidth = texture.width * SCALE
@@ -250,6 +335,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
     }
 
     private companion object {
+        /**
+         * `SCALE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val SCALE = .86f
     }
 }

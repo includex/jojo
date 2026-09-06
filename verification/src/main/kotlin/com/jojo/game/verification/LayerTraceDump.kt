@@ -10,17 +10,37 @@ object LayerTraceDump {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic fun main(args: Array<String>) {
         require(args.size == 2) { "usage: LayerTraceDump fixture.json output.json" }
+        /**
+         * `cases` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val cases = Files.readAllLines(Path.of(args[0])).mapNotNull { line ->
             Regex("\\{\\\"id\\\":\\\"([^\\\"]+)\\\",\\\"text\\\":\\\"((?:\\\\.|[^\\\"])*)\\\",\\\"round\\\":(\\d+),\\\"events\\\":\\[([^]]*)]}").find(line)?.let { match ->
                 Case(match.groupValues[1], unescape(match.groupValues[2]), match.groupValues[3].toInt(), match.groupValues[4].split(',').filter(String::isNotBlank).map(String::trim).map(String::toInt))
             }
         }
         require(cases.isNotEmpty()) { "no trace cases parsed" }
+        /**
+         * `trace` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val trace = cases.joinToString(prefix = "[\n", postfix = "\n]\n", separator = ",\n") { item ->
+            /**
+             * `layer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val layer = WinConditionsLayer(); var callbacks = 0
             layer.onCreate(item.text, item.round) { callbacks++ }
             /** step: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
             fun step(event: Int): String { val view = layer.view(); return "{\"event\":$event,\"first\":${quote(view.first)},\"second\":${quote(view.second)},\"attached\":${view.attached},\"callbacks\":$callbacks}" }
+            /**
+             * `steps` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val steps = mutableListOf(step(0)); item.events.forEach { event -> layer.cancel(event); steps += step(event) }
             "  {\"id\":${quote(item.id)},\"steps\":[${steps.joinToString(",")}] }"
         }

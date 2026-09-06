@@ -11,24 +11,83 @@ import com.jojo.game.domain.campaign.CampaignState
 
 /** HallManagementCoordinator: 거점 Management 조정기이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 internal class HallManagementCoordinator(
+    /** `campaign` (CampaignState): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val campaign: CampaignState,
+    /** `catalog` (GameDataCatalog): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val catalog: GameDataCatalog,
+    /** `interaction` (HallInteractionController): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val interaction: HallInteractionController,
+    /** `commands` (HallManagementCommandAdapter): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val commands: HallManagementCommandAdapter,
     val views: HallManagementViewFactory,
 ) {
+    /**
+     * `input` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val input = HallManagementInteractionController()
+    /**
+     * `confirmations` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val confirmations = EquipConfirmationFlow(campaign, catalog)
 
+    /**
+     * `management` (HallManagement?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var management: HallManagement? = null
+    /**
+     * `notice` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var notice: String? = null
+    /**
+     * `equipUnitIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var equipUnitIndex = 0
+    /**
+     * `unequipConfirmationOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var unequipConfirmationOpen = false
+    /**
+     * `unitListLayer` (HallUnitListLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var unitListLayer: HallUnitListLayer? = null
+    /**
+     * `equipConfirmation` (HallEquipConfirmation?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var equipConfirmation: HallEquipConfirmation? = null
+    /**
+     * `exclusiveLayer` (ExclusiveLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var exclusiveLayer: ExclusiveLayer? = null
 
+    /**
+     * `equipUnitIds`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun equipUnitIds(): List<Int> = campaign.joinedUnits.toList().ifEmpty { listOf(0) }
+
+    /**
+     * `equipUnitId`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun equipUnitId(): Int {
         val units = equipUnitIds()
@@ -36,19 +95,39 @@ internal class HallManagementCoordinator(
         return units[equipUnitIndex]
     }
 
+    /**
+     * `prepareDefaultEquipment`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun prepareDefaultEquipment(kind: HallManagement) {
         val unitId = if (kind == HallManagement.EQUIP) equipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
         campaign.inventory.ensureDefaultEquipment(unitId, catalog)
     }
 
+    /**
+     * `prepareForcesDefaultEquipment`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun prepareForcesDefaultEquipment() {
         campaign.joinedUnits.forEach { campaign.inventory.ensureDefaultEquipment(it, catalog) }
     }
+
+    /**
+     * `open`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun open(kind: HallManagement) {
         management = kind
         prepareDefaultEquipment(kind)
     }
+
+    /**
+     * `close`: 상태와 자원을 정리한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun close() {
         management = null
@@ -56,6 +135,11 @@ internal class HallManagementCoordinator(
         unequipConfirmationOpen = false
         unitListLayer = null
     }
+
+    /**
+     * `handleTap`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun handleTap(kind: HallManagement, x: Float, y: Float) {
         val unitId = if (kind == HallManagement.EQUIP) equipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
@@ -65,6 +149,11 @@ internal class HallManagementCoordinator(
             HallManagement.SELL -> handleSellTap(x, y)
         }
     }
+
+    /**
+     * `handleEquipTap`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun handleEquipTap(unitId: Int, x: Float, y: Float) {
         equipConfirmation?.let { confirmation ->
@@ -149,6 +238,11 @@ internal class HallManagementCoordinator(
         }
     }
 
+    /**
+     * `handleBuyTap`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun handleBuyTap(x: Float, y: Float) {
         when (val intent = input.buyTap(x, y, interaction.view.buyTabIndex)) {
             is HallBuyInputIntent.SelectTab -> {
@@ -163,6 +257,11 @@ internal class HallManagementCoordinator(
             HallBuyInputIntent.None -> Unit
         }
     }
+
+    /**
+     * `handleSellTap`: 흐름을 실행하거나 다음 단계로 전달한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun handleSellTap(x: Float, y: Float) {
         when (val intent = input.sellTap(x, y)) {

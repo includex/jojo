@@ -4,13 +4,25 @@ package com.jojo.game.presentation.shared.overlay
 /** TerrainLayer: 지형별 병과 능력치 표를 지연 생성해 전투 지형 창에 제공한다. */
 
 class TerrainLayer(
+    /** `terrain` (List<Terrain>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val terrain: List<Terrain>,
+    /** `arms` (List<Arm>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val arms: List<Arm>,
 ) {
 
     /** Terrain: 지형 식별자와 물리·전략 스킬 적용 플래그를 보관한다. */
     data class Terrain(
+        /**
+         * `id` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val id: Int,
+        /**
+         * `name` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name: String,
         /** 네 개의 물리 스킬 표시등에 쓰는 지형 플래그이다. */
         val flag: Int = 0,
@@ -19,9 +31,29 @@ class TerrainLayer(
     )
     /** Arm: 병과별 지형 상승치와 이동 비용 표를 보관한다. */
     data class Arm(
+        /**
+         * `id` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val id: Int,
+        /**
+         * `name` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name: String,
+        /**
+         * `terrainRise` (Map<Int, Int>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val terrainRise: Map<Int, Int> = emptyMap(),
+        /**
+         * `terrainExpend` (Map<Int, Int>): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val terrainExpend: Map<Int, Int> = emptyMap(),
     )
     /** Tab: 지형 상승치와 이동 비용 중 표시할 표 종류를 구분한다. */
@@ -30,10 +62,25 @@ class TerrainLayer(
 
     /** Cell: 지형 한 행에 표시할 아이콘·스킬·병과 수치를 묶는다. */
     data class Cell(
+        /**
+         * `terrainId` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val terrainId: Int,
+        /**
+         * `terrainName` (String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val terrainName: String,
         /** 지형 화면에 표시할 자원 식별자이다. */
         val iconIndex: Int,
+        /**
+         * `enabledSkills` (List<Boolean>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val enabledSkills: List<Boolean>,
         /** 설정 순서대로 정렬한 처음 열세 병과 목록이다. */
         val values: List<Value>,
@@ -43,8 +90,23 @@ class TerrainLayer(
     /** Panel: 선택한 탭에 맞는 지형 행 목록을 보관한다. */
     data class Panel(val tab: Tab, val rows: List<Cell>)
 
+    /**
+     * `initialized` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val initialized = mutableSetOf<Tab>()
+    /**
+     * `panels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val panels = mutableMapOf<Tab, Panel>()
+    /**
+     * `selected` (Tab?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var selected: Tab? = null
         private set
 
@@ -69,16 +131,31 @@ class TerrainLayer(
     /** isInitialized: 지정한 탭의 상세 표가 생성되었는지 반환한다. */
     fun isInitialized(tab: Tab): Boolean = tab in initialized
 
+    /**
+     * `riseCell`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun riseCell(source: Terrain, iconIndex: Int): Cell = Cell(
         terrainId = source.id,
         terrainName = source.name,
         iconIndex = iconIndex,
         enabledSkills = skillBits(source.flag),
         values = arms.take(ARM_LIMIT).map { arm ->
+            /**
+             * `rise` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val rise = arm.terrainRise[source.id] ?: 100
             Value(arm.id, arm.name, RISE_TEXT[riseGrade(rise)], riseGrade(rise))
         },
     )
+
+    /**
+     * `expendCell`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun expendCell(source: Terrain, iconIndex: Int): Cell = Cell(
         terrainId = source.id,
@@ -92,6 +169,11 @@ class TerrainLayer(
         },
     )
 
+    /**
+     * `skillBits`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun skillBits(flags: Int): List<Boolean> = List(4) { bit -> flags and (1 shl bit) != 0 }
 
     /** riseGrade: 원본 지형 상승치 규칙에 따라 표시용 등급을 계산한다. */
@@ -99,9 +181,29 @@ class TerrainLayer(
         if (rise > 130) 5 else ((rise.coerceIn(90, 110) / 10) - 9).coerceIn(0, 5)
 
     companion object {
+        /**
+         * `TERRAIN_LIMIT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val TERRAIN_LIMIT = 28
+        /**
+         * `ARM_LIMIT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val ARM_LIMIT = 13
+        /**
+         * `RISE_TEXT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private val RISE_TEXT = listOf("★", "◎", "○", "△", "×", "--")
+        /**
+         * `EXPEND_TEXT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private val EXPEND_TEXT = listOf("--", "1", "2", "3", "4", "5")
     }
 }
@@ -110,14 +212,54 @@ class TerrainLayer(
 object TerrainLayerInput {
     /** PANEL_X: 원본 화면 좌표계에서 지형 창이 시작하는 가로 위치이다. */
     const val PANEL_X = 274f
+    /**
+     * `PANEL_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val PANEL_Y = 100f
+    /**
+     * `PANEL_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val PANEL_WIDTH = 1021f
+    /**
+     * `PANEL_HEIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val PANEL_HEIGHT = 600f
 
+    /**
+     * `Action`: 관련 상태와 동작을 묶는 interface다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     sealed interface Action {
+        /**
+         * `Rise`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object Rise : Action
+        /**
+         * `Expend`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object Expend : Action
+        /**
+         * `Close`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object Close : Action
+        /**
+         * `Consume`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object Consume : Action
     }
 
@@ -136,13 +278,38 @@ object TerrainLayerInput {
 
 /** TerrainLayerSpriteLayout: 지형 창 아이콘의 좌표와 크기를 계산한다. */
 object TerrainLayerSpriteLayout {
+    /**
+     * `PANEL_X` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val PANEL_X = TerrainLayerInput.PANEL_X
+    /**
+     * `PANEL_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val PANEL_Y = TerrainLayerInput.PANEL_Y
+    /**
+     * `ICON_X` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val ICON_X = PANEL_X + 17f
 
     /** ICON_SIZE: 원본 아이콘 배율을 반영한 화면 표시 크기이다. */
     const val ICON_SIZE = 67f
+    /**
+     * `FIRST_ROW_BASELINE_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val FIRST_ROW_BASELINE_Y = PANEL_Y + 488f
+    /**
+     * `ROW_STEP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     const val ROW_STEP = 75f
 
 

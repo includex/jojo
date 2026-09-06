@@ -17,6 +17,11 @@ import com.jojo.game.verification.title.VerificationTitleStartupDriver
 object VerificationDesktopLauncher {
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val options = VerificationDesktopLaunchOptions.parse(args)
         val window = Lwjgl3ApplicationConfiguration().apply {
@@ -95,24 +100,69 @@ internal data class VerificationDesktopLaunchOptions(
             fun pairs(prefix: String) = value(prefix)?.takeIf(String::isNotBlank)?.split(',')?.associate { token ->
                 token.trim().split(':', limit = 2).let { it[0].toInt() to it[1].toInt() }
             }.orEmpty()
+            /**
+             * `scenario` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val scenario = value("--scenario=")?.uppercase() ?: "R_00"
+            /**
+             * `startScene` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val startScene = value("--verify-scene=") ?: "scene1"
             require(startScene.matches(Regex("scene[0-9]+"))) { "--verify-scene must be a source scene function such as scene2" }
+            /**
+             * `battleAttributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val battleAttributes = value("--verify-attributes=")?.takeIf(String::isNotBlank)?.split(',')
                 ?.map { it.trim().split(':', limit = 3).map(String::toInt) }
                 ?.groupBy({ it[0] }, { it[1] to it[2] })?.mapValues { (_, entries) -> entries.toMap() }.orEmpty()
+            /**
+             * `battlePositions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val battlePositions = value("--verify-positions=")?.takeIf(String::isNotBlank)?.split(',')?.associate { token ->
                 token.trim().split(':', limit = 3).map(String::toInt).let { it[0] to (it[1] to it[2]) }
             }.orEmpty()
+            /**
+             * `campPositions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val campPositions = value("--verify-camp-positions=")?.takeIf(String::isNotBlank)?.split(',')
                 ?.map { it.trim().split(':', limit = 3).map(String::toInt) }
                 ?.groupBy({ it[0] }, { it[1] to it[2] }).orEmpty()
+            /**
+             * `unitAttributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val unitAttributes = value("--verify-unit-attrs=")?.takeIf(String::isNotBlank)?.split(',')?.map { token ->
                 token.trim().split(':', limit = 3).map(String::toInt).let { Triple(it[0], it[1], it[2]) }
             }.orEmpty()
+            /**
+             * `random` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val random = ints("--verify-random=")
             require(random.all { it in 0..100 }) { "--verify-random values must be 0..100" }
+            /**
+             * `tracePath` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val tracePath = value("--full-battle-trace=")
+            /**
+             * `fullBattleTrace` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val fullBattleTrace = tracePath?.let { output ->
                 BattleTraceRuntimeConfig(
                     scenario = scenario.replaceFirst("R_", "S_"),
@@ -123,6 +173,11 @@ internal data class VerificationDesktopLaunchOptions(
                     exitOnFinish = true,
                 )
             }
+            /**
+             * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val offset = value("--map-sample-offset=")?.split(':')?.let {
                 require(it.size == 2) { "--map-sample-offset uses x:y" }; it[0].toFloat() to it[1].toFloat()
             }

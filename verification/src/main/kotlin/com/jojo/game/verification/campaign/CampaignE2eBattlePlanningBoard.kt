@@ -8,31 +8,116 @@ import com.jojo.game.domain.battle.isEnemySide
 
 /** CampaignE2eBattlePlanningBoard: 전투 검증 상태와 선택 정보를 모으는 타입이다. */
 internal class CampaignE2eBattlePlanningBoard(val ctx: CampaignE2eProjectionContext) {
+    /**
+     * `screen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val screen = ctx.screen
+    /**
+     * `probe` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val probe = screen.battle
+    /**
+     * `units` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val units = probe.snapshot.units
+    /**
+     * `selected` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val selected = screen.selectedUnitId?.let { id -> units.firstOrNull { it.id == id } }
+    /**
+     * `scenario` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val scenario = screen.scenario
+    /**
+     * `guidedAuthoredRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val guidedAuthoredRoute = scenario == "S_52" || scenario == "S_57"
+    /**
+     * `visibleEnemies` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val visibleEnemies = units.filter { it.visible && it.hitPoints > 0 && it.type().isEnemySide() }
+    /**
+     * `playerTiles` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val playerTiles = units.asSequence().filter { it.visible && it.type() == Faction.PLAYER }.map { it.tile() }.toList()
+    /**
+     * `s57FirstRoomFocus` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val s57FirstRoomFocus = s57FirstRoomEscortFocus(visibleEnemies.mapNotNull { enemy ->
         enemy.characterId?.takeIf { it in FIRST_ROOM_LEADERS }?.let { id ->
             S57FirstRoomLeader(enemy.id, id, enemy.hitPoints, enemy.tile())
         }
     })
+    /**
+     * `s57Route` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val s57Route = s57AuthoredRouteSignal(
         scenario,
         visibleEnemies.mapNotNull { it.characterId },
         units.any { it.visible && it.type() == Faction.PLAYER && it.characterId == 0 && it.x in 2..16 && it.y in 11..23 },
         playerTiles.size,
     )
+    /**
+     * `s57GateTarget` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val s57GateTarget = s57Route.gateTarget
+    /**
+     * `waitForAuthoredAttrition` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val waitForAuthoredAttrition = s57Route.waitForAttrition
+    /**
+     * `protectS57MineMaster` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val protectS57MineMaster = scenario == "S_57" && s57FirstRoomFocus != null
+    /**
+     * `s57FirstRoomFocusUnit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val s57FirstRoomFocusUnit = s57FirstRoomFocus?.unitId?.let { id -> units.firstOrNull { it.id == id } }
+    /**
+     * `routedVisibleEnemies` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val routedVisibleEnemies = visibleEnemies
+    /**
+     * `occupiedTiles` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val occupiedTiles = units.asSequence().filter { it.visible && it.hitPoints > 0 }.map { it.tile() }.toSet()
+    /**
+     * `strategicTarget` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val strategicTarget = strategicTarget()
 
     /** targetPriority: 해당 검증 단계의 입력을 처리해 상태를 갱신한다. */

@@ -6,8 +6,13 @@ import com.jojo.game.presentation.scenario.overlay.*
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-/** HallCommandRenderer: 거점 명령 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** HallCommandRenderer: 거점에서 가능한 명령 버튼과 취소 동작 영역을 렌더링한다. */
 internal object HallCommandRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(batch: SpriteBatch, view: HallCommandRenderView) {
         batch.color = Color.WHITE
         view.menuTexture?.let { batch.draw(it, 31f, 318.2f, 51.6f, 51.6f) }

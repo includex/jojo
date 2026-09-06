@@ -8,15 +8,19 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
+import com.jojo.game.presentation.shared.dialogue.DialoguePortraitGeometry
 
-/** ScenarioStoryRenderer: 시나리오 이야기 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** ScenarioStoryRenderer: 궁전 고정 장면과 거리 대사 연출을 전용 view에 따라 그린다. */
 internal object ScenarioStoryRenderer {
     /** drawPalaceFixture: 궁전 장면의 고정 오브젝트와 장식 요소를 렌더링한다. */
     fun drawPalaceFixture(assets: ScenarioSceneAssets, batch: SpriteBatch, view: ScenarioPalaceFixtureView) {
         batch.begin()
         batch.setBlendFunctionSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA)
         batch.color = Color.WHITE
-        assets.portraitTexture(view.portraitId)?.let { batch.draw(it, 98.628f * .86f, 496f * .86f, 192f * .86f, 240f * .86f) }
+        assets.portraitTexture(view.portraitId)?.let { texture ->
+            val bounds = DialoguePortraitGeometry.fit(texture, 98.628f * .86f, 496f * .86f, 192f * .86f, 240f * .86f)
+            batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height)
+        }
         assets.dialoguePanelTexture?.let { texture ->
             batch.draw(texture, 319.233f * .86f, 498.5f * .86f, 798f * .86f, 191f * .86f, 0, 0, texture.width, texture.height, true, false)
         }
@@ -42,7 +46,17 @@ internal object ScenarioStoryRenderer {
             GL20.GL_ONE_MINUS_SRC_ALPHA,
         )
         batch.color = Color.WHITE
+        /**
+         * `dialogueY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueY = if (view.isAtTop) 373.24f else 0f
+        /**
+         * `panelX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val panelX = if (view.isLeft) 274.54054f else 316.40878f
         assets.dialoguePanelTexture?.let { texture ->
             batch.draw(
@@ -61,7 +75,14 @@ internal object ScenarioStoryRenderer {
         }
         if (view.hasDialogue && view.portraitId != null && index >= 1) {
             assets.portraitTexture(view.portraitId)?.let { texture ->
-                batch.draw(texture, if (view.isLeft) 84.8199f else 1030.2742f, 53.32f + dialogueY, 165.12f, 206.4f)
+                val bounds = DialoguePortraitGeometry.fit(
+                    texture,
+                    if (view.isLeft) 84.8199f else 1030.2742f,
+                    53.32f + dialogueY,
+                    165.12f,
+                    206.4f,
+                )
+                batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height)
             }
         }
         if (view.hasDialogue && index >= 3) {

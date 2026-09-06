@@ -65,7 +65,17 @@ internal class BattleSettlementOperationCoordinator {
         casterId: String,
         port: BattleSettlementOperationPort,
     ): BattleSettlementOperationPlan {
+        /**
+         * `camp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val camp = port.presentationUnit(casterId)?.effectiveFaction() ?: Faction.PLAYER
+        /**
+         * `plan` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val plan = BattleSettlementPlanningAdapter.planMagicLocal(settlement, camp, port.unitsById()) { state ->
             port.statusMeff(state.sourceStatusIndex, state.meffSlot)
         }

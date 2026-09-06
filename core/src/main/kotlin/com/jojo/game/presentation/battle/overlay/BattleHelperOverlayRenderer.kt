@@ -23,11 +23,20 @@ data class BattleHelperOverlayAssets(
 
 /** 전투 도움말 렌더러: 색상 태그가 포함된 역사 정보를 줄바꿈 규칙에 맞춰 출력한다. */
 class BattleHelperOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `glyphLayout` (GlyphLayout): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val glyphLayout: GlyphLayout,
+    /** `assets` (BattleHelperOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleHelperOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleHelperOverlayView) {
         batch.begin()
         batch.color = Color.WHITE
@@ -50,7 +59,17 @@ class BattleHelperOverlayRenderer(
         batch.end()
     }
 
+    /**
+     * `drawRichText`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRichText(richText: String, x: Float, topY: Float, width: Float) {
+        /**
+         * `Run`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class Run(val text: String, val color: Color)
 
         val lines = mutableListOf<MutableList<Run>>()
@@ -59,6 +78,11 @@ class BattleHelperOverlayRenderer(
         val colors = ArrayDeque<Color>().apply { addLast(Color.BLACK) }
         val tags = Regex("<color=(#[0-9a-fA-F]{6})>|</color>|<br\\s*/?>")
         var cursor = 0
+
+        /**
+         * `append`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun append(value: String) {
             value.replace("&amp;", "&").split('\n').forEachIndexed { index, piece ->
@@ -85,9 +109,24 @@ class BattleHelperOverlayRenderer(
         append(richText.substring(cursor))
 
         font.data.setScale(40f / 26f)
+        /**
+         * `lineHeight` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val lineHeight = 50f
+        /**
+         * `lineIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var lineIndex = 0
         lines.forEach { runs ->
+            /**
+             * `pen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             var pen = x
             runs.forEach { run ->
                 font.color = run.color
@@ -105,6 +144,11 @@ class BattleHelperOverlayRenderer(
         }
         font.color = Color.BLACK
     }
+
+    /**
+     * `drawTiledBackground`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiledBackground() {
         assets.background?.let { texture ->

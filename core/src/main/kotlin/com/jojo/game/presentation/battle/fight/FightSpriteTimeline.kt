@@ -10,41 +10,171 @@ import com.badlogic.gdx.utils.JsonValue
 
 /** FightSpriteTimeline: 전투 스프라이트 시간 흐름이며, 시간 경과에 따른 전투 상태와 표현 단계를 진행한다. */
 class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>) {
+    /**
+     * `SoundEvent`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class SoundEvent(val atSeconds: Float, val value: String)
 
 
     /** Frame: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class Frame(
+        /**
+         * `source` (UnitSpriteSource,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val source: UnitSpriteSource,
+        /**
+         * `sourceY` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceY: Int,
+        /**
+         * `sourceWidth` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceWidth: Int,
+        /**
+         * `sourceHeight` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sourceHeight: Int,
+        /**
+         * `pose` (FightActionPose,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val pose: FightActionPose,
+        /**
+         * `material` (BattleCharacterMaterial,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val material: BattleCharacterMaterial,
+        /**
+         * `materialValue` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val materialValue: Float = 0f,
     )
+    /**
+     * `SpriteKey`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class SpriteKey(val atTicks: Float, val source: UnitSpriteSource, val index: Int)
+    /**
+     * `ScalarKey`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class ScalarKey(val atTicks: Float, val value: Float, val linear: Boolean)
+    /**
+     * `PositionKey`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class PositionKey(val atTicks: Float, val x: Float, val y: Float, val linear: Boolean)
+    /**
+     * `MaterialKey`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class MaterialKey(
+        /**
+         * `atTicks` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val atTicks: Float,
+        /**
+         * `material` (BattleCharacterMaterial,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val material: BattleCharacterMaterial,
+        /**
+         * `value` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val value: Float,
     )
+    /**
+     * `SoundKey`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class SoundKey(val atTicks: Float, val value: String)
+    /**
+     * `Clip`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     private data class Clip(
+        /**
+         * `totalTicks` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val totalTicks: Float,
+        /**
+         * `sprites` (List<SpriteKey>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sprites: List<SpriteKey>,
+        /**
+         * `positions` (List<PositionKey>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val positions: List<PositionKey>,
+        /**
+         * `scales` (List<ScalarKey>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scales: List<ScalarKey>,
+        /**
+         * `opacities` (List<ScalarKey>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val opacities: List<ScalarKey>,
+        /**
+         * `materials` (List<MaterialKey>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val materials: List<MaterialKey>,
+        /**
+         * `sounds` (List<SoundKey>,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val sounds: List<SoundKey>,
     )
 
 
+    /**
+     * `duration`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun duration(action: Int): Float = requireClip(action).totalTicks / 24f
 
+
+    /**
+     * `pose`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun pose(action: Int, elapsedSeconds: Float): FightActionPose {
         val clip = requireClip(action)
@@ -58,6 +188,11 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
         )
     }
 
+
+    /**
+     * `frame`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun frame(action: Int, elapsedSeconds: Float): Frame? {
         val clip = requireClip(action)
@@ -78,6 +213,11 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
             materialValue = clip.materials.lastOrNull { it.atTicks <= tick + EPSILON }?.value ?: 0f,
         )
     }
+    /**
+     * `soundEventsCrossed`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun soundEventsCrossed(
         action: Int,
         fromExclusiveSeconds: Float,
@@ -86,19 +226,49 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
     ): List<SoundEvent> {
         if (toInclusiveSeconds + EPSILON < fromExclusiveSeconds) return emptyList()
         return requireClip(action).sounds.mapNotNull { event ->
+            /**
+             * `at` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val at = event.atTicks / 24f
+            /**
+             * `startsNow` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val startsNow = includeStart && event.atTicks <= EPSILON
+            /**
+             * `crossed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val crossed = at > fromExclusiveSeconds + EPSILON && at <= toInclusiveSeconds + EPSILON
             if (startsNow || crossed) SoundEvent(at, event.value) else null
         }
     }
 
+    /**
+     * `requireClip`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun requireClip(action: Int): Clip = requireNotNull(clips[action]) {
         "missing shipped FightUnit anime$action"
     }
 
+    /**
+     * `sampleTick`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun sampleTick(clip: Clip, elapsedSeconds: Float): Float =
         (elapsedSeconds.coerceAtLeast(0f) * 24f).coerceAtMost((clip.totalTicks - EPSILON).coerceAtLeast(0f))
+
+    /**
+     * `scalarAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun scalarAt(keys: List<ScalarKey>, tick: Float, default: Float): Float {
         val index = keys.indexOfLast { it.atTicks <= tick + EPSILON }
@@ -109,6 +279,11 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
         val ratio = ((tick - key.atTicks) / (next.atTicks - key.atTicks)).coerceIn(0f, 1f)
         return key.value + (next.value - key.value) * ratio
     }
+
+    /**
+     * `positionAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun positionAt(keys: List<PositionKey>, tick: Float): Pair<Float, Float> {
         val index = keys.indexOfLast { it.atTicks <= tick + EPSILON }
@@ -121,16 +296,41 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
     }
 
     companion object {
+        /**
+         * `EPSILON` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private const val EPSILON = 0.0001f
+        /**
+         * `cached` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private val cached by lazy {
             fromRoot(JsonReader().parse(Gdx.files.internal("maps/fight-anime.json")))
         }
 
 
+        /**
+         * `load`: 상태나 데이터를 조회한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun load(): FightSpriteTimeline = cached
 
 
+        /**
+         * `fromJson`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun fromJson(json: String): FightSpriteTimeline = fromRoot(JsonReader().parse(json))
+
+        /**
+         * `fromRoot`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         private fun fromRoot(root: JsonValue): FightSpriteTimeline {
             val result = linkedMapOf<Int, Clip>()
@@ -142,6 +342,11 @@ class FightSpriteTimeline private constructor(private val clips: Map<Int, Clip>)
             }
             return FightSpriteTimeline(result)
         }
+
+        /**
+         * `parseClip`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         private fun parseClip(node: JsonValue): Clip {
             val sprites = mutableListOf<SpriteKey>()

@@ -12,7 +12,17 @@ import com.jojo.game.domain.scenario.ScenarioBattleUnit
 
 /** BattleScenarioFactory: 작성된 시나리오에서 전투를 생성하는 호환 진입점으로, 기존 호출 경로를 유지한다. */
 object BattleScenarioFactory {
+    /**
+     * `tutorialBattle`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun tutorialBattle(): Battle = BattleScenarioAssembler.tutorialBattle()
+
+    /**
+     * `fromScriptedUnits`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun fromScriptedUnits(
         units: Collection<ScenarioBattleUnit>,

@@ -6,13 +6,28 @@ import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
 import java.util.*
+/**
+ * `BattleHideType`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 enum class BattleHideType { CHE_LI, BAI_TUI, SI_WANG }
+/**
+ * `BattleCharacterCamp`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 enum class BattleCharacterCamp(val hpFrame: String) {
     MINE("Mark_5-1"),
     FRIEND("Mark_3-1"),
     ENEMY("Mark_68-1"),
     FAMOUS_ENEMY("Mark_2-1"),
 }
+/**
+ * `BattleCharacterMaterial`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 enum class BattleCharacterMaterial(val sourceId: String) {
     DEFAULT("builtin-2d-sprite (Instance)"),
     OUTLINE("edgeHighlight (Instance)"),
@@ -31,50 +46,185 @@ enum class BattleCharacterStrictState(val route: String) {
     DEATH_HIDDEN("death-hidden"),
 }
 
+/**
+ * `BattleCharacterPresentation`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 class BattleCharacterPresentation(
     val unitId: String,
     val camp: BattleCharacterCamp,
     val maxHp: Int,
     hp: Int = maxHp,
 ) {
+    /**
+     * `HarmLabel`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class HarmLabel(
+        /**
+         * `value` (Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val value: Int,
+        /**
+         * `isHp` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val isHp: Boolean,
+        /**
+         * `xOffset` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val xOffset: Int = if (isHp) -24 else 24,
+        /**
+         * `yOffset` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val yOffset: Int = 24,
+        /**
+         * `width` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val width: Int = 48,
+        /**
+         * `height` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val height: Int = 24,
+        /**
+         * `fontSize` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val fontSize: Int = 24,
+        /**
+         * `bold` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val bold: Boolean = true,
+        /**
+         * `colorRgb` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val colorRgb: Int = if (isHp) 0xffffff else 0xe0e000,
+        /**
+         * `outlineRgb` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val outlineRgb: Int = 9_212_044,
+        /**
+         * `outlineWidth` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val outlineWidth: Int = 1,
+        /**
+         * `zIndex` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val zIndex: Int = 999,
     )
 
+    /**
+     * `hp` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var hp: Int = hp.coerceIn(0, maxHp.coerceAtLeast(0))
         private set
+    /**
+     * `action` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var action: Int = STAND
         private set
+    /**
+     * `material` (BattleCharacterMaterial): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var material: BattleCharacterMaterial = BattleCharacterMaterial.DEFAULT
         private set
+    /**
+     * `materialValue` (Float?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var materialValue: Float? = null
         private set
+    /**
+     * `visible` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var visible: Boolean = true
         private set
+    /**
+     * `infoVisible` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var infoVisible: Boolean = true
         private set
+    /**
+     * `statusVisible` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var statusVisible: Boolean = true
         private set
+    /**
+     * `retreatFlag` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var retreatFlag: Boolean = false
         private set
+    /**
+     * `retreatCount` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var retreatCount: Int = 0
         private set
+    /**
+     * `harm` (HarmLabel?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var harm: HarmLabel? = null
         private set
 
+    /**
+     * `restoreHp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var restoreHp = this.hp
+    /**
+     * `hideType` (BattleHideType?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var hideType: BattleHideType? = null
+
+    /**
+     * `hpProgress` (Float get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     val hpProgress: Float get() = if (maxHp <= 0) 0f else hp.toFloat() / maxHp
 
@@ -84,6 +234,11 @@ class BattleCharacterPresentation(
         material = BattleCharacterMaterial.OUTLINE
         materialValue = null
     }
+    /**
+     * `animationMaterialEvent`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun animationMaterialEvent(value: Int) {
         when {
             value == 0 -> {
@@ -101,11 +256,21 @@ class BattleCharacterPresentation(
     }
 
 
+    /**
+     * `finishAttack`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun finishAttack() {
         action = STAND
         material = BattleCharacterMaterial.DEFAULT
         materialValue = null
     }
+    /**
+     * `hitImpact`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun hitImpact(amount: Int, isHp: Boolean = true) {
         if (isHp) hp = (hp - kotlin.math.abs(amount)).coerceAtLeast(0)
         action = SHOU_GONG_JI3
@@ -143,15 +308,55 @@ class BattleCharacterPresentation(
     }
 
     companion object {
+        /**
+         * `STAND` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val STAND = 0
+        /**
+         * `RETREAT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val RETREAT = 23
+        /**
+         * `DEATH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val DEATH = 24
+        /**
+         * `GONG_JI2` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val GONG_JI2 = 25
+        /**
+         * `SHOU_GONG_JI3` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val SHOU_GONG_JI3 = 32
+        /**
+         * `CHETUI` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val CHETUI = 47
+        /**
+         * `GONG_JI_DELAY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val GONG_JI_DELAY = 48
     }
 }
+
+/**
+ * `BattleCharacterDrawEvent`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 data class BattleCharacterDrawEvent(
     val nodePath: String,
@@ -179,7 +384,17 @@ data class BattleCharacterDrawEvent(
 
 /** BattleCharacterStateRenderer: 전투 화면에 필요한 표시 정보와 그리기 규칙을 담당한다. */
 object BattleCharacterStateRenderer {
+    /**
+     * `UNIT_PATH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val UNIT_PATH = "Canvas/Layer/ScrollView/view/content/map/unit"
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun commands(
         state: BattleCharacterPresentation,
         unitLeft: Float,
@@ -247,9 +462,19 @@ object BattleCharacterStateRenderer {
     }
 
 
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun jsonl(route: BattleCharacterStrictState, events: List<BattleCharacterDrawEvent>): String =
         events.mapIndexed { sequence, event -> event.toJson(sequence, route.route) }
             .joinToString(separator = "\n", postfix = if (events.isEmpty()) "" else "\n")
+
+    /**
+     * `BattleCharacterDrawEvent`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun BattleCharacterDrawEvent.toJson(sequence: Int, phase: String): String = "{" +
             "\"sequence\":$sequence,\"frame\":0,\"timestamp\":0,\"phase\":\"battle-character-$phase\"," +
@@ -267,6 +492,16 @@ object BattleCharacterStateRenderer {
             "\"colorRgb\":${colorRgb ?: "null"},\"outlineRgb\":${outlineRgb ?: "null"}," +
             "\"outlineWidth\":${outlineWidth ?: "null"},\"zIndex\":$zIndex}"
 
+    /**
+     * `num`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun num(value: Float) = String.format(Locale.US, "%.3f", value)
+    /**
+     * `quote`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun quote(value: String) = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 }

@@ -260,6 +260,11 @@ internal data class S57AuthoredRouteSignal(
     /** waitForAttrition: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
     val waitForAttrition: Boolean = false,
 ) {
+    /**
+     * `holdFire` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val holdFire: Boolean get() = gateTarget != null || waitForAttrition
 }
 
@@ -271,13 +276,28 @@ internal fun s57AuthoredRouteSignal(
     visiblePlayerCount: Int,
 ): S57AuthoredRouteSignal {
     if (scenario != "S_57") return S57AuthoredRouteSignal()
+    /**
+     * `visible` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val visible = visibleEnemySourceIds.toSet()
+    /**
+     * `firstRoom` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val firstRoom = visible intersect setOf(165, 162, 169)
     if (firstRoom.isNotEmpty()) {
         // 원본의 방 정리 콜백이 아직 실행되지 않았으므로, 원본 0번이 유일한 Mine 생존자여도
         // 첫 방 경로를 유지해야 한다. 세 장수가 모두 사라지기 전에는 두 번째 방 관문에 들어갈 수 없다.
         return S57AuthoredRouteSignal(combatTargetIds = firstRoom)
     }
+    /**
+     * `sunFamily` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val sunFamily = visible intersect setOf(166, 167, 168)
     // 공개 콜백은 반환 전에 세 명 전체를 등록하므로, 불완전하거나 늦은 전투 스냅샷으로 관문을 추론하지 않는다.
     if (sunFamily.size < 3) return S57AuthoredRouteSignal()
@@ -328,7 +348,17 @@ internal fun productionManualMoveAllowed(
     manualMoveAttempts: Int,
     manualMoveAttemptLimit: Int?,
 ): Boolean {
+    /**
+     * `manualRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val manualRoute = scenario == "S_01" || guidedAuthoredRoute || !playerMoveCommitted
+    /**
+     * `quotaAvailable` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val quotaAvailable = scenario == "S_01" || guidedAuthoredRoute ||
             manualMoveAttemptLimit == null || manualMoveAttempts < manualMoveAttemptLimit
     return manualRoute && quotaAvailable
@@ -700,7 +730,17 @@ internal class ProductionBattleInputDriver(
         observeBattleState = observeState
         elapsed += delta
         if (elapsed < nextInputAt) return
+        /**
+         * `scenario` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val scenario = state.scenario
+        /**
+         * `tacticalInputReady` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val tacticalInputReady = productionTacticalInputReady(
             state.initialScene1Started,
             state.playback,
@@ -730,7 +770,17 @@ internal class ProductionBattleInputDriver(
             state.playback == PlaybackState.CHOICE -> key(Input.Keys.ENTER, "$scenario:choice-confirm")
             state.playback == PlaybackState.MODAL -> pointer(640, 344, "$scenario:modal-close")
             tacticalInputReady && state.magicTargetSelection && state.manualMagicInput != null -> {
+                /**
+                 * `magic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val magic = state.manualMagicInput
+                /**
+                 * `targetVisible` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val targetVisible = magic.targetScreenX in 1 until Gdx.graphics.width &&
                         magic.targetScreenY in 1 until Gdx.graphics.height
                 if (targetVisible) {
@@ -747,12 +797,22 @@ internal class ProductionBattleInputDriver(
             }
 
             tacticalInputReady && state.magickListOpen && state.manualMagicInput != null -> {
+                /**
+                 * `magic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val magic = state.manualMagicInput
                 pointer(magic.rowScreenX, magic.rowScreenY, "$scenario:player-magick-row")
             }
 
             tacticalInputReady && !state.magicTargetSelection &&
                     state.battleCommandOpen && state.manualMagicInput != null -> {
+                /**
+                 * `magic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val magic = state.manualMagicInput
                 pointer(magic.commandScreenX, magic.commandScreenY, "$scenario:player-command-magick")
             }
@@ -761,6 +821,11 @@ internal class ProductionBattleInputDriver(
                     !state.magicTargetSelection && state.battleTargetSelectionOpen -> {
                 // 맵 입력 전에 다시 관찰한다. BattleScreen은 선택한 병사가 현재 보이는 targetUnitId를 실제로 공격할 수 있을 때만 이 투영을 낸다.
                 val opened = pendingPhysicalAttackInput ?: state.manualAttackInput ?: return
+                /**
+                 * `attack` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val attack = productionLiveAttackInput(opened, observeState().manualAttackInput)
                 if (attack == null) {
                     // 유효하지 않거나 오래된 맵 지점을 WAIT나 확정 행동으로 바꾸지 않는다.
@@ -774,6 +839,11 @@ internal class ProductionBattleInputDriver(
                     )
                     return
                 }
+                /**
+                 * `targetVisible` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val targetVisible = attack.targetScreenX in 1 until Gdx.graphics.width &&
                         attack.targetScreenY in 1 until Gdx.graphics.height
                 if (targetVisible) {
@@ -791,6 +861,11 @@ internal class ProductionBattleInputDriver(
 
             tacticalInputReady && !state.authoredRouteHoldFire &&
                     state.battleCommandOpen && state.manualAttackInput != null -> {
+                /**
+                 * `attack` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val attack = state.manualAttackInput
                 pendingPhysicalAttackInput = attack
                 pointer(attack.commandScreenX, attack.commandScreenY, "$scenario:player-command-attack")
@@ -807,14 +882,39 @@ internal class ProductionBattleInputDriver(
                         manualMoveAttempts,
                         manualMoveAttemptLimit,
                     ) -> {
+                /**
+                 * `move` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val move = state.manualMoveInput
                 manualMoveAttempts++
+                /**
+                 * `sourceVisible` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val sourceVisible =
                     move.sourceScreenX in 1 until Gdx.graphics.width && move.sourceScreenY in 1 until Gdx.graphics.height
+                /**
+                 * `destinationVisible` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val destinationVisible =
                     move.destinationScreenX in 1 until Gdx.graphics.width && move.destinationScreenY in 1 until Gdx.graphics.height
                 if (!sourceVisible || (state.selectedUnit && !destinationVisible)) {
+                    /**
+                     * `pointX` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val pointX = if (state.selectedUnit) move.destinationScreenX else move.sourceScreenX
+                    /**
+                     * `pointY` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val pointY = if (state.selectedUnit) move.destinationScreenY else move.sourceScreenY
                     drag(
                         640,

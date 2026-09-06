@@ -17,6 +17,11 @@ object BattleTileInput {
     ): Tile {
         require(tileSize > 0f)
         require(mapTilesHigh > 0)
+        /**
+         * `mapBottom` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val mapBottom = boardBottom - (mapTilesHigh - 1) * tileSize
         return Tile(
             // 원본은 타일 크기로 나눈 뒤 소수부를 버립니다.

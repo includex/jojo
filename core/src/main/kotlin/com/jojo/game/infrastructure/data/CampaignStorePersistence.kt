@@ -8,9 +8,21 @@ import java.util.Base64
 
 /** 캠페인 스냅샷과 번호가 있는 저장 슬롯의 영속화를 담당한다. */
 internal class CampaignStorePersistence(
+    /**
+     * `preferences` (Preferences,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val preferences: Preferences,
+    /**
+     * `state` (CampaignState,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val state: CampaignState,
 ) {
+    /**
+     * `runtime` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val runtime = CampaignRuntimeStateCodec(state)
 
     /** 환경설정에 저장된 캠페인 스냅샷을 읽는다. */
@@ -62,16 +74,31 @@ internal class CampaignStorePersistence(
         return snapshot.copy(currentScenario = scenario)
     }
 
+    /**
+     * `decodeEnvelope`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun decodeEnvelope(encoded: String) = runCatching {
         val envelope = String(Base64.getDecoder().decode(encoded), Charsets.ISO_8859_1)
         CampaignSaveCodec.decode(envelope)?.let { JsonReader().parse(it) }
     }.getOrNull()
+
+    /**
+     * `snapshotFrom`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun snapshotFrom(root: com.badlogic.gdx.utils.JsonValue): CampaignStore.Snapshot {
         val completed = root.get("completed").children().map { it.asString() }.toSet()
         val choices = root.get("choices").children().associate { it.name to it.asString() }
         return CampaignStore.Snapshot(root.getString("currentScenario", "R_00"), completed, choices, root.getInt("stage", 0))
     }
+
+    /**
+     * `com`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun com.badlogic.gdx.utils.JsonValue?.children(): Sequence<com.badlogic.gdx.utils.JsonValue> = sequence {
         var value = this@children?.child
@@ -80,6 +107,11 @@ internal class CampaignStorePersistence(
             value = value.next
         }
     }
+
+    /**
+     * `quote`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun quote(value: String): String = buildString {
         append('"')
@@ -97,7 +129,15 @@ internal class CampaignStorePersistence(
     }
 
     private companion object {
+        /**
+         * `KEY` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val KEY = "CAMPAIGN_STATE"
+        /**
+         * `SLOT_KEY_PREFIX` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         const val SLOT_KEY_PREFIX = "save-slot-"
     }
 }

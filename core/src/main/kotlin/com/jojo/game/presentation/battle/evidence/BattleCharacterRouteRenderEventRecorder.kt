@@ -18,6 +18,11 @@ internal data class BattleCharacterRouteRenderEventSample(
 
 /** 전투 캐릭터 경로 증거 기록기: 배경과 샘플을 원본 순서의 JSONL로 직렬화한다. */
 internal object BattleCharacterRouteRenderEventRecorder {
+    /**
+     * `mapEvent` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val mapEvent = BattleCharacterDrawEvent(
         nodePath = "Canvas/Layer/ScrollView/view/content/map",
         drawType = "sprite",

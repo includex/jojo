@@ -7,6 +7,7 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** BattleRenderEventEvidenceCoordinator: 화면의 live-state Port를 기존 렌더 이벤트 증거 입력과 JSONL로 조립한다. */
 internal class BattleRenderEventEvidenceCoordinator(
+    /** `port` (Port): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val port: Port,
 ) {
     /** Screen Port: 증거 조립에 필요한 현재 화면 상태를 불변 입력으로 제공한다. */
@@ -44,18 +45,63 @@ internal class BattleRenderEventEvidenceCoordinator(
 
     /** RouteState: 화면이 확정한 경로 플래그를 projector 입력으로 바꾸기 전의 불변 상태다. */
     internal data class RouteState(
+        /**
+         * `battleInit` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val battleInit: Boolean,
+        /**
+         * `dialogueBlend` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueBlend: Boolean,
+        /**
+         * `winConditionRoute` (RuntimeBattleRoute?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val winConditionRoute: RuntimeBattleRoute?,
+        /**
+         * `itemUpgrade` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val itemUpgrade: Boolean,
+        /**
+         * `reward` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val reward: Boolean,
     )
 
     /** Projection: evidence projector 입력과 화면이 적용할 보드 좌표 정책을 함께 보관한다. */
     internal data class Projection(
+        /**
+         * `boardLeft` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val boardLeft: Float,
+        /**
+         * `boardBottom` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val boardBottom: Float,
+        /**
+         * `boardTile` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val boardTile: Float,
+        /**
+         * `input` (BattleRenderEventProjectionInput,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val input: BattleRenderEventProjectionInput,
     )
 

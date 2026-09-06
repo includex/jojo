@@ -71,15 +71,65 @@ class CaptureFixtureStartupExtension : RuntimeStartupExtension {
     }
 
     private companion object {
+        /**
+         * `HALL_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val HALL_STATES = setOf("hall-palace-fixture", "hall-section-fixture", "hall-forces-fixture", "hall-property-fixture", "hall-terrain-fixture", "hall-treasure-fixture", "hall-helper-fixture", "hall-equip-fixture", "hall-unit-list-fixture", "hall-unit-list-select-fixture", "hall-unit-list-close-fixture", "hall-equip-confirm-fixture", "hall-equip-confirm-unload-fixture", "hall-exclusive-fixture", "hall-exclusive-tab1-fixture", "hall-magic-fixture", "hall-feats-fixture", "hall-feats-help-fixture", "hall-buy-fixture", "hall-sell-fixture", "hall-skip-open-fixture")
+        /**
+         * `INFO_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val INFO_STATES = setOf("info-layer-r00-first-tick", "info-layer-r00-full-autopending", "info-layer-r00-panel-touch", "info-layer-r00-skip")
+        /**
+         * `NOTICE_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val NOTICE_STATES = setOf("notice-hidden", "notice-shown", "notice-messages", "notice-hidden-clear")
+        /**
+         * `PREPARATION_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val PREPARATION_STATES = setOf("start-battle-fixture", "start-battle-unit-info-fixture", "battle-view-fixture", "start-battle-sort-open-fixture", "start-battle-sort-select-fixture", "start-battle-sort-cancel-fixture")
+        /**
+         * `REWARD_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val REWARD_STATES = setOf("reward-basic", "reward-card-1", "reward-card-2")
+        /**
+         * `DIALOGUE_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val DIALOGUE_STATES = setOf("dialogue-left", "dialogue-right", "dialogue-skip", "dialogue-auto-close")
+        /**
+         * `CHOICE_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val CHOICE_STATES = setOf("choose2-open", "choose2-select")
+        /**
+         * `INPUT_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val INPUT_STATES = setOf("input-box-empty", "input-box-filled")
+        /**
+         * `QUANTITY_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val QUANTITY_STATES = setOf("quantity-buy-initial", "quantity-sell-edited")
+        /**
+         * `OVERLAY_STATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val OVERLAY_STATES = setOf("msgbox-ok", "msgbox-confirm", "toast-stable", "progress-0", "progress-23", "progress-100", "loading-default", "loading-flag1-before", "loading-flag1-after5", "loading-flag2-hidden")
     }
 }

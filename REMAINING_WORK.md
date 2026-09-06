@@ -1,5 +1,11 @@
 # Desktop Game Remaining Work
 
+> **2026-09-07 갱신.** 이 문서의 `--verify*` 계열 실행 명령은 더 이상 동작하지 않는다.
+> 프로덕션 런처는 `--scenario=`, `--battle`, `--battle-return=`만 받고 그 외 인자는 즉시 실패하며,
+> 검증 경로는 `:verification` 모듈(`./gradlew :verification:verifyAllHeadless`)로 이전됐다.
+> 현재 실행/검증 명령은 [`README.md`](README.md), 아키텍처 상태는
+> [`REFACTORING_HANDOFF.md`](REFACTORING_HANDOFF.md)를 참고한다.
+
 Updated: 2026-09-02 (KST, R_00 street-dialogue staged comparison and packaged-app verification)
 
 ## Verification rule

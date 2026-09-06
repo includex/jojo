@@ -19,6 +19,11 @@ import com.jojo.game.domain.scenario.battleId
 
 /** BattleScenarioAssembler: 시나리오의 유닛·지형·이벤트를 조합해 실행 가능한 전투 집합을 만든다. */
 internal object BattleScenarioAssembler {
+    /**
+     * `tutorialBattle`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun tutorialBattle(): Battle = Battle(
         units = listOf(
             BattleUnit("cao-cao", "조조", Faction.PLAYER, 3, 3),
@@ -31,6 +36,11 @@ internal object BattleScenarioAssembler {
             }
         )
     )
+
+    /**
+     * `materialize`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun materialize(request: BattleScenarioRequest): Battle {
         val scriptedByBattleId = request.units.associateBy { it.battleId }
@@ -85,9 +95,19 @@ internal object BattleScenarioAssembler {
         ).also { it.initializeAllRateGauges() }
     }
 
+    /**
+     * `GameDataCatalog`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun GameDataCatalog?.terrainValues(value: GameDataCatalog.(Int) -> Int): Map<Int, Int> =
         this?.let { data -> (0..64).mapNotNull { id -> data.value(id).takeIf { it != 0 }?.let { id to it } }.toMap() }
             .orEmpty()
+
+    /**
+     * `permanentProperty`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun permanentProperty(campaign: com.jojo.game.domain.campaign.CampaignState?): (BattlePropertyItem, BattleUnit) -> Unit =
         campaign?.let { state -> { item, target ->
@@ -99,18 +119,38 @@ internal object BattleScenarioAssembler {
             }
         } } ?: { _, _ -> }
 
+    /**
+     * `experienceAward`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun experienceAward(
         campaign: com.jojo.game.domain.campaign.CampaignState?,
         catalog: GameDataCatalog?,
     ): (BattleUnit, Int) -> com.jojo.game.domain.campaign.CampaignExperienceResult? =
         if (campaign != null && catalog != null) { winner, amount ->
             if (winner.baseFaction != Faction.PLAYER) null else winner.characterId?.let { id ->
+                /**
+                 * `oldLevel` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val oldLevel = winner.level
+                /**
+                 * `result` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val result = campaign.grantExperience(id, oldLevel, amount, catalog)
                 if (result.leveledUp) persistLevelGrowth(campaign, catalog, id, winner.posts, oldLevel, result.level)
                 result
             }
         } else { _, _ -> null }
+
+    /**
+     * `persistLevelGrowth`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun persistLevelGrowth(
         campaign: com.jojo.game.domain.campaign.CampaignState,
@@ -120,13 +160,33 @@ internal object BattleScenarioAssembler {
         oldLevel: Int,
         newLevel: Int,
     ) {
+        /**
+         * `growth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val growth = catalog.unitLevelGrowth(characterId, posts, campaign)
+        /**
+         * `defaults` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val defaults = catalog.unitLevelDerivedAttributes(characterId, posts, oldLevel, mine = true, campaign = campaign)
         growth.forEach { (attribute, perLevel) ->
+            /**
+             * `current` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val current = campaign.unitAttribute(characterId, attribute, defaults.getValue(attribute))
             campaign.setUnitAttribute(characterId, attribute, current + perLevel * (newLevel - oldLevel))
         }
     }
+
+    /**
+     * `equipmentExperienceAward`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun equipmentExperienceAward(
         campaign: com.jojo.game.domain.campaign.CampaignState?,
@@ -142,18 +202,38 @@ internal object BattleScenarioAssembler {
             }.orEmpty()
         } else null
 
+    /**
+     * `restoreUnitExperience`: 입력을 규칙에 따라 계산·변환한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun restoreUnitExperience(
         campaign: com.jojo.game.domain.campaign.CampaignState?,
         catalog: GameDataCatalog?,
     ): (BattleUnit, Int) -> RestoreGrowthResolution<com.jojo.game.domain.campaign.CampaignExperienceResult> =
         if (campaign != null && catalog != null) { unit, amount ->
             unit.characterId?.let { id ->
+                /**
+                 * `before` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val before = catalog.learnedMagicIds(unit.posts, unit.level).toSet()
+                /**
+                 * `result` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val result = campaign.grantExperience(id, unit.level, amount, catalog)
                 RestoreGrowthResolution.Applied(result.copy(learnedMagicIds =
                     catalog.learnedMagicIds(unit.posts, result.level).filterNot(before::contains)))
             } ?: RestoreGrowthResolution.Unavailable
         } else { _, _ -> RestoreGrowthResolution.Unavailable }
+
+    /**
+     * `restoreEquipmentExperience`: 입력을 규칙에 따라 계산·변환한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun restoreEquipmentExperience(
         campaign: com.jojo.game.domain.campaign.CampaignState?,
@@ -164,6 +244,10 @@ internal object BattleScenarioAssembler {
                 ?.let { RestoreGrowthResolution.Applied(it) } ?: RestoreGrowthResolution.NotApplicable }
                 ?: RestoreGrowthResolution.Unavailable
         } else { _, _, _ -> RestoreGrowthResolution.Unavailable }
+
+    /**
+     * `CARDINAL_OFFSETS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
 
     private val CARDINAL_OFFSETS = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
 }

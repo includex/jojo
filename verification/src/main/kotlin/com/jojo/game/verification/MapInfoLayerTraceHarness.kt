@@ -32,6 +32,11 @@ object MapInfoLayerTraceHarness {
     private fun escape(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val source = Files.readString(Path.of(args[0])).replace(Regex("\\s+"), "")
         val cases =
@@ -66,8 +71,18 @@ object MapInfoLayerTraceHarness {
                 return "{\"step\":\"${escape(step)}\",\"text\":\"${escape(v.text)}\",\"typing\":${v.typing},\"autoCloseDelay\":$delay,\"attached\":${v.attached},\"events\":[$events]}"
             }
 
+            /**
+             * `out` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val out = mutableListOf(snap("create"))
             c.events.forEach { event ->
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = event.split(':')
                 when (p[0]) {
                     "tick" -> layer.tick(); "cancel" -> layer.cancel(p[1].toInt()); "skip" -> layer.skip(); "elapse" -> layer.elapse(
@@ -78,6 +93,11 @@ object MapInfoLayerTraceHarness {
             }
             return out.joinToString(",", "[", "]")
         }
+
+        /**
+         * `output` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val output = cases.joinToString(",", "{", "}") { "\"${escape(it.name)}\":${trace(it)}" }
         Files.createDirectories(Path.of(args[1]).parent); Files.writeString(Path.of(args[1]), output); println(output)

@@ -35,8 +35,23 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
     }
 
     private companion object {
+        /**
+         * `settlingStates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val settlingStates = setOf("scenario-dialogue", "map-info")
+        /**
+         * `streetStages` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val streetStages = listOf("panel", "portrait", "speaker", "text", "background", "characters")
+        /**
+         * `overlayNames` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val overlayNames = RuntimeScenarioOverlay.values().associateBy { it.name.lowercase().replace('_', '-') }
     }
 

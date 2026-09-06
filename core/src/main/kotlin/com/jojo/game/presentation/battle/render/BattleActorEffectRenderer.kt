@@ -63,8 +63,11 @@ internal data class BattleSayMarkerRender(val texture: Texture, val tileX: Float
 
 /** 전투 배우·효과 렌더러: 확정된 표시 뷰를 SpriteBatch 호출 순서로 그린다. */
 internal class BattleActorEffectRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `hudAssets` (BattleHudAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val hudAssets: BattleHudAssets,
+    /** `highlightShader` ((() -> ShaderProgram)?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val highlightShader: (() -> ShaderProgram)?,
 ) {
     /** 배우 그리기: 상태 아이콘, 본체, 체력 바, 상태 효과 순서로 출력한다. */

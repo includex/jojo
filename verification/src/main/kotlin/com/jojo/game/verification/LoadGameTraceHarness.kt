@@ -8,6 +8,11 @@ import com.jojo.game.*
 object LoadGameTraceHarness {
     /** J: j 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     private class J(private val s: String) {
+        /**
+         * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var p = 0
 
 
@@ -67,6 +72,11 @@ object LoadGameTraceHarness {
     private fun q(s: String) = "\"$s\""
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(a: Array<String>) {
         @Suppress("UNCHECKED_CAST") val f =
             J(java.nio.file.Files.readString(java.nio.file.Path.of(a[0]))).v() as Map<String, Any?>
@@ -78,6 +88,11 @@ object LoadGameTraceHarness {
 
     /** run: 검증 실행에 필요한 상태를 구성한다. */
     @Suppress("UNCHECKED_CAST")
+    /**
+     * `run`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun run(c: Map<String, Any?>): String {
         val slots = (c["slots"] as List<Map<String, Any?>>).associateBy { it["index"] as Int }
         val events = mutableListOf<String>()
@@ -106,7 +121,17 @@ object LoadGameTraceHarness {
                 events += "loadModel"; if (r == LoadGameLayer.RestoreRoute.HALL_AFTER_BATTLE) events += "incStage"; events += "scene:" + if (r == LoadGameLayer.RestoreRoute.BATTLE) "BATTLE" else "HALL"; return true
             }
         }
+        /**
+         * `l` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val l = LoadGameLayer(repo); l.onCreate()
+        /**
+         * `trace` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val trace = mutableListOf<String>()
 
 

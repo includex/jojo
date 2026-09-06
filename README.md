@@ -13,42 +13,46 @@ Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이�
 
 ## 실행
 
+프로덕션 데스크톱 런처(`DesktopLauncher`)가 받는 인자는 세 개뿐이다. 그 외의 인자를 넘기면
+`unsupported production launch argument`로 즉시 실패한다.
+
+| 인자 | 의미 |
+| --- | --- |
+| `--scenario=<ID>` | 시작 시나리오 지정 (기본 `R_00`) |
+| `--battle` | 전투 화면으로 바로 진입 |
+| `--battle-return=<ID>` | 전투 종료 후 복귀할 시나리오 |
+
 ```sh
 ./gradlew :desktop:run
-# 다른 원본 시나리오 실행 (예: R_01)
+# 다른 시나리오로 시작 (예: R_01)
 ./gradlew :desktop:run --args="--scenario=R_01"
+# 전투 화면으로 바로 진입하고 R_01로 복귀
+./gradlew :desktop:run --args="--battle --battle-return=R_01"
 ```
 
-검증 모드는 창을 초기화하고 R_00 한국어 대사·선택지 추출을 확인한 뒤 자동 종료한다.
-저장된 진행 상태와 무관하게 항상 R_00 검증 경로를 사용하므로, 패키지한
-macOS 앱에서도 동일하게 `--verify`를 실행할 수 있다.
-
-```sh
-./gradlew :desktop:run --args="--verify"
-# 특정 원본 시나리오의 실행 기반 검증
-./gradlew :desktop:run --args="--scenario=R_01 --verify"
-# 모든 R 시나리오의 원본 AST 기동 검증
-./gradlew :desktop:run --args="--verify-all-scenarios"
-# 특정 원본 전투(S 모듈) 유닛 배치 검증
-./gradlew :desktop:run --args="--scenario=S_01 --verify-scripted-battle"
-```
-
-전술 전투 상태와 턴 이벤트 검증은 다음 명령으로 실행한다.
-
-```sh
-./gradlew :desktop:run --args="--verify-battle"
-```
-
-R_00의 첫 선택지와 `sel == 1` Python 조건 분기까지 검증하려면 다음을 실행한다.
-
-```sh
-./gradlew :desktop:run --args="--verify-branch"
-./gradlew :desktop:run --args="--verify-branch-2"
-```
-
-일반 실행 중 `B`를 누르면 LibGDX 전술 전투 화면으로 전환한다. `[`/`]`로 번들된 원본 R 시나리오를 앞뒤로 전환할 수 있다. 전투 화면에서는 아군을 클릭한 뒤 빈 칸을 클릭해 이동하고, 인접 적을 클릭해 공격한다. `T`, `Space`, `Enter`로 턴을 종료하면 적군이 자동 행동하며, 모든 적 또는 아군이 전멸하면 전투 결과가 확정된다. 승리 후 `Enter`는 다음 R 시나리오로, 패배 후 `Enter`는 같은 전투 재시작으로 이어진다.
+일반 실행 중 `B`를 누르면 LibGDX 전술 전투 화면으로 전환한다. `[`/`]`로 번들된 R 시나리오를 앞뒤로 전환할 수 있다. 전투 화면에서는 아군을 클릭한 뒤 빈 칸을 클릭해 이동하고, 인접 적을 클릭해 공격한다. `T`, `Space`, `Enter`로 턴을 종료하면 적군이 자동 행동하며, 모든 적 또는 아군이 전멸하면 전투 결과가 확정된다. 승리 후 `Enter`는 다음 R 시나리오로, 패배 후 `Enter`는 같은 전투 재시작으로 이어진다.
 
 macOS에서는 시스템 한국어 글꼴을 자동으로 사용한다. 다른 플랫폼에서는 `JOJO_FONT_PATH`에 한국어 TTF/OTF 경로를 지정한다.
+
+## 검증
+
+검증 경로는 프로덕션 런처에서 완전히 분리돼 독립 `:verification` 모듈이 소유한다.
+이전 README가 안내하던 `--verify`, `--verify-all-scenarios`, `--verify-battle`,
+`--verify-branch`, `--verify-scripted-battle`은 **더 이상 존재하지 않는다.**
+
+```sh
+# 전체 headless 검증 (시나리오 catalog, 영천 route, 전투 catalog, AST gap)
+./gradlew :verification:verifyAllHeadless
+
+# 캠페인 E2E
+./gradlew :verification:campaignE2e
+
+# 단위 테스트
+./gradlew :core:test
+
+# Python 도구 테스트 (패키지 경계 검사 포함)
+python3 -m unittest discover -s tools -p 'test_*.py'
+```
 
 ## Android 디버그 APK
 
@@ -66,12 +70,13 @@ macOS에서는 시스템 한국어 글꼴을 자동으로 사용한다. 다른 �
 
 생성 위치는 `build/package/JojoLibGDX.app`이다. 기존 앱 이미지는 재생성 전에 시간 표기가 붙은 `.previous-*` 이름으로 보존한다.
 
-패키지 내부 실행 파일도 다음처럼 직접 검증할 수 있다.
+패키지 내부 실행 파일은 프로덕션 인자만 받는다.
 
 ```sh
-build/package/JojoLibGDX.app/Contents/MacOS/JojoLibGDX --verify
+build/package/JojoLibGDX.app/Contents/MacOS/JojoLibGDX --scenario=R_00
 ```
 
+아래는 `--verify` 인자가 프로덕션 런처에 있던 시절의 기록이며, 현재 명령으로는 재현할 수 없다.
 2026-09-01에 재생성한 `build/package/JojoLibGDX.app`의 `--verify`는
 `VERIFY_OK: 119 scenario sources + ASTs embedded; R_00 AST runtime loaded`를
 출력했다. 현재 패키지 검증에서는 119개 시나리오 AST 로드와 Login 초기 화면의 raw

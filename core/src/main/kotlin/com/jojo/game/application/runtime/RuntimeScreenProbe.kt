@@ -13,7 +13,17 @@ import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
 
 /** RuntimeScreenObserver: 화면 전환과 프레임 상태를 감시하여 자동 검증 흐름에 개입하는 관찰기 계약이다. */
 fun interface RuntimeScreenObserver {
+    /**
+     * `update`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun update(delta: Float, screen: RuntimeScreenProbe)
+
+    /**
+     * `scenarioStarted`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun scenarioStarted(module: String, index: Int) = Unit
 
@@ -23,6 +33,11 @@ fun interface RuntimeScreenObserver {
 
 /** RuntimeScreenProbe: 현재 화면 종류별로 자동 구동에 필요한 읽기 전용 상태를 노출하는 공통 탐침이다. */
 sealed interface RuntimeScreenProbe {
+    /**
+     * `screenName` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val screenName: String
 }
 
@@ -30,6 +45,10 @@ sealed interface RuntimeScreenProbe {
 data class TitleRuntimeProbe(
     val view: TitleViewState,
 ) : RuntimeScreenProbe {
+    /**
+     * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     override val screenName: String = "TitleScreen"
 }
 
@@ -57,6 +76,10 @@ data class ScenarioRuntimeProbe(
     val randomDrawCount: Int = 0,
     val remainingInjectedRandomCount: Int = 0,
 ) : RuntimeScreenProbe {
+    /**
+     * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     override val screenName: String = "ScenarioScreen"
 }
 
@@ -72,6 +95,10 @@ data class BattlePreparationRuntimeProbe(
     val canStart: Boolean,
     val view: BattlePreparationViewState,
 ) : RuntimeScreenProbe {
+    /**
+     * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     override val screenName: String = "BattlePreparationScreen"
 }
 
@@ -116,8 +143,22 @@ data class BattleRuntimeScreenProbe(
     val selectedUnitId: String?,
     val battle: BattleRuntimeProbe,
 ) : RuntimeScreenProbe {
+    /**
+     * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     override val screenName: String = "BattleScreen"
+    /**
+     * `round` (Int get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val round: Int get() = battle.snapshot.round
+    /**
+     * `activeFaction` (Faction get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val activeFaction: Faction get() = battle.snapshot.activeFaction
 }
 

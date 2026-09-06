@@ -6,37 +6,123 @@ import com.jojo.game.*
 import com.jojo.game.domain.scenario.*
 
 
+/**
+ * `ScenarioDialogueCoordinator` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 class ScenarioDialogueCoordinator(
+    /**
+     * `stage` (ScenarioStage,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val stage: ScenarioStage,
+    /**
+     * `onStateChange` ((PlaybackState) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onStateChange: (PlaybackState) -> Unit,
+    /**
+     * `onResumeExecution` (() -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onResumeExecution: () -> Unit,
+    /**
+     * `onSetDelayRemainingSeconds` ((Float) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onSetDelayRemainingSeconds: (Float) -> Unit,
 ) {
+    /**
+     * `currentDialogue` (Dialogue?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentDialogue: Dialogue? = null
         private set
+    /**
+     * `dialogueRevision` (Long): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var dialogueRevision: Long = 0
         private set
+    /**
+     * `dialogueLifecycleRevision` (Long): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var dialogueLifecycleRevision: Long = 0
         private set
+    /**
+     * `currentDialogueSourceText` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentDialogueSourceText: String? = null
         private set
+    /**
+     * `currentDialogueSide` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentDialogueSide: Int = 0
         private set
+    /**
+     * `currentDialogueAtTop` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var currentDialogueAtTop: Boolean = false
         private set
+    /**
+     * `lastDialogueSpeakerId` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var lastDialogueSpeakerId: Int = -1
         private set
+    /**
+     * `dialogueSpeakerIndex` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var dialogueSpeakerIndex: Int = 0
         private set
+    /**
+     * `pendingDialogues` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val pendingDialogues = ArrayDeque<Dialogue>()
+
+    /**
+     * `dialogueCallbackFramePending` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     var dialogueCallbackFramePending = false
         private set
+    /**
+     * `dialogueCallbackReturnState` (PlaybackState?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var dialogueCallbackReturnState: PlaybackState? = null
         private set
+    /**
+     * `externalDialogueReturnState` (PlaybackState?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var externalDialogueReturnState: PlaybackState? = null
         private set
 
+
+    /**
+     * `reset`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun reset() {
         currentDialogue = null
@@ -48,11 +134,21 @@ class ScenarioDialogueCoordinator(
     }
 
 
+    /**
+     * `resetSpeakers`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun resetSpeakers(speakerIndex: Int = 0) {
         dialogueSpeakerIndex = speakerIndex
         lastDialogueSpeakerId = -1
     }
 
+
+    /**
+     * `advanceDialogue`: 현재 상태를 갱신한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun advanceDialogue(deferCloseCallbackFrame: Boolean = false, currentState: PlaybackState) {
         check(currentState == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
@@ -79,6 +175,11 @@ class ScenarioDialogueCoordinator(
     }
 
 
+    /**
+     * `presentExternalBattleDialogue`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun presentExternalBattleDialogue(dialogue: Dialogue, currentState: PlaybackState) {
         check(currentDialogue == null && currentState != PlaybackState.DIALOGUE) { "이미 대사가 표시 중입니다." }
         check(externalDialogueReturnState == null) { "외부 전투 대사가 이미 대기 중입니다." }
@@ -88,6 +189,11 @@ class ScenarioDialogueCoordinator(
         onStateChange(PlaybackState.DIALOGUE)
     }
 
+
+    /**
+     * `presentDialogue`: 화면 표시 상태를 렌더링한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun presentDialogue(dialogue: Dialogue) {
         currentDialogueAtTop = false
@@ -106,11 +212,21 @@ class ScenarioDialogueCoordinator(
     }
 
 
+    /**
+     * `beginDialogueLifecycle`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun beginDialogueLifecycle(sourceText: String) {
         currentDialogueSourceText = sourceText
         dialogueLifecycleRevision++
     }
 
+
+    /**
+     * `startSay`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun startSay(sourceText: String) {
         val dialogues = parseDialogueBlocks(sourceText)
@@ -121,6 +237,11 @@ class ScenarioDialogueCoordinator(
     }
 
 
+    /**
+     * `startTalk`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun startTalk(primary: Int, fallback: Int, text: String, activeCharacterIds: Set<Int>) {
         val speaker = if (primary in activeCharacterIds) primary else fallback
         val sourceText = "&$speaker\n$text"
@@ -129,6 +250,11 @@ class ScenarioDialogueCoordinator(
         onStateChange(PlaybackState.DIALOGUE)
     }
 
+
+    /**
+     * `handleDelayTick`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun handleDelayTick(): Boolean {
         if (dialogueCallbackFramePending) {
@@ -144,6 +270,11 @@ class ScenarioDialogueCoordinator(
     }
 
     companion object {
+
+        /**
+         * `parseDialogueBlocks`: 입력을 규칙에 따라 계산·변환한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
 
         fun parseDialogueBlocks(raw: String): List<Dialogue> {
             val tags = Regex("""(?m)^&(\d+)\n""").findAll(raw).toList()

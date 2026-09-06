@@ -10,7 +10,17 @@ import com.jojo.game.domain.battle.command.ControlScoring.Status
 import com.jojo.game.domain.battle.command.ControlScoring.Type
 import com.jojo.game.domain.battle.command.ControlScoring.Unit
 import com.jojo.game.domain.battle.command.ControlScoring.Values
+/**
+ * `ControlActionScoring` 싱글턴 객체: command 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 object ControlActionScoring {
+/**
+ * `attackValue`: 타입의 핵심 동작을 수행한다.
+ * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
+
 fun attackValue(
         attacker: Unit,
         target: Unit,
@@ -18,14 +28,34 @@ fun attackValue(
         values: Values = Values(),
         skills: Skills = Skills()
     ): Int {
+        /**
+         * `score` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var score = 0
+        /**
+         * `wenGuan` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val wenGuan = attacker.armType == Arm.WEN_GUAN
         for (harm in attacker.attackHarms(target)) {
+            /**
+             * `item` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             var item = floorRate(harm.harm, values.hpMpRate, harm.target.hp)
             if (harm.rate != 100) item = floorRate(item, harm.rate, values.accuracyBase)
             score += item
             if (counter && attacker.skill(skills.noCounter) == 255 && attacker.status(Status.HL) == Lift.NORMAL) {
                 if (attacker.skill(skills.counterSkills) != 255) score += values.counterNoSkill
+                /**
+                 * `retaliation` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 var retaliation = attackValue(harm.target, attacker, false, values, skills)
                 retaliation -= when (attacker.armType) {
                     Arm.WU_JIANG -> if (attacker.isRemote) 0 else retaliation / 2
@@ -46,20 +76,65 @@ fun attackValue(
 
 
 
+    /**
+     * `Unit`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun Unit.skill(ids: IntArray) = ids.firstOrNull { skill(it) != 255 }?.let(::skill) ?: 255
+    /**
+     * `magicValue`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun magicValue(
         magic: Magic, caster: Unit, target: Unit, cache: MutableMap<String, Int>,
         hitRate: (Unit, Unit, Magic) -> Int = { _, _, _ -> 100 }, values: Values = Values(), skills: Skills = Skills()
     ): Int {
+        /**
+         * `key` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val key = "magic_${caster.index}_${target.index}_${magic.id}"
         cache[key]?.let { return it }
+        /**
+         * `score` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var score = 0
+        /**
+         * `hpSteal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var hpSteal = false
+        /**
+         * `lift` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var lift = 0
+        /**
+         * `abnormal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var abnormal = 0
+        /**
+         * `famousMask` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var famousMask = if (target.famous) 3 else 1
         when (magic.type) {
             Type.XISHOU_MP -> if (caster.isCanLan() && target.mpCur >= 1) {
+                /**
+                 * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val harm = caster.magicHarm(magic, target).coerceIn(1, target.mpCur)
                 if (harm >= 1) score += floorRate(harm, values.hpMpRate, target.mp)
             }
@@ -67,9 +142,19 @@ fun attackValue(
             Type.XISHOU_HP -> if (caster.isCanXue() && target.hpCur >= 1) hpSteal = true
             Type.HUIFU_MP -> if (target.isCanLan() && target.mine == caster.mine) {
                 if (magic.category != Category.MX || caster.hpCur > 40) {
+                    /**
+                     * `gain` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val gain = if (magic.category == Category.MX) {
                         -floorRate(40, values.hpMpRate, target.hp) + floorRate(target.mpCur, values.hpMpRate, target.mp)
                     } else {
+                        /**
+                         * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                         */
+
                         val harm = caster.magicHarm(magic, target)
                         -floorRate(harm, values.hpMpRate, caster.mp) + floorRate(harm, values.hpMpRate, target.mp)
                     }
@@ -78,6 +163,11 @@ fun attackValue(
             }
 
             Type.HUIFU_HP -> if (target.isCanXue() && target.mine == caster.mine) {
+                /**
+                 * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val harm = caster.magicHarm(magic, target).coerceIn(0, target.hp - target.hpCur)
                 if (harm >= 1) score += floorRate(
                     harm,
@@ -93,6 +183,11 @@ fun attackValue(
                             abnormal or (1 shl s)
 
                         Category.JDNL -> {
+                            /**
+                             * `k` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                             */
+
                             val k = armMask(target.armType); if (k and 1 != 0) {
                                 if (target.status(Status.ATT) == Lift.DOWN) return@category; lift =
                                     lift or (1 shl Status.ATT)
@@ -160,6 +255,11 @@ fun attackValue(
                         }
 
                         Category.ZJNL -> {
+                            /**
+                             * `k` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                             */
+
                             val k = armMask(target.armType); if (k and 1 != 0) {
                                 if (target.status(Status.ATT) != Lift.DOWN) return@category; abnormal =
                                     abnormal or (1 shl Status.ATT)
@@ -179,6 +279,11 @@ fun attackValue(
             }
         }
         if (magic.harmType != 4) {
+            /**
+             * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             var harm = caster.magicHarm(magic, target).coerceIn(1, target.hpCur)
             if (harm >= target.hpCur) famousMask = famousMask or 4
             score += if (caster.mine == target.mine) -floorRate(harm, values.hpMpRate, target.hp) else floorRate(
@@ -191,6 +296,11 @@ fun attackValue(
             }
         }
         if (score < 1) return 0
+        /**
+         * `rate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val rate = hitRate(caster, target, magic)
         if (rate != 100) score = floorRate(score, rate, 100)
         score += maxOf(1, score)
@@ -200,14 +310,34 @@ fun attackValue(
         return score.also { cache[key] = it }
     }
 
+    /**
+     * `armMask`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun armMask(arm: Int) = when (arm) {
         Arm.QUAN_NENG -> 3; Arm.WEN_GUAN -> 2; else -> 1
     }
 
+    /**
+     * `floorRate`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun floorRate(value: Int, rate: Int, divisor: Int) = if (divisor == 0) 0 else value * rate / divisor
+    /**
+     * `statusValue`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun statusValue(mask: Int, unit: Unit, v: Values): Int {
         var n = 0
 
+
+        /**
+         * `has`: 조건과 입력 상태를 검증한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
 
         fun has(s: Int) = mask and (1 shl s) != 0
         if (has(Status.ATT)) n += if (unit.armType == Arm.QUAN_NENG) v.attackQn else if (unit.armType == Arm.WU_JIANG) v.attackWj else 0

@@ -12,10 +12,35 @@ import com.jojo.game.presentation.scenario.hall.HallBuyUnitSummaryRenderer
 
 /** HallBuyManagementRenderer: 거점 Buy Management 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
 internal object HallBuyManagementRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallBuyManagementRenderView) {
+        /**
+         * `texture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun texture(name: String) = assets.hallTexture("maps/ui/start-battle/$name.png")
+        /**
+         * `patch`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun patch(name: String, inset: Int = 3) = texture(name)?.let { NinePatch(it, inset, inset, inset, inset) }
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun label(text: String, x: Float, y: Float, width: Float, centered: Boolean = false) { assets.bodyFont.color=Color.BLACK; assets.bodyFont.draw(batch,text,x,y,width,if(centered) Align.center else Align.left,false) }
+        /**
+         * `tiled`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tiled(tex: com.badlogic.gdx.graphics.Texture, x: Float, y: Float, width: Float, height: Float) { val tw=tex.width*.86f; val th=tex.height*.86f; var dy=0f; while(dy<height-.01f) { val dh=minOf(th,height-dy); var dx=0f; while(dx<width-.01f) { val dw=minOf(tw,width-dx); batch.draw(tex,x+dx,y+dy,dw,dh,0,0,(dw/.86f).toInt().coerceIn(1,tex.width),(dh/.86f).toInt().coerceIn(1,tex.height),false,false); dx+=tw }; dy+=th } }
         val x=168.72f; val y=28.81f; val w=943.42f; val h=630.38f
         batch.color=Color.WHITE; texture("logo9")?.let { tiled(it,x,y,w,h) }; patch("box1")?.draw(batch,x,y,w,h); patch("title",5)?.draw(batch,x,y+h-43f,w,43f)

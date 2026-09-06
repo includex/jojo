@@ -8,6 +8,7 @@ import com.jojo.game.presentation.battle.timeline.BattleCharacterStrictState
 
 /** BattlePresentationConfiguration: 런타임 전투 경로를 화면 route와 animation clock 정책으로 해석한다. */
 internal class BattlePresentationConfiguration(
+    /** `presentation` (RuntimeBattlePresentation): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val presentation: RuntimeBattlePresentation,
 ) {
     /** 현재 화면이 해석할 런타임 전투 route다. */

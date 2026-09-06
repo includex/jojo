@@ -26,10 +26,18 @@ data class BattleSettingsOverlayAssets(
 
 /** 전투 설정 렌더러: 설정 비트와 선택 인덱스를 체크·라디오·색상 견본으로 출력한다. */
 class BattleSettingsOverlayRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattleSettingsOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleSettingsOverlayAssets,
 ) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleSettingsOverlayView) {
         batch.begin()
         batch.color = Color.WHITE
@@ -86,6 +94,11 @@ class BattleSettingsOverlayRenderer(
         batch.end()
     }
 
+    /**
+     * `drawRadios`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawRadios(title: String, labels: List<String>, selected: Int, baseY: Float) {
         font.color = Color.BLACK
         font.draw(batch, title, 822f, baseY + 45f)
@@ -97,6 +110,11 @@ class BattleSettingsOverlayRenderer(
             font.draw(batch, label, 846f + index * 145f, baseY)
         }
     }
+
+    /**
+     * `drawTiledBackground`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawTiledBackground() {
         assets.background?.let { texture ->

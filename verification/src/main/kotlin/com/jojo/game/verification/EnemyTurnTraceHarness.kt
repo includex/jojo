@@ -11,6 +11,11 @@ object EnemyTurnTraceHarness {
     private fun q(s: String) = "\"$s\""
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val text = java.nio.file.Files.readString(java.nio.file.Path.of(args[0]))
         val cases =
@@ -29,6 +34,10 @@ object EnemyTurnTraceHarness {
         val attack = m.groupValues[4] == "true"
         val desired = m.groupValues[5]
         val events = mutableListOf<String>()
+        /**
+         * `manager` (ControlManager): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+         */
+
         lateinit var manager: ControlManager
         val state = object : ControlManager.UnitState {
             /** isControlled: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
@@ -107,6 +116,11 @@ object EnemyTurnTraceHarness {
                             ); else -> null
                         }
                     }
+                    /**
+                     * `step` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val step = controller.step(context, data); step.transition?.let {
                         manager.setControl(
                             it.ai,
@@ -119,11 +133,26 @@ object EnemyTurnTraceHarness {
             }
         }
         manager = ControlManager(state, factory)
+        /**
+         * `status` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val status = manager.selectMovePoint(
             listOf(Control.Point(0, 0), Control.Point(1, 0)),
             setOf(Control.Point(0, 0), Control.Point(1, 0))
         )
+        /**
+         * `result` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val result = manager.result ?: Control.Result(0, 0)
+        /**
+         * `action` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val action = when {
             desired == "attack" -> "attack:99"; desired == "move" && result.x == 1 -> "move:1,0"; else -> "hold"
         }

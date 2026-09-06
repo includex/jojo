@@ -1,6 +1,6 @@
 # 게임 아키텍처
 
-작성일: 2026-09-05
+기준일: 2026-09-07 (HEAD `5a03d03` 실측)
 
 현재 구현 상태, 검증 기준선과 다음 명령은 [`REFACTORING_HANDOFF.md`](REFACTORING_HANDOFF.md)를 우선 참고한다.
 
@@ -39,48 +39,109 @@ verification ──> public application/domain contracts
 
 의존 방향은 항상 바깥쪽에서 안쪽으로 향한다. `domain`은 `presentation`, `verification`, LibGDX 타입을 참조하지 않는다.
 
-## 검증 모듈 경계
+이 규칙은 `tools/test_package_boundaries.py`가 강제한다.
 
-검증 코드는 `core`의 보조 source set이 아니라 독립 JVM 모듈 `:verification`으로 분리한다. 최종 Gradle 의존성은 `verification -> core`, `desktop -> core`, `android -> core`의 단방향만 허용하며, 게임 모듈과 플랫폼 런처는 검증 모듈을 참조하지 않는다.
+## 현재 의존 방향 위반 (31건, 미해결)
+
+패키지 분할 자체는 목표 구조에 도달했다. 그러나 **의존 방향은 세 곳에서 역류하고 있으며 그중 하나는 순환이다.** `python3 -m unittest tools.test_package_boundaries`가 현재 3건 실패한다. 이것이 최우선 과제다.
+
+### (1) domain → infrastructure (6건)
+
+```
+domain/campaign/CampaignState.kt:4                     import ...infrastructure.data.GameDataCatalog
+domain/campaign/CampaignEquipmentProgression.kt:4      import ...infrastructure.data.GameDataCatalog
+domain/campaign/CampaignInventory.kt:4                 import ...infrastructure.data.GameDataCatalog
+domain/campaign/CampaignInventoryEquipmentManager.kt:4 import ...infrastructure.data.GameDataCatalog
+domain/battle/BattleUnit.kt:3                          import ...infrastructure.data.GameDataCatalog
+domain/battle/BattleAvatarResolver.kt:4                import ...infrastructure.data.GameDataCatalog
+```
+
+도메인 규칙이 데이터 로딩 구현을 직접 안다. 도메인이 실제로 필요로 하는 조회만 담은 read-only interface를 `domain`에 정의하고 `GameDataCatalog`가 이를 구현하게 해서 방향을 역전한다.
+
+### (2) infrastructure → presentation / application (3건)
+
+```
+infrastructure/data/GameDataCatalog.kt:4           import ...presentation.scenario.overlay.*
+infrastructure/data/GameDataCatalogUnitDomain.kt:4 import ...presentation.shared.overlay.TerrainLayer
+infrastructure/audio/GameAudioPlayer.kt:7          import ...application.scenario.ScenarioStage
+```
+
+(1)과 (2)가 합쳐져 **`domain → infrastructure → presentation` 순환**을 만든다. `GameDataCatalog`가 매듭이다. `TerrainLayer` 같은 UI 레이어 타입을 카탈로그가 참조하는 것이 직접 원인이므로, 해당 데이터 타입을 domain 또는 중립 타입으로 옮긴다. `GameAudioPlayer`의 `ScenarioStage` 의존은 좁은 콜백 interface로 역전한다.
+
+### (3) presentation → infrastructure (22건 / 18파일)
+
+```
+3  presentation/scenario/ScenarioScreen.kt
+3  presentation/battle/BattleScreen.kt
+1  presentation/shared/overlay/PropertyLayer.kt
+1  presentation/scenario/ScenarioRuntimeSnapshotProjector.kt
+1  presentation/scenario/ScenarioNavigationCoordinator.kt
+1  presentation/scenario/hall/HallPropertyViewProjector.kt
+1  presentation/scenario/hall/HallManagementViewFactory.kt
+1  presentation/scenario/hall/HallManagementCoordinator.kt
+1  presentation/scenario/hall/HallInformationCoordinator.kt
+1  presentation/scenario/hall/HallEquipViewProjector.kt
+1  presentation/scenario/hall/EquipConfirmationFlow.kt
+1  presentation/battle/timeline/BattleMagicPresentation.kt
+1  presentation/battle/preparation/BattlePreparationViewState.kt
+1  presentation/battle/preparation/BattlePreparationScreen.kt
+1  presentation/battle/combat/BattleMagicPresentationPlanner.kt
+1  presentation/battle/combat/BattleCombatPresentationQueueCoordinator.kt
+1  presentation/battle/combat/BattleCombatPresentationModels.kt
+1  presentation/battle/assets/MagicEffectCatalog.kt
+```
+
+화면이 데이터 계층 구현을 직접 import한다. application이 조립해 넘긴 조회 interface만 받게 바꾼다. (1)의 조회 interface를 먼저 만들면 여기서도 재사용할 수 있다.
+
+### 해소 순서
+
+1. domain 조회 interface 도입 → (1) 해소
+2. `GameDataCatalog`의 presentation 타입 의존 제거, `GameAudioPlayer` 콜백 역전 → (2) 해소, 순환 제거
+3. presentation을 조회 interface로 전환 → (3) 해소
+
+각 단계 후 `python3 -m unittest tools.test_package_boundaries`가 통과해야 한다.
+
+## 모듈 경계
+
+검증 코드는 `core`의 보조 source set이 아니라 독립 JVM 모듈 `:verification`으로 분리돼 있다. 현재 파일 수는 core 474 / desktop 2 / android 1 / verification 168이며, Gradle 의존성은 `verification -> core`, `desktop -> core`, `android -> core`의 단방향만 존재한다. production에서 `verification`으로 향하는 의존성은 0건이다.
 
 `core`에는 관찰자가 없어도 비용과 동작 변화가 없는 production-neutral observer/snapshot 계약만 둘 수 있다. fixture 라우팅, 원본 비교, 기대값 assertion, 자동 입력 정책, trace 파일 형식과 출력, 검증용 `Gdx.app.exit()`는 모두 `:verification`이 소유한다. 검증을 위해 `internal` 구현 전체를 공개하거나 Gradle friend path에 의존하지 않고, 필요한 경우 불변 snapshot 또는 좁은 read-only probe만 공개한다.
 
-첫 이행 단위는 완료됐다. 403줄의 `ScenarioBatchVerificationScreen`을 제거하고 `ScenarioBatchVerificationApplication`, 실행 suite, 시나리오 catalog 검증기, 영천 route 검증기, 전투 catalog 검증기로 나눠 `:verification`으로 옮겼다. `GameEntryPoint.SCENARIO_BATCH`, `JojoGame`/`GameStartupCoordinator`의 batch callback, desktop의 `--verify-all-scenarios` 분기도 삭제했다. 따라서 production 시작 경로는 검증 타입을 알지 않으며 `core`/`desktop`/`android`에서 `verification`으로 향하는 의존성도 없다.
+`ScenarioBatchVerificationScreen`, `BattleCampaignE2eAdapter`, `CampaignE2eDriver`와 capture fixture, trace harness는 모두 `:verification`으로 이전 완료했다. `GameEntryPoint.SCENARIO_BATCH`, batch callback, desktop의 `--verify-all-scenarios` 분기도 삭제됐다. production 시작 경로는 검증 타입을 알지 않는다.
 
-영천 검증은 콘텐츠가 선언한 순서인 round 1 일반 진입, round 1 camp 2 증원, round 2 화공과 `startOper`를 각각 실행한다. catalog materialization과 route 진행은 서로 다른 runtime을 사용해 검증 자체가 전투 상태를 오염시키지 않는다. 남은 E2E driver, adapter, trace harness와 capture fixture는 같은 모듈 경계로 후속 이동한다.
+영천 검증은 콘텐츠가 선언한 순서인 round 1 일반 진입, round 1 camp 2 증원, round 2 화공과 `startOper`를 각각 실행한다. catalog materialization과 route 진행은 서로 다른 runtime을 사용해 검증 자체가 전투 상태를 오염시키지 않는다.
 
-## 현재 대형 클래스의 목표 분해
+## 현재 대형 클래스 상태
 
-300줄 초과 production 클래스의 전체 목록, 예외 판단, 실행 우선순위는 [`LARGE_CLASS_REFACTORING.md`](LARGE_CLASS_REFACTORING.md)에 기록한다.
+300줄 초과 production 파일은 **6개**로 줄었다. 전체 목록, 예외 판단, 실행 우선순위는 [`LARGE_CLASS_REFACTORING.md`](LARGE_CLASS_REFACTORING.md)에 기록한다.
 
-| 현재 클래스 | 목표 역할 |
-|---|---|
-| `JojoGame` | `GameApplication`과 `ScreenNavigator`로 분리. 생성자 옵션은 `LaunchConfiguration` 하나로 통합 |
-| `BattleScreen` | `BattleInputController`, `BattleSequencePlayer`, overlay renderer들로 추가 분리 |
-| `Battle` | aggregate root 이름을 유지하고 `Battlefield`, `BattleMovementPlanner`, `BattleAttributeCalculator`, `PhysicalCombatResolver`, `MagicResolver`, `BattleAiPlanner`를 조립 |
-| `ScenarioScreen` | `ScenarioPlaybackController`, `HallController`, 화면별 renderer로 추가 분리 |
-| `ScenarioInterpreter` | evaluator와 `ScenarioCommandSink`로 분리 |
-| `CampaignStore` | `CampaignRepository`와 `CampaignService`로 분리 |
-| `GameDataCatalog` | `GameDataRepository`와 immutable catalog들로 분리 |
-| `CampaignE2eTrace` | production 밖의 driver, observer, recorder로 분리 |
+| 클래스 | 09-05 문서 | HEAD | 상태 |
+|---|---:|---:|---|
+| `JojoGame` | 252 | 219 | 완료. startup/navigation/runtime 분리 |
+| `Battle` | 787 | 288 | 완료. aggregate root가 collaborator 조립만 담당 |
+| `ScenarioInterpreter` | 277 | 268 | 완료. evaluator/dispatcher 분리 |
+| `ScenarioStage` | 468 | 293 | 완료 |
+| `GameDataCatalog` | 823 | 246 | 크기는 완료. **의존 방향 위반의 매듭으로 남음** |
+| `CampaignState` | 247 | 225 | 완료. inventory/equipment/roster 분리 |
+| `ScenarioScreen` | 4,534 | 987 | hall 63파일 분리 완료. 생성자 파라미터 19개 잔존 |
+| `BattleScreen` | 9,578 | 7,094 | 협력 객체 추출 완료. 조립·진행 제어 잔존 |
 
-## 단계별 이행
+## 단계별 이행 상태
 
-1. 프로젝트 identity를 `com.jojo.game`과 `jojo-game`으로 통일한다.
-2. 이름에 구현 역사만 나타내는 접미사를 제거하고 역할 이름으로 바꾼다.
-3. 런처 인자와 `JojoGame`의 boolean/string 묶음을 Kotlin 설정 객체와 sealed run mode로 바꾼다.
-4. trace harness와 fixture 전용 코드를 별도 verification source set 또는 모듈로 이동한다.
-5. 전투 도메인에서 pathfinding, combat, magic, AI를 순수 서비스로 추출한다.
-6. 화면별 controller/view-state/renderer 경계를 적용하고 LibGDX resource 수명을 `Disposable` 단위로 관리한다.
+1. 프로젝트 identity를 `com.jojo.game`과 `jojo-game`으로 통일한다. **완료** — legacy identity 잔존 0건. 외부 비교 trace schema의 `sourceCharacterId` JSON key 1건만 계약으로 유지한다.
+2. 이름에 구현 역사만 나타내는 접미사를 제거하고 역할 이름으로 바꾼다. **완료**
+3. 런처 인자와 `JojoGame`의 boolean/string 묶음을 Kotlin 설정 객체와 sealed run mode로 바꾼다. **완료**
+4. trace harness와 fixture 전용 코드를 별도 verification 모듈로 이동한다. **완료**
+5. 전투 도메인에서 pathfinding, combat, magic, AI를 순수 서비스로 추출한다. **완료**
+6. 화면별 controller/view-state/renderer 경계를 적용하고 LibGDX resource 수명을 `Disposable` 단위로 관리한다. **부분 완료** — title, battle preparation, fight, hall은 완료. `BattleScreen`/`ScenarioScreen`의 조립 책임이 남았다.
+7. **의존 방향 정상화.** 패키지는 나뉘었으나 domain/infrastructure/presentation 사이 import 방향이 31건 역류한다. **미완료, 최우선.**
 
-각 단계는 compile, unit test, 실제 `InputProcessor` 흐름 검증 순서로 확인한다. 과거 구현체와의 비교 도구가 필요해도 그 용어가 production API, 패키지, 리소스 정체성으로 다시 유입되어서는 안 된다.
+각 단계는 compile, unit test, `test_package_boundaries`, 실제 `InputProcessor` 흐름 검증 순서로 확인한다. 과거 구현체와의 비교 도구가 필요해도 그 용어가 production API, 패키지, 리소스 정체성으로 다시 유입되어서는 안 된다.
 
-현재 identity 이행은 완료됐다. production 패키지는 `com.jojo.game`, 프로젝트 이름은 `jojo-game`이며 저장 codec·마법 효과 모델·게임 데이터 변수·설정 저장소는 각각 역할 이름을 사용한다. preferences namespace는 `jojo-game-campaign`과 `jojo-game-settings`로 중앙화했고, 신규 게임이므로 이전 namespace fallback은 두지 않는다. 복구 소스 비교를 실제로 수행하는 도구와 계약 테스트만 `Source*`/`source_*` 어휘를 사용한다.
+## 구현 완료 기록
 
-`BattleScreen`의 첫 presentation 이행도 완료됐다. 화면이 직접 보유하던 정적 UI texture, 동적 unit/effect/icon cache, UnitInfo lazy texture와 비교용 framebuffer는 역할별 `Disposable` 소유자로 이동했다. 자원 객체는 avatar 선택이나 전투 규칙을 판단하지 않고 이미 계산된 resource key만 받으며, 화면은 각 소유자를 한 번만 폐기한다.
+`BattleScreen`의 presentation 이행: 화면이 직접 보유하던 정적 UI texture, 동적 unit/effect/icon cache, UnitInfo lazy texture와 비교용 framebuffer는 역할별 `Disposable` 소유자로 이동했다. 자원 객체는 avatar 선택이나 전투 규칙을 판단하지 않고 이미 계산된 resource key만 받으며, 화면은 각 소유자를 한 번만 폐기한다.
 
-Fight 연출은 mutable `FightPresentationState`를 매 frame 깊은 불변 snapshot으로 복사한 뒤 화면에서 이름·얼굴·avatar를 해석해 완성된 `FightPresentationView`를 만든다. `BattleFightRenderer`는 이 뷰와 빌려 쓴 LibGDX 자원만 읽으며 전투 aggregate, catalog, scenario runtime을 알지 않는다. slot은 builder에서 한 번 결정되고 최종 view에 중복 index를 남기지 않는다.
+Fight 연출: mutable `FightPresentationState`를 매 frame 깊은 불변 snapshot으로 복사한 뒤 화면에서 이름·얼굴·avatar를 해석해 완성된 `FightPresentationView`를 만든다. `BattleFightRenderer`는 이 뷰와 빌려 쓴 LibGDX 자원만 읽으며 전투 aggregate, catalog, scenario runtime을 알지 않는다.
 
-전투 도메인의 첫 규칙 경계도 완성됐다. `BattleState` 호환 별칭을 제거하고, 이동·능력치·누적 확률과 난수 판정을 각각 `BattleMovementPlanner`, `BattleAttributeCalculator`, `BattleProbabilityResolver`로 옮겼다. resolver는 LibGDX나 화면을 모르며 `Battle`은 판정 순서만 조립한다. `sourceCharacterId`, `sourceBattleSlot` 같은 내부 모델 이름과 harm 계산 인자도 `characterId`, `battleSlot`, `resolvedHarm`으로 바로잡았으며 호환 alias는 두지 않았다.
-
-`Battlefield`는 active/퇴각 연출 유닛의 두 ordered collection과 점유, 숨김·복귀, topology snapshot을 소유한다. `Battle`은 이 컬렉션의 backing map을 더 이상 직접 변경하지 않으며 외부에는 구조 변경 불가능한 live view만 제공한다. `BattleUnitMemento`와 `BattleActionTransaction`은 계산 시점의 깊은 snapshot/rollback과 애니메이션 callback 시점의 단계별 commit을 맡는다. 다음 경계는 이 transaction 위에서 물리 공격 결과 계산과 적용을 `PhysicalCombatResolver`로 분리하는 것이다.
+전투 도메인: `BattleState` 호환 별칭을 제거하고 이동·능력치·누적 확률과 난수 판정을 각각 `BattleMovementPlanner`, `BattleAttributeCalculator`, `BattleProbabilityResolver`로 옮겼다. `Battlefield`는 active/퇴각 연출 유닛의 두 ordered collection과 점유, 숨김·복귀, topology snapshot을 소유한다. `BattleUnitMemento`와 `BattleActionTransaction`은 계산 시점의 깊은 snapshot/rollback과 애니메이션 callback 시점의 단계별 commit을 맡는다. 물리 전투는 `PhysicalDamageCalculator`, `PhysicalTargetResolver`, `PhysicalAttackAreaResolver`, `PhysicalCombatAccumulator`, `PhysicalCombatResolver`로, 마법은 `domain/battle/magic`으로, 턴 정산은 `domain/battle/settlement`와 `domain/battle/turn`으로 분리됐다.

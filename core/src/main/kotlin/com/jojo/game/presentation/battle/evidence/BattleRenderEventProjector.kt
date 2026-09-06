@@ -126,6 +126,11 @@ internal object BattleRenderEventProjector {
         dialogueBlendRoute: Boolean,
         winConditionRoute: Boolean,
     ): BattleRenderEventUnitView {
+        /**
+         * `size` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val size = if (input.spriteSource == BattleRenderEventProjectionSpriteSource.ATTACK) BOARD_TILE * 4f / 3f else BOARD_TILE
         return BattleRenderEventUnitView(
             x = tileLeft(input.visualX) + (BOARD_TILE - size) / 2f + input.offsetX,
@@ -144,7 +149,17 @@ internal object BattleRenderEventProjector {
         dialogueBlendRoute: Boolean,
         winConditionRoute: Boolean,
     ): String? {
+        /**
+         * `atlasUuid` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val atlasUuid = input.atlasUuid
+        /**
+         * `suffix` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val suffix = when (atlasUuid) {
             "31cc3c95-4d6e-4c10-848f-ef1ca165e78f" -> "850f3"
             "9eebca65-e81b-4ba4-ad61-7ac20d03661c" -> "f1ee0"
@@ -154,11 +169,21 @@ internal object BattleRenderEventProjector {
             else -> null
         }
         if (atlasUuid == null || suffix == null) return null
+        /**
+         * `atlasType` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val atlasType = when (input.spriteSource) {
             BattleRenderEventProjectionSpriteSource.ATTACK -> 0
             BattleRenderEventProjectionSpriteSource.MOVEMENT -> 1
             BattleRenderEventProjectionSpriteSource.SPECIAL -> 2
         }
+        /**
+         * `generatedFrameName` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val generatedFrameName = if (dialogueBlendRoute) 33632304 else {
             ((input.sourceY - 1).coerceAtLeast(0) / 50 shl 24) or (atlasType shl 16) or 12336
         }
@@ -185,8 +210,28 @@ internal object BattleRenderEventProjector {
     /** 타일 아래 좌표: 전장 기준 y 좌표와 타일 폭을 적용해 화면 y 좌표를 계산한다. */
     private fun tileBottom(y: Float, boardBottom: Float): Float = boardBottom - y * BOARD_TILE
 
+    /**
+     * `BOARD_LEFT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val BOARD_LEFT = -320f
+    /**
+     * `BOARD_BOTTOM` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val BOARD_BOTTOM = 1728f
+    /**
+     * `REWARD_BOARD_BOTTOM` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val REWARD_BOARD_BOTTOM = 1264f
+    /**
+     * `BOARD_TILE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private const val BOARD_TILE = 96f
 }

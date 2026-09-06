@@ -24,8 +24,14 @@ internal interface BattleCharacterRouteFixturePort {
 
 /** 전투 캐릭터 fixture 조정자: 경로 설치, 그리기 명령 계산, 증거 JSONL 조립을 화면 렌더링과 분리한다. */
 internal class BattleCharacterRouteFixtureCoordinator(
+    /** `controller` (BattleCharacterRouteFixtureController): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val controller: BattleCharacterRouteFixtureController = BattleCharacterRouteFixtureController(),
 ) {
+    /**
+     * `samples` (List<BattleCharacterRouteSample>): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var samples: List<BattleCharacterRouteSample> = emptyList()
 
     /** 경로 설치: 최초 유효 경로의 샘플 계획을 화면 포트가 제공한 실제 유닛과 결합한다. */

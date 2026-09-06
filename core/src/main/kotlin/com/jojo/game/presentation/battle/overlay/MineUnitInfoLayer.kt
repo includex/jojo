@@ -11,15 +11,50 @@ class MineUnitInfoLayer {
 
     /** 아군 유닛의 이름, 능력치, 장비·기기 행을 렌더링 값으로 제공한다. */
     data class View(
+        /**
+         * `name` (String, val level: Int, val post: String,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val name: String, val level: Int, val post: String,
+        /**
+         * `hp` (Int, val maxHp: Int, val mp: Int, val maxMp: Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val hp: Int, val maxHp: Int, val mp: Int, val maxMp: Int,
+        /**
+         * `exp` (Int, val maxExp: Int, val weaponExp: Int, val armorExp: Int,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val exp: Int, val maxExp: Int, val weaponExp: Int, val armorExp: Int,
+        /**
+         * `attached` (Boolean, val completionDelay: Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val attached: Boolean, val completionDelay: Float,
     )
 
+    /**
+     * `current` (View): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private lateinit var current: View
+    /**
+     * `completion` ((() -> Unit)?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var completion: (() -> Unit)? = null
 
+
+    /**
+     * `onCreate`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun onCreate(unit: BattleUnit, post: String, displayName: String = unit.name, completion: () -> Unit = {}): View {
         this.completion = completion
@@ -30,17 +65,42 @@ class MineUnitInfoLayer {
     }
 
 
+    /**
+     * `complete`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun complete() {
         if (!current.attached) return; current = current.copy(attached = false); completion?.invoke()
     }
 
 
+    /**
+     * `view`: 상태나 데이터를 조회한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun view() = current
 
 
+    /**
+     * `valueAnimation`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun valueAnimation(entries: List<InfoBaseValueAnimation.Value>) = InfoBaseValueAnimation(entries)
 }
+/**
+ * `MineUnitInfoRenderEvents`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 object MineUnitInfoRenderEvents {
+
+    /**
+     * `jsonl`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun jsonl(v: MineUnitInfoLayer.View): String {
         require(v.attached)
@@ -48,9 +108,19 @@ object MineUnitInfoRenderEvents {
         val l = RenderEventLog()
 
 
+        /**
+         * `s`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun s(path: String, type: String, x: Float, y: Float, w: Float, h: Float, a: String) =
             l.draw(p, "MineUnitInfoLayer", path, type, x, y, w, h, a)
 
+
+        /**
+         * `t`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun t(path: String, x: Float, y: Float, w: Float, h: Float = 54.4f, text: String) = l.draw(
             p,

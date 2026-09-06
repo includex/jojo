@@ -13,6 +13,11 @@ data class BattleGridRenderView(
     val map: BattleGridMapSurface?,
     val miniMap: BattleGridMiniMapView?,
 )
+/**
+ * `BattleGridMapSurface`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class BattleGridMapSurface(
     val texture: Texture,
     val left: Float,
@@ -26,6 +31,11 @@ data class BattleGridMapSurface(
     val framebufferWorldWidth: Float,
     val framebufferWorldHeight: Float,
 )
+/**
+ * `BattleGridMiniMapMarker`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class BattleGridMiniMapMarker(
     val texture: Texture,
     val x: Float,
@@ -44,10 +54,20 @@ data class BattleGridMiniMapView(
 
 /** BattleGridMapSurfaceRenderer: 전투 격자 지도 Surface 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(view: BattleGridRenderView) {
         view.map?.let(::drawMap)
         view.miniMap?.let(::drawMiniMap)
     }
+
+    /**
+     * `drawMap`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawMap(map: BattleGridMapSurface) {
         val sampler = map.cocos8Sampler
@@ -83,6 +103,11 @@ class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
             priorFilter?.let { (min, mag) -> map.texture.setFilter(min, mag) }
         }
     }
+
+    /**
+     * `drawMiniMap`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun drawMiniMap(view: BattleGridMiniMapView) {
         val offset = if (view.shown) 0f else 244f

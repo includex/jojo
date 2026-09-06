@@ -8,8 +8,17 @@ import com.jojo.game.domain.campaign.*
 /** GameDataCatalogUnitDomain: 유닛, 병과, 직위, 전투 정보, 캠페인 레벨 조회를 제공한다. */
 internal class GameDataCatalogUnitDomain(
     tables: GameDataTableBundle,
+    /**
+     * `combat` (GameDataCatalogCombatDomain,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val combat: GameDataCatalogCombatDomain,
 ) : GameDataCatalogTableDomain(tables) {
+    /**
+     * `skillsForUnit`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun skillsForUnit(characterId: Int, postsId: Int, campaign: CampaignState?): Map<Int, Int> {
         val basePosts = if (postsId >= 60) postsId else postsId - postsId % 3
         val upperPosts = if (postsId >= 60) postsId + 1 else basePosts + 3
@@ -30,6 +39,11 @@ internal class GameDataCatalogUnitDomain(
         return combat.mergeSkillEntries(postContributions + unitContributions)
     }
 
+    /**
+     * `unitProfile`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun unitProfile(id: Int): GameDataCatalog.UnitProfile? {
         val value = units.getOrNull(id) ?: return null
         return GameDataCatalog.UnitProfile(
@@ -40,38 +54,108 @@ internal class GameDataCatalogUnitDomain(
         )
     }
 
+    /**
+     * `criticalSpeechProfile`: 상태나 데이터를 조회한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun criticalSpeechProfile(
         unitId: Int,
         unit: com.badlogic.gdx.utils.JsonValue
     ): GameDataCatalog.CriticalSpeechProfile {
+        /**
+         * `custom` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val custom = unit.get("15")?.let(::stringValues).orEmpty().filter(String::isNotEmpty)
         if (custom.isNotEmpty()) return GameDataCatalog.CriticalSpeechProfile(custom, true)
+        /**
+         * `ids` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val ids = config.get("criIds")?.let(::intValues).orEmpty()
+        /**
+         * `configured` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val configured = config.get("criTxt")?.let(::stringValues).orEmpty()
+        /**
+         * `named` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val named = ids.indexOf(unitId)
         if (named >= 0) return GameDataCatalog.CriticalSpeechProfile(
             listOfNotNull(
                 configured.getOrNull(named)?.takeIf(String::isNotEmpty)
             ), false
         )
+        /**
+         * `group` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val group = configured.drop(unit.int("3") * 3 + 21).take(3).filter(String::isNotEmpty)
         return if (group.isNotEmpty()) GameDataCatalog.CriticalSpeechProfile(group, true)
         else GameDataCatalog.CriticalSpeechProfile(DEFAULT_CRITICAL_SPEECH, true, true)
     }
 
+    /**
+     * `allUnitNames`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun allUnitNames(): List<String> = units.indices.mapNotNull(::unitProfile).map(GameDataCatalog.UnitProfile::name)
+    /**
+     * `allUnitIds`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun allUnitIds(): List<Int> = units.indices.filter { unitProfile(it) != null }
+    /**
+     * `retreatText`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun retreatText(unitId: Int): String? =
         config.get("retreatTxt")?.get(unitId)?.asString()?.takeIf(String::isNotEmpty)
+
+    /**
+     * `allRetreatTexts`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun allRetreatTexts(): List<String> =
         generateSequence(config.get("retreatTxt")?.child) { it.next }.map { it.asString() }.toList()
 
+    /**
+     * `battleName`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun battleName(stageIndex: Int): String = shops.getOrNull(stageIndex)?.get("0")?.asString()?.trim().orEmpty()
+    /**
+     * `allBattleNames`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun allBattleNames(): List<String> =
         shops.mapNotNull { it.get("0")?.asString()?.trim()?.takeIf(String::isNotEmpty) }
 
+    /**
+     * `postsName`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun postsName(postsId: Int): String = posts.getOrNull(postsId)?.string("0") ?: ""
+    /**
+     * `armProfile`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun armProfile(id: Int): GameDataCatalog.ArmProfile? {
         val value = arms.getOrNull(id) ?: return null
         return GameDataCatalog.ArmProfile(
@@ -89,6 +173,11 @@ internal class GameDataCatalogUnitDomain(
             value.int("2")
         )
     }
+
+    /**
+     * `terrainLayer`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun terrainLayer(): TerrainLayer {
         val terrain = generateSequence(gameConfig.get("terrain")?.child) { it.next }.mapIndexed { id, value ->
@@ -108,12 +197,27 @@ internal class GameDataCatalogUnitDomain(
         })
     }
 
+    /**
+     * `battleProfile`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun battleProfile(unitId: Int, scriptLevel: Int, postsOverride: Int?): GameDataCatalog.BattleProfile? {
         val unit = unitProfile(unitId) ?: return null
         val level = if (scriptLevel > 0) scriptLevel + 1 else unit.level
         val finalPosts = postsOverride ?: turnPosts(unit.posts, level, 2)
         val post = posts.getOrNull(finalPosts)
+        /**
+         * `bonus`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun bonus(attribute: String) = post?.get(attribute)?.asInt() ?: 0
+        /**
+         * `ability`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun ability(raw: Int, attribute: String) = raw + (abilityPhase(raw) + bonus(attribute)).floorDiv(2) * level
         val arm = armProfile(if (finalPosts < 60) finalPosts / 3 else finalPosts - 40) ?: return null
         return GameDataCatalog.BattleProfile(
@@ -134,12 +238,27 @@ internal class GameDataCatalogUnitDomain(
                 .filter { magic -> combat.magicLearnLevel(magic.id, finalPosts)?.let { level >= it } == true })
     }
 
+    /**
+     * `unitExperienceLimit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun unitExperienceLimit(level: Int): Int = (config.get("unit")?.getInt("expLimit", 100) ?: 100) +
             (config.get("transfer")
                 ?.let { generateSequence(it.child) { node -> node.next }.map { node -> node.asInt() }.toList() }
                 .orEmpty().take(2).count { level >= it } * 25)
 
+    /**
+     * `unitLevelLimit`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun unitLevelLimit(): Int = config.get("unit")?.getInt("lvLimit", 50) ?: 50
+    /**
+     * `unitLevelGrowth`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun unitLevelGrowth(unitId: Int, postsId: Int, campaign: CampaignState?): LinkedHashMap<Int, Int> {
         val profile = unitProfile(unitId) ?: return linkedMapOf()
         val post = posts.getOrNull(postsId)
@@ -157,6 +276,11 @@ internal class GameDataCatalogUnitDomain(
         result[7] = post?.get("8")?.asInt() ?: 0; result[8] = post?.get("9")?.asInt() ?: 0; return result
     }
 
+    /**
+     * `unitLevelDerivedAttributes`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun unitLevelDerivedAttributes(
         unitId: Int,
         postsId: Int,
@@ -164,8 +288,23 @@ internal class GameDataCatalogUnitDomain(
         mine: Boolean,
         campaign: CampaignState?
     ): LinkedHashMap<Int, Int> {
+        /**
+         * `profile` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val profile = unitProfile(unitId) ?: return linkedMapOf()
+        /**
+         * `growth` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val growth = unitLevelGrowth(unitId, postsId, campaign)
+        /**
+         * `result` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val result = linkedMapOf<Int, Int>()
         listOf(
             profile.attack,
@@ -174,14 +313,29 @@ internal class GameDataCatalogUnitDomain(
             profile.critical,
             profile.morale
         ).forEachIndexed { index, base ->
+            /**
+             * `add` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val add = if (mine) campaign?.unitAttribute(unitId, 39 + index, 0) ?: 0 else 0; result[2 + index] =
             base + growth.getValue(2 + index) * level + add.coerceAtLeast(0)
         }
         listOf(profile.maxHitPoints, profile.maxMagicPoints).forEachIndexed { index, base ->
+            /**
+             * `add` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val add = if (mine) campaign?.unitAttribute(unitId, 44 + index, 0) ?: 0 else 0; result[7 + index] =
             base + (growth.getValue(7 + index) * level + add).coerceAtLeast(0)
         }; return result
     }
+
+    /**
+     * `promotionTarget`: 상태나 데이터를 조회한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     fun promotionTarget(postsId: Int, level: Int): Int? {
         if (postsId !in 0 until 60 || postsId % 3 !in 0..1) return null
@@ -190,10 +344,25 @@ internal class GameDataCatalogUnitDomain(
         return (postsId + 1).takeIf { level >= threshold }
     }
 
+    /**
+     * `configTopLevelKeys`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun configTopLevelKeys(): String =
         generateSequence(config.child) { it.next }.take(20).joinToString { "${it.name ?: "#"}:${it.type()}" }
 
+    /**
+     * `abilityPhase`: 조건과 입력 상태를 검증한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun abilityPhase(raw: Int): Int = 5 - listOf(127, 45, 35, 25).count { raw < it }
+    /**
+     * `turnPosts`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun turnPosts(posts: Int, level: Int, armLimit: Int): Int {
         if (posts >= 60) return posts
         val eligible = if (level >= 30) 2 else if (level >= 15) 1 else 0; return posts - posts % 3 + maxOf(
@@ -203,6 +372,11 @@ internal class GameDataCatalogUnitDomain(
     }
 
     private companion object {
+        /**
+         * `DEFAULT_CRITICAL_SPEECH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val DEFAULT_CRITICAL_SPEECH = listOf(
             "음... 정말 한 방에 쓰러뜨릴 거야!",
             "길 막지 마! 길 막지 마!",

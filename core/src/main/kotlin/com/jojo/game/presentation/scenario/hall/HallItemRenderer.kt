@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
-/** HallItemView: 거점 Item 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
+/** HallItemView: 아이템 패널의 분류·행·선택·수량 정보를 renderer에 전달한다. */
 internal data class HallItemView(
     val itemName: String,
     val category: Int,
@@ -30,14 +30,34 @@ internal data class HallItemView(
     val itemIconTexture: Texture?,
 )
 
-/** HallItemRenderer: 거점 Item 렌더러이며, 시나리오 화면에 표시할 요소를 그린다. */
+/** HallItemRenderer: 보유 아이템 목록과 선택한 항목의 설명·수량 영역을 그린다. */
 internal object HallItemRenderer {
+    /**
+     * `draw`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun draw(assets: ScenarioSceneAssets, batch: SpriteBatch, view: HallItemView) {
+        /**
+         * `patch`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun patch(texture: Texture?, inset: Int = 3): NinePatch? =
             texture?.let { NinePatch(it, inset, inset, inset, inset) }
 
+        /**
+         * `rect`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun rect(texture: Texture?, x: Float, y: Float, w: Float, h: Float) =
             patch(texture)?.draw(batch, x * SCALE, y * SCALE, w * SCALE, h * SCALE)
+
+        /**
+         * `label`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun label(value: String, x: Float, y: Float, w: Float, center: Boolean = false) {
             assets.bodyFont.color = Color.BLACK
@@ -61,6 +81,11 @@ internal object HallItemRenderer {
             label(view.level, 723.411f, 658.483f, 60f)
             label("Exp", 420.186f, 604.8f, 68.93f)
             rect(view.box2Texture, 500.965f, 614.855f, 204f, 24f)
+            /**
+             * `progress` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val progress = if (view.experienceLimit == 0) 0f else view.experience.toFloat() / view.experienceLimit
             rect(view.box2Texture, 502.965f, 616.855f, 200f * progress, 20f)
             label(
@@ -91,6 +116,11 @@ internal object HallItemRenderer {
         view.titleTexture?.let { batch.draw(it, 871.686f * SCALE, 664.273f * SCALE, 245f * SCALE, 45f * SCALE) }
         label("장착 가능한 부대입니다.", 804.516f, 661.573f, 379.34f, true)
         view.postNames.take(36).chunked(3).forEachIndexed { row, names ->
+            /**
+             * `sy` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val sy = 609.55f - row * 52f
             rect(if (row % 2 == 0) view.box2Texture else view.box1Texture, 772.186f, sy, 444f, 50f)
             names.forEachIndexed { col, name -> label(name, 780.186f + col * 143f, sy + 4.84f, 134f, true) }
@@ -112,6 +142,11 @@ internal object HallItemRenderer {
         }
         batch.color = Color.WHITE
     }
+
+    /**
+     * `SCALE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     private const val SCALE = .86f
 }

@@ -68,6 +68,11 @@ internal data class BattleUnitMemento(
 
     companion object {
 
+        /**
+         * `capture`: 타입의 핵심 동작을 수행한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun capture(unit: BattleUnit): BattleUnitMemento = BattleUnitMemento(
             unit = unit,
             tileX = unit.tileX,

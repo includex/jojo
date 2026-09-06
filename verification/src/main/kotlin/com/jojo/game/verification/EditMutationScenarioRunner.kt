@@ -49,6 +49,11 @@ object EditBattleMutationScenario {
 
         output += snapshot("create")
         scenario.events.forEach { event ->
+            /**
+             * `parts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val parts = event.split(':')
             when (parts[0]) {
                 "weather" -> edit.selectWeather(parts[1].toInt())
@@ -139,6 +144,11 @@ object EditGlobalMutationScenario {
 
         output += snapshot("create")
         scenario.events.forEach { event ->
+            /**
+             * `parts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val parts = event.split(':')
             when (parts[0]) {
                 "ambition" -> flow.endEdit(EditGlobalSourceOracle.Field.AMBITION, parts[1].toInt())
@@ -192,6 +202,11 @@ object EditRosterMutationScenario {
 
         output += snapshot("create")
         scenario.events.forEach { event ->
+            /**
+             * `parts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val parts = event.split(':')
             if (parts[2] == "2") apply(flow.button(parts[1].toInt()))
             output += snapshot(event)

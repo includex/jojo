@@ -17,7 +17,17 @@ internal class BattleMagickRouteFixtureController {
     ): State? {
         if (route == null || installed) return null
         installed = true
+        /**
+         * `list` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val list = MagicUiList(MP, MAX_MP, magics(), emptyMap())
+        /**
+         * `info` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val info = if (route == RuntimeBattleRoute.MAGICK_DETAIL) {
             list.start(DETAIL_INDEX)
             list.tick()?.let(::MagicInfoLayer)
@@ -29,7 +39,17 @@ internal class BattleMagickRouteFixtureController {
 
     /** 마법 fixture 화면 상태: 실제 렌더링과 입력 처리가 이어서 사용할 목록 및 상세 레이어다. */
     data class State(
+        /**
+         * `list` (MagicUiList,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val list: MagicUiList,
+        /**
+         * `info` (MagicInfoLayer?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val info: MagicInfoLayer?,
     )
 

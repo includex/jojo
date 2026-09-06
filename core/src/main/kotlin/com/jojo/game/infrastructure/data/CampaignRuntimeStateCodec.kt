@@ -78,6 +78,11 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
         root.get("ending")?.asInt()?.let { state.applyInfoTransfer(22, it.toString()) }
     }
 
+    /**
+     * `runtimeJson`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun runtimeJson(): String = buildString {
         append('{')
         append("\"globals\":").append(intMap(state.globalVariables.mapValues { it.value.toString().toIntOrNull() ?: 0 }))
@@ -113,8 +118,18 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
         append('}')
     }
 
+    /**
+     * `intMap`: 입력을 규칙에 따라 계산·변환한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     private fun intMap(values: Map<Int, Int>): String =
         values.entries.joinToString(",", "{", "}") { (key, value) -> "${quote(key.toString())}:$value" }
+
+    /**
+     * `com`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun com.badlogic.gdx.utils.JsonValue?.children(): Sequence<com.badlogic.gdx.utils.JsonValue> = sequence {
         var value = this@children?.child
@@ -124,9 +139,19 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
         }
     }
 
+    /**
+     * `com`: 타입의 핵심 동작을 수행한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun com.badlogic.gdx.utils.JsonValue?.intEntries(): List<Pair<Int, Int>> = children().mapNotNull { entry ->
         entry.name.toIntOrNull()?.let { id -> id to entry.asInt() }
     }.toList()
+
+    /**
+     * `quote`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
 
     private fun quote(value: String): String = buildString {
         append('"')

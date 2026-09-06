@@ -7,21 +7,78 @@ import com.jojo.game.domain.scenario.*
 
 /** 시나리오 지연과 외부 연출 완료 시점을 조율한다. */
 internal class ScenarioDelayCoordinator(
+    /**
+     * `stage` (ScenarioStage,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val stage: ScenarioStage,
+    /**
+     * `dialogueCoordinator` (ScenarioDialogueCoordinator,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val dialogueCoordinator: ScenarioDialogueCoordinator,
+    /**
+     * `modalController` (ScenarioModalController,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val modalController: ScenarioModalController,
+    /**
+     * `getState` (() -> PlaybackState,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val getState: () -> PlaybackState,
+    /**
+     * `onSetState` ((PlaybackState) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onSetState: (PlaybackState) -> Unit,
+    /**
+     * `onResumeExecution` (() -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onResumeExecution: () -> Unit,
+    /**
+     * `getDelayRemainingSeconds` (() -> Float,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val getDelayRemainingSeconds: () -> Float,
+    /**
+     * `onSetDelayRemainingSeconds` ((Float) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onSetDelayRemainingSeconds: (Float) -> Unit,
 ) {
+    /**
+     * `delayRemainingSeconds` (Float get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val delayRemainingSeconds: Float get() = getDelayRemainingSeconds()
+    /**
+     * `pendingBattleBackgroundLoadIndex` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var pendingBattleBackgroundLoadIndex: Int? = null
         private set
+    /**
+     * `externalFightPresentation` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     var externalFightPresentation: Boolean = false
 
+    /**
+     * `hasPendingBattleBackgroundLoad` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val hasPendingBattleBackgroundLoad: Boolean get() = pendingBattleBackgroundLoadIndex != null
+
+    /**
+     * `requestedBattleBackgroundMapIndex` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     val requestedBattleBackgroundMapIndex: Int
         get() = pendingBattleBackgroundLoadIndex ?: stage.battleMapIndex

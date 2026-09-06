@@ -5,6 +5,11 @@ import com.badlogic.gdx.utils.Align
 
 /** HallEquipConfirmationRenderPlan: 거점 Equip Confirmation 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
 internal object HallEquipConfirmationRenderPlan {
+    /**
+     * `commands`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun commands(view: HallEquipConfirmationView): List<HallEquipConfirmationDrawCommand> = buildList {
         add(HallEquipConfirmationDrawCommand(HallEquipConfirmationDrawKind.OVERLAY))
         patch("maps/ui/unit-info/bg1.png", 483.686f, 234.5f, 521f, 331f)
@@ -34,6 +39,11 @@ internal object HallEquipConfirmationRenderPlan {
         }
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallEquipConfirmationDrawCommand>.patch(
         asset: String, x: Float, y: Float, width: Float, height: Float,
     ) {
@@ -47,6 +57,11 @@ internal object HallEquipConfirmationRenderPlan {
         ))
     }
 
+    /**
+     * `MutableList`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun MutableList<HallEquipConfirmationDrawCommand>.text(
         value: String,
         x: Float,
@@ -57,12 +72,22 @@ internal object HallEquipConfirmationRenderPlan {
         add(HallEquipConfirmationDrawCommand(HallEquipConfirmationDrawKind.TEXT, text = value, x = x, y = y, width = width, color = color))
     }
 
+    /**
+     * `valueBoxes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val valueBoxes = listOf(
         879.977f to 317f, 638.686f to 317f,
         879.977f to 376f, 638.686f to 376f,
         879.977f to 436f, 638.686f to 436f,
         879.977f to 495f, 638.686f to 495f,
     )
+    /**
+     * `statLabels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val statLabels = listOf(
         Triple("이동력", 760.093f, 316.707f), Triple("사기", 507.393f, 316.707f),
         Triple("폭발력", 760.093f, 375.707f), Triple("방어력", 510.093f, 375.707f),
@@ -70,6 +95,11 @@ internal object HallEquipConfirmationRenderPlan {
         Triple("MP", 751.993f, 494.707f), Triple("HP", 502.208f, 494.707f),
     )
 }
+
+/**
+ * `HallEquipConfirmationDrawCommand`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
 
 internal data class HallEquipConfirmationDrawCommand(
     val kind: HallEquipConfirmationDrawKind,
@@ -82,5 +112,15 @@ internal data class HallEquipConfirmationDrawCommand(
     val color: HallEquipConfirmationTextColor = HallEquipConfirmationTextColor.BLACK,
 )
 
+/**
+ * `HallEquipConfirmationDrawKind`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallEquipConfirmationDrawKind { OVERLAY, PATCH, TEXT }
+/**
+ * `HallEquipConfirmationTextColor`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal enum class HallEquipConfirmationTextColor { BLACK, GREEN, RED }

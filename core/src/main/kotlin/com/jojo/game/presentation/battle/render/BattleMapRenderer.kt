@@ -16,9 +16,29 @@ data class BattleMapView(
     val terrainImpacts: List<BattleMapTerrainImpact>,
     val harmNumbers: List<BattleMapHarmNumber>,
 )
+/**
+ * `BattleMapSelection`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class BattleMapSelection(val x: Int, val y: Int, val frame: String)
+/**
+ * `BattleMapCursor`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class BattleMapCursor(val x: Int, val y: Int)
+/**
+ * `BattleMapTerrainImpact`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class BattleMapTerrainImpact(val x: Int, val y: Int, val value: Int)
+/**
+ * `BattleMapHarmNumber`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 data class BattleMapHarmNumber(
     val x: Float,
     val y: Float,
@@ -45,14 +65,32 @@ data class BattleMapRenderEvent(
 
 /** 전술 맵에 공통으로 사용하는 오버레이 그리기만 담당합니다. */
 class BattleMapRenderer(
+    /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
+    /** `font` (BitmapFont): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val font: BitmapFont,
+    /** `assets` (BattleMapRendererAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleMapRendererAssets,
 ) {
     /** 네 개 그리기 단계에서 사용하는 고정 명령 순서입니다. */
     companion object {
+        /**
+         * `TERRAIN_COLOR` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private val TERRAIN_COLOR = Color(0.94f, 0.97f, 1f, 0.9f)
+        /**
+         * `MP_COLOR` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         private val MP_COLOR = Color(224f / 255f, 224f / 255f, 0f, 1f)
+
+        /**
+         * `orderedEvents`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
         fun orderedEvents(view: BattleMapView): List<BattleMapRenderEvent> = buildList {
             view.selectionTiles.forEach {
@@ -89,6 +127,11 @@ class BattleMapRenderer(
         }
     }
 
+    /**
+     * `drawSelection`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun drawSelection(view: BattleMapView) {
         view.selectionTiles.forEach { tile ->
             assets.selectionTextures[tile.frame]?.let { texture ->
@@ -106,6 +149,11 @@ class BattleMapRenderer(
         batch.color = Color.WHITE
     }
 
+    /**
+     * `drawTerrainImpacts`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun drawTerrainImpacts(view: BattleMapView) {
         if (view.terrainImpacts.isEmpty()) return
         font.data.setScale(24f / 26f)
@@ -121,6 +169,11 @@ class BattleMapRenderer(
         font.data.setScale(1f)
         font.color = Color.WHITE
     }
+
+    /**
+     * `drawHarmNumbers`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun drawHarmNumbers(view: BattleMapView) {
         if (view.harmNumbers.isEmpty()) return
@@ -138,6 +191,11 @@ class BattleMapRenderer(
         font.color = Color.WHITE
     }
 
+    /**
+     * `drawCursor`: 화면 표시 상태를 렌더링한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun drawCursor(view: BattleMapView) {
         val cursor = view.cursor ?: return
         assets.cursorTexture?.let { texture ->
@@ -152,6 +210,16 @@ class BattleMapRenderer(
         }
     }
 
+    /**
+     * `tileBottom`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun tileBottom(view: BattleMapView, y: Int): Float = view.boardBottom - y * view.tileSize
+    /**
+     * `tileBottom`: 입력을 규칙에 따라 계산·변환한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun tileBottom(view: BattleMapView, y: Float): Float = view.boardBottom - y * view.tileSize
 }

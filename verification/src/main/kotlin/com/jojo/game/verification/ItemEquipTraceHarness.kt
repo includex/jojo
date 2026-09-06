@@ -16,12 +16,47 @@ object ItemEquipTraceHarness {
 
     /** State: 검증 실행의 현재 상태를 표현하는 타입이다. */
     private class State {
+        /**
+         * `dead` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var dead = false
+        /**
+         * `sel` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var sel: Int? = null
+        /**
+         * `bags` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var bags = emptyList<Int>()
+        /**
+         * `buttons` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var buttons = emptyList<Boolean>()
+        /**
+         * `layers` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val layers = mutableListOf<String>()
+        /**
+         * `events` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val events = mutableListOf<String>()
+        /**
+         * `toasts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val toasts = mutableListOf<String>()
 
         /** layer: 추적 결과에 레이어 생성 이벤트를 기록한다. */
@@ -140,6 +175,11 @@ object ItemEquipTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         require(args.size == 2) { "fixture output" }
         val input = Files.readString(Path.of(args[0]))

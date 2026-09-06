@@ -11,6 +11,11 @@ import com.jojo.game.presentation.battle.timeline.BattlePhysicalPresentationTime
 
 import com.badlogic.gdx.utils.JsonValue
 
+/**
+ * `ScenarioTacticalEnvironment` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class ScenarioTacticalEnvironment(
     val stage: ScenarioStage,
     val battleContext: ScenarioBattleScriptContext,
@@ -21,10 +26,20 @@ internal data class ScenarioTacticalEnvironment(
     val headReference: (JsonValue, Frame) -> HeadReference?,
 )
 
+/**
+ * `ScenarioHandledCall` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
+ * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
+ */
+
 internal data class ScenarioHandledCall(val value: Any?)
 
 /** ScenarioTacticalActionDispatcher: 이동·공격·지형물 등 전술 스크립트 호출을 ScenarioStage 변경으로 변환한다. */
 internal object ScenarioTacticalActionDispatcher {
+
+    /**
+     * `dispatch`: 조건과 입력 상태를 검증한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     fun dispatch(
         path: String,
@@ -66,11 +81,41 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.setUnitStatus" -> {
+                /**
+                 * `values` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val values = env.stage.setUnitStatuses(args.firstOrNull().asList())
+                /**
+                 * `presents` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val presents = values.any { change ->
+                    /**
+                     * `hp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val hp = (change["hp"] as? Number)?.toInt() ?: 0
+                    /**
+                     * `mp` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val mp = (change["mp"] as? Number)?.toInt() ?: 0
+                    /**
+                     * `status` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val status = (change["status"] as? Number)?.toInt() ?: -1
+                    /**
+                     * `hiddenStatuses` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val hiddenStatuses = change["hStatus"].asList()
                     (hp != 0 && kotlin.math.abs(hp) != 255) ||
                             (mp != 0 && kotlin.math.abs(mp) != 255) ||
@@ -84,8 +129,23 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.setFire" -> {
+                /**
+                 * `enabled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val enabled = args.firstOrNull().asBooleanValue()
+                /**
+                 * `x` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val x = args.intAt(1)
+                /**
+                 * `y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val y = args.intAt(2)
                 env.stage.setFire(enabled, x, y)
                 if (env.externalBattlePresentation && enabled && env.stage.battleDrawRequested) {
@@ -96,9 +156,24 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.setFires" -> {
+                /**
+                 * `enabled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val enabled = args.firstOrNull().asBooleanValue()
+                /**
+                 * `positions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val positions = args.getOrNull(1).asList()
                 env.stage.setFires(enabled, positions)
+                /**
+                 * `last` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val last = positions.lastOrNull().asList()
                 if (env.externalBattlePresentation && enabled && env.stage.battleDrawRequested && last.size >= 2) {
                     env.stage.requestMapPresentation(
@@ -114,10 +189,30 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.playMagicMeff" -> {
+                /**
+                 * `x` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val x = args.intAt(0)
+                /**
+                 * `y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val y = args.intAt(1)
+                /**
+                 * `raw` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val raw = args.intAt(2)
                 if (env.externalBattlePresentation) {
+                    /**
+                     * `magicCallId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val magicCallId = raw.takeIf { it >= 100 && it != 255 }?.minus(100)
                     env.stage.requestMapPresentation(
                         ScenarioMapPresentationRequest(
@@ -133,6 +228,11 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.attackAction" -> {
+                /**
+                 * `flags` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val flags = args.intAt(2)
                 env.stage.attackAction(args.intAt(0), args.intAt(1), flags)
                 env.suspendFor(BattlePhysicalPresentationTimeline.scriptedAttackDuration(flags))
@@ -140,8 +240,23 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.setObjects" -> {
+                /**
+                 * `enabled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val enabled = args.firstOrNull().asBooleanValue()
+                /**
+                 * `terrain` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val terrain = args.getOrNull(1).asInt()
+                /**
+                 * `positions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val positions = args.getOrNull(2).asList()
                 env.stage.setMapObjects(enabled, terrain, positions)
                 if (enqueueMapObjectsPresentation(
@@ -159,8 +274,23 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.setObject" -> {
+                /**
+                 * `enabled` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val enabled = args.firstOrNull().asBooleanValue()
+                /**
+                 * `terrain` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val terrain = args.getOrNull(1).asInt()
+                /**
+                 * `positions` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val positions =
                     listOf(listOf(args.getOrNull(2).asInt(), args.getOrNull(3).asInt(), args.getOrNull(4).asInt()))
                 env.stage.setMapObjects(enabled = enabled, terrainId = terrain, positions = positions)
@@ -209,6 +339,11 @@ internal object ScenarioTacticalActionDispatcher {
             "stage.resumeCtrl" -> return ScenarioHandledCall(Unit)
             "stage.setRectUnitHide" -> {
                 if (env.externalBattlePresentation) {
+                    /**
+                     * `count` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val count = env.stage.requestRectUnitHide(
                         args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3), args.intAt(4),
                         args.getOrNull(5)?.asInt() ?: 0,
@@ -242,6 +377,11 @@ internal object ScenarioTacticalActionDispatcher {
 
             "stage.showUnits" -> {
                 args.firstOrNull().asList().forEach { values ->
+                    /**
+                     * `entry` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val entry = values.asList()
                     if (entry.size >= 3) env.stage.apply(
                         ScenarioCommand.ShowUnit(
@@ -256,8 +396,23 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.unitsMove" -> {
+                /**
+                 * `requests` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val requests = args.firstOrNull().asList().mapNotNull { values ->
+                    /**
+                     * `entry` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val entry = values.asList()
+                    /**
+                     * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val unit = entry.firstOrNull() as? ScenarioUnitReference ?: return@mapNotNull null
                     if (entry.size >= 3) {
                         ScenarioCommand.MoveUnit(
@@ -268,12 +423,22 @@ internal object ScenarioTacticalActionDispatcher {
                         )
                     } else null
                 }
+                /**
+                 * `duration` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val duration = env.stage.moveUnits(requests)
                 if (duration > 0f) env.suspendFor(duration)
                 return ScenarioHandledCall(null)
             }
 
             "stage.unit" -> {
+                /**
+                 * `value` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val value = args.firstOrNull().asInt()
                 return ScenarioHandledCall(env.resolveStageUnitReference(value, args.getOrNull(1)?.asInt() ?: 0))
             }
@@ -282,6 +447,11 @@ internal object ScenarioTacticalActionDispatcher {
             else -> return ScenarioUnitActionDispatcher.dispatch(path, node, args, frame, env)
         }
     }
+
+    /**
+     * `enqueueMapObjectsPresentation`: 화면 표시 상태를 렌더링한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
 
     private fun enqueueMapObjectsPresentation(
         stage: ScenarioStage,
@@ -292,7 +462,17 @@ internal object ScenarioTacticalActionDispatcher {
         soundOnFirstOnly: Boolean,
     ): Boolean {
         if (!externalBattlePresentation || !stage.battleDrawRequested) return false
+        /**
+         * `objects` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val objects = positions.mapNotNull { raw ->
+            /**
+             * `values` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val values = raw.asList()
             if (values.size < 3) null else ScenarioScriptPresentationRequest.MapObjects.Object(
                 objectId = values[0].asInt(),

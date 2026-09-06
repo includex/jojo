@@ -6,14 +6,36 @@ import com.jojo.game.presentation.battle.route.BattlePresentationConfiguration
 
 /** 전투 캡처 fixture 조정기: 대사·모달·액션·선택 영역 캡처의 시간 정책과 화면 어댑터 호출을 한곳에서 관리한다. */
 internal class BattleCaptureFixtureCoordinator(
+    /** `configuration` (BattleCaptureFixtureConfiguration): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val configuration: BattleCaptureFixtureConfiguration,
+    /** `routeConfiguration` (BattlePresentationConfiguration): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val routeConfiguration: BattlePresentationConfiguration,
 ) {
     /** 캡처 프레임 입력: 현재 경과 시간과 대사 표시 상태를 화면에서 전달한다. */
     data class Frame(
+        /**
+         * `elapsed` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val elapsed: Float,
+        /**
+         * `dialogueState` (PlaybackState,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueState: PlaybackState,
+        /**
+         * `dialogueVisible` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueVisible: Boolean,
+        /**
+         * `dialogueComplete` (Boolean,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val dialogueComplete: Boolean,
     )
 
@@ -32,7 +54,17 @@ internal class BattleCaptureFixtureCoordinator(
         fun dialogueSpeakerId(): String?
     }
 
+    /**
+     * `timeline` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private val timeline = BattleCaptureFixtureTimeline(configuration, routeConfiguration)
+    /**
+     * `modalOpeningSayDismissed` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     private var modalOpeningSayDismissed = false
 
     /** fixture 갱신: 현재 프레임에서 필요한 컷신·대사·모달 진행을 화면 어댑터에 순서대로 요청한다. */
@@ -88,6 +120,11 @@ internal class BattleCaptureFixtureCoordinator(
     )
 
     private companion object {
+        /**
+         * `MODAL_DISMISS_AT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val MODAL_DISMISS_AT = .1f
     }
 }

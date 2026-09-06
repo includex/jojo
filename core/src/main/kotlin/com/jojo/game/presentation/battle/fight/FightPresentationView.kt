@@ -2,6 +2,11 @@
 package com.jojo.game.presentation.battle.fight
 
 import com.jojo.game.presentation.battle.*
+/**
+ * `FightFighterSnapshot`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal data class FightFighterSnapshot(
     val characterId: Int?,
     val created: Boolean,
@@ -17,6 +22,11 @@ internal data class FightSpeechSnapshot(
     val active: Boolean,
     val renderedText: String,
 )
+/**
+ * `FightPresentationSnapshot`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal data class FightPresentationSnapshot(
     val backgroundIndex: Int,
     val introBackgroundActive: Boolean,
@@ -30,6 +40,11 @@ internal data class FightPresentationSnapshot(
     val mineSpeech: FightSpeechSnapshot,
     val enemySpeech: FightSpeechSnapshot,
 )
+/**
+ * `FightUnitRenderIdentity`: 관련 상태와 동작을 묶는 class다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal data class FightUnitRenderIdentity(
     val name: String?,
     val introName: String?,
@@ -66,12 +81,22 @@ internal data class FightPresentationView(
     val enemy: FightFighterView,
 ) {
 
+    /**
+     * `fighterAt`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun fighterAt(slot: Int): FightFighterView = when (slot) {
         mine.slot -> mine
         enemy.slot -> enemy
         else -> error("FightLayer slot must be 0 or 1: $slot")
     }
 }
+
+/**
+ * `FightPresentationState`: 화면 표시 상태를 렌더링한다.
+ * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
 
 internal fun FightPresentationState.renderSnapshot(): FightPresentationSnapshot = FightPresentationSnapshot(
     backgroundIndex = backgroundIndex,
@@ -87,6 +112,11 @@ internal fun FightPresentationState.renderSnapshot(): FightPresentationSnapshot 
     enemySpeech = enemySpeech.renderSnapshot(),
 )
 
+/**
+ * `FightUnitPresentation`: 화면 표시 상태를 렌더링한다.
+ * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
+
 private fun FightUnitPresentation.renderSnapshot() = FightFighterSnapshot(
     characterId = characterId,
     created = created,
@@ -97,17 +127,37 @@ private fun FightUnitPresentation.renderSnapshot() = FightFighterSnapshot(
     zIndex = zIndex,
 )
 
+/**
+ * `FightSpeechPresentation`: 화면 표시 상태를 렌더링한다.
+ * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+ */
+
 private fun FightSpeechPresentation.renderSnapshot() = FightSpeechSnapshot(
     active = active,
     renderedText = renderedText,
 )
+/**
+ * `FightPresentationViewBuilder`: 관련 상태와 동작을 묶는 object다.
+ * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+ */
+
 internal object FightPresentationViewBuilder {
+    /**
+     * `build`: 객체나 결과를 생성한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     fun build(
         snapshot: FightPresentationSnapshot,
         mineIdentity: FightUnitRenderIdentity,
         enemyIdentity: FightUnitRenderIdentity,
     ): FightPresentationView {
         require(snapshot.mineIndex in 0..1) { "FightLayer mine slot must be 0 or 1: ${snapshot.mineIndex}" }
+        /**
+         * `fighter`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun fighter(
             side: FightSide,
             slot: Int,

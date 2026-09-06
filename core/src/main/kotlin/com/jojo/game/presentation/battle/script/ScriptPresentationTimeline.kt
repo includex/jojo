@@ -10,22 +10,82 @@ internal class ScriptPresentationTimeline {
 
     /** Snapshot: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
     data class Snapshot(
+        /**
+         * `request` (ScenarioScriptPresentationRequest,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val request: ScenarioScriptPresentationRequest,
+        /**
+         * `phase` (Phase,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val phase: Phase,
+        /**
+         * `startedAt` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val startedAt: Float,
+        /**
+         * `endsAt` (Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val endsAt: Float,
+        /**
+         * `battleUnitId` (String?,): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val battleUnitId: String?,
     )
 
     /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
     sealed interface Effect {
+        /**
+         * `FinishUnitAction`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class FinishUnitAction(val battleUnitId: String) : Effect
+        /**
+         * `PlayGetItemSound`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object PlayGetItemSound : Effect
+        /**
+         * `PresentItemMessage`: 관련 상태와 동작을 묶는 class다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data class PresentItemMessage(val message: String) : Effect
+        /**
+         * `DismissUnitInfo`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object DismissUnitInfo : Effect
+        /**
+         * `ResumeScript`: 관련 상태와 동작을 묶는 object다.
+         * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+         */
+
         data object ResumeScript : Effect
     }
+    /**
+     * `Advance`: 관련 상태와 동작을 묶는 class다.
+     * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
+     */
+
     data class Advance(val effects: List<Effect>, val acceptsNewRequest: Boolean)
+
+    /**
+     * `active` (Snapshot?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     private var active: Snapshot? = null
 
@@ -103,6 +163,11 @@ internal class ScriptPresentationTimeline {
     }
 
     private companion object {
+        /**
+         * `ITEM_ICON_DURATION` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         const val ITEM_ICON_DURATION = .8f
     }
 }

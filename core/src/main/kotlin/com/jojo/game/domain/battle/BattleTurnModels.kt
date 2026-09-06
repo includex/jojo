@@ -20,6 +20,11 @@ data class RoundAdvance(val completedRound: Int, val round: Int)
 
 /** WeatherTransition: 라운드 전환 중 날씨 변화 전후 값을 보관하고, 실제 변경 여부를 제공한다. */
 data class WeatherTransition(val previous: BattleWeather, val current: BattleWeather) {
+    /**
+     * `changed` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
     val changed: Boolean get() = previous != current
 }
 

@@ -18,39 +18,185 @@ import com.jojo.game.presentation.battle.unit.UnitSpriteSource
 
 /** BattleActorEffectViewComposer: live Screen 상태를 renderer가 소비할 actor·effect·say-marker view로 조립한다. */
 internal class BattleActorEffectViewComposer(
+    /** `port` (Port): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val port: Port,
 ) {
     /** Port: composer가 필요한 live unit, frame, terrain, animation, asset 조회만 노출한다. */
     internal interface Port {
+        /**
+         * `boardLeft`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun boardLeft(): Float
+        /**
+         * `boardBottom`: 입력을 규칙에 따라 계산·변환한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun boardBottom(): Float
+        /**
+         * `tileSize`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun tileSize(): Float
+        /**
+         * `animationClock`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun animationClock(): Float
+        /**
+         * `stateEffectAnimationClock`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun stateEffectAnimationClock(): Float
+        /**
+         * `dialogueBlendRoute`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun dialogueBlendRoute(): Boolean
+        /**
+         * `battleMenuOpen`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun battleMenuOpen(): Boolean
+        /**
+         * `sourceScenario`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun sourceScenario(): String
+        /**
+         * `spriteFrame`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun spriteFrame(unit: BattleUnit): UnitSpriteFrame
+        /**
+         * `activeAction`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun activeAction(unitId: String, now: Float): UnitActionAnimation?
+        /**
+         * `deathAnimationActive`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun deathAnimationActive(unitId: String, now: Float): Boolean
+        /**
+         * `scriptedVisual`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun scriptedVisual(unitId: String): ScriptedUnitVisual?
+        /**
+         * `texture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun texture(unit: BattleUnit, source: UnitSpriteSource): Texture?
+        /**
+         * `visualTile`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun visualTile(unit: BattleUnit): Pair<Float, Float>
+        /**
+         * `terrainAt`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun terrainAt(unit: BattleUnit): Int
+        /**
+         * `terrainMask`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun terrainMask(terrain: Int): Texture?
+        /**
+         * `hpTexture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun hpTexture(unit: BattleUnit): Texture?
+        /**
+         * `hpRatio`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun hpRatio(unit: BattleUnit, now: Float): Float
+        /**
+         * `attributeStatuses`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun attributeStatuses(unit: BattleUnit): Map<BattleAttribute, BattleUnitPresentationState.AttributeStatusIcon>
+        /**
+         * `otherNodesVisible`: 조건과 입력 상태를 검증한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun otherNodesVisible(unit: BattleUnit): Boolean
+        /**
+         * `stateEffect`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun stateEffect(unit: BattleUnit): BattleUnitStateAnimation.Effect?
+        /**
+         * `stateTexture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun stateTexture(textureIndex: Int): Texture?
+        /**
+         * `magicEffectAnimations`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun magicEffectAnimations(): List<MagicEffectAnimation>
+        /**
+         * `magicEffect`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun magicEffect(effectId: Int): MagicEffectDefinition?
+        /**
+         * `magicEffectTexture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun magicEffectTexture(effectId: Int): Texture?
+        /**
+         * `presentationUnit`: 화면 표시 상태를 렌더링한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun presentationUnit(unitId: String): BattleUnit?
+        /**
+         * `sayTexture`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun sayTexture(): Texture?
+        /**
+         * `dialogueSpeakerId`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
         fun dialogueSpeakerId(): Int?
     }
+
+    /**
+     * `stateAnimationStarts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
 
     private val stateAnimationStarts = mutableMapOf<String, Pair<List<Int>, Float>>()
 
@@ -134,14 +280,44 @@ internal class BattleActorEffectViewComposer(
     private fun effects(now: Float): List<BattleEffectRender> = port.magicEffectAnimations()
         .filter { now in it.startedAt..<it.endsAt }
         .flatMap { animation ->
+            /**
+             * `effect` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val effect = port.magicEffect(animation.effectId) ?: return@flatMap emptyList()
+            /**
+             * `frame` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val frame = effect.frameAt(now - animation.startedAt) ?: return@flatMap emptyList()
             if (frame.sourceIndex < 0) return@flatMap emptyList()
+            /**
+             * `texture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val texture = port.magicEffectTexture(animation.effectId) ?: return@flatMap emptyList()
             animation.targetIds.mapNotNull { id ->
                 port.presentationUnit(id)?.takeIf { it.visible }?.let { target ->
+                    /**
+                     * `tileSize` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val tileSize = port.tileSize()
+                    /**
+                     * `width` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val width = effect.frameWidth / 48f * tileSize
+                    /**
+                     * `height` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                     */
+
                     val height = effect.frameHeight / 48f * tileSize
                     BattleEffectRender(
                         texture = texture,

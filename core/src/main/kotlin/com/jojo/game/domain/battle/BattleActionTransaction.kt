@@ -7,17 +7,61 @@ import com.jojo.game.domain.battle.BattleActionSnapshot
 /** BattleActionTransaction: 전투 동작 트랜잭션으로, 애니메이션 단계에 맞춰 계산된 유닛 상태를 순서대로 반영한다. */
 class BattleActionTransaction internal constructor(
     val actorId: String,
+    /**
+     * `before` (BattleActionSnapshot,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val before: BattleActionSnapshot,
+    /**
+     * `after` (BattleActionSnapshot,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val after: BattleActionSnapshot,
+    /**
+     * `hitSideEffects` (List<() -> Unit>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val hitSideEffects: List<() -> Unit>,
+    /**
+     * `completionSideEffects` (List<() -> Unit>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val completionSideEffects: List<() -> Unit>,
+    /**
+     * `restoreSnapshot` ((BattleActionSnapshot) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val restoreSnapshot: (BattleActionSnapshot) -> Unit,
+    /**
+     * `adjustEconomy` ((playerDelta: Int, enemyDelta: Int) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val adjustEconomy: (playerDelta: Int, enemyDelta: Int) -> Unit,
+    /**
+     * `presentationUnit` ((String) -> BattleUnit?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val presentationUnit: (String) -> BattleUnit?,
+    /**
+     * `activeUnit` ((String) -> BattleUnit?,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val activeUnit: (String) -> BattleUnit?,
+    /**
+     * `onCompleted` ((BattleActionTransaction) -> Unit,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private val onCompleted: (BattleActionTransaction) -> Unit,
 ) {
+    /**
+     * `complete` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private var complete = false
+    /**
+     * `hitEffectsCommitted` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     */
+
     private var hitEffectsCommitted = 0
 
     /** 행동 전 유닛의 체력을 조회한다. */
@@ -93,12 +137,22 @@ class BattleActionTransaction internal constructor(
         )
     }
 
+    /**
+     * `restoreStatuses`: 입력을 규칙에 따라 계산·변환한다.
+     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
     private fun restoreStatuses(
         id: String,
         statuses: Map<BattleStatus, Int>,
         attributeLifts: Map<BattleAttribute, Int>,
         attributeLiftRounds: Map<BattleAttribute, Int>,
     ) {
+        /**
+         * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val unit = before.states[id]?.unit ?: return
         unit.statuses.clear()
         unit.statuses.putAll(statuses)

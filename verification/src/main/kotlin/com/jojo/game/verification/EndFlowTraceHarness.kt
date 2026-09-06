@@ -34,6 +34,11 @@ object EndFlowTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
         val cases = Regex("\\{\\\"name\\\"").findAll(raw).map { m ->
@@ -72,6 +77,11 @@ object EndFlowTraceHarness {
                 layers += "MsgBox"; pending = fn
             }
 
+            /**
+             * `lose` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val lose = if (c.kind == "lose") LossFlow(object : LossFlow.Sink {
                 /** sound: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun sound(id: Int) {
@@ -100,7 +110,17 @@ object EndFlowTraceHarness {
                     cmds += "END_GAME"
                 }
             }) else null
+            /**
+             * `end` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val end = if (c.kind == "end") TerminalFlow { scenes += "LOGIN" } else null
+            /**
+             * `skip` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val skip = if (c.kind == "skip") StorySkipFlow(object : StorySkipFlow.Sink {
                 /** msgBox: 검증 흐름에 필요한 동작을 실행하고 결과를 반환한다. */
                 override fun msgBox(text: String, reply: (Int) -> Unit) = msg(text, reply)
@@ -150,8 +170,18 @@ object EndFlowTraceHarness {
                 },\"cmds\":${js(cmds)}}"
             }
 
+            /**
+             * `out` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val out = mutableListOf(snap("create"))
             for (ev in c.events) {
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = ev.split(':')
                 when (p[0]) {
                     "button" -> if (win != null) {
@@ -159,6 +189,11 @@ object EndFlowTraceHarness {
                     } else skip!!.touch(p[1].toInt())
 
                     "time" -> {
+                        /**
+                         * `n` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                         */
+
                         val n = p[1].toInt(); scheduledBlocks.filter { it.key <= n }.toMap()
                             .forEach { it.value() }; scheduledBlocks.keys.removeIf { it <= n }; scheduled.removeIf { it <= n }
                     }
@@ -171,6 +206,11 @@ object EndFlowTraceHarness {
             }
             return out.joinToString(",", "[", "]")
         }
+
+        /**
+         * `out` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val out = cases.joinToString(",", "{", "}") { "\"${it.name}\":${run(it)}" }; Files.createDirectories(
             Path.of(

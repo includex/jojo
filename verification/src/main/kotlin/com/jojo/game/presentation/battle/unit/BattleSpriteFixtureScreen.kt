@@ -46,9 +46,19 @@ class BattleSpriteFixtureScreen(
     }
     /** texture: 검증 화면 렌더링에 사용하는 리소스를 담는다. */
     private val texture: Texture = run {
+        /**
+         * `family` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val family = when (frame.source) {
             UnitSpriteSource.ATTACK -> "atk"; UnitSpriteSource.MOVEMENT -> "mov"; UnitSpriteSource.SPECIAL -> "spc"
         }
+        /**
+         * `file` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         val file = Gdx.files.internal("maps/units/${family}2/$avatar.png").takeIf { it.exists() }
             ?: Gdx.files.internal("maps/units/$family/$avatar.png")
         require(file.exists()) { "Missing fixture atlas: $family avatar=$avatar" }

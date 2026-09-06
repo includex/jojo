@@ -29,9 +29,29 @@ object HelperLayerTraceHarness {
     private fun balanced(text: String, from: Int): String {
         val open = text[from]
         val close = if (open == '[') ']' else '}'
+        /**
+         * `level` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var level = 0
+        /**
+         * `quoted` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var quoted = false
+        /**
+         * `escaped` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
         var escaped = false; for (i in from until text.length) {
+            /**
+             * `c` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val c = text[i]; if (quoted) {
                 if (escaped) escaped = false else if (c == '\\') escaped = true else if (c == '\"') quoted = false
             } else if (c == '\"') quoted =
@@ -57,6 +77,11 @@ object HelperLayerTraceHarness {
 
     /** main: 검증 실행 흐름을 시작하고 종료 상태를 반환한다. */
     @JvmStatic
+    /**
+     * `main`: 타입의 핵심 동작을 수행한다.
+     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+     */
+
     fun main(args: Array<String>) {
         val raw = Files.readString(Path.of(args[0]))
         val cases = splitObjects(fieldBlock(raw, "cases")).map { obj ->
@@ -91,8 +116,23 @@ object HelperLayerTraceHarness {
                 }
             /** snap: 현재 추적 상태를 스냅샷으로 만든다. */
             }) { removeCount++ }; layer.onCreate(); fun snap(step: String): String {
+                /**
+                 * `v` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val v = layer.view()
+                /**
+                 * `callsJson` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val callsJson = calls.joinToString(",", "[", "]") { "[\"${json(it.first)}\",${it.second}]" }
+                /**
+                 * `routes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val routes = (0 until removeCount).joinToString(
                     ",",
                     "[",
@@ -104,10 +144,25 @@ object HelperLayerTraceHarness {
                 }\",\"replaceCalls\":$callsJson,\"attached\":${v.attached},\"button\":{\"path\":\"${v.prefab.buttonPath}\",\"priority\":${v.prefab.listenerPriority}},\"tabs\":[],\"routes\":$routes}"
             }
 
+            /**
+             * `out` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
+
             val out = mutableListOf(snap("create")); spec.events.forEach { event ->
+                /**
+                 * `p` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+                 * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+                 */
+
                 val p = event.split(':'); if (p[0] == "button") layer.onButtonTouch(p[1].toInt()); out += snap(event)
             }; return out.joinToString(",", "[", "]")
         }
+
+        /**
+         * `output` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
 
         val output = cases.joinToString(",", "{", "}") { "\"${json(it.name)}\":${run(it)}" }; Files.createDirectories(
             Path.of(args[1]).parent
