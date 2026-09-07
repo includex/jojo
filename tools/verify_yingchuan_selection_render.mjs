@@ -29,8 +29,8 @@ assert.ok(sourceMove > 0, "source did not emit a move-range overlay");
 assert.ok(sourceAttack > 0, "source did not emit an attack-range overlay");
 
 const gameOutput = run("./gradlew", [
-  ":desktop:run", "--no-daemon",
-  `--args=--battle --scenario=S_00 --capture-state=yingchuan-selection --capture=${gameCapture}`,
+  ":verification:captureProductionState", "--no-daemon",
+  "-Pjojo.capture.state=yingchuan-selection", `-Pjojo.capture.png=${gameCapture}`,
 ], root);
 const game = gameOutput.match(/SELECTION_CAPTURE_STATE: unit=(\d+)@(\d+),(\d+) move=(\d+) moveFrame=(\w+) attack=(\d+) cursor=(true|false)/);
 assert.ok(game, "game did not emit the selection overlay fixture");

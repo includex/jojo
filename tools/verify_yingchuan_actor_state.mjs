@@ -51,7 +51,9 @@ const expected = [
   // expose the trailing whitespace before or after that boundary; both are
   // the same authored prefix.  Do not turn that scheduler race into a false
   // source/game behavioural failure.
-  { step: 1, speaker: "235", text: "하지만, 얼마나 ", sourceTexts: ["하지만, 얼마나", "하지만, 얼마나 ", "하지만, 얼마나 증"] },
+  // 어느 글자에서 잘리는지는 스케줄러가 정하므로 열거로 고정할 수 없다. 실제 불변식은
+  // "원본이 권위 문장의 접두사를 보여 주고 있다"이므로 그것만 확인한다.
+  { step: 1, speaker: "235", text: "하지만, 얼마나 ", sourcePrefixOf: "하지만, 얼마나 증오스러운 일인가......." },
   { step: 2, speaker: "235", text: "하지만, 얼마나 증오스러운 일인가......." },
   { step: 3, speaker: "477", text: "아!" },
 ];
@@ -72,8 +74,13 @@ for (const fixture of expected) {
   const sourceName = sourceSnapshot.nodes
     .filter(node => node.path === "Canvas/Layer/bg0/label")
     .flatMap(node => node.labels || []).find(name => name.length > 0);
-  assert.ok((fixture.sourceTexts ?? [fixture.text]).includes(sourceText),
-    `source dialogue ${fixture.step} unexpectedly changed: ${JSON.stringify(sourceText)}`);
+  if (fixture.sourcePrefixOf) {
+    assert.ok(sourceText && fixture.sourcePrefixOf.startsWith(sourceText),
+      `source dialogue ${fixture.step} is not a prefix of the authored line: ${JSON.stringify(sourceText)}`);
+  } else {
+    assert.equal(sourceText, fixture.text,
+      `source dialogue ${fixture.step} unexpectedly changed: ${JSON.stringify(sourceText)}`);
+  }
   const gameImage = resolve(root, `build/yingchuan-dialogue-${fixture.step}-game.png`);
   try { unlinkSync(gameImage); } catch { /* absent is fresh */ }
   const classpath = process.env.JOJO_VERIFICATION_CLASSPATH;

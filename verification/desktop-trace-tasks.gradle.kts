@@ -41,6 +41,26 @@ val verifyRenderParityScope = tasks.register<Exec>("verifyRenderParityScope") {
     commandLine("python3", rootProject.file("tools/verify_render_parity_scope.py").absolutePath, "--scope", rootProject.file("tools/render_parity_scope.json").absolutePath, "--repository", rootProject.projectDir.absolutePath)
 }
 
+// 캡처 상태 실행: --capture-state=/--capture= 는 검증 전용 경로라 운영 런처가 거부한다.
+// 검증기들이 :desktop:run 대신 이 태스크를 쓰도록 해서 두 경계를 섞지 않는다.
+tasks.register<JavaExec>("captureProductionState") {
+    group = "verification"; dependsOn(tasks.named("classes")); classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val stateProperty = providers.gradleProperty("jojo.capture.state")
+    val captureProperty = providers.gradleProperty("jojo.capture.png")
+    val scenarioProperty = providers.gradleProperty("jojo.capture.scenario")
+    argumentProviders.add {
+        listOf(
+            "--battle",
+            "--scenario=${scenarioProperty.getOrElse("S_00")}",
+            "--capture-state=${stateProperty.get()}",
+            "--capture=${captureProperty.get()}",
+        )
+    }
+}
+
 val verifyYingchuanSelectionRender = tasks.register<Exec>("verifyYingchuanSelectionRender") {
     group = "verification"
     inputs.files(rootProject.file("tools/verify_yingchuan_selection_render.mjs"), rootProject.file("tools/export_map_assets.py"), rootProject.file("core/src/main/kotlin/com/jojo/game/presentation/battle/BattleScreen.kt"))

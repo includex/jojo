@@ -110,7 +110,13 @@ internal class VerificationArtifactObserver(
         output.compositionTracePath?.let { persistText(it, composition ?: screen.compositionTrace()) }
         val topDown = Pixmap(raw.width, raw.height, raw.format)
         for (y in 0 until raw.height) for (x in 0 until raw.width) topDown.drawPixel(x, raw.height - 1 - y, raw.getPixel(x, y))
-        raw.dispose(); Gdx.files.absolute(target).also { it.parent().mkdirs() }.let { PixmapIO.writePNG(it, topDown) }; topDown.dispose()
+        raw.dispose(); Gdx.files.absolute(target).also { it.parent().mkdirs() }.let { PixmapIO.writePNG(it, topDown) }
+        // 캡처 검증기들은 프레임이 실제로 기록됐는지 이 표준 출력 신호로 판단한다.
+        Gdx.app.log(
+            "JojoGame",
+            "RENDER_CAPTURE_OK: state=${output.state ?: ""} size=${topDown.width}x${topDown.height} path=$target",
+        )
+        topDown.dispose()
         Gdx.app.exit()
     }
 

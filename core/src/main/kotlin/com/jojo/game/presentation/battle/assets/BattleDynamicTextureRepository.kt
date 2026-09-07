@@ -117,7 +117,9 @@ internal class BattleDynamicTextureRepository : Disposable {
     fun head(faceId: Int): Texture? {
         headTextures[faceId]?.let { return it }
         val handle = Gdx.files.internal("maps/heads/$faceId.png")
-        return handle.takeIf { it.exists() }?.let(::linearTexture)
+        // 원본 대화 초상화는 도트가 그대로 보이도록 확대된다. 선형 보간을 쓰면 같은 자리에
+        // 그려도 블록 경계가 뭉개져 원본과 픽셀 단위로 어긋난다.
+        return handle.takeIf { it.exists() }?.let(::nearestTexture)
             ?.also { headTextures[faceId] = it }
     }
 
@@ -214,6 +216,11 @@ internal class BattleDynamicTextureRepository : Disposable {
 
     private fun linearTexture(handle: com.badlogic.gdx.files.FileHandle): Texture = Texture(handle).also {
         it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+    }
+
+    /** 도트를 살려야 하는 원본 확대 스프라이트용 텍스처다. */
+    private fun nearestTexture(handle: com.badlogic.gdx.files.FileHandle): Texture = Texture(handle).also {
+        it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
     }
 
     /**

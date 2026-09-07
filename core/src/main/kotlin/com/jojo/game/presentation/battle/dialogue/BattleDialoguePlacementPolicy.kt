@@ -63,6 +63,14 @@ internal object BattleDialoguePlacementPolicy {
     /** 원본 유닛과 대화창 사이의 추가 간격이다. */
     private const val DIALOGUE_GAP = 32f
 
+    // 원본 SayLayer._resetPos 가 옮기는 노드는 그려지는 패널(bg2, 796x212)이 아니라 그 부모
+    // bg0(1030x260)이며, 간격 계산에도 bg0 의 절반 높이를 쓴다. bg2 는 bg0 안에서 다시
+    // y=-12 만큼 내려가 있다. 이 둘을 빼먹으면 대화창 전체가 아래로 밀린다.
+    /** 원본이 실제로 옮기는 bg0 노드의 반높이다. */
+    private const val MOVED_NODE_HALF_HEIGHT = 130f
+    /** bg0 안에서 패널(bg2)이 놓인 세로 오프셋이다. */
+    private const val PANEL_OFFSET_IN_MOVED_NODE = -12f
+
     /**
      * 변환된 화자 화면 중심으로 SayLayer 전체 배치를 계산한다.
      *
@@ -74,7 +82,9 @@ internal object BattleDialoguePlacementPolicy {
         val safeViewportHeight = viewportHeight.coerceAtLeast(PANEL_HEIGHT)
         val centeredWorldY = speakerScreenCenterY - safeViewportHeight / 2f
         val direction = if (centeredWorldY < 0f) 1f else -1f
-        val panelCenterWorldY = centeredWorldY + direction * (PANEL_HEIGHT / 2f + UNIT_HALF_HEIGHT + DIALOGUE_GAP)
+        val panelCenterWorldY = centeredWorldY +
+            direction * (MOVED_NODE_HALF_HEIGHT + UNIT_HALF_HEIGHT + DIALOGUE_GAP) +
+            PANEL_OFFSET_IN_MOVED_NODE
         val panelY = panelCenterWorldY + safeViewportHeight / 2f - PANEL_HEIGHT / 2f
         return componentPlacement(panelY)
     }

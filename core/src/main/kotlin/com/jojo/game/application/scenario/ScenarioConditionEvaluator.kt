@@ -157,6 +157,14 @@ internal object ScenarioConditionEvaluator {
         val xRange = args.intAt(1)..args.intAt(3)
         val yRange = args.intAt(2)..args.intAt(4)
         val type = args.intAt(0)
+        // 전투 화면은 유닛별 진영을 함께 넘기지만, 시나리오 경로는 진영별 좌표만 채운다.
+        // 진영 표를 못 받은 실행에서 0을 돌려주면 원본의 구역 인원 조건이 통째로 무너진다.
+        if (env.battleContext.campByCharacterId.isEmpty()) {
+            return env.battleContext.positionsByCamp.entries.sumOf { (camp, positions) ->
+                if (!sourceUnitTypeMatches(camp, type)) 0
+                else positions.count { (x, y) -> x in xRange && y in yRange }
+            }
+        }
         return env.battleContext.positions.count { (id, position) ->
             val camp = env.battleContext.campByCharacterId[id] ?: return@count false
             val hp = env.battleContext.attributes[id]?.get(7) ?: 1
