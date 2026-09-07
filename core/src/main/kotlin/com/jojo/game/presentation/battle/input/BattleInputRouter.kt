@@ -79,6 +79,10 @@ data class BattleInputSurface(
         interactiveRoute != BattleInteractiveInput.Route.PLAYER_INPUT -> BattleInputCapture.SCRIPT_PAUSED
         battleMenu -> BattleInputCapture.BATTLE_MENU
         miniMap && x != null && y != null && hitTest(x, y) == BattleInputTarget.MINI_MAP -> BattleInputCapture.MINI_MAP
+        // 원본 미니맵은 표시 전환 버튼만 입력을 받는다. 데스크톱에서는 미니맵 자체를 눌러
+        // 화면을 옮길 수 있어야 해서 지도 면적을 별도 대상으로 둔다.
+        miniMap && x != null && y != null && hitTest(x, y) == BattleInputTarget.MINI_MAP_SURFACE ->
+            BattleInputCapture.MINI_MAP_SURFACE
         menuHud && x != null && y != null && hitTest(x, y) == BattleInputTarget.MENU_HUD -> BattleInputCapture.MENU_HUD
         else -> BattleInputCapture.MAP
     }
@@ -129,7 +133,7 @@ enum class BattleInputCapture {
     USE_PROPERTY_DETAIL, USE_PROPERTY, MAGIC_INFO, MAGIC_LIST, JIQI, REWARD,
     ITEM_UPGRADE, SCRIPT_WIN_CONDITIONS, UNIT_INFO, FORCES, HELPER, SETTING,
     SAVE, LOAD, TREASURE, PROPERTY, TERRAIN, WIN_CONDITION, AUTO_PROMPT,
-    AUTO_TUOGUAN, CHOICE, SCRIPT_PAUSED, BATTLE_MENU, MINI_MAP, MENU_HUD, MAP,
+    AUTO_TUOGUAN, CHOICE, SCRIPT_PAUSED, BATTLE_MENU, MINI_MAP, MINI_MAP_SURFACE, MENU_HUD, MAP,
     PLAYER,
 }
 /**
@@ -137,7 +141,7 @@ enum class BattleInputCapture {
  * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
  */
 
-enum class BattleInputTarget { MENU_HUD, MINI_MAP, BATTLE_MENU, MAP }
+enum class BattleInputTarget { MENU_HUD, MINI_MAP, MINI_MAP_SURFACE, BATTLE_MENU, MAP }
 /**
  * `BattleInputHitRegion`: 관련 상태와 동작을 묶는 class다.
  * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -356,6 +360,9 @@ class BattleInputRouter {
      * `pointerDragged`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /** 미니맵을 끌고 있는 중인지 알려 준다. 끌기 도중에도 눌러 시작한 대상을 유지한다. */
+    fun draggingMiniMapSurface(): Boolean = pressedCapture == BattleInputCapture.MINI_MAP_SURFACE
 
     fun pointerDragged(x: Float, y: Float, surface: BattleInputSurface): BattleInputIntent.PointerDrag {
         val previousX = lastX ?: x

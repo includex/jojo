@@ -42,6 +42,15 @@ data class BattleGridMiniMapMarker(
     val y: Float,
 )
 
+/**
+ * `BattleGridMiniMapBox`: 미니맵 위에 현재 화면 범위를 나타내는 사각 표시다.
+ *
+ * 원본 `MiniMapLayer`는 `box` 노드를 캔버스의 1/8 크기로 잡아 두고 `MAP_SCROLLING`
+ * 이벤트마다 `_box.position = (-content.x / 8, -content.y / 8)`으로 옮긴다. 즉 상자는
+ * 맵을 축소한 비율 그대로 현재 보이는 영역을 따라다닌다.
+ */
+data class BattleGridMiniMapBox(val x: Float, val y: Float, val width: Float, val height: Float)
+
 /** BattleGridMiniMapView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 data class BattleGridMiniMapView(
     val shown: Boolean,
@@ -50,6 +59,7 @@ data class BattleGridMiniMapView(
     val mapTexture: Texture?,
     val weatherTexture: Texture?,
     val markers: List<BattleGridMiniMapMarker>,
+    val box: BattleGridMiniMapBox? = null,
 )
 
 /** BattleGridMapSurfaceRenderer: 전투 격자 지도 Surface 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
@@ -61,6 +71,15 @@ class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
 
     fun draw(view: BattleGridRenderView) {
         view.map?.let(::drawMap)
+    }
+
+    /**
+     * `drawOverlay`: 미니맵만 따로 그린다.
+     *
+     * 원본 `MiniMapLayer`는 전장 위에 얹힌 별도 레이어라 유닛·연출에 가려지지 않는다.
+     * 보드와 같은 패스에서 그리면 뒤이어 그리는 유닛과 효과가 미니맵을 덮는다.
+     */
+    fun drawOverlay(view: BattleGridRenderView) {
         view.miniMap?.let(::drawMiniMap)
     }
 
@@ -125,6 +144,6 @@ class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
             batch.draw(texture, 1248.3721f + offset, 560f, 57.6f, 57.6f)
         }
         batch.color = Color.WHITE
-        if (view.shown) view.boxPatch?.draw(batch, 1286.3721f, 570f, 186.047f, 100f)
+        if (view.shown) view.box?.let { box -> view.boxPatch?.draw(batch, box.x, box.y, box.width, box.height) }
     }
 }

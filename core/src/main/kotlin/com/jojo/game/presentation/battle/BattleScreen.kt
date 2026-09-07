@@ -4069,7 +4069,19 @@ void main() {
                         if (miniMapLayer.shown) 1244.372f else 1488.372f,
                         800f,
                     ),
-                ),
+                ) + if (miniMapLayer.shown) {
+                    listOf(
+                        BattleInputHitRegion(
+                            BattleInputTarget.MINI_MAP_SURFACE,
+                            miniMapLeft,
+                            miniMapBottom,
+                            miniMapLeft + miniMapSize,
+                            miniMapBottom + miniMapSize,
+                        ),
+                    )
+                } else {
+                    emptyList()
+                },
             )
 
             /**
@@ -4240,6 +4252,10 @@ void main() {
                     advanceBattleDialogue()
                     return true
                 }
+                if (pointerIntent.capture == BattleInputCapture.MINI_MAP_SURFACE) {
+                    focusCameraFromMiniMap(world.x, world.y)
+                    return true
+                }
                 if (pointerIntent.capture == BattleInputCapture.SETTLEMENT_INFO) {
                     closeSettlementInfo2()
                     return true
@@ -4372,6 +4388,11 @@ void main() {
 
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                if (battleInputRouter.draggingMiniMapSurface()) {
+                    battleInputRouter.pointerDragged(world.x, world.y, inputSurface())
+                    focusCameraFromMiniMap(world.x, world.y)
+                    return true
+                }
                 val intent = battleInputRouter.pointerDragged(world.x, world.y, inputSurface())
                 if (!intent.moved) return false
                 battleCamera.pan(intent.deltaX, intent.deltaY)
@@ -4556,6 +4577,7 @@ void main() {
                     if (pointerIntent.releasedTarget == BattleInputTarget.MINI_MAP) miniMapLayer.touch(MiniMapLayer.TOUCH_END)
                     return true
                 }
+                if (pointerIntent.pressedCapture == BattleInputCapture.MINI_MAP_SURFACE) return true
                 if (mapTouchPending && !mapTouchMoved && BattleInteractiveInput.route(
                         scriptRuntime.state,
                         turnController.snapshot.phase
@@ -8927,13 +8949,92 @@ void main() {
             boxPatch = hudAssets.menuBoxPatch,
             mapTexture = hudAssets.naturalMiniMapTexture,
             weatherTexture = hudAssets.naturalWeatherTexture,
-            markers = MiniMapRenderEvents.yingchuanMarkers.mapNotNull { item ->
-                hudAssets.naturalMiniMapMarkerTextures[item.asset]?.let { marker ->
-                    BattleGridMiniMapMarker(marker, item.x, item.y)
-                }
-            },
+            markers = miniMapMarkers(),
+            box = miniMapViewportBox(),
         )
         return BattleGridRenderView(map, miniMap)
+    }
+
+    /**
+     * 미니맵이 화면에 차지하는 영역이다. 원본 `MiniMapLayer`는 `Smlmap_n-1`을 두 배로 키운
+     * 크기(`_size`)로 지도를 그리고 그 주위에 2px 테두리를 둔다.
+     */
+    private val miniMapLeft = 1246.3721f
+    private val miniMapBottom = 558f
+    private val miniMapSize = 240f
+
+    /** 미니맵 표식 한 변의 길이다. */
+    private val MINI_MAP_MARKER_SIZE = 16f
+
+    /** 미니맵 한 점을 맵 월드 좌표로 되돌릴 때 쓰는 축척이다. */
+    private fun miniMapScaleX(): Float = miniMapSize / (terrainGrid.width * 96f)
+
+    private fun miniMapScaleY(): Float = miniMapSize / (terrainGrid.height * 96f)
+
+    /**
+     * `miniMapViewportBox`: 현재 보이는 전장 영역을 미니맵 축척으로 옮긴다.
+     *
+     * 원본은 스크롤뷰 콘텐츠 위치를 8로 나눠 상자를 옮기는데, 그 8은 전체 맵과 미니맵의
+     * 크기 비다. 맵 크기가 다른 전투에서도 맞도록 비율을 그때그때 계산한다.
+     */
+    private fun miniMapViewportBox(): BattleGridMiniMapBox {
+        val mapLeft = SourceBattleMapGeometry.boardLeft(terrainGrid.width, battleCamera.x) - 48f
+        val mapBottom = SourceBattleMapGeometry.mapBottom(terrainGrid.height, battleCamera.y)
+        val scaleX = miniMapScaleX()
+        val scaleY = miniMapScaleY()
+        return BattleGridMiniMapBox(
+            x = miniMapLeft - mapLeft * scaleX,
+            y = miniMapBottom - mapBottom * scaleY,
+            width = viewport.worldWidth * scaleX,
+            height = viewport.worldHeight * scaleY,
+        )
+    }
+
+    /**
+     * `miniMapMarkers`: 살아 있는 유닛을 미니맵 좌표로 옮긴다.
+     *
+     * 원본 `MiniMapLayer._move`는 표식을 `6 * tile - (_size >> 2)`에 놓는다. 즉 축척은
+     * 미니맵 크기 대 맵 크기 비 그대로다. 진영 색은 `_ref`가 정하는데, 지금 내보낸 표식
+     * 자원은 아군 쪽 녹색과 적군 쪽 주황 둘뿐이라 그 둘로만 나눈다.
+     */
+    private fun miniMapMarkers(): List<BattleGridMiniMapMarker> {
+        val scaleX = miniMapScaleX()
+        val scaleY = miniMapScaleY()
+        val mapHeight = terrainGrid.height * 96f
+        return battle.units.values.asSequence()
+            .filter { it.visible && it.hitPoints > 0 }
+            .mapNotNull { unit ->
+                val asset = if (unit.effectiveFaction().isPlayerSide()) "img5" else "img9"
+                hudAssets.naturalMiniMapMarkerTextures[asset]?.let { texture ->
+                    val centerX = (unit.tileX * 96f + 48f) * scaleX
+                    val centerY = (mapHeight - unit.tileY * 96f - 48f) * scaleY
+                    BattleGridMiniMapMarker(
+                        texture,
+                        miniMapLeft + centerX - MINI_MAP_MARKER_SIZE / 2f,
+                        miniMapBottom + centerY - MINI_MAP_MARKER_SIZE / 2f,
+                    )
+                }
+            }
+            .toList()
+    }
+
+    /**
+     * `miniMapCameraTarget`: 미니맵에서 누른 지점을 전장 타일 좌표로 되돌린다.
+     *
+     * 원본 미니맵에는 이 조작이 없다. 창을 끌어 옮길 수 없는 데스크톱 조작을 위해 더한
+     * 기능이며, 누른 자리가 화면 중앙에 오도록 카메라만 옮긴다.
+     */
+    private fun miniMapCameraTarget(worldX: Float, worldY: Float): Pair<Float, Float> {
+        val tileX = (worldX - miniMapLeft) / miniMapScaleX() / 96f
+        val tileY = terrainGrid.height - (worldY - miniMapBottom) / miniMapScaleY() / 96f
+        return tileX.coerceIn(0f, (terrainGrid.width - 1).toFloat()) to
+                tileY.coerceIn(0f, (terrainGrid.height - 1).toFloat())
+    }
+
+    /** `focusCameraFromMiniMap`: 미니맵 좌표를 화면 중앙으로 가져온다. */
+    private fun focusCameraFromMiniMap(worldX: Float, worldY: Float) {
+        val (tileX, tileY) = miniMapCameraTarget(worldX, worldY)
+        focusCameraOnTile(tileX, tileY, forceCenter = true)
     }
 
     /**
@@ -9193,6 +9294,7 @@ void main() {
         val miniButtonX = if (miniMapLayer.shown) 1174.3721f else 1418.3721f
         hudAssets.battleButtonBackgroundPatch?.draw(batch, miniButtonX, 730f, 70f, 70f)
         hudAssets.battleMenuTexture?.let { batch.draw(it, miniButtonX + .2f, 730.2f, 69.6f, 69.6f) }
+        battleGridMapSurfaceRenderer.drawOverlay(battleGridMapSurfaceView())
         batch.end()
     }
 
