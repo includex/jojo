@@ -3099,7 +3099,7 @@ void main() {
              */
 
             override fun finishTrace() {
-                if (battleTraceCoordinator?.exitOnFinish == false) battleTraceCoordinator.finish("battle-end")
+                if (battleTraceCoordinator?.exitOnFinish == false) battleTraceCoordinator.finish("battle-end", battleTraceFinishEvidence())
             }
 
             /**
@@ -4518,7 +4518,10 @@ void main() {
                         val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                         val released = autoBattlePromptButtonAt(world.x, world.y)
                         when {
-                            autoBattleTogglePressed && autoBattleToggleAt(world.x, world.y) -> autoBattleFlow.toggle()
+                            autoBattleTogglePressed && autoBattleToggleAt(world.x, world.y) -> {
+                                recordFullBattleInput("$sourceScenario:auto-battle-toggle")
+                                autoBattleFlow.toggle()
+                            }
                             autoBattlePressedTag != null && autoBattlePressedTag == released -> answerAutoBattle(
                                 autoBattlePressedTag!!
                             )
@@ -4905,8 +4908,17 @@ void main() {
             }
         }
         recordBattleTraceFrame(delta)
-        if (battleTraceCoordinator?.isFinished == false && battle.outcome() != null && scriptRuntime.state == PlaybackState.COMPLETE) {
-            battleTraceCoordinator.finish("battle-end")
+        if (battleTraceCoordinator?.isFinished == false) {
+            val hasOutcome = battle.outcome() != null
+            if (hasOutcome && scriptRuntime.state == PlaybackState.COMPLETE) {
+                battleTraceCoordinator.finish("battle-end", battleTraceFinishEvidence())
+            } else {
+                // 전투가 끝나도 후속 컷신 대사에서 스크립트가 COMPLETE에 닿지 못하면 종료 조건이
+                // 영원히 성립하지 않는다. 그대로 두면 실행이 멈춘 채 프레임만 쌓이다 힙이 터진다.
+                // 제한 시간을 넘기면 그 사유로 증거를 남기고 끝낸다.
+                battleTraceCoordinator.timeoutReason(elapsed, hasOutcome)
+                    ?.let { battleTraceCoordinator.finish(it, battleTraceFinishEvidence()) }
+            }
         }
         scriptRuntime.currentDialogue?.let {
             dialogueReveal.update(it.text, delta)
@@ -9309,6 +9321,9 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    /** 라운드 종료 메뉴 슬롯: MenuLayer.Command.HHJS(회합결속)의 시각 슬롯 번호다. */
+    private val BATTLE_MENU_END_ROUND_INDEX = MenuLayer.Command.HHJS.ordinal
+
     private fun menuIndexAt(x: Float, y: Float): Int? {
         if (y !in 116.29f..204.29f || x !in 15.13372f..1159.1337f) return null
         val visualSlot = ((x - 15.13372f) / 88f).toInt()
@@ -9334,6 +9349,7 @@ void main() {
     private fun handleBattleMenuTap(index: Int) {
         val command = MenuLayer.Command.entries[index]
         if (battleMenuLayer?.onCommand(command, MenuLayer.TOUCH_END) == null) return
+        if (index == BATTLE_MENU_END_ROUND_INDEX) recordFullBattleInput("$sourceScenario:end-round-menu-command")
         battleMenuOpen = false
         battleMenuLayer = null
         when (index) {
@@ -9380,6 +9396,7 @@ void main() {
         battleMenuLayer = MenuLayer().also { it.onCreate(menuCreateData()) }
         battleMenuOpenedAt = elapsed
         battleMenuOpen = true
+        recordFullBattleInput("$sourceScenario:open-battle-menu")
     }
 
     /**
@@ -9423,6 +9440,7 @@ void main() {
     private fun answerAutoBattle(tag: Int) {
         val before = autoBattleFlow.view().endRoundRequests
         if (!autoBattleFlow.answer(tag, AutoBattleFlow.TOUCH_END)) return
+        recordFullBattleInput("$sourceScenario:auto-battle-confirm")
         if (battleTraceCoordinator == null) {
             autoBattlePreferences.putInteger("TUOGUAN", if (autoBattleFlow.view().stored) 1 else 0).flush()
         }
@@ -10830,6 +10848,21 @@ void main() {
      * `advanceBattleDialogue`: 현재 상태를 갱신한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /** 추적 종료 근거: 봉투의 summary를 구성할 전투·지도·유닛 상태를 값으로 고정한다. */
+    private fun battleTraceFinishEvidence() = RuntimeBattleTraceFinish(
+        scenario = sourceScenario,
+        requestedScenario = sourceScenario,
+        round = battle.round,
+        camp = battle.activeFaction.ordinal,
+        ended = battle.outcome() != null,
+        outcome = battle.outcome()?.name,
+        seededUnitIds = scriptRuntime.stage.units.keys.sorted(),
+        loadedMapIndex = loadedBattleMapIndex,
+        mapName = mapFile?.name() ?: "",
+        mapWidth = terrainGrid.width * 96,
+        mapHeight = terrainGrid.height * 96,
+    )
 
     private fun advanceBattleDialogue() {
         // 원본 SayLayer는 글자 공개 상태를 하나만 가진다. 한 번 누르면 남은 글자를 모두 보이고,

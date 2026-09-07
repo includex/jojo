@@ -9,6 +9,7 @@ import com.jojo.game.application.runtime.BattleTraceRandomStreams
 import com.jojo.game.application.runtime.BattleTraceRuntimeConfig
 import com.jojo.game.application.runtime.BattleTraceRuntimeSession
 import com.jojo.game.application.runtime.RuntimeBattleObserver
+import com.jojo.game.application.runtime.RuntimeBattleTraceFinish
 import com.jojo.game.application.runtime.RuntimeBattleTraceAiPresentationInput
 import com.jojo.game.application.runtime.RuntimeBattleTraceDriverInput
 import com.jojo.game.application.runtime.RuntimeBattleTraceFrameInput
@@ -116,8 +117,12 @@ internal class BattleRuntimeTraceCoordinator(
         selectedUnitId, commandPhase, eventMessage, autoOverlay,
     )
 
+    /** 제한 시간 판정: 경과 시간이 실행 상한을 넘겼으면 종료 사유를 반환한다. */
+    fun timeoutReason(elapsed: Float, hasOutcome: Boolean): String? =
+        session.timeoutReason(elapsed, hasOutcome)
+
     /** trace 종료: 지정 사유로 완료 통지를 한 번만 기록한다. */
-    fun finish(reason: String) = session.finish(reason)
+    fun finish(reason: String, finish: RuntimeBattleTraceFinish? = null) = session.finish(reason, finish)
 
 }
 

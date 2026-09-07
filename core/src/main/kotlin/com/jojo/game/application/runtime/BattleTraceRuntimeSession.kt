@@ -24,6 +24,8 @@ internal class BattleTraceRuntimeSession(
      */
 
     private val recorder = BattleTraceRecorder(randomSource)
+    /** deadline: 결과 화면 도달 여부를 기준으로 추적 실행의 시간 초과를 판정한다. */
+    private val deadline = BattleTraceDeadline(configuration.maxSimulationSeconds)
     /**
      * `finished` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -96,11 +98,22 @@ internal class BattleTraceRuntimeSession(
     )
 
     /** finish: 완료 통지는 한 번만 발생시키고 기존 종료 요청 계약을 보존한다. */
-    fun finish(reason: String) {
+    /** timeoutReason: 제한 시간을 넘겼으면 종료 사유를 돌려주고, 아니면 null을 돌려준다. */
+    fun timeoutReason(elapsed: Float, hasOutcome: Boolean): String? =
+        if (finished) null else deadline.timeoutReason(elapsed, hasOutcome)
+
+    fun finish(reason: String, finish: RuntimeBattleTraceFinish? = null) {
         if (finished) return
         finished = true
         observer?.onCompleted(
-            RuntimeBattleCompletion(reason, recorder.recordedRowCount, null, configuration.exitOnFinish)
+            RuntimeBattleCompletion(
+                reason,
+                recorder.recordedRowCount,
+                null,
+                configuration.exitOnFinish,
+                recorder.recordedInputs.toList(),
+                finish,
+            )
         )
         Gdx.app.log("JojoGame", "BATTLE_TRACE: frames=${recorder.recordedRowCount}; reason=$reason")
     }

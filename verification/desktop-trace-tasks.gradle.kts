@@ -62,6 +62,18 @@ val captureYingchuanBattleRegressionTrace = tasks.register<JavaExec>("captureYin
     args("--battle", "--scenario=S_00", "--full-battle-trace=${yingchuanBattleRegressionTrace.get().asFile.absolutePath}", "--full-battle-time-scale=8", "--full-battle-max-sim-seconds=600", "--full-battle-seed=1000", "--full-battle-math-seed=305419896")
     inputs.files(project(":core").extensions.getByType<SourceSetContainer>().named("main").get().allSource, rootProject.file("tools/verify_yingchuan_battle_regression.mjs")); outputs.file(yingchuanBattleRegressionTrace)
     doFirst { delete(yingchuanBattleRegressionTrace.get().asFile) }
+    // 게임이 추적을 남기지 않고 종료 코드 0으로 빠지면 Gradle이 산출물 없는 태스크를 성공으로
+    // 기록해 다음 실행에서 UP-TO-DATE로 건너뛴다. 그러면 실패가 검증 단계까지 밀려 원인이
+    // 캡처인지 대조인지 흐려진다. 캡처 자리에서 바로 실패시킨다.
+    doLast {
+        val trace = yingchuanBattleRegressionTrace.get().asFile
+        if (!trace.isFile) {
+            throw GradleException(
+                "전투 추적이 기록되지 않았다: ${trace.absolutePath}. " +
+                    "전투는 끝났지만 스크립트가 완료 상태에 도달하지 못했을 수 있다.",
+            )
+        }
+    }
 }
 val verifyYingchuanBattleRegression = tasks.register<Exec>("verifyYingchuanBattleRegression") {
     group = "verification"; dependsOn(captureYingchuanBattleRegressionTrace)

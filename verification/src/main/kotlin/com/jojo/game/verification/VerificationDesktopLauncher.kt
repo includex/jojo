@@ -76,7 +76,13 @@ internal data class VerificationDesktopLaunchOptions(
             capture = capture,
             runtimeArtifactObserver = artifactObserver,
             runtimeScreenObserver = artifactObserver,
-            runtimeBattleDriver = VerificationBattleDriver(capture.state),
+            // 전체 전투 추적은 위임 전투를 운영 입력으로 켜야 진행된다. 이름 붙은 픽스처 실행은
+            // 기존 결정적 구동기를 그대로 쓴다.
+            runtimeBattleDriver = if (fullBattleTrace != null && capture.state == null) {
+                FullBattleTraceDriver()
+            } else {
+                VerificationBattleDriver(capture.state)
+            },
             runtimeBattlePresentation = VerificationBattlePresentation.from(capture.state),
             runtimeBattlePreparationDriver = VerificationBattlePreparationDriver(capture.state),
             runtimeScenarioDriver = VerificationScenarioDriver(capture.state),

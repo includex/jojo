@@ -217,6 +217,8 @@ class BattleTraceRecorder(private val random: BattleTraceRandomStreams) {
      */
 
     fun recordInput(context: String) { inputs += context }
+    /** recordedInputs: 지금까지 수락된 조작 흔적을 추적 봉투용으로 노출한다. */
+    val recordedInputs: List<String> get() = inputs
     /**
      * `write`: 타입의 핵심 동작을 수행한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
