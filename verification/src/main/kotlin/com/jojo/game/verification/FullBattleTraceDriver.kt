@@ -39,6 +39,15 @@ internal class FullBattleTraceDriver : RuntimeBattleDriver {
             return emptyList()
         }
 
+        // 라운드 시작 승리 조건 안내는 모달로 대본을 멈춘다. 위임 전투 중에도 닫아 줄 주체가
+        // 없으면 여기서 진행이 끊긴다.
+        if (probe.winConditionsOpen) {
+            tap(probe.winConditionButtonScreenX, probe.winConditionButtonScreenY)
+            nextTapAt = frame.elapsed + TAP_INTERVAL_SECONDS
+            lastStage = null
+            return emptyList()
+        }
+
         if (!probe.bootstrapComplete) return emptyList()
         // 위임이 켜진 뒤에는 AI가 진행한다.
         if (probe.collocation) return emptyList()

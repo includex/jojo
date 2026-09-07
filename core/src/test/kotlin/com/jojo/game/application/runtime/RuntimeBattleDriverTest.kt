@@ -27,7 +27,8 @@ class RuntimeBattleDriverTest {
             commandWaitScreenX = 0, commandWaitScreenY = 0, menuEndRoundScreenX = 0,
             menuEndRoundScreenY = 0, battleMenuButtonScreenX = 0, battleMenuButtonScreenY = 0,
             autoBattleToggleScreenX = 0, autoBattleToggleScreenY = 0, autoBattleConfirmScreenX = 0,
-            autoBattleConfirmScreenY = 0, autoBattleOverlay = "NONE", autoBattleChecked = false,
+            autoBattleConfirmScreenY = 0, winConditionButtonScreenX = 0, winConditionButtonScreenY = 0,
+            autoBattleOverlay = "NONE", autoBattleChecked = false,
             collocation = false, committedPlayerMove = null, selectedChoice = -1,
             selectedUnitId = null,
             battle = BattleRuntimeProbeFactory(

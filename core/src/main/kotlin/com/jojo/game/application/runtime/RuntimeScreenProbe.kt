@@ -135,6 +135,8 @@ data class BattleRuntimeScreenProbe(
     val autoBattleToggleScreenY: Int,
     val autoBattleConfirmScreenX: Int,
     val autoBattleConfirmScreenY: Int,
+    val winConditionButtonScreenX: Int,
+    val winConditionButtonScreenY: Int,
     val autoBattleOverlay: String,
     val autoBattleChecked: Boolean,
     val collocation: Boolean,

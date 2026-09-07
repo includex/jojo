@@ -5397,6 +5397,8 @@ void main() {
                 projectWorldPointAt(1383.9535f, 38f),
                 projectWorldPointAt(579.4365f, 295.197f),
                 projectWorldPointAt(919.536f, 295.197f),
+                // 승리 조건 안내를 닫는 버튼의 중심이다. 터치 판정 영역과 같은 값을 쓴다.
+                projectWorldPointAt(1085.484f, 118.204f),
                 autoView.overlay.name,
                 autoView.checked,
                 autoView.collocation,

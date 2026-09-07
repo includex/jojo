@@ -204,8 +204,10 @@ internal class BattleDeathPresentationTimeline(
         if (nextCheckpoint == Checkpoint.CAMP_START) {
             val units = port.collectDyingUnits()
             if (units.isEmpty()) {
+                // 반환값 계약: true는 "호출자가 완료를 부른다", false는 "연출이 끝난 뒤 여기서
+                // 부른다"이다. 여기서 직접 completeCheckpoint까지 부르면 호출자가 한 번 더 불러
+                // 진영 단계가 두 번 진행되고, 두 번째 호출은 이미 바뀐 단계에서 불변식을 깬다.
                 clearBarrier()
-                completeCheckpoint(nextCheckpoint)
                 return true
             }
             stage = Stage.HIDING
