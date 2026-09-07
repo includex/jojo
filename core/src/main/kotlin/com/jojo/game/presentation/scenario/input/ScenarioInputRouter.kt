@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.input
 
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout
+
 /** ScenarioInputRouter: 시나리오 입력 Router이며, 사용자 입력과 런타임 상태를 해석해 화면 전환과 오버레이 처리를 조정한다. */
 object ScenarioInputRouter {
     /**
@@ -159,14 +161,19 @@ object ScenarioInputRouter {
         }
         // 원본 ChooseLayer의 `view`(높이 169)에는 항목이 세 개만 들어가고 나머지는 스크롤로
         // 닿는다. 눌린 줄은 보이는 창의 첫 항목을 더해 실제 선택지 번호로 되돌린다.
-        val row = ((401f - y) / 44f).toInt()
+        // 줄 판정은 그리기와 같은 배치 값에서 가져와, 항목 사이 여백을 누르면 아무것도
+        // 고르지 않는다.
         val first = firstVisibleIndex.coerceIn(0, maxOf(0, optionCount - VISIBLE_CHOICE_ROWS))
         val visible = minOf(optionCount - first, VISIBLE_CHOICE_ROWS)
-        return if (row in 0 until visible) Touch.SelectAndConfirm(first + row) else Touch.None
+        val row = CHOICE_LAYOUT.choiceRowIndexAt(x, y, visible) ?: return Touch.None
+        return Touch.SelectAndConfirm(first + row)
     }
 
     /** 원본 `ChooseLayer` 프리팹의 `view`(694×169)에 한 번에 들어가는 항목 수다. */
     const val VISIBLE_CHOICE_ROWS: Int = 3
+
+    /** 시나리오 화면이 선택지를 그릴 때 쓰는 배치다. 입력 판정도 같은 값을 본다. */
+    private val CHOICE_LAYOUT = DialogueRenderLayout()
 
     /**
      * `firstVisibleChoiceIndex`: 선택 항목이 보이도록 선택지 창을 스크롤한 위치를 계산한다.

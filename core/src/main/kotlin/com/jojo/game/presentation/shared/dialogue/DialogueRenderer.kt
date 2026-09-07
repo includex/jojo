@@ -14,7 +14,7 @@ import com.badlogic.gdx.utils.Align
 /** 대화·선택지·모달의 공통 표시 밀집도를 유지하는 화면 중립 렌더러다. */
 class DialogueRenderer(
     /** 화면별 원본 좌표와 크기를 보관하는 배치 설정이다. */
-    private val layout: DialogueRenderLayout = DialogueRenderLayout(),
+    val layout: DialogueRenderLayout = DialogueRenderLayout(),
     /**
      * 알파 채널을 따로 누적할지 여부다.
      *
@@ -202,13 +202,12 @@ class DialogueRenderer(
             )
             batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height)
         }
-        val firstRowY = layout.choicePanelY + layout.choicePanelHeight - layout.choiceRowTopInset
         // 원본 ChooseLayer는 항목을 모두 만든 뒤 `view`(169) 안에서만 보여 주고 나머지는
         // 스크롤로 닿게 한다. 여기서는 보이는 창의 첫 항목만 옮겨 같은 접근성을 만든다.
         val first = model.firstVisibleIndex.coerceIn(0, maxOf(0, model.options.size - layout.choiceVisibleRows))
         model.options.drop(first).take(layout.choiceVisibleRows).forEachIndexed { row, option ->
             val index = first + row
-            val rowY = firstRowY - row * layout.choiceRowSpacing
+            val rowY = layout.choiceRowBottom(row)
             assets.choiceRow?.let {
                 batch.color = Color.WHITE
                 batch.draw(it, layout.choiceRowX, rowY, layout.choiceRowWidth, layout.choiceRowHeight)
@@ -217,7 +216,16 @@ class DialogueRenderer(
             // 라벨과 같은 파란색으로 구분하고, 나머지는 원본처럼 검은색으로 그린다.
             assets.bodyFont.color =
                 if (index == model.selectedIndex) Color(35f / 255f, 2f / 255f, 234f / 255f, 1f) else Color.BLACK
-            assets.bodyFont.draw(batch, option, layout.choiceTextX, rowY + layout.choiceTextOffsetY)
+            // 원본 항목의 `richtext`는 배경(`bg6`)과 같은 높이를 차지해 글자가 가운데에
+            // 놓인다. 고정 오프셋으로 찍으면 글꼴 크기에 따라 배경 위아래로 치우치므로
+            // 실제 글자 높이를 재서 배경 중앙에 맞춘다.
+            val glyphs = GlyphLayout(assets.bodyFont, option)
+            assets.bodyFont.draw(
+                batch,
+                option,
+                layout.choiceTextX,
+                rowY + (layout.choiceRowHeight + glyphs.height) / 2f,
+            )
         }
     }
 

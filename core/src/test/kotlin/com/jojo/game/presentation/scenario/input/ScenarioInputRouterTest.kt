@@ -63,4 +63,29 @@ class ScenarioInputRouterTest {
             ScenarioInputRouter.choiceTouch(false, 4, 600f, 265f, firstVisibleIndex = 1),
         )
     }
+
+    @Test fun `choice rows are hit tested with the drawn geometry`() {
+        val layout = com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout()
+        // 항목 배경 안을 누르면 그 줄이 선택된다.
+        repeat(3) { row ->
+            val bottom = layout.choiceRowBottom(row)
+            assertEquals(
+                ScenarioInputRouter.Touch.SelectAndConfirm(row),
+                ScenarioInputRouter.choiceTouch(false, 3, 600f, bottom + layout.choiceRowHeight / 2f),
+            )
+        }
+        // 항목 사이 여백(원본 4px)에는 어떤 항목도 없다.
+        val gapY = layout.choiceRowBottom(0) - 2f
+        assertEquals(
+            ScenarioInputRouter.Touch.None,
+            ScenarioInputRouter.choiceTouch(false, 3, 600f, gapY),
+        )
+        // 창 안이지만 항목 배경 오른쪽 바깥이면 선택되지 않는다.
+        assertEquals(
+            ScenarioInputRouter.Touch.None,
+            ScenarioInputRouter.choiceTouch(
+                false, 3, layout.choiceRowX + layout.choiceRowWidth + 1f, layout.choiceRowBottom(0) + 10f,
+            ),
+        )
+    }
 }

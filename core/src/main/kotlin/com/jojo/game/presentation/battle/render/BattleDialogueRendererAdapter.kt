@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderAssets
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderModel
 import com.jojo.game.presentation.shared.dialogue.DialogueOverlayModel
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -42,6 +43,9 @@ class BattleDialogueRendererAdapter(
     /** 전투 HUD 자원을 공용 자산 포트로 제공한다. */
     private val assets: DialogueRenderAssets,
 ) {
+    /** 그리기에 쓰는 배치다. 선택 항목 클릭 판정이 같은 값을 봐야 한다. */
+    val layout: DialogueRenderLayout get() = renderer.layout
+
     /** 대사·선택·모달을 전투 화면의 SpriteBatch와 ShapeRenderer에 연결한다. */
     fun draw(
         batch: SpriteBatch,

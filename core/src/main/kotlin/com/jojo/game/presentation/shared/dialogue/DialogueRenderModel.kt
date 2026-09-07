@@ -276,4 +276,30 @@ data class DialogueRenderLayout(
     val choiceTextOffsetY: Float = 38.313f,
     /** 원본 `ChooseLayer`의 `view`(높이 169)에 한 번에 들어가는 항목 수다. */
     val choiceVisibleRows: Int = 3,
-)
+) {
+    /**
+     * `choiceRowBottom`: 보이는 창에서 위에서 셋째 줄까지의 각 항목 배경 아래쪽 Y다.
+     *
+     * 원본 `ChooseLayer`의 `content`는 `cc.Layout`(VERTICAL, spacingY 4)이 항목을
+     * 위에서부터 쌓는다. 그리기와 입력이 같은 값을 써야 눌린 줄과 보이는 줄이 어긋나지
+     * 않으므로 여기 한 곳에서만 계산한다.
+     */
+    fun choiceRowBottom(row: Int): Float =
+        choicePanelY + choicePanelHeight - choiceRowTopInset - row * choiceRowSpacing
+
+    /**
+     * `choiceRowIndexAt`: 좌표가 몇 번째 항목 배경 위인지 알려 준다.
+     *
+     * 항목 사이 간격(원본 4px)에 떨어진 점은 어느 항목도 고르지 않는다. 예전에는 줄
+     * 간격을 44로 어림해 나눴는데, 실제 간격(항목 45 + 여백 4)과 달라 경계에서 보이는
+     * 줄과 눌리는 줄이 어긋났다.
+     */
+    fun choiceRowIndexAt(x: Float, y: Float, visibleRows: Int): Int? {
+        if (x < choiceRowX || x > choiceRowX + choiceRowWidth) return null
+        repeat(visibleRows.coerceAtMost(choiceVisibleRows)) { row ->
+            val bottom = choiceRowBottom(row)
+            if (y in bottom..(bottom + choiceRowHeight)) return row
+        }
+        return null
+    }
+}

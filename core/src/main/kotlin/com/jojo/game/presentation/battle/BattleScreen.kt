@@ -4256,6 +4256,15 @@ void main() {
                     focusCameraFromMiniMap(world.x, world.y)
                     return true
                 }
+                if (pointerIntent.capture == BattleInputCapture.CHOICE) {
+                    // 원본 ChooseLayer는 항목마다 버튼이 붙어 있어 눌린 항목이 곧 선택이다.
+                    // 전투 화면은 키보드만 받고 있어 항목을 눌러도 아무 일이 없었다.
+                    battleChoiceRowAt(world.x, world.y)?.let { row ->
+                        scriptRuntime.selectChoice(row)
+                        confirmBattleChoice()
+                    }
+                    return true
+                }
                 if (pointerIntent.capture == BattleInputCapture.SETTLEMENT_INFO) {
                     closeSettlementInfo2()
                     return true
@@ -11046,6 +11055,14 @@ void main() {
      * `confirmBattleChoice`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /**
+     * `battleChoiceRowAt`: 전투 선택창에서 눌린 항목 번호를 그리기와 같은 배치로 되돌린다.
+     */
+    private fun battleChoiceRowAt(x: Float, y: Float): Int? {
+        val count = scriptRuntime.currentChoice?.options?.size ?: return null
+        return battleDialogueRendererAdapter.layout.choiceRowIndexAt(x, y, count)
+    }
 
     private fun confirmBattleChoice() {
         val sessionTransition = dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm)
