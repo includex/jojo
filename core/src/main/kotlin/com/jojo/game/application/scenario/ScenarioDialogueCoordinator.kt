@@ -246,7 +246,10 @@ class ScenarioDialogueCoordinator(
         val speaker = if (primary in activeCharacterIds) primary else fallback
         val sourceText = "&$speaker\n$text"
         beginDialogueLifecycle(sourceText)
-        presentDialogue(Dialogue(speaker.toString(), text))
+        // `stage.talk`도 같은 SayLayer를 쓰므로 본문은 세 줄 단위로 나뉜다.
+        val pages = paginate(speaker.toString(), text).ifEmpty { listOf(Dialogue(speaker.toString(), text)) }
+        presentDialogue(pages.first())
+        pages.drop(1).forEach(pendingDialogues::addLast)
         onStateChange(PlaybackState.DIALOGUE)
     }
 
@@ -276,17 +279,43 @@ class ScenarioDialogueCoordinator(
          * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
          */
 
+        /**
+         * `DIALOGUE_PAGE_LINES` (상태 값): 대사창이 한 번에 보여 주는 줄 수다.
+         *
+         * 원본 `SayLayer._next`는 `_line`이 3에 이르면 본문을 비우고 새 페이지를 시작하며
+         * (`if (this._line < 3) ... else { curLab.string = ""; _line = 0 }`), 매번
+         * `if (this._line % 3 == 0) break`로 입력을 기다린다. 대사창은 늘어나지 않는다.
+         */
+        const val DIALOGUE_PAGE_LINES = 3
+
+        /**
+         * `parseDialogueBlocks`: 입력을 규칙에 따라 계산·변환한다.
+         * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
+         */
+
         fun parseDialogueBlocks(raw: String): List<Dialogue> {
             val tags = Regex("""(?m)^&(\d+)\n""").findAll(raw).toList()
-            if (tags.isEmpty()) return listOf(Dialogue(null, raw))
+            if (tags.isEmpty()) return paginate(null, raw)
             val result = mutableListOf<Dialogue>()
             val preamble = raw.substring(0, tags.first().range.first).trim()
-            if (preamble.isNotEmpty()) result += Dialogue(null, preamble)
+            if (preamble.isNotEmpty()) result += paginate(null, preamble)
             tags.forEachIndexed { index, tag ->
                 val end = tags.getOrNull(index + 1)?.range?.first ?: raw.length
-                result += Dialogue(tag.groupValues[1], raw.substring(tag.range.last + 1, end).trim())
+                result += paginate(tag.groupValues[1], raw.substring(tag.range.last + 1, end).trim())
             }
             return result.filter { it.text.isNotEmpty() }
         }
+
+        /**
+         * `paginate`: 한 화자의 본문을 원본과 같은 세 줄 단위 페이지로 나눈다.
+         *
+         * 화자 표식은 원본에서도 페이지를 새로 시작시키므로 블록 경계는 그대로 두고,
+         * 블록 안의 줄만 세 줄씩 끊는다. 이렇게 해야 긴 대사가 대사창을 넘지 않는다.
+         */
+        fun paginate(speakerId: String?, text: String): List<Dialogue> =
+            text.split('\n')
+                .chunked(DIALOGUE_PAGE_LINES)
+                .map { page -> Dialogue(speakerId, page.joinToString("\n").trim()) }
+                .filter { it.text.isNotEmpty() }
     }
 }

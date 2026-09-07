@@ -4207,7 +4207,7 @@ void main() {
                     } else game.showScenario(returnScenario)
 
                     Input.Keys.T, Input.Keys.SPACE, Input.Keys.ENTER -> {
-                        if (battle.outcome() == null) endTurn() else outcomePresentation.continueAfterOutcome()
+                        if (battle.outcome() == null) requestEndRound() else outcomePresentation.continueAfterOutcome()
                     }
 
                     Input.Keys.M -> {
@@ -4762,9 +4762,7 @@ void main() {
         }
         deathTimeline.driveScriptBarrier()
         if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT && scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp) turnController.runCollocatedPlayerTurn()
-        // 원본 `ctrl_mine`은 조작할 아군이 없으면 조작 블록 자체를 건너뛴다. 커서도, 명령
-        // 대기도, 턴 종료 확인창도 없이 다음 진영으로 넘어가므로 전투가 저절로 이어진다.
-        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && !autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT && scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp && !turnController.playerCampHasOperableUnit()) turnController.endPlayerTurn()
+        driveEndRoundPrompt()
         battleElapsed += delta
         driveMovementTicks()
         applyDueBattleMutations()
@@ -5500,6 +5498,20 @@ void main() {
      * `endTurn`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /**
+     * `requestEndRound`: 원본 `END_ROUND` 이벤트와 같은 자리에서 턴 종료 확인창을 연다.
+     *
+     * 원본 `BattleLayer`는 `END_ROUND`를 받으면 예외 없이 MsgBox4
+     * "모든 부대의 명령을 종료하시겠습니까?"를 띄우고, 그 응답으로만 진영을 넘긴다.
+     * 위임을 고른 응답은 `COLLOCATION` 플래그를 세운 뒤 같은 경로로 진행한다.
+     */
+    private fun requestEndRound() {
+        if (turnController.snapshot.phase != BattleTurnPhase.PLAYER_INPUT) return
+        if (autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return
+        endRoundPromptOffered = true
+        autoBattleFlow.openEndRoundPrompt()
+    }
 
     private fun endTurn() {
         battle.outcome()?.let {
@@ -10630,10 +10642,45 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    /**
+     * `endRoundPromptOffered` (상태 값): 이번 아군 진영에서 턴 종료 확인창을 이미 자동으로
+     * 열었는지 기록한다. "아니오"로 닫은 뒤 곧바로 다시 열리지 않게 한다.
+     */
+    private var endRoundPromptOffered = false
+
+    /**
+     * `lastObservedTurnPhase` (상태 값): 진영 전환을 감지해 자동 확인창 기록을 되돌린다.
+     */
+    private var lastObservedTurnPhase: BattleTurnPhase? = null
+
+    /**
+     * `driveEndRoundPrompt`: 아군이 모두 행동을 마치면 턴 종료 확인창을 한 번 연다.
+     *
+     * 원본은 `NOACTION_INDEX`가 남은 유닛을 찾지 못했을 때 `END_ROUND`를 발행한다.
+     * 조작 구간에 들어온 뒤에는 유닛이 모두 행동해도 턴이 저절로 끝나지 않으므로,
+     * 확인창을 열어 두고 응답을 기다린다.
+     */
+    private fun driveEndRoundPrompt() {
+        val phase = turnController.snapshot.phase
+        if (phase != lastObservedTurnPhase) {
+            lastObservedTurnPhase = phase
+            if (phase == BattleTurnPhase.PLAYER_INPUT) endRoundPromptOffered = false
+        }
+        if (phase != BattleTurnPhase.PLAYER_INPUT || endRoundPromptOffered) return
+        if (bootstrapPhase != BattleBootstrapPhase.COMPLETE || battle.outcome() != null) return
+        if (autoBattleFlow.view().collocation || autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return
+        if (scriptRuntime.state != PlaybackState.COMPLETE || aiPresentation.hasActiveCamp) return
+        if (combatPresentationBusy() || outcomeCallbacksPending()) return
+        if (turnController.playerCampHasOperableUnit()) return
+        requestEndRound()
+    }
+
     private fun focusNextNoActionUnit() {
         val candidates = battle.units.values.filter { it.type() == Faction.PLAYER && it.visible && !it.hasActed }
         if (candidates.isEmpty()) {
-            if (battle.outcome() == null) endTurn()
+            // 원본 `NOACTION_INDEX` 처리기는 남은 유닛이 없으면 `END_ROUND`를 발행하고,
+            // 그 이벤트는 언제나 MsgBox4 확인창을 연다.
+            if (battle.outcome() == null) requestEndRound()
             return
         }
         val unit = candidates[noActionIndex % candidates.size]

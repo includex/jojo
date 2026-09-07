@@ -757,19 +757,24 @@ def main() -> None:
             # Kept only as the legacy one-frame evidence capture.  The
             # renderer uses the authored Weather_n-1 sheets exported below;
             # it must not select this frame as a minimap texture.
-            menu_crop("minimap.png", 1330, 102, 216, 50)
+            menu_crop("minimap.png", 2, 394, 216, 50)
             # Canvas/Layer/bg/weather.  This is a distinct 72×72 HUD frame
             # emitted by the live MenuLayer DynamicAtlas.
             menu_crop("weather_0.png", 270, 2, 72, 72)
-            menu_crop("button.png", 1548, 2, 60, 60)
-            for index, x in enumerate((1610, 1660, 1710, 1760, 1810, 1860, 1910, 1960), start=1):
+            menu_crop("button.png", 1330, 2, 60, 60)
+            # `button0..button11`의 `Background/tool1` SpriteFrame.rect를 원본
+            # MenuLayer 스냅샷에서 그대로 옮긴 값이다. 이전 값은 균등한 50px
+            # 간격을 가정했지만 DynamicAtlas의 실제 배치는 그렇지 않아
+            # tool8부터 어긋나고 tool9·11·12가 미니맵 조각을 집어 왔다.
+            for index, x in enumerate(
+                (1392, 1442, 1492, 1542, 1592, 1642, 1692, 1742, 1792), start=1
+            ):
                 menu_crop(f"tool{index}.png", x, 2, 48, 48)
-            menu_crop("tool9.png", 2, 244, 48, 48)
             menu_crop("tool10.png", 198, 2, 48, 48)
             menu_crop("tool11.png", 366, 2, 48, 48)
-            menu_crop("tool12.png", 52, 244, 48, 48)
+            menu_crop("tool12.png", 1842, 2, 48, 48)
             # MenuLayer intentionally skips button12; button13 uses help.
-            menu_crop("help.png", 102, 244, 72, 72)
+            menu_crop("help.png", 1892, 2, 72, 72)
 
     # MenuLayer._create_weather maps config weather to Game/Weather/
     # Weather_<n>-1, constructs four SpriteFrames with rect(0, l*c, s, c),

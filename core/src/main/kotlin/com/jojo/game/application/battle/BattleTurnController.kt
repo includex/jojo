@@ -95,7 +95,23 @@ class BattleTurnController(
     fun completeBootstrap() {
         check(state.phase == BattleTurnPhase.BOOTSTRAP) { "bootstrap completion outside bootstrap phase" }
         battle.roundLifecycle.prepareActiveCampOperation()
+        if (skipPlayerOperationIfIdle()) return
         state.phase = BattleTurnPhase.PLAYER_INPUT
+    }
+
+    /**
+     * `skipPlayerOperationIfIdle`: 조작할 아군이 없으면 진영 조작 구간을 통째로 건너뛴다.
+     *
+     * 원본 `BattleLayer.ctrl_mine`은 진영 조작에 들어가기 직전 한 번만
+     * `nextNotOperUnit(BATTLE_CAMP.MINE)`을 본다. 거짓이면 커서도 켜지 않고 명령 대기도
+     * 걸지 않은 채 복원 단계로 넘어간다. 반대로 조작 구간에 들어간 뒤에는 다시 보지
+     * 않으므로, 마지막 유닛이 행동을 마쳐도 턴은 저절로 끝나지 않고 `END_ROUND`를
+     * 기다린다. 그래서 이 판정은 진영 시작에서만 쓴다.
+     */
+    private fun skipPlayerOperationIfIdle(): Boolean {
+        if (battle.activeFaction != Faction.PLAYER || playerCampHasOperableUnit()) return false
+        beginCampRestore()
+        return true
     }
 
     /** endPlayerTurn: 플레이어 턴 종료 요청을 검증하고 진영 복원 단계로 진행한다. */
@@ -173,6 +189,7 @@ class BattleTurnController(
         battle.roundLifecycle.prepareActiveCampOperation()
         val camp = battle.activeFaction
         if (camp == Faction.PLAYER) {
+            if (skipPlayerOperationIfIdle()) return
             state.phase = BattleTurnPhase.PLAYER_INPUT
             return
         }
