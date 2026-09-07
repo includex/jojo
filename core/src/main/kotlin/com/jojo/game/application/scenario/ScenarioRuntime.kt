@@ -208,7 +208,12 @@ class ScenarioStage private constructor(
     val unitAttributes: MutableMap<Int, MutableMap<Int, Int>> get() = campaign.unitAttributes
 
     // --- 단순 설정 함수 ---
-    fun clearUnits() = unitRegistry.clearUnits()
+    fun clearUnits() {
+        // 원본 `clsUnit`은 맵 노드의 자식을 모두 파괴한다. 머리 노드도 맵 노드의 자식이므로
+        // 유닛과 함께 사라진다.
+        movementCoordinator.clearHeads()
+        unitRegistry.clearUnits()
+    }
     /**
      * `setMenuVisible`: 현재 상태를 갱신한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
@@ -720,6 +725,10 @@ class ScenarioStage private constructor(
     fun apply(command: ScenarioCommand) {
         when (command) {
             is ScenarioCommand.LoadBackground -> {
+                // 원본 `HallLayer._setBg3`는 새 배경을 올리기 전에 `_heads`의 노드를 모두
+                // 풀로 돌려보낸다. 이 정리가 없으면 중국 지도 나레이션에 배치한 초상화가
+                // 뒤따르는 궁정 장면 위에 그대로 남는다.
+                movementCoordinator.clearHeads()
                 backgroundId = when (command.backgroundId) {
                     0 -> command.variant + 1; 1 -> 115; 2 -> command.variant + 41; else -> command.variant
                 }

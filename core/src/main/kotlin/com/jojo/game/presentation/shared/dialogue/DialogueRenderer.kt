@@ -2,6 +2,7 @@
 package com.jojo.game.presentation.shared.dialogue
 
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
@@ -32,9 +33,16 @@ class DialogueRenderer(
         assets: DialogueRenderAssets,
     ) {
         shapes.projectionMatrix = projection
+        // ShapeRenderer는 블렌딩을 스스로 켜지 않는다. 장면 렌더러가 GL_BLEND를 끈 채로
+        // 넘겨주면 반투명 배경막(야망 30/255, 지도 안내 127/255)이 불투명한 검정으로 찍혀
+        // 뒤의 장면을 통째로 가린다. 원본 Cocos 레이어는 언제나 알파 합성이므로 이 패스
+        // 동안에만 블렌딩을 켜고 이전 상태로 되돌린다.
+        val blendWasEnabled = Gdx.gl.glIsEnabled(GL20.GL_BLEND)
+        if (!blendWasEnabled) Gdx.gl.glEnable(GL20.GL_BLEND)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         drawModalBackdrop(shapes, model.modal)
         shapes.end()
+        if (!blendWasEnabled) Gdx.gl.glDisable(GL20.GL_BLEND)
 
         batch.projectionMatrix = projection
         batch.begin()
@@ -195,8 +203,12 @@ class DialogueRenderer(
             batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height)
         }
         val firstRowY = layout.choicePanelY + layout.choicePanelHeight - layout.choiceRowTopInset
-        model.options.forEachIndexed { index, option ->
-            val rowY = firstRowY - index * layout.choiceRowSpacing
+        // 원본 ChooseLayer는 항목을 모두 만든 뒤 `view`(169) 안에서만 보여 주고 나머지는
+        // 스크롤로 닿게 한다. 여기서는 보이는 창의 첫 항목만 옮겨 같은 접근성을 만든다.
+        val first = model.firstVisibleIndex.coerceIn(0, maxOf(0, model.options.size - layout.choiceVisibleRows))
+        model.options.drop(first).take(layout.choiceVisibleRows).forEachIndexed { row, option ->
+            val index = first + row
+            val rowY = firstRowY - row * layout.choiceRowSpacing
             assets.choiceRow?.let {
                 batch.color = Color.WHITE
                 batch.draw(it, layout.choiceRowX, rowY, layout.choiceRowWidth, layout.choiceRowHeight)

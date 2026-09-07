@@ -155,6 +155,13 @@ data class ChoiceRenderModel(
     val portraitId: Int? = null,
     /** 선택지 대신 단순 확인 상자를 표시하는지 여부다. */
     val isConfirmation: Boolean = false,
+    /**
+     * 원본 `ChooseLayer`의 ScrollView가 보여 주고 있는 첫 항목의 인덱스다.
+     *
+     * 원본 프리팹은 `view`(694×169)에 항목(45 + 간격 4)을 쌓으므로 한 번에 세 개만 보이고
+     * 나머지는 스크롤로 닿는다. 포트에는 드래그 스크롤이 없어 이 값으로 창을 옮긴다.
+     */
+    val firstVisibleIndex: Int = 0,
 )
 
 /** 종류별 배경·본문 표시 규칙을 유지하는 공용 모달 모델이다. */
@@ -267,4 +274,6 @@ data class DialogueRenderLayout(
     val choiceTextX: Float = 482.87796f,
     /** 항목 아래쪽에서 본문 글꼴 기준선까지의 간격이다. */
     val choiceTextOffsetY: Float = 38.313f,
+    /** 원본 `ChooseLayer`의 `view`(높이 169)에 한 번에 들어가는 항목 수다. */
+    val choiceVisibleRows: Int = 3,
 )

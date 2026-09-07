@@ -4762,6 +4762,9 @@ void main() {
         }
         deathTimeline.driveScriptBarrier()
         if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT && scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp) turnController.runCollocatedPlayerTurn()
+        // 원본 `ctrl_mine`은 조작할 아군이 없으면 조작 블록 자체를 건너뛴다. 커서도, 명령
+        // 대기도, 턴 종료 확인창도 없이 다음 진영으로 넘어가므로 전투가 저절로 이어진다.
+        if (bootstrapPhase == BattleBootstrapPhase.COMPLETE && !autoBattleFlow.view().collocation && turnController.snapshot.phase == BattleTurnPhase.PLAYER_INPUT && scriptRuntime.state == PlaybackState.COMPLETE && battle.outcome() == null && !aiPresentation.hasActiveCamp && !turnController.playerCampHasOperableUnit()) turnController.endPlayerTurn()
         battleElapsed += delta
         driveMovementTicks()
         applyDueBattleMutations()

@@ -74,6 +74,14 @@ internal class ScenarioStageHeadCoordinator {
     }
 
     /**
+     * `clear`: 배치된 머리 노드를 모두 제거한다.
+     *
+     * 원본 `HallLayer._setBg3`는 새 배경을 올리기 전에 `_heads`의 모든 노드를 풀로
+     * 돌려보내고 맵 자체를 비운다. 즉 배경이 바뀌면 이전 장면의 초상화는 남지 않는다.
+     */
+    fun clear() = heads.clear()
+
+    /**
      * `hide`: 타입의 핵심 동작을 수행한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */

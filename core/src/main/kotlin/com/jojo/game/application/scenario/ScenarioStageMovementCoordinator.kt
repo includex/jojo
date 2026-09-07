@@ -94,6 +94,9 @@ internal class ScenarioStageMovementCoordinator {
 
     fun hideHead(id: Int): Float = headCoordinator.hide(id)
 
+    /** clearHeads: 배경 교체 시 원본과 같이 배치된 초상화를 모두 제거한다. */
+    fun clearHeads() = headCoordinator.clear()
+
     /**
      * `countDirection`: 타입의 핵심 동작을 수행한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.

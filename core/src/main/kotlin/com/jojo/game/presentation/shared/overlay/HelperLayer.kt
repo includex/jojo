@@ -261,4 +261,21 @@ object SourceInfoText {
         }
         return text
     }
+
+    /**
+     * `plain`: 원본 치환을 마친 뒤 RichText 태그만 걷어낸 표시 문자열을 만든다.
+     *
+     * 원본은 치환 결과를 `cc.RichText`에 넘겨 색을 입히지만, SpriteBatch로 그리는 화면은
+     * 색 태그를 그릴 수 없다. 태그만 지우면 `[C3A 게임 시작]`이 원본과 같은 `게임 시작`으로
+     * 남고, `[[C28*.1000]]`의 바깥 대괄호도 원본처럼 한 쌍만 남는다.
+     */
+    fun plain(
+        input: String,
+        flags: Int = 1 or 2 or 8,
+        unitName: (Int) -> String = { "" },
+        global: (Int) -> Int = { 0 },
+    ): String = replace(input, flags, unitName, global).replace(COLOR_TAG, "")
+
+    /** RichText 색 태그다. */
+    private val COLOR_TAG = Regex("</?color[^>]*>")
 }

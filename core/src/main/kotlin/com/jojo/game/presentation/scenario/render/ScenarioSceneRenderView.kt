@@ -114,6 +114,10 @@ internal data class ScenarioChoiceRenderView(
     val isAsk: Boolean,
     val portraitId: Int?,
     val options: List<String>,
+    /** 현재 선택 중인 항목이다. 원본은 터치 전용이라 항상 첫 항목에서 시작한다. */
+    val selectedIndex: Int = 0,
+    /** 원본 ScrollView가 보여 주고 있는 첫 항목이다. */
+    val firstVisibleIndex: Int = 0,
 )
 
 /**

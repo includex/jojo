@@ -64,25 +64,33 @@ internal object ScenarioLoader {
          * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
          */
 
-        fun scan(block: List<JsonValue>) {
+        /**
+         * 원본은 평탄한 명령열을 `goto`로 건너뛰므로, 레이블이 속한 블록이 끝나면 실행이
+         * 바깥 블록의 다음 문장으로 이어진다. 진입점을 블록 안쪽으로만 잘라 두면 그 이음매가
+         * 사라져, 예컨대 R_00 설정 메뉴에서 항목을 한 번이라도 눌러 `goto('lab345')`로 돌아온
+         * 뒤 `게임 시작`을 고르면 시나리오가 `model.unitJoin` 앞에서 끝나 아군이 0명인 채로
+         * 전투에 들어간다. 그래서 바깥 블록의 남은 문장(`suffix`)을 함께 이어 둔다.
+         */
+        fun scan(block: List<JsonValue>, suffix: List<JsonValue>) {
             block.forEachIndexed { index, statement ->
+                val continuation = block.drop(index + 1) + suffix
                 val call = statement.takeIf { it.typeName() == "Expr" }?.field("value")
                 if (call?.typeName() == "Call" && call.field("func").expressionPath() == "label") {
                     call.field("args").children().firstOrNull()?.field("value")?.asString()?.let { label ->
-                        result.putIfAbsent(label, block.drop(index + 1))
+                        result.putIfAbsent(label, continuation)
                     }
                 }
                 when (statement.typeName()) {
                     "If" -> {
-                        scan(statement.field("body").children().toList())
-                        scan(statement.field("orelse").children().toList())
+                        scan(statement.field("body").children().toList(), continuation)
+                        scan(statement.field("orelse").children().toList(), continuation)
                     }
 
-                    "For" -> scan(statement.field("body").children().toList())
+                    "For" -> scan(statement.field("body").children().toList(), continuation)
                 }
             }
         }
-        scan(statements)
+        scan(statements, emptyList())
         return result
     }
 }

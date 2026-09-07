@@ -1126,7 +1126,14 @@ class ScenarioScreen(
             ScenarioModalRenderView(kind, text, scenarioViewState.modalVisibleText, playback.currentModalFixedText, hallOverlayVariant)
         }
         val choice = playback.currentChoice?.let {
-            ScenarioChoiceRenderView(playback.isAskChoice, it.faceId?.let(::dialoguePortraitId), it.options)
+            val options = it.options.map(::choiceOptionText)
+            ScenarioChoiceRenderView(
+                isAsk = playback.isAskChoice,
+                portraitId = it.faceId?.let(::dialoguePortraitId),
+                options = options,
+                selectedIndex = playback.selectedChoice,
+                firstVisibleIndex = choiceFirstVisibleIndex(options.size),
+            )
         }
         return ScenarioOverlayRenderView(state, streetDialogueView(), choice, modal)
     }
@@ -1498,6 +1505,35 @@ class ScenarioScreen(
 
     override fun choiceCount(): Int = playback.currentChoice?.options?.size ?: 0
     /**
+     * `choiceFirstVisibleIndex`: 선택지 창이 스크롤된 위치를 그리기와 입력에 함께 알려 준다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    override fun choiceFirstVisibleIndex(): Int = choiceFirstVisibleIndex(choiceCount())
+
+    /** 그리기와 입력이 같은 스크롤 위치를 쓰도록 판정을 한 곳에서 가져온다. */
+    private fun choiceFirstVisibleIndex(count: Int): Int =
+        ScenarioInputRouter.firstVisibleChoiceIndex(count, playback.selectedChoice)
+
+    /**
+     * 원본 `ChooseLayer.onCreate`는 항목을 만들기 전에 `Model.replaceSpeInfo`를 통과시킨다.
+     * 이 치환이 없으면 `훈련 모드 [[C28*.1000]]`처럼 원문 토큰이 그대로 화면에 남는다.
+     */
+    private fun choiceOptionText(option: String): String = SourceInfoText.plain(
+        option,
+        flags = CHOICE_TEXT_REPLACE_FLAGS,
+        unitName = ::sourceUnitName,
+        global = ::sourceGlobal,
+    )
+
+    /** 원본 `Unit.unitName`은 실행 중 기록된 이름을 먼저 보고, 숫자 앞에서 잘라 쓴다. */
+    private fun sourceUnitName(id: Int): String = GameDataCatalog.sayLayerUnitName(
+        campaign.unitNames[id] ?: gameDataCatalog.unitProfile(id)?.name.orEmpty(),
+    )
+
+    /** 원본 `Model.getGVars(id, 0)`과 같은 기본값 규칙으로 전역 변수를 읽는다. */
+    private fun sourceGlobal(id: Int): Int = (campaign.globalVariables[id] as? Number)?.toInt() ?: 0
+    /**
      * `selectPrevious`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
@@ -1722,3 +1758,11 @@ class ScenarioScreen(
 
     private fun unitTexture(assetId: Int): Texture? = sceneAssets.unitTexture(assetId)
 }
+
+/**
+ * 선택지 항목에 적용하는 `Model.replaceSpeInfo` 플래그다.
+ *
+ * 원본 `ChooseLayer`는 기본값 15로 부르지만, 4(줄바꿈 → `<br/>`)는 항목을 나누는 용도라
+ * 이미 나뉜 문자열에는 필요 없다. 1(무장 이름), 2(전역 변수), 8(색 태그)만 적용한다.
+ */
+private const val CHOICE_TEXT_REPLACE_FLAGS = 1 or 2 or 8

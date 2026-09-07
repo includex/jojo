@@ -31,6 +31,12 @@ interface ScenarioInputPort {
 
     fun choiceCount(): Int
     /**
+     * `choiceFirstVisibleIndex`: 선택지 목록이 스크롤된 위치를 알려 준다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    fun choiceFirstVisibleIndex(): Int
+    /**
      * `dismissHallOverlay`: 조건과 입력 상태를 검증한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
@@ -97,7 +103,11 @@ class ScenarioInputController(private val port: ScenarioInputPort) {
             return true
         }
         if (port.playbackState() == PlaybackState.CHOICE) {
-            when (val choice = ScenarioInputRouter.choiceTouch(port.isAskChoice(), port.choiceCount(), x, y)) {
+            when (
+                val choice = ScenarioInputRouter.choiceTouch(
+                    port.isAskChoice(), port.choiceCount(), x, y, port.choiceFirstVisibleIndex(),
+                )
+            ) {
                 is ScenarioInputRouter.Touch.SelectAndConfirm -> port.selectAndConfirm(choice.index)
                 ScenarioInputRouter.Touch.Advance -> port.advance()
                 ScenarioInputRouter.Touch.None, is ScenarioInputRouter.Touch.Hall -> Unit

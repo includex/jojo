@@ -92,10 +92,11 @@ internal object ScenarioOverlayRenderer {
         choice = if (view.state == ScenarioOverlayState.CHOICE) view.choice?.let {
             ChoiceRenderModel(
                 title = if (it.isAsk) "확인" else "전술 선택",
-                options = it.options.take(3),
-                selectedIndex = 0,
+                options = it.options,
+                selectedIndex = it.selectedIndex,
                 portraitId = it.portraitId,
                 isConfirmation = it.isAsk,
+                firstVisibleIndex = it.firstVisibleIndex,
             )
         } else null,
         modal = if (view.state == ScenarioOverlayState.MODAL) view.modal?.let {

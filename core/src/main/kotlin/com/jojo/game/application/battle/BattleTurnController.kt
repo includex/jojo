@@ -108,6 +108,20 @@ class BattleTurnController(
         return true
     }
 
+    /**
+     * `playerCampHasOperableUnit`: 아군 진영에 아직 조작할 유닛이 남았는지 판별한다.
+     *
+     * 원본 `BattleLayer.ctrl_mine`은 진영 조작 구간에 들어가기 전에
+     * `nextNotOperUnit(BATTLE_CAMP.MINE)`을 먼저 본다. 이 값이 거짓이면 커서도 켜지 않고
+     * `waitCommand`도 걸지 않은 채 조작 블록 전체를 건너뛰어 다음 진영으로 넘어간다.
+     * 조건은 `isControl() && isExist() && !isAction()`이며, `isExist()`는
+     * `visible() && !isDeath()`이므로 숨어 있는 유닛은 세지 않는다. 영천 전투 1턴처럼
+     * `createMine`이 조조를 `hide: 1`로 배치한 구간에서 전투가 저절로 이어지는 이유다.
+     */
+    fun playerCampHasOperableUnit(): Boolean = battle.units.values.any {
+        it.effectiveFaction() == Faction.PLAYER && it.visible && it.hitPoints > 0 && !it.hasActed
+    }
+
     /** runCollocatedPlayerTurn: 공동 배치된 플레이어 진영의 AI 처리를 실행하고 후속 복원을 예약한다. */
     fun runCollocatedPlayerTurn(): Boolean {
         if (!BattleTurnPolicy.acceptsPlayerEnd(
