@@ -70,3 +70,86 @@ val verifyYingchuanBattleRegression = tasks.register<Exec>("verifyYingchuanBattl
 }
 
 tasks.named("check") { dependsOn(verifyWinConditionsPairwise, verifyRenderParityScope, verifyYingchuanSelectionRender, verifyYingchuanModalCaptures, verifyYingchuanBattleRegression) }
+
+// --- 대화창(SayLayer/DialogueLayer) 단계별 렌더 캡처 -------------------------
+// 원본 캡처와 동일한 단계 구성으로 게임 화면을 캡처한다. 연속 단계를 차분하면
+// 대화창 구성요소(패널/초상화/화자/본문)의 픽셀만 분리된다.
+val dialogueStageDir = layout.buildDirectory.dir("verification/dialogue-stages")
+val dialogueStages = listOf("characters", "panel", "portrait", "speaker", "text")
+val dialogueStageCaptures = dialogueStages.map { stage ->
+    tasks.register<JavaExec>("captureDialogueStage${stage.replaceFirstChar { it.uppercase() }}") {
+        group = "verification"
+        description = "Captures the street dialogue '$stage' stage as raw RGBA."
+        dependsOn(tasks.named("classes"))
+        classpath = verificationDesktopRuntime
+        mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+        if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+        jvmArgs("--enable-native-access=ALL-UNNAMED")
+        val raw = dialogueStageDir.map { it.file("game-$stage.rgba") }
+        val png = dialogueStageDir.map { it.file("game-$stage.png") }
+        outputs.files(raw, png)
+        doFirst {
+            raw.get().asFile.parentFile.mkdirs()
+            setArgs(
+                listOf(
+                    "--scenario=R_00",
+                    "--capture-state=street-$stage",
+                    "--capture-raw=${raw.get().asFile.absolutePath}",
+                    "--capture=${png.get().asFile.absolutePath}",
+                ),
+            )
+        }
+    }
+}
+
+tasks.register("captureDialogueStages") {
+    group = "verification"
+    description = "Captures every street dialogue stage used by the dialogue geometry comparison."
+    dependsOn(dialogueStageCaptures)
+}
+
+// --- 전투 대사창(SayLayer) 단계별 렌더 캡처 ---------------------------------
+// 거리 대사와 같은 누적 구성이다. 원본은
+// .verification-work/raw-framebuffer-common-space/dialogue-components/source-<stage>.rgba 이다.
+val battleDialogueStageDir = layout.buildDirectory.dir("verification/battle-dialogue-stages")
+val battleDialogueStages = listOf("panel", "portrait", "speaker", "text")
+val battleDialogueStageCaptures = battleDialogueStages.map { stage ->
+    tasks.register<JavaExec>("captureBattleDialogueStage${stage.replaceFirstChar { it.uppercase() }}") {
+        group = "verification"
+        description = "Captures the S_00 battle dialogue '$stage' stage as raw RGBA."
+        dependsOn(tasks.named("classes"))
+        classpath = verificationDesktopRuntime
+        mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+        if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+        jvmArgs("--enable-native-access=ALL-UNNAMED")
+        val raw = battleDialogueStageDir.map { it.file("game-$stage.rgba") }
+        val png = battleDialogueStageDir.map { it.file("game-$stage.png") }
+        outputs.files(raw, png)
+        doFirst {
+            raw.get().asFile.parentFile.mkdirs()
+            setArgs(
+                listOf(
+                    "--battle",
+                    "--scenario=S_00",
+                    "--capture-state=yingchuan-dialogue-components-$stage",
+                    "--capture-raw=${raw.get().asFile.absolutePath}",
+                    "--capture=${png.get().asFile.absolutePath}",
+                ),
+            )
+        }
+    }
+}
+
+tasks.register("captureBattleDialogueStages") {
+    group = "verification"
+    description = "Captures every battle dialogue stage used by the dialogue geometry comparison."
+    dependsOn(battleDialogueStageCaptures)
+}
+
+// 검증 harness가 java를 직접 띄울 때 쓰는 런타임 classpath를 출력한다.
+tasks.register("printVerificationClasspath") {
+    group = "verification"
+    description = "Prints the verification runtime classpath used by node/python harnesses."
+    val classpath = verificationDesktopRuntime.asPath
+    doLast { println(classpath) }
+}

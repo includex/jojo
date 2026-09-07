@@ -25,6 +25,8 @@ data class BattleRewardOverlayView(
     val stars: String = "",
     val items: List<BattleRewardItemView> = emptyList(),
     val sectionVisible: Boolean = false,
+    /** 구역 배경 위에 그릴 제목. 전투 진입 화면과 보상 화면이 같은 프리팹을 공유한다. */
+    val sectionTitle: String = "영천의 전투",
 )
 
 /** BattleRewardOverlayAssets: 보상 모달 배경과 아이콘을 그릴 때 사용하는 텍스처 묶음이다. */
@@ -72,7 +74,7 @@ class BattleRewardOverlayRenderer(
         }
         if (view.sectionVisible) {
             batch.begin()
-            drawSection()
+            drawSection(view.sectionTitle)
             batch.end()
         }
     }
@@ -122,13 +124,13 @@ class BattleRewardOverlayRenderer(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun drawSection() {
+    private fun drawSection(title: String) {
         batch.color = Color.WHITE
         assets.sectionBackgroundTexture?.let { batch.draw(it, 0f, 0f, 1488.3721f, 800f) }
         sectionTitleFont.color = Color(0.28f, 0.28f, 0.28f, 1f)
-        sectionTitleFont.draw(batch, "영천의 전투", 431.986f, 478.2f)
+        sectionTitleFont.draw(batch, title, 431.986f, 478.2f)
         sectionTitleFont.color = Color.WHITE
-        sectionTitleFont.draw(batch, "영천의 전투", 421.986f, 488.2f)
+        sectionTitleFont.draw(batch, title, 421.986f, 488.2f)
         batch.color = Color.WHITE
     }
 

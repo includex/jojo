@@ -36,6 +36,10 @@ internal data class BattleActorRenderUnit(
     val flipX: Boolean,
     val terrainMask: Texture?,
     val sourceHighlight: Boolean,
+    /** 점등 재질의 세기다. 원본의 `u_value`와 같은 0..1 범위다. */
+    val highlightValue: Float = 1f,
+    /** 현재 클립이 지정한 알파값이다. 퇴각·사망 연출이 이 값으로 깜빡이고 사라진다. */
+    val opacity: Float = 1f,
     val hpTexture: Texture?,
     val hpRatio: Float,
     val showHpBar: Boolean,
@@ -88,8 +92,9 @@ internal class BattleActorEffectRenderer(
                 if (shader != null) {
                     batch.flush()
                     batch.shader = shader
-                    shader.setUniformf("u_value", 1f)
+                    shader.setUniformf("u_value", actor.highlightValue)
                 }
+                batch.setColor(1f, 1f, 1f, actor.opacity)
                 drawMasked(actor.terrainMask, x, y, actor.size, view.tileSize) {
                     batch.draw(
                         texture, x, y, actor.size, actor.size, 0,
@@ -102,6 +107,7 @@ internal class BattleActorEffectRenderer(
                     batch.flush()
                     batch.shader = null
                 }
+                batch.color = Color.WHITE
             }
             if (actor.showHpBar) actor.hpTexture?.let { texture ->
                 val width = 88f

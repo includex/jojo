@@ -914,10 +914,14 @@ class ScenarioScreen(
                         drawUnits = false,
                     )
                 }
-                batch.projectionMatrix = viewport.camera.combined
-                batch.begin()
-                ScenarioStoryRenderer.drawStreetDialogue(sceneAssets, batch, streetDialogueView(), stageIndex)
-                batch.end()
+                ScenarioOverlayRenderer.drawStreetStage(
+                    sceneAssets,
+                    batch,
+                    shapes,
+                    viewport.camera.combined,
+                    streetDialogueView(),
+                    stageIndex,
+                )
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
             }
         } else {
@@ -1650,7 +1654,8 @@ class ScenarioScreen(
      */
 
     private fun unitName(id: Int): String =
-        gameDataCatalog.unitProfile(id)?.name?.takeIf(String::isNotBlank) ?: "유닛 $id"
+        gameDataCatalog.unitProfile(id)?.name?.takeIf(String::isNotBlank)
+            ?.let(GameDataCatalog::sayLayerUnitName) ?: "유닛 $id"
     /**
      * `nextModule`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.

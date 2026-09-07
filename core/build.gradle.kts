@@ -49,12 +49,18 @@ val generatedAudioAssetsDirectory = layout.buildDirectory.dir("generated/audio-a
 val generatedTitleAssetsDirectory = layout.buildDirectory.dir("generated/title-assets")
 val generatedTitleLoadConfirmationDirectory = layout.buildDirectory.dir("generated/title-load-confirmations")
 val generatedReferenceFramebuffersDirectory = layout.buildDirectory.dir("generated/reference-framebuffers")
+// The exporter also re-nests branches the decompiler mis-attached, using the
+// original bytecode in `cocosAssetsDirectory` as the authority.  The restored
+// `.py` files stay exactly as recovered; only the executed AST is corrected.
 val exportScenarioAst = tasks.register<Exec>("exportScenarioAst") {
     inputs.dir(restoredScenarioDirectory)
+    inputs.dir(cocosAssetsDirectory)
     inputs.file(rootProject.file("tools/export_python_ast.py"))
+    inputs.file(rootProject.file("tools/repair_scenario_branch_nesting.py"))
     outputs.dir(generatedAstDirectory)
     commandLine("python3", rootProject.file("tools/export_python_ast.py").absolutePath,
-        restoredScenarioDirectory.absolutePath, generatedAstDirectory.get().asFile.absolutePath)
+        restoredScenarioDirectory.absolutePath, cocosAssetsDirectory.absolutePath,
+        generatedAstDirectory.get().asFile.absolutePath)
 }
 val exportMapAssets = tasks.register<Exec>("exportMapAssets") {
     inputs.dir(cocosAssetsDirectory)

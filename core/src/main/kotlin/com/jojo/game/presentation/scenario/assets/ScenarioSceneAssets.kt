@@ -194,6 +194,10 @@ internal class ScenarioSceneAssets(
         get() = cachedStreetSpeakerFont ?: KoreanFont.create(
             31,
             requiredGlyphs,
+            // 원본 라벨의 외곽선은 설계 좌표 기준 2px이므로 0.86배인 1.72f가 원리상
+            // 맞지만, 이 글꼴의 획이 원본보다 얇아 1.72f로 줄이면 글자 실루엣이 원본보다
+            // 작아진다. 캡처 대조에서 2f가 더 가까워 유지한다.
+            // tools/verify_dialogue_window_parity.py 참고.
             borderWidth = 2f,
             borderColor = Color(102f / 255f, 1f, 1f, 1f),
             fillColor = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f),

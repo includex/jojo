@@ -13,8 +13,8 @@ class BattleDialoguePlacementPolicyTest {
 
         assertEquals(380f, placement.panelY)
         assertEquals(378f, placement.portraitY)
-        assertEquals(569.4f, placement.speakerBaselineY)
-        assertEquals(479.814f, placement.textBaselineY)
+        assertEquals(569.4f, placement.speakerDrawY)
+        assertEquals(514.501f, placement.textDrawY)
     }
 
     /** 화면 위 화자는 원본 `_resetPos` 규칙에 따라 대화창을 화자 아래에 둔다. */
@@ -24,8 +24,8 @@ class BattleDialoguePlacementPolicyTest {
 
         assertEquals(208f, placement.panelY)
         assertEquals(206f, placement.portraitY)
-        assertEquals(397.4f, placement.speakerBaselineY)
-        assertEquals(307.814f, placement.textBaselineY)
+        assertEquals(397.4f, placement.speakerDrawY)
+        assertEquals(342.501f, placement.textDrawY)
     }
 
     /** 화자가 없으면 기존 원본 캡처와 같은 기본 대화창 좌표를 유지한다. */

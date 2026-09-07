@@ -111,6 +111,11 @@ internal object VerificationBattlePresentation {
                 "background" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_BACKGROUND
                 "characters" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_CHARACTERS
                 "labels" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_LABELS
+                // 원본 SayLayer 캡처와 같은 누적 단계다. panel -> portrait -> speaker -> text 순으로 켠다.
+                "panel" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_PANEL
+                "portrait" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_PORTRAIT
+                "speaker" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_SPEAKER
+                "text" -> RuntimeBattleRoute.DIALOGUE_COMPONENT_TEXT
                 else -> RuntimeBattleRoute.DIALOGUE_COMPONENT_DIALOGUE
             }
             state?.startsWith("battle-edit2-") == true -> when (state.removePrefix("battle-edit2-").removeSuffix("-fixture")) {

@@ -57,11 +57,22 @@ internal data class TimedBattleMutation(val at: Float, val mutation: () -> Unit)
 
 /** 전투 패배 판별기: 주인공 유닛 우선 규칙과 아군 생존 규칙으로 패배 여부를 계산한다. */
 internal object BattleScreenLoseCondition {
-    /** 패배 판별: 주인공 전투 유닛이 있으면 그 체력을 우선하고, 없으면 아군 생존 여부를 사용한다. */
-    fun defeated(units: Collection<BattleUnit>, mineMasterBattleId: String?): Boolean {
-        mineMasterBattleId?.let { masterId ->
-            units.firstOrNull { it.id == masterId }?.let { return it.hitPoints < 1 }
-        }
+    /**
+     * 패배 판별.
+     *
+     * 원본 `BattleLayer.loseTest`는 주인공 전투 유닛을 찾으면 그 사망 여부만 보고 즉시
+     * 끝내고, 찾지 못했을 때만 아군 생존 여부를 순회한다. 전투 ID 조회가 실패해도 같은
+     * 주인공을 캐릭터 ID로 다시 찾아야 하며, 그러지 않으면 주인공이 숨어 있는 스크립트
+     * 구간에서 "살아있는 아군 없음"으로 잘못 판정해 즉시 패배한다.
+     */
+    fun defeated(
+        units: Collection<BattleUnit>,
+        mineMasterBattleId: String?,
+        mineMasterCharacterId: Int? = null,
+    ): Boolean {
+        val master = mineMasterBattleId?.let { masterId -> units.firstOrNull { it.id == masterId } }
+            ?: mineMasterCharacterId?.let { characterId -> units.firstOrNull { it.characterId == characterId } }
+        if (master != null) return master.hitPoints < 1
         return units.none { it.faction == Faction.PLAYER && it.hitPoints > 0 }
     }
 }

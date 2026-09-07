@@ -327,7 +327,9 @@ def main() -> None:
                 # selected portrait 180.  These are dynamic-atlas coordinates,
                 # therefore use the fixture values, not similarly named static
                 # frames from a previous battle capture.
-                ("logo9", 328, 244, 96, 96), ("face179", 653, 496, 192, 240),
+                # Logo_9-1 워터마크 타일. 아틀라스에서 이 프레임은 x=371 에서 시작한다.
+                # 328 은 왼쪽 글자 프레임을 물어 타일 배경이 깨져 보였다.
+                ("logo9", 371, 245, 96, 96), ("face179", 653, 496, 192, 240),
                 # UnitInfoLayer/panel0/vline2, fixture rect [611,496,40,2].
                 ("vline2", 611, 496, 40, 2),
             ]:

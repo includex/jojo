@@ -73,6 +73,10 @@ internal object BattleSlotLayout {
 
     fun rangeFor(camp: Faction): IntRange = when (camp) {
         Faction.PLAYER -> 0 until mineCount
+        // 원본 createFriend는 우군을 BATTLE_FRIEND_N(40) + 순번에 만들지만, 원본
+        // BattleLayer._firstUnit은 우군을 BATTLE_MINE_N..BATTLE_FRIEND_N(20..39)에서 찾는다.
+        // 두 구간이 겹치지 않는 것은 원본의 결함이며, 카메라가 우군을 잡지 못하는 동작까지
+        // 그대로 재현한다. BattleCameraTest가 이 동작을 고정한다.
         Faction.FRIEND -> mineCount until friendEnd
         Faction.ENEMY, Faction.REINFORCEMENTS -> enemyStart until enemyEnd
     }

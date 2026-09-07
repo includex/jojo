@@ -14,6 +14,14 @@ import com.badlogic.gdx.utils.Align
 class DialogueRenderer(
     /** 화면별 원본 좌표와 크기를 보관하는 배치 설정이다. */
     private val layout: DialogueRenderLayout = DialogueRenderLayout(),
+    /**
+     * 알파 채널을 따로 누적할지 여부다.
+     *
+     * 원본 Cocos는 색상과 알파의 블렌드 인자가 다르다. raw framebuffer 대조에서 알파까지
+     * 맞춰야 하는 화면은 이 분리 블렌드를 쓰고, 기존 캡처가 단일 블렌드로 고정된 화면은
+     * 끈다. 화면별로 검증된 값을 보존하기 위한 명시적 선택이다.
+     */
+    private val separateAlphaBlend: Boolean = true,
 ) {
     /** 대화 오버레이 모델의 모든 층을 정해진 순서로 렌더링한다. */
     fun draw(
@@ -30,44 +38,138 @@ class DialogueRenderer(
 
         batch.projectionMatrix = projection
         batch.begin()
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        if (separateAlphaBlend) {
+            batch.setBlendFunctionSeparate(
+                GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA,
+                GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA,
+            )
+        } else {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        }
         model.dialogue?.let { drawDialogue(batch, assets, it) }
         model.choice?.let { drawChoice(batch, assets, it) }
         model.modal?.let { drawModalText(batch, assets, it) }
         batch.end()
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
     }
 
-    /** 대사창·초상화·화자·본문을 하나의 공용 레이어로 그린다. */
+    /**
+     * 대사창·초상화·화자·본문을 하나의 공용 레이어로 그린다.
+     *
+     * 좌표는 언제나 [DialogueComponentPlacement] 하나로 정리한 뒤 사용한다. 전투처럼 화자를
+     * 따라 창 전체가 움직이는 화면은 배치를 직접 넘기고, 시나리오처럼 좌우 고정 말풍선을 쓰는
+     * 화면은 [layout]에서 배치를 만든다. 두 경우 모두 이 함수 하나가 그린다.
+     */
     private fun drawDialogue(batch: SpriteBatch, assets: DialogueRenderAssets, model: DialogueRenderModel) {
         val stage = model.componentStage
-        val include = { target: DialogueRenderStage -> stage == null || stage == target || stage == DialogueRenderStage.CHARACTERS }
-        val y = model.panelYOverride ?: (layout.panelY + if (model.isAtTop) layout.topOffsetY else 0f)
-        val x = model.panelXOverride ?: if (model.isLeft) layout.panelLeftX else layout.panelRightX
-        val texture = assets.dialoguePanel
-        if (include(DialogueRenderStage.PANEL)) texture?.let { drawMirrored(batch, it, x, y, layout.panelWidth, layout.panelHeight, model.isLeft) }
+        val include = { target: DialogueRenderStage -> stage == null || stage.includes(target) }
+        val placement = resolvePlacement(model)
+        if (include(DialogueRenderStage.PANEL)) {
+            assets.dialoguePanel?.let {
+                batch.color = Color.WHITE
+                drawMirrored(batch, it, placement.panelX, placement.panelY, placement.panelWidth, placement.panelHeight, placement.mirrorPanel)
+            }
+        }
         if (include(DialogueRenderStage.PORTRAIT)) {
-            model.portraitId?.let(assets::portrait)?.let {
-                val portraitX = if (model.isLeft) layout.portraitLeftX else layout.portraitRightX
-                val bounds = DialoguePortraitGeometry.fit(it, portraitX, y - 2.15f, layout.portraitWidth, layout.portraitHeight)
+            (model.portraitTexture ?: model.portraitId?.let(assets::portrait))?.let {
+                batch.color = Color.WHITE
+                val bounds = DialoguePortraitGeometry.fit(
+                    it,
+                    placement.portraitX,
+                    placement.portraitY,
+                    placement.portraitWidth,
+                    placement.portraitHeight,
+                )
                 batch.draw(it, bounds.x, bounds.y, bounds.width, bounds.height)
             }
         }
-        if (include(DialogueRenderStage.SPEAKER)) {
-            assets.speakerFont.color = Color.WHITE
-            assets.speakerFont.draw(batch, model.speaker, if (model.isLeft) layout.speakerLeftX else layout.speakerRightX, y + layout.speakerOffsetY)
+        if (include(DialogueRenderStage.SPEAKER)) drawSpeaker(batch, assets, model, placement)
+        if (include(DialogueRenderStage.TEXT)) drawBody(batch, assets, model, placement)
+    }
+
+    /** 화자명을 원본 라벨처럼 채움색과 외곽선으로 그린다. */
+    private fun drawSpeaker(
+        batch: SpriteBatch,
+        assets: DialogueRenderAssets,
+        model: DialogueRenderModel,
+        placement: DialogueComponentPlacement,
+    ) {
+        model.speakerOverlay?.let {
+            drawOverlay(batch, it)
+            return
         }
-        if (include(DialogueRenderStage.TEXT)) {
-            assets.bodyFont.color = Color.BLACK
-            assets.bodyFont.draw(
-                batch,
-                model.visibleText,
-                if (model.isLeft) layout.textLeftX else layout.textRightX,
-                y + layout.textOffsetY,
-                layout.textWidth,
-                Align.left,
-                true,
-            )
+        val style = model.speakerStyle
+        val font = assets.speakerFont
+        // 화면별 글꼴은 이미 자체 배율을 구워 둘 수 있으므로 곱해서 적용하고 원래 값으로 되돌린다.
+        val baseScaleX = font.data.scaleX
+        val baseScaleY = font.data.scaleY
+        font.data.setScale(baseScaleX * style.scaleX, baseScaleY * style.scaleY)
+        // 외곽선 글꼴을 쓰지 않는 화면은 여덟 방향 오프셋으로 같은 두께의 테두리를 만든다.
+        style.outlineColor?.takeIf { style.outlineWidth > 0f }?.let { outline ->
+            val straight = style.outlineWidth
+            val diagonal = style.outlineWidth * DIAGONAL_RATIO
+            font.color = outline
+            listOf(
+                -straight to 0f, straight to 0f, 0f to -straight, 0f to straight,
+                -diagonal to -diagonal, -diagonal to diagonal,
+                diagonal to -diagonal, diagonal to diagonal,
+            ).forEach { (dx, dy) ->
+                font.draw(batch, model.speaker, placement.speakerX + dx, placement.speakerDrawY + dy)
+            }
         }
+        font.color = style.fillColor
+        font.draw(batch, model.speaker, placement.speakerX, placement.speakerDrawY)
+        font.data.setScale(baseScaleX, baseScaleY)
+    }
+
+    /** 본문을 줄바꿈 폭 안에서 그린다. 원본 래스터가 주어지면 글꼴 대신 그것을 그린다. */
+    private fun drawBody(
+        batch: SpriteBatch,
+        assets: DialogueRenderAssets,
+        model: DialogueRenderModel,
+        placement: DialogueComponentPlacement,
+    ) {
+        model.bodyOverlay?.let {
+            drawOverlay(batch, it)
+            return
+        }
+        val font = assets.bodyFont
+        val baseScaleX = font.data.scaleX
+        val baseScaleY = font.data.scaleY
+        font.data.setScale(baseScaleX, baseScaleY * model.bodyScaleY)
+        font.color = Color.BLACK
+        font.draw(batch, model.visibleText, placement.textX, placement.textDrawY, placement.textWidth, Align.left, true)
+        font.data.setScale(baseScaleX, baseScaleY)
+    }
+
+    /** 글꼴 대신 넘어온 원본 래스터 조각을 그린다. */
+    private fun drawOverlay(batch: SpriteBatch, overlay: DialogueTextureOverlay) {
+        batch.color = overlay.tint
+        batch.draw(overlay.texture, overlay.x, overlay.y, overlay.width, overlay.height)
+        batch.color = Color.WHITE
+    }
+
+    /** 모델이 준 절대 배치를 그대로 쓰거나, 좌우 고정 레이아웃에서 배치를 만든다. */
+    private fun resolvePlacement(model: DialogueRenderModel): DialogueComponentPlacement {
+        model.componentPlacement?.let { return it }
+        val y = model.panelYOverride ?: (layout.panelY + if (model.isAtTop) layout.topOffsetY else 0f)
+        val x = model.panelXOverride ?: if (model.isLeft) layout.panelLeftX else layout.panelRightX
+        return DialogueComponentPlacement(
+            panelX = x,
+            panelY = y,
+            panelWidth = layout.panelWidth,
+            panelHeight = layout.panelHeight,
+            portraitX = if (model.isLeft) layout.portraitLeftX else layout.portraitRightX,
+            portraitY = y + layout.portraitOffsetY,
+            portraitWidth = layout.portraitWidth,
+            portraitHeight = layout.portraitHeight,
+            speakerX = if (model.isLeft) layout.speakerLeftX else layout.speakerRightX,
+            speakerDrawY = y + layout.speakerOffsetY,
+            textX = if (model.isLeft) layout.textLeftX else layout.textRightX,
+            textDrawY = y + layout.textOffsetY,
+            textWidth = layout.textWidth,
+            mirrorPanel = model.isLeft,
+        )
     }
 
     /** 선택지 패널과 선택 강조 표시를 대사 렌더러와 동일한 배치 흐름으로 그린다. */
@@ -76,19 +178,35 @@ class DialogueRenderer(
             drawConfirmation(batch, assets, model)
             return
         }
-        assets.choicePanel?.let { batch.draw(it, 70f, 46f, layout.width - 140f, 220f) }
-        if (assets.choicePanel == null) {
-            assets.titleFont.color = Color(1f, .85f, .48f, 1f)
-            assets.titleFont.draw(batch, model.title, 94f, 234f)
+        // 원본 ChooseLayer는 대사와 같은 말풍선 패널에 항목을 쌓고, 패널 왼쪽 바깥에 얼굴을
+        // 둔다. 제목 문자열, 선택 화살표, 조작 안내 문구는 원본에 없으므로 그리지 않는다.
+        batch.color = Color.WHITE
+        assets.choicePanel?.let {
+            batch.draw(it, layout.choicePanelX, layout.choicePanelY, layout.choicePanelWidth, layout.choicePanelHeight)
         }
+        model.portraitId?.let(assets::portrait)?.let { texture ->
+            val bounds = DialoguePortraitGeometry.fit(
+                texture,
+                layout.choicePortraitX,
+                layout.choicePortraitY,
+                layout.portraitWidth,
+                layout.portraitHeight,
+            )
+            batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height)
+        }
+        val firstRowY = layout.choicePanelY + layout.choicePanelHeight - layout.choiceRowTopInset
         model.options.forEachIndexed { index, option ->
-            val selected = index == model.selectedIndex
-            assets.choiceRow?.let { batch.draw(it, 90f, 90f + (model.options.size - index - 1) * 42f, layout.width - 180f, 38.7f) }
-            assets.bodyFont.color = if (selected) Color(1f, .86f, .43f, 1f) else Color.WHITE
-            assets.bodyFont.draw(batch, if (selected) "▶ $option" else "  $option", 110f, 190f - index * 42f)
+            val rowY = firstRowY - index * layout.choiceRowSpacing
+            assets.choiceRow?.let {
+                batch.color = Color.WHITE
+                batch.draw(it, layout.choiceRowX, rowY, layout.choiceRowWidth, layout.choiceRowHeight)
+            }
+            // 원본은 터치 전용이라 선택 표시가 없다. 키보드 조작을 위해 선택 항목만 원본 화자
+            // 라벨과 같은 파란색으로 구분하고, 나머지는 원본처럼 검은색으로 그린다.
+            assets.bodyFont.color =
+                if (index == model.selectedIndex) Color(35f / 255f, 2f / 255f, 234f / 255f, 1f) else Color.BLACK
+            assets.bodyFont.draw(batch, option, layout.choiceTextX, rowY + layout.choiceTextOffsetY)
         }
-        assets.bodyFont.color = Color(.72f, .80f, .90f, 1f)
-        assets.bodyFont.draw(batch, "↑↓ 선택 · Enter / 클릭 확정", layout.width - 430f, 72f)
     }
 
     /** 두 버튼 확인 상자를 선택지 모델의 특수한 변형으로 그린다. */
@@ -163,4 +281,10 @@ class DialogueRenderer(
 
     /** 원본 텍스트에 남아 있는 색상 제어 토큰을 화면 문자열에서 제거한다. */
     private fun sanitize(text: String): String = text.replace(Regex("\\[C[0-9A-Fa-f]+"), "").replace('☆', '★')
+
+    private companion object {
+        /** 여덟 방향 외곽선에서 대각선 오프셋이 갖는 비율이다. 원본 라벨의 둥근 테두리를 따른다. */
+        const val DIAGONAL_RATIO = 0.707f
+
+    }
 }

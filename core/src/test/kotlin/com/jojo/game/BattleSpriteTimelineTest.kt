@@ -22,6 +22,60 @@ class BattleSpriteTimelineTest {
     }
 
     @Test
+    fun `retreat and death clips blink and fade through the original opacity channel`() {
+        val timeline = originalTimeline()
+        // anime23은 5틱마다 255/0을 세 번 반복한다.
+        listOf(0f, 10f, 20f).forEach { tick ->
+            assertEquals(1f, timeline.frame(23, 0, tick / 24f)?.opacity, "anime23 visible at $tick")
+        }
+        listOf(5f, 15f, 25f).forEach { tick ->
+            assertEquals(0f, timeline.frame(23, 0, tick / 24f)?.opacity, "anime23 hidden at $tick")
+        }
+        // anime24는 깜빡인 뒤 흰색 점등을 거쳐 200/150/100/50/0으로 사라진다.
+        assertEquals(1f, timeline.frame(24, 0, 0f)?.opacity, "anime24 onset")
+        assertEquals(0f, timeline.frame(24, 0, 6f / 24f)?.opacity, "anime24 first blink")
+        assertEquals(0.1f, timeline.materialValue(24, 0, 75f / 24f), "anime24 highlight onset")
+        assertEquals(1f, timeline.materialValue(24, 0, 91f / 24f), "anime24 highlight peak")
+        val fade = listOf(107, 111, 115, 119, 123).map { timeline.frame(24, 0, it / 24f)?.opacity }
+        assertEquals(listOf(200f, 150f, 100f, 50f, 0f).map { it / 255f }, fade, "anime24 fade")
+    }
+
+    @Test
+    fun `critical attack ramps the original white highlight and clears it before the clip ends`() {
+        val timeline = originalTimeline()
+        // anime21은 4틱에 101(점등, 0.1)로 켜지고 10(1.0)까지 오른 뒤 17틱에 0으로 꺼진다.
+        (0..3).forEach { direction ->
+            assertEquals(null, timeline.materialValue(21, direction, 3f / 24f), "anime21_$direction before")
+            assertEquals(0.1f, timeline.materialValue(21, direction, 4f / 24f), "anime21_$direction onset")
+            assertEquals(1.0f, timeline.materialValue(21, direction, 13f / 24f), "anime21_$direction peak")
+            assertEquals(null, timeline.materialValue(21, direction, 17f / 24f), "anime21_$direction cleared")
+        }
+    }
+
+    @Test
+    fun `hit reaction flashes white from the first frame and clears partway through`() {
+        val timeline = originalTimeline()
+        // anime32는 0틱에 110(점등, 1.0)으로 켜지고 7틱에 0으로 꺼진다.
+        (0..3).forEach { direction ->
+            assertEquals(1.0f, timeline.materialValue(32, direction, 0f), "anime32_$direction onset")
+            assertEquals(1.0f, timeline.materialValue(32, direction, 6f / 24f), "anime32_$direction held")
+            assertEquals(null, timeline.materialValue(32, direction, 7f / 24f), "anime32_$direction cleared")
+        }
+    }
+
+    @Test
+    fun `actions without an authored material channel never highlight`() {
+        val timeline = originalTimeline()
+        // 원본은 크리티컬이 아닌 공격(25)과 대기(0)에 점등 채널을 두지 않는다.
+        listOf(0, 25).forEach { action ->
+            (0..3).forEach { direction ->
+                assertEquals(null, timeline.materialValue(action, direction, 0f), "anime${action}_$direction")
+                assertEquals(null, timeline.materialValue(action, direction, .25f), "anime${action}_$direction late")
+            }
+        }
+    }
+
+    @Test
     fun `every original combat attack and hit direction has an authored frame and hit event`() {
         val timeline = originalTimeline()
         listOf(21, 25, 48, 49).forEach { action ->

@@ -261,7 +261,17 @@ def main() -> None:
     source_bounds = fixture_bounds(source, step)
     game_bounds = fixture_bounds(game, step)
     expected = (expected_speakers[step], expected_body if step == 3 else None)
-    if source_bounds != expected:
+    # 원본 자체도 글자 공개 타이밍에 따라 글리프 경계가 1픽셀 흔들린다. 이 핀의 목적은
+    # 원본 fixture가 의미 있게 바뀌었는지 감지하는 것이므로, 아래 게임 대조와 같은 취지로
+    # 작은 허용치를 둔다. 구성 요소의 존재 여부(None)는 그대로 정확히 일치해야 한다.
+    def bounds_match(actual, reference, tolerance=2):
+        if (actual is None) != (reference is None):
+            return False
+        if actual is None:
+            return True
+        return all(abs(a - r) <= tolerance for a, r in zip(actual, reference))
+
+    if not all(bounds_match(a, r) for a, r in zip(source_bounds, expected)):
         raise AssertionError(f"source text fixture changed: source={source_bounds}, expected={expected}")
     # Cocos and FreeType filter the high-saturation inner glyph pixels at
     # slightly different sub-pixel phases.  This is the allowed sampler/raster

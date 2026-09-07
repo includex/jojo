@@ -85,15 +85,12 @@ class DialogueScene2dView(
         val dialogue = model.dialogue
         when {
             dialogue != null -> {
-                val placement = dialogue.componentPlacement
-                val x = placement?.panelX ?: dialogue.panelXOverride
-                    ?: if (dialogue.isLeft) 274.54054f else 316.40878f
-                val y = placement?.panelY ?: dialogue.panelYOverride
-                    ?: 55.47f + if (dialogue.isAtTop) 373.24f else 0f
-                val battleSized = placement != null || dialogue.panelXOverride != null
+                val x = dialogue.panelXOverride ?: if (dialogue.isLeft) 274.54054f else 316.40878f
+                val y = dialogue.panelYOverride ?: 55.47f + if (dialogue.isAtTop) 373.24f else 0f
+                val battleSized = dialogue.panelXOverride != null
                 window.setSize(
-                    placement?.panelWidth ?: if (battleSized) 796f else 686.28f,
-                    placement?.panelHeight ?: if (battleSized) 212f else 164.26f,
+                    if (battleSized) 796f else 686.28f,
+                    if (battleSized) 212f else 164.26f,
                 )
                 window.setPosition(x, y)
             }
@@ -113,12 +110,13 @@ class DialogueScene2dView(
         }
     }
 
-    /** 대사 Actor를 화자·초상화·본문 Table로 구성한다. */
+    /**
+     * 대사 Actor를 화자·초상화·본문 Table로 구성한다.
+     *
+     * 원본 좌표를 그대로 재현하는 대사창은 [DialogueRenderer]가 그린다. 이 Scene2D 경로는
+     * 선택지·모달 위젯을 위해 남아 있으며 대사에는 원본 배치 계약을 적용하지 않는다.
+     */
     private fun addDialogue(model: DialogueRenderModel) {
-        model.componentPlacement?.let { placement ->
-            addPositionedDialogue(model, placement)
-            return
-        }
         val content = Table(skin)
         model.portraitId?.let(assets.portrait)?.let { texture ->
             content.add(Image(TextureRegionDrawable(TextureRegion(texture)))).size(192f, 240f).pad(8f)
@@ -133,44 +131,6 @@ class DialogueScene2dView(
         ).width(728f).left().growY()
         content.add(text).expand().fill().pad(16f)
         window.add(content).expand().fill().pad(16f)
-    }
-
-    /** 원본 SayLayer처럼 패널 밖의 초상화를 포함한 모든 대사 요소를 절대 좌표로 배치한다. */
-    private fun addPositionedDialogue(model: DialogueRenderModel, placement: DialogueComponentPlacement) {
-        model.portraitId?.let(assets.portrait)?.let { texture ->
-            Image(TextureRegionDrawable(TextureRegion(texture))).also { portrait ->
-                val bounds = DialoguePortraitGeometry.fit(
-                    texture,
-                    placement.portraitX,
-                    placement.portraitY,
-                    placement.portraitWidth,
-                    placement.portraitHeight,
-                )
-                portrait.setSize(bounds.width, bounds.height)
-                portrait.setPosition(
-                    bounds.x - placement.panelX,
-                    bounds.y - placement.panelY,
-                )
-                window.addActor(portrait)
-            }
-        }
-        Label(model.speaker, Label.LabelStyle(assets.speakerFont, Color.WHITE)).also { speaker ->
-            speaker.pack()
-            speaker.setPosition(
-                placement.speakerX - placement.panelX,
-                placement.speakerBaselineY - placement.panelY - speaker.height,
-            )
-            window.addActor(speaker)
-        }
-        Label(model.visibleText, Label.LabelStyle(assets.bodyFont, Color.BLACK)).also { body ->
-            body.setWrap(true)
-            body.setSize(placement.textWidth, placement.panelHeight - 42f)
-            body.setPosition(
-                placement.textX - placement.panelX,
-                placement.textBaselineY - placement.panelY - body.prefHeight,
-            )
-            window.addActor(body)
-        }
     }
 
     /** 선택지 Actor를 TextButton 목록으로 구성한다. */

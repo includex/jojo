@@ -174,6 +174,10 @@ internal class BattlePresentationConfiguration(
             RuntimeBattleRoute.DIALOGUE_COMPONENT_CHARACTERS,
             RuntimeBattleRoute.DIALOGUE_COMPONENT_LABELS,
             RuntimeBattleRoute.DIALOGUE_COMPONENT_DIALOGUE,
+            RuntimeBattleRoute.DIALOGUE_COMPONENT_PANEL,
+            RuntimeBattleRoute.DIALOGUE_COMPONENT_PORTRAIT,
+            RuntimeBattleRoute.DIALOGUE_COMPONENT_SPEAKER,
+            RuntimeBattleRoute.DIALOGUE_COMPONENT_TEXT,
         )
 
         /** 아이템 사용 흐름으로 해석하는 runtime routes다. */

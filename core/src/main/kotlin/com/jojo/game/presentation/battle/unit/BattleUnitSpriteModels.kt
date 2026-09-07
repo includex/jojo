@@ -13,6 +13,8 @@ internal data class UnitSpriteFrame(
     val flipX: Boolean = false,
     val offsetX: Float = 0f,
     val offsetY: Float = 0f,
+    /** 클립이 지정한 알파값이다. 퇴각·사망 연출의 깜빡임과 페이드아웃이 여기에 실린다. */
+    val opacity: Float = 1f,
 )
 
 /** 스크립트 유닛 시각 상태: 시나리오 명령이 지정한 동작 번호와 시작 시점을 보관한다. */

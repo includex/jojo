@@ -63,6 +63,12 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
          */
 
         val offsetY: Float = 0f,
+        /**
+         * `opacity` (Float): 이 시점에 원본 클립이 요구하는 알파값이다. 0..1 범위다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val opacity: Float = 1f,
     )
     /**
      * `Keyframe`: 관련 상태와 동작을 묶는 class다.
@@ -112,6 +118,18 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
          */
 
         val hit: Boolean,
+        /**
+         * `material` (Int?,): 이 키프레임에서 발행되는 원본 재질 이벤트 값이다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val material: Int?,
+        /**
+         * `opacity` (Int?,): 이 키프레임이 지정하는 0..255 알파값이다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val opacity: Int?,
     )
 
     /** resolvedClip: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
@@ -153,6 +171,41 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
 
 
     /**
+     * `materialValue`: 재생 중 특정 시점의 흰색 점등 세기를 돌려준다.
+     *
+     * 원본 `BattleUnit._setAvater`가 설치하는 프레임 이벤트 콜백과 같은 규칙이다.
+     * 값 `0`은 기본 재질로 되돌리고, `100` 이상은 점등 재질로 바꾸며 100을 뺀 값을,
+     * 그 밖의 값은 재질을 유지한 채 세기만 갱신한다. 세기는 모두 10으로 나눈다.
+     * 점등이 걸려 있지 않으면 `null`이다.
+     */
+
+    fun materialValue(action: Int, direction: Int, elapsed: Float, loop: Boolean = false): Float? {
+        val clip = resolvedClip(action, direction)?.first ?: return null
+        val total = clip.sumOf(Keyframe::ticks).coerceAtLeast(1)
+        var tick = (elapsed.coerceAtLeast(0f) * 24f).toInt()
+        if (loop) tick %= total else tick = tick.coerceAtMost(total - 1)
+        var used = 0
+        var highlighted = false
+        var value = 0f
+        for (key in clip) {
+            key.material?.let { event ->
+                when {
+                    event == 0 -> { highlighted = false; value = 0f }
+                    event >= HIGHLIGHT_EVENT_BASE -> {
+                        highlighted = true
+                        value = (event - HIGHLIGHT_EVENT_BASE) / 10f
+                    }
+
+                    else -> value = event / 10f
+                }
+            }
+            used += key.ticks
+            if (tick < used) break
+        }
+        return value.takeIf { highlighted }
+    }
+
+    /**
      * `frame`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
@@ -168,12 +221,14 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         var scaleX = 1
         var offsetX = 0
         var offsetY = 0
+        var opacity = OPAQUE
         for (key in clip) {
             key.atlas?.let { atlas = it }
             key.index?.let { index = it }
             key.scaleX?.let { scaleX = it }
             key.offsetX?.let { offsetX = it }
             key.offsetY?.let { offsetY = it }
+            key.opacity?.let { opacity = it }
             used += key.ticks
             if (tick < used) break
         }
@@ -188,10 +243,21 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
             flipX = mirror.xor(scaleX < 0),
             offsetX = offsetX.toFloat() * 2f,
             offsetY = offsetY.toFloat() * 2f,
+            opacity = opacity / OPAQUE.toFloat(),
         )
     }
 
     companion object {
+        /**
+         * `HIGHLIGHT_EVENT_BASE` (상태 값): 이 값 이상이면 점등 재질로 전환한다.
+         */
+
+        private const val HIGHLIGHT_EVENT_BASE = 100
+        /**
+         * `OPAQUE` (상태 값): 원본 알파값의 최댓값이다.
+         */
+
+        private const val OPAQUE = 255
         /**
          * `cached` (BattleSpriteTimeline by lazy): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -251,6 +317,10 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
                 if (event.asString() == "hit") hitEvent = true
                 event = event.next
             }
+            // 채널 2는 원본의 재질/점등 콜백이다. 한 키프레임에 한 값만 실린다.
+            val materialEvent = value.get("events")?.get("2")?.let { channel ->
+                channel.child?.asInt()
+            }
 
             /**
              * `prop`: 타입의 핵심 동작을 수행한다.
@@ -270,6 +340,14 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
              */
 
             val position = props?.get("position")?.get(0)
+            // 퇴각·사망 클립은 스프라이트를 바꾸지 않고 이 알파값만으로 깜빡임과
+            // 페이드아웃을 만든다.
+            val opacity = props?.get("opacity")?.get(0)?.let { raw ->
+                when (raw.type()) {
+                    JsonValue.ValueType.array -> raw.getInt(0)
+                    else -> raw.asInt()
+                }
+            }
             return Keyframe(
                 ticks = value.getInt("frame", 1),
                 atlas = atlas,
@@ -278,6 +356,8 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
                 offsetX = position?.getInt(0),
                 offsetY = position?.getInt(1),
                 hit = hitEvent,
+                material = materialEvent,
+                opacity = opacity,
             )
         }
     }

@@ -84,6 +84,12 @@ internal class BattleActorEffectViewComposer(
 
         fun activeAction(unitId: String, now: Float): UnitActionAnimation?
         /**
+         * `timelineMaterialValue`: 재생 중인 클립이 지금 요구하는 점등 세기를 돌려준다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
+        fun timelineMaterialValue(action: Int, direction: Int, elapsed: Float, loop: Boolean): Float?
+        /**
          * `deathAnimationActive`: 타입의 핵심 동작을 수행한다.
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
@@ -213,6 +219,29 @@ internal class BattleActorEffectViewComposer(
         )
     }
 
+    /**
+     * `highlightValue`: 재생 중인 클립이 이 시점에 요구하는 점등 세기를 고른다.
+     * 점등이 걸려 있지 않으면 `null`이다.
+     */
+
+    private fun highlightValue(
+        unit: BattleUnit,
+        action: UnitActionAnimation?,
+        scripted: ScriptedUnitVisual?,
+        now: Float,
+    ): Float? {
+        if (port.dialogueBlendRoute()) return null
+        action?.let {
+            return port.timelineMaterialValue(it.sourceAction, it.direction, now - it.startedAt, false)
+        }
+        scripted?.let {
+            return port.timelineMaterialValue(
+                it.action, unit.direction, now - it.startedAt, it.action == 9 || it.action == 20,
+            )
+        }
+        return null
+    }
+
     /** actor: 한 유닛의 sprite·HP·attribute/state effect draw 값을 조립한다. */
     private fun actor(unit: BattleUnit, now: Float): BattleActorRenderUnit {
         val frame = port.spriteFrame(unit)
@@ -223,7 +252,9 @@ internal class BattleActorEffectViewComposer(
         val boardBottom = port.boardBottom()
         val (visualX, visualY) = port.visualTile(unit)
         val stateCommand = stateCommand(unit, visualX, visualY, now)
-        val sourceHighlight = !port.dialogueBlendRoute() && port.sourceScenario() == "S_00" && scripted?.action == 4
+        // 흰색 점등은 원본에서도 공격/피격/사망 클립이 프레임 이벤트로 직접 구동한다.
+        // 코드가 판단하지 않고 재생 중인 클립의 현재 시점 값을 그대로 쓴다.
+        val highlightValue = highlightValue(unit, action, scripted, now)
         return BattleActorRenderUnit(
             id = unit.id,
             tileX = visualX,
@@ -237,7 +268,9 @@ internal class BattleActorEffectViewComposer(
             offsetY = frame.offsetY,
             flipX = frame.flipX || (action?.kind == UnitAnimationKind.ATTACK && action.direction == 1),
             terrainMask = port.terrainMask(port.terrainAt(unit)),
-            sourceHighlight = sourceHighlight,
+            sourceHighlight = highlightValue != null,
+            highlightValue = highlightValue ?: 0f,
+            opacity = frame.opacity,
             hpTexture = port.hpTexture(unit),
             hpRatio = port.hpRatio(unit, now),
             showHpBar = !port.deathAnimationActive(unit.id, now) &&

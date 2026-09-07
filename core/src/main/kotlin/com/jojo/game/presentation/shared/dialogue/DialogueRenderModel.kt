@@ -1,6 +1,7 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
@@ -23,6 +24,8 @@ data class DialogueRenderModel(
     val visibleText: String,
     /** 화자 초상화 식별자이며, 없으면 초상화를 생략한다. */
     val portraitId: Int? = null,
+    /** 식별자 조회 대신 직접 지정한 초상화다. 화면이 특수 자원을 고를 때 사용한다. */
+    val portraitTexture: Texture? = null,
     /** 화자와 대사창이 화면 왼쪽에 배치되는지 여부다. */
     val isLeft: Boolean = false,
     /** 대사창이 화면 위쪽에 배치되는지 여부다. */
@@ -35,6 +38,50 @@ data class DialogueRenderModel(
     val panelYOverride: Float? = null,
     /** 패널과 초상화·화자·본문을 같은 화자 기준점으로 옮기는 상세 배치값이다. */
     val componentPlacement: DialogueComponentPlacement? = null,
+    /** 화자명 색과 외곽선 표현이다. 화면별 글꼴이 외곽선을 굽지 않을 때 렌더러가 대신 그린다. */
+    val speakerStyle: DialogueSpeakerStyle = DialogueSpeakerStyle(),
+    /** 본문 글꼴의 세로 배율이다. 원본 줄 간격에 맞추는 화면별 보정이다. */
+    val bodyScaleY: Float = 1f,
+    /** 화자명 대신 그릴 원본 래스터다. 있으면 글꼴 대신 이 텍스처를 그린다. */
+    val speakerOverlay: DialogueTextureOverlay? = null,
+    /** 본문 대신 그릴 원본 래스터다. 있으면 글꼴 대신 이 텍스처를 그린다. */
+    val bodyOverlay: DialogueTextureOverlay? = null,
+)
+
+/**
+ * 화자명 표시 방식이다.
+ *
+ * 원본 라벨은 채움색과 외곽선을 함께 가진다. 시나리오처럼 글꼴 자체가 외곽선을 구워 두면
+ * `outlineColor`를 비워 두고, 전투처럼 외곽선 없는 글꼴을 쓰면 렌더러가 여덟 방향 오프셋으로
+ * 같은 두께의 외곽선을 그린다.
+ */
+data class DialogueSpeakerStyle(
+    /** 글자 채움색이다. */
+    val fillColor: Color = Color.WHITE,
+    /** 외곽선 색이다. null이면 글꼴이 이미 외곽선을 가진 것으로 보고 그리지 않는다. */
+    val outlineColor: Color? = null,
+    /** 외곽선 두께다. `outlineColor`가 있을 때만 쓴다. */
+    val outlineWidth: Float = 0f,
+    /** 화자 글꼴의 가로 배율이다. */
+    val scaleX: Float = 1f,
+    /** 화자 글꼴의 세로 배율이다. */
+    val scaleY: Float = 1f,
+)
+
+/** 글꼴 대신 그리는 원본 래스터 조각의 위치와 크기다. */
+data class DialogueTextureOverlay(
+    /** 그릴 텍스처다. 수명은 이 모델을 만든 화면이 소유한다. */
+    val texture: Texture,
+    /** 왼쪽 아래 X 좌표다. */
+    val x: Float,
+    /** 왼쪽 아래 Y 좌표다. */
+    val y: Float,
+    /** 출력 폭이다. */
+    val width: Float,
+    /** 출력 높이다. */
+    val height: Float,
+    /** 텍스처에 곱할 색이다. 원본 글리프를 검게 찍을 때 사용한다. */
+    val tint: Color = Color.WHITE,
 )
 
 /** 대화창 구성 요소의 절대 좌표: 화자 추적 대화가 패널과 모든 자식을 함께 이동시키는 계약이다. */
@@ -57,24 +104,43 @@ data class DialogueComponentPlacement(
     val portraitHeight: Float,
     /** 화자명 왼쪽 X 좌표다. */
     val speakerX: Float,
-    /** 화자명 기준선 Y 좌표다. */
-    val speakerBaselineY: Float,
+    /** 화자명을 그릴 Y 좌표다. `BitmapFont.draw`에 그대로 넘기는 첫 줄 상단 값이다. */
+    val speakerDrawY: Float,
     /** 본문 왼쪽 X 좌표다. */
     val textX: Float,
-    /** 본문 기준선 Y 좌표다. */
-    val textBaselineY: Float,
+    /** 본문을 그릴 Y 좌표다. `BitmapFont.draw`에 그대로 넘기는 첫 줄 상단 값이다. */
+    val textDrawY: Float,
     /** 본문 줄바꿈 폭이다. */
     val textWidth: Float,
+    /** 패널 텍스처를 좌우 반전해 그릴지 여부다. 원본은 왼쪽 말풍선에서만 반전한다. */
+    val mirrorPanel: Boolean = false,
 )
 
-/** 원본 화면의 부분 캡처 단계와 공용 렌더링 단계를 연결한다. */
+/**
+ * 원본 화면의 부분 캡처 단계와 공용 렌더링 단계를 연결한다.
+ *
+ * 원본 캡처는 노드 가시성을 하나씩 켜며 누적해 찍는다. 따라서 이 단계도 누적이며
+ * `PORTRAIT`는 패널과 초상화를, `TEXT`는 네 요소를 모두 그린다. `BACKGROUND`와
+ * `CHARACTERS`는 장면까지 포함한 전체 단계이므로 대화창은 전부 그린다.
+ */
 enum class DialogueRenderStage {
     PANEL,
     PORTRAIT,
     SPEAKER,
     TEXT,
     BACKGROUND,
-    CHARACTERS,
+    CHARACTERS;
+
+    /** 이 단계에서 `target` 구성요소를 그려야 하는지 판단한다. */
+    internal fun includes(target: DialogueRenderStage): Boolean {
+        val level = CUMULATIVE_ORDER.indexOf(this).takeIf { it >= 0 } ?: CUMULATIVE_ORDER.lastIndex
+        return CUMULATIVE_ORDER.indexOf(target) <= level
+    }
+
+    internal companion object {
+        /** 누적 순서다. 목록에 없는 BACKGROUND/CHARACTERS는 마지막 단계로 취급한다. */
+        val CUMULATIVE_ORDER = listOf(PANEL, PORTRAIT, SPEAKER, TEXT)
+    }
 }
 
 /** 선택지 제목·항목·현재 선택 위치를 공용 표시 모델로 전달한다. */
@@ -148,6 +214,8 @@ data class DialogueRenderLayout(
     val panelWidth: Float = 686.28f,
     /** 대사창 출력 높이다. */
     val panelHeight: Float = 164.26f,
+    /** 초상화 상자의 패널 기준 Y 오프셋이다. */
+    val portraitOffsetY: Float = -2.15f,
     /** 초상화 출력 폭이다. */
     val portraitWidth: Float = 165.12f,
     /** 초상화 출력 높이다. */
@@ -157,7 +225,7 @@ data class DialogueRenderLayout(
     /** 오른쪽 초상화 X 좌표다. */
     val portraitRightX: Float = 1030.2742f,
     /** 왼쪽 화자 이름 X 좌표다. */
-    val speakerLeftX: Float = 323.44676f,
+    val speakerLeftX: Float = 349.35056f,
     /** 오른쪽 화자 이름 X 좌표다. */
     val speakerRightX: Float = 365.315f,
     /** 화자 이름 기준선의 패널 Y 오프셋이다. */
@@ -165,9 +233,38 @@ data class DialogueRenderLayout(
     /** 왼쪽 본문 X 좌표다. */
     val textLeftX: Float = 328.93882f,
     /** 오른쪽 본문 X 좌표다. */
-    val textRightX: Float = 370.80706f,
+    val textRightX: Float = 341.1233f,
     /** 본문 기준선의 패널 Y 오프셋이다. */
     val textOffsetY: Float = 108.03f,
     /** 본문 줄바꿈 폭이다. */
     val textWidth: Float = 626.08f,
+    /**
+     * 선택지 배치. 원본 `ChooseLayer`의 노드 좌표를 화면 배율에 맞춰 옮긴 값이다.
+     * 원본은 대사 말풍선과 같은 `U_select_10-1` 패널을 쓰고, 왼쪽 바깥에 얼굴을 둔다.
+     */
+    val choicePanelX: Float = 423.70996f,
+    /** 선택지 패널의 왼쪽 아래 Y 좌표다. */
+    val choicePanelY: Float = 265.009f,
+    /** 선택지 패널 폭이다. */
+    val choicePanelWidth: Float = 642.42f,
+    /** 선택지 패널 높이다. */
+    val choicePanelHeight: Float = 157.982f,
+    /** 선택지 얼굴의 왼쪽 아래 X 좌표다. */
+    val choicePortraitX: Float = 231.07598f,
+    /** 선택지 얼굴의 왼쪽 아래 Y 좌표다. */
+    val choicePortraitY: Float = 240.21004f,
+    /** 선택지 항목 배경의 왼쪽 X 좌표다. */
+    val choiceRowX: Float = 463.44196f,
+    /** 선택지 항목 배경 폭이다. */
+    val choiceRowWidth: Float = 593.916f,
+    /** 선택지 항목 배경 높이다. */
+    val choiceRowHeight: Float = 38.7f,
+    /** 패널 위쪽에서 첫 항목 아래쪽까지의 간격이다. */
+    val choiceRowTopInset: Float = 45.881f,
+    /** 항목 사이 간격이다. */
+    val choiceRowSpacing: Float = 42.14f,
+    /** 선택지 본문의 왼쪽 X 좌표다. */
+    val choiceTextX: Float = 482.87796f,
+    /** 항목 아래쪽에서 본문 글꼴 기준선까지의 간격이다. */
+    val choiceTextOffsetY: Float = 38.313f,
 )

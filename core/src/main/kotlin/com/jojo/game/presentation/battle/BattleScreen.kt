@@ -79,14 +79,15 @@ import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
 import com.jojo.game.presentation.scenario.overlay.SourceTextReveal
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.KoreanFont
+import com.jojo.game.presentation.shared.dialogue.DialogueComponentPlacement
 import com.jojo.game.presentation.shared.dialogue.DialogueOverlayModel
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderStage
+import com.jojo.game.presentation.shared.dialogue.DialogueSpeakerStyle
+import com.jojo.game.presentation.shared.dialogue.DialogueTextureOverlay
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderModel
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dAssets
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dHost
 import com.jojo.game.presentation.shared.dialogue.DialoguePortraitGeometry
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dView
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
@@ -186,7 +187,11 @@ class BattleScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val sectionTitleFont: BitmapFont = KoreanFont.create(120, "영천의 전투")
+    private val sectionTitleFontDelegate = lazy {
+        // 진입 화면과 보상 화면이 같은 제목을 쓴다. 글리프 집합은 실제 전투 이름에서 얻는다.
+        KoreanFont.create(120, "영천의 전투 ▪ 훈련" + battleSectionTitle())
+    }
+    private val sectionTitleFont: BitmapFont by sectionTitleFontDelegate
 
     /**
      * `overlayAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -1117,6 +1122,14 @@ void main() {
                 deathAnimations[unitId]?.let { now in it.startedAt..<it.endsAt } == true
 
             /**
+             * `timelineMaterialValue`: 타입의 핵심 동작을 수행한다.
+             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+             */
+
+            override fun timelineMaterialValue(action: Int, direction: Int, elapsed: Float, loop: Boolean) =
+                battleSprites.materialValue(action, direction, elapsed, loop)
+
+            /**
              * `scriptedVisual`: 조건과 입력 상태를 검증한다.
              * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
              */
@@ -1342,6 +1355,9 @@ void main() {
     private val dialogueFont: BitmapFont = KoreanFont.create(36, buildString {
         append(gameDataCatalog.allUnitNames().joinToString())
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
+        // 시나리오 대사에 없는 글자를 쓰는 화면 문구는 따로 넣어야 한다. 빠지면 해당 글자가
+        // 통째로 사라져 "다시 플레이하시겠습니까?"가 "다시 이하시겠습니까?"로 보인다.
+        append(BATTLE_UI_GLYPHS)
     })
 
     /** 전투 대사 좌표·HUD 자원을 공용 대화 렌더러에 연결하는 어댑터다. */
@@ -1367,7 +1383,23 @@ void main() {
                     textRightX = 278.705f,
                     textOffsetY = 99.814f,
                     textWidth = 728f,
+                    // 전투는 설계 좌표(1488.372x800)를 그대로 쓴다. 원본 ChooseLayer 노드 값이다.
+                    choicePanelX = 492.686f,
+                    choicePanelY = 308.15f,
+                    choicePanelWidth = 747f,
+                    choicePanelHeight = 183.7f,
+                    choicePortraitX = 268.693f,
+                    choicePortraitY = 279.314f,
+                    choiceRowX = 538.886f,
+                    choiceRowWidth = 690.6f,
+                    choiceRowHeight = 45f,
+                    choiceRowTopInset = 53.35f,
+                    choiceRowSpacing = 49f,
+                    choiceTextX = 561.486f,
+                    choiceTextOffsetY = 44.55f,
                 ),
+                // 전투 대사 캡처는 단일 블렌드로 고정돼 있다. 알파 분리 블렌드는 쓰지 않는다.
+                separateAlphaBlend = false,
             ),
             assets = BattleDialogueRendererAssetsAdapter(
                 dialoguePanel = hudAssets.dialoguePanelTexture,
@@ -1376,26 +1408,6 @@ void main() {
                 titleFont = dialogueFont,
                 portraitProvider = { portraitId -> dynamicTextures.head(portraitId) },
             ),
-        )
-    }
-
-    /** 전투 Scene2D 대화가 공유하는 Stage다. 기존 InputProcessor에는 연결하지 않는다. */
-    private val battleDialogueScene2dStage = lazy { Stage(viewport) }
-
-    /** 전투 Scene2D 스타일의 수명은 전투 화면이 관리한다. */
-    private val battleDialogueScene2dSkin = lazy { Skin() }
-
-    /** 전투 대화·선택·모달을 Scene2D 공용 위젯으로 표시하는 호스트다. */
-    private val battleDialogueScene2dHost = lazy {
-        DialogueScene2dHost(
-            stage = battleDialogueScene2dStage.value,
-            view = DialogueScene2dView(battleDialogueScene2dSkin.value, DialogueScene2dAssets(
-                dialoguePanel = hudAssets.dialoguePanelTexture,
-                portrait = { portraitId -> dynamicTextures.head(portraitId) },
-                bodyFont = dialogueFont,
-                speakerFont = dialogueFont,
-                titleFont = dialogueFont,
-            )),
         )
     }
 
@@ -4916,7 +4928,9 @@ void main() {
             outcomePresentation.loseSceneFlow?.takeIf { it.state == LoseSceneFlow.State.PROMPT }
                 ?.let { drawLosePrompt() }
             if (loseRestartRoute && elapsed > 3.25f && game.writeRenderEventLogIfRequested()) return true
-            game.captureFrameIfRequested()
+            // 재시작 프롬프트는 패배 연출 3초 뒤에 열린다. 프레임 캡처도 렌더 이벤트 로그와 같은
+            // 시점을 써야 프롬프트가 담긴다.
+            if (!loseRestartRoute || elapsed > 3.25f) game.captureFrameIfRequested()
             return true
         }
         if (battleEdit2RouteState != null) {
@@ -4964,7 +4978,10 @@ void main() {
             }
             return
         }
-        if (battleInitRoute) {
+        // 원본은 `stage.draw()`가 오기 전까지 BattleInitLayer가 전장을 덮고 전투 이름을
+        // 보여 준다.  검증용 INITIAL 경로만 그리고 있었던 탓에 실제 플레이에서는 진입
+        // 화면이 통째로 빠져 있었다.
+        if (battleInitRoute || (battleInitLayer.view().attached && !mapOnlyCapture)) {
             drawBattleHudChrome()
             drawRewardSectionOverlay()
             if (game.writeRenderEventLogIfRequested()) return
@@ -5459,7 +5476,6 @@ void main() {
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, true)
-        if (battleDialogueScene2dHost.isInitialized()) battleDialogueScene2dHost.value.resize(width, height)
         configureSourceCameraViewport()
     }
 
@@ -7943,9 +7959,20 @@ void main() {
                 worldHeight = 800f,
                 phase = null,
                 sectionVisible = true,
+                sectionTitle = battleSectionTitle(),
             ),
         )
     }
+
+    /**
+     * `battleSectionTitle`: 진입·보상 화면이 공유하는 전투 이름을 돌려준다.
+     * 원본 `BattleInitLayer`는 `bg/label0`·`bg/label1`에 같은 문자열을 넣고,
+     * 훈련 전투에서만 접미사를 덧붙인다.
+     */
+
+    private fun battleSectionTitle(): String =
+        battleInitLayer.view().labels.firstOrNull()?.takeIf { it.isNotBlank() }
+            ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex)
 
     /**
      * `installItemUpgradeRoute`: 타입의 핵심 동작을 수행한다.
@@ -10516,22 +10543,46 @@ void main() {
     private fun drawLosePrompt() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin(); batch.color = Color.WHITE
-        for (ty in 0..3) for (tx in 0..6) {
-            val width = minOf(96f, 635f - tx * 96f)
-            val height = minOf(96f, 296f - ty * 96f)
-            if (width > 0f && height > 0f) batch.draw(
-                unitInfoAssets.unitInfoLogo, 426.686f + tx * 96f, 252f + ty * 96f, width, height
-            )
-        }
-        batch.draw(unitInfoAssets.unitInfoBox3, 426.686f, 252f, 635f, 296f)
+        drawTiledBoxBackground(426.686f, 252f, 635f, 296f)
+        // box3는 60x60 프레임 텍스처다. 다른 상자와 같이 나인 패치로 늘려야 모서리가 뭉개지지 않는다.
+        val boxPatch = NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11)
+        boxPatch.draw(batch, 426.686f, 252f, 635f, 296f)
         overlayAssets.winConditionLogoTexture?.let { batch.draw(it, 453.005f, 373.951f, 106f, 124f) }
         dialogueFont.color = Color.WHITE
         dialogueFont.draw(batch, LoseSceneFlow.PROMPT_TEXT, 573.686f, 500f, 463f, Align.center, true)
-        batch.draw(unitInfoAssets.unitInfoBox3, 554.186f, 271.285f, 180f, 50f)
-        dialogueFont.draw(batch, "비", 557.336f, 312f, 168.1f, Align.center, false)
-        batch.draw(unitInfoAssets.unitInfoBox3, 754.186f, 271.285f, 180f, 50f)
+        boxPatch.draw(batch, 554.186f, 271.285f, 180f, 50f)
+        dialogueFont.draw(batch, "아니오", 557.336f, 312f, 168.1f, Align.center, false)
+        boxPatch.draw(batch, 754.186f, 271.285f, 180f, 50f)
         dialogueFont.draw(batch, "예", 757.586f, 312f, 169.4f, Align.center, false)
         batch.end()
+    }
+
+    /**
+     * 상자 안쪽을 96x96 무늬로 채운다.
+     *
+     * 상자 크기가 타일 배수가 아닐 때 남는 칸을 늘려 그리면 무늬가 찌그러진다. 남는 칸은
+     * 원본 텍스처에서 보이는 만큼만 잘라 그려 무늬 간격을 유지한다.
+     */
+    private fun drawTiledBoxBackground(x: Float, y: Float, width: Float, height: Float) {
+        val texture = unitInfoAssets.unitInfoLogo
+        val tile = texture.width.toFloat()
+        var offsetY = 0f
+        while (offsetY < height) {
+            val cellHeight = minOf(tile, height - offsetY)
+            var offsetX = 0f
+            while (offsetX < width) {
+                val cellWidth = minOf(tile, width - offsetX)
+                batch.draw(
+                    texture,
+                    x + offsetX, y + offsetY, cellWidth, cellHeight,
+                    0, (texture.height - cellHeight).toInt(),
+                    cellWidth.toInt(), cellHeight.toInt(),
+                    false, false,
+                )
+                offsetX += tile
+            }
+            offsetY += tile
+        }
     }
 
     /**
@@ -10547,7 +10598,7 @@ void main() {
         overlayAssets.winConditionBoxPatch?.draw(batch, 300f, 280f, 680f, 230f)
         dialogueFont.color = Color.WHITE
         dialogueFont.draw(batch, "게임 저장하시겠습니까?", 520f, 430f)
-        dialogueFont.draw(batch, "예", 510f, 330f); dialogueFont.draw(batch, "비", 740f, 330f)
+        dialogueFont.draw(batch, "예", 510f, 330f); dialogueFont.draw(batch, "아니오", 740f, 330f)
         batch.end()
     }
 
@@ -10657,130 +10708,113 @@ void main() {
 
     private fun drawScriptDialogue(componentStage: String? = null) {
         val dialogue = scriptRuntime.currentDialogue ?: return
-        // 프레임·렌더 이벤트 캡처는 기존 SpriteBatch 좌표 경로를 보존하고, 실제 전투 화면은 공용 Scene2D 창을 쓴다.
-        if (componentStage == null && !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()) {
-            drawSharedBattleDialogue(dialogue)
-            return
-        }
-        val includePortrait =
-            componentStage == null || componentStage in setOf("portrait", "speaker", "text", "background", "characters")
-        val includeSpeaker =
-            componentStage == null || componentStage in setOf("speaker", "text", "background", "characters")
-        val includeBody = componentStage == null || componentStage in setOf("text", "background", "characters")
-        val speakerUnit = dialogue.speakerId?.toIntOrNull()?.let { characterId ->
-            (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
-        }
-        val dialoguePlacement = battleDialoguePlacement(speakerUnit)
-        val dialoguePanelY = dialoguePlacement.panelY
-        val dialogueFaceY = dialoguePlacement.portraitY
-        val dialogueTextY = dialoguePlacement.textBaselineY - 59.5f
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin()
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-        // DialogueLayer/bg0/bg2는 이 Cocos 월드 위치에서 U_select_11-1을 344×84에서 796×212로 나인 슬라이스한다.
-        batch.color = Color.WHITE
-        hudAssets.dialoguePanelTexture?.let { texture ->
-            batch.draw(texture, dialoguePlacement.panelX, dialoguePanelY, dialoguePlacement.panelWidth, dialoguePlacement.panelHeight)
-        }
-        val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
-        speaker?.takeIf { includePortrait }?.let { profile ->
-            val headId = profile.face + 8
-            val texture = if (sourceScenario == "S_00" && dialogue.speakerId == "477" && headId == 192) {
-                hudAssets.yingchuan477FaceTexture ?: dynamicTextures.head(headId)
-            } else if (sourceScenario == "S_00" && dialogue.speakerId == "474" && headId == 179) {
-                hudAssets.yingchuan474FaceTexture ?: dynamicTextures.head(headId)
-            } else dynamicTextures.head(headId)
-            texture?.let {
-                batch.color = Color.WHITE
-                // 실제 Cocos 노드는 96×120에 2배 배율이므로, 프레임버퍼에서 (1160.62, 450) 주변의 192×240 영역을 차지한다.
-                val portraitBounds = DialoguePortraitGeometry.fit(
-                    it,
-                    dialoguePlacement.portraitX,
-                    dialogueFaceY,
-                    dialoguePlacement.portraitWidth,
-                    dialoguePlacement.portraitHeight,
-                )
-                batch.draw(
-                    texture,
-                    portraitBounds.x,
-                    portraitBounds.y,
-                    portraitBounds.width,
-                    portraitBounds.height,
-                )
-            }
-        }
-        if (includeSpeaker) dialogueFont.color = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f)
-        if (includeSpeaker && dialogue.speakerId == "477" && hudAssets.yingchuan477SpeakerTexture != null) {
-            batch.color = Color.WHITE
-            batch.draw(hudAssets.yingchuan477SpeakerTexture, dialoguePlacement.speakerX - .58f, dialoguePanelY + 160.9f, 93.8f, 33.2f)
-        } else if (includeSpeaker) {
-            dialogueFont.data.setScale(1.013f, 1.04f)
-            val speakerText = speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty()
-            val speakerBaselineY = dialoguePlacement.speakerBaselineY
-            dialogueFont.color = Color(102f / 255f, 1f, 1f, 1f)
-            listOf(
-                -2f to 0f, 2f to 0f, 0f to -2f, 0f to 2f,
-                -1.414f to -1.414f, -1.414f to 1.414f,
-                1.414f to -1.414f, 1.414f to 1.414f,
-            ).forEach { (dx, dy) ->
-                dialogueFont.draw(batch, speakerText, dialoguePlacement.speakerX + dx, speakerBaselineY + dy)
-            }
-            dialogueFont.color = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f)
-            dialogueFont.draw(
-                batch,
-                speakerText,
-                dialoguePlacement.speakerX,
-                speakerBaselineY,
-            )
-        }
-        dialogueFont.color = Color.BLACK
-        if (includeBody && dialogue.speakerId == "477" && dialogueReveal.visibleText == "아!" && hudAssets.yingchuan477BodyTexture != null) {
-            batch.color = Color.BLACK
-            // Cocos 캔버스 글리프 잘라내기는 2배 맵 변환 뒤 폭이 30px이다.
-            batch.draw(hudAssets.yingchuan477BodyTexture, dialoguePlacement.textX - 4.805f, dialoguePanelY + 108.4f, 37.5f, 33.6f)
-            batch.color = Color.WHITE
-        } else if (includeBody) {
-            val cocosTexture = dynamicTextures.richText(dialogueReveal.visibleText)
-            if (cocosTexture != null) {
-                batch.color = Color.WHITE
-                batch.draw(
-                    cocosTexture.texture,
-                    cocosTexture.worldX - .58f,
-                    dialoguePlacement.textBaselineY - .58f,
-                    cocosTexture.drawWidth,
-                    cocosTexture.drawHeight,
-                )
-            } else {
-                dialogueFont.data.setScale(1f, .98f)
-                dialogueFont.draw(
-                batch, dialogueReveal.visibleText, dialoguePlacement.textX, dialogueTextY - 0.58f, dialoguePlacement.textWidth, Align.left, true
-                )
-                dialogueFont.data.setScale(1f)
-            }
-        }
-        batch.end()
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-    }
-
-    /** 전투 대사 블렌드 경로를 공용 DialogueRenderer로 그린다. */
-    private fun drawSharedBattleDialogue(dialogue: Dialogue) {
-        val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
         val speakerUnit = dialogue.speakerId?.toIntOrNull()?.let { characterId ->
             (battle.units.values + battle.presentation.pendingPresentationUnits())
                 .firstOrNull { it.characterId == characterId && it.visible }
         }
         val placement = battleDialoguePlacement(speakerUnit)
-        val model = DialogueOverlayModel(
-            dialogue = DialogueRenderModel(
-                speaker = speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
-                visibleText = dialogueReveal.visibleText,
-                portraitId = speaker?.face?.plus(8),
-                panelXOverride = placement.panelX,
-                panelYOverride = placement.panelY,
-                componentPlacement = placement,
-            ),
+        batch.projectionMatrix = viewport.camera.combined
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        battleDialogueRendererAdapter.draw(
+            batch,
+            shapes,
+            viewport.camera.combined,
+            DialogueOverlayModel(dialogue = battleDialogueRenderModel(dialogue, placement, componentStage)),
         )
-        battleDialogueScene2dHost.value.render(model, 0f)
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+    }
+
+    /**
+     * 전투 대사를 공용 표시 모델로 만든다.
+     *
+     * 좌표는 [BattleDialoguePlacementPolicy]가 계산한 절대 배치를 그대로 넘기고, 원본 래스터
+     * 글리프가 있는 프레임만 텍스처 대체 슬롯으로 전달한다. 실제 그리기는 시나리오와 같은
+     * [DialogueRenderer]가 담당하므로 실행 화면과 캡처가 같은 경로를 쓴다.
+     */
+    private fun battleDialogueRenderModel(
+        dialogue: Dialogue,
+        placement: DialogueComponentPlacement,
+        componentStage: String?,
+    ): DialogueRenderModel {
+        val profile = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
+        val headId = profile?.face?.plus(8)
+        return DialogueRenderModel(
+            speaker = profile?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
+            visibleText = dialogueReveal.visibleText,
+            portraitId = headId,
+            portraitTexture = headId?.let { battleDialoguePortrait(dialogue, it) },
+            componentStage = componentStage?.let(::battleDialogueStage),
+            componentPlacement = placement,
+            speakerStyle = BATTLE_SPEAKER_STYLE,
+            bodyScaleY = BATTLE_BODY_SCALE_Y,
+            speakerOverlay = battleSpeakerOverlay(dialogue, placement),
+            bodyOverlay = battleBodyOverlay(dialogue, placement),
+        )
+    }
+
+    /** 캡처 route 이름을 공용 누적 렌더 단계로 변환한다. */
+    private fun battleDialogueStage(name: String): DialogueRenderStage? = when (name) {
+        "panel" -> DialogueRenderStage.PANEL
+        "portrait" -> DialogueRenderStage.PORTRAIT
+        "speaker" -> DialogueRenderStage.SPEAKER
+        "text", "labels", "dialogue" -> DialogueRenderStage.TEXT
+        "background" -> DialogueRenderStage.BACKGROUND
+        "characters" -> DialogueRenderStage.CHARACTERS
+        else -> null
+    }
+
+    /** 영천 전투의 특정 화자는 원본과 같은 얼굴 자원을 우선 사용한다. */
+    private fun battleDialoguePortrait(dialogue: Dialogue, headId: Int): Texture? = when {
+        sourceScenario == "S_00" && dialogue.speakerId == "477" && headId == 192 ->
+            hudAssets.yingchuan477FaceTexture ?: dynamicTextures.head(headId)
+        sourceScenario == "S_00" && dialogue.speakerId == "474" && headId == 179 ->
+            hudAssets.yingchuan474FaceTexture ?: dynamicTextures.head(headId)
+        else -> dynamicTextures.head(headId)
+    }
+
+    /** 원본 래스터 화자명이 있는 프레임만 글꼴 대신 텍스처로 그린다. */
+    private fun battleSpeakerOverlay(dialogue: Dialogue, placement: DialogueComponentPlacement): DialogueTextureOverlay? =
+        hudAssets.yingchuan477SpeakerTexture
+            ?.takeIf { dialogue.speakerId == "477" }
+            ?.let {
+                DialogueTextureOverlay(
+                    texture = it,
+                    x = placement.speakerX - .58f,
+                    y = BattleDialoguePlacementPolicy.rasterSpeakerY(placement.panelY),
+                    width = 93.8f,
+                    height = 33.2f,
+                )
+            }
+
+    /**
+     * 본문 래스터를 고른다.
+     *
+     * 원본 Cocos가 구운 글리프 텍스처가 있으면 그것을 그려 글꼴 래스터 차이를 없앤다.
+     * 특정 한 글자 프레임은 별도로 잘라 둔 텍스처를 쓴다.
+     */
+    private fun battleBodyOverlay(dialogue: Dialogue, placement: DialogueComponentPlacement): DialogueTextureOverlay? {
+        hudAssets.yingchuan477BodyTexture
+            ?.takeIf { dialogue.speakerId == "477" && dialogueReveal.visibleText == "아!" }
+            ?.let {
+                // Cocos 캔버스 글리프 잘라내기는 2배 맵 변환 뒤 폭이 30px이다.
+                return DialogueTextureOverlay(
+                    texture = it,
+                    x = BattleDialoguePlacementPolicy.rasterBodyGlyphX(placement.panelX),
+                    y = BattleDialoguePlacementPolicy.rasterBodyGlyphY(placement.panelY),
+                    width = 37.5f,
+                    height = 33.6f,
+                    tint = Color.BLACK,
+                )
+            }
+        return dynamicTextures.richText(dialogueReveal.visibleText)?.let {
+            DialogueTextureOverlay(
+                texture = it.texture,
+                x = it.worldX - .58f,
+                y = BattleDialoguePlacementPolicy.rasterTextY(placement.panelY),
+                width = it.drawWidth,
+                height = it.drawHeight,
+            )
+        }
     }
 
     /** 원본 SayLayer의 화자 카메라 중심 좌표를 공용 Scene2D 대화 구성 요소의 배치값으로 변환한다. */
@@ -10798,12 +10832,10 @@ void main() {
      */
 
     private fun advanceBattleDialogue() {
-        val sessionTransition = dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm)
-        if (sessionTransition == DialogueSessionTransition.TextRevealed) {
-            dialogueReveal.revealAllIfPending()
-            sayAutoClose.reset()
-            return
-        }
+        // 원본 SayLayer는 글자 공개 상태를 하나만 가진다. 한 번 누르면 남은 글자를 모두 보이고,
+        // 다시 누르면 다음 대사로 넘어간다. 화면에 실제로 보이는 글자는 dialogueReveal이
+        // 결정하므로 진행 판단도 이 하나만 본다. 세션에는 같은 입력을 전달해 상태만 맞춘다.
+        dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm)
         if (dialogueReveal.revealAllIfPending()) {
             sayAutoClose.reset()
             return
@@ -10878,15 +10910,19 @@ void main() {
         val centreY = 400f
         font.data.setScale(40f / 26f)
         val layout = GlyphLayout(font, text)
-        val panelWidth = (layout.width + 5.4f).coerceAtLeast(74.6f)
+        // 원본 InfoLayer의 bg는 Layout 패딩 L/R 20, T/B 10을 가진 40x83 노드다.
+        // 본문 크기에 패딩을 더한 값이 상자 크기이며, 기존 가로 패딩 5.4는 원본과 맞지 않았다.
+        val panelWidth = (layout.width + 40f).coerceAtLeast(40f)
         val panelHeight = (layout.height + 20f).coerceAtLeast(83f)
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.color = Color.WHITE
+        // 원본 bg는 앵커 (0,.5)로 레이어 세로 중앙(로컬 y 0.5)에 놓인다. 상자 중심이 화면
+        // 세로 중앙에 오도록 둔다.
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(
             batch,
             centreX - panelWidth / 2f,
-            centreY - panelHeight * .28f,
+            centreY + .5f - panelHeight / 2f,
             panelWidth,
             panelHeight,
         )
@@ -10926,7 +10962,11 @@ void main() {
                 round = battle.round,
                 camp = contextCampOverride ?: battle.activeFaction.scriptCamp(),
                 maxRound = scenarioMaxRound(),
-                playerDefeated = BattleScreenLoseCondition.defeated(scriptUnits, mineMasterBattleId),
+                playerDefeated = BattleScreenLoseCondition.defeated(
+                    scriptUnits,
+                    mineMasterBattleId,
+                    scriptRuntime.stage.mineMasterInstanceId,
+                ),
                 enemyDefeated = visibleBattleOutcome() == BattleOutcome.PLAYER_VICTORY,
                 clickedCharacterId = clickedCharacterId,
                 positions = positions,
@@ -10967,10 +11007,18 @@ void main() {
         }
         if (positionedDialogueRevision == scriptRuntime.dialogueRevision) return
         if (viewport.worldWidth <= 0f || viewport.worldHeight <= 0f) return
-        positionedDialogueRevision = scriptRuntime.dialogueRevision
         val characterId = dialogue.speakerId?.toIntOrNull() ?: return
-        (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull { it.characterId == characterId && it.visible }
-            ?.let { unit -> focusCameraOn(unit, forceCenter = true) }
+        // 원본 SayLayer._resetPos는 화자가 실제로 보일 때만 카메라를 화자에 맞춘다. 아직 등장하지
+        // 않았다면 이번 대사 번호를 소비하지 않고 다음 프레임에 다시 시도한다. 미리 소비하면
+        // 대사 첫 프레임에 화자가 없을 때 그 대사는 끝까지 카메라 정렬 없이 표시된다.
+        val speaker = (battle.units.values + battle.presentation.pendingPresentationUnits())
+            .firstOrNull { it.characterId == characterId && it.visible } ?: return
+        positionedDialogueRevision = scriptRuntime.dialogueRevision
+        // 원본 SayLayer._resetPos 는 centerUnit(unit) 을 기본 플래그로 부른다. 그 경로는
+        // BattleLayer.centerUnit 의 `_contains(...)`, 즉 화자가 화면 밖일 때만 들어오게
+        // 스크롤한다. 강제 중앙 정렬(플래그 1)이 아니므로 ensureVisible 을 써야 대화창의
+        // 세로 위치가 원본과 같아진다.
+        focusCameraOn(speaker, forceCenter = false)
     }
 
     /**
@@ -11445,13 +11493,11 @@ void main() {
 
     override fun dispose() {
         unitPresentationStore.clear()
-        if (battleDialogueScene2dHost.isInitialized()) battleDialogueScene2dHost.value.dispose()
-        if (battleDialogueScene2dSkin.isInitialized()) battleDialogueScene2dSkin.value.dispose()
         audio.dispose()
         font.dispose()
         dialogueFont.dispose()
         rewardTitleFont.dispose()
-        sectionTitleFont.dispose()
+        if (sectionTitleFontDelegate.isInitialized()) sectionTitleFont.dispose()
         mapTexture?.dispose()
         overlayAssets.dispose()
         unitInfoAssets.dispose()
@@ -11477,3 +11523,30 @@ private fun BattleDeathCheckpoint.toDeathTimelineCheckpoint(): BattleDeathPresen
         BattleDeathCheckpoint.CAMP_RESTORE -> BattleDeathPresentationTimeline.Checkpoint.CAMP_RESTORE
         BattleDeathCheckpoint.ROUND_START -> BattleDeathPresentationTimeline.Checkpoint.ROUND_START
     }
+
+/**
+ * 전투 화자명 표시 방식이다.
+ *
+ * 전투 글꼴은 외곽선을 굽지 않으므로 공용 렌더러가 원본 라벨과 같은 청록 외곽선과 파란
+ * 채움을 여덟 방향 오프셋으로 직접 그린다. 시나리오는 외곽선을 구운 글꼴을 쓰므로 기본값을
+ * 그대로 사용한다.
+ */
+private val BATTLE_SPEAKER_STYLE = DialogueSpeakerStyle(
+    fillColor = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f),
+    outlineColor = Color(102f / 255f, 1f, 1f, 1f),
+    outlineWidth = 2f,
+    scaleX = 1.013f,
+    scaleY = 1.04f,
+)
+
+/** 전투 본문을 원본 줄 간격에 맞추는 세로 배율이다. */
+private const val BATTLE_BODY_SCALE_Y = .98f
+
+/**
+ * 전투 화면이 시나리오 대사와 별개로 직접 그리는 문구다.
+ *
+ * 대사 글꼴은 유닛 이름과 현재 시나리오 원문으로 글리프를 굽는다. 여기에 없는 글자는
+ * 렌더링에서 빠지므로, 화면이 literal로 그리는 문구를 모두 모아 함께 굽는다.
+ */
+private const val BATTLE_UI_GLYPHS =
+    "다시 플레이하시겠습니까?게임 저장하시겠습니까?예아니오턴 수짐이 알겠다.0123456789/ "

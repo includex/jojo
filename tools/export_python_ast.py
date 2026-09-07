@@ -4,11 +4,28 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import json
 import shutil
 import sys
 from pathlib import Path
 from typing import Any
+
+
+def load_repair():
+    """Load the branch-nesting repair that sits beside this exporter."""
+    path = Path(__file__).with_name("repair_scenario_branch_nesting.py")
+    spec = importlib.util.spec_from_file_location("jojo_scenario_branch_repair", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    # `dataclass` resolves annotations through `sys.modules`, so register the
+    # module before executing it.
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+REPAIR = load_repair()
 
 
 def encode(value: Any) -> Any:
@@ -29,17 +46,26 @@ def encode(value: Any) -> Any:
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
-        raise SystemExit("usage: export_python_ast.py SOURCE_DIR OUTPUT_DIR")
+    if len(sys.argv) != 4:
+        raise SystemExit("usage: export_python_ast.py SOURCE_DIR ASSETS_DIR OUTPUT_DIR")
     source_dir = Path(sys.argv[1]).resolve()
-    output_dir = Path(sys.argv[2]).resolve()
+    # The decompiler that produced SOURCE_DIR sometimes attaches an `elif` arm
+    # to the wrong `if`, which strands whole branches.  Re-nest against the
+    # original bytecode here, where the executed program is built, so the
+    # restored sources keep their recovered line numbers untouched.
+    containers = REPAIR.load_containers(Path(sys.argv[2]).resolve())
+    output_dir = Path(sys.argv[3]).resolve()
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True)
 
     exported = 0
+    repaired = 0
     for source_path in sorted(source_dir.glob("*.py")):
         tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path), feature_version=(3, 9))
+        functions = containers.get(source_path.stem)
+        if functions and REPAIR.repair_module(tree, functions):
+            repaired += 1
         payload = {
             "format": "jojo-python-ast/v1",
             "module": source_path.stem,
@@ -50,7 +76,7 @@ def main() -> None:
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
         )
         exported += 1
-    print(f"Exported {exported} Python AST files to {output_dir}")
+    print(f"Exported {exported} Python AST files to {output_dir}; re-nested branches in {repaired}")
 
 
 if __name__ == "__main__":

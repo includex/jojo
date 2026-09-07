@@ -48,6 +48,7 @@ class BattleActorEffectViewComposerTest {
         override fun spriteFrame(unit: BattleUnit) = UnitSpriteFrame(UnitSpriteSource.MOVEMENT, sourceY = 12)
         override fun activeAction(unitId: String, now: Float): UnitActionAnimation? = null
         override fun deathAnimationActive(unitId: String, now: Float) = true
+        override fun timelineMaterialValue(action: Int, direction: Int, elapsed: Float, loop: Boolean): Float? = null
         override fun scriptedVisual(unitId: String): ScriptedUnitVisual? = null
         override fun texture(unit: BattleUnit, source: UnitSpriteSource): Texture? = null
         override fun visualTile(unit: BattleUnit) = 4f to 5f

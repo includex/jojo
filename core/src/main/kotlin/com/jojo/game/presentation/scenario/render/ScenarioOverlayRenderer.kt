@@ -13,10 +13,14 @@ import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 import com.jojo.game.presentation.scenario.story.ScenarioDialogueRendererAssetsAdapter
 import com.jojo.game.presentation.scenario.story.ScenarioStoryRenderer
+import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueStages
+import com.jojo.game.presentation.scenario.story.ScenarioStreetDialogueView
 import com.jojo.game.presentation.scenario.story.toDialogueRenderModel
 import com.jojo.game.presentation.shared.dialogue.ChoiceRenderModel
 import com.jojo.game.presentation.shared.dialogue.DialogueModalKind
 import com.jojo.game.presentation.shared.dialogue.DialogueOverlayModel
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderModel
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderStage
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
 import com.jojo.game.presentation.shared.dialogue.DialogueScene2dHost
 import com.jojo.game.presentation.shared.dialogue.ModalRenderModel
@@ -39,13 +43,47 @@ internal object ScenarioOverlayRenderer {
         view: ScenarioOverlayRenderView,
         scene2dHost: DialogueScene2dHost? = null,
     ) {
-        val model = dialogueOverlayModel(view)
-        if (scene2dHost != null) {
-            scene2dHost.present(model)
-            scene2dHost.render()
-        } else {
-            dialogueRenderer.draw(batch, shapes, projection, model, ScenarioDialogueRendererAssetsAdapter(assets))
+        // 대사·선택지·모달 모두 원본 좌표를 재현하는 공용 렌더러가 그린다. Scene2D의 일반
+        // 위젯 배치는 원본 말풍선·선택지·야망 표시 구조와 맞지 않고, 특히 모달은 내부 표시용
+        // 문자열을 그대로 찍어 버린다. 실행 화면과 캡처가 같은 경로를 쓰도록 한 곳으로 모은다.
+        scene2dHost?.present(null)
+        dialogueRenderer.draw(batch, shapes, projection, dialogueOverlayModel(view), ScenarioDialogueRendererAssetsAdapter(assets))
+    }
+
+    /**
+     * 거리 대사 캡처 단계를 실행 화면과 동일한 공용 렌더러로 그린다.
+     *
+     * 원본 캡처가 노드 가시성을 하나씩 켜며 누적하는 것과 같은 순서를 [DialogueRenderStage]로
+     * 표현한다. 실행 화면과 캡처가 같은 코드·같은 좌표를 쓰므로 캡처 대조 결과가 곧 실행
+     * 화면의 결과다.
+     */
+    fun drawStreetStage(
+        assets: ScenarioSceneAssets,
+        batch: SpriteBatch,
+        shapes: ShapeRenderer,
+        projection: Matrix4,
+        view: ScenarioStreetDialogueView,
+        stageIndex: Int,
+    ) {
+        val stage = when (ScenarioStreetDialogueStages.nameAt(stageIndex)) {
+            "panel" -> DialogueRenderStage.PANEL
+            "portrait" -> DialogueRenderStage.PORTRAIT
+            "speaker" -> DialogueRenderStage.SPEAKER
+            "text" -> DialogueRenderStage.TEXT
+            "background" -> DialogueRenderStage.BACKGROUND
+            "characters" -> DialogueRenderStage.CHARACTERS
+            else -> return
         }
+        val dialogue = view.toDialogueRenderModel()?.copy(componentStage = stage)
+            // 대사가 아직 없어도 원본은 말풍선 패널을 먼저 보여 준다.
+            ?: DialogueRenderModel(speaker = "", visibleText = "", isLeft = view.isLeft, isAtTop = view.isAtTop, componentStage = DialogueRenderStage.PANEL)
+        dialogueRenderer.draw(
+            batch,
+            shapes,
+            projection,
+            DialogueOverlayModel(dialogue = dialogue),
+            ScenarioDialogueRendererAssetsAdapter(assets),
+        )
     }
 
     /** 시나리오 상태를 두 렌더링 구현이 공유하는 공용 모델로 변환한다. */
@@ -89,25 +127,6 @@ internal object ScenarioOverlayRenderer {
         view: ScenarioOverlayRenderView,
     ) {
         dialogueRenderer.draw(batch, shapes, projection, dialogueOverlayModel(view), ScenarioDialogueRendererAssetsAdapter(assets))
-    }
-
-    /** 이전 화면별 렌더링 규칙을 보존하기 위한 호환 진입점이다. */
-    @Suppress("UNUSED_PRIVATE_MEMBER")
-    private fun drawLegacyOverlay(assets: ScenarioSceneAssets, batch: SpriteBatch, shapes: ShapeRenderer, projection: Matrix4, view: ScenarioOverlayRenderView) {
-        shapes.projectionMatrix = projection
-        Gdx.gl.glEnable(GL20.GL_BLEND); Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
-        drawBackdrop(assets, batch, shapes, projection, view.modal)
-        shapes.end(); Gdx.gl.glDisable(GL20.GL_BLEND)
-
-        batch.projectionMatrix = projection; batch.begin()
-        when (view.state) {
-            ScenarioOverlayState.DIALOGUE -> view.dialogue?.let { ScenarioStoryRenderer.drawStreetDialogue(assets, batch, it, 3) }
-            ScenarioOverlayState.CHOICE -> view.choice?.let { drawChoice(assets, batch, it) }
-            ScenarioOverlayState.MODAL -> view.modal?.let { drawModalText(assets, batch, it) }
-            ScenarioOverlayState.DELAY -> Unit
-        }
-        batch.end()
     }
 
     /**
