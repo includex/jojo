@@ -850,7 +850,7 @@
     {
       "id": "cmd-default",
       "source": [
-        "--render-event-state=cmd-default"
+        "--render-login-overlay-route=cmd-default"
       ],
       "game": "login-cmd-default-fixture",
       "report": "build/render-events/cmd-default-diff.json"
@@ -858,7 +858,7 @@
     {
       "id": "cmd-selected",
       "source": [
-        "--render-event-state=cmd-selected"
+        "--render-login-overlay-route=cmd-selected"
       ],
       "game": "login-cmd-selected-fixture",
       "report": "build/render-events/cmd-selected-diff.json"
@@ -866,7 +866,7 @@
     {
       "id": "cmd-info",
       "source": [
-        "--render-event-state=cmd-info"
+        "--render-login-overlay-route=cmd-info"
       ],
       "game": "login-cmd-info-fixture",
       "report": "build/render-events/cmd-info-diff.json"
@@ -986,7 +986,7 @@
     {
       "id": "modal-load",
       "source": [
-        "--render-event-state=modal-load"
+        "--render-login-overlay-route=modal-load"
       ],
       "game": "login-modal-load-fixture",
       "report": "build/render-events/modal-load-diff.json"
@@ -1119,7 +1119,11 @@
         "--render-event-state=setting"
       ],
       "game": "login-setting",
-      "report": "build/render-events/setting-final.json"
+      "report": "build/render-events/setting-final.json",
+      "animatedFields": [
+        "Canvas/Layer/bg/scrollview/view/content/panel3/item0/box6.opacity"
+      ],
+      "animatedFieldsReason": "SettingLayer._selItem runs cc.sequence(cc.fadeIn(.3), cc.fadeOut(.3)).repeatForever() on the selected background's box6, so its opacity is wherever that pulse sits when the frame is taken."
     },
     {
       "id": "battle-edit3-scene",

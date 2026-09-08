@@ -343,7 +343,21 @@ def _equal(expected: Any, actual: Any, tolerance: float) -> bool:
     return expected == actual
 
 
-def compare(expected: list[Draw], actual: list[Draw], tolerance: float) -> list[dict[str, Any]]:
+def compare(
+    expected: list[Draw],
+    actual: list[Draw],
+    tolerance: float,
+    animated_fields: tuple[str, ...] = (),
+) -> list[dict[str, Any]]:
+    """Compare two draw streams.
+
+    `animated_fields` names `<node path>.<field>` pairs the original animates,
+    so no single value can be correct.  `SettingLayer._selItem`, for instance,
+    runs `cc.sequence(cc.fadeIn(.3), cc.fadeOut(.3)).repeatForever()` on the
+    selected background's `box6`, so its opacity is wherever that pulse happens
+    to be when the frame is taken.  Pinning it would make the gate flap; each
+    entry has to name a specific node and field, and say why in the caller.
+    """
     diffs: list[dict[str, Any]] = []
     expected_order, actual_order = [d.key for d in expected], [d.key for d in actual]
     if expected_order != actual_order:
@@ -358,6 +372,8 @@ def compare(expected: list[Draw], actual: list[Draw], tolerance: float) -> list[
     for key in sorted(expected_by_key.keys() & actual_by_key.keys()):
         left, right = expected_by_key[key], actual_by_key[key]
         for field in SEMANTIC_FIELDS:
+            if f"{left.path}.{field}" in animated_fields:
+                continue
             expected_value, actual_value = getattr(left, field), getattr(right, field)
             if not _equal(expected_value, actual_value, tolerance):
                 diffs.append({"kind": "field", "path": key, "field": field,
@@ -384,6 +400,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json-out", type=Path, help="write the machine-readable diff report")
     parser.add_argument("--text-out", type=Path, help="write the actionable text report")
     parser.add_argument("--max-diffs", type=int, default=200, help="maximum differences emitted")
+    parser.add_argument("--animated-field", action="append", default=[], metavar="NODE_PATH.FIELD",
+                        help="a field the original animates, so it has no single correct value")
     args = parser.parse_args(argv)
     if args.float_tolerance < 0 or args.max_diffs < 1:
         parser.error("tolerance must be nonnegative and max-diffs must be positive")
@@ -393,7 +411,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, json.JSONDecodeError, ValueError) as error:
         print(f"render log input error: {error}", file=sys.stderr)
         return 2
-    all_diffs = compare(expected, actual, args.float_tolerance)
+    all_diffs = compare(expected, actual, args.float_tolerance, tuple(args.animated_field))
     report = {
         "equal": not all_diffs,
         "expected": str(args.expected), "actual": str(args.actual),

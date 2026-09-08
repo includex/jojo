@@ -90,8 +90,9 @@ for (const route of routes) {
     run("java", ["-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp", classpath,
       "com.jojo.game.verification.VerificationDesktopLauncher", ...gameArgs,
       `--capture-state=${route.game}`, `--render-event-log=${gameLog}`]);
+    const animated = (route.animatedFields ?? []).map(field => `--animated-field=${field}`);
     run("python3", [resolve(root, "tools/compare_render_logs.py"), sourceLog, gameLog,
-      `--float-tolerance=${table.floatTolerance}`, `--json-out=${report}`]);
+      `--float-tolerance=${table.floatTolerance}`, ...animated, `--json-out=${report}`]);
     console.log(`RENDER_PARITY_ROUTE_OK ${route.id}`);
   } catch (error) {
     failures.push(route.id);

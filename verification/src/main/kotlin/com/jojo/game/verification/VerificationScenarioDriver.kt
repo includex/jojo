@@ -59,9 +59,12 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
     private fun presentationCommand(): RuntimeScenarioCommand? = when (state) {
         "hall-palace-fixture" -> Present(RuntimeScenarioPresentation.PALACE, scene = ScenarioFixtureInstaller.palaceScene())
         "hall-section-fixture" -> Present(RuntimeScenarioPresentation.SECTION, scene = ScenarioFixtureInstaller.sectionScene())
+        // 거리 대화 단계는 원본 하네스가 세워 두는 회관 장면과 같은 대사를 보여야 한다.
+        // 장면을 넘기지 않으면 이식본은 살아 있는 R_00 대사를 그대로 이어 그려서
+        // 화자와 본문이 원본과 다른 문장이 된다.
         else -> state?.removePrefix("street-")?.let(streetStages::indexOf)
             ?.takeIf { it >= 0 }
-            ?.let { Present(RuntimeScenarioPresentation.STREET, it) }
+            ?.let { Present(RuntimeScenarioPresentation.STREET, it, scene = ScenarioFixtureInstaller.hallScene()) }
             ?: overlayCommand()
     }
 

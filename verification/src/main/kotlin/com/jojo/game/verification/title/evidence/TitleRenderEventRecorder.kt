@@ -123,7 +123,9 @@ internal class TitleRenderEventRecorder {
             650.189f,
             1078.67f
         )
-        val rects = listOf(218.29f to 611f, 218.29f to 546f, 218.186f to 482f, 218.186f to 417f, 218.186f to 353f)
+        // 세 번째 항목의 Background도 다른 항목과 같은 218.29에 있다. 218.186은 그
+        // 항목의 checkmark 전용 x인데 Background 목록에까지 번져 있었다.
+        val rects = listOf(218.29f to 611f, 218.29f to 546f, 218.29f to 482f, 218.186f to 417f, 218.186f to 353f)
         val labels = listOf("배경 음악 듣기", "효과음 듣기", "전투 시 전장 축소 이미지가 자동으로 표시됩니다.", "대화창 자동 닫힘", "체력 바가 유닛 위에 있습니다")
         rects.forEachIndexed { index, (x, y) ->
             val path = "Canvas/Layer/bg/scrollview/view/content/button$index/toggle"
