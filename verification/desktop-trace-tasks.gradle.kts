@@ -35,8 +35,16 @@ val verifyFreshBattleRenderParity = tasks.register<Exec>("verifyFreshBattleRende
     environment("JOJO_VERIFICATION_CLASSPATH", verificationDesktopRuntime.asPath)
     commandLine("node", rootProject.file("tools/verify_fresh_battle_render_parity.mjs").absolutePath)
 }
+// StartBattleLayer/BattleSortLayer/RewardLayer 상태 여덟 개는 desktop -> verification
+// 모듈 분리 때 생산 태스크를 통째로 잃어버려, 손으로 돌린 낡은 산출물만 남아 있었다.
+val verifyStartBattleRewardParity = tasks.register<Exec>("verifyStartBattleRewardParity") {
+    group = "verification"; dependsOn(tasks.named("classes")); outputs.upToDateWhen { false }
+    inputs.files(rootProject.file("tools/verify_start_battle_reward_parity.mjs"), rootProject.file("tools/compare_render_logs.py"))
+    environment("JOJO_VERIFICATION_CLASSPATH", verificationDesktopRuntime.asPath)
+    commandLine("node", rootProject.file("tools/verify_start_battle_reward_parity.mjs").absolutePath)
+}
 val verifyRenderParityScope = tasks.register<Exec>("verifyRenderParityScope") {
-    group = "verification"; dependsOn(verifyFreshBattleRenderParity); outputs.upToDateWhen { false }
+    group = "verification"; dependsOn(verifyFreshBattleRenderParity, verifyStartBattleRewardParity); outputs.upToDateWhen { false }
     inputs.files(rootProject.file("tools/render_parity_scope.json"), rootProject.file("tools/render_layer_inventory.json"), rootProject.file("tools/verify_render_parity_scope.py"), rootProject.file("tools/verify_render_parity_reports.py"))
     commandLine("python3", rootProject.file("tools/verify_render_parity_scope.py").absolutePath, "--scope", rootProject.file("tools/render_parity_scope.json").absolutePath, "--repository", rootProject.projectDir.absolutePath)
 }

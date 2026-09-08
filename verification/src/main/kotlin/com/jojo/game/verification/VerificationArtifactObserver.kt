@@ -15,6 +15,7 @@ import com.jojo.game.application.runtime.RuntimeScreenObserver
 import com.jojo.game.application.runtime.RuntimeScreenProbe
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.application.runtime.BattlePreparationRuntimeProbe
+import com.jojo.game.application.runtime.RuntimeRenderEventLogProvider
 import com.jojo.game.application.runtime.TitleRuntimeProbe
 import com.jojo.game.presentation.battle.BattleScreen
 import com.jojo.game.presentation.scenario.ScenarioScreen
@@ -164,6 +165,9 @@ private fun Screen?.eventLog(state: String?): String = when (this) {
     is TerminalSceneRouteScreen -> renderEventLog()
     is ScenarioScreen -> scenarioEventLog(runtimeSnapshot(), state)
     is BattleScreen -> renderEventLog()
+    // 픽스처 화면 15종은 `RuntimeRenderEventLogProvider`로 자기 렌더 이벤트를 내놓는데
+    // 여기서 그 계약을 묻지 않아 전부 `{"state":"unavailable"}`만 남기고 있었다.
+    is RuntimeRenderEventLogProvider -> runtimeRenderEventLog()
     else -> "{\"state\":\"unavailable\"}\n"
 }
 
