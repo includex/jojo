@@ -248,6 +248,13 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
     internal fun settingsPreferences() = preferenceProvider.settings()
 
     /**
+     * `audioEnabled`: 소리를 낼 수 있는 실행인지 알려 준다.
+     *
+     * 자동 실행(검증)에는 소리 장치가 없으므로 끈다. 사람이 하는 실행에서는 원본처럼 켠다.
+     */
+    internal fun audioEnabled() = !automatedRun
+
+    /**
      * `create`: 객체나 결과를 생성한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */

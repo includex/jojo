@@ -1317,7 +1317,17 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val audio = GameAudioPlayer()
+    private val audio = GameAudioPlayer(
+        enabled = game.audioEnabled(),
+        musicOn = { settingEnabled(SettingLayer.BG_SOUND) },
+        effectOn = { settingEnabled(SettingLayer.EFFECT_SOUND) },
+    )
+
+    /** 설정 값: 원본 `GAME_SETTING` 비트를 읽는다. 기본값은 원본과 같이 셋을 켠 상태다. */
+    private fun settingEnabled(bit: Int) = settingsPreferences.getInteger(
+        SettingLayer.GAME_SETTING,
+        SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+    ) and bit != 0
 
     /**
      * `dialogueReveal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
