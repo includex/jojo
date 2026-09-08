@@ -169,7 +169,9 @@ private object BattleWinConditionRenderEvents {
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/box2", "tiled-sprite", 249.686f, 65f, 989f, 670f, "box3")
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/Logo_3-1", "sprite", 280.574f, 588.927f, 106f, 124f, "Logo_3-1")
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/scrollview/box3", "sliced-sprite", 406.686f, 170.5f, 803f, 543f, "box2")
-        draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/scrollview/view/content/item", "label", 409.359f, 520.887f, 803f, 191.36f, text = text, blend = labels)
+        // 이 줄의 y는 원본 ScrollView가 배치를 마친 뒤의 값(522.206)이다. 붙자마자 재면
+        // 한 프레임 이른 520.887이 잡혀, 예전에는 그 값에 맞춰져 있었다.
+        draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/scrollview/view/content/item", "label", 409.359f, 522.206f, 803f, 191.36f, text = text, blend = labels)
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/button/Background", "sliced-sprite", 957.134f, 88.204f, 256.7f, 60f, "box3")
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/button/Background/Label", "label", 985.869f, 93.461f, 199.23f, 54.4f, text = "짐이 알겠다.", blend = labels)
     }

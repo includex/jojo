@@ -109,7 +109,11 @@
       ],
       "game": "battle-win-condition-compact-fixture",
       "battle": true,
-      "report": "build/render-events/reports/battle-win-condition-compact.json"
+      "report": "build/render-events/reports/battle-win-condition-compact.json",
+      "animatedFields": [
+        "Canvas/Layer/ScrollView/view/content/map/unit/mask/node.asset"
+      ],
+      "animatedFieldsReason": "The terrain mask under a unit runs its own Mark animation on both sides, so a capture near a frame boundary reads the neighbouring frame id. Every other field of the node still has to match."
     },
     {
       "id": "win-condition-full",
