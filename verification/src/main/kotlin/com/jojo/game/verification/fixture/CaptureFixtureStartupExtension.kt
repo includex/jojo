@@ -28,10 +28,23 @@ class CaptureFixtureStartupExtension : RuntimeStartupExtension {
         fun show(screen: com.badlogic.gdx.Screen): Boolean { request.showScreen(screen); return true }
         when (state) {
             "login-setting" -> return show(TitleScreen(request.game, initialSettingOpen = true, useInitialSettings = true))
+            // 타이틀 화면 자체와 불러오기 목록에는 캡처 상태가 없어서, 이 이름을 주면
+            // 기본 시나리오 화면이 대신 떠 엉뚱한 화면을 기록하고 있었다.
+            "login-main" -> return show(TitleScreen(request.game))
+            "login-load" -> return show(TitleScreen(request.game, initialLoadOpen = true))
             "start-item-fixture" -> return show(TitleScreen(request.game))
             "hall-achievements-fixture" -> return show(AchievementsFixtureScreen(request.game))
             "hall-attribute-fixture" -> return show(AttributeFixtureScreen(request.game))
             "hall-generic-list-fixture" -> return show(GenericListFixtureScreen(request.game))
+        }
+        state?.removeSuffix("-fixture")?.takeIf { it.startsWith("login-load-row") }?.let { row ->
+            return show(
+                TitleScreen(
+                    request.game,
+                    initialLoadOpen = true,
+                    initialLoadRow = row.removePrefix("login-load-row").toIntOrNull(),
+                )
+            )
         }
         when (state?.removeSuffix("-fixture")) {
             // 원본은 등록 확인 응답이 오기 전의 설정 화면을 그대로 붙잡아 둔다.
