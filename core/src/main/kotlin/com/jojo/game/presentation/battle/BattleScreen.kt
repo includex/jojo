@@ -7298,6 +7298,9 @@ void main() {
         if (selected == null) {
             if (clicked?.visible == true && clicked.type() == battle.activeFaction && !clicked.hasActed) {
                 selectedUnitId = clicked.id
+                // 원본은 유닛을 고르면 `centerUnit(unit, 0)`으로 화면 안에 들어오게 한다.
+                // 플래그 0은 강제 중앙이 아니라 화면 밖일 때만 끌어오는 동작이다.
+                focusCameraOn(clicked)
                 battleCommandFlow.beginMove(
                     clicked.id, BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
                 )
@@ -7343,6 +7346,7 @@ void main() {
             clicked?.id == selected.id -> openBattleCommand(selected)
             clicked != null && clicked.type() == selected.type() && !clicked.hasActed -> {
                 selectedUnitId = clicked.id
+                focusCameraOn(clicked)
                 battleCommandFlow.beginMove(
                     clicked.id, BattleCommandFlow.UnitPose(clicked.tileX, clicked.tileY, clicked.direction)
                 )
