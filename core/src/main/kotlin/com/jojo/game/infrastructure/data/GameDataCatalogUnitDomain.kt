@@ -108,6 +108,14 @@ internal class GameDataCatalogUnitDomain(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
+    /**
+     * `unitIntro`: 무장 소개 문구를 돌려준다.
+     *
+     * 원본 `UnitInfoLayer._ref0`이 `unitAttr(id, UNIT_ATTR_NAME.INTRO, "")`로 읽는 값이고,
+     * 유닛 표의 13번 열이다. 소개가 없는 유닛은 빈 문자열이다.
+     */
+    fun unitIntro(id: Int): String = units.getOrNull(id)?.string("13") ?: ""
+
     fun allUnitNames(): List<String> = units.indices.mapNotNull(::unitProfile).map(GameDataCatalog.UnitProfile::name)
     /**
      * `allUnitIds`: 타입의 핵심 동작을 수행한다.

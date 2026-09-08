@@ -481,6 +481,9 @@ class GameDataCatalog private constructor(
      */
 
     fun unitProfile(id: Int) = units.unitProfile(id)
+
+    /** `unitIntro`: 무장 소개 문구를 돌려준다. */
+    fun unitIntro(id: Int) = units.unitIntro(id)
     /**
      * `allUnitNames`: 타입의 핵심 동작을 수행한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.

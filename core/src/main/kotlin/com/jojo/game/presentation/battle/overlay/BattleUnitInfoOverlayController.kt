@@ -126,6 +126,8 @@ internal class BattleUnitInfoOverlayController(
                 name = unit.name, post = unit.post, level = unit.level, hp = unit.hp, maxHp = unit.maxHp,
                 mp = unit.mp, maxMp = unit.maxMp, attack = unit.attack, defense = unit.defense,
                 spirit = unit.spirit, critical = unit.critical, morale = unit.morale,
+                mine = unit.mine, battleCount = unit.battleCount, retreatCount = unit.retreatCount,
+                skillIntro = unit.skillIntro, unitIntro = unit.unitIntro,
             ),
             buttons = source.buttons.toList(),
             magicRows = source.magicRows.toList(),

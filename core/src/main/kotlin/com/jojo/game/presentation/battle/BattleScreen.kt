@@ -9992,7 +9992,18 @@ void main() {
             u.spirit,
             u.critical,
             u.morale,
-            u.magic.map { it.name })
+            u.magic.map { it.name },
+            // 원본은 아군 유닛일 때만 출진·퇴각 횟수를 보여 준다.
+            mine = u.type() == Faction.PLAYER,
+            // 원본 `Unit.battle_n()`/`retreat_n()`은 유닛 속성 CZCS(14)/CTCS(15)다.
+            battleCount = u.characterId?.let { campaign.unitAttribute(it, 14) } ?: 0,
+            retreatCount = u.characterId?.let { campaign.unitAttribute(it, 15, u.retreatCount) } ?: u.retreatCount,
+            unitIntro = u.characterId?.let(gameDataCatalog::unitIntro).orEmpty(),
+            // 원본은 `skillIntro(unitSkill(), 3)`로 특기 설명문을 조립해 보여 준다. 포트의
+            // 자료 계층에는 설명문이 없어 보유 특기 이름을 나열한다.
+            skillIntro = u.skills.keys.mapNotNull { id -> gameDataCatalog.skillName(id).takeIf(String::isNotBlank) }
+                .joinToString(", "),
+        )
 
         val rows = source.map(::row)
         val index = rows.indexOfFirst { it.id == selectedCharacterId }.coerceAtLeast(0)
