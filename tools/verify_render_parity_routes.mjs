@@ -93,7 +93,11 @@ for (const route of routes) {
     const animated = (route.animatedFields ?? []).map(field => `--animated-field=${field}`);
     run("python3", [resolve(root, "tools/compare_render_logs.py"), sourceLog, gameLog,
       `--float-tolerance=${table.floatTolerance}`, ...animated, `--json-out=${report}`]);
-    console.log(`RENDER_PARITY_ROUTE_OK ${route.id}`);
+    // A route whose game-side log is a stored copy of the original can only ever
+    // agree; say so rather than letting it read as evidence.
+    console.log(route.cannedReplay
+      ? `RENDER_PARITY_ROUTE_CIRCULAR ${route.id} (${route.cannedReplay})`
+      : `RENDER_PARITY_ROUTE_OK ${route.id}`);
   } catch (error) {
     failures.push(route.id);
     console.log(`RENDER_PARITY_ROUTE_FAIL ${route.id}: ${String(error.message).split("\n").slice(0, 6).join(" | ")}`);
@@ -104,4 +108,5 @@ if (failures.length) {
   console.log(`RENDER_PARITY_ROUTES_BLOCKED routes=${routes.length} failures=${failures.length} ids=${failures.join(",")}`);
   process.exit(1);
 }
-console.log(`RENDER_PARITY_ROUTES_OK routes=${routes.length}`);
+const circular = routes.filter(route => route.cannedReplay).length;
+console.log(`RENDER_PARITY_ROUTES_OK routes=${routes.length} circular=${circular}`);

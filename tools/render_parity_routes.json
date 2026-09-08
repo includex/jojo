@@ -877,7 +877,8 @@
         "--render-event-state=battle-edit-default"
       ],
       "game": "hall-battle-edit-default-fixture",
-      "report": "build/render-events/battle-edit-default-diff.json"
+      "report": "build/render-events/battle-edit-default-diff.json",
+      "cannedReplay": "presentation/battle/edit/BattleUnitEditLayer.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "battle-edit-posts",
@@ -885,7 +886,8 @@
         "--render-event-state=battle-edit-posts"
       ],
       "game": "hall-battle-edit-posts-fixture",
-      "report": "build/render-events/battle-edit-posts-diff.json"
+      "report": "build/render-events/battle-edit-posts-diff.json",
+      "cannedReplay": "presentation/battle/edit/BattleUnitEditLayer.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "battle-edit-mutation",
@@ -901,7 +903,8 @@
         "--render-event-state=battle-edit-avatar"
       ],
       "game": "hall-battle-edit-avatar-fixture",
-      "report": "build/reports/render-events/avatar-edit-default.json"
+      "report": "build/reports/render-events/avatar-edit-default.json",
+      "cannedReplay": "presentation/battle/edit/BattleUnitEditLayer.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "edit4-default",
@@ -925,7 +928,8 @@
         "--render-event-state=learn-default"
       ],
       "game": "hall-learn-default-fixture",
-      "report": "build/render-events/learn-default-diff.json"
+      "report": "build/render-events/learn-default-diff.json",
+      "cannedReplay": "core/.../edit/evidence/LearnUnitSkillRenderEvents.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "learn-unit-skill-select",
@@ -933,7 +937,8 @@
         "--render-event-state=learn-select"
       ],
       "game": "hall-learn-select-fixture",
-      "report": "build/render-events/learn-select-diff.json"
+      "report": "build/render-events/learn-select-diff.json",
+      "cannedReplay": "core/.../edit/evidence/LearnUnitSkillRenderEvents.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "learn-unit-skill-apply",
@@ -941,7 +946,8 @@
         "--render-event-state=learn-apply"
       ],
       "game": "hall-learn-apply-fixture",
-      "report": "build/render-events/learn-apply-diff.json"
+      "report": "build/render-events/learn-apply-diff.json",
+      "cannedReplay": "core/.../edit/evidence/LearnUnitSkillRenderEvents.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "learn-unit-skill-cancel",
@@ -949,7 +955,8 @@
         "--render-event-state=learn-cancel"
       ],
       "game": "hall-learn-cancel-fixture",
-      "report": "build/render-events/learn-cancel-diff.json"
+      "report": "build/render-events/learn-cancel-diff.json",
+      "cannedReplay": "core/.../edit/evidence/LearnUnitSkillRenderEvents.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "define-unit-default",
@@ -957,7 +964,8 @@
         "--render-event-state=define-unit-default"
       ],
       "game": "hall-define-unit-default-fixture",
-      "report": "build/render-events/define-unit-default-diff.json"
+      "report": "build/render-events/define-unit-default-diff.json",
+      "cannedReplay": "DefineUnitRoute.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "define-unit-reset-prompt",
@@ -965,7 +973,8 @@
         "--render-event-state=define-unit-reset-prompt"
       ],
       "game": "hall-define-unit-reset-prompt-fixture",
-      "report": "build/render-events/define-unit-reset-prompt-diff.json"
+      "report": "build/render-events/define-unit-reset-prompt-diff.json",
+      "cannedReplay": "DefineUnitRoute.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "define-unit-finish-prompt",
@@ -973,7 +982,8 @@
         "--render-event-state=define-unit-finish-prompt"
       ],
       "game": "hall-define-unit-finish-prompt-fixture",
-      "report": "build/render-events/define-unit-finish-prompt-diff.json"
+      "report": "build/render-events/define-unit-finish-prompt-diff.json",
+      "cannedReplay": "DefineUnitRoute.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
     },
     {
       "id": "raffle-gated-diagnostic",
