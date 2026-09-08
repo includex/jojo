@@ -29,6 +29,16 @@ internal class ScenarioHallManagementEvidenceRecorder(
             /** label: 텍스트 라벨 이벤트를 렌더 로그에 추가한다. */
             fun label(path: String, text: String, x: Float, y: Float, w: Float, h: Float = 43.344f) =
                 source(path, "label", x, y, w, h, text = text, label = true)
+            // 원본은 매입·매각 창을 열 때 HallLayer 위에 반투명 Panel_cancel 배경을
+            // 먼저 깐다. 이식본은 이 한 장을 빠뜨려 상점 뒤 화면이 그대로 밝게 비쳤다.
+            // 이 기록기의 다른 좌표와 같은 1280x688 화면 공간으로 적는다. 전투 기록기가
+            // 쓰는 1488x800 값을 그대로 넣으면 화면 전체보다 큰 draw가 되어 비교기가
+            // 뷰포트를 잘못 잡고 나머지 좌표가 모두 어긋난다.
+            log.draw(
+                "management", "HallLayer", "Canvas/Layer/Panel_cancel", "sprite",
+                0f, 0f, 1280f, 688f, "default_sprite_splash",
+                opacity = 100f / 255f, blend = listOf(770, 771),
+            )
             if (kind == ScenarioHallManagementEvidenceKind.SELL) {
                 source("bg1", "tiled-sprite", 267.62f, 65.36f, 744.76f, 557.28f, "Logo_9-1")
                 source("bg1/box3", "sliced-sprite", 267.62f, 65.36f, 744.76f, 557.28f, "box3")
@@ -187,7 +197,7 @@ internal class ScenarioHallManagementEvidenceRecorder(
                     116.186f,
                     "box2"
                 )
-                source("bg1/scrollview/view/content/bg0/box2/icon", "sprite", 688.43f, 31.537f, 110.08f, 110.08f, "1-1")
+                source("bg1/scrollview/view/content/bg0/box2/icon", "sprite", 688.43f, 31.537f, 110.08f, 110.08f, item.iconFrame)
                 label("bg1/scrollview/view/content/bg0/label_0", "Lv", 810.295f, 60.248f, 36.335f)
                 label("bg1/scrollview/view/content/bg0/label1", equipped.level.toString(), 864.032f, 60.142f, 19.135f)
                 label("bg1/scrollview/view/content/bg0/label_1", "Exp", 812.27f, 26.298f, 59.28f)
@@ -210,6 +220,24 @@ internal class ScenarioHallManagementEvidenceRecorder(
                     "Mark_6-1"
                 )
                 label("bg1/scrollview/view/content/bg0/progressBar/label", "0/100", 924.887f, 26.62f, 86.086f)
+            }
+            // 보구 칸은 무기 칸에서 135.88만큼 아래다. 스크롤뷰가 잘라내 화면에는
+            // 윗부분만 걸치지만 원본은 이 칸의 draw를 그대로 제출한다.
+            unit.treasure?.let { treasure ->
+                val drop = 135.88f
+                source("bg1/scrollview/view/content/bg1", "sliced-sprite", 679.747f, 20.967f - drop, 402.566f, 129f, "box1")
+                label("bg1/scrollview/view/content/bg1/label", "보구: ", 827.681f, 101.326f - drop, 78.63f)
+                label("bg1/scrollview/view/content/bg1/label0", treasure.name, 897.066f, 101.025f - drop, 128.579f)
+                source(
+                    "bg1/scrollview/view/content/bg1/box2",
+                    "sliced-sprite",
+                    685.515f,
+                    28.484f - drop,
+                    115.911f,
+                    116.186f,
+                    "box2"
+                )
+                source("bg1/scrollview/view/content/bg1/box2/icon", "sprite", 688.43f, 31.537f - drop, 110.08f, 110.08f, treasure.iconFrame)
             }
             return
         }

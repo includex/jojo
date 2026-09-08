@@ -246,6 +246,22 @@ def load_input(path: Path) -> Any:
         and isinstance(event.get("w"), (int, float)) and isinstance(event.get("h"), (int, float))
     ]
     viewport = max(root_sizes, key=lambda size: size[0] * size[1]) if root_sizes else (1280.0, 688.0)
+
+    def intersects_viewport(event: dict[str, Any]) -> bool:
+        """Mirror the harness's own `actualDrawsOnly` test.
+
+        The Cocos harness only records a node whose screen rect overlaps the
+        viewport, so a row scrolled fully past the bottom edge never reaches
+        the log at all. Applying the same test to both sides keeps the
+        comparison about what each renderer put on screen. A draw the other
+        side does place on screen still survives here, so a real placement
+        difference is still reported.
+        """
+        x, y, w, h = (event.get(key) for key in ("x", "y", "w", "h"))
+        if not all(isinstance(value, (int, float)) for value in (x, y, w, h)):
+            return True
+        return x + w > 0 and y + h > 0 and x < viewport[0] and y < viewport[1]
+
     return {
         "viewport": list(viewport),
         "draws": [
@@ -262,6 +278,12 @@ def load_input(path: Path) -> Any:
                 "text": event.get("text"),
             }
             for event in events
+            # A node the harness recorded as not visible submitted no draw: it
+            # is off the viewport or fully transparent. Cocos still instantiates
+            # every scrollview row, so a shop screen records over a thousand of
+            # them; the game side only ever records real draws, so keeping them
+            # would compare a scene graph against a draw stream.
+            if event.get("visible") is not False and intersects_viewport(event)
         ],
     }
 

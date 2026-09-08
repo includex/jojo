@@ -73,8 +73,10 @@ internal class ScenarioHallEquipEvidenceRecorder(
 
         val base = "Canvas/Layer/bg1/scrollview/view/content/box1"
         event("$base/face", "sprite", 894.812f, 413.337f, 192f, 240f, input.faceFrame.toString())
-        if (input.variant == RuntimeScenarioOverlay.UNIT_LIST_CLOSE) event("$base/face/bg0", "sliced-sprite", 894.812f, 413.337f, 192f, 240f, "box2")
-        else event("$base/face/bg0", "sliced-sprite", 870.812f, 415.337f, 240f, 236f, "box2")
+        // 초상화 테두리는 목록을 닫은 뒤에도 같은 자리에 남는다. 예전에는 이 변형만
+        // face와 같은 사각형으로 그렸는데, 갓 잡은 원본 프레임은 다른 변형과 똑같이
+        // (870.812, 415.337, 240x236)을 그린다.
+        event("$base/face/bg0", "sliced-sprite", 870.812f, 415.337f, 240f, 236f, "box2")
         label("$base/label0", input.unitName, 1122.186f, 601.72f, nameWidth); label("$base/label1", input.postsName, 1122.186f, 551.72f, postsWidth)
         label("$base/label", "Exp", 1122.186f, 450.72f, 68.93f); event("$base/progressBar", "sliced-sprite", 1197.186f, 450.92f, 134f, 24f, "default_scrollbar_bg")
         event("$base/progressBar/bar", "sliced-sprite", 1199.186f, 452.92f, 0f, 20f, "Mark_6-1"); label("$base/progressBar/label", "0/100", 1214.136f, 452.094f, 100.1f)

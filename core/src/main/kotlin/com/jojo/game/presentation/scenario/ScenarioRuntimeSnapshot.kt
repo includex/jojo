@@ -137,13 +137,21 @@ data class ScenarioHallManagementBuyRow(val name: String, val typeName: String, 
  * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
  */
 
-data class ScenarioHallManagementEquipment(val name: String, val level: Int)
+data class ScenarioHallManagementEquipment(val name: String, val level: Int, val iconFrame: String)
 /**
  * `ScenarioHallManagementUnitEvidence`: 관련 상태와 동작을 묶는 class다.
  * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
  */
 
-data class ScenarioHallManagementUnitEvidence(val name: String, val postsName: String, val level: Int, val stats: List<Int>, val weapon: ScenarioHallManagementEquipment?)
+data class ScenarioHallManagementUnitEvidence(
+    val name: String,
+    val postsName: String,
+    val level: Int,
+    val stats: List<Int>,
+    val weapon: ScenarioHallManagementEquipment?,
+    /** 무기 아래 보구 칸이다. 원본은 화면 밖으로 밀려도 이 칸을 함께 제출한다. */
+    val treasure: ScenarioHallManagementEquipment? = null,
+)
 /**
  * `ScenarioHallManagementEvidenceInput`: 관련 상태와 동작을 묶는 class다.
  * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.

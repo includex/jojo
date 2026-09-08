@@ -163,13 +163,22 @@ internal object ScenarioRuntimeSnapshotProjector {
         val bonus = screen.campaign.inventory.equipment[unitId]?.let {
             catalog.equipmentBonus(it.asScriptValues(), profile?.level ?: 1)
         } ?: GameDataCatalog.EquipmentBonus()
-        val weapon = screen.campaign.inventory.equippedItems().firstOrNull { it.unitId == unitId }?.let { equipped ->
-            catalog.equipmentProfile(equipped.itemId)?.let { ScenarioHallManagementEquipment(it.name, equipped.level) }
-        }
+        // 원본은 무기 칸과 보구 칸을 나란히 제출한다. 보구 칸은 화면 아래로 밀려
+        // 스크롤뷰가 잘라내지만 draw 자체는 남으므로, 이식본도 두 칸을 모두 낸다.
+        val equippedSlots = screen.campaign.inventory.equippedItems()
+            .filter { it.unitId == unitId }
+            .mapNotNull { equipped ->
+                catalog.equipmentProfile(equipped.itemId)?.let {
+                    // 아이콘 프레임은 아이템 번호가 아니라 자료표의 아이콘 번호를 따른다.
+                    ScenarioHallManagementEquipment(it.name, equipped.level, "${it.icon}-1")
+                }
+            }
+        val weapon = equippedSlots.getOrNull(0)
+        val treasure = equippedSlots.getOrNull(1)
         return ScenarioHallManagementEvidenceInput(
             ScenarioHallManagementEvidenceKind.valueOf(kind.name),
             screen.campaign.money,
-            screen.hallViews.buyCandidates().take(3).map { item ->
+            screen.hallViews.buyCandidates().take(SHOP_ROWS_ON_SCREEN).map { item ->
                 ScenarioHallManagementBuyRow(item.name, catalog.equipmentTypeName(item.itemType), screen.campaign.inventory.items[item.id] ?: 0, catalog.purchasePrice(item))
             },
             ScenarioHallManagementUnitEvidence(
@@ -178,9 +187,20 @@ internal object ScenarioRuntimeSnapshotProjector {
                 level,
                 listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, profile?.spirit ?: 0, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0),
                 weapon,
+                treasure,
             ),
         )
     }
+
+    /**
+     * `SHOP_ROWS_ON_SCREEN` (상태 값): 상점 목록이 화면에 내놓는 줄 수를 보관한다.
+     *
+     * 원본 스크롤뷰는 화면에 조금이라도 걸치는 줄을 모두 제출하고 잘라내기는 GPU에
+     * 맡긴다. 줄 높이 151.36, 간격 153.08, 첫 줄 y=369.069인 688 높이 화면에서
+     * `y + 높이 > 0`을 만족하는 마지막 줄은 세 번째 다음 줄이다. 예전에는 이 값이
+     * 그냥 3으로 적혀 있어 원본이 내놓는 마지막 줄 하나가 통째로 빠져 있었다.
+     */
+    private const val SHOP_ROWS_ON_SCREEN = 4
 }
 
 /**

@@ -66,7 +66,15 @@ internal class ScenarioFrameEvidenceRecorder(
 
     /** appendBackground: 검증 이벤트와 산출물을 기록한다. */
     private fun appendBackground(log: RenderEventLog, background: ScenarioFrameBackgroundEvidence, units: List<ScenarioFrameUnitEvidence>, drawUnits: Boolean) {
-        log.draw("background", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1280f, 688f, if (background.equipFixture && background.id == 71) "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>" else "maps/${background.id}.jpg", blend = if (background.equipFixture) listOf(770, 771) else "DISABLED")
+        // 원본은 회관 배경을 언제나 원본 자산 경로로 이름 붙이고 보통 알파 혼합으로
+        // 그린다. 예전에는 `equipFixture && id == 71`일 때만 그 uuid 하나를 손으로 적어
+        // 두고, 나머지는 우리 내보내기 이름과 "DISABLED"를 남겼다. 그래서 같은 배경을
+        // 쓰는 매입·매각 화면이 원본과 다른 이름·혼합으로 기록됐다. 내보내기가 남긴
+        // 자산 경로 표를 그대로 인용한다.
+        val mapAsset = MapAssetSources.nativePath(background.id)
+            ?.let { "$it#<unnamed-frame>" }
+            ?: "maps/${background.id}.jpg"
+        log.draw("background", "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1280f, 688f, mapAsset, blend = listOf(770, 771))
         if (drawUnits) units.forEach { unit -> log.draw("characters", "HallLayer", "Canvas/Layer/map/unit-${unit.id}", "sprite", (unit.visualX - unit.visualY + 42) * 16f - 41.28f, 1073.28f - (unit.visualX + unit.visualY) * 6.88f - 55.04f, 82.56f, 110.08f, "map-avatar:${unit.avatar}:direction:${unit.direction}") }
     }
 

@@ -466,6 +466,7 @@ def main() -> None:
     # the baked crop's 2.66), so the game just draws the authored asset.
 
     copied: dict[str, str] = {}
+    map_sources: dict[str, str] = {}
     copied_battle_maps: dict[str, str] = {}
     copied_units: dict[str, str] = {}
     copied_heads: dict[str, str] = {}
@@ -643,6 +644,12 @@ def main() -> None:
         if not target.exists():
             shutil.copy2(source, target)
         destination[key] = str(target.relative_to(output))
+        # The original's render events name a texture by its asset path, not by
+        # our exported filename.  Record the path each exported file came from
+        # so evidence recorders can quote the original's own identifier instead
+        # of hardcoding one uuid for one background id.
+        if destination is copied:
+            map_sources[key] = source.relative_to(assets.parent).as_posix()
 
     # DialogueLayer uses this source SpriteFrame before Cocos packs it into a
     # per-run DynamicAtlas.  Copy the stable native image rather than trying
@@ -975,7 +982,7 @@ def main() -> None:
         copied_pmaps[key] = str(target.relative_to(output))
 
     (output / "manifest.json").write_text(
-        json.dumps({"maps": copied, "battleMaps": copied_battle_maps, "units": copied_units, "heads": copied_heads, "gates": copied_gates, "terrainIcons": copied_terrain_icons, "itemIcons": copied_item_icons, "data": copied_data, "hexmaps": copied_hexmaps, "pmaps": copied_pmaps}, ensure_ascii=False, sort_keys=True)
+        json.dumps({"maps": copied, "mapSources": map_sources, "battleMaps": copied_battle_maps, "units": copied_units, "heads": copied_heads, "gates": copied_gates, "terrainIcons": copied_terrain_icons, "itemIcons": copied_item_icons, "data": copied_data, "hexmaps": copied_hexmaps, "pmaps": copied_pmaps}, ensure_ascii=False, sort_keys=True)
     )
     print(f"Exported {len(copied)} maps, {len(copied_units)} unit sprites, {len(copied_heads)} portraits, {len(copied_gates)} gates, {len(copied_terrain_icons)} terrain icons, {len(copied_hexmaps)} terrain grids, {len(copied_pmaps)} hall path grids, and {len(copied_data)} gameplay tables to {output}")
 
