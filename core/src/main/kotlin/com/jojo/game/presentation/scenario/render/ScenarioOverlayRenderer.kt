@@ -22,7 +22,7 @@ import com.jojo.game.presentation.shared.dialogue.DialogueOverlayModel
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderModel
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderStage
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dHost
+import com.jojo.game.presentation.shared.dialogue.ChoiceScene2dLayer
 import com.jojo.game.presentation.shared.dialogue.ModalRenderModel
 
 /** ScenarioOverlayRenderer: 대사·선택·모달처럼 장면 위에 겹치는 시나리오 오버레이를 그린다. */
@@ -41,13 +41,21 @@ internal object ScenarioOverlayRenderer {
         shapes: ShapeRenderer,
         projection: Matrix4,
         view: ScenarioOverlayRenderView,
-        scene2dHost: DialogueScene2dHost? = null,
+        choiceLayer: ChoiceScene2dLayer? = null,
     ) {
-        // 대사·선택지·모달 모두 원본 좌표를 재현하는 공용 렌더러가 그린다. Scene2D의 일반
-        // 위젯 배치는 원본 말풍선·선택지·야망 표시 구조와 맞지 않고, 특히 모달은 내부 표시용
-        // 문자열을 그대로 찍어 버린다. 실행 화면과 캡처가 같은 경로를 쓰도록 한 곳으로 모은다.
-        scene2dHost?.present(null)
-        dialogueRenderer.draw(batch, shapes, projection, dialogueOverlayModel(view), ScenarioDialogueRendererAssetsAdapter(assets))
+        // 대사와 모달은 원본 좌표를 재현하는 공용 렌더러가 그린다. Scene2D의 일반 위젯 배치는
+        // 원본 말풍선·야망 표시 구조와 맞지 않고, 특히 모달은 내부 표시용 문자열을 그대로 찍어
+        // 버린다. 선택창만 [ChoiceScene2dLayer]가 맡는데, 그 계층은 일반 위젯 배치가 아니라
+        // 그리기와 같은 원본 좌표를 쓰므로 화면이 달라지지 않는다.
+        val model = dialogueOverlayModel(view)
+        val rendererAssets = ScenarioDialogueRendererAssetsAdapter(assets)
+        val handledByLayer = choiceLayer?.handles(model.choice) == true
+        choiceLayer?.present(model.choice, rendererAssets)
+        dialogueRenderer.draw(
+            batch, shapes, projection,
+            if (handledByLayer) model.copy(choice = null) else model,
+            rendererAssets,
+        )
     }
 
     /**

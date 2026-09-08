@@ -5,9 +5,9 @@ import com.jojo.game.infrastructure.data.ScenarioCatalog
 import com.jojo.game.infrastructure.audio.GameAudioPlayer
 import com.jojo.game.presentation.shared.overlay.*
 import com.jojo.game.presentation.shared.StorySkipFlow
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dAssets
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dHost
-import com.jojo.game.presentation.shared.dialogue.DialogueScene2dView
+import com.badlogic.gdx.InputMultiplexer
+import com.jojo.game.presentation.shared.dialogue.ChoiceScene2dLayer
+import com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout
 
 import com.jojo.game.presentation.scenario.overlay.*
 
@@ -179,19 +179,15 @@ class ScenarioScreen(
     /** Scene2D 스타일 수명은 시나리오 화면이 관리한다. */
     private val dialogueScene2dSkin = lazy { Skin() }
 
-    /** 일반 대화·선택·모달을 Scene2D로 그리는 호스트다. 캡처 경로에서는 기존 렌더러를 사용한다. */
-    private val dialogueScene2dHost = lazy {
-        DialogueScene2dHost(
-            stage = dialogueScene2dStage.value,
-            view = DialogueScene2dView(dialogueScene2dSkin.value, DialogueScene2dAssets(
-                dialoguePanel = sceneAssets.dialoguePanelTexture,
-                choicePanel = sceneAssets.choicePanelTexture,
-                portrait = sceneAssets::portraitTexture,
-                bodyFont = sceneAssets.streetDialogueFont,
-                speakerFont = sceneAssets.streetSpeakerFont,
-                titleFont = sceneAssets.titleFont,
-            )),
-        )
+    /**
+     * 선택창을 Scene2D Actor로 그리고 터치도 그 위젯이 직접 받는 계층이다.
+     *
+     * 좌표는 그리기와 같은 [ScenarioDialogueLayout]에서 가져오므로 배치와 클릭 판정이 어긋날
+     * 수 없다. 캡처 경로에서는 붙이지 않고 공용 렌더러가 그대로 그린다.
+     */
+    private val choiceScene2dLayer = lazy {
+        ChoiceScene2dLayer(DialogueRenderLayout()) { index -> selectAndConfirm(index) }
+            .also { dialogueScene2dStage.value.addActor(it) }
     }
     /**
      * `titleFont` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -778,9 +774,13 @@ class ScenarioScreen(
     } else null
 
     init {
-        Gdx.input.inputProcessor = ScenarioGdxInputAdapter(ScenarioInputController(this)) { screenX, screenY ->
-            viewport.unproject(com.badlogic.gdx.math.Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
-        }
+        // 선택창 Actor가 먼저 터치를 받고, 항목 밖의 입력은 기존 라우터로 흘러간다.
+        Gdx.input.inputProcessor = InputMultiplexer(
+            dialogueScene2dStage.value,
+            ScenarioGdxInputAdapter(ScenarioInputController(this)) { screenX, screenY ->
+                viewport.unproject(com.badlogic.gdx.math.Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
+            },
+        )
         Gdx.app.log("JojoGame", "Loaded $moduleName Python AST runtime")
     }
     /**
@@ -952,7 +952,7 @@ class ScenarioScreen(
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, true)
-        if (dialogueScene2dHost.isInitialized()) dialogueScene2dHost.value.resize(width, height)
+        if (dialogueScene2dStage.isInitialized()) dialogueScene2dStage.value.viewport.update(width, height, true)
     }
 
     /**
@@ -962,7 +962,7 @@ class ScenarioScreen(
 
     override fun dispose() {
         playbackController.dispose()
-        if (dialogueScene2dHost.isInitialized()) dialogueScene2dHost.value.dispose()
+        if (dialogueScene2dStage.isInitialized()) dialogueScene2dStage.value.dispose()
         if (dialogueScene2dSkin.isInitialized()) dialogueScene2dSkin.value.dispose()
         sceneAssets.dispose()
         batch.dispose()
@@ -1090,13 +1090,19 @@ class ScenarioScreen(
 
     private fun drawOverlay() {
         scenarioOverlayView()?.let { view ->
-            val scene2dHost = if (!game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()) {
-                dialogueScene2dHost.value
+            // 캡처 경로는 SpriteBatch 한 장으로 프레임을 대조하므로 Scene2D 계층을 붙이지
+            // 않는다. 두 경로가 같은 좌표를 쓰기 때문에 화면 결과는 같다.
+            val choiceLayer = if (!game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()) {
+                choiceScene2dLayer.value
             } else null
-            ScenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view, scene2dHost)
+            ScenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view, choiceLayer)
             if (view.modal?.kind == ScenarioOverlayModalKind.AMBITION) {
                 batch.projectionMatrix = viewport.camera.combined
                 batch.begin(); drawHallMenu(); batch.end()
+            }
+            if (choiceLayer != null && dialogueScene2dStage.isInitialized()) {
+                dialogueScene2dStage.value.act(Gdx.graphics.deltaTime)
+                dialogueScene2dStage.value.draw()
             }
         } ?: drawHallCompletionOverlay()
     }
