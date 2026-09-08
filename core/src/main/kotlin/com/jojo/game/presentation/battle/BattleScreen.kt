@@ -8835,9 +8835,7 @@ void main() {
             // 원본은 유닛을 화면 y 순으로 그리고, 같은 줄에서는 무장 번호가 작은 쪽을 먼저
             // 그린다. 예전에는 이 대화 장면의 순서를 무장 번호 열아홉 개를 적어 둔 표로
             // 대신했는데, 그 표는 이 규칙이 만들어 내는 순서와 정확히 같다.
-            if (battleDialogueBlendRoute) {
-                compareBy<BattleUnit>({ visualTile(it).second }, { it.characterId })
-            } else compareBy<BattleUnit> { visualTile(it).second }).toList()
+            compareBy<BattleUnit>({ visualTile(it).second }, { it.characterId })).toList()
         return visibleUnits.map { unit ->
             val frame = unitSpriteFrameResolver.frame(unit)
             val (visualX, visualY) = visualTile(unit)

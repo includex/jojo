@@ -8,6 +8,14 @@ import com.jojo.game.domain.battle.TerrainRow
 import com.jojo.game.domain.campaign.*
 
 /** GameDataCatalogUnitDomain: 유닛, 병과, 직위, 전투 정보, 캠페인 레벨 조회를 제공한다. */
+/** FeatsProgress: 공훈 화면 한 줄이 보여 주는 적성·공훈·다음 목표·다음 단계다. */
+data class FeatsProgress(
+    val aptitude: Int,
+    val progress: Int,
+    val nextProgress: Int,
+    val nextPhase: Int,
+)
+
 internal class GameDataCatalogUnitDomain(
     tables: GameDataTableBundle,
     /**
@@ -396,7 +404,38 @@ internal class GameDataCatalogUnitDomain(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    private fun abilityPhase(raw: Int): Int = 5 - listOf(127, 45, 35, 25).count { raw < it }
+    private fun abilityPhase(raw: Int): Int = ABILITY_PHASE_MAX - ABILITY_PHASE_THRESHOLDS.count { raw < it }
+
+    /**
+     * 공훈 진행: 다섯 능력의 적성·모은 공훈·다음 승급까지의 공훈·다음 단계를 돌려준다.
+     *
+     * 원본 `Unit.featsAttrByName`(=`feat`), `nextFeats`, `nextAbilityPhase`와 같은 계약이다.
+     * 적성과 모은 공훈은 저장 자료에서 오고(없으면 정적 표), 나머지는 그 값으로 계산한다.
+     */
+    fun featsProgress(unitId: Int, campaign: CampaignState?): List<FeatsProgress> {
+        val profile = unitProfile(unitId) ?: return emptyList()
+        val postsId = campaign?.unitAttribute(unitId, UNIT_ATTR_POSTS, profile.posts) ?: profile.posts
+        val post = posts.getOrNull(postsId)
+        return listOf(profile.attack, profile.defense, profile.spirit, profile.critical, profile.morale)
+            .mapIndexed { index, fallback ->
+                val aptitude = campaign?.unitAttribute(unitId, UNIT_ATTR_APTITUDE + index, fallback) ?: fallback
+                val postsRate = post?.get((POSTS_ATTR_RATE + index).toString())?.asInt() ?: DEFAULT_POSTS_RATE
+                val phase = (abilityPhase(aptitude) + postsRate).floorDiv(2)
+                // 원본 `nextFeats`: 승급에 필요한 공훈은 적어도 100이다.
+                val next = maxOf(100, (phase * (aptitude / 2.0) * 1.2).toInt())
+                // 원본 `nextAbilityPhase`: 단계가 오르는 첫 걸음 수를 찾아 문턱 표를 거꾸로 읽는다.
+                val step = (0..ABILITY_PHASE_MAX).firstOrNull { (postsRate + it).floorDiv(2) > phase } ?: 0
+                FeatsProgress(
+                    aptitude = aptitude,
+                    progress = campaign?.unitAttribute(unitId, UNIT_ATTR_FEATS + index, 0) ?: 0,
+                    nextProgress = next,
+                    // 원본은 표를 벗어나면 `undefined`를 그대로 적는다. 이식본은 0으로 두어
+                    // 화면이 `MAX`를 적게 한다.
+                    nextPhase = if (step == 0) 0
+                    else ABILITY_PHASE_THRESHOLDS.getOrElse(ABILITY_PHASE_MAX - step) { 0 },
+                )
+            }
+    }
     /**
      * `turnPosts`: 타입의 핵심 동작을 수행한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
@@ -411,6 +450,27 @@ internal class GameDataCatalogUnitDomain(
     }
 
     private companion object {
+        /** 능력 단계의 최댓값이다. 원본 `Unit.abilityPhase`의 `i` 초깃값과 같다. */
+        const val ABILITY_PHASE_MAX = 5
+
+        /** 능력 단계 문턱이다. 원본 `Model.property`의 ABILITY_X·S·A·B다. */
+        val ABILITY_PHASE_THRESHOLDS = listOf(127, 45, 35, 25)
+
+        /** 저장 자료의 적성 열 번호다(`UNIT_ATTR_NAME2.WL`). */
+        const val UNIT_ATTR_APTITUDE = 9
+
+        /** 저장 자료의 관직 열 번호다(`UNIT_ATTR_NAME2.POSTS`). */
+        const val UNIT_ATTR_POSTS = 17
+
+        /** 저장 자료의 공훈 열 번호다(`UNIT_ATTR_NAME2.GX_WL`). */
+        const val UNIT_ATTR_FEATS = 28
+
+        /** 관직 표의 능력 성장 열 번호다(`POSTS_ATTR_NAME2.ATT`). */
+        const val POSTS_ATTR_RATE = 3
+
+        /** 관직 표에 값이 없을 때 원본이 쓰는 기본 성장치다. */
+        const val DEFAULT_POSTS_RATE = 3
+
         /**
          * `DEFAULT_CRITICAL_SPEECH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

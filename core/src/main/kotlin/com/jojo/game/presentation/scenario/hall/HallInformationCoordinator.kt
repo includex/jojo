@@ -257,8 +257,19 @@ internal class HallInformationCoordinator(
      */
 
     private fun featsRows(unit: UnitInfoLayer.Unit): List<FeatsLayer.Row> {
-        val abilities = if (unit.id == 0) listOf(41, 49, 46, 40, 42)
-        else listOf(unit.attack, unit.defense, unit.spirit, unit.critical, unit.morale)
-        return FeatsLayer.TITLES.mapIndexed { index, title -> FeatsLayer.Row(title, abilities[index], 0, 100, 127) }
+        // 원본은 다섯 줄을 모두 무장의 적성과 모은 공훈에서 계산한다. 예전에는 조조의
+        // 적성 다섯을 적어 두고 나머지 세 값은 0·100·127로 고정해 두었는데, 그 값은 갓
+        // 시작한 조조에게만 맞는다.
+        val progress = catalog.featsProgress(unit.id, campaign)
+        return FeatsLayer.TITLES.mapIndexed { index, title ->
+            val row = progress.getOrNull(index)
+            FeatsLayer.Row(
+                title,
+                row?.aptitude ?: 0,
+                row?.progress ?: 0,
+                row?.nextProgress ?: 0,
+                row?.nextPhase ?: 0,
+            )
+        }
     }
 }
