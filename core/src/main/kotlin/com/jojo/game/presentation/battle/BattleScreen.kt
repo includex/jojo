@@ -7584,7 +7584,10 @@ void main() {
 
     private fun dispatchBattleCommand(tag: Int) {
         val selected = selectedUnitId?.let(battle.units::get) ?: return
-        when (val result = battleCommandFlow.touch(tag, BattleCommandFlow.TOUCH_END)) {
+        val outcome = battleCommandFlow.touch(tag, BattleCommandFlow.TOUCH_END)
+        // 원본 `CommandLayer`는 명령 단추를 깃발 1로 등록한다. 받아들여진 누름에만 소리가 난다.
+        if (outcome !is BattleCommandFlow.Result.Ignored) audio.playUiSound(UiSound.CLICK)
+        when (val result = outcome) {
             is BattleCommandFlow.Result.OpenChild -> when (result.command) {
                 BattleCommandFlow.Command.MAGICK -> openMagickList(selected)
                 BattleCommandFlow.Command.PROPERTY -> openUsePropertyLayer()
