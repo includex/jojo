@@ -1133,12 +1133,11 @@
     {
       "id": "battle-edit3-scene",
       "source": [
-        "--render-event-state=edit3-scene"
+        "--render-battle-edit2-route=child-scene"
       ],
       "game": "battle-edit2-child-scene",
       "report": "build/render-events/edit3-scene-diff.json",
-      "battle": true,
-      "noSourceRoute": "The Electron harness has no edit3 fixture: `edit3-` appears once in main.cjs, in the branch that writes a state file, never in the list that installs an overlay. Asking for it makes the harness fall back to the street dialogue fixture, so there is nothing here to compare the port's battle-edit2-child-scene capture against."
+      "battle": true
     },
     {
       "id": "lose-restart",
