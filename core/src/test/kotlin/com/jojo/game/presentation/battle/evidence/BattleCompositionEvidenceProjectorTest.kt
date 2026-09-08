@@ -21,7 +21,7 @@ class BattleCompositionEvidenceProjectorTest {
                     BattleCompositionEvidenceUnitInput(
                         id = "unit-1", visible = true, textureUuid = "atlas-1", sourceY = 101,
                         sourceWidth = 48, sourceHeight = 48, characterId = 7, tileX = 2, tileY = 3,
-                        scriptedAction = 4, flipX = true,
+                        scriptedAction = 4, materialValue = .3f, flipX = true,
                     ),
                     BattleCompositionEvidenceUnitInput(
                         id = "hidden", visible = false, textureUuid = null, sourceY = 1,
@@ -45,7 +45,7 @@ class BattleCompositionEvidenceProjectorTest {
         assertEquals("r00-opening-say", view.scenarioKey)
         assertEquals(1, view.units.size)
         assertEquals(33_632_304, view.units.single().frame)
-        assertEquals("hight-light/u_value=1", view.units.single().material)
+        assertEquals("hight-light/u_value=0.3", view.units.single().material)
         assertEquals(-1, view.units.single().scaleX)
         assertEquals(listOf("Mark_19-1"), view.masks.map(BattleCompositionMask::frame))
         assertEquals("장수7", view.scenario.dialogue?.speakerName)
@@ -84,6 +84,26 @@ class BattleCompositionEvidenceProjectorTest {
         assertEquals(1, plannerLookups)
         assertEquals(474, enemyView.scenario.enemyPlanner?.characterId)
         assertFalse(enemyView.scenario.loseActive)
+    }
+
+    @Test
+    fun `leaves the default material when the clip carries no highlight event`() {
+        // 원본은 시나리오나 액션 번호가 아니라 애니메이션 채널 2 이벤트로 점등을 정한다.
+        // `anime4`(XU_RUO2)에는 채널 2 이벤트가 없으므로 S_00에서도 점등되지 않는다.
+        val view = BattleCompositionEvidenceProjector.project(
+            input(
+                sourceScenario = "S_00",
+                units = listOf(
+                    BattleCompositionEvidenceUnitInput(
+                        id = "unit-1", visible = true, textureUuid = "atlas-1", sourceY = 101,
+                        sourceWidth = 48, sourceHeight = 48, characterId = 7, tileX = 2, tileY = 3,
+                        scriptedAction = 4, materialValue = null, flipX = false,
+                    ),
+                ),
+            )
+        )
+
+        assertEquals("SpriteBatch/source-over", view.units.single().material)
     }
 
     private fun input(

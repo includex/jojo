@@ -18,6 +18,9 @@ const fixtures = [
   ["TreasureLayer", "yingchuan-treasure"], ["SettingLayer", "yingchuan-setting"],
   ["SaveLayer", "yingchuan-save"], ["LoadGameLayer", "yingchuan-load"],
   ["ForcesListLayer", "yingchuan-forces"], ["HelperLayer", "yingchuan-helper"],
+  // WinConBoxLayer는 원본 고정 자료가 있는데도 오랫동안 이 목록에서 빠져 있었다.
+  // 게임 쪽 `yingchuan-win-condition` 상태를 아무 검증도 몰지 않던 까닭이다.
+  ["WinConBoxLayer", "yingchuan-win-condition"],
 ];
 
 function run(command, args, cwd) {

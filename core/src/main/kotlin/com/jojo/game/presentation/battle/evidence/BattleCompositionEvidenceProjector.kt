@@ -41,6 +41,13 @@ internal data class BattleCompositionEvidenceUnitInput(
     val tileX: Int,
     val tileY: Int,
     val scriptedAction: Int?,
+    /**
+     * 흰색 점등 세기다.
+     *
+     * 원본 `BattleUnit._setAvater`가 다는 채널 2 프레임 이벤트가 정한 값이며, 점등이
+     * 걸려 있지 않으면 `null`이다. 시나리오나 액션 번호로 정하는 값이 아니다.
+     */
+    val materialValue: Float? = null,
     val flipX: Boolean,
 )
 
@@ -85,7 +92,7 @@ internal object BattleCompositionEvidenceProjector {
             animationClock = input.animationClock,
             visualAnimationClock = input.visualAnimationClock,
             tracedMapBottom = if (input.mapOnlyCapture) -560 else -96,
-            units = visibleUnits.map { unitView(it, input.sourceScenario) },
+            units = visibleUnits.map(::unitView),
             masks = visibleUnits.mapNotNull { maskView(it, input.terrainAt(it.tileX, it.tileY)) },
             scenario = scenarioView(input, scenarioKey),
             naturalSay = input.returnScenario == "R_00",
@@ -95,7 +102,7 @@ internal object BattleCompositionEvidenceProjector {
     }
 
     /** 유닛 투영: 선택된 소스 프레임과 타일 좌표를 기록기 형식으로 바꾼다. */
-    private fun unitView(input: BattleCompositionEvidenceUnitInput, sourceScenario: String): BattleCompositionUnit {
+    private fun unitView(input: BattleCompositionEvidenceUnitInput): BattleCompositionUnit {
         val row = (input.sourceY - 1) / 50
         return BattleCompositionUnit(
             id = input.id,
@@ -108,16 +115,22 @@ internal object BattleCompositionEvidenceProjector {
             tileX = input.tileX,
             tileY = input.tileY,
             action = input.scriptedAction,
-            material = if (sourceScenario == "S_00" && input.scriptedAction == 4) {
-                "hight-light/u_value=1"
-            } else {
-                "SpriteBatch/source-over"
-            },
+            material = input.materialValue?.let { "hight-light/u_value=${materialText(it)}" }
+                ?: "SpriteBatch/source-over",
             sourceX = 48 * input.tileX - 456,
             sourceYPosition = 456 - 48 * input.tileY,
             scaleX = if (input.flipX) -1 else 1,
         )
     }
+
+    /**
+     * 점등 세기 표기: 원본 재질 이름과 같이 정수는 소수점 없이 적는다.
+     *
+     * 원본 `u_value`는 프레임 이벤트 값을 10으로 나눈 값이라 `1`처럼 정수가 되기도 하고
+     * `0.1`처럼 소수가 되기도 한다.
+     */
+    private fun materialText(value: Float): String =
+        if (value == value.toInt().toFloat()) value.toInt().toString() else value.toString()
 
     /** terrain id가 원본 mask를 요구할 때만 mask evidence를 만든다. */
     private fun maskView(input: BattleCompositionEvidenceUnitInput, terrain: Int): BattleCompositionMask? = when (terrain) {

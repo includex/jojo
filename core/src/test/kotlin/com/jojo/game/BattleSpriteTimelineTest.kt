@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.JsonReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** BattleSpriteTimelineTest: BattleSpriteTimeline의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
@@ -122,6 +123,24 @@ class BattleSpriteTimelineTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `white highlight comes from the authored channel two events`() {
+        // 원본 `BattleUnit._setAvater`의 채널 2 콜백이 흰색 점등의 유일한 근거다.
+        // 시나리오 이름이나 액션 번호로 점등을 정하면 원본과 어긋난다.
+        val timeline = originalTimeline()
+
+        // XU_RUO2(4)는 채널 2 이벤트가 하나도 없어 어느 시점에도 점등하지 않는다.
+        repeat(24) { tick ->
+            assertNull(timeline.materialValue(4, 2, tick / 24f), "anime4 tick=$tick")
+        }
+
+        // HIT_ATTACK(21)은 101에서 켜져 10까지 오르고 마지막 0에서 기본 재질로 돌아온다.
+        assertNull(timeline.materialValue(21, 2, 3f / 24f))
+        assertEquals(.1f, timeline.materialValue(21, 2, 4f / 24f))
+        assertEquals(1f, timeline.materialValue(21, 2, 13f / 24f))
+        assertNull(timeline.materialValue(21, 2, 17f / 24f))
     }
 
     @Test
