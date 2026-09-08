@@ -126,6 +126,30 @@ class BattleSpriteTimelineTest {
     }
 
     @Test
+    fun `attack capture samples land on the authored 64px rows the source reports`() {
+        // 원본 하네스(`--capture-python-battle-actions`)가 세 동작을 같은 시점에서 재고
+        // 돌려준 SpriteFrame rect.y다. 셋 다 공격 아틀라스의 연속한 네 줄(1·67·133·199)에
+        // 떨어진다. 이식본의 `attack{6,25,48}-f{0..3}` 캡처 상태가 재는 시점이기도 하다.
+        val timeline = originalTimeline()
+        val rows = listOf(1, 67, 133, 199)
+        val samples = mapOf(
+            6 to listOf(1, 7, 9, 11),
+            25 to listOf(1, 10, 12, 14),
+            48 to listOf(1, 19, 21, 23),
+        )
+
+        samples.forEach { (action, ticks) ->
+            ticks.forEachIndexed { index, tick ->
+                assertEquals(
+                    rows[index],
+                    requireNotNull(timeline.frame(action, 2, tick / 24f)).sourceY,
+                    "anime${action}_2 tick=$tick",
+                )
+            }
+        }
+    }
+
+    @Test
     fun `white highlight comes from the authored channel two events`() {
         // 원본 `BattleUnit._setAvater`의 채널 2 콜백이 흰색 점등의 유일한 근거다.
         // 시나리오 이름이나 액션 번호로 점등을 정하면 원본과 어긋난다.

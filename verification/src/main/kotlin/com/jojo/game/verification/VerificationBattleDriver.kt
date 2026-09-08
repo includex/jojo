@@ -80,8 +80,8 @@ internal object VerificationBattlePresentation {
             state == "battle-dialogue-blending-fixture" -> RuntimeBattleRoute.DIALOGUE_BLEND
             state == "battle-init-fixture" -> RuntimeBattleRoute.INITIAL
             state == "battle-terrain-layer-fixture" -> RuntimeBattleRoute.TERRAIN
+            // `yingchuan-menu`도 같은 경로였으나 이름만 다른 겹말이라 지웠다.
             state == "battle-menu-fixture" -> RuntimeBattleRoute.MENU
-            state == "yingchuan-menu" -> RuntimeBattleRoute.MENU
             state == "yingchuan-helper" -> RuntimeBattleRoute.HELPER
             state == "yingchuan-win-condition" -> RuntimeBattleRoute.WIN_MODAL
             state == "yingchuan-unit-info" -> RuntimeBattleRoute.UNIT_INFO

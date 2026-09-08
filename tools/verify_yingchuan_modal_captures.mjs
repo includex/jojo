@@ -52,5 +52,28 @@ for (const [sourceLayer, state] of fixtures) {
   assert.ok(width >= 1280 && height >= 720, `unexpected ${state} framebuffer ${width}×${height}`);
   results.push({ sourceLayer, state, width, height });
 }
-writeFileSync(report, JSON.stringify({ result: "ok", fixtures: results }, null, 2));
-console.log(`YINGCHUAN_MODAL_CAPTURES_OK fixtures=${results.length}`);
+// Live battle routes with no source-side modal fixture of their own.  Nothing
+// used to drive them, so the launcher accepted six capture states that no test
+// ever rendered; a renderer change could delete one without failing anything.
+// There is no oracle to diff here, so this only proves each still renders a
+// real framebuffer.
+const liveRoutes = [
+  "yingchuan-unit-info", "yingchuan-opening-say", "yingchuan-attack",
+  "yingchuan-action4", "lose-result", "map-only",
+];
+const live = [];
+for (const state of liveRoutes) {
+  const capture = `/tmp/jojo-${state}.png`;
+  const output = run("./gradlew", [
+    ":verification:captureProductionState", "--no-daemon",
+    `-Pjojo.capture.state=${state}`, `-Pjojo.capture.png=${capture}`,
+  ], root);
+  assert.match(output, /RENDER_CAPTURE_OK:/, `game did not report ${state} capture`);
+  assert.ok(existsSync(capture) && statSync(capture).size > 4096, `empty game capture: ${state}`);
+  const [width, height] = pngSize(capture);
+  assert.ok(width >= 1280 && height >= 720, `unexpected ${state} framebuffer ${width}x${height}`);
+  live.push({ state, width, height });
+}
+
+writeFileSync(report, JSON.stringify({ result: "ok", fixtures: results, liveRoutes: live }, null, 2));
+console.log(`YINGCHUAN_MODAL_CAPTURES_OK fixtures=${results.length} liveRoutes=${live.length}`);
