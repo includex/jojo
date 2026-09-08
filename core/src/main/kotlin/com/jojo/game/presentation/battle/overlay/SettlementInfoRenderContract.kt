@@ -12,7 +12,23 @@ object SettlementInfoRenderContract {
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
 
-    data class Sprite(val path: String, val x: Float, val y: Float, val width: Float, val height: Float)
+    data class Sprite(
+        val path: String,
+        val x: Float,
+        val y: Float,
+        val width: Float,
+        val height: Float,
+        /**
+         * 원본 `cc.Sprite._type`이 SLICED(1)인 프레임의 cap inset이다. 0이면 SIMPLE로,
+         * 프레임을 그대로 늘여 그린다.
+         *
+         * `MineUnitInfoLayer` 프리팹에서 SLICED인 노드는 테두리 프레임 `box3`(box1.png)와
+         * 진행 막대 바탕 `p0~p2`(progress-bg.png)다. 20x20 테두리와 60x15 둥근 바탕을
+         * 471x257.5 / 374x24 로 늘이면 테두리 두께가 그대로 확대돼 배경이 뭉개지므로
+         * 가장자리를 고정한 9분할로 그려야 원본과 같아진다.
+         */
+        val capInset: Int = 0,
+    )
     /**
      * `Panel`: 관련 상태와 동작을 묶는 class다.
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -106,6 +122,22 @@ object SettlementInfoRenderContract {
 
     private const val ARMOR_ICON = "maps/ui/settlement-info/mark62.png"
 
+    /**
+     * `BOX1_CAP_INSET` (상태 값): 테두리 프레임의 9분할 여백이다.
+     *
+     * box1.png는 20x20이고 바깥 2px만 불투명한 테두리, 안쪽 16x16은 완전히 투명하다.
+     * 배경 색은 아래 깔리는 bg2가 담당하므로 여백을 테두리 두께에 맞춰 고정한다.
+     */
+    private const val BOX1_CAP_INSET = 2
+
+    /**
+     * `PROGRESS_BG_CAP_INSET` (상태 값): 진행 막대 바탕의 9분할 여백이다.
+     *
+     * progress-bg.png는 60x15이며 네 모서리 1px이 비어 있고 그 안쪽 2px이 밝기가 다른
+     * 베벨이다. 3px을 고정해야 둥근 모서리와 베벨이 늘어나지 않는다.
+     */
+    private const val PROGRESS_BG_CAP_INSET = 3
+
 
     /**
      * `sprites`: 타입의 핵심 동작을 수행한다.
@@ -115,7 +147,7 @@ object SettlementInfoRenderContract {
     fun sprites(panel: Panel): List<Sprite> = buildList {
         val height = if (panel == Panel.MINE) 258f else 193.5f
         add(Sprite(BG2, ROOT_X, ROOT_Y, ROOT_W, height))
-        add(Sprite(BOX1, ROOT_X, ROOT_Y, ROOT_W, if (panel == Panel.MINE) 257.5f else 193f))
+        add(Sprite(BOX1, ROOT_X, ROOT_Y, ROOT_W, if (panel == Panel.MINE) 257.5f else 193f, BOX1_CAP_INSET))
         when (panel) {
             Panel.MINE -> {
                 stat(HP_ICON, HP_BAR, 747.5f, 251f, 805.5f, 249f)
@@ -155,7 +187,7 @@ object SettlementInfoRenderContract {
             else -> 48f
         }
         add(Sprite(icon, iconX, iconY, 48f, iconHeight))
-        add(Sprite(PROGRESS_BG, backgroundX, backgroundY, 374f, 24f))
+        add(Sprite(PROGRESS_BG, backgroundX, backgroundY, 374f, 24f, PROGRESS_BG_CAP_INSET))
         add(Sprite(bar, backgroundX + 2f, backgroundY + 2f, 370f, 20f))
     }
 }

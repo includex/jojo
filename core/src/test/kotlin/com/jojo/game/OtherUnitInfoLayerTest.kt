@@ -32,12 +32,12 @@ class OtherUnitInfoLayerTest {
         assertEquals(
             listOf(
                 SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/bg2.png", 736f, 96f, 471f, 193.5f),
-                SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/box1.png", 736f, 96f, 471f, 193f),
+                SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/box1.png", 736f, 96f, 471f, 193f, 2),
                 SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/mark7.png", 747.5f, 179.75f, 48f, 40f),
-                SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/progress-bg.png", 808.5f, 177.75f, 374f, 24f),
+                SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/progress-bg.png", 808.5f, 177.75f, 374f, 24f, 3),
                 SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/mark3.png", 810.5f, 179.75f, 370f, 20f),
                 SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/mark8.png", 746.5f, 121.75f, 48f, 48f),
-                SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/progress-bg.png", 808.5f, 119.75f, 374f, 24f),
+                SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/progress-bg.png", 808.5f, 119.75f, 374f, 24f, 3),
                 SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/mark2.png", 810.5f, 121.75f, 370f, 20f),
             ),
             SettlementInfoRenderContract.sprites(SettlementInfoRenderContract.Panel.OTHER),

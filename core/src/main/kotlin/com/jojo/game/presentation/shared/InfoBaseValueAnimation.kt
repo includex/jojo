@@ -67,17 +67,26 @@ class InfoBaseValueAnimation(entries: List<Value>) {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun steps(value: Value): MutableList<Int> {
-        var remaining = abs(value.source - value.destination)
-        val sign = if (value.destination > value.source) 1 else -1
-        val step = max(remaining / 5, 1)
-        val deltas = mutableListOf<Int>()
-        var count = 0
-        while (count < 4 && remaining > 0) {
-            deltas.add(0, step * sign); remaining -= step; count++
+    private fun steps(value: Value): MutableList<Int> = Companion.steps(value)
+
+    companion object {
+        /**
+         * `steps`: 원본 `InfoBaseLayer._getValues`가 만드는 중간 값 목록을 돌려준다.
+         *
+         * 렌더러도 같은 단계 수를 알아야 막대 트윈의 시작 시각을 계산할 수 있어 공개한다.
+         */
+        fun steps(value: Value): MutableList<Int> {
+            var remaining = abs(value.source - value.destination)
+            val sign = if (value.destination > value.source) 1 else -1
+            val step = max(remaining / 5, 1)
+            val deltas = mutableListOf<Int>()
+            var count = 0
+            while (count < 4 && remaining > 0) {
+                deltas.add(0, step * sign); remaining -= step; count++
+            }
+            if (remaining > 0) deltas.add(0, remaining * sign)
+            var currentValue = value.source
+            return deltas.mapTo(mutableListOf()) { currentValue += it; currentValue }
         }
-        if (remaining > 0) deltas.add(0, remaining * sign)
-        var currentValue = value.source
-        return deltas.mapTo(mutableListOf()) { currentValue += it; currentValue }
     }
 }

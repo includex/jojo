@@ -17,4 +17,17 @@ class MineUnitInfoLayerTest {
   assertEquals(listOf("maps/ui/settlement-info/mark61.png","maps/ui/settlement-info/mark62.png"),sprites.takeLast(2).map{it.path})
   assertEquals(SettlementInfoRenderContract.Sprite("maps/ui/settlement-info/mark6.png",807.5f,149f,370f,20f),sprites[10])
  }
+ /**
+  * 원본 `MineUnitInfoLayer` 프리팹에서 테두리 `box3`와 막대 바탕 `p0~p2`만
+  * `cc.Sprite._type == 1`(SLICED)이다. 나머지는 SIMPLE이므로 cap inset이 0이어야
+  * 20x20 / 60x15 프레임을 471x257.5 / 374x24로 늘일 때 테두리가 뭉개지지 않는다.
+  */
+ @Test fun `mine prefab contract slices only the frame and the bar background`(){
+  val sprites=SettlementInfoRenderContract.sprites(SettlementInfoRenderContract.Panel.MINE)
+  assertEquals(
+   mapOf("maps/ui/settlement-info/box1.png" to 2,"maps/ui/settlement-info/progress-bg.png" to 3),
+   sprites.filter{it.capInset>0}.associate{it.path to it.capInset},
+  )
+  assertEquals(4,sprites.count{it.capInset>0})
+ }
 }

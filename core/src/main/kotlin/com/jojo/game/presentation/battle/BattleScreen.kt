@@ -797,6 +797,9 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    /** 정산 상태창 자원이다. 원본 프리팹 좌표는 `SettlementInfoRenderContract`가 들고 있다. */
+    private val settlementInfoAssets = BattleSettlementInfoAssets()
+
     private val unitInfoAssets = BattleUnitInfoAssets()
 
     /**
@@ -7758,12 +7761,21 @@ void main() {
     }
 
     /**
-     * `settlementAnimatedValues`: 현재 상태를 갱신한다.
+     * `SettlementAnimationFrame`: 정산 상태창 한 프레임의 숫자와 막대 길이다.
+     *
+     * 원본 `InfoBaseLayer._next`는 숫자와 막대를 서로 다른 시계로 움직인다. 숫자는
+     * `schedule(_callback, .2)`로 최대 다섯 번 끊어서 바뀌고, 막대는 같은 순간 시작한
+     * `cc.tween(bar).to(1, {progress})`가 1초에 걸쳐 이어서 채운다. 두 값을 따로 담는다.
+     */
+    private data class SettlementAnimationFrame(val numbers: Map<Int, Int>, val ratios: Map<Int, Float>)
+
+    /**
+     * `settlementAnimationValues`: 정산 상태창이 움직일 항목을 원본 `_kvs` 순서로 만든다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun settlementAnimatedValues(overlay: SettlementInfoView): Map<Int, Int> {
-        val values = buildList {
+    private fun settlementAnimationValues(overlay: SettlementInfoView): List<InfoBaseValueAnimation.Value> {
+        return buildList {
             overlay.deltas.forEach { delta ->
                 add(
                     InfoBaseValueAnimation.Value(
@@ -7811,14 +7823,113 @@ void main() {
                 }
             }
         }
-        val current = values.associate { it.index to it.source }.toMutableMap()
-        if (values.isEmpty()) return current
-        val animation = InfoBaseValueAnimation(values)
-        val callbacks = (((animationClock() - overlay.startedAt - .1f) / .2f).toInt()).coerceAtLeast(0)
-        repeat(callbacks) {
-            animation.callback()?.let { update -> update.text.toIntOrNull()?.let { current[update.index] = it } }
+    }
+
+    /**
+     * `settlementAnimationFrame`: 지금 시각에 해당하는 숫자와 막대 길이를 계산한다.
+     *
+     * 원본은 `_kvs`를 하나씩 꺼내 숫자를 0.2초 간격으로 갱신하고, 그 항목이 끝나야 다음
+     * 항목으로 넘어간다. 그래서 각 항목의 시작 시각은 앞선 항목들의 단계 수 x 0.2초다.
+     * `SettlementUnitPlan.preInfoDelaySeconds`(0.1초)만큼 늦게 창이 열리므로 그만큼 뺀다.
+     */
+    private fun settlementAnimationFrame(overlay: SettlementInfoView): SettlementAnimationFrame {
+        val values = settlementAnimationValues(overlay)
+        val numbers = values.associate { it.index to it.source }.toMutableMap()
+        val ratios = values.associate { it.index to it.progress(it.source) }.toMutableMap()
+        val elapsed = animationClock() - overlay.startedAt - SETTLEMENT_INFO_OPEN_DELAY
+        var startedAt = 0f
+        values.forEach { value ->
+            val steps = InfoBaseValueAnimation.steps(value)
+            if (steps.isEmpty()) return@forEach
+            val since = elapsed - startedAt
+            if (since > 0f) {
+                // 숫자: 0.2초마다 한 단계. 첫 콜백도 0.2초 뒤에 온다.
+                val step = (since / SETTLEMENT_INFO_TICK_SECONDS).toInt()
+                if (step >= 1) numbers[value.index] = steps[(step - 1).coerceAtMost(steps.lastIndex)]
+                // 막대: 항목이 시작한 순간부터 1초 동안 끊김 없이 채워진다.
+                val progress = (since / SETTLEMENT_BAR_TWEEN_SECONDS).coerceIn(0f, 1f)
+                val from = value.progress(value.source)
+                ratios[value.index] = from + (value.progress(value.destination) - from) * progress
+            }
+            startedAt += steps.size * SETTLEMENT_INFO_TICK_SECONDS
         }
-        return current
+        return SettlementAnimationFrame(numbers, ratios)
+    }
+
+    /** `progress`: 원본 `ProgressBar.progress`와 같은 0~1 비율이다. */
+    private fun InfoBaseValueAnimation.Value.progress(amount: Int): Float =
+        (amount.coerceAtLeast(0).toFloat() / max.coerceAtLeast(1)).coerceIn(0f, 1f)
+
+    /**
+     * `SettlementBarSlot`: 정산 상태창의 한 줄이 쓰는 원본 좌표다.
+     *
+     * 막대·숫자 위치는 원본 `MineUnitInfoLayer`/`OtherUnitInfoLayer` 프리팹 값을 그대로
+     * 옮긴 것이며, 라벨 Y는 폰트가 위에서 아래로 그려지는 만큼 높이를 더해 맞춘다.
+     */
+    /**
+     * `SettlementRow`: 정산 상태창의 한 줄이 보여 줄 값이다.
+     *
+     * `index`는 원본 `_kvs[i].idx`에 해당하며 애니메이션 프레임에서 숫자와 막대 길이를
+     * 찾는 열쇠다.
+     */
+    private data class SettlementRow(val index: Int, val label: String, val value: Int, val max: Int)
+
+    private data class SettlementBarSlot(
+        val barAsset: String,
+        val barX: Float,
+        val barY: Float,
+        val valueX: Float,
+        val slashX: Float,
+        val maxX: Float,
+        val labelY: Float,
+    )
+
+    /**
+     * `settlementBarSlot`: 정산 줄 종류에 맞는 원본 좌표를 고른다.
+     *
+     * 아군 창은 체력·내공·경험치 세 줄과 무기·방어구 경험치 숫자를, 적군 창은 체력·내공
+     * 두 줄만 쓴다. 원본에 없는 줄은 그리지 않는다.
+     */
+    private fun settlementBarSlot(
+        panel: SettlementInfoRenderContract.Panel,
+        label: String,
+        index: Int,
+    ): SettlementBarSlot? {
+        val mine = panel == SettlementInfoRenderContract.Panel.MINE
+        return when (label) {
+            "HP" -> if (mine) {
+                SettlementBarSlot(SETTLEMENT_HP_BAR, 807.5f, 251f, 901.73f, 984.945f, 1015.5f, 245.8f + 34f)
+            } else {
+                SettlementBarSlot(SETTLEMENT_HP_BAR, 810.5f, 179.75f, 906.73f, 987.945f, 1016.5f, 174.55f + 34f)
+            }
+
+            "MP" -> if (mine) {
+                SettlementBarSlot(SETTLEMENT_MP_BAR, 807.5f, 200f, 923.98f, 984.945f, 1015.5f, 191.8f + 34f)
+            } else {
+                SettlementBarSlot(SETTLEMENT_MP_BAR, 810.5f, 121.75f, 928.98f, 987.945f, 1016.5f, 116.55f + 34f)
+            }
+
+            "EXP" -> if (mine) {
+                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, 149f, 943.25f, 984.945f, 1015.5f, 140.8f + 34f)
+            } else {
+                null
+            }
+
+            // 무기·방어구 경험치는 원본에서도 막대 없이 아이콘 옆 숫자로만 보여 준다.
+            "WQ" -> if (mine) {
+                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, -1000f, 810.5f, -1000f, -1000f, 97.8f + 34f)
+            } else {
+                null
+            }
+
+            "HJ" -> if (mine) {
+                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, -1000f, 958.5f, -1000f, -1000f, 97.8f + 34f)
+            } else {
+                null
+            }
+
+            else -> null
+        }.also { if (index < 0) return null }
     }
 
     /**
@@ -7829,63 +7940,62 @@ void main() {
     private fun drawSettlementOverlays() {
         settlementPresentation.infoView()?.let { overlay ->
             val unit = battle.presentation.presentationUnit(overlay.unitId) ?: return@let
-            val values = settlementAnimatedValues(overlay)
+            val frame = settlementAnimationFrame(overlay)
             val mine = overlay.panel == SettlementInfoPanel.MINE
-            val x = 736f
-            val y = 96f
-            val h = if (mine) 258f else 194f
+            val panel = if (mine) SettlementInfoRenderContract.Panel.MINE else SettlementInfoRenderContract.Panel.OTHER
+            val h = if (mine) 258f else 193.5f
             batch.projectionMatrix = viewport.camera.combined
             batch.begin()
             batch.color = Color.WHITE
-            batch.draw(unitInfoAssets.unitInfoBox1, x, y, 471f, h)
+            // 원본 프리팹 좌표는 `SettlementInfoRenderContract`가 들고 있다. 배경·상태 아이콘·
+            // 진행 막대 바탕을 그 순서 그대로 깔고, 값에 따라 길이가 변하는 막대만 따로 덮는다.
+            val sprites = SettlementInfoRenderContract.sprites(panel)
+            sprites.forEach { sprite ->
+                if (sprite.path in SETTLEMENT_VALUE_BARS) return@forEach
+                settlementInfoAssets.draw(
+                    batch, sprite.path, sprite.x, sprite.y, sprite.width, sprite.height, sprite.capInset,
+                )
+            }
             font.data.setScale(32f / 26f)
             font.color = Color.WHITE
-            font.draw(batch, overlay.title, x + 12f, y + h - 18f)
-            font.draw(batch, "Lv ${unit.level}  ${gameDataCatalog.postsName(unit.posts)}", x + 205f, y + h - 18f)
+            val titleY = if (mine) 294.5f + 40f else 226.85f + 40f
+            font.draw(batch, overlay.title, 744.4f, titleY)
+            font.draw(batch, "Lv ${unit.level}", if (mine) 911.105f else 912.256f, titleY)
+            font.draw(batch, gameDataCatalog.postsName(unit.posts), if (mine) 1045.55f else 1049.3f, titleY)
             val rows = buildList {
                 overlay.deltas.forEach { delta ->
                     val index = if (delta.kind == SettlementInfoKind.HP) 0 else 1
                     val max = if (index == 0) unit.maxHitPoints else unit.maxMagicPoints
-                    add(Triple(delta.kind.name, values[index] ?: delta.before, max))
+                    add(SettlementRow(index, delta.kind.name, frame.numbers[index] ?: delta.before, max))
                 }
                 overlay.grants.forEach { grant ->
-                    when (grant.kind) {
-                        SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let {
-                            add(
-                                Triple(
-                                    "EXP",
-                                    values[2] ?: it.oldExperience,
-                                    (it.oldExperience + it.gained).coerceAtLeast(1)
-                                )
-                            )
-                        }
+                    val growth = when (grant.kind) {
+                        SettlementGrowthKind.UNIT_EXP ->
+                            grant.unitResult?.let { Triple(2, it.oldExperience, it.gained) }
 
-                        SettlementGrowthKind.WEAPON_EXP -> grant.equipmentResult?.let {
-                            add(
-                                Triple(
-                                    "WQ", values[3] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1)
-                                )
-                            )
-                        }
+                        SettlementGrowthKind.WEAPON_EXP ->
+                            grant.equipmentResult?.let { Triple(3, it.oldExperience, it.gained) }
 
-                        SettlementGrowthKind.ARMOR_EXP -> grant.equipmentResult?.let {
-                            add(
-                                Triple(
-                                    "HJ", values[4] ?: it.oldExperience, (it.oldExperience + it.gained).coerceAtLeast(1)
-                                )
-                            )
-                        }
-                    }
+                        SettlementGrowthKind.ARMOR_EXP ->
+                            grant.equipmentResult?.let { Triple(4, it.oldExperience, it.gained) }
+                    } ?: return@forEach
+                    val (index, old, gained) = growth
+                    val label = when (index) { 2 -> "EXP"; 3 -> "WQ"; else -> "HJ" }
+                    add(SettlementRow(index, label, frame.numbers[index] ?: old, (old + gained).coerceAtLeast(1)))
                 }
             }
-            rows.forEachIndexed { index, (label, value, max) ->
-                val rowY = y + h - 70f - index * 48f
-                font.draw(batch, label, x + 16f, rowY)
-                batch.draw(unitInfoAssets.unitInfoProgress, x + 78f, rowY - 22f, 300f, 20f)
-                val bar =
-                    if (label == "MP") unitInfoAssets.unitInfoMark2 else if (label == "EXP") unitInfoAssets.unitInfoMark6 else unitInfoAssets.unitInfoMark3
-                batch.draw(bar, x + 80f, rowY - 20f, 296f * value.coerceAtLeast(0) / max.coerceAtLeast(1), 16f)
-                font.draw(batch, "$value/$max", x + 390f, rowY)
+            // 값 막대는 원본 `ProgressBar`처럼 바탕 위에서 progress 비율만큼만 채운다.
+            // 길이는 숫자와 달리 1초짜리 트윈이 정한다.
+            rows.forEachIndexed { row, entry ->
+                val slot = settlementBarSlot(panel, entry.label, row) ?: return@forEachIndexed
+                val ratio = frame.ratios[entry.index]
+                    ?: (entry.value.toFloat() / entry.max.coerceAtLeast(1)).coerceIn(0f, 1f)
+                settlementInfoAssets.texture(slot.barAsset)?.let {
+                    batch.draw(it, slot.barX, slot.barY, 370f * ratio, 20f)
+                }
+                font.draw(batch, entry.value.toString(), slot.valueX, slot.labelY)
+                font.draw(batch, "/", slot.slashX, slot.labelY)
+                font.draw(batch, entry.max.toString(), slot.maxX, slot.labelY)
             }
             font.data.setScale(1f)
             batch.end()
@@ -11754,3 +11864,30 @@ private const val BATTLE_BODY_SCALE_Y = .98f
  */
 private const val BATTLE_UI_GLYPHS =
     "다시 플레이하시겠습니까?게임 저장하시겠습니까?예아니오턴 수짐이 알겠다.0123456789/ "
+
+/** 정산 상태창의 값 막대 자원 경로다. 길이가 값에 따라 변하므로 바탕과 따로 그린다. */
+private const val SETTLEMENT_HP_BAR = "maps/ui/settlement-info/mark3.png"
+
+/** 내공 막대 자원 경로다. */
+private const val SETTLEMENT_MP_BAR = "maps/ui/settlement-info/mark2.png"
+
+/** 경험치 막대 자원 경로다. */
+private const val SETTLEMENT_EXP_BAR = "maps/ui/settlement-info/mark6.png"
+
+/** 계약이 돌려주는 목록 중 값에 따라 길이가 변하는 막대들이다. */
+private val SETTLEMENT_VALUE_BARS = setOf(SETTLEMENT_HP_BAR, SETTLEMENT_MP_BAR, SETTLEMENT_EXP_BAR)
+
+
+/**
+ * 정산 상태창이 열리기까지의 지연이다.
+ *
+ * `SettlementUnitPlan.preInfoDelaySeconds`와 같은 값으로, 원본이 정산 대상 유닛으로
+ * 카메라를 옮긴 뒤 `MineUnitInfoLayer`를 붙이기까지 두는 시간이다.
+ */
+private const val SETTLEMENT_INFO_OPEN_DELAY = .1f
+
+/** 원본 `InfoBaseLayer._next`의 `schedule(_callback, .2, REPEAT_FOREVER, .2)` 간격이다. */
+private const val SETTLEMENT_INFO_TICK_SECONDS = .2f
+
+/** 원본 `InfoBaseLayer._next`의 `cc.tween(bar).to(1, {progress})` 길이다. */
+private const val SETTLEMENT_BAR_TWEEN_SECONDS = 1f
