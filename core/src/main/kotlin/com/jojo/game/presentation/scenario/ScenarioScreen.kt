@@ -3,6 +3,7 @@ package com.jojo.game.presentation.scenario
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.infrastructure.data.ScenarioCatalog
 import com.jojo.game.infrastructure.audio.GameAudioPlayer
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.shared.overlay.*
 import com.jojo.game.presentation.shared.StorySkipFlow
 import com.badlogic.gdx.InputMultiplexer
@@ -1576,7 +1577,13 @@ class ScenarioScreen(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    override fun selectAndConfirm(index: Int) { playback.selectChoice(index); confirmChoice() }
+    override fun selectAndConfirm(index: Int) {
+        // 원본 `ChooseLayer`의 항목과 `MsgBox`의 단추는 모두 깃발 1(클릭음)이다.
+        // 대화 넘기기(`SayLayer`의 뒤쪽 막)는 깃발이 없어 소리가 나지 않는다.
+        audio.playUiSound(UiSound.CLICK)
+        playback.selectChoice(index)
+        confirmChoice()
+    }
 
     /**
      * `dismissHallOverlay`: 조건과 입력 상태를 검증한다.
@@ -1607,7 +1614,16 @@ class ScenarioScreen(
             ScenarioInputRouter.HallLayer.SAVE -> applySaveInput(ScenarioHallSaveInputRouter.route(x, y, hallSaveLayer.completionTipOpen(), hallSaveLayer.pendingSlot() != null, hallSaveLayer.view().rows.size))
             ScenarioInputRouter.HallLayer.EXCLUSIVE -> applyExclusiveInput(ScenarioExclusiveInputRouter.route(hallOverlayInteraction.exclusiveTap(x, y)))
             ScenarioInputRouter.HallLayer.MANAGEMENT -> hallManagement?.let { if (route.closesManagement) hallManagementFlow.close() else hallManagementFlow.handleTap(it, x, y) }
-            ScenarioInputRouter.HallLayer.MAIN -> ScenarioHallInteractionExecutor.execute(hallInteraction.mainTap(x, y), this)
+            ScenarioInputRouter.HallLayer.MAIN -> hallInteraction.mainTap(x, y).let { intent ->
+                // 원본은 거점 메뉴의 뒤쪽 막만 깃발 2(취소음)로 등록하고, 메뉴 항목과
+                // 거점 명령 단추는 모두 깃발 1(클릭음)이다. 빈 곳을 누르면 소리가 없다.
+                when (intent) {
+                    HallInteractionIntent.None -> Unit
+                    HallInteractionIntent.MenuClosed -> audio.playUiSound(UiSound.CANCEL)
+                    else -> audio.playUiSound(UiSound.CLICK)
+                }
+                ScenarioHallInteractionExecutor.execute(intent, this)
+            }
         }
     }
 
