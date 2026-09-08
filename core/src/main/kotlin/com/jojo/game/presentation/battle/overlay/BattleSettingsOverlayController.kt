@@ -1,5 +1,6 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.SettingLayer
@@ -52,7 +53,18 @@ internal class BattleSettingsOverlayController(private val layer: SettingLayer) 
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
 
-    data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
+    data class DispatchResult(
+        val consumed: Boolean,
+        val effect: Effect = Effect.None,
+        /**
+         * 이 누름에 원본이 내는 단추 소리다.
+         *
+         * 원본 `SettingLayer`는 닫기 단추만 깃발 2(취소음), 목록의 단추와 배경 고르기
+         * 항목은 깃발 1(클릭음)로 등록한다. 확인칸·라디오·미끄럼대는 `cc.Toggle`/`cc.Slider`
+         * 사건으로 붙어 있어 아무 소리도 나지 않는다.
+         */
+        val uiSound: UiSound? = null,
+    )
 
     /** 설정 패널의 표시 여부와 마지막으로 누른 좌표를 보관한다. */
     private sealed interface State {
@@ -133,11 +145,12 @@ internal class BattleSettingsOverlayController(private val layer: SettingLayer) 
     private fun pointerUp(visible: State.Visible, intent: Intent.PointerUp): DispatchResult {
         val pressed = visible.press
         state = visible.copy(press = null)
-        if (pressed != null && abs(pressed.x - intent.x) < MAX_CLICK_DRIFT && abs(pressed.y - intent.y) < MAX_CLICK_DRIFT) {
-            applyTap(intent.x, intent.y)
-        }
-        return if (state is State.Hidden) DispatchResult(consumed = true, effect = Effect.Closed)
-        else DispatchResult(consumed = true)
+        val sound =
+            if (pressed != null && abs(pressed.x - intent.x) < MAX_CLICK_DRIFT && abs(pressed.y - intent.y) < MAX_CLICK_DRIFT) {
+                applyTap(intent.x, intent.y)
+            } else null
+        return if (state is State.Hidden) DispatchResult(consumed = true, effect = Effect.Closed, uiSound = sound)
+        else DispatchResult(consumed = true, uiSound = sound)
     }
 
     /**
@@ -145,31 +158,34 @@ internal class BattleSettingsOverlayController(private val layer: SettingLayer) 
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun applyTap(x: Float, y: Float) {
-        if (x !in PANEL_LEFT..PANEL_RIGHT || y !in PANEL_BOTTOM..PANEL_TOP) return
+    private fun applyTap(x: Float, y: Float): UiSound? {
+        if (x !in PANEL_LEFT..PANEL_RIGHT || y !in PANEL_BOTTOM..PANEL_TOP) return null
         if (x in CLOSE_LEFT..CLOSE_RIGHT && y in CLOSE_BOTTOM..CLOSE_TOP) {
             close()
-            return
+            return UiSound.CANCEL
         }
         if (x in CHECK_LEFT..CHECK_RIGHT && y in CHECK_BOTTOM..CHECK_TOP) {
             val bit = ((CHECK_BASELINE - y) / CHECK_STEP).toInt().coerceIn(0, 4)
             val flags = layer.view().flags
             layer.check(bit, flags and (1 shl bit) == 0)
-            return
+            return null
         }
         if (x in RADIO_LEFT..RADIO_RIGHT && y in MESSAGE_RADIO_BOTTOM..MESSAGE_RADIO_TOP) {
             layer.check2(0, ((x - RADIO_START) / RADIO_STEP).toInt().coerceIn(0, 2))
-            return
+            return null
         }
         if (x in RADIO_LEFT..RADIO_RIGHT && y in NOTICE_RADIO_BOTTOM..NOTICE_RADIO_TOP) {
             layer.check2(2, ((x - RADIO_START) / RADIO_STEP).toInt().coerceIn(0, 2))
-            return
+            return null
         }
         if (x in RADIO_LEFT..RADIO_RIGHT && y in BACKGROUND_BOTTOM..BACKGROUND_TOP) {
             layer.selectBackground(((x - RADIO_START) / BACKGROUND_STEP).toInt().coerceIn(0, 3))
-            return
+            return UiSound.CLICK
         }
-        if (x in SLIDER_LEFT..SLIDER_RIGHT && y in SLIDER_BOTTOM..SLIDER_TOP) layer.onSlider((x - SLIDER_LEFT) / (SLIDER_RIGHT - SLIDER_LEFT))
+        if (x in SLIDER_LEFT..SLIDER_RIGHT && y in SLIDER_BOTTOM..SLIDER_TOP) {
+            layer.onSlider((x - SLIDER_LEFT) / (SLIDER_RIGHT - SLIDER_LEFT))
+        }
+        return null
     }
 
     /**

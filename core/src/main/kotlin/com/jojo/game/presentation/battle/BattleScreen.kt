@@ -4605,7 +4605,10 @@ void main() {
                 }
                 val settingsResult =
                     settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.PointerUp(world.x, world.y))
-                if (settingsResult.consumed) return true
+                if (settingsResult.consumed) {
+                    settingsResult.uiSound?.let(audio::playUiSound)
+                    return true
+                }
                 val saveLoadResult =
                     saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerUp(world.x, world.y))
                 if (saveLoadResult.consumed) {
