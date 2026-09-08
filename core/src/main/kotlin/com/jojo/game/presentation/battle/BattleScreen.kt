@@ -10054,10 +10054,11 @@ void main() {
             battleCount = u.characterId?.let { campaign.unitAttribute(it, 14) } ?: 0,
             retreatCount = u.characterId?.let { campaign.unitAttribute(it, 15, u.retreatCount) } ?: u.retreatCount,
             unitIntro = u.characterId?.let(gameDataCatalog::unitIntro).orEmpty(),
-            // 원본은 `skillIntro(unitSkill(), 3)`로 특기 설명문을 조립해 보여 준다. 포트의
-            // 자료 계층에는 설명문이 없어 보유 특기 이름을 나열한다.
-            skillIntro = u.skills.keys.mapNotNull { id -> gameDataCatalog.skillName(id).takeIf(String::isNotBlank) }
-                .joinToString(", "),
+            // 원본 `UnitInfoLayer`는 `skillIntro(unitSkill(), 3)`으로 특기마다 값 표기와
+            // 설명문을 조립해 보여 준다. 예전에는 이름만 쉼표로 이어 붙였다.
+            skillIntro = u.characterId?.let { id ->
+                gameDataCatalog.skillIntro(id, u.posts, campaign, mode = 3)
+            }.orEmpty(),
             // 원본은 전투를 차릴 때 유닛마다 뽑아 둔 여덟 확률을 기치 창에 그대로 보여 준다.
             rates = (0..7).map { u.rateAccumulators[it] ?: 0 },
         )

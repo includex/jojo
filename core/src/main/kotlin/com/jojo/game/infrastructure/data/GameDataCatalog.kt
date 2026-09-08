@@ -490,6 +490,10 @@ class GameDataCatalog private constructor(
     /** `featsProgress`: 공훈 화면 다섯 줄의 적성·공훈·다음 목표·다음 단계를 돌려준다. */
     fun featsProgress(unitId: Int, campaign: CampaignState?) = units.featsProgress(unitId, campaign)
 
+    /** `skillIntro`: 무장이 지닌 특기의 설명문을 원본 형식으로 조립해 돌려준다. */
+    fun skillIntro(characterId: Int, postsId: Int, campaign: CampaignState?, mode: Int = 1) =
+        units.skillIntro(characterId, postsId, campaign, mode)
+
     /**
      * `postSkillAttribute`: 상태나 데이터를 조회한다.
      * 원본 `skillAttr2`와 같은 계약으로 특성 슬롯 값을 돌려준다.

@@ -53,11 +53,28 @@ internal class GameDataCatalogUnitDomain(
     fun postSkillAttribute(skillId: Int, attribute: Int, fallback: Int): Int =
         unitPostSkills.getOrNull(skillId)?.int(attribute.toString(), fallback) ?: fallback
 
-    fun skillsForUnit(characterId: Int, postsId: Int, campaign: CampaignState?): Map<Int, Int> {
+    fun skillsForUnit(characterId: Int, postsId: Int, campaign: CampaignState?): Map<Int, Int> =
+        combat.mergeSkillEntries(skillContributions(characterId, postsId, campaign).map { it.skillId to it.value })
+
+    /**
+     * SkillContribution: 한 무장에게 붙는 특기 하나다.
+     *
+     * `row`는 특기가 온 `unitPostsSkill` 줄 번호다. 원본은 이 번호를 값의 상위 바이트에
+     * 실어 두고(`e[o] = r << 8 | s`) 이름을 고를 때 쓴다. 이식본의 합치기는 상위 바이트를
+     * 버리므로 줄 번호가 필요한 곳은 이 목록을 쓴다.
+     */
+    data class SkillContribution(val skillId: Int, val value: Int, val row: Int)
+
+    /** 특기 목록: 관직에서 오는 것과 무장 고유의 것을 원본 순서대로 모은다. */
+    private fun skillContributions(
+        characterId: Int,
+        postsId: Int,
+        campaign: CampaignState?,
+    ): List<SkillContribution> {
         val basePosts = if (postsId >= 60) postsId else postsId - postsId % 3
         val upperPosts = if (postsId >= 60) postsId + 1 else basePosts + 3
-        val postContributions = mutableListOf<Pair<Int, Int>>()
-        val unitContributions = mutableListOf<Pair<Int, Int>>()
+        val postContributions = mutableListOf<SkillContribution>()
+        val unitContributions = mutableListOf<SkillContribution>()
         unitPostSkills.forEachIndexed { index, raw ->
             val post = campaign?.talents?.get(index to 3)?.effect ?: raw.int("2", 255)
             val isPostSkill = post in basePosts until upperPosts
@@ -65,12 +82,14 @@ internal class GameDataCatalogUnitDomain(
                 (campaign?.talents?.get(index to slot)?.effect ?: raw.int((6 + slot).toString(), 1024)) == characterId
             }
             if (isPostSkill || isUnitSkill) {
-                val skill = raw.int("3", 65536 or index) to raw.int("5", 255).coerceIn(0, 255)
+                val skill = SkillContribution(
+                    raw.int("3", 65536 or index), raw.int("5", 255).coerceIn(0, 255), index,
+                )
                 if (isPostSkill) postContributions += skill
                 if (isUnitSkill) unitContributions += skill
             }
         }
-        return combat.mergeSkillEntries(postContributions + unitContributions)
+        return postContributions + unitContributions
     }
 
     /**
@@ -406,6 +425,87 @@ internal class GameDataCatalogUnitDomain(
 
     private fun abilityPhase(raw: Int): Int = ABILITY_PHASE_MAX - ABILITY_PHASE_THRESHOLDS.count { raw < it }
 
+
+    /**
+     * 특기 설명문: 원본 `Model.skillIntro(skills, mode)`와 같은 문자열을 만든다.
+     *
+     * 특기마다 이름 뒤에 값을 붙이는 방식이 `defineSkill`의 `format` 열에 적혀 있다.
+     * `mode`의 1비트가 서 있으면(무장 정보 화면이 3을 넘긴다) 특기마다 한 문단씩
+     * `【이름 값】`과 설명문 한 줄을 만들고, 아니면 `/`로 이어 붙인다. 아무것도 없으면
+     * 원본과 같이 `없음`이다.
+     *
+     * 원본은 편집 기능이 켜져 있을 때 특효치·특기 번호 같은 줄을 더 붙인다. 그 줄은
+     * 개발용이라 옮기지 않았다.
+     */
+    fun skillIntro(characterId: Int, postsId: Int, campaign: CampaignState?, mode: Int = 1): String {
+        val merged = LinkedHashMap<Int, SkillContribution>()
+        skillContributions(characterId, postsId, campaign).forEach { contribution ->
+            val prior = merged[contribution.skillId]
+            val value = when (combat.skillIncrementType(contribution.skillId)) {
+                1 -> if (prior == null) contribution.value else (prior.value + contribution.value) and 254
+                2 -> if (prior == null) contribution.value else prior.value or contribution.value
+                else -> contribution.value
+            }
+            merged[contribution.skillId] = contribution.copy(value = value)
+        }
+        val block = mode and 1 != 0
+        val text = merged.values.joinToString("") { entry ->
+            // 원본은 상위 바이트가 255면 특기 표의 이름을, 아니면 관직 특기 표의 이름을 쓴다.
+            // 이식본에서는 특기가 온 줄 번호를 그대로 들고 있으므로 그 줄의 이름을 쓴다.
+            val skillId = if (entry.skillId and 65536 != 0) 65535 else entry.skillId
+            val name = unitPostSkills.getOrNull(entry.row)?.getString("0", "").orEmpty()
+                .ifBlank { defineSkills.getOrNull(skillId)?.getString("name", "").orEmpty() }
+                .replace(TRAILING_DIGITS, "")
+            val labelled = name + skillSuffix(skillId, entry.value)
+            if (!block) "/$labelled" else buildString {
+                append("\n\n【").append(labelled).append("】")
+                val intro = unitPostSkills.getOrNull(entry.row)?.getString("9", "").orEmpty()
+                    .ifBlank { defineSkills.getOrNull(skillId)?.getString("intro", "").orEmpty() }
+                    .trim()
+                if (intro.isNotEmpty()) append("\n※ ").append(intro)
+            }
+        }
+        return text.drop(1).trim().ifEmpty { "없음" }
+    }
+
+    /** 특기 값 표기: `defineSkill`의 `format` 열이 정한 대로 이름 뒤에 붙일 글을 만든다. */
+    private fun skillSuffix(skillId: Int, value: Int): String {
+        val argument = combat.skillArgument(skillId)
+        /** 비트가 선 이름들을 `/`로 잇는다. */
+        fun flags(names: List<String>) =
+            names.filterIndexed { index, _ -> value and (1 shl index) != 0 }.joinToString("/")
+        return when (defineSkills.getOrNull(skillId)?.getInt("format", 0) ?: 0) {
+            1 -> " +$value"
+            2 -> " +$value%"
+            3 -> " -$value%"
+            4 -> " $value%"
+            5 -> " $value"
+            6 -> " " + (items.getOrNull(value)?.getString("0", "").orEmpty())
+            7 -> " " + (hitAreas.getOrNull(value)?.getString("name", "").orEmpty())
+            8 -> " " + (effectAreas.getOrNull(value)?.getString("name", "").orEmpty())
+            9 -> if (skillId == 65535) "" else " " + flags(
+                listOf(
+                    "공격++${argument}정신력", "방어++${argument}정신력", "정신력++${argument}공격",
+                    "공격++${argument}사기", "공격++${argument}최대 HP",
+                )
+            )
+
+            10 -> when {
+                skillId == 65535 -> ""
+                value and 31 == 31 -> " $argument% 전체 능력치"
+                else -> " " + flags(ABILITY_NAMES.map { "$argument% $it" })
+            }
+
+            11 -> " " + flags(listOf("정신력→공격", "정신력→방어", "공→정"))
+            12 -> " " + flags(MAGIC_CATEGORY_NAMES)
+            13 -> " " + terrainRows().getOrNull(value)?.name.orEmpty()
+            14 -> " " + flags(TERRAIN_GROUP_NAMES) + " " + (if (value and 7 == 7) 100 else 120) + "%"
+            15 -> if (value and 63 == 63) " 전 능력치" else " " + flags(ABILITY_NAMES + "이동력")
+            16 -> " " + (magics.getOrNull(value)?.getString("0", "").orEmpty())
+            else -> ""
+        }
+    }
+
     /**
      * 공훈 진행: 다섯 능력의 적성·모은 공훈·다음 승급까지의 공훈·다음 단계를 돌려준다.
      *
@@ -450,6 +550,20 @@ internal class GameDataCatalogUnitDomain(
     }
 
     private companion object {
+        /** 이름 끝의 숫자를 떼는 규칙이다. 원본도 `replace(/\d+$/, "")`로 뗀다. */
+        val TRAILING_DIGITS = Regex("\\d+$")
+
+        /** 다섯 능력의 이름이다. */
+        val ABILITY_NAMES = listOf("공격력", "방어력", "정신력", "폭발력", "사기")
+
+        /** 전략 계통 이름이다(format 12). */
+        val MAGIC_CATEGORY_NAMES = listOf(
+            "사계", "능력계 하락", "속성계", "보급계", "능력 계통 상승", "기후 계열", "절계", "사신 계열",
+        )
+
+        /** 지형 묶음 이름이다(format 14). */
+        val TERRAIN_GROUP_NAMES = listOf("간단한 대화/늪지대/큰 강/설원", "숲/산지/황무지", "성내")
+
         /** 능력 단계의 최댓값이다. 원본 `Unit.abilityPhase`의 `i` 초깃값과 같다. */
         const val ABILITY_PHASE_MAX = 5
 
