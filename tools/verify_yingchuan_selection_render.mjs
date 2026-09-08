@@ -5,6 +5,11 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
+// Chromium converts `capturePage` output into the attached display's colour
+// profile, so a source frame captured on a P3 display never matches the game's
+// plain sRGB framebuffer. Pin the capture profile.
+const SRGB_CAPTURE = "--force-color-profile=srgb";
+
 const root = resolve(import.meta.dirname, "..");
 const sourceRoot = resolve(root, "../jojo_mobile/sgccz-desktop");
 const sourceStatePath = resolve(sourceRoot, "build/python-source-battle-verification-selection.json");
@@ -17,7 +22,7 @@ function run(command, args, cwd) {
   return `${result.stdout}\n${result.stderr}`;
 }
 
-run("./node_modules/.bin/electron", [".", "--verify-python-battle", "--capture-python-battle-selection"], sourceRoot);
+run("./node_modules/.bin/electron", [".", SRGB_CAPTURE, "--verify-python-battle", "--capture-python-battle-selection"], sourceRoot);
 const source = JSON.parse(readFileSync(sourceStatePath, "utf8"));
 assert.deepEqual(source.selected, { id: 43, characterId: 210, x: 10, y: 17 }, "unexpected source selection fixture");
 const sourceMove = source.tiles.filter(tile => tile.tag === 1).length;

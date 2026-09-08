@@ -5,6 +5,11 @@ import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
+// Chromium converts `capturePage` output into the attached display's colour
+// profile, so a source frame captured on a P3 display never matches the game's
+// plain sRGB framebuffer. Pin the capture profile.
+const SRGB_CAPTURE = "--force-color-profile=srgb";
+
 const root = resolve(import.meta.dirname, "..");
 const sourceRoot = resolve(root, "../jojo_mobile/sgccz-desktop");
 const report = resolve(root, "build/yingchuan-actor-state.json");
@@ -63,7 +68,7 @@ for (const fixture of expected) {
   const sourceState = resolve(sourceRoot, `build/python-source-battle-verification-dialogue${fixture.step}.json`);
   for (const stale of [sourceImage, sourceState]) try { unlinkSync(stale); } catch { /* absent is fresh */ }
   run("./node_modules/.bin/electron", [
-    ".", "--verify-python-battle", `--capture-python-battle-dialogue-step=${fixture.step}`,
+    ".", SRGB_CAPTURE, "--verify-python-battle", `--capture-python-battle-dialogue-step=${fixture.step}`,
     "--capture-python-battle-dialogue-wait-ms=3200",
   ], sourceRoot);
   const sourceSnapshot = JSON.parse(readFileSync(

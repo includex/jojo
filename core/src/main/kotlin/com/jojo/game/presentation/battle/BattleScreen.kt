@@ -5054,6 +5054,10 @@ void main() {
             return
         }
         if (battleCharacterRouteState != null) {
+            // 원본 캐릭터 경로 하네스는 m_id != 1인 UI 레이어만 제거한다.
+            // `Canvas/Layer/menu_button`은 BattleLayer 자신의 자식이라 그대로 남아
+            // 화면 오른쪽 아래에 계속 그려진다.
+            drawBattleCharacterRouteChrome()
             if (elapsed > .25f) {
                 if (!game.writeRenderEventLogIfRequested()) game.captureFrameIfRequested()
             }
@@ -5065,7 +5069,11 @@ void main() {
         if (battleInitRoute || (battleInitLayer.view().attached && !mapOnlyCapture)) {
             drawBattleHudChrome()
             drawRewardSectionOverlay()
-            if (game.writeRenderEventLogIfRequested()) return
+            // 진입 화면은 다른 경로가 자기 상태에 이르기 전에도 잠깐 붙어 있다.  여기서
+            // 무조건 렌더 이벤트 로그를 쓰면 대화 혼합 경로처럼 아직 대사가 없는 경로가
+            // 자기 상태 대신 진입 화면을 기록하다 터진다.  로그는 진입 화면 자신을
+            // 캡처할 때만 남긴다.
+            if (battleInitRoute && game.writeRenderEventLogIfRequested()) return
             return
         }
         if (!mapOnlyCapture) {
@@ -9484,6 +9492,19 @@ void main() {
         font.draw(batch, eventMessage, 80f, 94f)
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
         font.draw(batch, "클릭: 선택/이동/공격 · M: 전략 · B: 아이템 · T: 턴 종료 · Esc: 돌아가기", 520f, 52f)
+        batch.end()
+    }
+
+    /**
+     * `drawBattleCharacterRouteChrome`: 화면 표시 상태를 렌더링한다.
+     * 캐릭터 검증 경로에 남는 유일한 HUD 노드인 `menu_button`만 그린다.
+     */
+
+    private fun drawBattleCharacterRouteChrome() {
+        batch.projectionMatrix = viewport.camera.combined
+        batch.begin()
+        batch.color = Color.WHITE
+        hudAssets.battleEndTurnTexture?.let { batch.draw(it, 1353.9535f, 8f, 60f, 60f) }
         batch.end()
     }
 

@@ -12,6 +12,13 @@ const electron = resolve(sourceRoot, "node_modules/.bin/electron");
 const classpath = process.env.JOJO_VERIFICATION_CLASSPATH;
 assert.ok(classpath, "JOJO_VERIFICATION_CLASSPATH must contain verification runtimeClasspath");
 
+// Chromium converts `capturePage` output into the attached display's colour
+// profile (Display P3 here), which brightens every source frame by up to ~10%
+// per channel and inflates the structural edge delta against the game's plain
+// sRGB framebuffer. Pin the capture profile so both sides read back the same
+// texture colours.
+const SRGB_CAPTURE = "--force-color-profile=srgb";
+
 const runId = randomUUID();
 const startedNs = Date.now() * 1_000_000;
 const marker = resolve(root, "build/render-events/fresh-battle-render-parity.started.json");
@@ -66,7 +73,7 @@ for (const route of routes) {
   const gamePng = resolve(frameDir, `game-${phase}.png`);
   const pixelReport = resolve(frameDir, `${phase}.json`);
   clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), gameLog, report, sourcePng, gamePng, pixelReport);
-  run(electron, [".", `--render-battle-character-route=${route}`, `--render-event-log=${sourceLog}`,
+  run(electron, [".", SRGB_CAPTURE, `--render-battle-character-route=${route}`, `--render-event-log=${sourceLog}`,
     `--render-frame-png=${sourcePng}`, `--verification-run-id=${runId}-${route}`], sourceRoot);
   game(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--render-event-log=${gameLog}`]);
   game(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--capture=${gamePng}`]);
@@ -83,7 +90,7 @@ for (const route of routes) {
   const gamePng = resolve(frameDir, `game-${phase}.png`);
   const pixelReport = resolve(frameDir, `${phase}.json`);
   clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), gameLog, report, sourcePng, gamePng, pixelReport);
-  run(electron, [".", "--render-battle-dialogue-blending", `--render-event-log=${sourceLog}`,
+  run(electron, [".", SRGB_CAPTURE, "--render-battle-dialogue-blending", `--render-event-log=${sourceLog}`,
     `--render-frame-png=${sourcePng}`, `--verification-run-id=${runId}-dialogue-blending`], sourceRoot);
   game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--render-event-log=${gameLog}`]);
   game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--capture=${gamePng}`]);
