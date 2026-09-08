@@ -93,9 +93,14 @@ internal class BattleSettlementOperationCoordinator {
     /**
      * operation 계획: authored subflow와 정산 대상 변화를 화면 실행 순서의 명령 목록으로 조립한다.
      *
-     * [mergeGrowthFor]에 든 유닛은 원본 `_jiesuan`처럼 체력·기력과 경험치를 한 장의 상태창으로
-     * 합쳐 보여 준다. 원본은 유닛마다 `O` 하나를 만들어 `MineUnitInfoLayer`를 한 번만 띄우므로,
-     * 성장 흐름의 `InfoValues` 단계는 따로 내보내지 않고 그 유닛의 `UnitInfo`에 붙인다.
+     * 순서는 원본 `_jiesuan`을 따른다. 원본은 `g_charinfo.index`를 한 번 돌면서 유닛마다
+     * 상태창(case 5~9) -> 기본 동작(case 10) -> 승격·법술·장비 연출(case 11~)을 차례로
+     * 재생한다. 그래서 성장 연출은 유닛 목록 앞에 몰아 내보내지 않고 해당 유닛의 상태창
+     * 바로 뒤에 붙인다. 지역 오라(`LocalAura`)는 그 앞의 별도 흐름이라 위치를 유지한다.
+     *
+     * [mergeGrowthFor]에 든 유닛은 체력·기력과 경험치를 한 장의 상태창으로 합쳐 보여 준다.
+     * 원본은 유닛마다 `O` 하나를 만들어 `MineUnitInfoLayer`를 한 번만 띄우므로, 성장 흐름의
+     * `InfoValues` 단계는 따로 내보내지 않고 그 유닛의 `UnitInfo`에 붙인다.
      */
     fun operations(
         plan: BattleSettlementPlan,
@@ -131,68 +136,90 @@ internal class BattleSettlementOperationCoordinator {
                     }
                 }
 
-                is SettlementAuthoredSubflowPlan.Growth -> subflow.steps.forEach { step ->
-                    when (step) {
-                        is SettlementGrowthStep.InfoValues ->
-                            if (subflow.unitId !in mergedGrants) add(TurnSettlementOp.GrowthInfo(subflow.unitId, step.grants))
-                        is SettlementGrowthStep.AbilityLevelUp -> add(TurnSettlementOp.Info2("${step.attribute.name} 상승"))
-                        SettlementGrowthStep.UnitLevelUpActionFinished -> add(TurnSettlementOp.Actions(subflow.unitId, listOf(11)))
-                        SettlementGrowthStep.UnitLevelUpInfo -> {
-                            val unit = port.presentationUnit(subflow.unitId)
-                            add(TurnSettlementOp.Info2("${unit?.name.orEmpty()} 승격하여${unit?.level ?: 0}레벨"))
-                        }
-                        is SettlementGrowthStep.LearnedMagicInfo -> add(
-                            TurnSettlementOp.Info2("법술 「${port.magicName(step.magicId) ?: step.magicId}」！"),
-                        )
-                        is SettlementGrowthStep.EquipmentLevelUpAction -> add(
-                            TurnSettlementOp.Actions(
-                                subflow.unitId,
-                                if (step.result.slot == CampaignEquipmentSlot.WEAPON) listOf(12, 7) else listOf(12, 33),
-                            ),
-                        )
-                        is SettlementGrowthStep.EquipmentLevelUpInfo -> add(
-                            TurnSettlementOp.Info2(
-                                if (step.result.slot == CampaignEquipmentSlot.WEAPON) "무기레벨 상승!" else "보구레벨 상승!",
-                            ),
-                        )
-                        is SettlementGrowthStep.ItemUpgradeCallback -> add(TurnSettlementOp.ItemUpgrade(subflow.unitId, step.result))
-                        SettlementGrowthStep.DefaultAction -> add(TurnSettlementOp.Default(subflow.unitId))
-                    }
-                }
+                // 성장 흐름은 해당 유닛의 상태창 뒤에 붙이므로 여기서는 내보내지 않는다.
+                is SettlementAuthoredSubflowPlan.Growth -> Unit
             }
         }
-        val shownGrants = mutableSetOf<String>()
+        val growthByUnit = plan.authoredSubflows.filterIsInstance<SettlementAuthoredSubflowPlan.Growth>()
+            .groupBy({ it.unitId }, { it.steps })
+            .mapValues { (_, steps) -> steps.flatten() }
+        val settledUnits = mutableSetOf<String>()
         plan.units.forEach { unit ->
+            settledUnits += unit.unitId
             add(TurnSettlementOp.Focus(unit.unitId, 0f, forceCenter = false))
             if (unit.hasStatesPayload) add(TurnSettlementOp.HideState(listOf(unit.unitId)))
             val grants = mergedGrants[unit.unitId].orEmpty()
             if (unit.infoDeltas.isNotEmpty() || grants.isNotEmpty()) {
-                if (grants.isNotEmpty()) shownGrants += unit.unitId
                 add(TurnSettlementOp.UnitInfo(unit, grants))
                 if (unit.infoDeltas.any { it.kind == SettlementInfoKind.HP }) add(TurnSettlementOp.Default(unit.unitId))
             }
+            addGrowth(unit.unitId, growthByUnit[unit.unitId].orEmpty(), mergedGrants, port)
         }
         // 체력·기력 변화 없이 경험치만 받은 유닛도 원본은 상태창을 한 번 띄운다.
-        mergedGrants.forEach { (unitId, grants) ->
-            if (unitId in shownGrants) return@forEach
+        growthByUnit.forEach { (unitId, steps) ->
+            if (unitId in settledUnits) return@forEach
             add(TurnSettlementOp.Focus(unitId, 0f, forceCenter = false))
-            add(
-                TurnSettlementOp.UnitInfo(
-                    SettlementUnitPlan(
-                        unitId,
-                        port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
-                        Faction.PLAYER, Faction.PLAYER,
-                        SettlementInfoPanel.MINE, emptyList(), emptyList(),
+            mergedGrants[unitId]?.let { grants ->
+                add(
+                    TurnSettlementOp.UnitInfo(
+                        SettlementUnitPlan(
+                            unitId,
+                            port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
+                            Faction.PLAYER, Faction.PLAYER,
+                            SettlementInfoPanel.MINE, emptyList(), emptyList(),
+                        ),
+                        grants,
                     ),
-                    grants,
-                ),
-            )
+                )
+            }
+            addGrowth(unitId, steps, mergedGrants, port)
         }
         plan.meffBuckets.forEach { bucket ->
             bucket.key.actualMeffId?.let { effectId -> add(TurnSettlementOp.Meff(effectId, bucket.targets.map { it.unitId })) }
         }
         val refreshIds = plan.units.map { it.unitId }
         if (refreshIds.isNotEmpty()) add(TurnSettlementOp.Refresh(refreshIds))
+    }
+
+    /**
+     * `addGrowth`: 유닛 하나의 성장 연출을 원본 `_jiesuan` case 11 이후 순서대로 덧붙인다.
+     *
+     * 상태창에 합쳐 보여 준 유닛은 `InfoValues`를 다시 내보내지 않는다.
+     */
+    private fun MutableList<TurnSettlementOp>.addGrowth(
+        unitId: String,
+        steps: List<SettlementGrowthStep>,
+        mergedGrants: Map<String, List<SettlementGrowthGrant>>,
+        port: BattleSettlementOperationPort,
+    ) {
+        steps.forEach { step ->
+            when (step) {
+                is SettlementGrowthStep.InfoValues ->
+                    if (unitId !in mergedGrants) add(TurnSettlementOp.GrowthInfo(unitId, step.grants))
+                is SettlementGrowthStep.AbilityLevelUp -> add(TurnSettlementOp.Info2("${step.attribute.name} 상승"))
+                SettlementGrowthStep.UnitLevelUpActionFinished -> add(TurnSettlementOp.Actions(unitId, listOf(11)))
+                SettlementGrowthStep.UnitLevelUpInfo -> {
+                    val unit = port.presentationUnit(unitId)
+                    add(TurnSettlementOp.Info2("${unit?.name.orEmpty()} 승격하여${unit?.level ?: 0}레벨"))
+                }
+                is SettlementGrowthStep.LearnedMagicInfo -> add(
+                    TurnSettlementOp.Info2("법술 「${port.magicName(step.magicId) ?: step.magicId}」！"),
+                )
+                is SettlementGrowthStep.EquipmentLevelUpAction -> add(
+                    TurnSettlementOp.Actions(
+                        unitId,
+                        if (step.result.slot == CampaignEquipmentSlot.WEAPON) listOf(12, 7) else listOf(12, 33),
+                    ),
+                )
+                is SettlementGrowthStep.EquipmentLevelUpInfo -> add(
+                    TurnSettlementOp.Info2(
+                        if (step.result.slot == CampaignEquipmentSlot.WEAPON) "무기레벨 상승!" else "보구레벨 상승!",
+                    ),
+                )
+                is SettlementGrowthStep.ItemUpgradeCallback -> add(TurnSettlementOp.ItemUpgrade(unitId, step.result))
+                SettlementGrowthStep.DefaultAction -> add(TurnSettlementOp.Default(unitId))
+            }
+        }
     }
 
     /** local 정산 시간: 예약된 operation이 화면 실행기를 점유할 최대 시간을 action·meff·안내 규칙으로 계산한다. */

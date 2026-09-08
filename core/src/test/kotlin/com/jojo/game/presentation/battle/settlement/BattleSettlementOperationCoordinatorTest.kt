@@ -3,6 +3,14 @@ package com.jojo.game.presentation.battle.settlement
 
 import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.Faction
+import com.jojo.game.domain.battle.settlement.BattleSettlementPlan
+import com.jojo.game.domain.battle.settlement.CampSettlementStage
+import com.jojo.game.domain.battle.settlement.SettlementAuthoredSubflowPlan
+import com.jojo.game.domain.battle.settlement.SettlementGrowthStep
+import com.jojo.game.domain.battle.settlement.SettlementInfoDelta
+import com.jojo.game.domain.battle.settlement.SettlementInfoKind
+import com.jojo.game.domain.battle.settlement.SettlementInfoPanel
+import com.jojo.game.domain.battle.settlement.SettlementUnitPlan
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -23,6 +31,32 @@ class BattleSettlementOperationCoordinatorTest {
         )
 
         assertEquals(.3f + .2f + .4f + .6f + (5 * .04f + 1f), duration, .001f)
+    }
+
+    /**
+     * 원본 `_jiesuan`은 `g_charinfo.index`를 한 번 돌며 유닛마다 상태창(case 5~9) ->
+     * 기본 동작(case 10) -> 승격 연출(case 11~) 순서로 재생한다. 성장 연출이 상태창보다
+     * 앞서 몰려 나오면 안 된다.
+     */
+    @Test
+    fun `성장 연출은 해당 유닛 상태창 뒤에 온다`() {
+        val unit = SettlementUnitPlan(
+            "caster", Faction.PLAYER, Faction.PLAYER, Faction.PLAYER,
+            SettlementInfoPanel.MINE, listOf(SettlementInfoDelta(SettlementInfoKind.HP, 10, 4)), emptyList(),
+        )
+        val plan = BattleSettlementPlan(
+            CampSettlementStage.START_STATE, Faction.PLAYER, listOf(unit), emptyList(),
+            authoredSubflows = listOf(
+                SettlementAuthoredSubflowPlan.Growth(
+                    "caster", emptyList(), listOf(SettlementGrowthStep.UnitLevelUpInfo),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf("Focus", "UnitInfo", "Default", "Info2", "Refresh"),
+            BattleSettlementOperationCoordinator().operations(plan, testPort).map { it::class.simpleName },
+        )
     }
 
     /** 정산 포트: duration 계산에 필요한 최소 유닛·효과·환경 정보를 고정한다. */
