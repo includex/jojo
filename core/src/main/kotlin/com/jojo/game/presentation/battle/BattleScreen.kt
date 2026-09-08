@@ -979,7 +979,18 @@ void main() {
         if (!scriptRuntime.hasPendingBattleBackgroundLoad || mapTexture == null) return
         battle.units.values.forEach(::unitTexture)
         scriptRuntime.completeBattleBackgroundLoad()
+        pendingWinConditionFixtureText?.let { text ->
+            pendingWinConditionFixtureText = null
+            scriptRuntime.suspendForWinCondition(text)
+        }
     }
+
+    /**
+     * `pendingWinConditionFixtureText` (상태 값): 배경 로드가 끝난 뒤 열어야 할
+     * 승리 조건 픽스처 문구를 보관한다.
+     */
+
+    private var pendingWinConditionFixtureText: String? = null
 
     /**
      * `dynamicTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -3697,6 +3708,9 @@ void main() {
 
     private val battleInitRoute get() = presentationConfiguration.battleInitRoute
 
+    /** 진입 화면이 아닌 전용 캡처 route가 켜져 있는지 나타낸다. */
+    private val suppressesBattleInitScreen get() = presentationConfiguration.suppressesBattleInitScreen
+
     /**
      * `battleTerrainRoute` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -3992,7 +4006,11 @@ void main() {
             RuntimeBattleRoute.WIN_FULL -> {
                 battle.units.values.firstOrNull { it.characterId == 235 }
                     ?.let { scriptedUnitPresentation.clearVisual(it.id) }
-                scriptRuntime.suspendForWinCondition("장보와 장량을\n격퇴하십시오.")
+                // 이 시점의 시나리오는 아직 loadBg 콜백을 기다리는 DELAY 상태다.
+                // 여기서 곧바로 모달을 열면 재생 상태가 MODAL로 바뀌어, 잠시 뒤 맵
+                // 텍스처가 준비될 때 `completeBattleBackgroundLoad`가 DELAY가 아닌
+                // 상태에서 불려 터진다. 배경 로드가 끝난 뒤로 미룬다.
+                pendingWinConditionFixtureText = "장보와 장량을\n격퇴하십시오."
             }
 
             else -> Unit
@@ -5066,7 +5084,7 @@ void main() {
         // 원본은 `stage.draw()`가 오기 전까지 BattleInitLayer가 전장을 덮고 전투 이름을
         // 보여 준다.  검증용 INITIAL 경로만 그리고 있었던 탓에 실제 플레이에서는 진입
         // 화면이 통째로 빠져 있었다.
-        if (battleInitRoute || (battleInitLayer.view().attached && !mapOnlyCapture)) {
+        if (battleInitRoute || (battleInitLayer.view().attached && !mapOnlyCapture && !suppressesBattleInitScreen)) {
             drawBattleHudChrome()
             drawRewardSectionOverlay()
             // 진입 화면은 다른 경로가 자기 상태에 이르기 전에도 잠깐 붙어 있다.  여기서

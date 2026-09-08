@@ -72,6 +72,32 @@ class RenderLogComparatorTest(unittest.TestCase):
         self.assertTrue(any(diff.get("field") == "asset" for diff in MODULE.compare(draws[0], draws[1], 0)))
         self.assertTrue(any(diff.get("field") == "asset" for diff in MODULE.compare(draws[0], draws[2], 0)))
 
+    def test_dynamic_atlas_texture_prefix_is_not_part_of_a_named_frame_identity(self):
+        """`<url>#Logo_9-1` and `Logo_9-1` are the same draw.
+
+        The Cocos harness only keeps the texture URL while the frame has not
+        been repacked into a runtime DynamicAtlas handle, which depends on how
+        much UI the route has built. An `<unnamed-frame>` has no name to fall
+        back on, so its texture path stays part of the identity.
+        """
+        base = {"sequence": 0, "nodePath": "Canvas/Layer/bg0", "drawType": "tiled-sprite",
+                "x": 1, "y": 2, "w": 3, "h": 4, "opacity": 1, "blend": [770, 771],
+                "visible": True, "text": None}
+        named = dict(base, assetFrameId="assets/resources/native/3c/3c05c264.68a7f.png#Logo_9-1")
+        packed = dict(base, assetFrameId="Logo_9-1")
+        unnamed_one = dict(base, assetFrameId="assets/Game/native/4a/one.jpg#<unnamed-frame>")
+        unnamed_two = dict(base, assetFrameId="assets/Game/native/4a/two.jpg#<unnamed-frame>")
+        with tempfile.TemporaryDirectory() as directory:
+            def draws(name, event):
+                path = Path(directory) / name
+                path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+                return MODULE.adapt(MODULE.load_input(path))[1]
+            left, right = draws("named.jsonl", named), draws("packed.jsonl", packed)
+            first, second = draws("u1.jsonl", unnamed_one), draws("u2.jsonl", unnamed_two)
+        self.assertEqual("Logo_9-1", left[0].asset)
+        self.assertEqual([], MODULE.compare(left, right, 0))
+        self.assertTrue(any(diff.get("field") == "asset" for diff in MODULE.compare(first, second, 0)))
+
 
 if __name__ == "__main__":
     unittest.main()

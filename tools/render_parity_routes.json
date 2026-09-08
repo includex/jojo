@@ -1,0 +1,563 @@
+{
+  "schemaVersion": 1,
+  "description": "Reproducible producer for each render_parity_scope.json state: the Electron harness flags that record the original's draws, the verification launcher capture state that records the game's, and the report the scope file reads. Every entry here is a state that previously depended on a hand-run artifact left in the gitignored build/ directory.",
+  "floatTolerance": "1e-5",
+  "routes": [
+    {
+      "id": "battle-menu",
+      "source": [
+        "--render-battle-menu-route"
+      ],
+      "game": "battle-menu-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-menu-diff.json"
+    },
+    {
+      "id": "battle-terrain-layer",
+      "source": [
+        "--render-battle-terrain-route"
+      ],
+      "game": "battle-terrain-layer-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-terrain-layer-diff.json"
+    },
+    {
+      "id": "battle-init",
+      "source": [
+        "--render-battle-init-route"
+      ],
+      "game": "battle-init-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-init-diff.json"
+    },
+    {
+      "id": "battle-view",
+      "source": [
+        "--render-event-state=battle-view"
+      ],
+      "game": "battle-view-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-view-diff.json"
+    },
+    {
+      "id": "jiqi",
+      "source": [
+        "--render-battle-jiqi-route"
+      ],
+      "game": "battle-jiqi-fixture",
+      "battle": true,
+      "report": "build/render-events/jiqi-diff.json"
+    },
+    {
+      "id": "magic-list",
+      "source": [
+        "--render-battle-magick-list-route=list"
+      ],
+      "game": "battle-magick-list-fixture",
+      "battle": true,
+      "report": "build/render-events/magick-list-diff.json"
+    },
+    {
+      "id": "magic-list-detail",
+      "source": [
+        "--render-battle-magick-list-route=detail"
+      ],
+      "game": "battle-magick-detail-fixture",
+      "battle": true,
+      "report": "build/render-events/magick-detail-diff.json"
+    },
+    {
+      "id": "use-property-list",
+      "source": [
+        "--render-battle-use-property-route=list"
+      ],
+      "game": "battle-use-property-list-fixture",
+      "battle": true,
+      "report": "build/render-events/use-property-list-diff.json"
+    },
+    {
+      "id": "use-property-detail",
+      "source": [
+        "--render-battle-use-property-route=detail"
+      ],
+      "game": "battle-use-property-detail-fixture",
+      "battle": true,
+      "report": "build/render-events/use-property-detail-diff.json"
+    },
+    {
+      "id": "use-property-select",
+      "source": [
+        "--render-battle-use-property-route=select"
+      ],
+      "game": "battle-use-property-select-fixture",
+      "battle": true,
+      "report": "build/render-events/use-property-select-diff.json"
+    },
+    {
+      "id": "use-property-cancel",
+      "source": [
+        "--render-battle-use-property-route=cancel"
+      ],
+      "game": "battle-use-property-cancel-fixture",
+      "battle": true,
+      "report": "build/render-events/use-property-cancel-diff.json"
+    },
+    {
+      "id": "win-condition-compact",
+      "source": [
+        "--render-battle-win-condition-route=compact"
+      ],
+      "game": "battle-win-condition-compact-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-win-condition-compact.json"
+    },
+    {
+      "id": "win-condition-full",
+      "source": [
+        "--render-battle-win-condition-route=full"
+      ],
+      "game": "battle-win-condition-full-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-win-condition-full.json"
+    },
+    {
+      "id": "round-normal",
+      "source": [
+        "--render-battle-round-route=normal"
+      ],
+      "game": "battle-round-normal-fixture",
+      "battle": true,
+      "report": "build/render-events/round-normal-diff.json"
+    },
+    {
+      "id": "round-final",
+      "source": [
+        "--render-battle-round-route=final"
+      ],
+      "game": "battle-round-final-fixture",
+      "battle": true,
+      "report": "build/render-events/round-final-diff.json"
+    },
+    {
+      "id": "round-enemy",
+      "source": [
+        "--render-battle-round-route=enemy"
+      ],
+      "game": "battle-round-enemy-fixture",
+      "battle": true,
+      "report": "build/render-events/round-enemy-diff.json"
+    },
+    {
+      "id": "mini-map-shown",
+      "source": [
+        "--render-battle-mini-map-route=shown"
+      ],
+      "game": "battle-mini-map-shown-fixture",
+      "battle": true,
+      "report": "build/render-events/mini-map-shown-diff.json"
+    },
+    {
+      "id": "mini-map-hidden",
+      "source": [
+        "--render-battle-mini-map-route=hidden"
+      ],
+      "game": "battle-mini-map-hidden-fixture",
+      "battle": true,
+      "report": "build/render-events/mini-map-hidden-diff.json"
+    },
+    {
+      "id": "auto-battle-prompt-off",
+      "source": [
+        "--render-battle-auto-route=prompt-off"
+      ],
+      "game": "battle-auto-battle-prompt-off-fixture",
+      "battle": true,
+      "report": "build/render-events/auto-battle-prompt-off-diff.json"
+    },
+    {
+      "id": "auto-battle-prompt-on",
+      "source": [
+        "--render-battle-auto-route=prompt-on"
+      ],
+      "game": "battle-auto-battle-prompt-on-fixture",
+      "battle": true,
+      "report": "build/render-events/auto-battle-prompt-on-diff.json"
+    },
+    {
+      "id": "auto-battle-active",
+      "source": [
+        "--render-battle-auto-route=active"
+      ],
+      "game": "battle-auto-battle-active-fixture",
+      "battle": true,
+      "report": "build/render-events/auto-battle-active-diff.json"
+    },
+    {
+      "id": "battle-command-initial",
+      "source": [
+        "--render-battle-command-route=initial"
+      ],
+      "game": "battle-command-initial-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-command-initial-diff.json"
+    },
+    {
+      "id": "battle-command-disabled",
+      "source": [
+        "--render-battle-command-route=disabled"
+      ],
+      "game": "battle-command-disabled-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-command-disabled-diff.json"
+    },
+    {
+      "id": "battle-command-cancel",
+      "source": [
+        "--render-battle-command-route=cancel"
+      ],
+      "game": "battle-command-cancel-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-command-cancel-diff.json"
+    },
+    {
+      "id": "battle-command-magick",
+      "source": [
+        "--render-battle-command-route=magick"
+      ],
+      "game": "battle-command-magick-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-command-magick-diff.json"
+    },
+    {
+      "id": "battle-command-property",
+      "source": [
+        "--render-battle-command-route=property"
+      ],
+      "game": "battle-command-property-fixture",
+      "battle": true,
+      "report": "build/render-events/battle-command-property-diff.json"
+    },
+    {
+      "id": "mine-unit-info",
+      "source": [
+        "--render-battle-unit-result-info-route=mine"
+      ],
+      "game": "battle-mine-unit-info-fixture",
+      "battle": true,
+      "report": "build/render-events/mine-unit-info-diff.json"
+    },
+    {
+      "id": "other-unit-info",
+      "source": [
+        "--render-battle-unit-result-info-route=other"
+      ],
+      "game": "battle-other-unit-info-fixture",
+      "battle": true,
+      "report": "build/render-events/other-unit-info-diff.json"
+    },
+    {
+      "id": "palace",
+      "source": [
+        "--render-event-state=palace"
+      ],
+      "game": "hall-palace-fixture",
+      "report": "build/render-events/palace-final-diff.json"
+    },
+    {
+      "id": "section",
+      "source": [
+        "--render-event-state=section"
+      ],
+      "game": "hall-section-fixture",
+      "report": "build/render-events/section-final-diff.json"
+    },
+    {
+      "id": "info",
+      "source": [
+        "--render-event-state=info"
+      ],
+      "game": "hall-info-fixture",
+      "report": "build/render-events/hall-info-diff.json"
+    },
+    {
+      "id": "map-info",
+      "source": [
+        "--render-event-state=map-info"
+      ],
+      "game": "hall-map-info-fixture",
+      "report": "build/render-events/hall-map-info-diff.json"
+    },
+    {
+      "id": "choice",
+      "source": [
+        "--render-event-state=choice"
+      ],
+      "game": "hall-choice-fixture",
+      "report": "build/render-events/hall-choice-final.json"
+    },
+    {
+      "id": "ambition",
+      "source": [
+        "--render-event-state=ambition"
+      ],
+      "game": "hall-ambition-fixture",
+      "report": "build/render-events/hall-ambition-final.json"
+    },
+    {
+      "id": "ask",
+      "source": [
+        "--render-event-state=ask"
+      ],
+      "game": "hall-ask-fixture",
+      "report": "build/render-events/hall-ask-final.json"
+    },
+    {
+      "id": "command",
+      "source": [
+        "--render-event-state=command"
+      ],
+      "game": "hall-command-fixture",
+      "report": "build/render-events/hall-command-final.json"
+    },
+    {
+      "id": "menu",
+      "source": [
+        "--render-event-state=menu"
+      ],
+      "game": "hall-menu-fixture",
+      "report": "build/render-events/hall-menu-final.json"
+    },
+    {
+      "id": "save",
+      "source": [
+        "--render-event-state=save"
+      ],
+      "game": "hall-save-fixture",
+      "report": "build/render-events/hall-save-final.json"
+    },
+    {
+      "id": "save-confirm",
+      "source": [
+        "--render-event-state=save-confirm"
+      ],
+      "game": "hall-save-confirm-fixture",
+      "report": "build/render-events/hall-save-confirm-final.json"
+    },
+    {
+      "id": "equip",
+      "source": [
+        "--render-event-state=equip"
+      ],
+      "game": "hall-equip-fixture",
+      "report": "build/render-events/equip-diff.json"
+    },
+    {
+      "id": "equip-confirm",
+      "source": [
+        "--render-event-state=equip-confirm"
+      ],
+      "game": "hall-equip-confirm-fixture",
+      "report": "build/render-events/equip-confirm-diff.json"
+    },
+    {
+      "id": "equip-confirm-unload",
+      "source": [
+        "--render-event-state=equip-confirm-unload"
+      ],
+      "game": "hall-equip-confirm-unload-fixture",
+      "report": "build/render-events/equip-confirm-unload-diff.json"
+    },
+    {
+      "id": "buy",
+      "source": [
+        "--render-event-state=buy"
+      ],
+      "game": "hall-buy-fixture",
+      "report": "build/render-events/final-buy2.json"
+    },
+    {
+      "id": "sell",
+      "source": [
+        "--render-event-state=sell"
+      ],
+      "game": "hall-sell-fixture",
+      "report": "build/render-events/final-sell.json"
+    },
+    {
+      "id": "forces",
+      "source": [
+        "--render-event-state=forces"
+      ],
+      "game": "hall-forces-fixture",
+      "report": "build/render-events/forces-final-diff.json"
+    },
+    {
+      "id": "property",
+      "source": [
+        "--render-event-state=property"
+      ],
+      "game": "hall-property-fixture",
+      "report": "build/render-events/property-final-diff.json"
+    },
+    {
+      "id": "terrain",
+      "source": [
+        "--render-event-state=terrain"
+      ],
+      "game": "hall-terrain-fixture",
+      "report": "build/render-events/terrain-final-diff.json"
+    },
+    {
+      "id": "treasure",
+      "source": [
+        "--render-event-state=treasure"
+      ],
+      "game": "hall-treasure-fixture",
+      "report": "build/render-events/treasure-final-diff.json"
+    },
+    {
+      "id": "helper",
+      "source": [
+        "--render-event-state=helper"
+      ],
+      "game": "hall-helper-fixture",
+      "report": "build/render-events/helper-final-diff.json"
+    },
+    {
+      "id": "get-item-equipment",
+      "source": [
+        "--render-event-state=get-item-equipment"
+      ],
+      "game": "hall-get-item-equipment-fixture",
+      "report": "build/render-events/compare-hall-get-item-equipment.json"
+    },
+    {
+      "id": "get-item-property",
+      "source": [
+        "--render-event-state=get-item-property"
+      ],
+      "game": "hall-get-item-property-fixture",
+      "report": "build/render-events/compare-hall-get-item-property.json"
+    },
+    {
+      "id": "item-equipment",
+      "source": [
+        "--render-event-state=item-equipment"
+      ],
+      "game": "hall-item-equipment-fixture",
+      "report": "build/render-events/compare-hall-item-equipment.json"
+    },
+    {
+      "id": "item-property",
+      "source": [
+        "--render-event-state=item-property"
+      ],
+      "game": "hall-item-property-fixture",
+      "report": "build/render-events/compare-hall-item-property.json"
+    },
+    {
+      "id": "item-discard-confirm",
+      "source": [
+        "--render-event-state=item-discard-confirm"
+      ],
+      "game": "hall-item-discard-confirm-fixture",
+      "report": "build/render-events/compare-hall-item-discard-confirm.json"
+    },
+    {
+      "id": "exclusive",
+      "source": [
+        "--render-event-state=exclusive"
+      ],
+      "game": "hall-exclusive-fixture",
+      "report": "build/render-events/exclusive-diff.json"
+    },
+    {
+      "id": "exclusive-tab1",
+      "source": [
+        "--render-event-state=exclusive-tab1"
+      ],
+      "game": "hall-exclusive-tab1-fixture",
+      "report": "build/render-events/exclusive-tab1-diff.json"
+    },
+    {
+      "id": "magic",
+      "source": [
+        "--render-event-state=magic"
+      ],
+      "game": "hall-magic-fixture",
+      "report": "build/render-events/magic-diff.json"
+    },
+    {
+      "id": "feats",
+      "source": [
+        "--render-event-state=feats"
+      ],
+      "game": "hall-feats-fixture",
+      "report": "build/render-events/compare-hall-feats.json"
+    },
+    {
+      "id": "feats-help",
+      "source": [
+        "--render-event-state=feats-help"
+      ],
+      "game": "hall-feats-help-fixture",
+      "report": "build/render-events/compare-hall-feats-help.json"
+    },
+    {
+      "id": "unit-list-open",
+      "source": [
+        "--render-event-state=unit-list"
+      ],
+      "game": "hall-unit-list-fixture",
+      "report": "build/render-events/compare-hall-unit-list.json"
+    },
+    {
+      "id": "unit-list-select",
+      "source": [
+        "--render-event-state=unit-list-select"
+      ],
+      "game": "hall-unit-list-select-fixture",
+      "report": "build/render-events/compare-hall-unit-list-select.json"
+    },
+    {
+      "id": "unit-list-close",
+      "source": [
+        "--render-event-state=unit-list-close"
+      ],
+      "game": "hall-unit-list-close-fixture",
+      "report": "build/render-events/compare-hall-unit-list-close.json"
+    },
+    {
+      "id": "achievements",
+      "source": [
+        "--render-event-state=achievements"
+      ],
+      "game": "hall-achievements-fixture",
+      "report": "build/render-events/achievements-diff.json"
+    },
+    {
+      "id": "attribute",
+      "source": [
+        "--render-event-state=attribute"
+      ],
+      "game": "hall-attribute-fixture",
+      "report": "build/render-events/attribute-diff.json"
+    },
+    {
+      "id": "generic-list",
+      "source": [
+        "--render-event-state=generic-list"
+      ],
+      "game": "hall-generic-list-fixture",
+      "report": "build/render-events/generic-list-diff.json"
+    },
+    {
+      "id": "skip",
+      "source": [
+        "--render-event-state=skip-open"
+      ],
+      "game": "hall-skip-open-fixture",
+      "report": "build/render-events/skip-open-diff.json"
+    }
+  ]
+}

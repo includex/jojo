@@ -73,6 +73,14 @@ internal class BattlePresentationConfiguration(
     /** 전투 초기화 화면 route 여부를 나타낸다. */
     val battleInitRoute = route == RuntimeBattleRoute.INITIAL
 
+    /**
+     * 진입 화면(BattleInitLayer)이 아닌 전용 캡처 route가 켜져 있는지 나타낸다.
+     * 진입 화면은 자기 상태에 이르기 전의 다른 캡처 route 위에도 잠깐 붙어 있고,
+     * 픽스처에 따라서는 전장 그리기 요청이 오지 않아 영영 붙어 있기도 한다.
+     * 그 동안 전장 경로를 가로막으면 해당 캡처가 완성되지 못한다.
+     */
+    val suppressesBattleInitScreen = route != RuntimeBattleRoute.NONE && route != RuntimeBattleRoute.INITIAL
+
     /** 지형 정보 화면 route 여부를 나타낸다. */
     val battleTerrainRoute = route == RuntimeBattleRoute.TERRAIN
 

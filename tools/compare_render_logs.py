@@ -266,6 +266,26 @@ def load_input(path: Path) -> Any:
     }
 
 
+def _named_frame_identity(identity: Any) -> Any:
+    """Reduce `<texture-url>#<SpriteFrame name>` to the SpriteFrame name.
+
+    The Cocos harness emits `${texture}#${frame}` only while the frame's
+    texture still has a native URL, and the bare frame name once Cocos'
+    DynamicAtlas has repacked it into a runtime `Tex.NNN` handle.  Which of the
+    two a given route observes depends on how much UI has been built by that
+    point, so the prefix is not a property of the draw.  The harness says as
+    much itself: "SpriteFrame names are the stable identity for dynamically
+    packed UI atlases."
+
+    An `<unnamed-frame>` has no such name, so there the texture path *is* the
+    identity and the whole string is kept.
+    """
+    if not isinstance(identity, str) or "#" not in identity:
+        return identity
+    _, _, frame = identity.rpartition("#")
+    return identity if frame in ("", "<unnamed-frame>") else frame
+
+
 def _renderer_asset(event: dict[str, Any]) -> Any:
     """Keep atlas crop/mirroring in the semantic frame identity when logged.
 
@@ -275,6 +295,7 @@ def _renderer_asset(event: dict[str, Any]) -> Any:
     renderers opt into the extended fields.
     """
     identity = event.get("assetId") if event.get("assetId") is not None else event.get("assetFrameId")
+    identity = _named_frame_identity(identity)
     source_rect = event.get("sourceRect")
     flip_x = event.get("flipX")
     flip_y = event.get("flipY")

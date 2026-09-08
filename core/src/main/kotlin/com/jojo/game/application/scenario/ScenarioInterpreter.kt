@@ -391,6 +391,11 @@ class ScenarioInterpreter internal constructor(
         dialogueCoordinator.reset()
         choiceCoordinator.reset()
         modalController.reset()
+        // 장면을 통째로 갈아 끼우면서 지연 조율기만 빠뜨리면, 앞 장면이 걸어 둔
+        // loadBg 콜백 대기가 새 장면까지 살아남는다. 그 뒤 재생 상태는 대사·모달로
+        // 바뀌어 있는데 BattleScreen이 맵 준비를 알리는 순간
+        // `completeBattleBackgroundLoad`가 DELAY가 아닌 상태에서 불려 터진다.
+        delayCoordinator.reset()
         stage.heads.clear()
         stage.clearUnits()
         scene.backgroundId?.let { stage.apply(ScenarioCommand.LoadBackground(2, it)) }
