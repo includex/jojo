@@ -9,12 +9,21 @@ package com.jojo.game.infrastructure.audio
  * 200 이상이면 `Se_e_`, 100 이상이면 `Se_m_`, 그 밖에는 `Se`를 앞에 붙이고 남은 값을
  * 두 자리로 적어 `Game/Sound/`에서 읽는다. 이 규칙을 그대로 옮겼다.
  */
-internal object GameAudioPaths {
+object GameAudioPaths {
     /** 배경음 경로: 번호에 2를 더한 값을 두 자리로 적는다. */
     fun background(soundId: Int): String {
         val track = (soundId + 2).toString().padStart(2, '0')
         return "audio/$track-AudioTrack $track.mp3"
     }
+
+    /**
+     * 단추 소리 경로.
+     *
+     * 원본 `UIFrame.addTouchEventListener`는 손을 뗄 때 세 번째 인자의 1비트가 서 있으면
+     * `Manager.clickEff`를, 2비트가 서 있으면 `cancelEff`를 낸다. 두 소리는 Welcome 장면
+     * 프리팹에 uuid로만 걸려 있어 이름이 없다. 내보낼 때 붙인 이름을 쓴다.
+     */
+    fun ui(kind: UiSound): String = "audio/${kind.fileName}.mp3"
 
     /** 효과음 경로: 200·100 경계로 접두사를 고르고 남은 값을 두 자리로 적는다. */
     fun effect(soundId: Int): String = when {
@@ -22,4 +31,13 @@ internal object GameAudioPaths {
         soundId >= 100 -> "audio/Se_m_${(soundId - 100).toString().padStart(2, '0')}.mp3"
         else -> "audio/Se${soundId.toString().padStart(2, '0')}.mp3"
     }
+}
+
+/** UiSound: 단추를 눌렀을 때 나는 두 소리다. */
+enum class UiSound(val fileName: String) {
+    /** 원본 `Manager.clickEff`다(세 번째 인자의 1비트). */
+    CLICK("ui-click"),
+
+    /** 원본 `Manager.cancelEff`다(세 번째 인자의 2비트). */
+    CANCEL("ui-cancel"),
 }

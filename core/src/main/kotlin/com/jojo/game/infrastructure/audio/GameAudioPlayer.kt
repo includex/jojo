@@ -40,6 +40,12 @@ class GameAudioPlayer(
     /** 효과음별로 마지막에 재생한 시각이다. 원본 `Sound.m_effectFlag`에 해당한다. */
     private val lastEffectPlayedAt = mutableMapOf<Int, Long>()
 
+    /** 단추 소리 자원이다. */
+    private val uiSounds = mutableMapOf<UiSound, Sound>()
+
+    /** 단추 소리별로 마지막에 재생한 시각이다. */
+    private val lastUiSoundAt = mutableMapOf<UiSound, Long>()
+
     /**
      * 시나리오 단계의 배경음과 대기 중인 효과음을 재생 상태에 반영한다.
      *
@@ -73,6 +79,31 @@ class GameAudioPlayer(
     /** 전투 화면의 공격·피해·효과 애니메이션에 연결된 효과음을 재생한다. */
     fun playBattleEffect(soundId: Int) {
         if (enabled) playEffect(soundId, 1)
+    }
+
+    /**
+     * 단추 소리: 원본이 손을 뗄 때 내는 클릭·취소음을 낸다.
+     *
+     * 원본 `UIFrame.addTouchEventListener`는 등록할 때 받은 깃발의 1비트면 클릭음,
+     * 2비트면 취소음을 내고, 깃발이 없으면 아무 소리도 내지 않는다. 소리 설정을 보는
+     * 것도 다른 효과음과 같다(`Sound.playEffect`).
+     */
+    fun playUiSound(kind: UiSound) {
+        if (!enabled || !effectOn()) return
+        val path = GameAudioPaths.ui(kind)
+        val sound = uiSounds[kind] ?: run {
+            val file = Gdx.files.internal(path)
+            if (!file.exists()) {
+                Gdx.app.log("JojoGame", "Missing game ui sound: $path")
+                return
+            }
+            loadOrLog(path) { Gdx.audio.newSound(file) }?.also { uiSounds[kind] = it } ?: return
+        }
+        // 원본은 같은 소리를 100밀리초 안에 다시 부르면 무시한다.
+        val now = System.currentTimeMillis()
+        if (now - (lastUiSoundAt[kind] ?: 0L) < EFFECT_REPEAT_INTERVAL_MS) return
+        lastUiSoundAt[kind] = now
+        sound.play()
     }
 
     /** 로드 실패가 화면을 멈추지 않도록 감싼다. 원본에도 자산이 없으면 조용히 넘어간다. */
@@ -158,6 +189,9 @@ class GameAudioPlayer(
         background?.dispose()
         effects.values.forEach(Sound::dispose)
         effects.clear()
+        uiSounds.values.forEach(Sound::dispose)
+        uiSounds.clear()
+        lastUiSoundAt.clear()
         activeEffects.clear()
         lastEffectPlayedAt.clear()
     }

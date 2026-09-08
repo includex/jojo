@@ -16,6 +16,8 @@ class GameAudioPathsTest {
         assertEquals("audio/Se07.mp3", GameAudioPaths.effect(7))
         assertEquals("audio/Se_m_03.mp3", GameAudioPaths.effect(103))
         assertEquals("audio/Se_e_12.mp3", GameAudioPaths.effect(212))
+        assertEquals("audio/ui-click.mp3", GameAudioPaths.ui(UiSound.CLICK))
+        assertEquals("audio/ui-cancel.mp3", GameAudioPaths.ui(UiSound.CANCEL))
     }
 
     @Test
@@ -29,6 +31,7 @@ class GameAudioPathsTest {
             for (id in 100..199) add(File(GameAudioPaths.effect(id)).name)
             for (id in 200..299) add(File(GameAudioPaths.effect(id)).name)
             for (id in -2..99) add(File(GameAudioPaths.background(id)).name)
+            UiSound.entries.forEach { add(File(GameAudioPaths.ui(it)).name) }
         }
         assertEquals(emptyList(), clips.filterNot { it in reachable }.sorted())
     }

@@ -7,9 +7,30 @@ import sys
 from pathlib import Path
 
 
+# The click and cancel sounds are not in the Game bundle and carry no readable
+# name: `UIFrame.addTouchEventListener` plays whatever AudioClip is assigned to
+# `Manager.clickEff`/`cancelEff` in the Welcome scene, and those are referenced
+# by uuid only.  Export them under stable names the game can ask for.
+UI_CLIPS = {
+    "c27c9ce7-c4e4-46bb-9b8b-8467d955b907": "ui-click",
+    "606eb979-280d-40de-8195-4267f0ef1007": "ui-cancel",
+}
+
+
+def export_ui_clips(source_root: Path, destination: Path) -> int:
+    exported = 0
+    for uuid, name in UI_CLIPS.items():
+        native = next(source_root.glob(f"main/native/{uuid[:2]}/{uuid}.*.mp3"), None)
+        if native is None:
+            continue
+        shutil.copy2(native, destination / f"{name}.mp3")
+        exported += 1
+    return exported
+
+
 def main(source_root: Path, destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
-    clips = 0
+    clips = export_ui_clips(source_root, destination)
     for metadata in source_root.glob("Game/import/*/*.json"):
         try:
             payload = metadata.read_text(encoding="utf-8")

@@ -90,6 +90,7 @@ import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
 import com.jojo.game.presentation.shared.dialogue.DialoguePortraitGeometry
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -4498,7 +4499,11 @@ void main() {
                     return true
                 }
                 if (pointerIntent.pressedCapture == BattleInputCapture.MENU_HUD) {
-                    if (pointerIntent.releasedTarget == BattleInputTarget.MENU_HUD) openBattleMenu()
+                    // 원본 `BattleLayer`는 `menu_button`을 깃발 1로 등록한다.
+                    if (pointerIntent.releasedTarget == BattleInputTarget.MENU_HUD) {
+                        audio.playUiSound(UiSound.CLICK)
+                        openBattleMenu()
+                    }
                     return true
                 }
                 if (outcomePresentation.winPromptActive) {
@@ -4645,8 +4650,17 @@ void main() {
                     val pressed = battleMenuPressedIndex
                     battleTraceCoordinator?.recordMenuTap(pressed, released, world.x, world.y)
                     battleMenuPressedIndex = null
-                    if (pressed != null && pressed == released) handleBattleMenuTap(pressed)
-                    else if (pressed == null) closeBattleMenu()
+                    // 원본 `MenuLayer`는 명령 단추를 깃발 1(클릭음), 뒤쪽 막을 깃발 2(취소음)로
+                    // 등록한다. 소리는 손을 뗄 때, 그리고 누를 수 있는 단추일 때만 난다.
+                    if (pressed != null && pressed == released) {
+                        if (battleMenuLayer?.view()?.buttons?.get(MenuLayer.Command.entries[pressed]) == true) {
+                            audio.playUiSound(UiSound.CLICK)
+                        }
+                        handleBattleMenuTap(pressed)
+                    } else if (pressed == null) {
+                        audio.playUiSound(UiSound.CANCEL)
+                        closeBattleMenu()
+                    }
                     return true
                 }
                 if (pointerIntent.pressedCapture == BattleInputCapture.MINI_MAP) {
