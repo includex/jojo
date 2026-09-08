@@ -1121,13 +1121,6 @@ void main() {
             override fun battleMenuOpen(): Boolean = this@BattleScreen.battleMenuOpen
 
             /**
-             * `sourceScenario`: 타입의 핵심 동작을 수행한다.
-             * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-             */
-
-            override fun sourceScenario(): String = this@BattleScreen.sourceScenario
-
-            /**
              * `spriteFrame`: 타입의 핵심 동작을 수행한다.
              * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
              */
