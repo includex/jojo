@@ -903,8 +903,7 @@
         "--render-event-state=battle-edit-avatar"
       ],
       "game": "hall-battle-edit-avatar-fixture",
-      "report": "build/reports/render-events/avatar-edit-default.json",
-      "cannedReplay": "presentation/battle/edit/BattleUnitEditLayer.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
+      "report": "build/reports/render-events/avatar-edit-default.json"
     },
     {
       "id": "edit4-default",
@@ -964,8 +963,7 @@
         "--render-event-state=define-unit-default"
       ],
       "game": "hall-define-unit-default-fixture",
-      "report": "build/render-events/define-unit-default-diff.json",
-      "cannedReplay": "DefineUnitRoute.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
+      "report": "build/render-events/define-unit-default-diff.json"
     },
     {
       "id": "define-unit-reset-prompt",
@@ -973,8 +971,7 @@
         "--render-event-state=define-unit-reset-prompt"
       ],
       "game": "hall-define-unit-reset-prompt-fixture",
-      "report": "build/render-events/define-unit-reset-prompt-diff.json",
-      "cannedReplay": "DefineUnitRoute.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
+      "report": "build/render-events/define-unit-reset-prompt-diff.json"
     },
     {
       "id": "define-unit-finish-prompt",
@@ -982,8 +979,7 @@
         "--render-event-state=define-unit-finish-prompt"
       ],
       "game": "hall-define-unit-finish-prompt-fixture",
-      "report": "build/render-events/define-unit-finish-prompt-diff.json",
-      "cannedReplay": "DefineUnitRoute.kt emits a gzipped copy of the original's own render events instead of computing this screen's draws, so a PASS here is circular. Treat the state as unverified until the screen builds its own log, as cmd-* and modal-load now do."
+      "report": "build/render-events/define-unit-finish-prompt-diff.json"
     },
     {
       "id": "raffle-gated-diagnostic",
