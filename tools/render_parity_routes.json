@@ -853,7 +853,8 @@
         "--render-login-overlay-route=cmd-default"
       ],
       "game": "login-cmd-default-fixture",
-      "report": "build/render-events/cmd-default-diff.json"
+      "report": "build/render-events/cmd-default-diff.json",
+      "knownGap": "CmdRoute.kt replays a gzipped copy of the original's own render events instead of modelling the screen, so this comparison is circular; the one standing diff (scrollBar/bar opacity 1 vs 0.483) is the stored table going stale."
     },
     {
       "id": "cmd-selected",
@@ -861,7 +862,8 @@
         "--render-login-overlay-route=cmd-selected"
       ],
       "game": "login-cmd-selected-fixture",
-      "report": "build/render-events/cmd-selected-diff.json"
+      "report": "build/render-events/cmd-selected-diff.json",
+      "knownGap": "Same canned table as cmd-default."
     },
     {
       "id": "cmd-info",
@@ -869,7 +871,8 @@
         "--render-login-overlay-route=cmd-info"
       ],
       "game": "login-cmd-info-fixture",
-      "report": "build/render-events/cmd-info-diff.json"
+      "report": "build/render-events/cmd-info-diff.json",
+      "knownGap": "Same canned table as cmd-default."
     },
     {
       "id": "battle-edit-default",
@@ -989,7 +992,8 @@
         "--render-login-overlay-route=modal-load"
       ],
       "game": "login-modal-load-fixture",
-      "report": "build/render-events/modal-load-diff.json"
+      "report": "build/render-events/modal-load-diff.json",
+      "knownGap": "ModalLoadRouteScreen.kt replays a gzipped copy of the original's render events; its Canvas/Layer/label width is the container's 852.38 where the original's auto-sized Cocos Label measures 249.64."
     },
     {
       "id": "start-item",
