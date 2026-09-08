@@ -8832,16 +8832,12 @@ void main() {
                 it.id
             )
         }).asSequence().filter { it.visible }.filter { !battleInitRoute }.sortedWith(
+            // 원본은 유닛을 화면 y 순으로 그리고, 같은 줄에서는 무장 번호가 작은 쪽을 먼저
+            // 그린다. 예전에는 이 대화 장면의 순서를 무장 번호 열아홉 개를 적어 둔 표로
+            // 대신했는데, 그 표는 이 규칙이 만들어 내는 순서와 정확히 같다.
             if (battleDialogueBlendRoute) {
-                val order = listOf(
-                    480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211
-                )
-                compareBy<BattleUnit> {
-                    order.indexOf(it.characterId).let { index -> if (index < 0) 999 else index }
-                }
+                compareBy<BattleUnit>({ visualTile(it).second }, { it.characterId })
             } else compareBy<BattleUnit> { visualTile(it).second }).toList()
-        val dialogueOrder =
-            listOf(480, 483, 484, 146, 147, 481, 482, 485, 478, 479, 475, 476, 477, 235, 334, 474, 210, 234, 211)
         return visibleUnits.map { unit ->
             val frame = unitSpriteFrameResolver.frame(unit)
             val (visualX, visualY) = visualTile(unit)
@@ -8850,7 +8846,7 @@ void main() {
             val healthVisible = unit.otherNodesVisible
             BattleRenderEventProjectionUnitInput(
                 sortOrder = if (battleDialogueBlendRoute) {
-                    dialogueOrder.indexOf(unit.characterId).let { index -> if (index < 0) 999 else index }.toFloat()
+                    visibleUnits.indexOf(unit).toFloat()
                 } else visualY,
                 visualX = visualX,
                 visualY = visualY,
