@@ -51,6 +51,9 @@ internal class VerificationArtifactObserver(
     /** scenarioArtifactSent: 검증 시나리오 식별자를 담는다. */
     private var scenarioArtifactSent = false
 
+    /** 직전 프레임의 렌더 이벤트다. 같은 값이 이어져야 화면이 자리를 잡은 것으로 본다. */
+    private var settledEventLog: String? = null
+
     /** onArtifact: 런타임 이벤트를 받아 검증 산출물을 갱신한다. */
     override fun onArtifact(event: RuntimeArtifactEvent) {
         when (event) {
@@ -61,10 +64,24 @@ internal class VerificationArtifactObserver(
         }
     }
 
-    /** onFrame: 런타임 이벤트를 받아 검증 산출물을 갱신한다. */
+    /**
+     * onFrame: 런타임 이벤트를 받아 검증 산출물을 갱신한다.
+     *
+     * 예전에는 1초가 지나면 바로 적었다. 기계가 바쁘면 그 사이에 요청한 창이 아직 붙지
+     * 않아, 창이 통째로 빠진 로그가 남았다(`hall-menu` 등이 잇달아 돌릴 때만 어긋난
+     * 까닭이다). 이제 같은 로그가 두 프레임 이어질 때까지 기다린다. 스스로 계속 움직이는
+     * 화면도 멈추지 않도록 [SCENARIO_ARTIFACT_TIMEOUT_SECONDS]가 지나면 그대로 적는다.
+     */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
         if (scenario.elapsedSeconds <= TITLE_ARTIFACT_DELAY_SECONDS || scenarioArtifactSent) return
+        if (wantsEventLog && scenario.elapsedSeconds <= SCENARIO_ARTIFACT_TIMEOUT_SECONDS) {
+            val current = screen.eventLog(output.state)
+            if (current != settledEventLog) {
+                settledEventLog = current
+                return
+            }
+        }
         scenarioArtifactSent = true
         if (wantsEventLog) onArtifact(RuntimeArtifactEvent.EventLog(output.state, screen))
         else if (wantsFrame) onArtifact(RuntimeArtifactEvent.Frame(output.state, screen))
@@ -148,6 +165,14 @@ internal class VerificationArtifactObserver(
     private companion object {
         /** TITLE_ARTIFACT_DELAY_SECONDS: 검증 대상의 현재 상태 값을 담는다. */
         const val TITLE_ARTIFACT_DELAY_SECONDS = 1f
+
+        /**
+         * 렌더 이벤트가 잦아들기를 기다리는 한도다.
+         *
+         * 원본이 스스로 움직이는 화면(설정 창의 깜빡이는 상자 등)은 두 프레임이 같아지지
+         * 않는다. 이 시각이 지나면 그대로 적어 검증이 멈추지 않게 한다.
+         */
+        const val SCENARIO_ARTIFACT_TIMEOUT_SECONDS = 4f
         /** START_ITEM_ROUTE: 검증 화면 경로를 담는다. */
         const val START_ITEM_ROUTE = "start-item-fixture"
     }
