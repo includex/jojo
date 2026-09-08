@@ -1430,7 +1430,8 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val itemUpgradeFont: BitmapFont = KoreanFont.create(36, "단검유비장비Lv공격력방어력정신력 -> 0123456789")
+    private val itemUpgradeFont: BitmapFont =
+        KoreanFont.create(36, "단검유비장비Lv공격력방어력정신력 -> 0123456789" + BATTLE_COMMAND_LABELS.joinToString(""))
 
     /**
      * `battleRewardOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -10127,8 +10128,9 @@ void main() {
         batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
             batch, 736f, 96f, 397.2f, 322.5f
         )
-        val labels = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기", "취소")
-        itemUpgradeFont.data.setScale(40f / 26f)
+        // itemUpgradeFont는 36px로 굽는다. 26px 기준 배율을 그대로 쓰면 55px로 커져
+        // 문구가 버튼 밖으로 넘친다.
+        itemUpgradeFont.data.setScale(40f / 36f)
         battleCommandFlow.view().forEachIndexed { index, button ->
             val visual = BattleCommandRenderModel.visuals[index]
             NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
@@ -10140,7 +10142,9 @@ void main() {
                 BattleCommandRenderModel.DISABLED_COMPONENT,
                 1f
             )
-            itemUpgradeFont.draw(batch, labels[index], visual.labelX, visual.labelY + 40f, 100f, Align.center, false)
+            // `포위 공격`만 두 어절이라 한 줄에 안 들어간다. 원본 버튼도 정사각형이라
+            // 줄바꿈으로 받는다. 한 어절짜리 문구는 줄바꿈 여부와 무관하게 같은 자리다.
+            itemUpgradeFont.draw(batch, BATTLE_COMMAND_LABELS[index], visual.labelX, visual.labelY + 40f, 100f, Align.center, true)
             val iconColor = if (button.interactable) Color.WHITE else Color(
                 BattleCommandRenderModel.DISABLED_COMPONENT,
                 BattleCommandRenderModel.DISABLED_COMPONENT,
@@ -11962,6 +11966,15 @@ private const val BATTLE_BODY_SCALE_Y = .98f
  * 대사 글꼴은 유닛 이름과 현재 시나리오 원문으로 글리프를 굽는다. 여기에 없는 글자는
  * 렌더링에서 빠지므로, 화면이 literal로 그리는 문구를 모두 모아 함께 굽는다.
  */
+/**
+ * 전투 명령창 버튼 문구다.
+ *
+ * 글꼴은 필요한 글자만 구워 쓰기 때문에 이 목록에 없는 글자는 화면에서 그냥 빠진다.
+ * 실제로 `공격`을 뺀 여섯 개가 통째로 보이지 않았다. 문구와 글꼴 글자 집합이 갈라지지
+ * 않도록 한 곳에서 정의하고 글꼴 생성에도 같은 값을 넘긴다.
+ */
+private val BATTLE_COMMAND_LABELS = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기", "취소")
+
 private const val BATTLE_UI_GLYPHS =
     "다시 플레이하시겠습니까?게임 저장하시겠습니까?예아니오턴 수짐이 알겠다.0123456789/ "
 
