@@ -272,13 +272,16 @@ class BattleUnitPresentationState(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val STAND_MB = 36
+        const val STAND_MB = 37
         /**
          * `STAND_ZD` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         *
+         * 원본 `BattleConfg.BATTLE_ACTION`은 `STAND_ZD = 36`, `STAND_MB = 37`이다. 두 값이
+         * 서로 바뀌어 있어 중독된 유닛이 마비 포즈로, 마비된 유닛이 중독 포즈로 나왔다.
          */
 
-        const val STAND_ZD = 37
+        const val STAND_ZD = 36
         /**
          * `STAND_ZD_MB` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

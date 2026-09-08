@@ -33,8 +33,9 @@ class BattleUnitDefaultActionTest {
         assertEquals(BattleUnitPresentationState.DefaultAction(0, true), unit().presentationAction())
         assertEquals(BattleUnitPresentationState.DefaultAction(39, false), unit(acted = true).presentationAction())
         assertEquals(BattleUnitPresentationState.DefaultAction(40, true), unit(acted = true, states = setOf(BattleStatus.POISON)).presentationAction())
-        assertEquals(BattleUnitPresentationState.DefaultAction(36, true), unit(states = setOf(BattleStatus.PARALYSIS)).presentationAction())
-        assertEquals(BattleUnitPresentationState.DefaultAction(37, true), unit(states = setOf(BattleStatus.POISON)).presentationAction())
+        // 원본 BattleConfg: STAND_ZD(중독) = 36, STAND_MB(마비) = 37.
+        assertEquals(BattleUnitPresentationState.DefaultAction(37, true), unit(states = setOf(BattleStatus.PARALYSIS)).presentationAction())
+        assertEquals(BattleUnitPresentationState.DefaultAction(36, true), unit(states = setOf(BattleStatus.POISON)).presentationAction())
         assertEquals(BattleUnitPresentationState.DefaultAction(38, true), unit(states = setOf(BattleStatus.POISON, BattleStatus.PARALYSIS)).presentationAction())
     }
 
