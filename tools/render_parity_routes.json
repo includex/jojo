@@ -927,8 +927,7 @@
         "--render-event-state=learn-default"
       ],
       "game": "hall-learn-default-fixture",
-      "report": "build/render-events/learn-default-diff.json",
-      "cannedReplay": "LearnUnitSkillFlow exposes only a select-list effect, while the original's 유닛 특성 편집 screen draws 61 distinct nodes across three panels with 5 editable fields. The gzipped table stands in for a screen the port does not implement."
+      "report": "build/render-events/learn-default-diff.json"
     },
     {
       "id": "learn-unit-skill-select",
@@ -945,8 +944,7 @@
         "--render-event-state=learn-apply"
       ],
       "game": "hall-learn-apply-fixture",
-      "report": "build/render-events/learn-apply-diff.json",
-      "cannedReplay": "Same screen as learn-unit-skill-default after applying; only one label differs in the original."
+      "report": "build/render-events/learn-apply-diff.json"
     },
     {
       "id": "learn-unit-skill-cancel",

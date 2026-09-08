@@ -19,6 +19,23 @@ internal class GameDataCatalogUnitDomain(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
+    /**
+     * 특성 이름 목록: `unitPostsSkill` 표의 이름 열을 순서대로 돌려준다.
+     *
+     * 원본 `LearnUnitSkillLayer`는 이 표를 그대로 훑어 목록의 각 줄을
+     * `"<번호>.<이름>"`으로 적는다(`UNIT_POSTS_SKILL_ATTR.NAME`은 0번 열이다).
+     */
+    fun postSkillNames(): List<String> = unitPostSkills.map { it.getString("0", "") }
+
+    /**
+     * 특성 슬롯 값: `unitPostsSkill` 표에서 한 특성의 슬롯 값을 돌려준다.
+     *
+     * 원본 `skillAttr2(skillId, attr, default)`와 같은 계약이다. 표를 벗어나면 기본값을
+     * 그대로 돌려준다. 열 번호는 `UNIT_POSTS_SKILL_ATTR`을 따른다(UNIT0=6, POSTS=2).
+     */
+    fun postSkillAttribute(skillId: Int, attribute: Int, fallback: Int): Int =
+        unitPostSkills.getOrNull(skillId)?.int(attribute.toString(), fallback) ?: fallback
+
     fun skillsForUnit(characterId: Int, postsId: Int, campaign: CampaignState?): Map<Int, Int> {
         val basePosts = if (postsId >= 60) postsId else postsId - postsId % 3
         val upperPosts = if (postsId >= 60) postsId + 1 else basePosts + 3

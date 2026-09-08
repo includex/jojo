@@ -53,7 +53,18 @@ class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: L
     }
 
     /** renderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
-    fun renderEventLog() = LearnUnitSkillRenderEvents.jsonl(route)
+    fun renderEventLog() = when (route) {
+        // 기본·적용 화면은 게임 자료에서 직접 계산한다. 선택 목록과 취소 뒤 편성소는
+        // 아직 저장된 원본 로그를 되읽는다.
+        LearnUnitSkillRoute.DEFAULT, LearnUnitSkillRoute.APPLY ->
+            com.jojo.game.verification.evidence.LearnUnitSkillScreenEvents.record(
+                com.jojo.game.infrastructure.data.GameDataCatalog.load(),
+                selectedSkillId = 0,
+                routeKey = route.key,
+                unit0Override = flow.unit0.takeIf { route == LearnUnitSkillRoute.APPLY },
+            )
+        else -> LearnUnitSkillRenderEvents.jsonl(route)
+    }
     /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()
     /** dispose: 화면과 렌더링 리소스를 해제한다. */

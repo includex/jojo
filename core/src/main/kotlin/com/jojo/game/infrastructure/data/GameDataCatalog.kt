@@ -476,6 +476,21 @@ class GameDataCatalog private constructor(
         units.skillsForUnit(characterId, postsId, campaign)
 
     /**
+     * `postSkillNames`: 상태나 데이터를 조회한다.
+     * `unitPostsSkill` 표의 이름 열을 순서대로 돌려준다.
+     */
+
+    fun postSkillNames() = units.postSkillNames()
+
+    /**
+     * `postSkillAttribute`: 상태나 데이터를 조회한다.
+     * 원본 `skillAttr2`와 같은 계약으로 특성 슬롯 값을 돌려준다.
+     */
+
+    fun postSkillAttribute(skillId: Int, attribute: Int, fallback: Int) =
+        units.postSkillAttribute(skillId, attribute, fallback)
+
+    /**
      * `unitProfile`: 상태나 데이터를 조회한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
