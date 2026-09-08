@@ -4577,12 +4577,17 @@ void main() {
                     return true
                 }
                 jiqiLayer?.let { layer ->
-                    if (jiqiPressed) layer.onCancel(JiQiLayer.TOUCH_END)
+                    // 원본 `JiQiLayer`는 뒤쪽 막까지 깃발 1이라 닫을 때도 클릭음이 난다.
+                    if (jiqiPressed) {
+                        audio.playUiSound(UiSound.CLICK)
+                        layer.onCancel(JiQiLayer.TOUCH_END)
+                    }
                     jiqiPressed = false
                     if (!layer.attached) jiqiLayer = null
                     return true
                 }
                 scriptWinConditions?.let { layer ->
+                    // 원본 `WinConditionsLayer`의 뒤쪽 막에는 깃발이 없어 소리가 나지 않는다.
                     layer.cancel(WinConditionsLayer.TOUCH_END)
                     return true
                 }
@@ -4664,7 +4669,11 @@ void main() {
                     return true
                 }
                 if (pointerIntent.pressedCapture == BattleInputCapture.MINI_MAP) {
-                    if (pointerIntent.releasedTarget == BattleInputTarget.MINI_MAP) miniMapLayer.touch(MiniMapLayer.TOUCH_END)
+                    // 원본 `MiniMapLayer`의 여닫이 단추는 깃발 1이다.
+                    if (pointerIntent.releasedTarget == BattleInputTarget.MINI_MAP) {
+                        audio.playUiSound(UiSound.CLICK)
+                        miniMapLayer.touch(MiniMapLayer.TOUCH_END)
+                    }
                     return true
                 }
                 if (pointerIntent.pressedCapture == BattleInputCapture.MINI_MAP_SURFACE) return true
