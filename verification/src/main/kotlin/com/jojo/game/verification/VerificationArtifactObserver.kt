@@ -29,7 +29,6 @@ import com.jojo.game.verification.scenario.evidence.ScenarioTerrainEvidenceRecor
 import com.jojo.game.verification.scenario.evidence.ScenarioTreasureEvidenceRecorder
 import com.jojo.game.verification.preparation.BattlePreparationTraceRecorder
 import com.jojo.game.verification.cmd.CmdRouteScreen
-import com.jojo.game.verification.load.ModalLoadRouteScreen
 import com.jojo.game.verification.terminal.TerminalSceneRouteScreen
 import com.jojo.game.verification.title.evidence.TitleRenderEventRecorder
 
@@ -161,7 +160,6 @@ internal class VerificationArtifactObserver(
 
 private fun Screen?.eventLog(state: String?): String = when (this) {
     is CmdRouteScreen -> renderEventLog()
-    is ModalLoadRouteScreen -> renderEventLog()
     is TerminalSceneRouteScreen -> renderEventLog()
     is ScenarioScreen -> scenarioEventLog(runtimeSnapshot(), state)
     is BattleScreen -> renderEventLog()

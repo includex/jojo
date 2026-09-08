@@ -16,7 +16,6 @@ import com.jojo.game.presentation.title.LoginOptionalOverlayRoute
 import com.jojo.game.presentation.title.TitleScreen
 import com.jojo.game.verification.cmd.CmdRoute
 import com.jojo.game.verification.cmd.CmdRouteScreen
-import com.jojo.game.verification.load.ModalLoadRouteScreen
 import com.jojo.game.verification.terminal.TerminalSceneRoute
 import com.jojo.game.verification.terminal.TerminalSceneRouteScreen
 
@@ -35,7 +34,18 @@ class CaptureFixtureStartupExtension : RuntimeStartupExtension {
             "hall-generic-list-fixture" -> return show(GenericListFixtureScreen(request.game))
         }
         when (state?.removeSuffix("-fixture")) {
-            "login-modal-load" -> return show(ModalLoadRouteScreen(request.game))
+            // 원본은 등록 확인 응답이 오기 전의 설정 화면을 그대로 붙잡아 둔다.
+            // 이식본도 진짜 TitleScreen을 그 상태로 세워야 화면을 실제로 그린 결과를
+            // 비교하게 된다. 예전에는 원본 로그를 통째로 저장해 두었다가 되읽었다.
+            "login-modal-load" -> return show(
+                TitleScreen(
+                    request.game,
+                    initialSettingOpen = true,
+                    useInitialSettings = true,
+                    registrationCheckPending = true,
+                    registrationTransport = { /* 응답이 오지 않는 전송이 곧 이 화면의 상태다 */ },
+                )
+            )
             "raffle-gated" -> return show(RaffleGateRouteScreen(request.game))
         }
         LoginOptionalOverlayRoute.parse(state)?.let { return show(TitleScreen(request.game, initialSettingOpen = true, optionalOverlayRoute = it)) }

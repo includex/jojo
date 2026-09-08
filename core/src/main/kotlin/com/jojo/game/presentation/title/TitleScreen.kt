@@ -26,6 +26,17 @@ class TitleScreen(
     private val settingSceneName: String = "Login",
     /** `settingReturnScenario` (String?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val settingReturnScenario: String? = null,
+    /**
+     * `registrationCheckPending` (Boolean?): 등록 확인 대기 여부를 강제한다.
+     * `null`이면 저장된 `CHECK_REGISTER` 설정을 그대로 따른다. 응답이 오기 전의
+     * LoadLayer 화면을 그대로 붙잡아 두어야 하는 캡처 경로가 이 자리를 쓴다.
+     */
+    private val registrationCheckPending: Boolean? = null,
+    /**
+     * `registrationTransport` (((Boolean) -> Unit) -> Unit)?): 등록 확인 요청 경로다.
+     * `null`이면 운영 경로인 `JojoGame.requestRegistrationCheck`를 쓴다.
+     */
+    private val registrationTransport: ((((Boolean) -> Unit) -> Unit))? = null,
 ) : ScreenAdapter() {
     /**
      * `assets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -97,9 +108,9 @@ class TitleScreen(
      */
 
     private val registrationCheck = LoginRegistrationCheckFlow(
-        pending = settingsPreferences.getInteger(CHECK_REGISTER, 0) != 0,
+        pending = registrationCheckPending ?: (settingsPreferences.getInteger(CHECK_REGISTER, 0) != 0),
         clearPending = { settingsPreferences.remove(CHECK_REGISTER); settingsPreferences.flush() },
-        requestCheck = game::requestRegistrationCheck,
+        requestCheck = registrationTransport ?: game::requestRegistrationCheck,
         onRegistered = { Gdx.app.log("JojoGame", "registration check accepted") },
     )
 

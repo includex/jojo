@@ -993,7 +993,10 @@
       ],
       "game": "login-modal-load-fixture",
       "report": "build/render-events/modal-load-diff.json",
-      "knownGap": "ModalLoadRouteScreen.kt replays a gzipped copy of the original's render events; its Canvas/Layer/label width is the container's 852.38 where the original's auto-sized Cocos Label measures 249.64."
+      "animatedFields": [
+        "Canvas/Layer/bg/scrollview/view/content/panel3/item0/box6.opacity"
+      ],
+      "animatedFieldsReason": "Same pulsing SettingLayer box6 as the setting route: cc.fadeIn(.3)/cc.fadeOut(.3) repeatForever leaves no single correct opacity."
     },
     {
       "id": "start-item",

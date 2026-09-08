@@ -38,6 +38,25 @@ internal class TitleRenderEventRecorder {
             TitleMode.SETTING -> appendSettings(log, state)
         }
         state.optionalOverlayRoute?.let { LoginOptionalOverlayRenderEvents.append(log, it) }
+        // 등록 확인 응답을 기다리는 동안 원본 LoadLayer는 화면 위에 반투명 막과
+        // 회전 이미지, 안내 문구를 얹는다. `TitleViewState`는 이 상태를 이미 담고
+        // 있었지만 기록기가 내놓지 않아, 이 화면의 검증이 원본 로그를 통째로 저장해
+        // 두었다가 되읽는 방식에 기대고 있었다.
+        state.registrationLoading?.let { loading ->
+            log.draw(
+                "login-modal-load", "HallLayer", "Canvas/Layer/Panel_cancel", "sprite",
+                0f, 0f, 1280f, 688f, "default_sprite_splash", opacity = loading.blockerOpacity,
+            )
+            if (loading.imageVisible) log.draw(
+                "login-modal-load", "HallLayer", "Canvas/Layer/anime", "sprite",
+                674.186f * SCALE, 392.874f * SCALE, 140f * SCALE, 140f * SCALE, "uiloading",
+            )
+            log.draw(
+                "login-modal-load", "HallLayer", "Canvas/Layer/label", "label",
+                619.366f * SCALE, 237.844f * SCALE, 249.64f * SCALE, 69f * SCALE,
+                null, blend = LABEL_BLEND, text = LOADING_TEXT,
+            )
+        }
         return log.jsonl()
     }
 
@@ -223,6 +242,8 @@ internal class TitleRenderEventRecorder {
     private companion object {
         /** SCALE: 렌더링 배율 값을 보관한다. */
         const val SCALE = .86f
+        /** LOADING_TEXT: 등록 확인 대기 중 LoadLayer가 보여 주는 문구다. */
+        const val LOADING_TEXT = "검증 중……"
         /**
          * `SPRITE_BLEND` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
