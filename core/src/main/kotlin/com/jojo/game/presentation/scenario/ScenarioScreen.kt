@@ -745,7 +745,26 @@ class ScenarioScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    internal val hallSkipLayer: StorySkipFlow? = if (runtimeOverlay == RuntimeScenarioOverlay.SKIP_OPEN) {
+    /**
+     * `hallSkipLayerState` (StorySkipFlow?): 처음 요청될 때 만들어 둔 SkipLayer 흐름을 보관한다.
+     */
+
+    private var hallSkipLayerState: StorySkipFlow? = null
+
+    /**
+     * SkipLayer 흐름은 요청 시점에 만든다.  예전에는 생성자에서 `runtimeOverlay`를 읽어
+     * 초기화했는데, 그 값은 구동기가 `showOverlay`를 부르는 render 시점에야 채워진다.
+     * 그래서 이 속성은 항상 null이었고 SKIP_OPEN 증거 경로가 통째로 죽어 있었다.
+     */
+    internal val hallSkipLayer: StorySkipFlow?
+        get() {
+            if (runtimeOverlay != RuntimeScenarioOverlay.SKIP_OPEN) return null
+            hallSkipLayerState?.let { return it }
+            return createHallSkipLayer().also { hallSkipLayerState = it }
+        }
+
+    /** SkipLayer 흐름 생성: 원본 HallLayer가 SkipLayer를 붙인 상태를 재현한다. */
+    private fun createHallSkipLayer(): StorySkipFlow {
         /**
          * `hall` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -753,7 +772,7 @@ class ScenarioScreen(
 
         val hall = HallPreparationFlow(featureSkip = true).also { it.onCreate(0) }
         check("SkipLayer" in hall.layers)
-        StorySkipFlow(object : StorySkipFlow.Sink {
+        return StorySkipFlow(object : StorySkipFlow.Sink {
             /**
              * `msgBox`: 타입의 핵심 동작을 수행한다.
              * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
@@ -771,7 +790,7 @@ class ScenarioScreen(
                 hallSkipDispatches += name
             }
         }).also { it.onCreate() }
-    } else null
+    }
 
     init {
         // 선택창 Actor가 먼저 터치를 받고, 항목 밖의 입력은 기존 라우터로 흘러간다.

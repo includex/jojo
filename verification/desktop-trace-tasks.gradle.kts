@@ -43,8 +43,23 @@ val verifyStartBattleRewardParity = tasks.register<Exec>("verifyStartBattleRewar
     environment("JOJO_VERIFICATION_CLASSPATH", verificationDesktopRuntime.asPath)
     commandLine("node", rootProject.file("tools/verify_start_battle_reward_parity.mjs").absolutePath)
 }
+// `render_parity_scope.json`이 zero-draw로 넘기던 레이어들은 "운영 호출자가
+// 없다"는 주장만 있고 확인은 없었다. 회수된 원본에서 그 주장을 다시 세운다.
+val verifyNoRouteLayers = tasks.register<Exec>("verifyNoRouteLayers") {
+    group = "verification"; outputs.upToDateWhen { false }
+    inputs.files(rootProject.file("tools/verify_no_route_layers.py"))
+    inputs.dir(rootProject.file("../jojo_mobile/sgccz-desktop/recovered-js/modules"))
+    commandLine("python3", rootProject.file("tools/verify_no_route_layers.py").absolutePath)
+}
+// 원본·이식본 양쪽에서 다시 뽑아 비교하는 화면 상태 목록이다.
+val verifyRenderParityRoutes = tasks.register<Exec>("verifyRenderParityRoutes") {
+    group = "verification"; dependsOn(tasks.named("classes")); outputs.upToDateWhen { false }
+    inputs.files(rootProject.file("tools/verify_render_parity_routes.mjs"), rootProject.file("tools/render_parity_routes.json"), rootProject.file("tools/compare_render_logs.py"))
+    environment("JOJO_VERIFICATION_CLASSPATH", verificationDesktopRuntime.asPath)
+    commandLine("node", rootProject.file("tools/verify_render_parity_routes.mjs").absolutePath)
+}
 val verifyRenderParityScope = tasks.register<Exec>("verifyRenderParityScope") {
-    group = "verification"; dependsOn(verifyFreshBattleRenderParity, verifyStartBattleRewardParity); outputs.upToDateWhen { false }
+    group = "verification"; dependsOn(verifyFreshBattleRenderParity, verifyStartBattleRewardParity, verifyRenderParityRoutes, verifyNoRouteLayers); outputs.upToDateWhen { false }
     inputs.files(rootProject.file("tools/render_parity_scope.json"), rootProject.file("tools/render_layer_inventory.json"), rootProject.file("tools/verify_render_parity_scope.py"), rootProject.file("tools/verify_render_parity_reports.py"))
     commandLine("python3", rootProject.file("tools/verify_render_parity_scope.py").absolutePath, "--scope", rootProject.file("tools/render_parity_scope.json").absolutePath, "--repository", rootProject.projectDir.absolutePath)
 }

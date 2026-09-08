@@ -44,6 +44,21 @@ function assertHarnessDrivesBattleInit() {
 }
 
 const table = JSON.parse(readFileSync(resolve(root, "tools/render_parity_routes.json"), "utf8"));
+
+// The scope file owns where each state's report lives; drift between the two
+// silently turns a produced report into a "missing" one, which is how these
+// states came to be validated from months-old hand-run artifacts.
+{
+  const scope = JSON.parse(readFileSync(resolve(root, "tools/render_parity_scope.json"), "utf8"));
+  const declared = new Map();
+  for (const phase of scope.phases) for (const state of phase.states) {
+    if (state.report && !declared.has(state.id)) declared.set(state.id, state.report);
+  }
+  for (const route of table.routes) {
+    assert.equal(route.report, declared.get(route.id),
+      `render_parity_routes.json route ${route.id} writes ${route.report} but render_parity_scope.json reads ${declared.get(route.id)}`);
+  }
+}
 const selected = process.argv.slice(2);
 const routes = selected.length ? table.routes.filter(route => selected.includes(route.id)) : table.routes;
 assert.ok(routes.length, `no routes matched ${selected.join(",")}`);

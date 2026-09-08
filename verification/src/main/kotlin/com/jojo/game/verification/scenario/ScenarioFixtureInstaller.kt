@@ -42,7 +42,11 @@ internal object ScenarioFixtureInstaller {
     /** modal: 오버레이에 대응하는 모달 상태를 반환한다. */
     fun modal(overlay: RuntimeScenarioOverlay): RuntimeScenarioModal? = when (overlay) {
         RuntimeScenarioOverlay.INFO -> RuntimeScenarioModal("info", "재능의 첫 징후")
+        // 원본 하네스는 `hall.getItem(3, 2)`로 장비를, `hall.getItem(150, 2)`로
+        // 소모품을 얻는다. 소모품 쪽 모달이 빠져 있어 이식본은 같은 화면에서
+        // 본문 없는 InfoLayer를 그리고 있었다.
         RuntimeScenarioOverlay.GET_ITEM_EQUIPMENT -> RuntimeScenarioModal("info", "얻었다 단창 Lv0")
+        RuntimeScenarioOverlay.GET_ITEM_PROPERTY -> RuntimeScenarioModal("info", "얻었다 회복용 콩 X2")
         RuntimeScenarioOverlay.MAP_INFO -> RuntimeScenarioModal("map-info", "조조가 수저우 도겸과 전투를 벌였을 때,")
         else -> null
     }

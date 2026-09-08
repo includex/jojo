@@ -109,7 +109,7 @@
       ],
       "game": "battle-win-condition-compact-fixture",
       "battle": true,
-      "report": "build/render-events/battle-win-condition-compact.json"
+      "report": "build/render-events/reports/battle-win-condition-compact.json"
     },
     {
       "id": "win-condition-full",
@@ -118,7 +118,7 @@
       ],
       "game": "battle-win-condition-full-fixture",
       "battle": true,
-      "report": "build/render-events/battle-win-condition-full.json"
+      "report": "build/render-events/reports/battle-win-condition-full.json"
     },
     {
       "id": "round-normal",
@@ -373,7 +373,7 @@
         "--render-event-state=buy"
       ],
       "game": "hall-buy-fixture",
-      "report": "build/render-events/final-buy2.json"
+      "report": "build/render-logs/final-buy2.json"
     },
     {
       "id": "sell",
@@ -381,7 +381,7 @@
         "--render-event-state=sell"
       ],
       "game": "hall-sell-fixture",
-      "report": "build/render-events/final-sell.json"
+      "report": "build/render-logs/final-sell.json"
     },
     {
       "id": "forces",
@@ -558,6 +558,586 @@
       ],
       "game": "hall-skip-open-fixture",
       "report": "build/render-events/skip-open-diff.json"
+    },
+    {
+      "id": "panel",
+      "source": [
+        "--render-event-state=panel"
+      ],
+      "game": "street-panel",
+      "report": "build/render-events/street-panel-diff.json"
+    },
+    {
+      "id": "portrait",
+      "source": [
+        "--render-event-state=portrait"
+      ],
+      "game": "street-portrait",
+      "report": "build/render-events/street-portrait-diff.json"
+    },
+    {
+      "id": "speaker",
+      "source": [
+        "--render-event-state=speaker"
+      ],
+      "game": "street-speaker",
+      "report": "build/render-events/street-speaker-diff.json"
+    },
+    {
+      "id": "text",
+      "source": [
+        "--render-event-state=text"
+      ],
+      "game": "street-text",
+      "report": "build/render-events/street-text-diff.json"
+    },
+    {
+      "id": "background",
+      "source": [
+        "--render-event-state=background"
+      ],
+      "game": "street-background",
+      "report": "build/render-events/street-background-diff.json"
+    },
+    {
+      "id": "characters",
+      "source": [
+        "--render-event-state=characters"
+      ],
+      "game": "street-characters",
+      "report": "build/render-events/street-characters-diff.json"
+    },
+    {
+      "id": "msgbox-ok",
+      "source": [
+        "--render-event-state=msgbox-ok"
+      ],
+      "game": "msgbox-ok-fixture",
+      "report": "build/render-events/msgbox-ok-diff.json"
+    },
+    {
+      "id": "msgbox-confirm",
+      "source": [
+        "--render-event-state=msgbox-confirm"
+      ],
+      "game": "msgbox-confirm-fixture",
+      "report": "build/render-events/msgbox-confirm-diff.json"
+    },
+    {
+      "id": "toast",
+      "source": [
+        "--render-event-state=toast-stable"
+      ],
+      "game": "toast-stable-fixture",
+      "report": "build/render-events/toast-stable-diff.json"
+    },
+    {
+      "id": "progress-0",
+      "source": [
+        "--render-event-state=progress-0"
+      ],
+      "game": "progress-0-fixture",
+      "report": "build/render-events/compare-progress-0.json"
+    },
+    {
+      "id": "progress-23",
+      "source": [
+        "--render-event-state=progress-23"
+      ],
+      "game": "progress-23-fixture",
+      "report": "build/render-events/compare-progress-23.json"
+    },
+    {
+      "id": "progress-100",
+      "source": [
+        "--render-event-state=progress-100"
+      ],
+      "game": "progress-100-fixture",
+      "report": "build/render-events/compare-progress-100.json"
+    },
+    {
+      "id": "loading-default",
+      "source": [
+        "--render-event-state=loading-default"
+      ],
+      "game": "loading-default-fixture",
+      "report": "build/render-events/compare-loading-default.json"
+    },
+    {
+      "id": "loading-flag1-before",
+      "source": [
+        "--render-event-state=loading-flag1-before"
+      ],
+      "game": "loading-flag1-before-fixture",
+      "report": "build/render-events/compare-loading-flag1-before.json"
+    },
+    {
+      "id": "loading-flag1-after5",
+      "source": [
+        "--render-event-state=loading-flag1-after5"
+      ],
+      "game": "loading-flag1-after5-fixture",
+      "report": "build/render-events/compare-loading-flag1-after5.json"
+    },
+    {
+      "id": "loading-flag2-hidden",
+      "source": [
+        "--render-event-state=loading-flag2-hidden"
+      ],
+      "game": "loading-flag2-hidden-fixture",
+      "report": "build/render-events/compare-loading-flag2-hidden.json"
+    },
+    {
+      "id": "input-box-empty",
+      "source": [
+        "--render-event-state=input-box-empty"
+      ],
+      "game": "input-box-empty-fixture",
+      "report": "build/render-events/compare-hall-input-box-empty.json"
+    },
+    {
+      "id": "input-box-filled",
+      "source": [
+        "--render-event-state=input-box-filled"
+      ],
+      "game": "input-box-filled-fixture",
+      "report": "build/render-events/compare-hall-input-box-filled.json"
+    },
+    {
+      "id": "quantity-buy-initial",
+      "source": [
+        "--render-event-state=quantity-buy-initial"
+      ],
+      "game": "quantity-buy-initial-fixture",
+      "report": "build/render-events/compare-hall-quantity-buy-initial.json"
+    },
+    {
+      "id": "quantity-sell-edited",
+      "source": [
+        "--render-event-state=quantity-sell-edited"
+      ],
+      "game": "quantity-sell-edited-fixture",
+      "report": "build/render-events/compare-hall-quantity-sell-edited.json"
+    },
+    {
+      "id": "dialogue-left",
+      "source": [
+        "--render-event-state=dialogue-left"
+      ],
+      "game": "dialogue-left-fixture",
+      "report": "build/render-events/compare-hall-dialogue-left.json"
+    },
+    {
+      "id": "dialogue-right",
+      "source": [
+        "--render-event-state=dialogue-right"
+      ],
+      "game": "dialogue-right-fixture",
+      "report": "build/render-events/compare-hall-dialogue-right.json"
+    },
+    {
+      "id": "dialogue-skip",
+      "source": [
+        "--render-event-state=dialogue-skip"
+      ],
+      "game": "dialogue-skip-fixture",
+      "report": "build/render-events/compare-hall-dialogue-skip.json"
+    },
+    {
+      "id": "dialogue-auto-close",
+      "source": [
+        "--render-event-state=dialogue-auto-close"
+      ],
+      "game": "dialogue-auto-close-fixture",
+      "report": "build/render-events/compare-hall-dialogue-auto-close.json"
+    },
+    {
+      "id": "choose2-open",
+      "source": [
+        "--render-event-state=choose2-open"
+      ],
+      "game": "choose2-open-fixture",
+      "report": "build/render-events/compare-hall-choose2-open.json"
+    },
+    {
+      "id": "choose2-select",
+      "source": [
+        "--render-event-state=choose2-select"
+      ],
+      "game": "choose2-select-fixture",
+      "report": "build/render-events/compare-hall-choose2-select.json"
+    },
+    {
+      "id": "welcome-create",
+      "source": [
+        "--render-terminal-route=welcome-create"
+      ],
+      "game": "terminal-welcome-create-fixture",
+      "report": "build/reports/render-events/terminal-welcome-create.json"
+    },
+    {
+      "id": "end-create",
+      "source": [
+        "--render-terminal-route=end-create"
+      ],
+      "game": "terminal-end-create-fixture",
+      "report": "build/reports/render-events/terminal-end-create.json"
+    },
+    {
+      "id": "end-event3",
+      "source": [
+        "--render-terminal-route=end-event3"
+      ],
+      "game": "terminal-end-event3-fixture",
+      "report": "build/reports/render-events/terminal-end-event3.json"
+    },
+    {
+      "id": "end-event5",
+      "source": [
+        "--render-terminal-route=end-event5"
+      ],
+      "game": "terminal-end-event5-fixture",
+      "report": "build/reports/render-events/terminal-end-event5.json"
+    },
+    {
+      "id": "sign-in-diagnostic",
+      "source": [
+        "--render-login-overlay-route=signin-open"
+      ],
+      "game": "login-signin-open-fixture",
+      "report": "build/reports/render-events/login-signin-open.json"
+    },
+    {
+      "id": "version-info-diagnostic",
+      "source": [
+        "--render-login-overlay-route=version-open"
+      ],
+      "game": "login-version-open-fixture",
+      "report": "build/reports/render-events/login-version-open.json"
+    },
+    {
+      "id": "notice-hidden",
+      "source": [
+        "--render-battle-notice-route=hidden"
+      ],
+      "game": "notice-hidden-fixture",
+      "report": "build/render-events/notice-hidden-diff.json"
+    },
+    {
+      "id": "notice-shown",
+      "source": [
+        "--render-battle-notice-route=shown"
+      ],
+      "game": "notice-shown-fixture",
+      "report": "build/render-events/notice-shown-diff.json"
+    },
+    {
+      "id": "notice-messages",
+      "source": [
+        "--render-battle-notice-route=messages"
+      ],
+      "game": "notice-messages-fixture",
+      "report": "build/render-events/notice-messages-diff.json"
+    },
+    {
+      "id": "notice-hidden-clear",
+      "source": [
+        "--render-battle-notice-route=hidden-clear"
+      ],
+      "game": "notice-hidden-clear-fixture",
+      "report": "build/render-events/notice-hidden-clear-diff.json"
+    },
+    {
+      "id": "cmd-default",
+      "source": [
+        "--render-event-state=cmd-default"
+      ],
+      "game": "login-cmd-default-fixture",
+      "report": "build/render-events/cmd-default-diff.json"
+    },
+    {
+      "id": "cmd-selected",
+      "source": [
+        "--render-event-state=cmd-selected"
+      ],
+      "game": "login-cmd-selected-fixture",
+      "report": "build/render-events/cmd-selected-diff.json"
+    },
+    {
+      "id": "cmd-info",
+      "source": [
+        "--render-event-state=cmd-info"
+      ],
+      "game": "login-cmd-info-fixture",
+      "report": "build/render-events/cmd-info-diff.json"
+    },
+    {
+      "id": "battle-edit-default",
+      "source": [
+        "--render-event-state=battle-edit-default"
+      ],
+      "game": "hall-battle-edit-default-fixture",
+      "report": "build/render-events/battle-edit-default-diff.json"
+    },
+    {
+      "id": "battle-edit-posts",
+      "source": [
+        "--render-event-state=battle-edit-posts"
+      ],
+      "game": "hall-battle-edit-posts-fixture",
+      "report": "build/render-events/battle-edit-posts-diff.json"
+    },
+    {
+      "id": "battle-edit-mutation",
+      "source": [
+        "--render-event-state=battle-edit-mutation"
+      ],
+      "game": "hall-battle-edit-mutation-fixture",
+      "report": "build/render-events/battle-edit-mutation-diff.json"
+    },
+    {
+      "id": "avatar-edit-default",
+      "source": [
+        "--render-event-state=battle-edit-avatar"
+      ],
+      "game": "hall-battle-edit-avatar-fixture",
+      "report": "build/reports/render-events/avatar-edit-default.json"
+    },
+    {
+      "id": "edit4-default",
+      "source": [
+        "--render-event-state=edit4-default"
+      ],
+      "game": "hall-edit4-default-fixture",
+      "report": "build/render-events/edit4-default-diff.json"
+    },
+    {
+      "id": "edit4-select",
+      "source": [
+        "--render-event-state=edit4-select"
+      ],
+      "game": "hall-edit4-select-fixture",
+      "report": "build/render-events/edit4-select-diff.json"
+    },
+    {
+      "id": "learn-unit-skill-default",
+      "source": [
+        "--render-event-state=learn-default"
+      ],
+      "game": "hall-learn-default-fixture",
+      "report": "build/render-events/learn-default-diff.json"
+    },
+    {
+      "id": "learn-unit-skill-select",
+      "source": [
+        "--render-event-state=learn-select"
+      ],
+      "game": "hall-learn-select-fixture",
+      "report": "build/render-events/learn-select-diff.json"
+    },
+    {
+      "id": "learn-unit-skill-apply",
+      "source": [
+        "--render-event-state=learn-apply"
+      ],
+      "game": "hall-learn-apply-fixture",
+      "report": "build/render-events/learn-apply-diff.json"
+    },
+    {
+      "id": "learn-unit-skill-cancel",
+      "source": [
+        "--render-event-state=learn-cancel"
+      ],
+      "game": "hall-learn-cancel-fixture",
+      "report": "build/render-events/learn-cancel-diff.json"
+    },
+    {
+      "id": "define-unit-default",
+      "source": [
+        "--render-event-state=define-unit-default"
+      ],
+      "game": "hall-define-unit-default-fixture",
+      "report": "build/render-events/define-unit-default-diff.json"
+    },
+    {
+      "id": "define-unit-reset-prompt",
+      "source": [
+        "--render-event-state=define-unit-reset-prompt"
+      ],
+      "game": "hall-define-unit-reset-prompt-fixture",
+      "report": "build/render-events/define-unit-reset-prompt-diff.json"
+    },
+    {
+      "id": "define-unit-finish-prompt",
+      "source": [
+        "--render-event-state=define-unit-finish-prompt"
+      ],
+      "game": "hall-define-unit-finish-prompt-fixture",
+      "report": "build/render-events/define-unit-finish-prompt-diff.json"
+    },
+    {
+      "id": "raffle-gated-diagnostic",
+      "source": [
+        "--render-event-state=raffle-gated"
+      ],
+      "game": "raffle-gated-fixture",
+      "report": "build/reports/render-events/raffle-gated.json"
+    },
+    {
+      "id": "modal-load",
+      "source": [
+        "--render-event-state=modal-load"
+      ],
+      "game": "login-modal-load-fixture",
+      "report": "build/render-events/modal-load-diff.json"
+    },
+    {
+      "id": "start-item",
+      "source": [
+        "--render-event-state=start-item"
+      ],
+      "game": "start-item-fixture",
+      "report": "build/render-events/start-item-diff.json"
+    },
+    {
+      "id": "reward-actual-route-basic",
+      "source": [
+        "--render-battle-reward-route=basic"
+      ],
+      "game": "yingchuan-reward-basic-route",
+      "battle": true,
+      "report": "build/render-events/reports/battle-reward-basic-route.json"
+    },
+    {
+      "id": "reward-actual-route-card-1",
+      "source": [
+        "--render-battle-reward-route=card1"
+      ],
+      "game": "yingchuan-reward-card1-route",
+      "battle": true,
+      "report": "build/render-events/reports/battle-reward-card1-route.json"
+    },
+    {
+      "id": "reward-actual-route-card-2",
+      "source": [
+        "--render-battle-reward-route=card2"
+      ],
+      "game": "yingchuan-reward-card2-route",
+      "battle": true,
+      "report": "build/render-events/reports/battle-reward-card2-route.json"
+    },
+    {
+      "id": "item-upgrade",
+      "source": [
+        "--render-battle-item-upgrade-route=panel"
+      ],
+      "game": "yingchuan-item-upgrade-panel-route",
+      "battle": true,
+      "report": "build/render-events/reports/battle-item-upgrade-panel-route.json"
+    },
+    {
+      "id": "battle-edit2-initial",
+      "source": [
+        "--render-battle-edit2-route=initial"
+      ],
+      "game": "battle-edit2-initial",
+      "battle": true,
+      "report": "build/reports/render-events/battle-edit2-initial.json"
+    },
+    {
+      "id": "battle-edit2-weather",
+      "source": [
+        "--render-battle-edit2-route=weather"
+      ],
+      "game": "battle-edit2-weather",
+      "battle": true,
+      "report": "build/reports/render-events/battle-edit2-weather.json"
+    },
+    {
+      "id": "battle-edit2-round",
+      "source": [
+        "--render-battle-edit2-route=round"
+      ],
+      "game": "battle-edit2-round",
+      "battle": true,
+      "report": "build/reports/render-events/battle-edit2-round.json"
+    },
+    {
+      "id": "battle-edit2-apply",
+      "source": [
+        "--render-battle-edit2-route=apply"
+      ],
+      "game": "battle-edit2-apply",
+      "battle": true,
+      "report": "build/reports/render-events/battle-edit2-apply.json"
+    },
+    {
+      "id": "battle-edit2-child",
+      "source": [
+        "--render-battle-edit2-route=child"
+      ],
+      "game": "battle-edit2-child",
+      "battle": true,
+      "report": "build/reports/render-events/battle-edit2-child.json"
+    },
+    {
+      "id": "battle-register-open",
+      "source": [
+        "--render-battle-edit2-route=register"
+      ],
+      "game": "battle-register-open",
+      "battle": true,
+      "report": "build/reports/render-events/battle-register-open.json"
+    },
+    {
+      "id": "main",
+      "source": [
+        "--render-event-state=main"
+      ],
+      "game": "login-main",
+      "report": "build/render-events/login-main-diff.json"
+    },
+    {
+      "id": "load",
+      "source": [
+        "--render-event-state=load"
+      ],
+      "game": "login-load",
+      "report": "build/render-events/login-load-diff.json"
+    },
+    {
+      "id": "load-confirm",
+      "source": [
+        "--render-event-state=load-confirm"
+      ],
+      "game": "login-load-row0",
+      "report": "build/render-events/login-load-confirm-diff.json"
+    },
+    {
+      "id": "setting",
+      "source": [
+        "--render-event-state=setting"
+      ],
+      "game": "login-setting",
+      "report": "build/render-events/setting-final.json"
+    },
+    {
+      "id": "battle-edit3-scene",
+      "source": [
+        "--render-event-state=edit3-scene"
+      ],
+      "game": "battle-edit2-child-scene",
+      "report": "build/render-events/edit3-scene-diff.json",
+      "battle": true
+    },
+    {
+      "id": "lose-restart",
+      "source": [
+        "--render-battle-lose-restart-route"
+      ],
+      "game": "yingchuan-lose-restart",
+      "report": "build/render-events/reports/battle-lose-restart-prompt.json",
+      "battle": true
     }
   ]
 }

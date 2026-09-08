@@ -29,7 +29,8 @@ internal object ScenarioRuntimeSnapshotProjector {
     fun renderInput(screen: ScenarioScreen): ScenarioFrameEvidenceInput {
         val dialogue = screen.playback.currentDialogue
         if (screen.hallOverlayVariant == RuntimeScenarioOverlay.SKIP_OPEN) {
-            check(requireNotNull(screen.hallSkipLayer).button && !screen.hallSkipLayer.panel && screen.hallSkipLayer.zIndex == 999)
+            val skip = requireNotNull(screen.hallSkipLayer) { "SKIP_OPEN 오버레이인데 SkipLayer 흐름이 없습니다." }
+            check(skip.button && !skip.panel && skip.zIndex == 999)
         }
         val unitList = screen.hallUnitListLayer?.rows?.take(6)?.map { id ->
             val unit = screen.gameDataCatalog.unitProfile(id)
