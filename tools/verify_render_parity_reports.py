@@ -33,7 +33,8 @@ def verify(report_path: Path, repository: Path) -> tuple[bool, str]:
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return False, f"{report_path}: {error}"
     tolerance = float(report.get("floatTolerance", 1e-5))
-    differences = compare_render_logs.compare(expected, actual, tolerance)
+    animated = tuple(report.get("animatedFields", ()))
+    differences = compare_render_logs.compare(expected, actual, tolerance, animated)
     declared_counts = (report.get("expectedDrawCount"), report.get("actualDrawCount"))
     current_counts = (len(expected), len(actual))
     okay = not differences and declared_counts == current_counts and expected_format == report.get("expectedFormat") and actual_format == report.get("actualFormat")

@@ -417,6 +417,10 @@ def main(argv: list[str] | None = None) -> int:
         "expected": str(args.expected), "actual": str(args.actual),
         "expectedFormat": expected_format, "actualFormat": actual_format,
         "floatTolerance": args.float_tolerance,
+        # Record the animated fields in the report so a later re-verification
+        # (verify_render_parity_reports) applies the same exemptions instead of
+        # re-reporting a field the original itself animates.
+        "animatedFields": sorted(set(args.animated_field)),
         "expectedDrawCount": len(expected), "actualDrawCount": len(actual),
         "differenceCount": len(all_diffs), "truncated": len(all_diffs) > args.max_diffs,
         "differences": all_diffs[:args.max_diffs],
