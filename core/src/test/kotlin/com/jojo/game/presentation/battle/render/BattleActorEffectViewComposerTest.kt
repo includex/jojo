@@ -16,6 +16,7 @@ import com.jojo.game.presentation.battle.unit.UnitSpriteSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /** Actor/effect view composer가 Screen Port의 조회 결과만으로 renderer 입력을 만드는지 검증한다. */
 class BattleActorEffectViewComposerTest {
@@ -36,7 +37,26 @@ class BattleActorEffectViewComposerTest {
         assertFalse(view.actors.single().showHpBar)
     }
 
-    private class FakePort : BattleActorEffectViewComposer.Port {
+    @Test
+    fun `hp bar follows the units otherNodesVisible flag`() {
+        // 원본 `setOhterNodeVisible`을 그대로 옮긴 값이다. 사망 연출이 아니면서 이 값이
+        // 참일 때만 체력 막대가 보인다.
+        val unit = BattleUnit("unit", "유닛", Faction.PLAYER, 2, 3, hitPoints = 25, maxHitPoints = 100)
+        val port = object : FakePort() {
+            override fun deathAnimationActive(unitId: String, now: Float) = false
+        }
+
+        assertTrue(BattleActorEffectViewComposer(port).compose(listOf(unit)).actors.single().showHpBar)
+
+        unit.otherNodesVisible = false
+        val hidden = object : FakePort() {
+            override fun deathAnimationActive(unitId: String, now: Float) = false
+            override fun otherNodesVisible(unit: BattleUnit) = unit.otherNodesVisible
+        }
+        assertFalse(BattleActorEffectViewComposer(hidden).compose(listOf(unit)).actors.single().showHpBar)
+    }
+
+    private open class FakePort : BattleActorEffectViewComposer.Port {
         override fun boardLeft() = 10f
         override fun boardBottom() = 20f
         override fun tileSize() = 48f
@@ -44,7 +64,6 @@ class BattleActorEffectViewComposerTest {
         override fun stateEffectAnimationClock() = 3f
         override fun dialogueBlendRoute() = false
         override fun battleMenuOpen() = false
-        override fun sourceScenario() = "S_01"
         override fun spriteFrame(unit: BattleUnit) = UnitSpriteFrame(UnitSpriteSource.MOVEMENT, sourceY = 12)
         override fun activeAction(unitId: String, now: Float): UnitActionAnimation? = null
         override fun deathAnimationActive(unitId: String, now: Float) = true

@@ -8838,9 +8838,9 @@ void main() {
         return visibleUnits.map { unit ->
             val frame = unitSpriteFrameResolver.frame(unit)
             val (visualX, visualY) = visualTile(unit)
-            // 원본은 `setOhterNodeVisible(!1)`을 물러남·죽음 경로에서만 부른다(BattleLayer).
-            // 그때 재생하는 동작이 철퇴·후퇴·전사 셋이므로, 그 셋일 때만 정보 노드를 감춘다.
-            val healthVisible = scriptedUnitPresentation.visual(unit.id)?.action !in INFO_HIDDEN_ACTIONS
+            // 원본이 정보 노드를 감추는 길은 `setOhterNodeVisible(!1)` 하나뿐이다.
+            // 이식본은 그 호출을 `otherNodesVisible`로 그대로 옮겨 두었다.
+            val healthVisible = unit.otherNodesVisible
             BattleRenderEventProjectionUnitInput(
                 sortOrder = if (battleDialogueBlendRoute) {
                     dialogueOrder.indexOf(unit.characterId).let { index -> if (index < 0) 999 else index }.toFloat()
@@ -12014,18 +12014,6 @@ private fun BattleDeathCheckpoint.toDeathTimelineCheckpoint(): BattleDeathPresen
  * 채움을 여덟 방향 오프셋으로 직접 그린다. 시나리오는 외곽선을 구운 글꼴을 쓰므로 기본값을
  * 그대로 사용한다.
  */
-/**
- * 정보 노드를 감추는 동작들이다.
- *
- * 원본 `BattleLayer`의 물러남 처리는 `setOhterNodeVisible(!1)` 뒤에 철퇴·후퇴·전사 중
- * 하나를 재생한다. 체력·상태 표시가 사라지는 경우는 이 셋뿐이다.
- */
-private val INFO_HIDDEN_ACTIONS = setOf(
-    BattleCharacterPresentation.CHETUI,
-    BattleCharacterPresentation.RETREAT,
-    BattleCharacterPresentation.DEATH,
-)
-
 private val BATTLE_SPEAKER_STYLE = DialogueSpeakerStyle(
     fillColor = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f),
     outlineColor = Color(102f / 255f, 1f, 1f, 1f),

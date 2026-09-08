@@ -66,12 +66,6 @@ internal class BattleActorEffectViewComposer(
 
         fun battleMenuOpen(): Boolean
         /**
-         * `sourceScenario`: 타입의 핵심 동작을 수행한다.
-         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-         */
-
-        fun sourceScenario(): String
-        /**
          * `spriteFrame`: 타입의 핵심 동작을 수행한다.
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
@@ -273,8 +267,9 @@ internal class BattleActorEffectViewComposer(
             opacity = frame.opacity,
             hpTexture = port.hpTexture(unit),
             hpRatio = port.hpRatio(unit, now),
-            showHpBar = !port.deathAnimationActive(unit.id, now) &&
-                !(!port.dialogueBlendRoute() && port.sourceScenario() == "S_00" && port.scriptedVisual(unit.id)?.action == 4),
+            // 원본이 체력·상태 노드를 감추는 길은 `setOhterNodeVisible(!1)` 하나뿐이고,
+            // 이식본은 그 뜻을 `otherNodesVisible`로 그대로 들고 있다.
+            showHpBar = !port.deathAnimationActive(unit.id, now) && port.otherNodesVisible(unit),
             attributeStatuses = BattleUnitAttributeStatusRender.commands(
                 port.attributeStatuses(unit),
                 port.otherNodesVisible(unit),
