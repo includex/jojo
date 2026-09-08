@@ -8,8 +8,14 @@ import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
  */
 
 internal class BattleUnitInfoOverlayController(
-    /** `jiqiRates` (List<Int>): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
-    private val jiqiRates: List<Int> = DEFAULT_JIQI_RATES,
+    /**
+     * 기치 확률을 얼려 두는 검증 경로의 값이다.
+     *
+     * 원본은 전투를 차릴 때 유닛마다 난수 여덟 개를 뽑으므로 실제 값은 실행마다 다르다.
+     * 원본 하네스도 이 화면을 비교할 때는 유닛의 `rates()`를 같은 여덟 값으로 얼려 둔다.
+     * 평소에는 `null`이고, 그때는 보고 있는 무장의 값을 그대로 쓴다.
+     */
+    private val frozenRates: () -> List<Int>? = { null },
 ) {
     /** 유닛 정보의 버튼 누름, 닫기, 기기 목록 열기를 요청하는 입력이다. */
     sealed interface Intent {
@@ -175,7 +181,10 @@ internal class BattleUnitInfoOverlayController(
      */
 
     private fun openJiqi(visible: State.Visible): DispatchResult {
-        val jiqi = BattleUnitInfoJiqiRoute.open(visible.layer, jiqiRates, UnitInfoLayer.TOUCH_END)
+        // 여덟 확률은 유닛마다 다르다. 예전에는 원본 고정 자료에서 잰 여덟 값을 모든
+        // 유닛에 똑같이 보여 주었다.
+        val rates = frozenRates() ?: visible.layer.currentRates().takeIf { it.size == 8 } ?: FIXTURE_JIQI_RATES
+        val jiqi = BattleUnitInfoJiqiRoute.open(visible.layer, rates, UnitInfoLayer.TOUCH_END)
         val after = closeIfDetached()
         return jiqi?.let { DispatchResult(consumed = true, effect = Effect.JiqiOpened(it)) } ?: after
     }
@@ -207,13 +216,15 @@ internal class BattleUnitInfoOverlayController(
         else -> null
     }
 
-    private companion object {
+    companion object {
         /**
-         * `DEFAULT_JIQI_RATES` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         * 기치 확률 비교 경로가 쓰는 여덟 값이다.
+         *
+         * 원본 하네스가 `--render-battle-jiqi-route`에서 유닛의 `rates()`를 이 값으로
+         * 얼려 두므로, 이식본도 그 경로에서만 같은 값을 쓴다. 실제 놀이에서는 유닛마다
+         * 전투를 차릴 때 뽑은 값이 그대로 나온다.
          */
-
-        val DEFAULT_JIQI_RATES = listOf(85, 57, 39, 95, 24, 22, 99, 48)
+        val FIXTURE_JIQI_RATES = listOf(85, 57, 39, 95, 24, 22, 99, 48)
         /**
          * `JIQI_BUTTON` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

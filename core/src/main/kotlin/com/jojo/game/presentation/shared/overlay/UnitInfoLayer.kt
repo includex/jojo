@@ -146,6 +146,13 @@ class UnitInfoLayer(
 
         val unitIntro: String = "",
         /**
+         * 기치 창이 보여 주는 여덟 확률이다.
+         *
+         * 원본은 전투를 차릴 때 유닛마다 `Tool.random(0, 100)`으로 여덟 값을 뽑아
+         * `JQ_BDMZL`부터 여덟 칸에 넣고, `BattleUnit.rates()`가 그것을 그대로 읽는다.
+         */
+        val rates: List<Int> = emptyList(),
+        /**
          * `equipment` (List<Equipment?>): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
@@ -389,6 +396,9 @@ class UnitInfoLayer(
      */
 
     private fun current() = units[index]
+
+    /** 기치 확률: 지금 보고 있는 무장의 여덟 값이다. */
+    fun currentRates(): List<Int> = current().rates
     /**
      * `isBattle`: 조건과 입력 상태를 검증한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.

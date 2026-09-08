@@ -1833,7 +1833,12 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val unitInfoOverlay = BattleUnitInfoOverlayController()
+    private val unitInfoOverlay = BattleUnitInfoOverlayController(
+        // 원본 하네스도 이 비교 경로에서만 유닛의 `rates()`를 얼려 둔다.
+        frozenRates = {
+            if (jiqiRouteFixture) BattleUnitInfoOverlayController.FIXTURE_JIQI_RATES else null
+        },
+    )
 
     /**
      * `jiqiLayer` (JiQiLayer?): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -10053,6 +10058,8 @@ void main() {
             // 자료 계층에는 설명문이 없어 보유 특기 이름을 나열한다.
             skillIntro = u.skills.keys.mapNotNull { id -> gameDataCatalog.skillName(id).takeIf(String::isNotBlank) }
                 .joinToString(", "),
+            // 원본은 전투를 차릴 때 유닛마다 뽑아 둔 여덟 확률을 기치 창에 그대로 보여 준다.
+            rates = (0..7).map { u.rateAccumulators[it] ?: 0 },
         )
 
         val rows = source.map(::row)
