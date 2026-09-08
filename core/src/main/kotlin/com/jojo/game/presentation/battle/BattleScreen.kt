@@ -8121,7 +8121,7 @@ void main() {
                 val minY = minOf(request.y1, request.y2)
                 val maxY = maxOf(request.y1, request.y2)
                 shapes.projectionMatrix = viewport.camera.combined
-                shapes.begin(ShapeRenderer.ShapeType.Filled)
+                beginFilledShapes()
                 shapes.color = Color(1f, .08f, .04f, .42f)
                 shapes.rect(
                     boardLeft + minX * boardTile,
@@ -8136,7 +8136,7 @@ void main() {
                 if ((elapsed / .3f).toInt() % 2 != 0) return
                 active.battleUnitId?.let(battle.presentation::presentationUnit)?.let { unit ->
                     shapes.projectionMatrix = viewport.camera.combined
-                    shapes.begin(ShapeRenderer.ShapeType.Filled)
+                    beginFilledShapes()
                     shapes.color = Color(1f, .08f, .04f, .42f)
                     shapes.rect(boardLeft + unit.tileX * boardTile, tileBottom(unit.tileY), boardTile, boardTile)
                     shapes.end()
@@ -8342,7 +8342,7 @@ void main() {
         if (route == BattleEditLayer2Route.APPLY) return
 
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, .314f)
         shapes.rect(0f, 0f, 1488.372f, 800f)
         shapes.end()
@@ -8386,7 +8386,7 @@ void main() {
         button(772.686f, 354.9f, "적군 전멸"); button(772.686f, 277.1f, "아군 만피")
         batch.end()
         if (route == BattleEditLayer2Route.WEATHER) {
-            shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
+            beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
                 0f, 0f, 1488.372f, 800f
             ); shapes.end()
             batch.begin(); batch.color = Color.WHITE
@@ -8414,7 +8414,7 @@ void main() {
      */
 
     private fun drawBattleEdit3Child() {
-        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .314f); shapes.rect(
+        beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .314f); shapes.rect(
             0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.begin(); batch.color = Color.WHITE
@@ -8464,7 +8464,7 @@ void main() {
      */
 
     private fun drawBattleEdit3ScenePanel() {
-        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
+        beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
             0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.begin(); batch.color = Color.WHITE
@@ -10110,7 +10110,7 @@ void main() {
 
     private fun drawBattleCommandLayer() {
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, BattleCommandRenderModel.DISMISS_DIM_OPACITY); shapes.rect(
             0f, 0f, 1488.372f, 800f
         )
@@ -10237,9 +10237,21 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    /**
+     * `beginFilledShapes`: 반투명 도형 패스를 블렌딩이 켜진 상태로 시작한다.
+     *
+     * `SpriteBatch.end()`는 GL_BLEND를 끈다. 그 뒤에 ShapeRenderer로 알파를 가진 사각형을
+     * 그리면 알파가 무시돼 불투명하게 찍힌다. 원본이 전장을 비쳐 보여 주는 반투명 배경들이
+     * 검은 판으로 덮이던 원인이라, 도형 패스를 시작할 때마다 블렌딩을 켠다.
+     */
+    private fun beginFilledShapes() {
+        if (!Gdx.gl.glIsEnabled(GL20.GL_BLEND)) Gdx.gl.glEnable(GL20.GL_BLEND)
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+    }
+
     private fun drawRoundLayer(layer: RoundLayer) {
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, 80f / 255f); shapes.rect(
+        beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, 80f / 255f); shapes.rect(
             0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
@@ -10443,7 +10455,7 @@ void main() {
     private fun drawUsePropertyLayer() {
         val layer = usePropertyLayer ?: return
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 40f / 255f)
         shapes.rect(0f, 0f, 1488.372f, 800f)
         shapes.end()
@@ -10483,7 +10495,7 @@ void main() {
         val item = usePropertyDetail ?: return
         val profile = gameDataCatalog.equipmentProfile(item.id) ?: return
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled); shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(
+        beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(
             0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
@@ -10584,7 +10596,7 @@ void main() {
 
     private fun drawMagickListLayer() {
         val layer = magickListLayer ?: return
-        shapes.projectionMatrix = viewport.camera.combined; shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.projectionMatrix = viewport.camera.combined; beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 40f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
         for (ty in 0..6) for (tx in 0..5) batch.draw(
@@ -10632,7 +10644,7 @@ void main() {
 
     private fun drawBattleMagicInfoLayer() {
         val magic = magickInfoLayer?.magic ?: return
-        shapes.projectionMatrix = viewport.camera.combined; shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.projectionMatrix = viewport.camera.combined; beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
         for (ty in 0..5) for (tx in 0..6) batch.draw(
@@ -10716,7 +10728,7 @@ void main() {
             Triple("치명타율:", 821.431f, 370.8f), Triple("마법 방어율: ", 753.016f, 433.8f),
         )
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 40f / 255f)
         shapes.rect(0f, 0f, 1488.372f, 800f)
         shapes.end()
@@ -10789,7 +10801,7 @@ void main() {
     private fun drawScriptWinConditions(layer: WinConditionsLayer) {
         val lines = layer.view().second.replace("<br/>", "\n").replace(Regex("<[^>]+>"), "").lines()
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 80f / 255f)
         shapes.rect(0f, 0f, 1488.3721f, 800f)
         shapes.end()
@@ -11278,7 +11290,7 @@ void main() {
     private fun drawScriptChoice() {
         val choice = scriptRuntime.currentChoice ?: return
         shapes.projectionMatrix = viewport.camera.combined
-        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        beginFilledShapes()
         shapes.color = Color(0.03f, 0.05f, 0.09f, 0.92f)
         shapes.rect(70f, 46f, 1140f, 220f)
         shapes.color = Color(0.90f, 0.70f, 0.30f, 1f)

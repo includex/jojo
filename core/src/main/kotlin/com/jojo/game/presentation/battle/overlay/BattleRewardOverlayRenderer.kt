@@ -3,7 +3,9 @@ package com.jojo.game.presentation.battle.overlay
 
 import com.jojo.game.*
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
@@ -59,6 +61,8 @@ class BattleRewardOverlayRenderer(
     fun draw(view: BattleRewardOverlayView) {
         view.phase?.let { phase ->
             shapes.projectionMatrix = batch.projectionMatrix
+            // SpriteBatch.end()가 GL_BLEND를 끄므로 반투명 배경 전에 다시 켠다.
+            if (!Gdx.gl.glIsEnabled(GL20.GL_BLEND)) Gdx.gl.glEnable(GL20.GL_BLEND)
             shapes.begin(ShapeRenderer.ShapeType.Filled)
             shapes.color = Color(0f, 0f, 0f, 50f / 255f)
             shapes.rect(0f, 0f, view.worldWidth, view.worldHeight)
