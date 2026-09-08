@@ -12,7 +12,6 @@ import com.jojo.game.JojoGame
 import com.jojo.game.application.battle.LearnUnitSkillFlow
 import com.jojo.game.application.battle.LearnUnitSkillRoute
 import com.jojo.game.application.battle.EditRosterLearnRoute
-import com.jojo.game.presentation.battle.edit.evidence.LearnUnitSkillRenderEvents
 
 /** LearnUnitSkillRouteScreen: 검증 화면의 상태와 입력·렌더링 동작을 제공하는 타입이다. */
 class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: LearnUnitSkillRoute) : ScreenAdapter(), RuntimeRenderEventLogProvider {
@@ -54,8 +53,22 @@ class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: L
 
     /** renderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     fun renderEventLog() = when (route) {
-        // 기본·적용 화면은 게임 자료에서 직접 계산한다. 선택 목록과 취소 뒤 편성소는
-        // 아직 저장된 원본 로그를 되읽는다.
+        // 네 경로 모두 게임 자료에서 직접 계산한다.
+        LearnUnitSkillRoute.CANCEL ->
+            com.jojo.game.verification.evidence.LearnUnitSkillScreenEvents.recordRoster(
+                com.jojo.game.infrastructure.data.GameDataCatalog.load(),
+                joinedUnitIds = listOf(0, 157, 181),
+                unitNames = mapOf(181 to "병사 "),
+            )
+        LearnUnitSkillRoute.SELECT ->
+            com.jojo.game.verification.evidence.LearnUnitSkillScreenEvents.record(
+                com.jojo.game.infrastructure.data.GameDataCatalog.load(),
+                selectedSkillId = 0,
+                routeKey = route.key,
+                selectList = com.jojo.game.verification.evidence.LearnUnitSkillScreenEvents.SelectList(
+                    selectedId = flow.unit0,
+                ),
+            )
         LearnUnitSkillRoute.DEFAULT, LearnUnitSkillRoute.APPLY ->
             com.jojo.game.verification.evidence.LearnUnitSkillScreenEvents.record(
                 com.jojo.game.infrastructure.data.GameDataCatalog.load(),
@@ -63,7 +76,6 @@ class LearnUnitSkillRouteScreen(private val game: JojoGame, private val route: L
                 routeKey = route.key,
                 unit0Override = flow.unit0.takeIf { route == LearnUnitSkillRoute.APPLY },
             )
-        else -> LearnUnitSkillRenderEvents.jsonl(route)
     }
     /** runtimeRenderEventLog: 검증 대상의 현재 화면 또는 렌더 이벤트를 출력한다. */
     override fun runtimeRenderEventLog(): String = renderEventLog()

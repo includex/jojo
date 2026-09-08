@@ -935,8 +935,7 @@
         "--render-event-state=learn-select"
       ],
       "game": "hall-learn-select-fixture",
-      "report": "build/render-events/learn-select-diff.json",
-      "cannedReplay": "Same screen as learn-unit-skill-default with the picker open: 190 visible draws, none modelled."
+      "report": "build/render-events/learn-select-diff.json"
     },
     {
       "id": "learn-unit-skill-apply",
@@ -952,8 +951,7 @@
         "--render-event-state=learn-cancel"
       ],
       "game": "hall-learn-cancel-fixture",
-      "report": "build/render-events/learn-cancel-diff.json",
-      "cannedReplay": "Cancelling returns to the 편성소 screen (36 draws), which the port does not model either."
+      "report": "build/render-events/learn-cancel-diff.json"
     },
     {
       "id": "define-unit-default",

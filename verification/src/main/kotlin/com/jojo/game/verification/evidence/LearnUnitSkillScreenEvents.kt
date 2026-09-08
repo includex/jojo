@@ -98,6 +98,8 @@ internal object LearnUnitSkillScreenEvents {
         routeKey: String = "default",
         /** 저장된 재능 첫 칸의 무장 번호다. 편집을 적용한 화면이 이 자리를 쓴다. */
         unit0Override: Int? = null,
+        /** 열려 있는 선택 목록이다. 없으면 편집 창만 그린다. */
+        selectList: SelectList? = null,
     ): String {
         val phase = "hall-learn-$routeKey-stable"
         val log = RenderEventLog()
@@ -141,7 +143,132 @@ internal object LearnUnitSkillScreenEvents {
         draw("$root/button1/Background", "sliced-sprite", 1040.095f, 29.209f, 147.6f, 56f, "box3")
         draw("$root/button1/Background/Label", "label", 1080.755f, 28.489f, 66.28f, 59.44f, text = "폐쇄")
         appendPanels(catalog, selectedSkillId, unit0Override, ::draw)
+        selectList?.let { appendSelectList(catalog, it, phase, log, ::draw) }
         return log.jsonl()
+    }
+
+    /**
+     * 편성소: 편집을 닫고 돌아오는 화면이다.
+     *
+     * 줄은 참전 중인 무장 목록에서 오고, 모든 라벨은 부모 가운데에 놓인다. 배경은
+     * 한 줄씩 번갈아 바뀐다.
+     */
+    fun recordRoster(catalog: GameDataCatalog, joinedUnitIds: List<Int>, unitNames: Map<Int, String>): String {
+        val phase = "hall-learn-cancel-stable"
+        val log = RenderEventLog()
+
+        /** draw: 편성소의 한 줄을 남긴다. */
+        fun draw(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") =
+            log.draw(
+                phase, "HallLayer", "Canvas/Layer/$path", type, x, y, w, h, asset,
+                blend = if (type == "label") LABEL_BLEND else SPRITE_BLEND, text = text,
+            )
+
+        /** centred: 가운데 기준으로 본문 라벨을 남긴다. */
+        fun centred(path: String, text: String, centreX: Float, y: Float) {
+            val width = SourceLabelWidth.body(text)
+            draw(path, "label", centreX - width / 2f, y, width, 50.4f, null, text)
+        }
+        log.draw(
+            phase, "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>",
+        )
+        log.draw(
+            phase, "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f,
+            "default_sprite_splash", opacity = 80f / 255f,
+        )
+        draw("bg", "tiled-sprite", 420.686f, 22.5f, 647f, 755f, "Logo_12-1")
+        draw("bg/bg1", "sprite", 420.686f, 728.75f, 647f, 48.7f, "bg1")
+        centred("bg/bg1/label", "편성소", 744.186f, 727.9f)
+        listOf(
+            Triple(434.336f, 135.7f, "인덱스"),
+            Triple(570.186f, 308f, "이름"),
+            Triple(878.686f, 175f, "상태"),
+        ).forEach { (x, width, title) ->
+            draw("bg/caption", "sliced-sprite", x, 655f, width, 52f, "box3")
+            centred("bg/caption/label", title, x + width / 2f, if (title == "인덱스") 658.8f else 658.465f)
+        }
+        draw("bg/vline", "sprite", 874.186f, 169.15f, 6f, 484.3f, "vline")
+        draw("bg/vline", "sprite", 567.186f, 169.15f, 6f, 484.3f, "vline")
+        draw("bg/scrollview0", "sliced-sprite", 433.686f, 167f, 621f, 488f, "box5")
+        val row = "bg/scrollview0/view/content/item"
+        joinedUnitIds.forEachIndexed { index, id ->
+            val y = ROSTER_FIRST_Y - index * ROSTER_PITCH
+            // 줄 배경은 한 줄씩 번갈아 바뀐다.
+            draw(row, "sprite", 440.186f, y, 606f, 60f, if (index % 2 == 0) "bg2" else ROSTER_ALTERNATE)
+            centred("$row/label0", id.toString(), 502.186f, y + 4.8f)
+            centred("$row/label1", unitNames[id] ?: catalog.unitProfile(id)?.name.orEmpty(), 724.186f, y + 4.8f)
+            centred("$row/label2", "참전함", 966.186f, y + 4.8f)
+        }
+        ROSTER_BUTTONS.forEach { (index, spec) ->
+            val (x, width, text) = spec
+            val y = if (index >= 3) 102f else 35.1f
+            draw("bg/button$index/Background", "sliced-sprite", x, if (index == 4) 102.1f else y, width, if (index == 3) 56f else 55.8f, "box3")
+            centred("bg/button$index/Background/Label", text, x + width / 2f, if (index >= 3) 104.8f else 37.8f)
+        }
+        return log.jsonl()
+    }
+
+    /** 편성소 첫 줄의 y와 줄 간격이다. */
+    private const val ROSTER_FIRST_Y = 595f
+    private const val ROSTER_PITCH = 60f
+    /** 편성소 홀수 줄의 배경이다. */
+    private const val ROSTER_ALTERNATE = "885a69b4-08ed-4c78-8896-ffb04eb2bd20"
+
+    /** 편성소 아래 단추의 x·폭·문구다. */
+    private val ROSTER_BUTTONS = listOf(
+        0 to Triple(873.686f, 183f, "편집"),
+        1 to Triple(441.686f, 183f, "무장으로 합류합니다"),
+        2 to Triple(657.686f, 183f, "폐쇄"),
+        3 to Triple(441.186f, 408f, "원클릭으로 앞의 26명 무장을 모두 얻기"),
+        4 to Triple(873.686f, 183f, "특성 수정"),
+    )
+
+    /** 선택 목록: 편집 창 위에 무장 번호를 네 칸씩 늘어놓은 판을 덮는다. */
+    private fun appendSelectList(
+        catalog: GameDataCatalog,
+        list: SelectList,
+        phase: String,
+        log: RenderEventLog,
+        draw: (String, String, Float, Float, Float, Float, String?, String) -> Unit,
+    ) {
+        log.draw(
+            phase, "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f,
+            "default_sprite_splash", opacity = 100f / 255f,
+        )
+        val root = "Logo_12-1"
+        draw(root, "tiled-sprite", 147.686f, 24.5f, 1193f, 751f, "Logo_9-1", "")
+        draw("$root/box4", "sliced-sprite", 147.686f, 24.5f, 1193f, 751f, "box4", "")
+        draw("$root/bg1", "sprite", 147.686f, 715.5f, 1193f, 60f, "bg1", "")
+        draw("$root/bg1/box3", "sliced-sprite", 147.686f, 715.5f, 1193f, 60f, "box3", "")
+        draw("$root/bg1/label", "label", 703.186f, 721.3f, 71.2f, 52.4f, null, "선택")
+        draw("$root/scrollview", "tiled-sprite", 164.186f, 99f, 1160f, 616f, "Logo_12-1", "")
+        draw("$root/scrollview/box2", "tiled-sprite", 164.186f, 99f, 1160f, 616f, "box2", "")
+        // 원본 스크롤뷰는 한 쪽 분량을 모두 만들어 둔다. 화면 밖으로 밀린 칸은 비교기가
+        // 양쪽에서 똑같이 걸러 낸다.
+        val item = "$root/scrollview/view/content/item"
+        repeat(list.pageCount) { offset ->
+            val id = list.firstId + offset
+            val x = SELECT_FIRST_X + offset % SELECT_COLUMNS * SELECT_COLUMN_PITCH
+            val y = SELECT_FIRST_Y - offset / SELECT_COLUMNS * SELECT_ROW_PITCH
+            draw(item, "sprite", x, y, 286f, 80f, "bg1", "")
+            draw("$item/box3", "sliced-sprite", x, y, 286f, 80f, "box3", "")
+            if (id == list.selectedId) draw("$item/box6", "sprite", x + 2f, y + 4f, 280f, 74f, "box6", "")
+            // 원본 목록은 0부터 `UNIT_LIMIT`-1까지를 저장 자료 이름으로 채운 뒤 마지막에
+            // 보초값 "없음"을 하나 덧붙인다. 판의 "공백" 기본값과는 다른 규칙이다.
+            val name = if (id >= UNIT_LIMIT) SELECT_SENTINEL else unitSlotName(catalog, id)
+            draw("$item/label", "label", x + 9.8f, y + 15f, 263.1f, 54f, null, "$id. $name")
+        }
+        // 라벨 배치는 단추마다 프리팹에 따로 저장돼 있다. 글자 수로 규칙을 만들면
+        // 같은 두 글자인 "확인"과 "취소"가 서로 다른 값을 쓰는 것을 설명하지 못한다.
+        SELECT_BUTTONS.forEach { button ->
+            draw("$root/button${button.index}/Background", "sliced-sprite", button.x, button.y, 147.6f, 56f, "box3", "")
+            draw(
+                "$root/button${button.index}/Background/Label", "label",
+                button.labelX, button.labelY, button.labelWidth, button.labelHeight, null, button.text,
+            )
+        }
+        draw("$root/label", "label", 341.995f, 34.8f, 100.1f, 50.4f, null, "${list.page + 1}/${list.pageTotal}")
     }
 
     /** 판 그리기: 세 판의 칸 이름과 값을 자료에서 만들어 남긴다. */
@@ -230,6 +357,53 @@ internal object LearnUnitSkillScreenEvents {
         id < 0 || id >= UNIT_LIMIT -> EMPTY_SLOT
         else -> catalog.unitProfile(id)?.name.orEmptySlot().takeIf { it != EMPTY_SLOT } ?: UNSET_SAVE_SLOT
     }
+
+    /**
+     * 선택 목록의 상태다.
+     *
+     * 번호는 0부터 `UNIT_LIMIT`까지 있고 한 쪽에 `pageSize`개씩 놓인다. 지금 값이 있는
+     * 쪽이 열리므로 마지막 쪽은 남은 개수만큼만 짧다(1000~1024의 25칸).
+     */
+    data class SelectList(val selectedId: Int, val pageSize: Int = 50, val totalIds: Int = UNIT_LIMIT + 1) {
+        /** 이 쪽의 0부터 세는 번호다. */
+        val page: Int get() = selectedId / pageSize
+        /** 전체 쪽 수다. */
+        val pageTotal: Int get() = (totalIds + pageSize - 1) / pageSize
+        /** 이 쪽의 첫 번호다. */
+        val firstId: Int get() = page * pageSize
+        /** 이 쪽에 실제로 놓이는 칸 수다. */
+        val pageCount: Int get() = minOf(pageSize, totalIds - firstId)
+    }
+
+    /** 선택 목록 마지막에 붙는 보초 항목의 이름이다. */
+    private const val SELECT_SENTINEL = "없음"
+
+    /** 선택 목록 아래 단추 하나의 배치다. */
+    private data class SelectButton(
+        val index: Int,
+        val x: Float,
+        val y: Float,
+        val text: String,
+        val labelX: Float,
+        val labelY: Float,
+        val labelWidth: Float,
+        val labelHeight: Float,
+    )
+
+    /** 선택 목록 아래 네 단추의 배치다. */
+    private val SELECT_BUTTONS = listOf(
+        SelectButton(0, 1172.451f, 32.187f, "확인", 1196.251f, 41.187f, 100f, 40f),
+        SelectButton(1, 1009.966f, 32.209f, "취소", 1050.626f, 31.489f, 66.28f, 59.44f),
+        SelectButton(2, 174.386f, 32f, "이전 페이지", 163.336f, 31.28f, 169.7f, 59.44f),
+        SelectButton(3, 457.418f, 32.209f, "다음 페이지", 446.368f, 31.489f, 169.7f, 59.44f),
+    )
+
+    /** 선택 목록 칸의 첫 x·y와 칸 간격이다. */
+    private const val SELECT_FIRST_X = 166.186f
+    private const val SELECT_FIRST_Y = 633f
+    private const val SELECT_COLUMNS = 4
+    private const val SELECT_COLUMN_PITCH = 290f
+    private const val SELECT_ROW_PITCH = 84f
 
     /** `UNIT_POSTS_SKILL_ATTR.POSTS`다. */
     private const val POSTS = 2
