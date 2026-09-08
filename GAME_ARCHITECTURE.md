@@ -41,9 +41,9 @@ verification ──> public application/domain contracts
 
 이 규칙은 `tools/test_package_boundaries.py`가 강제한다.
 
-## 현재 의존 방향 위반 (31건, 미해결)
+## 현재 의존 방향 위반 (28건, 미해결)
 
-패키지 분할 자체는 목표 구조에 도달했다. 그러나 **의존 방향은 세 곳에서 역류하고 있으며 그중 하나는 순환이다.** `python3 -m unittest tools.test_package_boundaries`가 현재 3건 실패한다. 이것이 최우선 과제다.
+패키지 분할 자체는 목표 구조에 도달했다. **2026-09-09에 (2)가 해소되어 순환은 끊겼다.** 남은 역류는 두 곳이며 `python3 -m unittest tools.test_package_boundaries`가 2건 실패한다.
 
 ### (1) domain → infrastructure (6건)
 
@@ -58,15 +58,11 @@ domain/battle/BattleAvatarResolver.kt:4                import ...infrastructure.
 
 도메인 규칙이 데이터 로딩 구현을 직접 안다. 도메인이 실제로 필요로 하는 조회만 담은 read-only interface를 `domain`에 정의하고 `GameDataCatalog`가 이를 구현하게 해서 방향을 역전한다.
 
-### (2) infrastructure → presentation / application (3건)
+### (2) infrastructure → presentation / application — 해소됨 (2026-09-09)
 
-```
-infrastructure/data/GameDataCatalog.kt:4           import ...presentation.scenario.overlay.*
-infrastructure/data/GameDataCatalogUnitDomain.kt:4 import ...presentation.shared.overlay.TerrainLayer
-infrastructure/audio/GameAudioPlayer.kt:7          import ...application.scenario.ScenarioStage
-```
+세 건 모두 없앴다. `GameDataCatalog`의 `presentation.scenario.overlay.*` import는 쓰이지 않아 지웠고, `GameDataCatalogUnitDomain.terrainLayer()`는 계층 중립인 `domain.battle.TerrainRow`·`TerrainArmRow`만 내놓도록 바꿔 창을 만드는 일을 `TerrainLayer.of`로 옮겼으며, `GameAudioPlayer.sync`는 `ScenarioStage` 대신 배경음 번호와 효과음 목록만 받는다.
 
-(1)과 (2)가 합쳐져 **`domain → infrastructure → presentation` 순환**을 만든다. `GameDataCatalog`가 매듭이다. `TerrainLayer` 같은 UI 레이어 타입을 카탈로그가 참조하는 것이 직접 원인이므로, 해당 데이터 타입을 domain 또는 중립 타입으로 옮긴다. `GameAudioPlayer`의 `ScenarioStage` 의존은 좁은 콜백 interface로 역전한다.
+이로써 `domain → infrastructure → presentation` 순환은 사라졌다. (1)이 남아 있어도 자원 계층이 화면을 되짚지는 않는다.
 
 ### (3) presentation → infrastructure (22건 / 18파일)
 
@@ -95,8 +91,8 @@ infrastructure/audio/GameAudioPlayer.kt:7          import ...application.scenari
 
 ### 해소 순서
 
-1. domain 조회 interface 도입 → (1) 해소
-2. `GameDataCatalog`의 presentation 타입 의존 제거, `GameAudioPlayer` 콜백 역전 → (2) 해소, 순환 제거
+1. domain 조회 interface 도입 → (1) 해소. 도메인이 쓰는 조회는 열두 가지(`armProfile`, `defaultEquipment`, `equipmentBonus`, `equipmentExperienceLimit`, `equipmentLevelLimit`, `equipmentProfile`, `promotionTarget`, `unitExperienceLimit`, `unitLevelDerivedAttributes`, `unitLevelGrowth`, `unitLevelLimit`, `unitProfile`)뿐이며, 그 반환 타입인 `UnitProfile`·`ArmProfile`·`EquipmentProfile`·`EquipmentBonus`·`CriticalSpeechProfile`을 domain으로 옮기는 것이 실제 작업량이다(참조 17파일).
+2. ~~`GameDataCatalog`의 presentation 타입 의존 제거, `GameAudioPlayer` 콜백 역전~~ → 완료(2026-09-09)
 3. presentation을 조회 interface로 전환 → (3) 해소
 
 각 단계 후 `python3 -m unittest tools.test_package_boundaries`가 통과해야 한다.

@@ -51,7 +51,7 @@ verification ---> public application/domain observation contracts
 |---|---|
 | `:core:compileKotlin` | 성공 |
 | Core JUnit | 989개, 실패 0 |
-| Python 도구 테스트 | 121개 중 **3개 실패** (`test_package_boundaries`) |
+| Python 도구 테스트 | 122개 중 **2개 실패** (`test_package_boundaries`; 2026-09-09 기준) |
 | `:verification:verifyAllHeadless` | 미실행 (다음 작업자가 확인) |
 | Desktop/Android compile | 미실행 (다음 작업자가 확인) |
 
@@ -107,9 +107,9 @@ legacy identity 잔존은 **0건**이다.
 
 ## 남은 과제
 
-### P0 — 패키지 경계 위반 (`tools/test_package_boundaries.py` 3건 실패)
+### P0 — 패키지 경계 위반 (`tools/test_package_boundaries.py` 2건 실패)
 
-의존 방향이 세 곳에서 역류하고 있으며, 그중 하나는 **순환**이다.
+의존 방향이 두 곳에서 역류한다. **(2)는 2026-09-09에 해소되어 순환은 끊겼다.**
 
 **(1) domain -> infrastructure, 6건**
 
@@ -122,15 +122,9 @@ domain/battle/BattleUnit.kt:3                          import ...infrastructure.
 domain/battle/BattleAvatarResolver.kt:4                import ...infrastructure.data.GameDataCatalog
 ```
 
-**(2) infrastructure -> presentation/application, 3건**
+**(2) infrastructure -> presentation/application — 해소됨(2026-09-09)**
 
-```
-infrastructure/data/GameDataCatalog.kt:4           import ...presentation.scenario.overlay.*
-infrastructure/data/GameDataCatalogUnitDomain.kt:4 import ...presentation.shared.overlay.TerrainLayer
-infrastructure/audio/GameAudioPlayer.kt:7          import ...application.scenario.ScenarioStage
-```
-
-(1)+(2)가 `domain -> infrastructure -> presentation` 순환을 만든다. `GameDataCatalog`가 매듭이다.
+쓰이지 않던 overlay import를 지우고, `terrainLayer()`를 계층 중립인 `TerrainRow`·`TerrainArmRow`로 바꿔 창 조립을 `TerrainLayer.of`로 옮겼으며, `GameAudioPlayer.sync`는 배경음 번호와 효과음 목록만 받는다. `domain -> infrastructure -> presentation` 순환은 사라졌고, 매듭인 `GameDataCatalog`에는 (1)과 (3)만 남았다.
 
 **(3) presentation -> infrastructure, 22건 / 18파일**
 
@@ -138,7 +132,7 @@ infrastructure/audio/GameAudioPlayer.kt:7          import ...application.scenari
 
 권장 순서:
 1. domain이 필요로 하는 조회만 담은 read-only 조회 interface를 `domain`에 정의하고 `GameDataCatalog`가 이를 구현하게 해 (1)을 끊는다.
-2. `GameDataCatalog`가 참조하는 `presentation.*.overlay` 타입(`TerrainLayer` 등)을 domain 또는 중립 데이터 타입으로 옮겨 (2)를 끊는다. `GameAudioPlayer`의 `ScenarioStage` 의존은 좁은 콜백/interface로 역전한다.
+2. ~~`GameDataCatalog`가 참조하는 `presentation.*.overlay` 타입을 중립 데이터 타입으로 옮긴다~~ — 완료.
 3. presentation은 application이 조립해 넘긴 조회 interface만 받게 해 (3)을 줄인다.
 
 각 단계 후 `python3 -m unittest tools.test_package_boundaries`가 통과해야 한다.
