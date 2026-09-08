@@ -122,7 +122,11 @@
       ],
       "game": "battle-win-condition-full-fixture",
       "battle": true,
-      "report": "build/render-events/reports/battle-win-condition-full.json"
+      "report": "build/render-events/reports/battle-win-condition-full.json",
+      "animatedFields": [
+        "Canvas/Layer/ScrollView/view/content/map/unit/mask/node.asset"
+      ],
+      "animatedFieldsReason": "Same animated terrain mask as the compact route: both sides run the Mark clip on their own clock, so a capture near a frame boundary reads the neighbouring frame id."
     },
     {
       "id": "round-normal",

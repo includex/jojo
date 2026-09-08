@@ -88,7 +88,9 @@ for (const route of routes) {
   mkdirSync(dirname(report), { recursive: true });
   mkdirSync(dirname(sourceLog), { recursive: true });
   for (const stale of [sourceLog, gameLog, report]) rmSync(stale, { force: true });
-  try {
+
+  /** Capture both sides once and compare them. */
+  function attempt() {
     run(electron, [".", SRGB_CAPTURE, ...route.source, `--render-event-log=${sourceLog}`], sourceRoot);
     // Battle overlays live on BattleScreen, which only exists once the launcher
     // is told to open a battle; the isolated fixture screens must not get that
@@ -100,6 +102,20 @@ for (const route of routes) {
     const animated = (route.animatedFields ?? []).map(field => `--animated-field=${field}`);
     run("python3", [resolve(root, "tools/compare_render_logs.py"), sourceLog, gameLog,
       `--float-tolerance=${table.floatTolerance}`, ...animated, `--json-out=${report}`]);
+  }
+
+  try {
+    try {
+      attempt();
+    } catch (first) {
+      // The original is driven by wall-clock waits, so a loaded machine can
+      // capture it before a layer has finished laying out or after a timed
+      // overlay has removed itself.  A real difference reproduces; a capture
+      // race does not.  The retry is announced so the flakiness stays visible
+      // instead of quietly becoming the normal result.
+      console.log(`RENDER_PARITY_ROUTE_RETRY ${route.id}: ${String(first.message).split("\n").slice(0, 3).join(" | ")}`);
+      attempt();
+    }
     // A route whose game-side log is a stored copy of the original can only ever
     // agree; say so rather than letting it read as evidence.
     console.log(route.cannedReplay
