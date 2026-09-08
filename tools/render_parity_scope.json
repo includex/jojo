@@ -28,7 +28,9 @@
         {"id": "speaker", "sourceLayers": ["SayLayer"], "report": "build/render-events/street-speaker-diff.json"},
         {"id": "text", "sourceLayers": ["SayLayer"], "report": "build/render-events/street-text-diff.json"},
         {"id": "background", "sourceLayers": ["SayLayer", "HallLayer", "Hall"], "report": "build/render-events/street-background-diff.json"},
-        {"id": "characters", "sourceLayers": ["HallLayer", "Hall", "HallUnit"], "report": "build/render-events/street-characters-diff.json"}
+        {"id": "characters", "sourceLayers": ["HallLayer", "Hall", "HallUnit"], "report": "build/render-events/street-characters-diff.json"},
+        {"id": "walk-direction", "sourceLayers": ["HallLayer"], "report": "build/render-events/street-walk-direction-diff.json", "coverageNote": "HallLayer's walking unit timeline. The source records it through writeHallWalkRenderEventLog and the game through HallUnitRender.walkingRenderEventLog; both sides were implemented but no task drove them."},
+        {"id": "walk-motion", "sourceLayers": ["HallLayer"], "report": "build/render-events/street-walk-motion-diff.json", "coverageNote": "The same walking timeline sampled along its motion path rather than its facing changes."}
       ]
     },
     {

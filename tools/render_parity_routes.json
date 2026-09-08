@@ -1138,6 +1138,22 @@
       "game": "yingchuan-lose-restart",
       "report": "build/render-events/reports/battle-lose-restart-prompt.json",
       "battle": true
+    },
+    {
+      "id": "walk-direction",
+      "source": [
+        "--render-event-state=street-walk-direction"
+      ],
+      "game": "street-walk-direction-fixture",
+      "report": "build/render-events/street-walk-direction-diff.json"
+    },
+    {
+      "id": "walk-motion",
+      "source": [
+        "--render-event-state=street-walk-motion"
+      ],
+      "game": "street-walk-motion-fixture",
+      "report": "build/render-events/street-walk-motion-diff.json"
     }
   ]
 }
