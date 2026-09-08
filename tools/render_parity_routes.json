@@ -1004,10 +1004,11 @@
     {
       "id": "start-item",
       "source": [
-        "--render-event-state=start-item"
+        "--render-event-state=main"
       ],
       "game": "start-item-fixture",
-      "report": "build/render-events/start-item-diff.json"
+      "report": "build/render-events/start-item-diff.json",
+      "sourceNote": "The start-item choice leaves no draw of its own: at this point the original's stream is the plain Login screen, which the harness records as its `main` state. The port still reaches it through its own start-item fixture, so the two sides exercise different code for the same expected frame."
     },
     {
       "id": "reward-actual-route-basic",
@@ -1142,7 +1143,8 @@
       ],
       "game": "battle-edit2-child-scene",
       "report": "build/render-events/edit3-scene-diff.json",
-      "battle": true
+      "battle": true,
+      "noSourceRoute": "The Electron harness has no edit3 fixture: `edit3-` appears once in main.cjs, in the branch that writes a state file, never in the list that installs an overlay. Asking for it makes the harness fall back to the street dialogue fixture, so there is nothing here to compare the port's battle-edit2-child-scene capture against."
     },
     {
       "id": "lose-restart",

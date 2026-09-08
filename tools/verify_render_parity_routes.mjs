@@ -75,6 +75,13 @@ const failures = [];
 if (routes.some(route => route.id === "battle-init")) assertHarnessDrivesBattleInit();
 
 for (const route of routes) {
+  // A state the Electron harness has no fixture for cannot be compared here at
+  // all. Say so instead of running it and reporting whatever screen the harness
+  // happened to fall back to.
+  if (route.noSourceRoute) {
+    console.log(`RENDER_PARITY_ROUTE_NO_SOURCE ${route.id} (${route.noSourceRoute})`);
+    continue;
+  }
   const sourceLog = resolve(root, `build/render-events/source-${route.id}.jsonl`);
   const gameLog = resolve(root, `build/render-events/game-${route.id}.jsonl`);
   const report = resolve(root, route.report);
@@ -109,4 +116,5 @@ if (failures.length) {
   process.exit(1);
 }
 const circular = routes.filter(route => route.cannedReplay).length;
-console.log(`RENDER_PARITY_ROUTES_OK routes=${routes.length} circular=${circular}`);
+const unreachable = routes.filter(route => route.noSourceRoute).length;
+console.log(`RENDER_PARITY_ROUTES_OK routes=${routes.length} circular=${circular} noSource=${unreachable}`);
