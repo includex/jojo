@@ -39,5 +39,6 @@ internal object BattleExperienceEnvironmentAssembler {
         equipmentUpgrades = journal.mutableEquipmentUpgrades(),
         stagedHitSideEffects = journal::stagedHitSideEffects,
         stagedCompletionSideEffects = journal::stagedCompletionSideEffects,
+        onActionGrowth = journal::recordActionGrowth,
     )
 }

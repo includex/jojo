@@ -229,6 +229,15 @@ internal class AiPresentationCoordinator(
 
         fun queuePostActionDeaths(): Boolean
         /**
+         * `presentActionSettlement`: 방금 끝난 행동의 정산 상태창을 연다.
+         *
+         * 원본 `_shifudu` -> `_jiesuan` -> `unitDeath` 순서에서 가운데 자리다. 상태창이
+         * 실제로 열렸으면 true를 돌려주고, 그동안 이후 단계는 진행하지 않는다.
+         */
+        fun presentActionSettlement(): Boolean
+        /** `settlementActive`: 정산 상태창이 아직 재생 중인지 나타낸다. */
+        fun settlementActive(): Boolean
+        /**
          * `startedPostActionDeaths`: 흐름을 실행하거나 다음 단계로 전달한다.
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
@@ -408,6 +417,12 @@ internal class AiPresentationCoordinator(
                         finishScriptEndedTurn()
                         return
                     }
+                    // 원본 `_shifudu` 다음 자리다. 사망 연출을 걸기 전에 정산 상태창을 보여 준다.
+                    if (state.unitDeathScriptPass == 1 && !state.actionSettlementPresented) {
+                        state.actionSettlementPresented = true
+                        if (port.presentActionSettlement()) return
+                    }
+                    if (state.unitDeathScriptPass == 1 && port.settlementActive()) return
                     if (state.unitDeathScriptPass == 1 && !port.startedPostActionDeaths()) {
                         if (port.queuePostActionDeaths()) return
                         state.unitDeathScriptPass = 2

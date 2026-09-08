@@ -19,8 +19,16 @@ internal sealed interface TurnSettlementOp {
     /** 유닛의 행동 연출 목록을 실행한다. */
     data class Actions(val unitId: String, val actionIds: List<Int>) : TurnSettlementOp
 
-    /** 유닛 정보 정산 패널을 표시한다. */
-    data class UnitInfo(val plan: SettlementUnitPlan) : TurnSettlementOp
+    /**
+     * 유닛 정보 정산 패널을 표시한다.
+     *
+     * 원본 `_jiesuan`은 유닛 하나마다 체력·기력과 경험치를 한 객체(`O`)에 모아 `MineUnitInfoLayer`
+     * 한 장으로 보여 준다. [grants]가 비어 있지 않으면 그 한 장짜리 표시에 해당한다.
+     */
+    data class UnitInfo(
+        val plan: SettlementUnitPlan,
+        val grants: List<SettlementGrowthGrant> = emptyList(),
+    ) : TurnSettlementOp
 
     /** 성장 보상과 능력치 상승 정보를 표시한다. */
     data class GrowthInfo(val unitId: String, val grants: List<SettlementGrowthGrant>) : TurnSettlementOp

@@ -70,6 +70,19 @@ class BattleActionTransaction internal constructor(
     /** 행동 전 유닛의 기력을 조회한다. */
     fun initialMp(id: String): Int? = before.states[id]?.magicPoints
 
+    /**
+     * `vitalsBefore`: 행동 직전 모든 유닛의 체력·기력을 한 번에 조회한다.
+     *
+     * 원본은 피해를 넣기 전에 `setCharInfoBykey(g_charinfo, unit, UNIT_INFO_KEY.HP, hp_cur())`로
+     * 유닛별 이전 값을 먼저 적어 둔 뒤(같은 키는 처음 값만 남는다) `_jiesuan`에서 현재 값과
+     * 비교해 증감을 뽑는다. 트랜잭션의 before 스냅샷이 그 기록과 같은 시점이다.
+     */
+    fun vitalsBefore(): Map<String, Vitals> =
+        before.states.mapValues { (_, state) -> Vitals(state.hitPoints, state.magicPoints) }
+
+    /** `Vitals`: 행동 전 체력·기력 한 쌍이다. */
+    data class Vitals(val hitPoints: Int, val magicPoints: Int)
+
     /** 행동자의 계산된 이동 위치와 선택 상태를 반영한다. */
     fun commitMovement(commitActionState: Boolean = false) {
         if (complete) return

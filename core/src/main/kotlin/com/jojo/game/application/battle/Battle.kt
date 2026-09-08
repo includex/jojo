@@ -217,6 +217,14 @@ class Battle(
             journal.recordPendingActionTransaction(value)
         }
 
+    /**
+     * `consumeActionGrowth`: 직전 행동이 지급한 유닛·장비 경험치를 정산 표현으로 넘긴다.
+     *
+     * 원본 `_jiesuan`이 `g_charinfo`의 `*_EXP_ADD`를 읽어 상태창에 함께 보여 주는 자리다.
+     */
+    fun consumeActionGrowth(): Map<String, List<com.jojo.game.domain.battle.settlement.SettlementGrowthGrant>> =
+        journal.consumeActionGrowth()
+
     /** playerMoney: 전투 중 플레이어 진영이 보유한 금액으로, 보호막과 보상에 사용한다. */
     var playerMoney: Int
         get() = journal.playerMoney

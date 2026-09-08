@@ -2,6 +2,8 @@
 package com.jojo.game.application.battle.experience
 
 import com.jojo.game.domain.battle.*
+import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
+import com.jojo.game.domain.battle.settlement.SettlementGrowthKind
 import com.jojo.game.*
 import com.jojo.game.application.battle.*
 import com.jojo.game.application.battle.ai.*
@@ -28,6 +30,13 @@ internal data class BattleExperienceEnvironment(
     val equipmentUpgrades: MutableList<CampaignEquipmentExperienceResult>,
     val stagedHitSideEffects: () -> MutableList<() -> Unit>?,
     val stagedCompletionSideEffects: () -> MutableList<() -> Unit>?,
+    /**
+     * `onActionGrowth`: 한 행동 동안 지급한 성장 결과를 정산 표현에 넘긴다.
+     *
+     * 원본은 `setCharInfoBykey(g_charinfo, unit, UNIT_INFO_KEY.EXP_ADD/WQ_EXP_ADD/HJ_EXP_ADD, ...)`로
+     * 행동 중 지급분을 모아 두었다가 `_jiesuan`에서 상태창에 함께 보여 준다.
+     */
+    val onActionGrowth: (String, SettlementGrowthGrant) -> Unit = { _, _ -> },
 )
 
 /** BattleExperienceCoordinator: 피해·격파 결과를 유닛과 장비 경험치로 계산하고, 표현 시점에 맞춰 반영한다. */
@@ -151,7 +160,15 @@ internal object BattleExperienceCoordinator {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val apply = { award(recipient, opponent, amount, kind).filterTo(env.equipmentUpgrades) { it.leveledUp }; Unit }
+        val apply = {
+            val results = award(recipient, opponent, amount, kind)
+            results.filterTo(env.equipmentUpgrades) { it.leveledUp }
+            val growthKind =
+                if (kind == BattleEquipmentExperienceKind.WEAPON) SettlementGrowthKind.WEAPON_EXP
+                else SettlementGrowthKind.ARMOR_EXP
+            results.forEach { env.onActionGrowth(recipient.id, SettlementGrowthGrant(growthKind, amount, equipmentResult = it)) }
+            Unit
+        }
         env.stagedCompletionSideEffects()?.add(apply) ?: apply()
     }
 
@@ -176,6 +193,7 @@ internal object BattleExperienceCoordinator {
         if (amount <= 0) return
         val apply = {
             val oldLevel = unit.level
+            val oldExperience = unit.experience
             val persistent = env.onBattleExperience(unit, amount)
             if (persistent != null) {
                 unit.level = persistent.level
@@ -194,6 +212,16 @@ internal object BattleExperienceCoordinator {
                 }
             }
             if (unit.level != oldLevel) env.onBattleLevelUp(unit)
+            env.onActionGrowth(
+                unit.id,
+                SettlementGrowthGrant(
+                    SettlementGrowthKind.UNIT_EXP, amount,
+                    unitResult = persistent ?: CampaignExperienceResult(
+                        gained = amount, level = unit.level, experience = unit.experience,
+                        leveledUp = unit.level != oldLevel, oldLevel = oldLevel, oldExperience = oldExperience,
+                    ),
+                ),
+            )
             Unit
         }
         env.stagedCompletionSideEffects()?.add(apply) ?: apply()

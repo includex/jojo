@@ -210,6 +210,18 @@ internal class BattleAiPresentationPort(
 
     override fun queuePostActionDeaths() = screen.deathTimeline.queuePostAction(screen.collectDyingPresentationUnits())
     /**
+     * `presentActionSettlement`: 타입의 핵심 동작을 수행한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    override fun presentActionSettlement() = screen.presentActionSettlement()
+    /**
+     * `settlementActive`: 조건과 입력 상태를 검증한다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    override fun settlementActive() = screen.settlementPresentationActive()
+    /**
      * `startedPostActionDeaths`: 흐름을 실행하거나 다음 단계로 전달한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */

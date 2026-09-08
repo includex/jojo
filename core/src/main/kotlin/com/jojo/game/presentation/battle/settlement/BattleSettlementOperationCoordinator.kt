@@ -9,7 +9,10 @@ import com.jojo.game.domain.battle.settlement.CampSettlement
 import com.jojo.game.domain.battle.settlement.SettlementAuthoredSubflowPlan
 import com.jojo.game.domain.battle.settlement.SettlementAuraStep
 import com.jojo.game.domain.battle.settlement.SettlementGrowthStep
+import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
 import com.jojo.game.domain.battle.settlement.SettlementInfoKind
+import com.jojo.game.domain.battle.settlement.SettlementInfoPanel
+import com.jojo.game.domain.battle.settlement.SettlementUnitPlan
 import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
 
@@ -46,7 +49,11 @@ internal interface BattleSettlementOperationPort {
 /** 정산 operation 조정자: 전투·마법 정산 원시 결과를 화면 실행기가 소비할 순차 operation 계획으로 변환한다. */
 internal class BattleSettlementOperationCoordinator {
     /** 일반 정산 계획: 상태 payload를 검증한 뒤 화면 operation과 함께 반환한다. */
-    fun turnSettlement(settlement: CampSettlement, port: BattleSettlementOperationPort): BattleSettlementOperationPlan {
+    fun turnSettlement(
+        settlement: CampSettlement,
+        port: BattleSettlementOperationPort,
+        mergeGrowthFor: Set<String> = emptySet(),
+    ): BattleSettlementOperationPlan {
         val plan = BattleSettlementPlanningAdapter.plan(settlement, port.unitsById()) { state ->
             port.statusMeff(state.sourceStatusIndex, state.meffSlot)
         }
@@ -56,7 +63,7 @@ internal class BattleSettlementOperationCoordinator {
             }
             error("Incomplete authored settlement payload: $missing")
         }
-        return BattleSettlementOperationPlan(plan, operations(plan, port))
+        return BattleSettlementOperationPlan(plan, operations(plan, port, mergeGrowthFor))
     }
 
     /** 마법 local 정산 계획: 시전자 진영과 현재 유닛 정보를 결합해 화면 operation과 함께 반환한다. */
@@ -83,7 +90,29 @@ internal class BattleSettlementOperationCoordinator {
     }
 
     /** operation 계획: authored subflow와 정산 대상 변화를 화면 실행 순서의 명령 목록으로 조립한다. */
-    fun operations(plan: BattleSettlementPlan, port: BattleSettlementOperationPort): List<TurnSettlementOp> = buildList {
+    /**
+     * operation 계획: authored subflow와 정산 대상 변화를 화면 실행 순서의 명령 목록으로 조립한다.
+     *
+     * [mergeGrowthFor]에 든 유닛은 원본 `_jiesuan`처럼 체력·기력과 경험치를 한 장의 상태창으로
+     * 합쳐 보여 준다. 원본은 유닛마다 `O` 하나를 만들어 `MineUnitInfoLayer`를 한 번만 띄우므로,
+     * 성장 흐름의 `InfoValues` 단계는 따로 내보내지 않고 그 유닛의 `UnitInfo`에 붙인다.
+     */
+    fun operations(
+        plan: BattleSettlementPlan,
+        port: BattleSettlementOperationPort,
+        mergeGrowthFor: Set<String> = emptySet(),
+    ): List<TurnSettlementOp> = buildList {
+        val mergedGrants = linkedMapOf<String, List<SettlementGrowthGrant>>()
+        if (mergeGrowthFor.isNotEmpty()) {
+            plan.authoredSubflows.filterIsInstance<SettlementAuthoredSubflowPlan.Growth>()
+                .filter { it.unitId in mergeGrowthFor }
+                .forEach { subflow ->
+                    subflow.steps.filterIsInstance<SettlementGrowthStep.InfoValues>()
+                        .flatMap { it.grants }
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { mergedGrants[subflow.unitId] = it }
+                }
+        }
         plan.authoredSubflows.forEach { subflow ->
             when (subflow) {
                 is SettlementAuthoredSubflowPlan.LocalAura -> subflow.steps.forEach { step ->
@@ -104,7 +133,8 @@ internal class BattleSettlementOperationCoordinator {
 
                 is SettlementAuthoredSubflowPlan.Growth -> subflow.steps.forEach { step ->
                     when (step) {
-                        is SettlementGrowthStep.InfoValues -> add(TurnSettlementOp.GrowthInfo(subflow.unitId, step.grants))
+                        is SettlementGrowthStep.InfoValues ->
+                            if (subflow.unitId !in mergedGrants) add(TurnSettlementOp.GrowthInfo(subflow.unitId, step.grants))
                         is SettlementGrowthStep.AbilityLevelUp -> add(TurnSettlementOp.Info2("${step.attribute.name} 상승"))
                         SettlementGrowthStep.UnitLevelUpActionFinished -> add(TurnSettlementOp.Actions(subflow.unitId, listOf(11)))
                         SettlementGrowthStep.UnitLevelUpInfo -> {
@@ -131,13 +161,32 @@ internal class BattleSettlementOperationCoordinator {
                 }
             }
         }
+        val shownGrants = mutableSetOf<String>()
         plan.units.forEach { unit ->
             add(TurnSettlementOp.Focus(unit.unitId, 0f, forceCenter = false))
             if (unit.hasStatesPayload) add(TurnSettlementOp.HideState(listOf(unit.unitId)))
-            if (unit.infoDeltas.isNotEmpty()) {
-                add(TurnSettlementOp.UnitInfo(unit))
+            val grants = mergedGrants[unit.unitId].orEmpty()
+            if (unit.infoDeltas.isNotEmpty() || grants.isNotEmpty()) {
+                if (grants.isNotEmpty()) shownGrants += unit.unitId
+                add(TurnSettlementOp.UnitInfo(unit, grants))
                 if (unit.infoDeltas.any { it.kind == SettlementInfoKind.HP }) add(TurnSettlementOp.Default(unit.unitId))
             }
+        }
+        // 체력·기력 변화 없이 경험치만 받은 유닛도 원본은 상태창을 한 번 띄운다.
+        mergedGrants.forEach { (unitId, grants) ->
+            if (unitId in shownGrants) return@forEach
+            add(TurnSettlementOp.Focus(unitId, 0f, forceCenter = false))
+            add(
+                TurnSettlementOp.UnitInfo(
+                    SettlementUnitPlan(
+                        unitId,
+                        port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
+                        Faction.PLAYER, Faction.PLAYER,
+                        SettlementInfoPanel.MINE, emptyList(), emptyList(),
+                    ),
+                    grants,
+                ),
+            )
         }
         plan.meffBuckets.forEach { bucket ->
             bucket.key.actualMeffId?.let { effectId -> add(TurnSettlementOp.Meff(effectId, bucket.targets.map { it.unitId })) }

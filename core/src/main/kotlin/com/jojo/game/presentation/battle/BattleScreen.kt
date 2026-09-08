@@ -603,6 +603,15 @@ void main() {
     private val fullTraceRandom get() = battleTraceCoordinator?.randomSource
 
     /**
+     * `traceDrivenAutoClose`: 자동 전투 추적이 정산 안내를 스스로 닫아야 하는지 나타낸다.
+     *
+     * 정산 안내(`Info2`)는 10자 이상이면 원본처럼 플레이어가 눌러야 닫힌다. 승격·법술 습득
+     * 안내가 그 길이를 넘는데, 추적 하네스에는 누를 사람이 없어 그대로 두면 정산이 끝나지
+     * 않고 전투가 멈춘다. 사람이 누르는 자리를 하네스에서만 대신한다.
+     */
+    private val traceDrivenAutoClose get() = battleTraceCoordinator != null
+
+    /**
      * `gameDataCatalog` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -2067,6 +2076,20 @@ void main() {
     private var pendingBattleSettlementActorId: String? = null
 
     /**
+     * `pendingActionVitalsBefore` (Map?): 직전 행동 시작 시점의 유닛별 체력·기력이다.
+     *
+     * 원본 `g_charinfo`의 `UNIT_INFO_KEY.HP`/`MP` 자리로, `_jiesuan`이 현재 값과 비교해
+     * 증감을 뽑는다. 행동 트랜잭션의 before 스냅샷이 같은 시점이므로 커밋 직전에 받아 둔다.
+     */
+    private var pendingActionVitalsBefore: Map<String, BattleActionTransaction.Vitals>? = null
+
+    /** `pendingActionGrowth`: 직전 행동이 지급한 유닛·장비 경험치다. */
+    private var pendingActionGrowth: Map<String, List<SettlementGrowthGrant>> = emptyMap()
+
+    /** `actionSettlementPresented`: 직전 행동의 `_jiesuan`을 이미 실행했는지 나타낸다. */
+    private var actionSettlementPresented = false
+
+    /**
      * `pendingBattleCompletedScriptPasses` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -2298,7 +2321,7 @@ void main() {
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
-        override fun autoCloseInfo2(text: String): Boolean = text.length < 10 || settingsPreferences.getInteger(
+        override fun autoCloseInfo2(text: String): Boolean = traceDrivenAutoClose || text.length < 10 || settingsPreferences.getInteger(
             SettingLayer.GAME_SETTING,
             SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
         ) and SettingLayer.AUTO_CLOSE != 0
@@ -4832,7 +4855,15 @@ void main() {
                     runBattleScript()
                 }
 
-                pendingBattleCompletedScriptPasses == 1 && !deathTimeline.startedPostActionDeaths() -> {
+                // 원본 순서는 `_shifudu` -> `_jiesuan` -> `_chongsu` -> `unitDeath`다.
+                // 첫 스크립트 패스가 끝난 뒤, 사망 연출을 걸기 전에 정산 상태창을 보여 준다.
+                pendingBattleCompletedScriptPasses == 1 && !actionSettlementPresented && !combatPresentationBusy() -> {
+                    actionSettlementPresented = true
+                    presentActionSettlement()
+                }
+
+                pendingBattleCompletedScriptPasses == 1 && !settlementPresentation.isActive() &&
+                    !deathTimeline.startedPostActionDeaths() -> {
                     if (deathTimeline.queuePostAction(collectDyingPresentationUnits())) Unit
                     else finishManualUnitDeathCallbacks()
                 }
@@ -6813,7 +6844,11 @@ void main() {
 
     internal fun commitDeferredBattleAction(settlementActorId: String? = null) {
         settlementActorId?.let(battle.presentation::presentationUnit)?.let(::focusCameraOn)
+        // 트랜잭션이 닫히면 before 스냅샷을 다시 볼 수 없으므로 커밋 직전에 받아 둔다.
+        battle.pendingActionTransaction?.let { pendingActionVitalsBefore = it.vitalsBefore() }
         battle.pendingActionTransaction?.commitAll()
+        // 경험치 지급은 commitAll의 완료 부수 효과에서 일어난다. 그 뒤에 걷어야 비어 있지 않다.
+        battle.consumeActionGrowth().takeIf { it.isNotEmpty() }?.let { pendingActionGrowth = it }
         battle.presentation.pendingPresentationUnits().filter {
             it.hitPoints > 0 && it.id !in hitReactionAnimations && it.id !in deathAnimations && !deathTimeline.containsPending(
                 it.id
@@ -6850,6 +6885,53 @@ void main() {
             )
         }
     }
+
+    /**
+     * `presentActionSettlement`: 방금 끝난 행동의 정산 상태창을 연다.
+     *
+     * 원본 `BattleLayer._jiesuan(t, this.g_charinfo)`에 해당한다. 행동 중 기록해 둔 체력·기력
+     * 이전 값과 현재 값을 비교해 변한 유닛만 모으고, 같은 행동에서 지급한 경험치를 성장
+     * 흐름으로 함께 넘긴다. 원본은 피해를 입은 대상이 먼저 기록되고 행동한 유닛의 경험치가
+     * 마지막에 붙으므로 행동자를 목록 끝에 둔다.
+     */
+    internal fun presentActionSettlement(): Boolean {
+        val before = pendingActionVitalsBefore ?: return false
+        pendingActionVitalsBefore = null
+        val growth = pendingActionGrowth
+        pendingActionGrowth = emptyMap()
+        val actorId = pendingBattleSettlementActorId
+        val changes = before.keys
+            .sortedBy { it == actorId }
+            .mapNotNull { unitId ->
+                val vitals = before.getValue(unitId)
+                val unit = battle.presentation.presentationUnit(unitId) ?: return@mapNotNull null
+                if (unit.hitPoints == vitals.hitPoints && unit.magicPoints == vitals.magicPoints) return@mapNotNull null
+                BattleUnitTurnChange(
+                    unitId, vitals.hitPoints, unit.hitPoints, vitals.magicPoints, unit.magicPoints,
+                    unit.statuses.toMap(), unit.statuses.toMap(),
+                    unit.attributeLifts.toMap(), unit.attributeLifts.toMap(),
+                )
+            }
+        val subflows = growth.filterKeys { battle.presentation.presentationUnit(it) != null }
+            .map { (unitId, grants) -> SettlementSubflow.Growth(unitId, grants) }
+        if (changes.isEmpty() && subflows.isEmpty()) return false
+        val faction = actorId?.let(battle.presentation::presentationUnit)?.effectiveFaction() ?: battle.activeFaction
+        val settlement = CampSettlement(CampSettlementStage.START_STATE, faction, changes, subflows, subflowsCaptured = true)
+        // 행동 도중의 `_jiesuan`은 진영 정산이 아니라 콜백 지역 정산이다. 진영 정산으로
+        // 열면 끝날 때 `BattleTurnController`의 진영 단계 완료를 호출해 턴 흐름이 깨진다.
+        val operationPlan = settlementOperationCoordinator.turnSettlement(
+            settlement, settlementOperationPort, mergeGrowthFor = growth.keys,
+        )
+        if (operationPlan.operations.isEmpty()) {
+            refreshSettlementUnits(operationPlan.settlementPlan)
+            return false
+        }
+        startLocalSettlement(operationPlan.settlementPlan, operationPlan.operations)
+        return settlementPresentation.isActive()
+    }
+
+    /** `settlementPresentationActive`: 정산 상태창이 재생 중인지 알린다. */
+    internal fun settlementPresentationActive(): Boolean = settlementPresentation.isActive()
 
     /**
      * `presentTurnSettlement`: 현재 상태를 갱신한다.
@@ -6923,7 +7005,7 @@ void main() {
             settlementPresentation.itemUpgradeCompleted()
         }
         val autoClose: (String) -> Boolean = { text ->
-            text.length < 10 || settingsPreferences.getInteger(
+            traceDrivenAutoClose || text.length < 10 || settingsPreferences.getInteger(
                 SettingLayer.GAME_SETTING,
                 SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
             ) and SettingLayer.AUTO_CLOSE != 0
@@ -7035,6 +7117,9 @@ void main() {
         pendingBattleCompletedScriptPasses = 0
         pendingBattleActionCommitted = false
         pendingBattleSettlementActorId = null
+        pendingActionVitalsBefore = null
+        pendingActionGrowth = emptyMap()
+        actionSettlementPresented = false
         deathTimeline.finishPostActionCallbacks()
     }
 
@@ -7700,6 +7785,7 @@ void main() {
             pendingBattleCompletedScriptPasses = 0
             pendingBattleActionCommitted = false
             pendingBattleSettlementActorId = actorId
+            actionSettlementPresented = false
             deathTimeline.finishPostActionCallbacks()
         }
     }

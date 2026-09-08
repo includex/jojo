@@ -56,6 +56,13 @@ internal class AiPresentationState {
      */
 
     var actionCommitted: Boolean = false
+
+    /**
+     * `actionSettlementPresented` (Boolean): 이 행동의 `_jiesuan` 정산을 이미 실행했는지 나타낸다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
+    var actionSettlementPresented: Boolean = false
     /**
      * `playerMoveScriptStarted` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -104,6 +111,7 @@ internal class AiPresentationState {
         stage = AiPresentationStage.COMPLETE
         actionStarted = false
         actionCommitted = false
+        actionSettlementPresented = false
         playerMoveScriptStarted = false
         unitDeathScriptPass = 0
         turnMoves = 0

@@ -278,9 +278,19 @@ internal class BattleSettlementPresentationController {
                     state.waiting = Waiting.Action
                 }
                 is TurnSettlementOp.UnitInfo -> {
-                    info = SettlementInfoView(operation.plan.unitId, requireNotNull(operation.plan.infoPanel), now, operation.plan.infoDeltas, title = "")
+                    // 경험치가 함께 붙은 경우 원본과 같이 한 장에 담고, 그만큼 표시 시간을 늘린다.
+                    val growthTicks = operation.grants.sumOf { grant ->
+                        kotlin.math.abs(grant.unitResult?.gained ?: grant.equipmentResult?.gained ?: 0).coerceAtMost(5)
+                    }
+                    val panel = operation.plan.infoPanel ?: SettlementInfoPanel.MINE
+                    info = SettlementInfoView(
+                        operation.plan.unitId, panel, now, operation.plan.infoDeltas, operation.grants, title = "",
+                    )
                     effects += Effect.UnitInfo(operation.plan, now)
-                    state.waiting = Waiting.Timed(now + operation.plan.infoBarrierSeconds)
+                    val barrier =
+                        if (operation.plan.infoDeltas.isEmpty()) .1f + growthTicks * .2f + .3f
+                        else operation.plan.infoBarrierSeconds + growthTicks * .2f
+                    state.waiting = Waiting.Timed(now + barrier)
                 }
                 is TurnSettlementOp.GrowthInfo -> {
                     info = SettlementInfoView(operation.unitId, SettlementInfoPanel.MINE, now, grants = operation.grants, title = "")

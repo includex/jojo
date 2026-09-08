@@ -78,6 +78,8 @@ class AiPresentationCoordinatorTest {
         override fun yieldActionStatus(hasAction: Boolean) = false
         override fun yieldPlayerMoveCompletion(isPlayer: Boolean, moved: Boolean) = false
         override fun queuePostActionDeaths() = false
+        override fun presentActionSettlement() = false
+        override fun settlementActive() = false
         override fun startedPostActionDeaths() = false
         override fun setSummary(camp: Faction, result: AiTurnResult) { events += "summary" }
         override fun completeCamp(result: AiTurnResult) { events += "complete" }

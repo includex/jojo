@@ -3,6 +3,8 @@ package com.jojo.game.domain.battle
 
 import com.jojo.game.*
 import com.jojo.game.domain.campaign.*
+import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
+import com.jojo.game.domain.battle.settlement.SettlementGrowthKind
 
 /** BattleStateJournal: 전투 진행 중 변하는 상태를 기록하며, 초기 구성과 분리된 유닛·턴·자금 정보를 유지한다. */
 internal class BattleStateJournal(
@@ -36,6 +38,14 @@ internal class BattleStateJournal(
      */
 
     private val equipmentUpgrades: ArrayDeque<CampaignEquipmentExperienceResult> = ArrayDeque()
+
+    /**
+     * `actionGrowthGrants` (LinkedHashMap): 한 행동 동안 지급한 성장 결과를 유닛 순서대로 모은다.
+     *
+     * 원본 `g_charinfo`의 `EXP_ADD`/`WQ_EXP_ADD`/`HJ_EXP_ADD` 자리에 해당한다. 같은 종류가
+     * 여러 번 들어오면 원본과 같이 가장 큰 지급분만 남긴다.
+     */
+    private val actionGrowthGrants: LinkedHashMap<String, MutableList<SettlementGrowthGrant>> = linkedMapOf()
 
     /**
      * `round` (Int): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -341,4 +351,21 @@ internal class BattleStateJournal(
 
     fun consumeEquipmentUpgrade(): CampaignEquipmentExperienceResult? =
         if (equipmentUpgrades.isEmpty()) null else equipmentUpgrades.removeFirst()
+
+    /**
+     * `recordActionGrowth`: 행동 중 지급한 성장 결과 하나를 기록한다.
+     *
+     * 원본 `setCharInfoBykey`가 `*_EXP_ADD` 키를 `Math.max`로 합치듯, 같은 유닛·같은 종류는
+     * 지급량이 더 큰 쪽만 남긴다.
+     */
+    fun recordActionGrowth(unitId: String, grant: SettlementGrowthGrant) {
+        val grants = actionGrowthGrants.getOrPut(unitId) { mutableListOf() }
+        val existing = grants.indexOfFirst { it.kind == grant.kind }
+        if (existing < 0) grants += grant
+        else if (grants[existing].requestedAmount < grant.requestedAmount) grants[existing] = grant
+    }
+
+    /** `consumeActionGrowth`: 기록한 행동 성장 결과를 한 번만 꺼내 준다. */
+    fun consumeActionGrowth(): Map<String, List<SettlementGrowthGrant>> =
+        actionGrowthGrants.mapValues { it.value.toList() }.also { actionGrowthGrants.clear() }
 }
