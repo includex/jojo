@@ -266,10 +266,16 @@ data class DialogueRenderLayout(
     val choiceRowWidth: Float = 593.916f,
     /** 선택지 항목 배경 높이다. */
     val choiceRowHeight: Float = 38.7f,
-    /** 패널 위쪽에서 첫 항목 아래쪽까지의 간격이다. */
-    val choiceRowTopInset: Float = 45.881f,
-    /** 항목 사이 간격이다. */
-    val choiceRowSpacing: Float = 42.14f,
+    /**
+     * 패널 위쪽에서 첫 항목 아래쪽까지의 간격이다.
+     *
+     * 원본 값은 45.881이고 항목 간격이 42.14였다. 항목 높이 38.7 대비 여백이 3.44px뿐이라
+     * 선택지가 붙어 보여, 간격을 넓히고 세 항목 블록이 패널 안에서 위아래 같은 여백(11.641)을
+     * 갖도록 이 값을 다시 계산했다. 패널 크기는 원본 프리팹 그대로다.
+     */
+    val choiceRowTopInset: Float = 50.341f,
+    /** 항목 사이 간격이다. 원본 42.14에서 넓혔다. [choiceRowTopInset] 참고. */
+    val choiceRowSpacing: Float = 48f,
     /** 선택지 본문의 왼쪽 X 좌표다. */
     val choiceTextX: Float = 482.87796f,
     /** 항목 아래쪽에서 본문 글꼴 기준선까지의 간격이다. */

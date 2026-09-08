@@ -155,41 +155,6 @@ internal object ScenarioOverlayRenderer {
     }
 
     /**
-     * `drawChoice`: 화면 표시 상태를 렌더링한다.
-     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun drawChoice(assets: ScenarioSceneAssets, batch: SpriteBatch, view: ScenarioChoiceRenderView) {
-        if (view.isAsk) { drawAskBox(assets, batch); return }
-        batch.color = Color.WHITE; assets.choicePanelTexture?.let { batch.draw(it, 423.71f, 265.01f, 642.42f, 157.98f) }
-        assets.choiceRowTexture?.let { texture -> repeat(view.options.take(3).size) { batch.draw(texture, 463.44f, 377.11f - it * 42.14f, 593.92f, 38.7f) } }
-        view.portraitId?.let(assets::portraitTexture)?.let { batch.draw(it, 231.08f, 240.21f, 165.12f, 206.4f) }
-        view.options.take(3).forEachIndexed { index, option -> assets.bodyFont.color = Color(.06f, .06f, .06f, 1f); assets.bodyFont.draw(batch, option, 482.88f, 407f - index * 42.14f) }
-    }
-
-    /**
-     * `drawAskBox`: 화면 표시 상태를 렌더링한다.
-     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun drawAskBox(assets: ScenarioSceneAssets, batch: SpriteBatch) {
-        val logo = assets.hallTexture("maps/ui/start-battle/logo9.png")
-        val panel = assets.hallTexture("maps/ui/hall-menu/inner.png")?.let { NinePatch(it, 3, 3, 3, 3) }
-        val title = assets.hallTexture("maps/ui/hall-menu/panel.png")
-        val button = assets.hallTexture("maps/ui/hall-menu/button.png")?.let { NinePatch(it, 9, 9, 7, 11) }
-        batch.color = Color.WHITE; logo?.let { batch.draw(it, 464.13f, 276.92f, 351.74f, 134.16f) }; title?.let { batch.draw(it, 464.13f, 368.08f, 351.74f, 43f) }
-        val layout = GlyphLayout(); assets.titleFont.color = Color.BLACK
-        /**
-         * `label`: 타입의 핵심 동작을 수행한다.
-         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-         */
-
-        fun label(text: String, x: Float, y: Float) { layout.setText(assets.titleFont, text); assets.titleFont.draw(batch, layout, x - layout.width / 2f, y + layout.height / 2f) }
-        label("확인", 498.19f, 389.58f); panel?.draw(batch, 464.13f, 276.92f, 351.74f, 134.16f); button?.draw(batch, 482.84f, 306.16f, 145.34f, 43f)
-        label("예", 555.51f, 328.39f); button?.draw(batch, 646.27f, 306.16f, 145.34f, 43f); label("비", 718.94f, 328.39f)
-    }
-
-    /**
      * `drawModalText`: 화면 표시 상태를 렌더링한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */

@@ -1191,19 +1191,6 @@ class ScenarioScreen(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun drawChoice() {
-        val choice = playback.currentChoice ?: return
-        choice.faceId?.let(::dialoguePortrait)?.let { texture ->
-            batch.color = Color.WHITE
-            batch.draw(texture, 231.08f, 240.21f, 165.12f, 206.4f)
-        }
-        choice.options.take(3).forEachIndexed { index, option ->
-            // ChooseLayer에는 키보드 초점이나 선택 행 색조가 없어, 클릭 전까지 모든 원본 레이블이 같은 어두운 색을 유지한다.
-            bodyFont.color = Color(0.06f, 0.06f, 0.06f, 1f)
-            bodyFont.draw(batch, option, 482.88f, 407f - index * 42.14f)
-        }
-    }
-
     /** drawHallMenu: 거점 메뉴의 선택 항목과 버튼 상태를 화면에 그린다. */
     private fun drawHallMenu(interactive: Boolean = false) {
         HallMenuRenderer.draw(

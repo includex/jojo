@@ -1405,8 +1405,10 @@ void main() {
                     choiceRowX = 538.886f,
                     choiceRowWidth = 690.6f,
                     choiceRowHeight = 45f,
-                    choiceRowTopInset = 53.35f,
-                    choiceRowSpacing = 49f,
+                    // 시나리오 선택창과 같은 이유로 항목 간격을 넓히고(원본 49) 세 항목 블록이
+                    // 패널 안에서 위아래 같은 여백(13.35)을 갖도록 top inset을 다시 계산했다.
+                    choiceRowTopInset = 58.35f,
+                    choiceRowSpacing = 56f,
                     choiceTextX = 561.486f,
                     choiceTextOffsetY = 44.55f,
                 ),
