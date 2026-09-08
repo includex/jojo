@@ -47,6 +47,31 @@ class CmdLayer(
      */
 
     private val gold = listOf(10.0, 5.0, 5.0, 2.5, 2.5, 5.0, 20.0, 2.5, 2.5, 10.0, 2.5, 5.0, 5.0, 10.0)
+
+    /**
+     * `intros` (상태 값): 각 항목의 상세 정보 문구를 보관한다.
+     *
+     * 원본 `CmdLayer.getConfig()`는 항목마다 `name`·`gold`·`intro` 세 값을 준다.
+     * 이식본은 앞의 둘만 옮겨 와서 상세 정보 단추가 보여 줄 문구가 통째로 없었다.
+     */
+
+    val intros = listOf(
+        "게임에서 클릭하면 받지 못한 다른 보물들을 채울 수 있으며, 같은 보물은 2개까지 지원합니다.",
+        "전투 종료 시 인물 및 장비 레벨을 평균 레벨로 자동 상승",
+        "활성화 시 업그레이드/전직마다 재계산, 출전 시 자동 배치 및 원클릭 장비 세팅",
+        "활성화 시 전투에 진입하면 턴 상한이 4턴 증가합니다",
+        "적군은 무작정 돌진만 합니다.",
+        "유닛이 중독되면 사망합니다. 저장 슬롯을 100개로 확장했습니다.",
+        "게임 테스트용으로만 사용됩니다",
+        "게임 속도 상한 조정",
+        "스토리를 건너뛸 수 있습니다.",
+        "공훈 모드에서 과일을 먹으면 오위가 상승합니다.",
+        "전투 중 체력과 마나, 경험치 변화판이 더 이상 표시되지 않습니다.",
+        "프로필 사진, 스토리, 전투 이미지는 구버전 것을 사용하고, 향수를 느끼고 싶으면 사용하세요.",
+        "게임을 처음부터 다시 시작하며, 캐릭터 레벨은 바로 만렙입니다.",
+        "원클릭으로 모든 아이템을 99개로 채우기",
+    )
+
     /**
      * `eFlag` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -65,6 +90,16 @@ class CmdLayer(
      */
 
     var label = ""; private set
+
+    /**
+     * `modal` (Layer?): 지금 화면에 떠 있는 안내창이다.
+     *
+     * `layers`는 붙였던 이력을 모두 쌓아 두므로 지금 무엇이 떠 있는지 알 수 없다.
+     * 답을 고르면 사라지고 새로 붙이면 바뀌는 현재 상태를 따로 들고 있어야
+     * 화면을 그리는 쪽이 안내창을 언제 그릴지 판단할 수 있다.
+     */
+
+    var modal: Layer? = null; private set
     /**
      * `selected` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -154,7 +189,7 @@ class CmdLayer(
      */
 
     private fun addLayer(layer: String, flag: Int?, txt: String?, fn: ((Int) -> Unit)? = null) {
-        layers += Layer(layer, flag, txt); prompt = fn
+        layers += Layer(layer, flag, txt); prompt = fn; modal = Layer(layer, flag, txt)
     }
 
     /**
@@ -186,6 +221,17 @@ class CmdLayer(
      * `select`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /**
+     * 상세 정보 단추: 항목 설명을 한 단추 MsgBox로 띄운다.
+     *
+     * 원본은 `flag: 1`짜리 MsgBox에 그 항목의 `intro`를 넣는다. 이식본에는 이 경로가
+     * 아예 없어서, 해당 화면의 검증이 원본 로그를 저장해 두었다가 되읽고 있었다.
+     */
+    fun itemInfo(index: Int, event: Int) {
+        if (event != 2) return
+        addLayer("MsgBox", 1, intros[index])
+    }
 
     private fun select(index: Int, on: Boolean, source: Int = 0) {
         if (on && source and 1 != 0) { /* recovered config has no click restrictions */
@@ -297,6 +343,6 @@ class CmdLayer(
      */
 
     fun answer(value: Int) {
-        val fn = prompt; prompt = null; fn?.invoke(value)
+        val fn = prompt; prompt = null; modal = null; fn?.invoke(value)
     }
 }

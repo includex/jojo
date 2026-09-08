@@ -853,8 +853,7 @@
         "--render-login-overlay-route=cmd-default"
       ],
       "game": "login-cmd-default-fixture",
-      "report": "build/render-events/cmd-default-diff.json",
-      "knownGap": "CmdRoute.kt replays a gzipped copy of the original's own render events instead of modelling the screen, so this comparison is circular; the one standing diff (scrollBar/bar opacity 1 vs 0.483) is the stored table going stale."
+      "report": "build/render-events/cmd-default-diff.json"
     },
     {
       "id": "cmd-selected",
@@ -862,8 +861,7 @@
         "--render-login-overlay-route=cmd-selected"
       ],
       "game": "login-cmd-selected-fixture",
-      "report": "build/render-events/cmd-selected-diff.json",
-      "knownGap": "Same canned table as cmd-default."
+      "report": "build/render-events/cmd-selected-diff.json"
     },
     {
       "id": "cmd-info",
@@ -871,8 +869,7 @@
         "--render-login-overlay-route=cmd-info"
       ],
       "game": "login-cmd-info-fixture",
-      "report": "build/render-events/cmd-info-diff.json",
-      "knownGap": "Same canned table as cmd-default."
+      "report": "build/render-events/cmd-info-diff.json"
     },
     {
       "id": "battle-edit-default",
