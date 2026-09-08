@@ -463,10 +463,11 @@ distinct P0 composition gap.
   `3318`/`3320` (`<50`), `3322` (`<34`) and `3324` (`<50`), plus the
   source-`infoTransfer` label entries `scene1:1748` (`<20`), `2004` (`<30`),
   `2178` (`<20`) and `2434` (`<30`).
-  `:desktop:verifyScenarioRandomCoverage` joins only registered fixture traces
-  to the 31-site static inventory (currently 29/31 sites, 93.55%; remaining
-  `scene1:1376` and `1378`, which require a stable source unit-iteration
-  state). Exhaustive campaign-state/RNG path execution remains pending.
+  `:verification:verifyScenarioRandomCoverage` joins only registered fixture
+  traces to the 31-site static inventory. As of 2026-09-09 it reports
+  `fixtureTraces=62 declaredRandomSites=31 coveredRandomSites=31
+  coveragePercent=100.0`; the formerly missing `scene1:1376` and `1378` are
+  covered by the `verifyR00Random1376Low/High` and `1378Low/High` fixtures.
   Exhaustive campaign-state/RNG path execution remains pending.
 - The two source-level outcomes of `R_00.scene1`'s first player choice were
   re-run in the actual isolated LibGDX app through `--verify-branch` and

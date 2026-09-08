@@ -1,6 +1,9 @@
 // Battle
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.domain.battle.TerrainArmRow
+import com.jojo.game.domain.battle.TerrainRow
+
 /** TerrainLayer: 지형별 병과 능력치 표를 지연 생성해 전투 지형 창에 제공한다. */
 
 class TerrainLayer(
@@ -181,6 +184,17 @@ class TerrainLayer(
         if (rise > 130) 5 else ((rise.coerceIn(90, 110) / 10) - 9).coerceIn(0, 5)
 
     companion object {
+        /**
+         * `of`: 자료 계층이 내놓은 지형·병과 표로 지형 창을 만든다.
+         *
+         * 창을 만드는 일은 표현 계층에 둔다. 자료 카탈로그가 화면 객체를 직접 만들면
+         * 자원 계층이 표현 계층을 되짚어 들어간다.
+         */
+        fun of(terrain: List<TerrainRow>, arms: List<TerrainArmRow>) = TerrainLayer(
+            terrain.map { Terrain(it.id, it.name, it.flag, it.magic) },
+            arms.map { Arm(it.id, it.name, it.terrainRise, it.terrainExpend) },
+        )
+
         /**
          * `TERRAIN_LIMIT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

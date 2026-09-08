@@ -53,7 +53,7 @@ class TerrainLayerTest {
     }
 
     @Test fun `original data builds full terrain layer source feed`() {
-        val layer = GameDataCatalog.load().terrainLayer()
+        val layer = GameDataCatalog.load().let { TerrainLayer.of(it.terrainRows(), it.terrainArmRows()) }
         val rise = layer.select(TerrainLayer.Tab.RISE)
         val expend = layer.select(TerrainLayer.Tab.EXPEND)
         assertEquals(28, rise.rows.size)
@@ -77,7 +77,7 @@ class TerrainLayerTest {
     }
 
     @Test fun `actual route draw inventory includes modal mask clipped ninth row and controls`() {
-        val events = TerrainLayerRenderEvents.jsonl(GameDataCatalog.load().terrainLayer()).lineSequence().filter { it.isNotBlank() }.toList()
+        val events = TerrainLayerRenderEvents.jsonl(GameDataCatalog.load().let { TerrainLayer.of(it.terrainRows(), it.terrainArmRows()) }).lineSequence().filter { it.isNotBlank() }.toList()
         assertEquals(216, events.size)
         assertTrue(events.first().contains("Canvas/Layer/Panel_cancel"))
         assertTrue(events.any { it.contains("scrollview0/view/content/item0") && it.contains("\"y\":-72.602") })

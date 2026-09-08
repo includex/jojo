@@ -1,7 +1,9 @@
 // Game
 package com.jojo.game.infrastructure.data
 
-import com.jojo.game.presentation.shared.overlay.TerrainLayer
+
+import com.jojo.game.domain.battle.TerrainArmRow
+import com.jojo.game.domain.battle.TerrainRow
 
 import com.jojo.game.domain.campaign.*
 
@@ -206,27 +208,32 @@ internal class GameDataCatalogUnitDomain(
         )
     }
 
-    /**
-     * `terrainLayer`: 타입의 핵심 동작을 수행한다.
-     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
-     */
+    /** `terrainRows`: 지형 표의 식별자·이름·플래그를 순서대로 돌려준다. */
 
-    fun terrainLayer(): TerrainLayer {
-        val terrain = generateSequence(gameConfig.get("terrain")?.child) { it.next }.mapIndexed { id, value ->
-            TerrainLayer.Terrain(
+    fun terrainRows(): List<TerrainRow> =
+        generateSequence(gameConfig.get("terrain")?.child) { it.next }.mapIndexed { id, value ->
+            TerrainRow(
                 id,
                 value.getString("name", "지형 $id"),
                 value.getInt("flag", 0),
-                value.getInt("magic", 0)
+                value.getInt("magic", 0),
             )
         }.toList()
-        return TerrainLayer(terrain, arms.indices.mapNotNull(::armProfile).map { arm ->
-            TerrainLayer.Arm(
+
+    /**
+     * `terrainArmRows`: 병과별 지형 상승치와 이동 비용 표를 돌려준다.
+     * 상승치는 표에 없으면 원본과 같이 100으로 채우고, 이동 비용은 없는 지형을 담지 않는다.
+     */
+
+    fun terrainArmRows(): List<TerrainArmRow> {
+        val rows = terrainRows()
+        return arms.indices.mapNotNull(::armProfile).map { arm ->
+            TerrainArmRow(
                 arm.id, arm.name,
-                terrain.associate { it.id to (arm.terrainRiseForDisplay(it.id) ?: 100) },
-                terrain.mapNotNull { entry -> arm.terrainExpendForDisplay(entry.id)?.let { entry.id to it } }.toMap()
+                rows.associate { it.id to (arm.terrainRiseForDisplay(it.id) ?: 100) },
+                rows.mapNotNull { entry -> arm.terrainExpendForDisplay(entry.id)?.let { entry.id to it } }.toMap(),
             )
-        })
+        }
     }
 
     /**

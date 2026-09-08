@@ -4,7 +4,7 @@ package com.jojo.game.infrastructure.audio
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.audio.Sound
-import com.jojo.game.application.scenario.ScenarioStage
+import com.jojo.game.domain.scenario.ScenarioSoundEffect
 
 /** GameAudioPlayer: 추출한 MP3 자산으로 원본 게임의 사운드 식별자를 재생한다. */
 class GameAudioPlayer {
@@ -20,11 +20,16 @@ class GameAudioPlayer {
     /** 나중의 중지 요청을 처리하기 위해 효과음 재생 핸들을 보관한다. */
     private val activeEffects = mutableMapOf<Int, Long>()
 
-    /** 시나리오 단계의 배경음과 대기 중인 효과음을 재생 상태에 반영한다. */
-    fun sync(stage: ScenarioStage) {
+    /**
+     * 시나리오 단계의 배경음과 대기 중인 효과음을 재생 상태에 반영한다.
+     *
+     * 단계 객체 자체가 아니라 재생에 필요한 값만 받는다. 자원 계층이 상위 계층의
+     * 타입을 되짚어 들어가지 않도록 부르는 쪽이 값을 꺼내 넘긴다.
+     */
+    fun sync(backgroundSound: Int, soundEffects: List<ScenarioSoundEffect>) {
         if (!enabled) return
-        if (playingBackgroundId != stage.backgroundSound) playBackground(stage.backgroundSound)
-        stage.consumeSoundEffects().forEach { playEffect(it.soundId, it.mode) }
+        if (playingBackgroundId != backgroundSound) playBackground(backgroundSound)
+        soundEffects.forEach { playEffect(it.soundId, it.mode) }
     }
 
     /** 전투 화면의 공격·피해·효과 애니메이션에 연결된 효과음을 재생한다. */

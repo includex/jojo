@@ -638,7 +638,11 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val terrainLayer by lazy { gameDataCatalog.terrainLayer() }
+    private val terrainLayer by lazy { terrainLayerView() }
+
+    /** 지형 창: 자료 카탈로그의 지형·병과 표로 지형 창을 만든다. */
+    private fun terrainLayerView() =
+        TerrainLayer.of(gameDataCatalog.terrainRows(), gameDataCatalog.terrainArmRows())
 
     /**
      * `propertyLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -1358,9 +1362,9 @@ void main() {
         append(gameDataCatalog.allUnitNames().joinToString())
         append(gameDataCatalog.allRetreatTexts().joinToString())
         append(gameDataCatalog.allBattleNames().joinToString())
-        append(gameDataCatalog.terrainLayer().select(TerrainLayer.Tab.RISE).rows.joinToString { it.terrainName })
+        append(terrainLayerView().select(TerrainLayer.Tab.RISE).rows.joinToString { it.terrainName })
         append(
-            gameDataCatalog.terrainLayer()
+            terrainLayerView()
                 .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
         Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
@@ -4986,7 +4990,7 @@ void main() {
                 )
             }
         }
-        audio.sync(scriptRuntime.stage)
+        audio.sync(scriptRuntime.stage.backgroundSound, scriptRuntime.stage.consumeSoundEffects())
         scriptRuntime.stage.consumeShowWinCondition()?.let { text ->
             scriptWinConditions = WinConditionsLayer().also { layer ->
                 layer.onCreate(text, scenarioMaxRound()) {

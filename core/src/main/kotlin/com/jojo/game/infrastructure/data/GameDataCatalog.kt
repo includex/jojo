@@ -1,8 +1,6 @@
 // Game
 package com.jojo.game.infrastructure.data
 
-import com.jojo.game.presentation.scenario.overlay.*
-
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.magic.BattleMagicHitArea
@@ -542,12 +540,11 @@ class GameDataCatalog private constructor(
      */
 
     fun allBattleNames() = units.allBattleNames()
-    /**
-     * `terrainLayer`: 타입의 핵심 동작을 수행한다.
-     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
-     */
+    /** `terrainRows`: 지형 표의 식별자·이름·플래그를 순서대로 돌려준다. */
+    fun terrainRows() = units.terrainRows()
 
-    fun terrainLayer() = units.terrainLayer()
+    /** `terrainArmRows`: 병과별 지형 상승치·이동 비용 표를 돌려준다. */
+    fun terrainArmRows() = units.terrainArmRows()
     /**
      * `armProfile`: 상태나 데이터를 조회한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
