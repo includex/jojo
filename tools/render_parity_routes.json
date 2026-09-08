@@ -877,8 +877,7 @@
         "--render-event-state=battle-edit-default"
       ],
       "game": "hall-battle-edit-default-fixture",
-      "report": "build/render-events/battle-edit-default-diff.json",
-      "cannedReplay": "BattleUnitEditLayer models only `attack` and `posts`, but the original's 무장 편집 screen draws 117 distinct nodes with 18 editable fields. The gzipped table has been standing in for a screen the port does not implement, so this is a missing feature rather than a missing recorder."
+      "report": "build/render-events/battle-edit-default-diff.json"
     },
     {
       "id": "battle-edit-posts",
@@ -886,8 +885,7 @@
         "--render-event-state=battle-edit-posts"
       ],
       "game": "hall-battle-edit-posts-fixture",
-      "report": "build/render-events/battle-edit-posts-diff.json",
-      "cannedReplay": "Same screen and same gap as battle-edit-default, with the posts panel open."
+      "report": "build/render-events/battle-edit-posts-diff.json"
     },
     {
       "id": "battle-edit-mutation",

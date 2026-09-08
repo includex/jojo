@@ -23,6 +23,8 @@ internal object SourceLabelWidth {
     private const val COLON = 11.1167f
     /** 공백의 폭이다. */
     private const val SPACE = 11.1133f
+    /** 마침표의 폭이다(`정상입니다.`=184.11에서 잰 값). */
+    private const val PERIOD = 11.11f
     /** 라틴 대문자 한 글자의 폭이다. */
     private const val LATIN_UPPER = 26.68f
 
@@ -61,6 +63,7 @@ internal object SourceLabelWidth {
     fun body(text: String): Float = text.sumOf { character ->
         when {
             character == ':' -> COLON.toDouble()
+            character == '.' -> PERIOD.toDouble()
             character == ' ' -> SPACE.toDouble()
             character.isDigit() -> DIGIT.toDouble()
             character in 'A'..'Z' -> LATIN_UPPER.toDouble()

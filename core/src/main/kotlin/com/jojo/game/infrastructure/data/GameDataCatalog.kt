@@ -483,6 +483,13 @@ class GameDataCatalog private constructor(
     fun postSkillNames() = units.postSkillNames()
 
     /**
+     * `postsNames`: 상태나 데이터를 조회한다.
+     * 관직 표의 이름을 순서대로 돌려준다.
+     */
+
+    fun postsNames() = units.postsNames()
+
+    /**
      * `postSkillAttribute`: 상태나 데이터를 조회한다.
      * 원본 `skillAttr2`와 같은 계약으로 특성 슬롯 값을 돌려준다.
      */

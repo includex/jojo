@@ -28,6 +28,13 @@ internal class GameDataCatalogUnitDomain(
     fun postSkillNames(): List<String> = unitPostSkills.map { it.getString("0", "") }
 
     /**
+     * 관직 이름 목록: `posts` 표의 이름 열을 순서대로 돌려준다.
+     *
+     * 이 표도 [postSkillNames]처럼 열 번호를 열쇠로 쓴다. 이름은 0번 열이다.
+     */
+    fun postsNames(): List<String> = posts.map { it.getString("0", "") }
+
+    /**
      * 특성 슬롯 값: `unitPostsSkill` 표에서 한 특성의 슬롯 값을 돌려준다.
      *
      * 원본 `skillAttr2(skillId, attr, default)`와 같은 계약이다. 표를 벗어나면 기본값을
