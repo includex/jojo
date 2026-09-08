@@ -28,9 +28,9 @@ def main() -> None:
     parser.add_argument("source", type=Path)
     parser.add_argument("game", type=Path)
     parser.add_argument("report", type=Path)
-    parser.add_argument("--max-structural-mae", type=float, default=1.1)
+    parser.add_argument("--max-structural-mae", type=float, default=0.6)
     parser.add_argument("--structural-pixel-threshold", type=int, default=8)
-    parser.add_argument("--max-structural-changed-ratio", type=float, default=0.003)
+    parser.add_argument("--max-structural-changed-ratio", type=float, default=0.0025)
     args = parser.parse_args()
 
     source = Image.open(args.source).convert("RGB")

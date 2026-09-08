@@ -11194,14 +11194,15 @@ void main() {
         else -> null
     }
 
-    /** 영천 전투의 특정 화자는 원본과 같은 얼굴 자원을 우선 사용한다. */
-    private fun battleDialoguePortrait(dialogue: Dialogue, headId: Int): Texture? = when {
-        sourceScenario == "S_00" && dialogue.speakerId == "477" && headId == 192 ->
-            hudAssets.yingchuan477FaceTexture ?: dynamicTextures.head(headId)
-        sourceScenario == "S_00" && dialogue.speakerId == "474" && headId == 179 ->
-            hudAssets.yingchuan474FaceTexture ?: dynamicTextures.head(headId)
-        else -> dynamicTextures.head(headId)
-    }
+    /**
+     * 대화 초상화는 어느 시나리오·화자든 authored `Head/<id>` 자원 하나로 그린다.
+     * 예전에는 S_00의 477·192, 474·179만 원본 스크린샷을 잘라 구운 자원으로 덮었는데,
+     * 그 자원은 원본 캡처가 색 프로파일 때문에 밝아져 있던 시절의 보정이었다.
+     * 캡처를 sRGB로 고정한 지금은 authored 자원 쪽이 원본에 더 가깝다
+     * (선형 확대 기준 MAE 1.96 대 2.66).
+     */
+    private fun battleDialoguePortrait(dialogue: Dialogue, headId: Int): Texture? =
+        dynamicTextures.head(headId)
 
     /** 원본 래스터 화자명이 있는 프레임만 글꼴 대신 텍스처로 그린다. */
     private fun battleSpeakerOverlay(dialogue: Dialogue, placement: DialogueComponentPlacement): DialogueTextureOverlay? =

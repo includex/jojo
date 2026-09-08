@@ -117,9 +117,10 @@ internal class BattleDynamicTextureRepository : Disposable {
     fun head(faceId: Int): Texture? {
         headTextures[faceId]?.let { return it }
         val handle = Gdx.files.internal("maps/heads/$faceId.png")
-        // 원본 대화 초상화는 도트가 그대로 보이도록 확대된다. 선형 보간을 쓰면 같은 자리에
-        // 그려도 블록 경계가 뭉개져 원본과 픽셀 단위로 어긋난다.
-        return handle.takeIf { it.exists() }?.let(::nearestTexture)
+        // 원본 `Canvas/Layer/bg0/face` 스프라이트의 텍스처 필터는 min/mag 모두 GL_LINEAR
+        // (9729)이고, 192x240 원화를 1.72배로 늘려 그린다. 최근접 확대는 원본에 없는
+        // 계단을 만든다.
+        return handle.takeIf { it.exists() }?.let(::linearTexture)
             ?.also { headTextures[faceId] = it }
     }
 

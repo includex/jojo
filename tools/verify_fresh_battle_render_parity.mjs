@@ -95,7 +95,7 @@ for (const route of routes) {
   game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--render-event-log=${gameLog}`]);
   game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--capture=${gamePng}`]);
   compareLogs(sourceLog, gameLog, report);
-  compareFrames(sourcePng, gamePng, pixelReport, ["--max-structural-mae=1.3", "--max-structural-changed-ratio=0.015"]);
+  compareFrames(sourcePng, gamePng, pixelReport, ["--max-structural-mae=0.8", "--max-structural-changed-ratio=0.011"]);
 }
 
 for (const artifact of artifacts) assert.ok(existsSync(artifact), `fresh render artifact missing: ${artifact}`);

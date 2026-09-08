@@ -456,31 +456,14 @@ def main() -> None:
     if dialogue_speaker_fixture.exists():
         export_cocos_canvas(dialogue_speaker_fixture, ui_dir / "yingchuan-477-speaker.png")
 
-    # In the S_00 dialogue-3 source capture Head/192 has already been packed
-    # into Cocos' live DynamicAtlas.  Chromium's palette decode of that atlas
-    # is observably different from loading the original indexed PNG in LWJGL
-    # (most visibly in the yellow cloth's blue channel).  Preserve the actual
-    # source frame as a fixture asset, just as we do for the RichText canvases
-    # above.  The rectangle is derived from the recorded node transform:
-    # face lower-left=(1064.618,426), size=192x240 in a 1488.372x800 canvas,
-    # captured at 2560x1376.
-    dialogue_frame = assets.parent / "build" / "python-source-battle-verification-dialogue3.png"
-    if dialogue_frame.exists():
-        with Image.open(dialogue_frame).convert("RGBA") as frame:
-            dynamic_face = frame.crop((1830, 230, 2161, 643)).resize((192, 240), Image.Resampling.LANCZOS)
-            ui_dir = output / "ui"
-            ui_dir.mkdir(parents=True, exist_ok=True)
-            dynamic_face.save(ui_dir / "yingchuan-477-face.png")
-
-    dialogue0_frame = assets.parent / "build" / "python-source-battle-verification.png"
-    if not dialogue0_frame.exists():
-        dialogue0_frame = assets.parent.parent / "jojo" / "build" / "render-frames" / "source-battle-dialogue-blending.png"
-    if dialogue0_frame.exists():
-        with Image.open(dialogue0_frame).convert("RGBA") as frame:
-            dynamic_face = frame.crop((1831, 396, 2161, 808)).resize((192, 240), Image.Resampling.LANCZOS)
-            ui_dir = output / "ui"
-            ui_dir.mkdir(parents=True, exist_ok=True)
-            dynamic_face.save(ui_dir / "yingchuan-474-face.png")
+    # The S_00 dialogue portraits used to be re-baked here by cropping the
+    # source screenshot and shrinking it back to 192x240.  That was circular
+    # evidence: the game then drew a resampled copy of the very frame it was
+    # compared against.  Its stated reason -- a "palette decode" difference in
+    # the yellow cloth -- was the Electron capture's display colour profile,
+    # now pinned with --force-color-profile=srgb.  Against an sRGB capture the
+    # authored Head/<id> PNG is the closer match (linear-upscale MAE 1.96 vs
+    # the baked crop's 2.66), so the game just draws the authored asset.
 
     copied: dict[str, str] = {}
     copied_battle_maps: dict[str, str] = {}

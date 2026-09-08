@@ -59,18 +59,6 @@ internal class BattleHudAssets : Disposable {
 
     val yingchuan477SpeakerTexture = linearOptional("maps/ui/yingchuan-477-speaker.png")
     /**
-     * `yingchuan477FaceTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-     */
-
-    val yingchuan477FaceTexture = linearOptional("maps/ui/yingchuan-477-face.png")
-    /**
-     * `yingchuan474FaceTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-     */
-
-    val yingchuan474FaceTexture = linearOptional("maps/ui/yingchuan-474-face.png")
-    /**
      * `battleMenuTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -387,8 +375,8 @@ internal class BattleHudAssets : Disposable {
     override fun dispose() {
         listOf(
             dialoguePanelTexture, fightSpeechLeftTexture, fightIntroTileTexture,
-            yingchuan477BodyTexture, yingchuan477SpeakerTexture, yingchuan477FaceTexture,
-            yingchuan474FaceTexture, battleMenuTexture, battleButtonBackgroundTexture,
+            yingchuan477BodyTexture, yingchuan477SpeakerTexture,
+            battleMenuTexture, battleButtonBackgroundTexture,
             battleRecordTexture, battleEndTurnTexture, naturalMiniMapTexture, naturalWeatherTexture,
             menuBackgroundTexture, menuFrameTexture, menuBoxTexture, menuButtonTexture,
             menuTitleBarTexture, menuProgressBarTexture, menuHelpTexture,

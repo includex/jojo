@@ -312,14 +312,20 @@ def main() -> None:
     # snapshot contract above still asserts Label.color and LabelOutline;
     # bounds remain a strict placement gate.  Keep composited means in the
     # report for diagnosis without turning backend antialiasing into failure.
-    # These full compositing checks cover opacity/blend and the DynamicAtlas
-    # portrait decode.  Geometry is checked independently above, while a modest
-    # MAE allowance absorbs GPU sampler/sub-pixel differences.
+    # These full compositing checks cover opacity/blend and the portrait decode.
+    # Geometry is checked independently above, while a modest MAE allowance
+    # absorbs GPU sampler/sub-pixel differences.  The old 14.0/12.0 allowances
+    # were sized around the Electron capture's display colour profile; with
+    # --force-color-profile=srgb the observed deltas are panel 0.6-6.1 and
+    # portrait 0.7-1.5, so the gate is set just above the measured spread.
+    # The panel band contains the dialogue text, whose glyph rasterization is
+    # out of parity scope and whose revealed length varies between captures,
+    # so it keeps more headroom than the portrait's pure image comparison.
     panel_delta = mean_delta(source, game, (423, source_panel[1] + 35, 1700, source_panel[3] - 25))
-    if any(value > 14.0 for value in panel_delta):
+    if any(value > 8.0 for value in panel_delta):
         raise AssertionError(f"dialogue panel opacity/blend mean delta={panel_delta}")
     portrait_delta = mean_delta(source, game, (1800, 230, 2150, 650))
-    if any(value > 12.0 for value in portrait_delta):
+    if any(value > 3.0 for value in portrait_delta):
         raise AssertionError(f"portrait mean delta={portrait_delta}")
     rounded_mean = tuple(round(value, 2) for value in source_mean)
     rounded_portrait_mean = tuple(round(value, 2) for value in game_mean)
