@@ -1,5 +1,6 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.shared.overlay.LoadGameLayer
@@ -64,7 +65,17 @@ internal class BattleSaveLoadOverlayController(
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
 
-    data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
+    data class DispatchResult(
+        val consumed: Boolean,
+        val effect: Effect = Effect.None,
+        /**
+         * 이 누름에 원본이 내는 단추 소리다.
+         *
+         * 원본 `SaveLayer`의 닫기 단추는 깃발 2(취소음)이고 저장칸 줄과 확인창 단추는
+         * 깃발 1(클릭음)이다. `LoadGameLayer`도 같으며, 두 창의 `cc.Toggle`은 소리가 없다.
+         */
+        val uiSound: UiSound? = null,
+    )
 
     /** 열린 목록의 종류, 스크롤 위치, 누른 행과 저장 완료 여부를 보관한다. */
     private sealed interface State {
@@ -241,13 +252,16 @@ internal class BattleSaveLoadOverlayController(
             } else {
                 open.saveCommitted || saveLayer.onConfirm(confirmation ?: 1)
             }
-            return settleSave(open.copy(press = Press.None, saveCommitted = committed))
+            return settleSave(open.copy(press = Press.None, saveCommitted = committed), UiSound.CLICK)
         }
         val slot = slotAt(open, intent.x, intent.y)
-        if (press is Press.Row && press.index == slot) saveLayer.onRowTouch(press.index, SaveLayer.TOUCH_END)
-        else if (press == Press.None && saveCloseAt(intent.x, intent.y)) return close(open)
+        var sound: UiSound? = null
+        if (press is Press.Row && press.index == slot) {
+            saveLayer.onRowTouch(press.index, SaveLayer.TOUCH_END)
+            sound = UiSound.CLICK
+        } else if (press == Press.None && saveCloseAt(intent.x, intent.y)) return close(open)
         state = open.copy(press = Press.None)
-        return DispatchResult(consumed = true)
+        return DispatchResult(consumed = true, uiSound = sound)
     }
 
     /**
@@ -258,15 +272,19 @@ internal class BattleSaveLoadOverlayController(
     private fun loadPointerUp(open: State.Open, intent: Intent.PointerUp): DispatchResult {
         val confirmation = confirmationAt(intent.x, intent.y)
         val press = open.press
+        var sound: UiSound? = null
         if (press is Press.Confirmation && press.answer == confirmation) {
             loadLayer.onConfirm(confirmation ?: 1)
+            sound = UiSound.CLICK
         } else {
             val slot = slotAt(open, intent.x, intent.y)
-            if (press is Press.Row && press.index == slot) loadLayer.onRowTouch(press.index, LoadGameLayer.TOUCH_END)
-            else if (press == Press.None && loadCloseAt(intent.x, intent.y)) return close(open)
+            if (press is Press.Row && press.index == slot) {
+                loadLayer.onRowTouch(press.index, LoadGameLayer.TOUCH_END)
+                sound = UiSound.CLICK
+            } else if (press == Press.None && loadCloseAt(intent.x, intent.y)) return close(open)
         }
         state = open.copy(press = Press.None)
-        return DispatchResult(consumed = true)
+        return DispatchResult(consumed = true, uiSound = sound)
     }
 
     /**
@@ -274,13 +292,17 @@ internal class BattleSaveLoadOverlayController(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun settleSave(open: State.Open): DispatchResult {
+    private fun settleSave(open: State.Open, uiSound: UiSound? = null): DispatchResult {
         if (saveLayer.view().attached) {
             state = open
-            return DispatchResult(consumed = true)
+            return DispatchResult(consumed = true, uiSound = uiSound)
         }
         state = State.Hidden
-        return DispatchResult(consumed = true, effect = Effect.Closed(Mode.SAVE, saved = open.saveCommitted))
+        return DispatchResult(
+            consumed = true,
+            effect = Effect.Closed(Mode.SAVE, saved = open.saveCommitted),
+            uiSound = uiSound,
+        )
     }
 
     /**
@@ -294,7 +316,11 @@ internal class BattleSaveLoadOverlayController(
             Mode.LOAD -> loadLayer.onCancel(LoadGameLayer.TOUCH_END)
         }
         state = State.Hidden
-        return DispatchResult(consumed = true, effect = Effect.Closed(open.mode, saved = false))
+        return DispatchResult(
+            consumed = true,
+            effect = Effect.Closed(open.mode, saved = false),
+            uiSound = UiSound.CANCEL,
+        )
     }
 
     /**

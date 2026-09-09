@@ -4613,6 +4613,7 @@ void main() {
                 val saveLoadResult =
                     saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.PointerUp(world.x, world.y))
                 if (saveLoadResult.consumed) {
+                    saveLoadResult.uiSound?.let(audio::playUiSound)
                     handleSaveLoadEffect(saveLoadResult.effect)
                     return true
                 }
