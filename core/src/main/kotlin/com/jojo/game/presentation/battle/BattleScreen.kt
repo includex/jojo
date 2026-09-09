@@ -4538,10 +4538,17 @@ void main() {
                 usePropertyLayer?.let { layer ->
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val released = usePropertyRowAt(world.x, world.y)
-                    if (usePropertyCancelPressed && usePropertyCancelAt(world.x, world.y)) layer.closeTouchEnd()
-                    else if (usePropertyPanelPressed && !usePropertyPanelAt(world.x, world.y)) layer.closeTouchEnd()
-                    else if (released != null && released == usePropertyPressedRow) layer.touchEnd(released)
-                    else layer.touchCancel()
+                    // 원본 `UsePropertyLayer`는 취소 단추가 깃발 2(취소음), 목록 줄이
+                    // 깃발 1(클릭음)이다.
+                    if (usePropertyCancelPressed && usePropertyCancelAt(world.x, world.y)) {
+                        audio.playUiSound(UiSound.CANCEL)
+                        layer.closeTouchEnd()
+                    } else if (usePropertyPanelPressed && !usePropertyPanelAt(world.x, world.y)) {
+                        layer.closeTouchEnd()
+                    } else if (released != null && released == usePropertyPressedRow) {
+                        audio.playUiSound(UiSound.CLICK)
+                        layer.touchEnd(released)
+                    } else layer.touchCancel()
                     usePropertyPressedRow = null
                     usePropertyCancelPressed = false
                     usePropertyPanelPressed = false
@@ -4559,8 +4566,13 @@ void main() {
                 magickListLayer?.let { layer ->
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val released = magickRowAt(world.x, world.y)
-                    if (magickCancelPressed && magickCancelAt(world.x, world.y)) layer.cancel(MagicUiList.TOUCH_END)
-                    else if (released != null && released == magickPressedRow) {
+                    // 원본 `MagickListLayer`는 취소 단추와 뒤쪽 막이 깃발 2(취소음),
+                    // 목록 줄이 깃발 1(클릭음)이다.
+                    if (magickCancelPressed && magickCancelAt(world.x, world.y)) {
+                        audio.playUiSound(UiSound.CANCEL)
+                        layer.cancel(MagicUiList.TOUCH_END)
+                    } else if (released != null && released == magickPressedRow) {
+                        audio.playUiSound(UiSound.CLICK)
                         layer.end(released)
                         if (!layer.attached) {
                             layer.rows.getOrNull(released)?.let(::selectMagick)
