@@ -4654,9 +4654,10 @@ void main() {
                                 recordFullBattleInput("$sourceScenario:auto-battle-toggle")
                                 autoBattleFlow.toggle()
                             }
+                            // 위임 확인창은 `MsgBox`라 단추가 깃발 1(클릭음)이다.
                             autoBattlePressedTag != null && autoBattlePressedTag == released -> answerAutoBattle(
                                 autoBattlePressedTag!!
-                            )
+                            ).also { audio.playUiSound(UiSound.CLICK) }
 
                             autoBattlePanelPressed && released == null && !autoBattleToggleAt(
                                 world.x, world.y
@@ -4718,6 +4719,8 @@ void main() {
                 }
                 val layer = winConditionLayer ?: return false
                 if (winConditionButtonPressed && world.x in 957.134f..1213.834f && world.y in 88.204f..148.204f) {
+                    // 원본 `WinConBoxLayer`는 확인 단추(`bg0/button`)를 깃발 2로 등록한다.
+                    audio.playUiSound(UiSound.CANCEL)
                     layer.onButtonTouch(WinConBoxLayer.TOUCH_END)
                 }
                 winConditionButtonPressed = false
