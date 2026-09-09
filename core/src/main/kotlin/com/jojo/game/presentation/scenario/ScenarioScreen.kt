@@ -1633,10 +1633,25 @@ class ScenarioScreen(
      */
 
     private fun applySaveInput(command: ScenarioHallSaveInputRouter.Command) = when (command) {
-        ScenarioHallSaveInputRouter.Command.CompletionTip -> hallSaveLayer.onCompletionTip(SaveLayer.TOUCH_END)
-        is ScenarioHallSaveInputRouter.Command.Confirm -> hallSaveLayer.onConfirm(if (command.accepted) 1 else 0)
-        ScenarioHallSaveInputRouter.Command.Cancel -> { hallSaveLayer.onCancel(SaveLayer.TOUCH_END); hallSaveOpen = false }
-        is ScenarioHallSaveInputRouter.Command.SelectRow -> hallSaveLayer.view().rows.getOrNull(command.index)?.let { hallSaveLayer.onRowTouch(it.index, SaveLayer.TOUCH_END) }
+        // 원본 `SaveLayer`는 닫기 단추만 깃발 2(취소음)이고 저장칸 줄과 확인창 단추는
+        // 깃발 1(클릭음)이다.
+        ScenarioHallSaveInputRouter.Command.CompletionTip -> {
+            audio.playUiSound(UiSound.CLICK); hallSaveLayer.onCompletionTip(SaveLayer.TOUCH_END)
+        }
+
+        is ScenarioHallSaveInputRouter.Command.Confirm -> {
+            audio.playUiSound(UiSound.CLICK); hallSaveLayer.onConfirm(if (command.accepted) 1 else 0)
+        }
+
+        ScenarioHallSaveInputRouter.Command.Cancel -> {
+            audio.playUiSound(UiSound.CANCEL)
+            hallSaveLayer.onCancel(SaveLayer.TOUCH_END); hallSaveOpen = false
+        }
+
+        is ScenarioHallSaveInputRouter.Command.SelectRow -> hallSaveLayer.view().rows.getOrNull(command.index)?.let {
+            audio.playUiSound(UiSound.CLICK); hallSaveLayer.onRowTouch(it.index, SaveLayer.TOUCH_END)
+        }
+
         ScenarioHallSaveInputRouter.Command.None -> Unit
     }
 
@@ -1648,9 +1663,20 @@ class ScenarioScreen(
     private fun applyExclusiveInput(command: ScenarioExclusiveInputRouter.Command) {
         val layer = hallExclusiveLayer ?: return
         when (command) {
-            ScenarioExclusiveInputRouter.Command.SET_LIST -> layer.onButton(0, ExclusiveLayer.TOUCH_END)
-            ScenarioExclusiveInputRouter.Command.EXCLUSIVE_LIST -> layer.onButton(1, ExclusiveLayer.TOUCH_END)
-            ScenarioExclusiveInputRouter.Command.CLOSE -> layer.onCancel(ExclusiveLayer.TOUCH_END)
+            // 원본 `ExclusiveLayer`는 단추 번호 2와 뒤쪽 막만 깃발 2(취소음)이고 갈피
+            // 단추는 깃발 1(클릭음)이다.
+            ScenarioExclusiveInputRouter.Command.SET_LIST -> {
+                audio.playUiSound(UiSound.CLICK); layer.onButton(0, ExclusiveLayer.TOUCH_END)
+            }
+
+            ScenarioExclusiveInputRouter.Command.EXCLUSIVE_LIST -> {
+                audio.playUiSound(UiSound.CLICK); layer.onButton(1, ExclusiveLayer.TOUCH_END)
+            }
+
+            ScenarioExclusiveInputRouter.Command.CLOSE -> {
+                audio.playUiSound(UiSound.CANCEL); layer.onCancel(ExclusiveLayer.TOUCH_END)
+            }
+
             ScenarioExclusiveInputRouter.Command.NONE -> Unit
         }
         if (!layer.attached) hallExclusiveLayer = null
