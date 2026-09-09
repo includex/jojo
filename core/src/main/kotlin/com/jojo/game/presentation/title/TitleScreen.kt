@@ -297,12 +297,24 @@ class TitleScreen(
      */
 
     private fun handleLoadTap(x: Int, y: Int) {
+        // 원본 `LoadGameLayer`는 단추와 저장칸 줄을 모두 깃발 1로 등록한다. 닫기도 단추라
+        // 취소음이 아니라 클릭음이 난다.
         when (val action = TitleInteraction.loadActionAt(x, y, loadLayer.pendingSlot() != null)) {
-            TitleInteraction.LoadAction.ConfirmLoad -> loadLayer.onConfirm(0)
-            TitleInteraction.LoadAction.CancelConfirmation -> loadLayer.onConfirm(1)
-            TitleInteraction.LoadAction.CloseOverlay -> closeOverlay()
+            TitleInteraction.LoadAction.ConfirmLoad -> {
+                audio.playUiSound(UiSound.CLICK); loadLayer.onConfirm(0)
+            }
+
+            TitleInteraction.LoadAction.CancelConfirmation -> {
+                audio.playUiSound(UiSound.CLICK); loadLayer.onConfirm(1)
+            }
+
+            TitleInteraction.LoadAction.CloseOverlay -> {
+                audio.playUiSound(UiSound.CLICK); closeOverlay()
+            }
+
             is TitleInteraction.LoadAction.SelectVisualRow -> {
                 val slot = loadLayer.view().rows.getOrNull(action.index)?.index ?: return
+                audio.playUiSound(UiSound.CLICK)
                 loadLayer.onRowTouch(slot, LoadGameLayer.TOUCH_END)
             }
 
@@ -317,6 +329,9 @@ class TitleScreen(
 
     private fun handleSettingTap(x: Int, y: Int) {
         val action = TitleInteraction.settingActionAt(x, y) ?: return
+        // 원본 `SettingLayer`는 닫기 단추만 깃발 2(취소음)이고, 확인칸·라디오는
+        // `cc.Toggle` 사건이라 소리가 없다.
+        if (action == TitleInteraction.SettingAction.Confirm) audio.playUiSound(UiSound.CANCEL)
         if (TitleInteraction.applySetting(action, settingLayer)) {
             mode = TitleMode.LOGIN
             settingReturnScenario?.let(game::showScenario)
