@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
+import com.jojo.game.infrastructure.audio.UiSound
 import com.badlogic.gdx.graphics.Texture
 import com.jojo.game.presentation.shared.overlay.TerrainLayer
 import com.jojo.game.presentation.shared.overlay.TerrainLayerInput
@@ -96,7 +97,18 @@ internal class BattleInformationOverlayController(
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
 
-    data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
+    data class DispatchResult(
+        val consumed: Boolean,
+        val effect: Effect = Effect.None,
+        /**
+         * 이 누름에 원본이 내는 단추 소리다.
+         *
+         * 원본 `PropertyLayer`·`TerrainLayer`는 단추 번호가 2일 때만 깃발 2(취소음)이고
+         * 나머지 갈피와 줄은 깃발 1(클릭음)이다. `TreasureLayer`는 뒤쪽 막과 닫기 단추
+         * (`bg1/button7`)가 깃발 2, 목록 줄이 깃발 1이다.
+         */
+        val uiSound: UiSound? = null,
+    )
 
     /** 선택된 정보 종류와 스크롤 행·보물 선택을 보관한다. */
     private sealed interface State {
@@ -302,14 +314,15 @@ internal class BattleInformationOverlayController(
         if (x !in PROPERTY_LEFT..PROPERTY_RIGHT || y !in PROPERTY_BOTTOM..PROPERTY_TOP) return DispatchResult(consumed = true)
         if (y in PROPERTY_TAB_BOTTOM..PROPERTY_TAB_TOP) {
             if (x in PROPERTY_CLOSE_LEFT..PROPERTY_CLOSE_RIGHT) return close(open)
-            propertyTabAt(x)?.let { propertyLayer.onTabTouch(it, TOUCH_END) }
+            val tab = propertyTabAt(x)?.also { propertyLayer.onTabTouch(it, TOUCH_END) }
             state = open.copy(scrollRow = 0)
-            return DispatchResult(consumed = true)
+            return DispatchResult(consumed = true, uiSound = tab?.let { UiSound.CLICK })
         }
         if (y in PROPERTY_ROWS_BOTTOM..PROPERTY_ROWS_TOP) {
             val row = ((PROPERTY_ROW_BASELINE - y) / PROPERTY_ROW_HEIGHT).toInt() + open.scrollRow
             val selected = propertyLayer.onRowTouch(row, TOUCH_END)
             state = open.copy(selectedItemId = selected ?: open.selectedItemId)
+            return DispatchResult(consumed = true, uiSound = UiSound.CLICK)
         }
         return DispatchResult(consumed = true)
     }
@@ -320,14 +333,21 @@ internal class BattleInformationOverlayController(
      */
 
     private fun terrainTap(open: State.Open, x: Float, y: Float): DispatchResult {
+        var sound: UiSound? = null
         when (TerrainLayerInput.tap(x, y)) {
-            TerrainLayerInput.Action.Rise -> terrainLayer.select(TerrainLayer.Tab.RISE)
-            TerrainLayerInput.Action.Expend -> terrainLayer.select(TerrainLayer.Tab.EXPEND)
+            TerrainLayerInput.Action.Rise -> {
+                terrainLayer.select(TerrainLayer.Tab.RISE); sound = UiSound.CLICK
+            }
+
+            TerrainLayerInput.Action.Expend -> {
+                terrainLayer.select(TerrainLayer.Tab.EXPEND); sound = UiSound.CLICK
+            }
+
             TerrainLayerInput.Action.Close -> return close(open)
             else -> Unit
         }
         state = open
-        return DispatchResult(consumed = true)
+        return DispatchResult(consumed = true, uiSound = sound)
     }
 
     /**
@@ -345,7 +365,7 @@ internal class BattleInformationOverlayController(
         val row = treasureLayer.rows.getOrNull(line * 2 + column + open.scrollRow)
         val selected = row?.let { treasureLayer.select(it.item.id) }
         state = open.copy(selectedItemId = selected?.id ?: open.selectedItemId)
-        return DispatchResult(consumed = true)
+        return DispatchResult(consumed = true, uiSound = row?.let { UiSound.CLICK })
     }
 
     /**
@@ -356,7 +376,7 @@ internal class BattleInformationOverlayController(
     private fun close(open: State.Open): DispatchResult {
         if (open.mode == Mode.PROPERTY) propertyLayer.onCancel(TOUCH_END)
         state = State.Hidden
-        return DispatchResult(consumed = true, effect = Effect.Closed(open.mode))
+        return DispatchResult(consumed = true, effect = Effect.Closed(open.mode), uiSound = UiSound.CANCEL)
     }
 
     /**

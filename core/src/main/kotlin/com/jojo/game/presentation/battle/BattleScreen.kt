@@ -4411,12 +4411,13 @@ void main() {
                         )
                     ).consumed
                 ) return true
-                if (informationOverlay.dispatch(
-                        BattleInformationOverlayController.Intent.Tap(
-                            world.x, world.y
-                        )
-                    ).consumed
-                ) return true
+                informationOverlay.dispatch(BattleInformationOverlayController.Intent.Tap(world.x, world.y))
+                    .let { information ->
+                        if (information.consumed) {
+                            information.uiSound?.let(audio::playUiSound)
+                            return true
+                        }
+                    }
                 if (winConditionOpen) {
                     winConditionButtonPressed = world.x in 957.134f..1213.834f && world.y in 88.204f..148.204f
                     return true
