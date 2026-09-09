@@ -1,5 +1,7 @@
 // Presentation
 package com.jojo.game.presentation.title
+import com.jojo.game.infrastructure.audio.GameAudioPlayer
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.JojoGame
@@ -78,6 +80,24 @@ class TitleScreen(
      */
 
     private val settingsPreferences = game.settingsPreferences()
+
+    /**
+     * 시작 화면의 소리다.
+     *
+     * 원본 `Login._launch`는 `playBackgroundSound(BG_SOUND_IDX.START)`로 시작 화면
+     * 배경음을 튼다. 설정 창의 두 스위치를 그대로 본다.
+     */
+    private val audio = GameAudioPlayer(
+        enabled = game.audioEnabled(),
+        musicOn = { settingEnabled(SettingLayer.BG_SOUND) },
+        effectOn = { settingEnabled(SettingLayer.EFFECT_SOUND) },
+    )
+
+    /** 설정 값: 원본 `GAME_SETTING` 비트를 읽는다. 기본값은 원본과 같이 셋을 켠 상태다. */
+    private fun settingEnabled(bit: Int) = settingsPreferences.getInteger(
+        SettingLayer.GAME_SETTING,
+        SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
+    ) and bit != 0
     /**
      * `settingLayer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -130,6 +150,7 @@ class TitleScreen(
      */
 
     override fun render(delta: Float) {
+        if (elapsed == 0f) audio.sync(TITLE_BACKGROUND_SOUND, emptyList())
         elapsed += delta
         renderer.render(viewState())
     }
@@ -150,6 +171,7 @@ class TitleScreen(
      */
 
     override fun dispose() {
+        audio.dispose()
         assets.dispose()
         renderer.dispose()
     }
@@ -191,7 +213,13 @@ class TitleScreen(
             val x = screenX * LOGICAL_WIDTH / Gdx.graphics.width
             val y = (Gdx.graphics.height - screenY) * LOGICAL_HEIGHT / Gdx.graphics.height
             when (mode) {
-                TitleMode.LOGIN -> TitleInteraction.mainActionAt(x, y)?.let(::activate)
+                // 원본 `Login._launch`는 배경(`bg`) 전체를 깃발 1로 등록해, 시작 화면을
+                // 누르면 클릭음이 난다.
+                TitleMode.LOGIN -> TitleInteraction.mainActionAt(x, y)?.let {
+                    audio.playUiSound(UiSound.CLICK)
+                    activate(it)
+                }
+
                 TitleMode.SETTING -> handleSettingTap(x, y)
                 TitleMode.LOAD -> handleLoadTap(x, y)
             }
@@ -326,6 +354,9 @@ class TitleScreen(
     private fun isConfirmKey(keycode: Int) = keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE
 
     private companion object {
+        /** 시작 화면 배경음 번호다. 원본 `BG_SOUND_IDX.START`가 16이다. */
+        const val TITLE_BACKGROUND_SOUND = 16
+
         /**
          * `LOGICAL_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
