@@ -1,5 +1,6 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.*
@@ -116,10 +117,13 @@ internal class HallInformationCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun handleInfoTap(kind: HallInfo, x: Float, y: Float) {
+    fun handleInfoTap(kind: HallInfo, x: Float, y: Float): UiSound? {
+        // 원본 `InfoLayer`의 뒤쪽 막에는 깃발이 없어 닫을 때 소리가 나지 않는다.
+        // 안쪽의 목록 줄과 갈피는 각자의 창에서 깃발 1이다.
+        var sound: UiSound? = UiSound.CLICK
         when (val intent = overlayInput.infoTap(HallInfoInputKind.valueOf(kind.name), x, y)) {
-            HallInfoInputIntent.None -> Unit
-            HallInfoInputIntent.Close -> info = null
+            HallInfoInputIntent.None -> sound = null
+            HallInfoInputIntent.Close -> { info = null; sound = null }
             is HallInfoInputIntent.OpenForcesRow -> equipUnitIds().sorted().getOrNull(intent.row)?.let(::openUnitInfo)
             is HallInfoInputIntent.SelectPropertyTab -> HallPropertyTab.entries.getOrNull(intent.tab)?.let { propertyTab = it }
             is HallInfoInputIntent.OpenPropertyRow -> propertyItemIds().getOrNull(intent.row)?.let { itemId ->
@@ -133,6 +137,7 @@ internal class HallInformationCoordinator(
                 ?.takeIf { it.id in campaign.inventory.discoveredTreasures }
                 ?.let { openItem(it.id, "1", 0, false) }
         }
+        return sound
     }
 
     /**
@@ -140,19 +145,21 @@ internal class HallInformationCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun handleItemTap(x: Float, y: Float) {
-        val layer = itemLayer ?: return
-        when (itemInput.itemTap(layer.discardConfirmationOpen, x, y)) {
-            HallItemInputIntent.DISCARD_YES -> layer.onDiscardAnswer(1)
-            HallItemInputIntent.DISCARD_NO -> layer.onDiscardAnswer(0)
-            HallItemInputIntent.CLOSE -> layer.onButton(0, ItemLayer.TOUCH_END)
-            HallItemInputIntent.REQUEST_DISCARD -> layer.onButton(1, ItemLayer.TOUCH_END)
-            HallItemInputIntent.NONE -> Unit
+    fun handleItemTap(x: Float, y: Float): UiSound? {
+        val layer = itemLayer ?: return null
+        // 원본 `ItemLayer`는 뒤쪽 막이 깃발 2이고 단추와 확인창은 깃발 1이다.
+        val sound = when (itemInput.itemTap(layer.discardConfirmationOpen, x, y)) {
+            HallItemInputIntent.DISCARD_YES -> { layer.onDiscardAnswer(1); UiSound.CLICK }
+            HallItemInputIntent.DISCARD_NO -> { layer.onDiscardAnswer(0); UiSound.CLICK }
+            HallItemInputIntent.CLOSE -> { layer.onButton(0, ItemLayer.TOUCH_END); UiSound.CANCEL }
+            HallItemInputIntent.REQUEST_DISCARD -> { layer.onButton(1, ItemLayer.TOUCH_END); UiSound.CLICK }
+            HallItemInputIntent.NONE -> null
         }
         if (!layer.attached) {
             itemLayer = null
             itemDetail = null
         }
+        return sound
     }
 
     /**
@@ -160,10 +167,15 @@ internal class HallInformationCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun handleMagicTap(x: Float, y: Float) {
-        val layer = magicLayer ?: return
-        if (overlayInput.magicTap(x, y) == HallLayerTapIntent.CLOSE) layer.close(UnitInfoLayer.TOUCH_END)
+    fun handleMagicTap(x: Float, y: Float): UiSound? {
+        val layer = magicLayer ?: return null
+        // 원본 `MagicLayer`는 뒤쪽 막이 깃발 2다.
+        var sound: UiSound? = null
+        if (overlayInput.magicTap(x, y) == HallLayerTapIntent.CLOSE) {
+            layer.close(UnitInfoLayer.TOUCH_END); sound = UiSound.CANCEL
+        }
         if (!layer.attached) magicLayer = null
+        return sound
     }
 
     /**
@@ -195,14 +207,16 @@ internal class HallInformationCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun handleUnitInfoTap(x: Float, y: Float) {
-        val layer = unitInfoLayer ?: return
-        when (overlayInput.unitInfoTap(x, y)) {
-            HallLayerTapIntent.PRIMARY -> openFeatsFromUnitInfo()
-            HallLayerTapIntent.CLOSE -> layer.onCancel(UnitInfoLayer.TOUCH_END)
-            else -> Unit
+    fun handleUnitInfoTap(x: Float, y: Float): UiSound? {
+        val layer = unitInfoLayer ?: return null
+        // 원본 `UnitInfoLayer`는 단추가 깃발 1, 뒤쪽 막이 깃발 2다.
+        val sound = when (overlayInput.unitInfoTap(x, y)) {
+            HallLayerTapIntent.PRIMARY -> { openFeatsFromUnitInfo(); UiSound.CLICK }
+            HallLayerTapIntent.CLOSE -> { layer.onCancel(UnitInfoLayer.TOUCH_END); UiSound.CANCEL }
+            else -> null
         }
         if (!layer.ref().attached) unitInfoLayer = null
+        return sound
     }
 
     /**
@@ -210,16 +224,19 @@ internal class HallInformationCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun handleFeatsTap(x: Float, y: Float) {
-        val layer = featsLayer ?: return
+    fun handleFeatsTap(x: Float, y: Float): UiSound? {
+        val layer = featsLayer ?: return null
+        // 원본 `FeatsLayer`는 뒤쪽 막까지 깃발 1이라 닫을 때도 클릭음이 난다.
+        var sound: UiSound? = UiSound.CLICK
         when (overlayInput.featsTap(x, y, featsHelpOpen)) {
             HallLayerTapIntent.PRIMARY -> if (featsHelpOpen) featsHelpOpen = false
             HallLayerTapIntent.SECONDARY -> openFeatsHelp()
             HallLayerTapIntent.CLOSE -> layer.onButton(0, FeatsLayer.TOUCH_END)
             HallLayerTapIntent.CANCEL -> layer.onCancel(FeatsLayer.TOUCH_END)
-            HallLayerTapIntent.NONE -> Unit
+            HallLayerTapIntent.NONE -> sound = null
         }
         if (!layer.attached) featsLayer = null
+        return sound
     }
 
     /**

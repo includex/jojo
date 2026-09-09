@@ -1606,11 +1606,18 @@ class ScenarioScreen(
 
     override fun routeHallTouch(route: ScenarioInputRouter.Touch.Hall, x: Float, y: Float) {
         when (route.layer) {
-            ScenarioInputRouter.HallLayer.FEATS -> hallFeatsLayer?.let { hallInformationFlow.handleFeatsTap(x, y) }
-            ScenarioInputRouter.HallLayer.UNIT_INFO -> hallUnitInfoLayer?.let { hallInformationFlow.handleUnitInfoTap(x, y) }
-            ScenarioInputRouter.HallLayer.MAGIC -> hallMagicLayer?.let { hallInformationFlow.handleMagicTap(x, y) }
-            ScenarioInputRouter.HallLayer.ITEM -> hallInformationFlow.handleItemTap(x, y)
-            ScenarioInputRouter.HallLayer.INFO -> hallInfo?.let { hallInformationFlow.handleInfoTap(it, x, y) }
+            ScenarioInputRouter.HallLayer.FEATS ->
+                hallFeatsLayer?.let { hallInformationFlow.handleFeatsTap(x, y) }?.let(audio::playUiSound)
+
+            ScenarioInputRouter.HallLayer.UNIT_INFO ->
+                hallUnitInfoLayer?.let { hallInformationFlow.handleUnitInfoTap(x, y) }?.let(audio::playUiSound)
+
+            ScenarioInputRouter.HallLayer.MAGIC ->
+                hallMagicLayer?.let { hallInformationFlow.handleMagicTap(x, y) }?.let(audio::playUiSound)
+
+            ScenarioInputRouter.HallLayer.ITEM -> hallInformationFlow.handleItemTap(x, y)?.let(audio::playUiSound)
+            ScenarioInputRouter.HallLayer.INFO ->
+                hallInfo?.let { hallInformationFlow.handleInfoTap(it, x, y) }?.let(audio::playUiSound)
             ScenarioInputRouter.HallLayer.SAVE -> applySaveInput(ScenarioHallSaveInputRouter.route(x, y, hallSaveLayer.completionTipOpen(), hallSaveLayer.pendingSlot() != null, hallSaveLayer.view().rows.size))
             ScenarioInputRouter.HallLayer.EXCLUSIVE -> applyExclusiveInput(ScenarioExclusiveInputRouter.route(hallOverlayInteraction.exclusiveTap(x, y)))
             ScenarioInputRouter.HallLayer.MANAGEMENT -> hallManagement?.let { if (route.closesManagement) hallManagementFlow.close() else hallManagementFlow.handleTap(it, x, y) }
