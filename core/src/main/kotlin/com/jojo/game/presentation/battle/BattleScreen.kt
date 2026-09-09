@@ -4600,6 +4600,7 @@ void main() {
                 val forcesResult =
                     forcesOverlay.dispatch(BattleForcesOverlayController.Intent.PointerUp(world.x, world.y))
                 if (forcesResult.consumed) {
+                    forcesResult.uiSound?.let(audio::playUiSound)
                     handleForcesOverlayEffect(forcesResult.effect)
                     return true
                 }

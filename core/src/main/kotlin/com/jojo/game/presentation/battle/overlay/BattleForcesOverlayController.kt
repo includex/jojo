@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.battle.overlay.ForcesListLayer
 /**
  * `BattleForcesOverlayController`: 관련 상태와 동작을 묶는 class다.
@@ -93,7 +94,17 @@ internal class BattleForcesOverlayController {
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
 
-    data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
+    data class DispatchResult(
+        val consumed: Boolean,
+        val effect: Effect = Effect.None,
+        /**
+         * 이 누름에 원본이 내는 단추 소리다.
+         *
+         * 원본 `ForcesListLayer`는 닫기 단추(`bg1/button0`)만 깃발 2(취소음)이고, 진영
+         * 고르개와 목록 줄은 깃발 1(클릭음)이다.
+         */
+        val uiSound: UiSound? = null,
+    )
 
     /** 부대 목록의 연결 상태와 현재 누른 탭·행을 보관한다. */
     private sealed interface State {
@@ -222,18 +233,18 @@ internal class BattleForcesOverlayController {
             visible.press == Press.Close && released == Press.Close -> {
                 visible.layer.onClose(ForcesListLayer.TOUCH_END)
                 state = State.Hidden
-                DispatchResult(consumed = true, effect = Effect.Closed)
+                DispatchResult(consumed = true, effect = Effect.Closed, uiSound = UiSound.CANCEL)
             }
             visible.press is Press.Tab && released == visible.press -> {
                 visible.layer.changeSel(visible.press.index)
-                DispatchResult(consumed = true)
+                DispatchResult(consumed = true, uiSound = UiSound.CLICK)
             }
             visible.press is Press.Row && released == visible.press -> {
                 val unit = visible.layer.onRowTouch(visible.press.index, ForcesListLayer.TOUCH_END)
                 val effect = unit?.let {
                     Effect.UnitSelected(SelectedUnit(it.id, it.name, it.post, it.level, it.hp, it.maxHp))
                 } ?: Effect.None
-                DispatchResult(consumed = true, effect = effect)
+                DispatchResult(consumed = true, effect = effect, uiSound = UiSound.CLICK)
             }
             else -> DispatchResult(consumed = true)
         }
