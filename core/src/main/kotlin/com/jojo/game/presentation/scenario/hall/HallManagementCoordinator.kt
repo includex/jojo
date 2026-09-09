@@ -1,5 +1,6 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -141,9 +142,9 @@ internal class HallManagementCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun handleTap(kind: HallManagement, x: Float, y: Float) {
+    fun handleTap(kind: HallManagement, x: Float, y: Float): UiSound? {
         val unitId = if (kind == HallManagement.EQUIP) equipUnitId() else campaign.joinedUnits.firstOrNull() ?: 0
-        when (kind) {
+        return when (kind) {
             HallManagement.EQUIP -> handleEquipTap(unitId, x, y)
             HallManagement.BUY -> handleBuyTap(x, y)
             HallManagement.SELL -> handleSellTap(x, y)
@@ -155,20 +156,25 @@ internal class HallManagementCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun handleEquipTap(unitId: Int, x: Float, y: Float) {
+    private fun handleEquipTap(unitId: Int, x: Float, y: Float): UiSound? {
         equipConfirmation?.let { confirmation ->
+            // 원본 `EquipConfirmLayer`는 뒤쪽 막이 깃발 2, 단추가 깃발 1이다.
+            var confirmationSound = UiSound.CLICK
             when (input.equipConfirmationTap(x, y)) {
                 HallEquipConfirmationInputIntent.CONFIRM -> {
                     val changed = if (confirmation.itemId != null || confirmation.unequipSlot != null)
                         confirmations.answer(unitId, accept = true) else false
                     if (changed) notice = if (confirmation.actionLabel == "해제") "장비를 해제했습니다." else "장비를 변경했습니다."
                 }
-                HallEquipConfirmationInputIntent.CANCEL -> confirmations.cancel()
+                HallEquipConfirmationInputIntent.CANCEL -> {
+                    confirmations.cancel(); confirmationSound = UiSound.CANCEL
+                }
             }
             equipConfirmation = null
-            return
+            return confirmationSound
         }
         if (unequipConfirmationOpen) {
+            var unequipSound: UiSound? = UiSound.CLICK
             when (input.unequipConfirmationTap(x, y)) {
                 HallUnequipConfirmationInputIntent.CONFIRM -> {
                     val count = commands.unequipAll()
@@ -176,9 +182,9 @@ internal class HallManagementCoordinator(
                     notice = if (count == 0) "해제할 장비가 없습니다." else "장비 ${count}개를 모두 해제했습니다."
                 }
                 HallUnequipConfirmationInputIntent.CANCEL -> unequipConfirmationOpen = false
-                HallUnequipConfirmationInputIntent.NONE -> Unit
+                HallUnequipConfirmationInputIntent.NONE -> unequipSound = null
             }
-            return
+            return unequipSound
         }
         unitListLayer?.let { unitList ->
             val row = if (x in (924.186f * .86f)..(1284.186f * .86f)) {
@@ -190,11 +196,15 @@ internal class HallManagementCoordinator(
                 equipUnitIndex = equipUnitIds().indexOf(selectedId)
                 prepareDefaultEquipment(HallManagement.EQUIP)
             }
+            // 원본 `UnitListLayer`는 목록 줄이 깃발 1, 뒤쪽 막이 깃발 2다.
+            val listSound = if (row != null) UiSound.CLICK else UiSound.CANCEL
             if (unitList.attached) unitList.onCancel(HallUnitListLayer.TOUCH_END)
             unitListLayer = null
             notice = null
-            return
+            return listSound
         }
+        // 원본 `EquipLayer`의 단추는 `bg1/button14`만 깃발이 없고 나머지는 깃발 1이다.
+        var sound: UiSound? = UiSound.CLICK
         when (val intent = input.equipTap(x, y)) {
             is HallEquipInputIntent.SelectTab -> {
                 interaction.selectEquipTab(intent.index)
@@ -226,7 +236,8 @@ internal class HallManagementCoordinator(
                 equipConfirmation = HallEquipConfirmation(preview.values, preview.actionLabel, unequipSlot = preview.unequipSlot)
             }
             is HallEquipInputIntent.RequestEquipmentRow -> {
-                val itemId = views.equipInventory(interaction.view.equipTabIndex).getOrNull(intent.row)?.itemId ?: return
+                val itemId = views.equipInventory(interaction.view.equipTabIndex).getOrNull(intent.row)?.itemId
+                    ?: return UiSound.CLICK
                 val preview = confirmations.requestEquip(unitId, itemId)
                 if (preview == null) notice = "이 물품은 장착할 수 없습니다."
                 else {
@@ -234,8 +245,9 @@ internal class HallManagementCoordinator(
                     notice = null
                 }
             }
-            HallEquipInputIntent.None -> Unit
+            HallEquipInputIntent.None -> sound = null
         }
+        return sound
     }
 
     /**
@@ -243,7 +255,9 @@ internal class HallManagementCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun handleBuyTap(x: Float, y: Float) {
+    private fun handleBuyTap(x: Float, y: Float): UiSound? {
+        // 원본 `BuyLayer`의 갈피와 목록 줄은 모두 깃발 1이다.
+        var sound: UiSound? = UiSound.CLICK
         when (val intent = input.buyTap(x, y, interaction.view.buyTabIndex)) {
             is HallBuyInputIntent.SelectTab -> {
                 interaction.selectBuyTab(intent.index)
@@ -254,8 +268,9 @@ internal class HallManagementCoordinator(
                 else views.buyProperties().getOrNull(intent.index)
                 item?.let { notice = commands.buy(it.id).message }
             }
-            HallBuyInputIntent.None -> Unit
+            HallBuyInputIntent.None -> sound = null
         }
+        return sound
     }
 
     /**
@@ -263,7 +278,9 @@ internal class HallManagementCoordinator(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun handleSellTap(x: Float, y: Float) {
+    private fun handleSellTap(x: Float, y: Float): UiSound? {
+        // 원본 `SellLayer`의 갈피와 칸은 깃발 1이다.
+        var sound: UiSound? = UiSound.CLICK
         when (val intent = input.sellTap(x, y)) {
             is HallSellInputIntent.SelectTab -> {
                 interaction.selectSellTab(intent.index)
@@ -272,7 +289,8 @@ internal class HallManagementCoordinator(
             is HallSellInputIntent.Cell -> views.sellCandidates(interaction.view.sellTabIndex)
                 .getOrNull(intent.row * 2 + intent.column)
                 ?.let { notice = commands.sell(it.itemId).message }
-            HallSellInputIntent.None -> Unit
+            HallSellInputIntent.None -> sound = null
         }
+        return sound
     }
 }

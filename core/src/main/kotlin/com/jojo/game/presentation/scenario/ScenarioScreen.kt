@@ -1620,7 +1620,10 @@ class ScenarioScreen(
                 hallInfo?.let { hallInformationFlow.handleInfoTap(it, x, y) }?.let(audio::playUiSound)
             ScenarioInputRouter.HallLayer.SAVE -> applySaveInput(ScenarioHallSaveInputRouter.route(x, y, hallSaveLayer.completionTipOpen(), hallSaveLayer.pendingSlot() != null, hallSaveLayer.view().rows.size))
             ScenarioInputRouter.HallLayer.EXCLUSIVE -> applyExclusiveInput(ScenarioExclusiveInputRouter.route(hallOverlayInteraction.exclusiveTap(x, y)))
-            ScenarioInputRouter.HallLayer.MANAGEMENT -> hallManagement?.let { if (route.closesManagement) hallManagementFlow.close() else hallManagementFlow.handleTap(it, x, y) }
+            ScenarioInputRouter.HallLayer.MANAGEMENT -> hallManagement?.let {
+                if (route.closesManagement) hallManagementFlow.close()
+                else hallManagementFlow.handleTap(it, x, y)?.let(audio::playUiSound)
+            }
             ScenarioInputRouter.HallLayer.MAIN -> hallInteraction.mainTap(x, y).let { intent ->
                 // 원본은 거점 메뉴의 뒤쪽 막만 깃발 2(취소음)로 등록하고, 메뉴 항목과
                 // 거점 명령 단추는 모두 깃발 1(클릭음)이다. 빈 곳을 누르면 소리가 없다.
