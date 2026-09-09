@@ -4375,9 +4375,12 @@ void main() {
                 }
                 jiqiLayer?.let { jiqiPressed = true; return true }
                 if (outcomePresentation.rewardActive) {
+                    // 원본 `RewardLayer`는 뒤쪽 막을 깃발 2로 등록한다.
+                    audio.playUiSound(UiSound.CANCEL)
                     outcomePresentation.advanceRewardFlow(); return true
                 }
                 if (outcomePresentation.itemUpgradeActive) {
+                    // `ItemUpgradeLayer`의 뒤쪽 막에는 깃발이 없어 소리가 나지 않는다.
                     outcomePresentation.closeItemUpgrade(); return true
                 }
                 scriptWinConditions?.let { return true }
