@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
+import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.presentation.shared.overlay.UnitInfoLayer
 /**
  * `BattleUnitInfoOverlayController`: 관련 상태와 동작을 묶는 class다.
@@ -71,7 +72,12 @@ internal class BattleUnitInfoOverlayController(
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
 
-    data class DispatchResult(val consumed: Boolean, val effect: Effect = Effect.None)
+    data class DispatchResult(
+        val consumed: Boolean,
+        val effect: Effect = Effect.None,
+        /** 이 누름에 원본이 내는 단추 소리다. */
+        val uiSound: UiSound? = null,
+    )
 
     /** 선택된 유닛 정보 레이어와 눌린 버튼을 보관한다. */
     private sealed interface State {
@@ -156,7 +162,8 @@ internal class BattleUnitInfoOverlayController(
             Intent.OpenJiqi -> openJiqi(visible)
             Intent.Dismiss -> {
                 state = State.Hidden
-                DispatchResult(consumed = true, effect = Effect.Closed)
+                // 뒤쪽 막(`Panel_cancel`)만 깃발 2라 취소음이 난다.
+                DispatchResult(consumed = true, effect = Effect.Closed, uiSound = UiSound.CANCEL)
             }
         }
     }
@@ -169,9 +176,11 @@ internal class BattleUnitInfoOverlayController(
     private fun pointerUp(visible: State.Visible, releasedButton: Int?): DispatchResult {
         state = visible.copy(pressedButton = null)
         if (releasedButton == null || releasedButton != visible.pressedButton) return DispatchResult(consumed = true)
+        // 원본 `UnitInfoLayer`는 `bg1/button<i>`를 모두 깃발 1로 등록한다. 뒤쪽 막만
+        // 깃발 2인데, 그쪽은 `Intent.Dismiss`로 들어온다.
         return if (releasedButton == JIQI_BUTTON) openJiqi(visible) else {
             visible.layer.onButton(releasedButton, UnitInfoLayer.TOUCH_END)
-            closeIfDetached()
+            closeIfDetached().copy(uiSound = UiSound.CLICK)
         }
     }
 
@@ -186,7 +195,9 @@ internal class BattleUnitInfoOverlayController(
         val rates = frozenRates() ?: visible.layer.currentRates().takeIf { it.size == 8 } ?: FIXTURE_JIQI_RATES
         val jiqi = BattleUnitInfoJiqiRoute.open(visible.layer, rates, UnitInfoLayer.TOUCH_END)
         val after = closeIfDetached()
-        return jiqi?.let { DispatchResult(consumed = true, effect = Effect.JiqiOpened(it)) } ?: after
+        return jiqi?.let {
+            DispatchResult(consumed = true, effect = Effect.JiqiOpened(it), uiSound = UiSound.CLICK)
+        } ?: after.copy(uiSound = UiSound.CLICK)
     }
 
     /**

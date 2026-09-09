@@ -4595,6 +4595,7 @@ void main() {
                 val unitInfoResult =
                     unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(world.x, world.y))
                 if (unitInfoResult.consumed) {
+                    unitInfoResult.uiSound?.let(audio::playUiSound)
                     handleUnitInfoOverlayEffect(unitInfoResult.effect)
                     return true
                 }
