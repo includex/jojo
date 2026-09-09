@@ -4619,12 +4619,18 @@ void main() {
                     return true
                 }
                 viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).let { world ->
+                    // 원본 `HelperLayer`는 닫는 단추(`Logo_12-1/button0`)까지 깃발 1이라
+                    // 닫을 때도 취소음이 아니라 클릭음이 난다.
+                    val closing = helperOverlay.view() != null
                     if (helperOverlay.dispatch(
                             BattleHelperOverlayController.Intent.PointerUp(
                                 world.x, world.y
                             )
                         )
-                    ) return true
+                    ) {
+                        if (closing && helperOverlay.view() == null) audio.playUiSound(UiSound.CLICK)
+                        return true
+                    }
                 }
                 when (autoBattleFlow.view().overlay) {
                     AutoBattleFlow.Overlay.PROMPT -> {
