@@ -714,3 +714,50 @@ campaignUnitTest 47개와 Python opening 30개가 통과했고 Astra 코드 리�
 문제는 없었다. 원본과 같은 규칙을 적용했지만 부동소수점 연산 순서까지 동일하다는
 주장은 하지 않는다. 회귀 증거는 `sliced-regression.log`, `sliced-pages.json`,
 `sliced-prefixes.json`, `sliced-resize.json`이다.
+
+
+## 원본 브라우저 배경 디코딩으로 전체 화면 차이 축소 (2026-09-20)
+
+첫 EVENT 배경의 차이는 JPEG 디코딩에서 발생했다. 동일한 640×400 원본 JPEG
+(SHA `39a430d7602c3c0aaa102ecfa404c631cd71e1e9c33c34c539368a4293791505`)에 대해,
+원본 browser Image→Canvas와 실제 GPU 텍스처는 모두
+`f737f8bea044fd85f8ff8363d5f914abbeccff2c79f659db8d3e642f961675ab`이었다.
+포트 Pixmap 디코딩과 실제 렌더에 사용된 캐시 텍스처는 모두
+`a62f402301bf56e24d1a2a4be5531036bfe8e485ed9f80770bb1c66a667270ed`이었다.
+양쪽 GPU 텍스처 차이는 2,583픽셀, 최대 채널 오차 2였다. 각 엔진 내부 CPU/GPU는
+동일하므로 업로드가 아니라 디코딩 결과 차이로 분리했다.
+
+원본 캡처 opt-in `JOJO_CAPTURE_BACKGROUND_TEXTURE=1`은 실제 Hall map Sprite의
+GL 텍스처와 브라우저 이미지 Canvas 값을 저장한다. 포트 opt-in은 실제 ScenarioScreen
+캐시 Texture를 읽기 전용으로 찾아 임시 FBO에서 읽고, 그 TextureData의 파일을
+Pixmap으로 별도 디코드한다. 양쪽 모두 이전 FBO를 복원하며 게임 텍스처를 다시
+생성하거나 consume하지 않는다. 이 계측 전후 실제 화면 SHA는 동일했다.
+
+새 `exportSourceMapTextures`는 mapSources의 원본 JPEG를 설치된 원본 Electron의
+browser Image→Canvas로 디코드하고 PNG와 provenance manifest를 생성한다.
+385개 Mmap 자산 전체에 같은 변환을 적용한다. 특정 배경의 보정표나 캡처 화면은
+사용하지 않는다. manifest는 원본/PNG/RGBA SHA, 크기와 Electron 버전을 기록하며,
+빈 카탈로그 및 maps와 키집합이 다른 mapSources는 실패한다. 별도 generated 디렉터리와
+resource 경로를 쓰고 ScenarioSceneAssets 배경을 이 PNG에서 로드한다.
+
+변경 후 포트 PNG의 CPU 및 실제 GPU 텍스처는 원본과 strict 0픽셀 차이다.
+전체 EVENT 화면 차이는 42,790→259픽셀로 감소했다. 남은 전체 화면/분리 안내창 차이는
+모두 동일한 왼쪽 테두리 [1054,654,1056,785]이며 전체 화면 일치는 아직 실패다.
+385개 PNG의 input SHA·출력 SHA·decode RGBA를 검사했지만 다른 배경의 실제 게임
+렌더까지 검증했다는 뜻은 아니다. 자동 닫기·타이핑 시간도 별도 미검증 범위다.
+
+회귀: 첫 세 대사 페이지, 13개 prefix, resize 후 3개 표본 모두 0픽셀 차이 유지.
+campaignUnitTest 47개와 Python opening 34개가 통과했다. Astra 리뷰에서 나온 빈/누락
+카탈로그 거부를 추가했고 두 실패 사례를 실제 실행으로 확인했다.
+증거: `build/reports/opening-background-20260920/`의 `source/`, `game/`,
+`initial-texture-comparison.json`, `png-texture-comparison.json`, `png-frame-comparison.json`,
+`pages-regression.json`, `prefixes-regression.json`, `resize-regression.json`, `regression.log`.
+
+```sh
+JOJO_CAPTURE_BACKGROUND_TEXTURE=1 node tools/capture_opening_source_event.cjs build/reports/opening-background-20260920/source
+JOJO_CAPTURE_BACKGROUND_TEXTURE=1 ./gradlew :verification:captureOpeningEvent
+python3 tools/verify_opening_background_pixels.py build/reports/opening-background-20260920/source/source-event.json verification/build/verification/opening-event/game-background.json
+```
+
+다음 단위는 안내창 왼쪽 테두리의 잔여 259픽셀과 초기 안내의 시간 동작이다.
+전체 게임 동등성 목표는 계속 진행한다.

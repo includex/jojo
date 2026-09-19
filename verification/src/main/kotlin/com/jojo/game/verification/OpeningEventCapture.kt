@@ -50,7 +50,11 @@ internal class OpeningEventCapture(output: RenderCaptureConfiguration) {
         row.addChild("naturalModalIsolation", JsonValue(isolated))
         manifest.addChild(if (isolated) "isolatedOverlay" else "fullFrame", row)
         Gdx.app.log("JojoGame", "OPENING_EVENT_CAPTURE: isolated=$isolated frame=$frame text=${probe.modalVisibleText}")
-        if (!isolated) { fullCaptured = true; return }
+        if (!isolated) {
+            if (System.getenv("JOJO_CAPTURE_BACKGROUND_TEXTURE") == "1") OpeningBackgroundCapture.capture(directory, probe.backgroundId)
+            fullCaptured = true
+            return
+        }
         manifest.addChild("contract", JsonValue("natural-opening-event-rgba8"))
         manifest.addChild("width", JsonValue(width.toLong()))
         manifest.addChild("height", JsonValue(height.toLong()))

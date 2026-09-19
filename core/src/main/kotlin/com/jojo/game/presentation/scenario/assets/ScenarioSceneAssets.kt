@@ -318,7 +318,7 @@ internal class ScenarioSceneAssets(
 
     /** backgroundTexture: 배경 식별자에 맞는 장면 이미지를 지연 로드한다. */
     fun backgroundTexture(backgroundId: Int): Texture? = backgroundTextures[backgroundId] ?: loadTexture(
-        "maps/$backgroundId.jpg",
+        "source-map-textures/$backgroundId.png",
         Texture.TextureFilter.Linear,
     )?.also { backgroundTextures[backgroundId] = it }
 

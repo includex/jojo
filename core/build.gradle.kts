@@ -47,6 +47,7 @@ tasks.test { dependsOn(auditScenarioBranchSurface) }
 val cocosAssetsDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/assets")
 val generatedAstDirectory = layout.buildDirectory.dir("generated/scenario-ast")
 val generatedMapAssetsDirectory = layout.buildDirectory.dir("generated/map-assets")
+val generatedSourceMapTexturesDirectory = layout.buildDirectory.dir("generated/source-map-textures")
 val generatedStreetBodyLabelsDirectory = layout.buildDirectory.dir("generated/street-body-labels")
 val generatedInfoLabelsDirectory = layout.buildDirectory.dir("generated/info-labels")
 val generatedStreetSpeakerLabelsDirectory = layout.buildDirectory.dir("generated/street-speaker-labels")
@@ -84,6 +85,21 @@ val exportMapAssets = tasks.register<Exec>("exportMapAssets") {
     outputs.dir(generatedMapAssetsDirectory)
     commandLine("python3", rootProject.file("tools/export_map_assets.py").absolutePath,
         cocosAssetsDirectory.absolutePath, generatedMapAssetsDirectory.get().asFile.absolutePath)
+}
+val exportSourceMapTextures = tasks.register<Exec>("exportSourceMapTextures") {
+    dependsOn(exportMapAssets)
+    timeout.set(Duration.ofSeconds(60))
+    inputs.file(rootProject.file("tools/export_source_map_textures.cjs"))
+    inputs.file(generatedMapAssetsDirectory.map { it.file("manifest.json") })
+    inputs.dir(cocosAssetsDirectory.resolve("Game/native"))
+    inputs.file(cocosAssetsDirectory.parentFile.resolve("node_modules/electron/package.json"))
+    inputs.file(cocosAssetsDirectory.parentFile.resolve("package-lock.json"))
+    inputs.property("decodePlatform", System.getProperty("os.name") + " " + System.getProperty("os.version"))
+    outputs.dir(generatedSourceMapTexturesDirectory)
+    commandLine("node", rootProject.file("tools/export_source_map_textures.cjs").absolutePath,
+        cocosAssetsDirectory.parentFile.absolutePath,
+        generatedMapAssetsDirectory.get().file("manifest.json").asFile.absolutePath,
+        generatedSourceMapTexturesDirectory.get().asFile.absolutePath)
 }
 val exportAudioAssets = tasks.register<Exec>("exportAudioAssets") {
     inputs.dir(cocosAssetsDirectory)
@@ -247,11 +263,12 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
     into(generatedReferenceFramebuffersDirectory)
 }
 tasks.processResources {
-    dependsOn(exportScenarioAst, exportMapAssets, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
+    dependsOn(exportScenarioAst, exportMapAssets, exportSourceMapTextures, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
         extractTitleLoadConfirmations, exportScenarioChoiceReference)
     from(restoredScenarioDirectory) { include("*.py", "manifest.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
     from(generatedMapAssetsDirectory) { into("maps") }
+    from(generatedSourceMapTexturesDirectory) { include("*.png", "manifest.json"); into("source-map-textures") }
     from(generatedStreetBodyLabelsDirectory) { include("*.png", "manifest.json"); into("street-body-labels") }
     from(generatedInfoLabelsDirectory) { include("*.png", "manifest.json"); into("info-labels") }
     from(generatedStreetSpeakerLabelsDirectory) { include("*.png", "manifest.json"); into("street-speaker-labels") }
