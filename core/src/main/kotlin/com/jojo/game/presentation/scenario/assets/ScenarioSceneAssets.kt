@@ -26,6 +26,7 @@ internal class ScenarioSceneAssets(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    private val spriteAtlas = SourceSpriteAtlas()
     private val portraitTextures = ScenarioSceneAssetCache<Int, Texture>(Texture::dispose)
     /**
      * `backgroundTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -300,6 +301,12 @@ internal class ScenarioSceneAssets(
             return cachedInfoPanelPatch
         }
 
+    fun dialoguePanelRegion(isLeft: Boolean) = spriteAtlas.file(
+        if (isLeft) "maps/ui/fight-speech-left.png" else "maps/ui/dialogue-panel.png",
+    )
+    fun portraitRegion(id: Int) = spriteAtlas.file("maps/heads/$id.png")
+    val streetSpeechBubbleRegion get() = spriteAtlas.file("maps/ui/street-speech-bubble.png")
+
     /** portraitTexture: 인물 초상화를 처음 요청할 때만 로드해 캐시에 보관한다. */
     fun portraitTexture(characterId: Int): Texture? = portraitTextures[characterId] ?: loadTexture(
         "maps/heads/$characterId.png",
@@ -347,7 +354,7 @@ internal class ScenarioSceneAssets(
         cachedChoiceRowTexture?.dispose()
         cachedDialoguePanelTexture?.dispose()
         cachedStreetSpeechBubbleTexture?.dispose()
-        cachedInfoPanelPatch?.texture?.dispose()
+        spriteAtlas.dispose()
         cachedTitleFont?.dispose()
         cachedSectionFont?.dispose()
         cachedBodyFont?.dispose()
@@ -394,11 +401,9 @@ internal class ScenarioSceneAssets(
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val texture = Texture(pixmap).also {
-                it.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
-            }
-            pixmap.dispose()
-            NinePatch(texture, 8, 8, 7, 7)
+            try {
+                spriteAtlas.insert("InfoLayer/bg", pixmap)?.let { NinePatch(it, 8, 8, 7, 7) }
+            } finally { pixmap.dispose() }
         }
 }
 

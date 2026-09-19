@@ -580,3 +580,59 @@ JOJO_CAPTURE_FACE_ATLAS=1 node tools/capture_opening_source_pages.cjs build/open
 python3 tools/verify_portrait_atlas_crop.py build/opening-atlas-source/source-pages.json core/build/generated/map-assets/heads/214.png --report build/opening-atlas-texels.json
 python3 -m unittest discover -s tools -p test_verify_portrait_atlas_crop.py
 ```
+
+## 실제 UI 렌더 순서에 따른 atlas 처리로 92픽셀 차이 해결 (2026-09-20)
+
+남아 있던 세 번째 초상화의 92픽셀 차이를 production 렌더 경로에서 해결했다.
+정상 진행 입력으로 얻은 첫 세 페이지 모두 strict RGBA 비교 차이 0이다.
+첫 대사 전체 13개 문자열과 창 크기 변경 후 5·9·13 표본도 모두 0픽셀 차이를 유지한다.
+세 번째 페이지 SHA는 원본과 같은
+`246313e50fca4eca920063c4734d283dbeebab95255457e884449b043e9e118f`이다.
+
+앞 단위에서 미확정이었던 InfoLayer 선삽입 이유를 실제 stack과 활성 node 경로로
+확인했다. R00 scene1 `stage.setEventName('재능의 첫 징후')`가
+HallLayer.setEventName → base.info를 호출해 안내창을 먼저 렌더한다.
+`Hall/Canvas/Layer/bg`는 frame145/game2474.8ms에 삽입됐다. 첫 SHOW_SAY는
+HallUnit.showQiPao를 통해 `Hall/Canvas/Layer/map/pmapobj/img0`을 활성화한다.
+Mark·오른쪽 패널은 frame355, 첫 초상화는 frame356에 삽입됐다. 이는 Login 잔여
+상태나 검증 fixture가 아니라 원래 장 시작 안내와 화자 표시의 수명주기다.
+
+`SourceSpriteAtlas`는 시나리오 자산 소유자가 관리한다. 안내창 NinePatch, 실제 화자
+표식 draw, 현재 방향의 말풍선, 초상화를 그릴 때 자산을 등록한다. 오른쪽·왼쪽
+패널은 원본의 서로 다른 native texture를 유지하고 같은 자산의 요청은 재사용한다.
+현재 크기의 2048² atlas에 2px 간격 shelf 배치를 적용하고 원본의 shifted edge
+복사·LINEAR/CLAMP 필터로 그린다. 이미지 내용이나 특정 화자·관측 좌표를 기준으로
+분기하지 않는다. 앞선 자산을 미리 등록하거나 빈 폭을 넣지도 않는다.
+
+원본처럼 큰 이미지/atlas 수 한계에 도달한 신규 자산은 개별 texture region으로
+계속 그린다. 원본 manager가 여섯 번째 atlas 생성 직후 신규 삽입을 막는 경계도
+반영했다. 기존 region은 재사용하며 모든 atlas와 개별 fallback texture는 시나리오
+자산 해제 때 함께 해제한다. atlas 하나당 RGBA GPU 저장 공간 16MiB가 추가된다.
+본문·화자명 라벨과 전투 자산을 이 경로에 일괄 등록하지 않는다.
+
+검증 driver는 원본 AFTER_DRAW isolation처럼 첫 실제 대사 화면을 한 프레임 그린
+뒤 분리 표시로 바꾼다. 따라서 화자 표식의 정상 렌더 요청이 검증 편의 때문에
+사라지지 않는다. 기존 정책 검사는 이 순서를 기대하도록 갱신했다. 자연 부분 문자와
+완료 후 입력 검사는 그대로 유지했다.
+
+검증: `SourceAtlasShelfTest` 3개(관측 자산 크기에서 위치 도출, 행 넘김/용량 한계,
+새 scene의 초기화), campaignUnitTest 46개, Python 검사 29개가 통과했다.
+최종 세 페이지 캡처와 Kotlin 검사는 빌드 포함 13초에 끝났다. 각각 외부 60초 제한을
+유지했다. 초기 campaign 검사의 즉시 isolation 기대값 한 건을 새 실제 렌더 순서에
+맞춰 고친 뒤 최종 실행이 통과했다.
+
+증거는 `build/reports/opening-atlas-lifecycle-20260920/`의 `source/`,
+`final-comparison.json`, `prefix-comparison.json`, `resize-comparison.json`,
+`final-tests.log`에 있다. source opt-in packing trace에는 삽입 시점·활성 node 경로와
+assembler stack이 추가됐다. 안내창에 사용한 19×17 raw asset도 원본 native PNG의
+decoded RGBA와 0byte 차이임을 확인했다.
+
+```sh
+JOJO_CAPTURE_FACE_ATLAS=1 node tools/capture_opening_source_pages.cjs build/opening-atlas-source
+./gradlew :verification:captureOpeningDialoguePages :verification:captureOpeningDialoguePrefixesAll :verification:captureOpeningDialoguePrefixesAfterResize :verification:campaignUnitTest :core:test --tests com.jojo.game.SourceAtlasShelfTest
+python3 tools/verify_opening_page_pixels.py build/opening-atlas-source/source-pages.json verification/build/verification/opening-pages/game-pages.json
+```
+
+이번 일치는 첫 세 페이지의 분리 렌더와 첫 대사의 문자열별 결과다. 안내창·화자 표식은
+atlas 기반 region 렌더로 바뀌었지만 그 전체 화면 픽셀과 타이밍까지 검증한 것은 아니다.
+다음 단위에서 장 시작 안내창과 초반 전체 화면을 확인하며, 전체 게임 목표는 계속 진행한다.

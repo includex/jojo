@@ -28,6 +28,8 @@ class OpeningPanelCapturePolicyTest {
         val delay = RuntimeScenarioFrame("R_00", 1f, PlaybackState.DELAY, false)
         assertTrue(driver.commands(delay).isEmpty())
         val dialogue = delay.copy(playback = PlaybackState.DIALOGUE)
+        // Preserve the first actual draw, as source AFTER_DRAW isolation does.
+        assertTrue(driver.commands(dialogue).isEmpty())
         assertEquals(listOf(RuntimeScenarioCommand.Present(RuntimeScenarioPresentation.STREET_NATURAL, 3)), driver.commands(dialogue))
         assertTrue(driver.commands(dialogue).isEmpty())
         assertTrue(driver.commands(dialogue.copy(dialogueTextComplete = true)).isEmpty())

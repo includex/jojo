@@ -15,11 +15,14 @@ import com.jojo.game.domain.scenario.PlaybackState
 class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDriver {
     /** presentationSent: 검증 대상의 현재 상태 값을 담는다. */
     private var presentationSent = false
+    private var sawNaturalDialogue = false
 
     /** commands: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     override fun commands(frame: RuntimeScenarioFrame): List<RuntimeScenarioCommand> {
         if (state in setOf("opening-prefixes", "opening-prefixes-resize", "opening-prefixes-all", "opening-pages")) {
             if (!presentationSent && frame.playback == PlaybackState.DIALOGUE) {
+                // Source isolation starts after the first real dialogue draw, preserving sprite packing order.
+                if (!sawNaturalDialogue) { sawNaturalDialogue = true; return emptyList() }
                 presentationSent = true
                 return listOf(Present(RuntimeScenarioPresentation.STREET_NATURAL, 3))
             }

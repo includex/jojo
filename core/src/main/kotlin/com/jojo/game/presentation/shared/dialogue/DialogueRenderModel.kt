@@ -201,6 +201,8 @@ interface DialogueRenderAssets {
 
     /** 식별자에 대응하는 초상화를 반환한다. */
     fun portrait(portraitId: Int): Texture?
+    fun portraitRegion(portraitId: Int): com.badlogic.gdx.graphics.g2d.TextureRegion? = null
+    fun panelRegion(isLeft: Boolean): com.badlogic.gdx.graphics.g2d.TextureRegion? = null
 
     /** Optional whole-string label generated from the screen's font/style contract. */
     fun speakerLabel(text: String): DialogueLabelTexture? = null

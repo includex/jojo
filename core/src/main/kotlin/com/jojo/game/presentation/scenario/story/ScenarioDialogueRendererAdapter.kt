@@ -25,6 +25,8 @@ internal class ScenarioDialogueRendererAssetsAdapter(
     /** 시나리오 선택지와 모달 제목에 사용하는 글꼴이다. */
     override val titleFont get() = source.titleFont
     /** 시나리오 인물 ID를 원본 초상화 자원으로 변환한다. */
+    override fun panelRegion(isLeft: Boolean) = source.dialoguePanelRegion(isLeft)
+    override fun portraitRegion(portraitId: Int) = source.portraitRegion(portraitId)
     override fun portrait(portraitId: Int) = source.portraitTexture(portraitId)
     override fun speakerLabel(text: String) = source.speakerLabel(text)
     override fun bodyLabels(text: String) = source.bodyLabels(text)

@@ -109,7 +109,7 @@ internal object ScenarioBattlefieldRenderer {
             val x = ScenarioBattlefieldRenderGeometry.mapX(unit.visualX, unit.visualY); val y = ScenarioBattlefieldRenderGeometry.mapY(unit.visualX, unit.visualY)
             batch.color = Color.WHITE
             batch.draw(texture, x - 41.28f, y - 55.04f, 82.56f, 110.08f, 0, unit.frameRow * 64, 48, 64, unit.flipX, false)
-            if (unit.showSpeechBubble) assets.streetSpeechBubbleTexture?.let { batch.draw(it, x + 20.64f, y + 34.4f, 41.28f, 41.28f) }
+            if (unit.showSpeechBubble) assets.streetSpeechBubbleRegion?.let { batch.draw(it, x + 20.64f, y + 34.4f, 41.28f, 41.28f) }
         }
     }
 

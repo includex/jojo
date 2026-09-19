@@ -77,13 +77,23 @@ class DialogueRenderer(
         val include = { target: DialogueRenderStage -> stage == null || stage.includes(target) }
         val placement = resolvePlacement(model)
         if (include(DialogueRenderStage.PANEL)) {
-            assets.dialoguePanel?.let {
+            val region = assets.panelRegion(model.isLeft)
+            if (region != null) {
+                batch.color = Color.WHITE
+                batch.draw(region, placement.panelX, placement.panelY, placement.panelWidth, placement.panelHeight)
+            } else assets.dialoguePanel?.let {
                 batch.color = Color.WHITE
                 drawMirrored(batch, it, placement.panelX, placement.panelY, placement.panelWidth, placement.panelHeight, placement.mirrorPanel)
             }
         }
         if (include(DialogueRenderStage.PORTRAIT)) {
-            (model.portraitTexture ?: model.portraitId?.let(assets::portrait))?.let {
+            val region = if (model.portraitTexture == null) model.portraitId?.let(assets::portraitRegion) else null
+            if (region != null) {
+                batch.color = Color.WHITE
+                val bounds = DialoguePortraitGeometry.fit(region.regionWidth, region.regionHeight,
+                    placement.portraitX, placement.portraitY, placement.portraitWidth, placement.portraitHeight)
+                batch.draw(region, bounds.x, bounds.y, bounds.width, bounds.height)
+            } else (model.portraitTexture ?: model.portraitId?.let(assets::portrait))?.let {
                 batch.color = Color.WHITE
                 val bounds = DialoguePortraitGeometry.fit(
                     it,

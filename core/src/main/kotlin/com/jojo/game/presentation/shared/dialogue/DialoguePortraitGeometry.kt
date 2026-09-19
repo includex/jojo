@@ -7,10 +7,14 @@ import com.badlogic.gdx.graphics.Texture
 internal object DialoguePortraitGeometry {
     /** 기준 상자 중앙을 유지하면서 원본 비율의 초상화 경계를 계산한다. */
     fun fit(texture: Texture, anchorX: Float, anchorY: Float, anchorWidth: Float, anchorHeight: Float): Bounds {
-        val sourceMax = maxOf(texture.width, texture.height).coerceAtLeast(1)
+        return fit(texture.width, texture.height, anchorX, anchorY, anchorWidth, anchorHeight)
+    }
+
+    fun fit(sourceWidth: Int, sourceHeight: Int, anchorX: Float, anchorY: Float, anchorWidth: Float, anchorHeight: Float): Bounds {
+        val sourceMax = maxOf(sourceWidth, sourceHeight).coerceAtLeast(1)
         val scale = anchorHeight / sourceMax
-        val width = texture.width * scale
-        val height = texture.height * scale
+        val width = sourceWidth * scale
+        val height = sourceHeight * scale
         return Bounds(anchorX + (anchorWidth - width) / 2f, anchorY + (anchorHeight - height) / 2f, width, height)
     }
 
