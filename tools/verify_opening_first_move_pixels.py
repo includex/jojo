@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare controlled-clock first Hall movement state and seven complete RGBA frames."""
+"""Compare controlled-clock first Hall movement state, all 25 frame hashes and seven raw RGBA frames."""
 import argparse
 import hashlib
 import json
@@ -52,6 +52,13 @@ def validate(document, source=False):
         reference = document['reference']
         require(reference['actorId'] == 181 and reference['pathStart'] == [40, 5] and reference['pathEnd'] == [40, 15], 'source move endpoints')
         require(reference['path'] == [[40, y] for y in range(5, 16)], 'source move path')
+    digests = document['frameDigests']
+    require([row['ordinal'] for row in digests] == list(range(25)), 'every movement frame digest required')
+    for row in digests:
+        require(row['frame'] == ticks[row['ordinal']]['frame'] and (row['width'], row['height']) == (2560, 1376), 'digest frame identity')
+        require(len(row['sha256']) == 64 and all(c in '0123456789abcdef' for c in row['sha256']), 'SHA-256 digest format')
+    for capture in captures:
+        require(capture['sha256'] == digests[capture['ordinal']]['sha256'], 'raw capture and all-frame digest must agree')
     return ticks, captures
 
 
@@ -84,10 +91,13 @@ def verify(source_path, game_path):
                       scope='Entire RGBA frame under identical fixed Float32 clock; no excluded regions or channels.')
         samples.append(result)
     state_equal = all(row['positionsEqual'] and row['spriteRowsEqual'] for row in states)
+    hashes = [{'ordinal': a['ordinal'], 'equal': a['sha256'] == b['sha256'],
+               'sourceSha256': a['sha256'], 'gameSha256': b['sha256']}
+              for a, b in zip(source['frameDigests'], game['frameDigests'])]
     return {'contract': 'controlled-opening-first-move-comparison/v1',
-            'equal': state_equal and all(row['equal'] for row in samples), 'stateEqual': state_equal,
-            'states': states, 'samples': samples,
-            'scope': 'First move under controlled clock, ticks0..24 and seven full frames. Actor is offscreen at1/6 and partly visible at12/13/18/19/24. Natural frame timing, completion and later moves are not covered.'}
+            'equal': state_equal and all(row['equal'] for row in samples) and all(row['equal'] for row in hashes), 'stateEqual': state_equal,
+            'states': states, 'samples': samples, 'frameDigests': hashes,
+            'scope': 'First move under controlled clock, all25 full-frame hashes and seven raw frames across ticks0..24. Actor is offscreen at1/6 and partly visible at12/13/18/19/24. Natural frame timing, completion and later moves are not covered.'}
 
 
 if __name__ == '__main__':
@@ -101,5 +111,6 @@ if __name__ == '__main__':
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'equal': report['equal'], 'stateEqual': report['stateEqual'],
+                      'mismatchedFrameOrdinals': [row['ordinal'] for row in report['frameDigests'] if not row['equal']],
                       'changedPixels': {s['ordinal']: s['changedPixels'] for s in report['samples']}}))
     raise SystemExit(0 if report['equal'] else 1)

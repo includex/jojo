@@ -1486,3 +1486,17 @@ Astra가 권고한 다음 빈틈인 첫3인 이동의 비표본 프레임을 검
 game-all-frames, all-frames.json, source-all-frames/negative-digest-contract-checks.json.
 비동기 유닛 등록 구간과 완료 이후, 자연 시계 실행 전체는 이25프레임의 범위 밖이다.
 다음은 첫 단독 이동의 전체 프레임 및 첫 대사 타이핑의 전체 화면 검증이다.
+
+### 2026-09-20 첫 단독 이동 전체25프레임 검증
+
+첫181 이동도 실제prime부터ordinal0..24까지 모든 전체RGBA hash를 기록했다.
+기존7개 raw와25개 위치·sprite 상태 검증은 유지했다. 새 원본·포트 실행에서25개
+hash·7개 raw·25개 상태 모두 일치했다. 초기 화면 밖 유닛 구간은 배경만 검증되며,
+완료 이후 비동기 유닛 생성과 자연 시계 실행 전체의 동등성을 주장하지 않는다.
+
+기존 Python comparator64개 통과. digest누락·잘못된frame·raw/digest불일치를 거부했고,
+비표본ordinal2의digest만 바뀌어도 기존 상태·raw가 통과한 채 최종gate가 실패했다.
+증거: `build/reports/opening-first-move-pixels-20260920/`의 source-all-frames,
+game-all-frames, all-frames.json, all-frame-negative-checks.json.
+production변경 없이 이전 표본 사이의 검증 빈틈을 채운 단위다.
+다음 단위는 첫 대사의 빈 본문과13개 자연 prefix의 전체 장면 검증이다.

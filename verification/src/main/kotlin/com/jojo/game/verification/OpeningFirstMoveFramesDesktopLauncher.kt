@@ -29,6 +29,7 @@ object OpeningFirstMoveFramesDesktopLauncher {
         directory.listFiles()?.forEach(File::delete)
         val captures = JsonValue(JsonValue.ValueType.array)
         val ticks = JsonValue(JsonValue.ValueType.array)
+        val frameDigests = JsonValue(JsonValue.ValueType.array)
         var frame = 0
         var moveOrdinal = -1
         var moveStarted = false
@@ -57,7 +58,7 @@ object OpeningFirstMoveFramesDesktopLauncher {
                     }
                     val renderUnit = renderUnit(game, actor.id)
                     ticks.addChild(sample(moveOrdinal, frame, delta, actor, unit, renderUnit))
-                    if (moveOrdinal in captureOrdinals) {
+                    run {
                         val width = Gdx.graphics.backBufferWidth
                         val height = Gdx.graphics.backBufferHeight
                         check(width == 2560 && height == 1376)
@@ -69,11 +70,20 @@ object OpeningFirstMoveFramesDesktopLauncher {
                         } finally {
                             pixels.dispose()
                         }
+                        val digest = sha256(bytes)
+                        val digestRow = JsonValue(JsonValue.ValueType.`object`)
+                        digestRow.addChild("ordinal", JsonValue(moveOrdinal.toLong()))
+                        digestRow.addChild("frame", JsonValue(frame.toLong()))
+                        digestRow.addChild("width", JsonValue(width.toLong()))
+                        digestRow.addChild("height", JsonValue(height.toLong()))
+                        digestRow.addChild("sha256", JsonValue(digest))
+                        frameDigests.addChild(digestRow)
+                        if (moveOrdinal !in captureOrdinals) return@run
                         val fileName = "game-move-${moveOrdinal.toString().padStart(3, '0')}.rgba"
                         File(directory, fileName).writeBytes(bytes)
                         val row = sample(moveOrdinal, frame, delta, actor, unit, renderUnit)
                         row.addChild("file", JsonValue(fileName))
-                        row.addChild("sha256", JsonValue(sha256(bytes)))
+                        row.addChild("sha256", JsonValue(digest))
                         row.addChild("width", JsonValue(width.toLong()))
                         row.addChild("height", JsonValue(height.toLong()))
                         captures.addChild(row)
@@ -91,6 +101,7 @@ object OpeningFirstMoveFramesDesktopLauncher {
                         report.addChild("isolation", JsonValue(false))
                         report.addChild("dialogueInputs", JsonValue(0L))
                         report.addChild("ticks", ticks)
+                        report.addChild("frameDigests", frameDigests)
                         report.addChild("captures", captures)
                         File(directory, "game-first-move.json").writeText(
                             report.prettyPrint(JsonWriter.OutputType.json, 120),
