@@ -37,7 +37,25 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
         fun field(owner: Any, name: String): Any = owner.javaClass.getDeclaredField(name).let {
             it.isAccessible = true; requireNotNull(it.get(owner))
         }
-        val modal = field(field(requireNotNull(screen), "playback"), "modalController")
+        val playback = field(requireNotNull(screen), "playback")
+        val modal = field(playback, "modalController")
+        row.addChild("delayRemainingSeconds", JsonValue((field(playback, "delayRemainingSeconds") as Number).toDouble()))
+        val actors = JsonValue(JsonValue.ValueType.array)
+        probe.actors.forEach { actor ->
+            val value = JsonValue(JsonValue.ValueType.`object`)
+            value.addChild("id", JsonValue(actor.id.toLong()))
+            value.addChild("x", JsonValue(actor.x.toLong()))
+            value.addChild("y", JsonValue(actor.y.toLong()))
+            value.addChild("visualX", JsonValue(actor.visualX.toDouble()))
+            value.addChild("visualY", JsonValue(actor.visualY.toDouble()))
+            value.addChild("moveElapsed", JsonValue(actor.moveElapsed.toDouble()))
+            value.addChild("moveDuration", JsonValue(actor.moveDuration.toDouble()))
+            value.addChild("direction", JsonValue(actor.direction.toLong()))
+            value.addChild("action", JsonValue(actor.action.toLong()))
+            value.addChild("visible", JsonValue(actor.visible))
+            actors.addChild(value)
+        }
+        row.addChild("actors", actors)
         row.addChild("modalRemainingSeconds", JsonValue((field(modal, "modalRemainingSeconds") as Number).toDouble()))
         rows.addChild(row)
         if (probe.modalKind == "EVENT") {

@@ -40,16 +40,30 @@ class ScenarioStageMovementCoordinatorTest {
         animator.begin(unit, path, 9, 9, direction = 2, duration = 0.08f) { directions += it }
         animator.update(0.04f, mapOf(unit.id to unit), battleTimeline = false)
 
+        assertEquals(0f, unit.moveElapsed, "the first Hall action tick only primes elapsed time")
         assertEquals(1 to 1, unit.x to unit.y)
         assertTrue(unit.visualX >= 1f)
         assertEquals(20, unit.action)
         assertEquals(listOf(2 to 2), directions)
 
         animator.update(0.04f, mapOf(unit.id to unit), battleTimeline = false)
+        assertEquals(1 to 1, unit.x to unit.y)
+        animator.update(0.04f, mapOf(unit.id to unit), battleTimeline = false)
         assertEquals(2 to 2, unit.x to unit.y)
         assertEquals(2, unit.direction)
         assertEquals(0, unit.action)
         assertEquals(0f, unit.moveDuration)
+    }
+
+    @Test
+    fun `battle animator keeps consuming its first callback tick`() {
+        val animator = ScenarioStageUnitMovementAnimator()
+        val unit = TacticalUnit(2, 1, 1)
+        animator.begin(unit, listOf(1 to 1, 2 to 1), 2, 1, direction = 1, duration = 0.18f) {}
+
+        animator.update(0.08f, mapOf(unit.id to unit), battleTimeline = true)
+
+        assertEquals(0.08f, unit.moveElapsed, 0.0001f)
     }
 
     @Test

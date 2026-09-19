@@ -1,43 +1,8 @@
-import copy
 import unittest
+from verify_opening_first_move import DURATION, EPSILON, assess, replay, source_contract, source_positions
 
-from verify_opening_first_move import source_contract, verify
 
-
-class OpeningFirstMoveTest(unittest.TestCase):
-    def setUp(self):
-        def actor(elapsed, completed=False):
-            return dict(id=181, x=40, y=15 if completed else 5,
-                        visualX=40., visualY=5 + 25 * elapsed,
-                        direction=2, action=20, visible=True,
-                        moveElapsed=0 if completed else elapsed, moveDuration=.4)
-        self.trace = dict(
-            format="jojo-campaign-screen-e2e/v1", completion="checkpoint",
-            actualStopPoint=dict(module="R_00", sceneIndex=1),
-            inputRecords=[dict(event="TitleScreen:new-game-click", accepted=True)],
-            scenarioFrames=[dict(time=t, actors=[actor(t)]) for t in (0, .1, .2, .3)] +
-                           [dict(time=.4, actors=[actor(.4, True), dict(id=0, visible=True), dict(id=157, visible=True)])],
-        )
-
-    def test_source_motion_and_commit_boundary(self):
-        self.assertEqual(verify(self.trace)["observedMovingFrames"], 4)
-
-    def test_rejects_frozen_reversed_early_committed_or_early_resumed_motion(self):
-        changes = [
-            lambda t: t["scenarioFrames"][2]["actors"][0].update(visualY=7.5),
-            lambda t: t["scenarioFrames"][2]["actors"][0].update(direction=0),
-            lambda t: t["scenarioFrames"][2]["actors"][0].update(y=15),
-            lambda t: t["scenarioFrames"][-1]["actors"][0].update(y=5),
-            lambda t: t["scenarioFrames"][-1].update(time=.39),
-            lambda t: t["scenarioFrames"][-1]["actors"][1].update(visible=False),
-            lambda t: t.update(scenarioFrames=[]),
-        ]
-        for change in changes:
-            trace = copy.deepcopy(self.trace)
-            change(trace)
-            with self.assertRaises(AssertionError):
-                verify(trace)
-
+class FirstMoveRuleTest(unittest.TestCase):
     def test_source_control_flow_cannot_be_silently_discarded(self):
         prefix = "def scene1():\n    stage.showUnit(181,40,5,2)\n"
         for line in ["return", "flag = False", "helper()"]:
@@ -45,6 +10,51 @@ class OpeningFirstMoveTest(unittest.TestCase):
                 source_contract(prefix + f"    {line}\n    stage.unit(181).move(40,15,2)\n",
                                 "cc.moveTo(.04 * o, u.x, u.y)")
 
+    def test_observed_endpoints_cannot_define_their_own_reference(self):
+        reference = dict(actorId=181, pathStart=[40, 5], pathEnd=[40, 15], nodeStart=[100, 200], nodeEnd=[0, 160])
+        rows = [dict(frame=1, node=[100, 200]), dict(frame=2, node=[0, 160])]
+        self.assertEqual(15, source_positions(rows, reference)[-1]['y'])
+        rows[-1]['node'] = [0, 150]
+        with self.assertRaises(ValueError):
+            source_positions(rows, reference)
 
-if __name__ == "__main__":
+    def test_nonfinite_observed_position_is_rejected(self):
+        frames = [dict(frame=1, delta=0), dict(frame=2, delta=1)]
+        observed = [dict(frame=1, x=40, y=float('nan')), dict(frame=2, x=40, y=15)]
+        with self.assertRaises(ValueError):
+            assess(frames, observed, 2)
+        reference = dict(actorId=181, pathStart=[40, 5], pathEnd=[40, 15], nodeStart=[100, 200], nodeEnd=[0, 160])
+        with self.assertRaises(ValueError):
+            source_positions([dict(frame=1, node=[100, 200]), dict(frame=2, node=[0, float('nan')])], reference)
+
+    def test_first_tick_discards_even_large_delta(self):
+        result = replay([{'frame': 1, 'delta': 10}, {'frame': 2, 'delta': .2}, {'frame': 3, 'delta': .21}])
+        self.assertEqual(5, result[0]['y'])
+        self.assertEqual(3, result[-1]['frame'])
+        self.assertAlmostEqual(10 - 25 * EPSILON, result[1]['y'])
+
+    def test_zero_duration_nested_sequence_affects_completion_boundary(self):
+        result = replay([{'frame': 1, 'delta': 0}, {'frame': 2, 'delta': .4}, {'frame': 3, 'delta': EPSILON * 2}])
+        self.assertFalse(result[1]['complete'])
+        self.assertEqual(3, result[-1]['frame'])
+
+    def test_matching_end_frame_does_not_hide_early_motion(self):
+        frames = [{'frame': 1, 'delta': .01}, {'frame': 2, 'delta': DURATION}]
+        observed = [{'frame': 1, 'x': 40, 'y': 5.25}, {'frame': 2, 'x': 40, 'y': 15}]
+        self.assertFalse(assess(frames, observed, 2)['matchesActionRule'])
+
+    def test_wrong_completion_frame_fails_even_with_correct_positions(self):
+        frames = [{'frame': 1, 'delta': .01}, {'frame': 2, 'delta': DURATION}]
+        observed = [{'frame': 1, 'x': 40, 'y': 5}, {'frame': 2, 'x': 40, 'y': 15}]
+        self.assertFalse(assess(frames, observed, 3)['matchesActionRule'])
+
+    def test_missing_frame_or_nonfinite_delta_rejected(self):
+        for frames in ([{'frame': 1, 'delta': 0}, {'frame': 3, 'delta': 1}],
+                       [{'frame': 1, 'delta': float('nan')}],
+                       [{'frame': 1, 'delta': -.1}]):
+            with self.assertRaises(ValueError):
+                replay(frames)
+
+
+if __name__ == '__main__':
     unittest.main()

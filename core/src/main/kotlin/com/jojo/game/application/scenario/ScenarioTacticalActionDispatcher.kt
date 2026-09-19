@@ -21,6 +21,7 @@ internal data class ScenarioTacticalEnvironment(
     val battleContext: ScenarioBattleScriptContext,
     val externalBattlePresentation: Boolean,
     val suspendFor: (Float) -> Unit,
+    val suspendForHallMoves: (Set<Int>) -> Unit,
     val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
     val unitReference: (JsonValue, Frame) -> ScenarioUnitReference?,
     val headReference: (JsonValue, Frame) -> HeadReference?,
@@ -429,7 +430,10 @@ internal object ScenarioTacticalActionDispatcher {
                  */
 
                 val duration = env.stage.moveUnits(requests)
-                if (duration > 0f) env.suspendFor(duration)
+                if (duration > 0f) {
+                    if (env.stage.usesBattleMovementTimeline) env.suspendFor(duration)
+                    else env.suspendForHallMoves(requests.mapTo(mutableSetOf()) { it.unitId })
+                }
                 return ScenarioHandledCall(null)
             }
 

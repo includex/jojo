@@ -34,7 +34,10 @@ internal object ScenarioUnitActionDispatcher {
 
                     val duration = env.stage.moveDuration(unit.id, args.intAt(0), args.intAt(1))
                     env.stage.apply(ScenarioCommand.MoveUnit(unit.id, args.intAt(0), args.intAt(1), args.intAt(2)))
-                    if (duration > 0f) env.suspendFor(duration)
+                    if (duration > 0f) {
+                        if (env.stage.usesBattleMovementTimeline) env.suspendFor(duration)
+                        else env.suspendForHallMoves(setOf(unit.id))
+                    }
                 }
                 return ScenarioHandledCall(null)
             }

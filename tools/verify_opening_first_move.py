@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Audit observed R00 first-move frames against its recovered source contract.
-
-Scope: actor 181's first straight move, interpolation, logical commit and the
-next group's appearance. This does not observe Cocos scheduler frames, the
-intra-frame idle callback, z order, sprites, or subsequent group paths.
-"""
+"""Check the first natural Hall move against Cocos action ticks using each run's deltas."""
 import argparse
 import ast
 import hashlib
 import json
+import math
 from pathlib import Path
+from verify_opening_event_timing import validate_source
+
+EPSILON = 1.192092896e-7  # CCActionInterval: nested sequence of two zero-duration CallFuncs.
+DURATION = .4 + EPSILON
 
 
 def source_contract(source, hall_source):
@@ -35,57 +35,132 @@ def source_contract(source, hall_source):
     return .4
 
 
-def verify(trace, duration=.4):
-    assert trace["format"] == "jojo-campaign-screen-e2e/v1"
-    assert trace["completion"] == "checkpoint"
-    assert trace["actualStopPoint"] == {"module": "R_00", "sceneIndex": 1}
-    assert any(r["event"] == "TitleScreen:new-game-click" and r["accepted"] for r in trace["inputRecords"])
-    frames = trace["scenarioFrames"]
-    assert len(frames) >= 3, "missing live motion frames"
-    actor = lambda f: next(a for a in f["actors"] if a["id"] == 181)
-    boundary = next((i for i, f in enumerate(frames) if any(a["id"] in (0, 157) for a in f["actors"])), None)
-    assert boundary is not None and boundary >= 2, "missing isolated movement or group boundary"
-    moving = frames[:boundary]
-    start = moving[0]["time"]
-    assert abs(actor(moving[0])["visualY"] - 5) < 1e-4, "initial movement frame missing"
-    assert actor(moving[0])["moveElapsed"] == 0
-    assert all(b["time"] > a["time"] for a, b in zip(frames[:boundary], frames[1:boundary+1]))
-    for f in moving:
-        a = actor(f)
-        assert len(f["actors"]) == 1 and a["visible"], "group appeared before first move completed"
-        assert (a["x"], a["y"]) == (40, 5), "logical position committed before completion"
-        assert (a["direction"], a["action"]) == (2, 20), "wrong movement direction/action"
-        assert abs(a["moveDuration"] - duration) < 1e-5
-        elapsed = f["time"] - start
-        assert abs(a["moveElapsed"] - elapsed) < 1e-4, "movement clock differs from observed frame time"
-        assert abs(a["visualX"] - 40) < 1e-4
-        assert abs(a["visualY"] - (5 + 10 * elapsed / duration)) < 1e-3, "non-source interpolation"
-    assert any(5 < actor(f)["visualY"] < 15 for f in moving), "no actual intermediate positions observed"
-    after = frames[boundary]
-    a = actor(after)
-    assert (a["x"], a["y"]) == (40, 15), "next group appeared before logical completion"
-    assert abs(a["visualX"] - 40) < 1e-4 and abs(a["visualY"] - 15) < 1e-4
-    assert {u["id"] for u in after["actors"]} == {181, 0, 157}
-    assert all(u["visible"] for u in after["actors"]), "next group is present but hidden"
-    # Completion is quantized to the actual observed frame, not a made-up fps.
-    assert moving[-1]["time"] - start < duration + 1e-5
-    assert after["time"] - start >= duration - 1e-5, "script resumed before authored duration"
-    return {"observedMovingFrames": len(moving), "nominalSeconds": duration,
-            "observedCompletionSeconds": after["time"] - start,
-            "scope": "first straight move and group appearance; no pixel or intra-frame callback claim"}
+def replay(frames):
+    elapsed = 0.0
+    samples = []
+    previous = None
+    for index, row in enumerate(frames):
+        frame, delta = row['frame'], row['delta']
+        if not math.isfinite(delta) or delta < 0 or (previous is not None and frame != previous + 1):
+            raise ValueError('Non-contiguous frames or invalid delta')
+        previous = frame
+        if index:
+            elapsed += delta
+        progress = min(1.0, max(0.0, (elapsed - EPSILON) / .4))
+        samples.append({'frame': frame, 'y': 5 + 10 * progress, 'complete': elapsed >= DURATION})
+        if elapsed >= DURATION:
+            return samples
+    raise ValueError('Capture ends before predicted move completion')
 
 
-def main():
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("trace", type=Path)
-    p.add_argument("--source-root", type=Path, default=Path("../jojo_mobile/sgccz-desktop"))
-    args = p.parse_args()
-    source = (args.source_root / "decompiled-python/R_00.py").read_text()
-    hall = (args.source_root / "recovered-js/modules/game-data/HallUnit.js").read_text()
-    report = verify(json.loads(args.trace.read_text()), source_contract(source, hall))
-    report["sourceHashes"] = {"R_00": hashlib.sha256(source.encode()).hexdigest(), "HallUnit": hashlib.sha256(hall.encode()).hexdigest()}
-    print(json.dumps(report, ensure_ascii=False))
+def assess(frames, observed, actual_completion):
+    expected = replay(frames)
+    by_frame = {r['frame']: r for r in observed}
+    errors = []
+    for row in expected:
+        actual = by_frame.get(row['frame'])
+        if actual is None:
+            raise ValueError('Missing position sample')
+        if not all(math.isfinite(actual[axis]) for axis in ('x', 'y')):
+            raise ValueError('Non-finite observed position')
+        errors.append(max(abs(actual['x'] - 40), abs(actual['y'] - row['y'])))
+    return {'matchesActionRule': expected[-1]['frame'] == actual_completion and max(errors) <= 2e-5,
+            'expectedCompletionFrame': expected[-1]['frame'], 'actualCompletionFrame': actual_completion,
+            'firstTickFrame': expected[0]['frame'], 'sampleCount': len(expected),
+            'maxGridCoordinateError': max(errors), 'coordinateTolerance': 2e-5}
 
 
-if __name__ == "__main__":
-    main()
+def source_positions(rows, reference):
+    if reference['actorId'] != 181 or reference['pathStart'] != [40, 5] or reference['pathEnd'] != [40, 15]:
+        raise ValueError('Unexpected source turnPos reference')
+    node_start, node_end = reference['nodeStart'], reference['nodeEnd']
+    if any(len(point) != 2 or not all(math.isfinite(v) for v in point)
+           for point in [node_start, node_end, *(r['node'] for r in rows)]):
+        raise ValueError('Invalid source coordinate')
+    if any(abs(a - b) > 1e-9 for actual, expected in ((rows[0]['node'], node_start), (rows[-1]['node'], node_end)) for a, b in zip(actual, expected)):
+        raise ValueError('Source observed endpoint differs from turnPos')
+    if node_start == node_end:
+        raise ValueError('Source did not move')
+    step_x, step_y = [(a - b) / 10 for a, b in zip(node_start, node_end)]
+    observed = []
+    for row in rows:
+        dx = (row['node'][0] - node_start[0]) / step_x
+        dy = (row['node'][1] - node_start[1]) / step_y
+        observed.append({'frame': row['frame'], 'x': 40 + (dx - dy) / 2, 'y': 5 + (-dx - dy) / 2})
+    return observed
+
+
+def verify(source_path, game_path):
+    source, game = [json.loads(p.read_text()) for p in (source_path, game_path)]
+    source_root = Path(source['sourceRoot'])
+    script = (source_root / 'decompiled-python/R_00.py').read_text()
+    hall = (source_root / 'recovered-js/modules/game-data/HallUnit.js').read_text()
+    source_contract(script, hall)
+    validate_source(source)
+    if game.get('contract') != 'natural-opening-event-timing-game/v1' or game.get('dialogueInputs') != 0 or game.get('pixelReadback') is not False or game.get('isolation') is not False:
+        raise ValueError('Unexpected or modified game capture')
+    rows = source['firstMoveFrames']
+    if not rows or any(r['actorId'] != 181 or r['clockPhase'] != 'after-update-committed' for r in rows):
+        raise ValueError('Missing natural first soldier move')
+    if rows[0]['logical'] != [40, 5] or rows[-1]['logical'] != [40, 15] or not rows[-1]['complete']:
+        raise ValueError('Wrong source move endpoints')
+    moves = [r for r in source['flowEvents'] if r['kind'] == 'HallUnit._move2']
+    if moves[0]['actorId'] != 181 or [(p['x'], p['y']) for p in moves[0]['arguments'][0]] != [(40, y) for y in range(5, 16)]:
+        raise ValueError('Unexpected source first move path')
+    if any(r['logical'] != [40, 5] or r['action'] != 20 or r['direction'] != 2 or r['complete'] for r in rows[:-1]):
+        raise ValueError('Source move state changed before completion')
+    if (rows[-1]['action'], rows[-1]['direction']) != (0, 2):
+        raise ValueError('Source completion state missing')
+    start = rows[0]['frame']
+    source_frames = [{'frame': r['frame'], 'delta': r['dt'] * r['timeScale']} for r in source['frames'] if r['frame'] >= start]
+    # Derive affine grid displacement from the actual source turnPos endpoints.
+    observed = source_positions(rows, source['firstMoveReference'])
+    source_result = assess(source_frames, observed, rows[-1]['frame'])
+    frames = game['frames']
+    first = next(i for i, r in enumerate(frames) if any(a['id'] == 181 and a['moveDuration'] > 0 for a in r['actors']))
+    creation = frames[first]
+    initial = next(a for a in creation['actors'] if a['id'] == 181)
+    if (initial['x'], initial['y'], initial['visualX'], initial['visualY']) != (40, 5, 40, 5):
+        raise ValueError('Unexpected game move initial position')
+    observed_game = []
+    complete = None
+    for row in frames[first + 1:]:
+        a = next(a for a in row['actors'] if a['id'] == 181)
+        if not a['visible'] or a['direction'] != 2 or a['action'] != 20:
+            raise ValueError('Game first move hidden or wrong direction/action')
+        if (a['x'], a['y']) not in ((40, 5), (40, 15)):
+            raise ValueError('Game logical position changed before arrival')
+        observed_game.append({'frame': row['frame'], 'x': a['visualX'], 'y': a['visualY']})
+        if (a['x'], a['y']) == (40, 15):
+            complete = row['frame']
+            break
+    if complete is None:
+        raise ValueError('Game first move never completed')
+    normalized = [{'frame': r['frame'], 'delta': r['deltaSeconds']} for r in frames[first + 1:]]
+    game_result = assess(normalized, observed_game, complete)
+    resumed = next(r['frame'] for r in frames[first + 1:] if any(a['id'] == 0 for a in r['actors']))
+    game_result['scriptResumeFrame'] = resumed
+    game_result['matchesActionRule'] &= resumed == complete
+    source_resume = next(r['frame'] for r in source['flowEvents'] if r['kind'] == 'StageLayer.resume' and r['frame'] > moves[0]['frame'])
+    source_result['scriptResumeFrame'] = source_resume
+    source_result['matchesActionRule'] &= source_resume == rows[-1]['frame']
+    return {'contract': 'natural-first-hall-move-rule/v1',
+            'observedFirstMoveMatchesSourceRule': source_result['matchesActionRule'] and game_result['matchesActionRule'],
+            'source': source_result, 'game': game_result,
+            'sourceHashes': {'R_00': hashlib.sha256(script.encode()).hexdigest(), 'HallUnit': hashlib.sha256(hall.encode()).hexdigest()},
+            'scope': 'observed deltas only: first 181 move initialization, positions within stated grid tolerance, completion and script resume; no framebuffer or later async setup parity claim',
+            'knownUnmatchedSemantics': ['port does not yet include nested zero-duration Cocos sequence epsilon; unobserved boundary deltas may complete a frame early']}
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('source', type=Path)
+    parser.add_argument('game', type=Path)
+    parser.add_argument('--report', type=Path)
+    args = parser.parse_args()
+    result = verify(args.source, args.game)
+    if args.report:
+        args.report.parent.mkdir(parents=True, exist_ok=True)
+        args.report.write_text(json.dumps(result, indent=2) + '\n')
+    print(json.dumps(result))
+    raise SystemExit(0 if result['observedFirstMoveMatchesSourceRule'] else 1)

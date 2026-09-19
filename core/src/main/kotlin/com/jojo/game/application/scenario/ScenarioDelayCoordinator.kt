@@ -68,6 +68,8 @@ internal class ScenarioDelayCoordinator(
 
     var externalFightPresentation: Boolean = false
 
+    private var pendingHallMoveIds: Set<Int> = emptySet()
+
     /**
      * `hasPendingBattleBackgroundLoad` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -87,6 +89,7 @@ internal class ScenarioDelayCoordinator(
     fun reset() {
         onSetDelayRemainingSeconds(0f)
         pendingBattleBackgroundLoadIndex = null
+        pendingHallMoveIds = emptySet()
     }
 
     /** 남은 지연 시간을 설정한다. */
@@ -96,7 +99,16 @@ internal class ScenarioDelayCoordinator(
 
     /** 지정 시간 동안 시나리오 실행을 일시 정지한다. */
     fun suspendFor(seconds: Float) {
+        pendingHallMoveIds = emptySet()
         onSetDelayRemainingSeconds(seconds.coerceAtLeast(0f))
+        onSetState(PlaybackState.DELAY)
+    }
+
+    /** Hall 스크립트는 예상 시간이 아니라 실제 이동 완료까지 기다린다. */
+    fun suspendForHallMoves(unitIds: Set<Int>) {
+        pendingHallMoveIds = unitIds.filterTo(mutableSetOf()) { stage.unit(it).moveDuration > 0f }
+        if (pendingHallMoveIds.isEmpty()) return
+        onSetDelayRemainingSeconds(Float.MAX_VALUE)
         onSetState(PlaybackState.DELAY)
     }
 
@@ -120,6 +132,13 @@ internal class ScenarioDelayCoordinator(
             PlaybackState.DELAY -> {
                 if (hasPendingBattleBackgroundLoad) return
                 if (dialogueCoordinator.handleDelayTick()) return
+                if (pendingHallMoveIds.isNotEmpty()) {
+                    if (pendingHallMoveIds.any { stage.unit(it).moveDuration > 0f }) return
+                    pendingHallMoveIds = emptySet()
+                    onSetDelayRemainingSeconds(0f)
+                    onResumeExecution()
+                    return
+                }
                 val remaining = getDelayRemainingSeconds() - delta.coerceAtLeast(0f)
                 if (remaining <= 0f) {
                     onSetDelayRemainingSeconds(0f)
@@ -139,6 +158,7 @@ internal class ScenarioDelayCoordinator(
         if (getState() != PlaybackState.DELAY) return
         if (hasPendingBattleBackgroundLoad) return
         stage.finishAnimations()
+        pendingHallMoveIds = emptySet()
         onSetDelayRemainingSeconds(0f)
         onResumeExecution()
     }
@@ -149,6 +169,7 @@ internal class ScenarioDelayCoordinator(
         check(!hasPendingBattleBackgroundLoad) {
             "loadBg는 BattleScreen의 맵/아바타 완료 콜백으로만 재개해야 합니다."
         }
+        pendingHallMoveIds = emptySet()
         onSetDelayRemainingSeconds(0f)
         onResumeExecution()
     }

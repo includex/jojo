@@ -77,7 +77,12 @@ internal class ScenarioStageUnitMovementAnimator {
     fun update(delta: Float, units: Map<Int, TacticalUnit>, battleTimeline: Boolean) {
         val elapsedDelta = delta.coerceAtLeast(0f)
         units.values.filter { it.moveDuration > 0f }.forEach { unit ->
-            if (unit.moveJustStarted) unit.moveJustStarted = false
+            if (unit.moveJustStarted) {
+                unit.moveJustStarted = false
+                // Cocos ActionInterval primes a newly started Hall action at elapsed zero.
+                // Battle movement retains its existing callback timeline semantics.
+                if (!battleTimeline) return@forEach
+            }
             unit.moveElapsed = (unit.moveElapsed + elapsedDelta).coerceAtMost(unit.moveDuration)
             val sample = if (battleTimeline) {
                 val timeline = BattleUnitMoveTimeline.schedule(unit.movePath, fastMove = true)

@@ -576,6 +576,9 @@ class ScenarioStage private constructor(
         movementCoordinator.battleMovementTimeline = true
     }
 
+    val usesBattleMovementTimeline: Boolean
+        get() = movementCoordinator.battleMovementTimeline
+
     /**
      * `setBattleMovePathResolver`: 상태나 데이터를 조회한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.

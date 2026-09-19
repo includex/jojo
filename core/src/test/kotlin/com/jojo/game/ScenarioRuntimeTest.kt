@@ -33,6 +33,71 @@ import kotlin.test.assertTrue
 
 class ScenarioRuntimeTest {
     @Test
+    fun `R00 Hall movement primes its first tick and resumes from actual completion`() {
+        val runtime = ScenarioInterpreter.load("R_00")
+        runtime.start("scene1")
+        runtime.completeModalTyping()
+        runtime.resumeModal()
+
+        val caoCao = runtime.stage.unit(181)
+        assertEquals(0.4f, caoCao.moveDuration, 0.001f)
+
+        runtime.update(2f)
+        assertEquals(0f, caoCao.moveElapsed, "a large first delta must only prime the Hall action")
+        assertEquals(PlaybackState.DELAY, runtime.state)
+
+        runtime.update(0.4f)
+        assertEquals(40 to 15, caoCao.x to caoCao.y)
+        assertEquals(0f, caoCao.moveElapsed, "the following group starts without consuming the completion-frame delta")
+        assertEquals(PlaybackState.DELAY, runtime.state, "completion resumes into the next scripted group move")
+        assertTrue(runtime.stage.unit(157).moveDuration > 0f)
+    }
+
+    @Test
+    fun `R00 group move waits until every Hall unit actually completes`() {
+        val runtime = ScenarioInterpreter.load("R_00")
+        runtime.start("scene1")
+        runtime.completeModalTyping()
+        runtime.resumeModal()
+        runtime.update(0f)
+        runtime.update(0.4f)
+
+        val caoCao = runtime.stage.unit(181)
+        val caoRen = runtime.stage.unit(157)
+        caoRen.moveDuration = 0.8f
+        runtime.update(0f)
+        runtime.update(0.4f)
+
+        assertEquals(0f, caoCao.moveDuration)
+        assertEquals(0.4f, caoRen.moveElapsed, 0.001f)
+        assertEquals(PlaybackState.DELAY, runtime.state)
+
+        runtime.update(0.4f)
+        assertEquals(54 to 85, caoRen.x to caoRen.y)
+        assertEquals(0f, caoRen.moveElapsed, "the following group starts at elapsed zero")
+        assertTrue(runtime.stage.unit(182).moveDuration > 0f, "the script resumes only after the final group member completes")
+    }
+
+    @Test
+    fun `R00 explicit delay keeps ordinary countdown semantics after Hall moves`() {
+        val runtime = ScenarioInterpreter.load("R_00")
+        runtime.start("scene1")
+        runtime.completeModalTyping()
+        runtime.resumeModal()
+
+        repeat(3) {
+            runtime.update(0f)
+            val duration = runtime.stage.units.values.maxOf { unit -> unit.moveDuration }
+            runtime.update(duration)
+        }
+
+        runtime.update(0.29f)
+        assertEquals(PlaybackState.DELAY, runtime.state)
+        runtime.update(0.02f)
+        assertEquals(PlaybackState.DIALOGUE, runtime.state)
+    }
+
+    @Test
     fun `countDirection matches BattleUnit axes tie and self contracts`() {
         val stage = ScenarioStage()
         stage.seedBattleUnitPosition(1, 10, 10)
@@ -526,6 +591,7 @@ class ScenarioRuntimeTest {
         // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
         assertEquals(10f, unit.visualX)
         assertEquals(10f, unit.visualY)
+        stage.updateAnimations(0f)
         stage.updateAnimations(0.02f)
         assertTrue(unit.visualX > 10f)
         assertEquals(10 to 10, unit.x to unit.y)

@@ -64,6 +64,8 @@ python3 tools/verify_opening_first_move.py verification/build/opening-dialogue.j
 python3 -m unittest discover -s tools -p 'test_verify_opening*.py'
 ```
 
+**후속 정정 (2026-09-20): 아래의 당시 판정과 위 CLI는 이 문서 끝의 자연 first-tick 검증으로 대체한다. 실제 Cocos 계측에서 첫 프레임 delta 폐기가 확인됐고, 당시 검증의 즉시 누적 가정은 틀렸다.**
+
 첫 직선 이동에서 확정된 게임 동작 차이는 발견하지 못했다. 이 검증은 실제 Cocos의
 프레임 스케줄과 직접 동기화한 비교가 아니며, 프레임 안의 idle 콜백·z 순서·픽셀,
 이후 그룹의 우회 경로는 아직 증명하지 않는다.
@@ -866,3 +868,49 @@ python3 tools/verify_opening_event_timing.py build/reports/opening-event-timing-
 닫힘부터 첫 대사까지는 원본 2.1333초, 포트 2.048322초로 아직 차이가 있다.
 후속 이동/대기/대사 시작 시점과 빈 EVENT의 초기 framebuffer는 다음 검증 범위다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## 첫 Hall 이동의 초기 프레임과 완료 대기 수정 (2026-09-20)
+
+실제 원본의 첫 병사 181 이동은 첫 ActionInterval update에서 elapsed=0으로 초기화하고
+그 프레임의 delta를 버린다. 포트는 같은 delta를 즉시 더해 baseline에서 최대
+0.4156929칸 먼저 움직였다. 완료 프레임만 비교하면 이번 baseline처럼 우연히 같을 수
+있으므로 프레임별 위치와 logical commit도 함께 검사한다. 이전 정적 .4초 계약 기반
+first-move 검증은 이 차이를 놓쳤으며 이번 실제 원본 관측으로 대체한다.
+
+Hall animator의 첫 tick에서 delta를 버리고, 단독/그룹 이동 모두 실제 대상 유닛의
+이동 완료 후 스크립트를 재개하도록 변경했다. 독립 duration countdown을 없앴으며
+reset/skip/외부 재개 시 대기 상태를 정리한다. 전투 이동과 일반 delay는 유지한다.
+Astra가 설계와 구현을 검수했고 Sol이 production과 집중 테스트를 구현했다.
+
+원본 도구는 시작 전 pass-through hook으로 Hall/Stage 흐름과 첫 이동의 AFTER_DRAW
+node 좌표를 기록한다. 별도로 HallLayer.turnPos에서 시작/끝 기준점을 읽어 실측 이동
+양 끝으로 스스로 좌표계를 보정하지 않는다. 원본 path 배열도 생략 없이 보존한다.
+비교기는 각각의 실제 delta로 첫 tick 폐기와 Cocos sequence 진행을 계산한다.
+Cocos의 연속된 두 zero-duration CallFunc가 만드는 FLT_EPSILON=1.192092896e-7초도
+원본 oracle에는 반영한다.
+
+최종 fresh source 25개 표본과 port 26개 표본에서 완료/재개 프레임은 각 예측과 동일
+(source251, port109)하다. 원본 최대 좌표 오차는 2.13e-14칸, 포트는 4.24e-6칸이며
+검사의 좌표 허용오차는 2e-5칸이다. 픽셀 동등성이나 모든 delta에서의 동등성 증거가
+아니다. **포트의 sequence epsilon은 아직 미반영**이므로 .4초와 .4+epsilon 사이의
+누적 delta에서는 완료 프레임 차이가 남을 수 있다. 이를 report의 knownUnmatchedSemantics에
+명시했다. 다음 단위에서 정밀도와 유닛 비동기 준비 경계를 계속 맞춘다.
+
+검증: core 168개, campaign 47개, Python opening 45개 통과. 자연 EVENT 타이머 규칙
+회귀 통과, 첫 3페이지 분리 대사 화면의 strict RGBA 차이 0 유지. 모든 실행은 외부
+60초 제한 이내, 원본 캡처는 내부 15초 제한에서 약 7초에 끝났다.
+
+증거: `build/reports/opening-post-event-20260920/`의 `source/source-event-timing.json`,
+`game-baseline.json`, `game-fixed.json`, `baseline-first-move.json`, `fixed-first-move.json`,
+`event-timer-regression.json`, `pages-regression.json`, `fixed-game.log`, `pages-regression.log`.
+
+```sh
+node tools/capture_opening_source_event_timing.cjs build/reports/opening-post-event-20260920/source
+./gradlew :verification:captureOpeningEventTiming
+python3 tools/verify_opening_first_move.py build/reports/opening-post-event-20260920/source/source-event-timing.json verification/build/verification/opening-event-timing/game-event-timing.json
+```
+
+EVENT 종료부터 첫 글자까지 fresh 관측은 source 2.1초, port 2.150788초였다. 이 구간에는
+비동기 showUnit(s), 여러 이동, 명시적 delay와 대사 typing이 섞여 있어 총량만으로
+일치 여부를 판정하지 않는다. 전체 게임 동등성 목표는 계속 진행한다.

@@ -236,6 +236,7 @@ internal class ScenarioCallCoordinator(
         battleContext = getBattleContext(),
         externalBattlePresentation = isExternalBattlePresentation(),
         suspendFor = delayCoordinator::suspendFor,
+        suspendForHallMoves = delayCoordinator::suspendForHallMoves,
         resolveStageUnitReference = resolveStageUnitReference,
         unitReference = ::unitReference,
         headReference = ::headReference,
