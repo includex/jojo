@@ -112,17 +112,7 @@ internal object PhysicalDamageCalculator {
 
         var damage = maxOf(1, (attack - defense) / 2 + 25 + attacker.level)
         if (context.splash) damage -= damage / 4
-        /**
-         * `minimum` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        val minimum = if (!attacker.isPlayerSide() && attacker.armType != 1) {
-            maxOf(1, attacker.maxHitPoints * minOf(7, context.visiblePlayerUnitCount) / 100)
-        } else {
-            1
-        }
-        return maxOf(minimum, damage)
+        return damage
     }
 
     /**

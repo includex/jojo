@@ -117,17 +117,73 @@ class PhysicalDamageCalculatorTest {
     }
 
     @Test
-    fun `enemy base damage has minimum floor based on player unit count`() {
-        val enemyAttacker = unit(faction = Faction.ENEMY, attack = 10, maxHitPoints = 500, armType = 2)
-        val target = unit(defense = 200)
+    fun `weak yellow turban attack applies only the source base floor`() {
+        val enemyAttacker = unit(
+            id = "483",
+            faction = Faction.ENEMY,
+            attack = 43,
+            level = 1,
+            maxHitPoints = 97,
+            hitPoints = 97,
+            armId = 21,
+            armType = 2,
+            tileX = 9,
+            tileY = 6,
+        )
+        val target = unit(
+            id = "3",
+            defense = 90,
+            level = 7,
+            maxHitPoints = 156,
+            hitPoints = 156,
+            armId = 3,
+            tileX = 10,
+            tileY = 5,
+        )
 
-        // 테스트 근거: 전투 계산·난수 소비·경계값을 검증한다.
-        val damage = PhysicalDamageCalculator.basePhysicalDamage(
+        // 원본 BattleUnit.countBaseHarm(target, 1)는 보이는 아군 수와 무관하게 여기서 1만 보장한다.
+        val baseDamage = PhysicalDamageCalculator.basePhysicalDamage(
             enemyAttacker,
             target,
-            BasePhysicalDamageContext(visiblePlayerUnitCount = 4),
+            BasePhysicalDamageContext(defenseTerrainImpact = 110, visiblePlayerUnitCount = 11),
         )
-        assertEquals(20, damage)
+        assertEquals(1, baseDamage)
+
+        val damage = PhysicalDamageCalculator.calculatePhysicalDamage(
+            attacker = enemyAttacker,
+            target = target,
+            baseDamage = baseDamage,
+            damageRateContext = neutralDamageRateContext(),
+            flatContext = FlatPhysicalDamageContext(),
+            criticalRateContext = PhysicalCriticalRateContext(incomingDirection = 3),
+            visibleFamousPlayerCount = 0,
+        )
+        assertEquals(1, damage)
+    }
+
+    @Test
+    fun `final enemy minimum damage still uses famous player count`() {
+        val enemyAttacker = unit(
+            faction = Faction.ENEMY,
+            attack = 10,
+            maxHitPoints = 400,
+            armType = 2,
+        )
+        val target = unit(defense = 200)
+        val baseDamage = PhysicalDamageCalculator.basePhysicalDamage(enemyAttacker, target, BasePhysicalDamageContext())
+
+        val damage = PhysicalDamageCalculator.calculatePhysicalDamage(
+            attacker = enemyAttacker,
+            target = target,
+            baseDamage = baseDamage,
+            damageRateContext = neutralDamageRateContext(),
+            flatContext = FlatPhysicalDamageContext(),
+            criticalRateContext = PhysicalCriticalRateContext(incomingDirection = 0),
+            visibleFamousPlayerCount = 4,
+        )
+
+        assertEquals(1, baseDamage)
+        assertEquals(16, damage)
     }
 
     @Test
@@ -272,4 +328,12 @@ class PhysicalDamageCalculatorTest {
         // 100 - 25 - 20 + 10 = 65
         assertEquals(65, PhysicalDamageCalculator.physicalCriticalRate(attacker, target, comboContext))
     }
+
+    private fun neutralDamageRateContext() = PhysicalDamageRateContext(
+        targetHasNearbyAlly = false,
+        targetFinalMovement = 5,
+        hasSplashTarget = false,
+        hasBackPosition = false,
+        incomingDirection = 0,
+    )
 }
