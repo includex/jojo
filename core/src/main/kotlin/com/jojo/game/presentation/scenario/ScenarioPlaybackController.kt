@@ -69,7 +69,18 @@ internal class ScenarioPlaybackController(
     ) {
         syncAudio(playback.stage)
         dialogueSession.synchronize(playback)
-        if (dialogueSession.update(delta, autoCloseEnabled) == DialogueSessionTransition.AutoAdvance) onAdvance()
+        val previousDialogueRevision = dialogueSession.view.dialogue?.revision
+        if (dialogueSession.update(delta, autoCloseEnabled) == DialogueSessionTransition.AutoAdvance) {
+            onAdvance()
+            dialogueSession.synchronize(playback)
+            val nextDialogueRevision = dialogueSession.view.dialogue?.revision
+            if (previousDialogueRevision != null &&
+                nextDialogueRevision != null &&
+                nextDialogueRevision != previousDialogueRevision
+            ) {
+                dialogueSession.update(0f, autoCloseEnabled)
+            }
+        }
         if (revealDialogueImmediately) dialogueSession.dispatch(DialogueSessionInput.RevealAll)
     }
 

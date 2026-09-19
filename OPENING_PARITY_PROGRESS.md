@@ -1114,3 +1114,54 @@ Astra가 계획과 production 검수를 맡았고 Sol이 production과 fixture �
 이동 중 전체 화면, 이후 대사·게임 전체는 이번 타이핑 검증 범위가 아니다.
 EVENT 종료→첫 글자 관측은 source2.1314초, port2.162935초이며 전체 구간 동등성은
 계속 검증해야 한다. 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## 첫 Hall 대사 자동 넘김과 다음 대사 prime (2026-09-20)
+
+활성 DialogueSession 경로의 자동 넘김은1초 Float 지연이었다. 원본 DialogueLayer는
+자동 닫기 설정을 대사 생성 때 flag로 저장하고, 글자 완료 뒤 scheduleOnce(1.6)를
+등록한다. 자연 글자 완료 callback 안에서 등록하면 같은 scheduler 순회에서 prime하며,
+입력으로 전체 공개하면 다음 update에서 prime한다. 단순히1초를1.6초로 바꾸는 것에
+더해 Double 누적, 등록 phase, one-shot, 취소와 다음 페이지 초기화를 함께 맞췄다.
+
+source-policy 세션은 첫 update의 자동 닫기 설정을 revision 동안 저장한다. 자연 완료는
+현재 delta를 재사용하지 않고 primed 상태로 시작하며, 수동 Confirm/RevealAll은 다음
+update delta를 초기화에만 쓴다. clear/새 revision은 예약을 지우고 이미 발화한 timer는
+다시 실행하지 않는다. 기본 전투·일반 모달의 기존 timer 정책은 유지했다.
+자동 callback 후 controller는 다음 revision을 즉시 synchronize하고 delta0으로 prime한다.
+그 결과 다음 페이지 glyph가 한 프레임 늦어지는 것도 막았다.
+
+실제 R_00 첫 대사를 쓰는 controller 회귀는 수정 전1개 실패, 수정 후 통과했다.
+원본 production _enabledAutoClose/_disAutoClose/_next와 cc.Scheduler를 사용한
+controlled fixture는 자연 완료, 수동 공개, flag 비활성, 취소, 두 번째 클릭의5개 사례를
+담는다. Float delta를 실제 source-policy session에 재생한다. disabled/cancel 사례는
+원본 fixture가 내부 helper를 직접 호출하는 한계를 명시하고 public session의 설정·clear
+계약으로 검증한다. removeFromParent mock 이후 component 생명주기는 증명하지 않는다.
+fixture SHA-256:
+`c448b215d3423e3aa8dcb100dadda881286f268beda4b44668c23f067125b408`.
+
+자연 source는 fresh 검증 프로필에서만 GAME_SETTING bit8을 켜고 실제 UI를 재생했다.
+포트는 별도 verification launcher에서 automatedRun의 메모리 설정에 bit8을 켜며,
+자동 넘김을 끄는 기존 관찰 모드를 사용하지 않는다. 양쪽 모두 대사 입력·화면 캡처·
+격리 없이 첫 문장 완료부터 다음 화자0의 첫 글자까지 관측한다. 사용자 설정 파일은
+수정하지 않는다. 원본 callback identity를 유지하며 실제 timer update와 registry 제거를
+검사한다.
+
+자연 source 완료389→자동486→다음 glyph489, port 완료246→자동342→다음 glyph345가
+각 실행의 실제 delta로 계산한1.6/.04 임계 프레임과 일치했다. 원본의 완료389 프레임에
+auto timer가 prime됐고, callback486 프레임에 다음 glyph timer도 prime된 것을 직접
+관측했다. 자연 source artifact SHA-256:
+`11e8257926813bb18e9f6166431dd5ea0fa805e37a5425651ad5c2be5366d73b`.
+
+검증: core200개, campaign47개, Python opening62개 통과. 자동 넘김을 끈 자연 첫 문장
+13개 typing, stage.delay, EVENT, 첫 이동, 네 유닛 준비 규칙 회귀와 첫 세 분리 대사 화면
+strict RGBA 0픽셀 차이 유지. 자연 포트 실행8초, 회귀 캡처 묶음14초, 최종 core1초로
+모두 외부60초 제한 안에 끝났다. Astra가 설계·검수, Sol이 production·fixture 소비를 맡았다.
+증거는 `build/reports/opening-dialogue-auto-20260920/`의 source, controlled,
+`game-final.json`, `natural-auto-comparison.json`, `baseline-controller.log`,
+`natural-game.log`, `regression.log`, `core-final.log`, 각 regression JSON에 있다.
+
+이번 결과는 설정을 켠 일반 Hall say의 첫 자동 전이와 다음 첫 글자를 증명한다.
+명시flag0 설정 override, 동일 원본 DialogueLayer 여러 페이지 사이 설정 변경,
+전체 로딩 지연·초상화 준비·이동 중 전체 화면은 별도 검증 대상이다.
+전체 게임 동등성 목표는 계속 진행한다.

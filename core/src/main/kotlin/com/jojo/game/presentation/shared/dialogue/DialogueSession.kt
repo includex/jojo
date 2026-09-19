@@ -175,6 +175,18 @@ class DialogueSession(
     /** 자동 진행까지 남은 시간이며 null이면 자동 진행을 기다리지 않는다. */
     private var autoAdvanceRemainingSeconds: Float? = null
 
+    /** source 대사 생성 뒤 첫 update에서 고정한 자동 닫기 설정이다. */
+    private var sourceDialogueAutoAdvanceEnabled: Boolean? = null
+
+    /** source 대사의 1.6초 one-shot 자동 닫기 타이머 상태이다. */
+    private var sourceDialogueAutoAdvanceState = SourceAutoAdvanceState.NONE
+
+    /** source 자동 닫기 타이머가 누적한 Double 시간이다. */
+    private var sourceDialogueAutoAdvanceElapsedSeconds = 0.0
+
+    /** source 자동 닫기 타이머가 첫 update를 prime에 사용했는지 여부다. */
+    private var sourceDialogueAutoAdvancePrimed = false
+
     /** 현재 화면을 렌더링하기 위한 불변 스냅샷이다. */
     val view: DialogueSessionView
         get() = DialogueSessionView(
@@ -193,6 +205,7 @@ class DialogueSession(
         clearExcept(DialogueSessionMode.DIALOGUE)
         mode = DialogueSessionMode.DIALOGUE
         dialogue = message
+        resetSourceDialogueAutoAdvance()
         dialogueReveal.setSource(message.text)
     }
 
@@ -233,13 +246,24 @@ class DialogueSession(
         dialogueReveal.reset()
         modalReveal.reset()
         autoAdvanceRemainingSeconds = null
+        resetSourceDialogueAutoAdvance()
     }
 
     /** 프레임 시간을 반영해 글자를 공개하고 자동 진행 시점을 판정한다. */
     fun update(deltaSeconds: Float, autoAdvanceEnabled: Boolean): DialogueSessionTransition {
         val delta = deltaSeconds.coerceAtLeast(0f)
+        var dialogueCompletedThisUpdate = false
         when (mode) {
-            DialogueSessionMode.DIALOGUE -> dialogueReveal.update(delta)
+            DialogueSessionMode.DIALOGUE -> {
+                if (dialogueRevealTiming == DialogueRevealTiming.COCOS_CALLBACK_TIMER &&
+                    sourceDialogueAutoAdvanceEnabled == null
+                ) {
+                    sourceDialogueAutoAdvanceEnabled = autoAdvanceEnabled
+                }
+                val wasComplete = dialogueReveal.isComplete
+                dialogueReveal.update(delta)
+                dialogueCompletedThisUpdate = !wasComplete && dialogueReveal.isComplete
+            }
             DialogueSessionMode.MODAL -> {
                 if (modal?.externalVisibleText != null || modal?.externalTextComplete != null) {
                     autoAdvanceRemainingSeconds = null
@@ -249,7 +273,7 @@ class DialogueSession(
             }
             DialogueSessionMode.IDLE, DialogueSessionMode.CHOICE -> return DialogueSessionTransition.Ignored
         }
-        val request = modal ?: return updateDialogueAutoAdvance(delta, autoAdvanceEnabled)
+        val request = modal ?: return updateDialogueAutoAdvance(delta, autoAdvanceEnabled, dialogueCompletedThisUpdate)
         if (!request.autoAdvance || !autoAdvanceEnabled || !modalReveal.isComplete) {
             autoAdvanceRemainingSeconds = null
             return DialogueSessionTransition.Ignored
@@ -266,7 +290,18 @@ class DialogueSession(
     }
 
     /** 대사 자동 진행을 글자 공개 완료 뒤의 지연 시간으로 처리한다. */
-    private fun updateDialogueAutoAdvance(delta: Float, enabled: Boolean): DialogueSessionTransition {
+    private fun updateDialogueAutoAdvance(
+        delta: Float,
+        enabled: Boolean,
+        completedThisUpdate: Boolean,
+    ): DialogueSessionTransition {
+        if (dialogueRevealTiming == DialogueRevealTiming.COCOS_CALLBACK_TIMER) {
+            if (completedThisUpdate && sourceDialogueAutoAdvanceEnabled == true) {
+                startSourceDialogueAutoAdvance(primed = true)
+                return DialogueSessionTransition.Ignored
+            }
+            return tickSourceDialogueAutoAdvance(delta)
+        }
         if (!enabled || !dialogueReveal.isComplete) {
             autoAdvanceRemainingSeconds = null
             return DialogueSessionTransition.Ignored
@@ -283,12 +318,14 @@ class DialogueSession(
         DialogueSessionInput.Confirm -> {
             if (reveal.revealAllIfPending()) {
                 autoAdvanceRemainingSeconds = null
+                startSourceDialogueAutoAdvanceAfterInput(reveal)
                 DialogueSessionTransition.TextRevealed
             } else completedTransition
         }
 
         DialogueSessionInput.RevealAll -> if (reveal.revealAllIfPending()) {
             autoAdvanceRemainingSeconds = null
+            startSourceDialogueAutoAdvanceAfterInput(reveal)
             DialogueSessionTransition.TextRevealed
         } else DialogueSessionTransition.Ignored
 
@@ -343,6 +380,50 @@ class DialogueSession(
         return DialogueSessionTransition.AutoAdvance
     }
 
+    /** source 대사 수동 reveal 직후 timer를 예약하며 첫 update는 prime에만 사용한다. */
+    private fun startSourceDialogueAutoAdvanceAfterInput(reveal: DialogueTextReveal) {
+        if (mode == DialogueSessionMode.DIALOGUE &&
+            reveal === dialogueReveal &&
+            dialogueRevealTiming == DialogueRevealTiming.COCOS_CALLBACK_TIMER &&
+            sourceDialogueAutoAdvanceEnabled == true
+        ) {
+            startSourceDialogueAutoAdvance(primed = false)
+        }
+    }
+
+    /** source 대사의 1.6초 one-shot timer를 새로 시작한다. */
+    private fun startSourceDialogueAutoAdvance(primed: Boolean) {
+        sourceDialogueAutoAdvanceState = SourceAutoAdvanceState.RUNNING
+        sourceDialogueAutoAdvanceElapsedSeconds = 0.0
+        sourceDialogueAutoAdvancePrimed = primed
+    }
+
+    /** source CallbackTimer와 같은 prime 및 Double threshold 규칙으로 자동 닫기를 진행한다. */
+    private fun tickSourceDialogueAutoAdvance(delta: Float): DialogueSessionTransition {
+        if (sourceDialogueAutoAdvanceState != SourceAutoAdvanceState.RUNNING) {
+            return DialogueSessionTransition.Ignored
+        }
+        if (!sourceDialogueAutoAdvancePrimed) {
+            sourceDialogueAutoAdvancePrimed = true
+            return DialogueSessionTransition.Ignored
+        }
+        sourceDialogueAutoAdvanceElapsedSeconds += delta.toDouble()
+        if (sourceDialogueAutoAdvanceElapsedSeconds < SOURCE_DIALOGUE_AUTO_ADVANCE_SECONDS) {
+            return DialogueSessionTransition.Ignored
+        }
+        sourceDialogueAutoAdvanceState = SourceAutoAdvanceState.FIRED
+        sourceDialogueAutoAdvanceElapsedSeconds = 0.0
+        return DialogueSessionTransition.AutoAdvance
+    }
+
+    /** 새 revision이나 화면 전환 시 source 자동 닫기 상태와 설정 snapshot을 지운다. */
+    private fun resetSourceDialogueAutoAdvance() {
+        sourceDialogueAutoAdvanceEnabled = null
+        sourceDialogueAutoAdvanceState = SourceAutoAdvanceState.NONE
+        sourceDialogueAutoAdvanceElapsedSeconds = 0.0
+        sourceDialogueAutoAdvancePrimed = false
+    }
+
     /** 활성 상태의 글자 공개기를 선택한다. */
     private fun activeReveal(): DialogueTextReveal = when (mode) {
         DialogueSessionMode.DIALOGUE -> dialogueReveal
@@ -355,6 +436,7 @@ class DialogueSession(
         if (nextMode != DialogueSessionMode.DIALOGUE) {
             dialogue = null
             dialogueReveal.reset()
+            resetSourceDialogueAutoAdvance()
         }
         if (nextMode != DialogueSessionMode.CHOICE) choice = null
         if (nextMode != DialogueSessionMode.MODAL) {
@@ -375,9 +457,15 @@ class DialogueSession(
         /** 일반 대사의 기본 자동 진행 지연 시간이다. */
         const val DEFAULT_AUTO_ADVANCE_DELAY_SECONDS = 1f
 
+        /** DialogueLayer가 JavaScript Number로 scheduleOnce에 전달하는 자동 닫기 시간이다. */
+        const val SOURCE_DIALOGUE_AUTO_ADVANCE_SECONDS = 1.6
+
         /** 유휴 상태에서 완료된 것으로 취급할 빈 글자 공개기이다. */
         val EMPTY_REVEAL = DialogueTextReveal(DEFAULT_CHARACTER_INTERVAL_SECONDS)
     }
+
+    /** source 대사 자동 닫기 callback은 revision마다 최대 한 번 실행된다. */
+    private enum class SourceAutoAdvanceState { NONE, RUNNING, FIRED }
 }
 
 /** 대사 글자 공개가 프레임 시간을 소비하는 방식이다. */

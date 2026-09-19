@@ -333,3 +333,20 @@ tasks.register<JavaExec>("captureOpeningEventTiming") {
         check(!destination.get().file("unused.rgba").asFile.exists()) { "Timing capture must not read framebuffer" }
     }
 }
+
+// Separate observer keeps normal auto-advance enabled and never generates dialogue input.
+tasks.register<JavaExec>("captureOpeningDialogueAutoAdvance") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningAutoAdvanceDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.file("verification/opening-dialogue-auto/game-dialogue-auto.json")
+    doFirst {
+        delete(destination)
+        setArgs(listOf(destination.get().asFile.absolutePath))
+    }
+    doLast { check(destination.get().asFile.isFile) { "Opening auto advance manifest missing" } }
+}

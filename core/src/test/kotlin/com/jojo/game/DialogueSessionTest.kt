@@ -124,4 +124,42 @@ class DialogueSessionTest {
         session.update(10f, autoAdvanceEnabled = false)
         assertEquals("", session.view.dialogueVisibleText, "the restarted timer primes before revealing")
     }
+
+    @Test
+    fun sourceDialogueNaturalCompletionStartsPrimedOnePointSixSecondTimer() {
+        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        session.presentDialogue(DialogueMessage(1, null, "가"))
+
+        session.update(10f, autoAdvanceEnabled = true)
+        assertEquals(DialogueSessionTransition.Ignored, session.update(.1f, autoAdvanceEnabled = true))
+        assertTrue(session.view.textComplete)
+        assertEquals(DialogueSessionTransition.Ignored, session.update(1.599f, autoAdvanceEnabled = true))
+        assertEquals(DialogueSessionTransition.AutoAdvance, session.update(.002f, autoAdvanceEnabled = true))
+        assertEquals(DialogueSessionTransition.Ignored, session.update(10f, autoAdvanceEnabled = true), "one-shot must not fire twice")
+    }
+
+    @Test
+    fun sourceDialogueManualRevealPrimesAutoCloseOnTheNextUpdate() {
+        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        session.presentDialogue(DialogueMessage(1, null, "가나"))
+        session.update(0f, autoAdvanceEnabled = true)
+
+        assertEquals(DialogueSessionTransition.TextRevealed, session.dispatch(DialogueSessionInput.Confirm))
+        assertEquals(DialogueSessionTransition.Ignored, session.update(10f, autoAdvanceEnabled = true), "first timer update only primes")
+        assertEquals(DialogueSessionTransition.AutoAdvance, session.update(1.6f, autoAdvanceEnabled = true))
+    }
+
+    @Test
+    fun sourceDialogueAutoCloseUsesFirstUpdateSettingSnapshotAndResetsPerRevision() {
+        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        session.presentDialogue(DialogueMessage(1, null, "가"))
+        session.update(0f, autoAdvanceEnabled = false)
+        session.update(.1f, autoAdvanceEnabled = true)
+        assertEquals(DialogueSessionTransition.Ignored, session.update(10f, autoAdvanceEnabled = true))
+
+        session.presentDialogue(DialogueMessage(2, null, "나"))
+        session.update(0f, autoAdvanceEnabled = true)
+        session.update(.1f, autoAdvanceEnabled = false)
+        assertEquals(DialogueSessionTransition.AutoAdvance, session.update(1.6f, autoAdvanceEnabled = false))
+    }
 }
