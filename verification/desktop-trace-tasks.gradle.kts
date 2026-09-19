@@ -289,3 +289,26 @@ tasks.register<JavaExec>("captureOpeningDialoguePages") {
         }
     }
 }
+
+tasks.register<JavaExec>("captureOpeningEvent") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(30))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-event")
+    doFirst {
+        delete(destination)
+        destination.get().asFile.mkdirs()
+        setArgs(listOf("--scenario=R_00", "--capture-state=opening-event",
+            "--capture-raw=${destination.get().file("game-event.rgba").asFile.absolutePath}"))
+    }
+    doLast {
+        check(destination.get().file("game-event.json").asFile.isFile) { "Natural event manifest missing" }
+        for (stage in listOf("full", "isolated")) {
+            check(destination.get().file("game-event-$stage.rgba").asFile.length() == 2560L * 1376 * 4)
+        }
+    }
+}

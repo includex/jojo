@@ -356,6 +356,7 @@ class ScenarioScreen(
                     playback = playback.state,
                     choiceAvailable = playback.currentChoice != null,
                     dialogueTextComplete = scenarioViewState.dialogueTextComplete,
+                    modalTextComplete = scenarioViewState.modalTextComplete,
                 )
 
                 /**
@@ -381,6 +382,11 @@ class ScenarioScreen(
                         dialogueSpeakerId = playback.currentDialogue?.speakerId,
                         dialogueRevision = playback.dialogueRevision,
                         dialogueVisibleText = scenarioViewState.dialogueVisibleText,
+                        modalKind = playback.currentModalKind?.name,
+                        modalText = playback.currentModalText,
+                        modalVisibleText = scenarioViewState.modalVisibleText,
+                        modalTextComplete = scenarioViewState.modalTextComplete,
+                        naturalModalIsolation = runtimePresentation == RuntimeScenarioPresentation.MODAL_NATURAL,
                         dialogueSide = scenarioViewState.dialogueSide,
                         dialogueAtTop = scenarioViewState.dialogueAtTop,
                         dialogueTextComplete = scenarioViewState.dialogueTextComplete,
@@ -955,10 +961,14 @@ class ScenarioScreen(
     }
 
     private fun drawScenarioFrameContents() {
-        if (runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL)) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        if (runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL, RuntimeScenarioPresentation.MODAL_NATURAL)) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         else Gdx.gl.glClearColor(0.08f, 0.11f, 0.15f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         viewport.apply()
+        if (runtimePresentation == RuntimeScenarioPresentation.MODAL_NATURAL) {
+            drawOverlay()
+            return
+        }
         if (runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL)) {
             val stageIndex = runtimePresentationDetail
             if (stageIndex >= 0) {

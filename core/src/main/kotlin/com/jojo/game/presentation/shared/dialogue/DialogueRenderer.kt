@@ -338,6 +338,12 @@ class DialogueRenderer(
     /** 모달 본문을 종류별 글꼴·위치 규칙으로 그린다. */
     private fun drawModalText(batch: SpriteBatch, assets: DialogueRenderAssets, model: ModalRenderModel) {
         val text = sanitize(model.fixedText + model.visibleText)
+        if (model.kind in setOf(DialogueModalKind.EVENT, DialogueModalKind.INFO)) {
+            assets.infoLabel(text)?.let { label ->
+                drawInfoLabel(batch, assets, label)
+                return
+            }
+        }
         when (model.kind) {
             DialogueModalKind.MAP_INFO -> {
                 assets.bodyFont.color = Color.WHITE
@@ -361,6 +367,26 @@ class DialogueRenderer(
             }
             DialogueModalKind.AMBITION -> Unit
         }
+    }
+
+    /** InfoLayer prefab: 20px horizontal/10px vertical padding, anchor (.5,.28), text y=18.5. */
+    private fun drawInfoLabel(batch: SpriteBatch, assets: DialogueRenderAssets, label: DialogueInfoLabel) {
+        val scale = .86
+        val width = ((label.width + 40.0) * scale).toFloat()
+        val height = ((label.height + 20.0) * scale).toFloat()
+        val x = (layout.width - width) / 2f
+        val y = layout.height / 2f - height * .28f
+        batch.color = Color.WHITE
+        assets.infoPanel?.draw(batch, x, y, width, height)
+            ?: assets.dialoguePanel?.let { batch.draw(it, x, y, width, height) }
+        val sourceLeft = (layout.width / scale - label.width) / 2
+        val sourceTop = layout.height / (2 * scale) + 18.5 + label.height / 2
+        savedBodyTransform.set(batch.transformMatrix)
+        sourceBodyTransform.set(savedBodyTransform).scale(scale.toFloat(), scale.toFloat(), 1f)
+        batch.transformMatrix = sourceBodyTransform
+        try {
+            label.segments.forEach { drawBodySegment(batch, it.texture, sourceLeft + it.x, sourceTop + it.y) }
+        } finally { batch.transformMatrix = savedBodyTransform }
     }
 
     /** 좌우 말풍선 방향을 텍스처 미러링으로 보존한다. */

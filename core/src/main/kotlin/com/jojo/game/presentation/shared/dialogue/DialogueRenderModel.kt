@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 
+/** Measured InfoLayer RichText content bounds and uploaded label segments. */
+data class DialogueInfoLabel(val width: Double, val height: Double, val segments: List<DialogueBodySegment>)
+
 /** 대화·선택지·모달을 한 화면에서 조합하기 위한 공용 표시 모델이다. */
 data class DialogueOverlayModel(
     /** 현재 표시할 대사 정보이며, 없으면 대사 창을 그리지 않는다. */
@@ -209,6 +212,7 @@ interface DialogueRenderAssets {
 
     /** Independently laid out and rasterized visible prefix, relative to its RichText top-left. */
     fun bodyLabels(text: String): List<DialogueBodySegment>? = null
+    fun infoLabel(text: String): DialogueInfoLabel? = null
 }
 
 /** 원본 좌표를 화면별 자산 어댑터와 분리하기 위한 공용 배치 설정이다. */

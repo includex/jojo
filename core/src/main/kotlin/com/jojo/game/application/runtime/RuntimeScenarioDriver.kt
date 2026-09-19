@@ -20,6 +20,7 @@ data class RuntimeScenarioFrame(
     val playback: PlaybackState,
     val choiceAvailable: Boolean,
     val dialogueTextComplete: Boolean = false,
+    val modalTextComplete: Boolean = false,
 )
 
 /** RuntimeScenarioCommand: 자동 시나리오 구동기가 화면에 전달하는 진행·표시 명령의 공통 타입이다. */
@@ -114,6 +115,8 @@ enum class RuntimeScenarioPresentation {
     STANDARD, STREET, PALACE, SECTION,
     /** Isolated street rendering without settling fixtures or revealing dialogue immediately. */
     STREET_NATURAL,
+    /** Current modal over a black background, retaining natural playback and closing timers. */
+    MODAL_NATURAL,
 }
 
 /** RuntimeScenarioOverlay: 자동 재생 중 열 수 있는 시나리오 보조 화면의 종류다. */

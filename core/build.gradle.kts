@@ -48,6 +48,7 @@ val cocosAssetsDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/
 val generatedAstDirectory = layout.buildDirectory.dir("generated/scenario-ast")
 val generatedMapAssetsDirectory = layout.buildDirectory.dir("generated/map-assets")
 val generatedStreetBodyLabelsDirectory = layout.buildDirectory.dir("generated/street-body-labels")
+val generatedInfoLabelsDirectory = layout.buildDirectory.dir("generated/info-labels")
 val generatedStreetSpeakerLabelsDirectory = layout.buildDirectory.dir("generated/street-speaker-labels")
 val generatedAudioAssetsDirectory = layout.buildDirectory.dir("generated/audio-assets")
 val generatedTitleAssetsDirectory = layout.buildDirectory.dir("generated/title-assets")
@@ -152,6 +153,40 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
         generatedAstDirectory.get().file("R_00.json").asFile.absolutePath,
         generatedStreetBodyLabelsDirectory.get().asFile.absolutePath)
 }
+val exportInfoLabels = tasks.register<Exec>("exportInfoLabels") {
+    dependsOn(exportScenarioAst)
+    timeout.set(Duration.ofSeconds(60))
+    inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))
+    inputs.file(rootProject.file("tools/hold_source_verification_exit.cjs"))
+    inputs.file(rootProject.file("tools/info_label_contract.json"))
+    inputs.file(generatedAstDirectory.map { it.file("R_00.json") })
+    inputs.file(cocosAssetsDirectory.parentFile.resolve("package-lock.json"))
+    inputs.files(
+        cocosAssetsDirectory.parentFile.resolve("web/cocos2d-js.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/components/CCRichText.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/utils/html-text-parser.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/assets/CCTexture2D.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js"),
+        cocosAssetsDirectory.parentFile.resolve("recovered-js/modules/ui/InfoLayer.js"),
+        cocosAssetsDirectory.parentFile.resolve("decompiled-python/R_00.py"),
+        cocosAssetsDirectory.parentFile.resolve("node_modules/electron/package.json"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/utils/text-utils.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/utils/utils.js"),
+    )
+    inputs.property("labelPlatform", System.getProperty("os.name") + " " + System.getProperty("os.version"))
+    inputs.files(listOf(
+        file("/System/Library/Fonts/AppleSDGothicNeo.ttc"),
+        file("/System/Library/Fonts/Supplemental/Arial.ttf"),
+    ).filter { it.isFile })
+    outputs.dir(generatedInfoLabelsDirectory)
+    environment("JOJO_LABEL_STYLE", "info")
+    commandLine("node", rootProject.file("tools/export_street_body_labels.cjs").absolutePath,
+        cocosAssetsDirectory.parentFile.absolutePath,
+        generatedAstDirectory.get().file("R_00.json").asFile.absolutePath,
+        generatedInfoLabelsDirectory.get().asFile.absolutePath)
+}
 val verifyBattleSpriteAssets = tasks.register<Exec>("verifyBattleSpriteAssets") {
     dependsOn(exportMapAssets)
     inputs.dir(cocosAssetsDirectory)
@@ -212,12 +247,13 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
     into(generatedReferenceFramebuffersDirectory)
 }
 tasks.processResources {
-    dependsOn(exportScenarioAst, exportMapAssets, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportTitleLoginReference,
+    dependsOn(exportScenarioAst, exportMapAssets, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
         extractTitleLoadConfirmations, exportScenarioChoiceReference)
     from(restoredScenarioDirectory) { include("*.py", "manifest.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
     from(generatedMapAssetsDirectory) { into("maps") }
     from(generatedStreetBodyLabelsDirectory) { include("*.png", "manifest.json"); into("street-body-labels") }
+    from(generatedInfoLabelsDirectory) { include("*.png", "manifest.json"); into("info-labels") }
     from(generatedStreetSpeakerLabelsDirectory) { include("*.png", "manifest.json"); into("street-speaker-labels") }
     from(generatedAudioAssetsDirectory) { into("audio") }
     from(generatedTitleAssetsDirectory) { into("title") }

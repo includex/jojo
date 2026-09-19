@@ -44,6 +44,17 @@ class ScenarioStageCallDispatcherTest {
     }
 
     @Test
+    fun `hall event notice opens before explicit draw while battle keeps its draw guard`() {
+        for ((module, skip, expectedCount) in listOf(Triple("R_00", false, 1), Triple("R_00", true, 0), Triple("S_00", false, 0))) {
+            val info = mutableListOf<Triple<String, ScenarioModalKind, Float>>()
+            val env = environment(moduleName = module, stagePresentationSkipped = skip, suspendForInfo = { text, kind, delay -> info += Triple(text, kind, delay) })
+            dispatch("stage.setEventName", listOf("재능의 첫 징후"), env)
+            assertEquals(expectedCount, info.size)
+            if (expectedCount == 1) assertEquals(Triple("재능의 첫 징후", ScenarioModalKind.EVENT, 1f), info.single())
+        }
+    }
+
+    @Test
     fun `routes random tracing and battle predicates while preserving fallback`() {
         val traces = mutableListOf<ScenarioRandomTrace>()
         var ended = 0
@@ -78,6 +89,7 @@ class ScenarioStageCallDispatcherTest {
     private fun environment(
         stage: ScenarioStage = ScenarioStage(),
         moduleName: String = "S_01",
+        stagePresentationSkipped: Boolean = false,
         randomTrace: MutableList<ScenarioRandomTrace> = mutableListOf(),
         stopAfterRandomTraceCount: Int? = null,
         nextModelRandom: () -> Int = { 0 },
@@ -95,7 +107,7 @@ class ScenarioStageCallDispatcherTest {
             pvars = mutableMapOf(),
             randomTrace = randomTrace,
             stopAfterRandomTraceCount = stopAfterRandomTraceCount,
-            stagePresentationSkipped = false,
+            stagePresentationSkipped = stagePresentationSkipped,
             externalBattlePresentation = false,
             pendingAskResult = null,
             suspendFor = {},

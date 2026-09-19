@@ -30,6 +30,7 @@ internal class ScenarioDialogueRendererAssetsAdapter(
     override fun portrait(portraitId: Int) = source.portraitTexture(portraitId)
     override fun speakerLabel(text: String) = source.speakerLabel(text)
     override fun bodyLabels(text: String) = source.bodyLabels(text)
+    override fun infoLabel(text: String) = source.infoLabel(text)
 }
 
 /** 기존 거리 대사 view를 공용 대사 표시 모델로 변환한다. */

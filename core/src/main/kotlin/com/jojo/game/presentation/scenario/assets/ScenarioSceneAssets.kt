@@ -27,6 +27,8 @@ internal class ScenarioSceneAssets(
      */
 
     private val spriteAtlas = SourceSpriteAtlas()
+    private val infoLabels = InfoLabels()
+    fun infoLabel(text: String) = infoLabels.get(text)
     private val portraitTextures = ScenarioSceneAssetCache<Int, Texture>(Texture::dispose)
     /**
      * `backgroundTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -355,6 +357,7 @@ internal class ScenarioSceneAssets(
         cachedDialoguePanelTexture?.dispose()
         cachedStreetSpeechBubbleTexture?.dispose()
         spriteAtlas.dispose()
+        infoLabels.dispose()
         cachedTitleFont?.dispose()
         cachedSectionFont?.dispose()
         cachedBodyFont?.dispose()

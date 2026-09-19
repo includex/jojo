@@ -35,4 +35,12 @@ class OpeningPanelCapturePolicyTest {
         assertTrue(driver.commands(dialogue.copy(dialogueTextComplete = true)).isEmpty())
         assertTrue(driver.commands(delay).isEmpty())
     }
+    @Test fun `opening event isolation waits for natural modal completion without advancing playback`() {
+        val driver = VerificationScenarioDriver("opening-event")
+        val modal = RuntimeScenarioFrame("R_00", .1f, PlaybackState.MODAL, false)
+        assertTrue(driver.commands(modal).isEmpty())
+        assertEquals(listOf(RuntimeScenarioCommand.SetPresentation(RuntimeScenarioPresentation.MODAL_NATURAL)),
+            driver.commands(modal.copy(modalTextComplete = true)))
+        assertTrue(driver.commands(modal.copy(modalTextComplete = true)).isEmpty())
+    }
 }

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "platform": "darwin",
+  "osRelease": "25.5.0",
+  "arch": "arm64",
+  "electronVersion": "44.0.0",
+  "sourceSha256": {
+    "cocos-engine-web/cocos2d/core/components/CCRichText.js": "b2ace4afd2e0a9e1728179eef82077deb8588333274d115664d01466daa5b44a",
+    "cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js": "afeffaf1205a73d7242d6c6d91cbbc00b724e4be55138f7e745dba915dacf4be",
+    "cocos-engine-web/cocos2d/core/utils/text-utils.js": "0eecc74822b9397c1a57d5cba095a5bae25f641cd5664b0cd1f0da40a1e9ef74",
+    "cocos-engine-web/cocos2d/core/renderer/utils/utils.js": "f7d3e995d92a22a3e72df5ec8dd9e190bf7ac153826a480f319ca2d098f30b97",
+    "cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js": "637842f53bb0c36d5ff6f83f2d67c7c4a4d8fb485084fc3fee9c6b04981c803f",
+    "cocos-engine-web/cocos2d/core/assets/CCTexture2D.js": "819492c405ede50e923595494290e21253ec7bc3651251fa5e7a8c7c969ecd95",
+    "cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js": "2d02658e532c3216de102263a3eb70a84c816fccf3d51bbd12d41cb3eec836c8",
+    "recovered-js/modules/ui/DialogueLayer.js": "75a4468691683549a748b0f87860461632e595c84d6ea2ccd5c3d76e32b04877",
+    "decompiled-python/R_00.py": "39ec99b2b9ef41645987b045a147518d654ad55808c387b3ef9ae13b42e4a91f",
+    "cocos-engine-web/cocos2d/core/utils/html-text-parser.js": "784a9c642f38fed485755e48de93cdb305b460c8ab093158df76dabaa0abe370",
+    "web/cocos2d-js.js": "9a450c3bde95a72c81411ead393a2031aeb0ef18c63bbbfe3a475bd4e0c9d0ee",
+    "recovered-js/modules/ui/InfoLayer.js": "9de36227dc700bd329b56c9e578733dfd98bbec05fad99a618c070977110db23"
+  },
+  "fontSha256": {
+    "/System/Library/Fonts/AppleSDGothicNeo.ttc": "e33989af92c53dd2b80efd88f50c404094a046658d0e7a7692619587570e616c",
+    "/System/Library/Fonts/Supplemental/Arial.ttf": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9"
+  },
+  "styleContract": "info-richtext-arial40-line50-black-v1"
+}

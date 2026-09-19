@@ -38,7 +38,7 @@ internal object ScenarioStageCallStateDispatcher : ScenarioStageCallFamily {
 
                 val text = args.firstOrNull().asText()
                 stage.apply(ScenarioCommand.SetEventName(text))
-                if (!env.stagePresentationSkipped && stage.battleDrawRequested) {
+                if (!env.stagePresentationSkipped && (env.moduleName.startsWith("R_") || stage.battleDrawRequested)) {
                     env.suspendForInfo(text, ScenarioModalKind.EVENT, 1f)
                 }
                 0

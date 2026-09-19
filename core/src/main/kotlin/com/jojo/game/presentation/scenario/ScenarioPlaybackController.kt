@@ -20,6 +20,7 @@ internal data class ScenarioViewState(
     /** 공용 세션이 Hall unit YPos로 계산한 상단 배치 여부다. */
     val dialogueAtTop: Boolean = false,
     val dialogueTextComplete: Boolean = false,
+    val modalTextComplete: Boolean = false,
 )
 
 /** 시나리오 텍스트 표시, 자동 닫기, 오디오, 일회성 이동을 조정합니다. */
@@ -48,6 +49,7 @@ internal class ScenarioPlaybackController(
             dialogueVisibleText = dialogueSession.view.dialogueVisibleText,
             dialogueTextComplete = dialogueSession.view.textComplete,
             modalVisibleText = dialogueSession.view.modalVisibleText,
+            modalTextComplete = dialogueSession.view.mode == com.jojo.game.presentation.shared.dialogue.DialogueSessionMode.MODAL && dialogueSession.view.textComplete,
             routedAfterCompletion = routeGate.isRouted,
             dialogueSide = dialogueSession.view.dialogue?.side ?: 0,
             dialogueAtTop = dialogueSession.view.dialogue?.atTop ?: false,

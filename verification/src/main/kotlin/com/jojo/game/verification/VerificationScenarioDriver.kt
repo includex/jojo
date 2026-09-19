@@ -19,6 +19,13 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
 
     /** commands: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     override fun commands(frame: RuntimeScenarioFrame): List<RuntimeScenarioCommand> {
+        if (state == "opening-event") {
+            if (!presentationSent && frame.playback == PlaybackState.MODAL && frame.modalTextComplete) {
+                presentationSent = true
+                return listOf(RuntimeScenarioCommand.SetPresentation(RuntimeScenarioPresentation.MODAL_NATURAL))
+            }
+            return emptyList()
+        }
         if (state in setOf("opening-prefixes", "opening-prefixes-resize", "opening-prefixes-all", "opening-pages")) {
             if (!presentationSent && frame.playback == PlaybackState.DIALOGUE) {
                 // Source isolation starts after the first real dialogue draw, preserving sprite packing order.

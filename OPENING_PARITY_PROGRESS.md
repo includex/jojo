@@ -636,3 +636,47 @@ python3 tools/verify_opening_page_pixels.py build/opening-atlas-source/source-pa
 이번 일치는 첫 세 페이지의 분리 렌더와 첫 대사의 문자열별 결과다. 안내창·화자 표식은
 atlas 기반 region 렌더로 바뀌었지만 그 전체 화면 픽셀과 타이밍까지 검증한 것은 아니다.
 다음 단위에서 장 시작 안내창과 초반 전체 화면을 확인하며, 전체 게임 목표는 계속 진행한다.
+
+
+## 첫 EVENT 안내창 복원과 자연 재생 비교 추가 (2026-09-20)
+
+R00 scene1의 `재능의 첫 징후` 안내창이 포트에서 생략되던 조건을 수정했다.
+원본 HallLayer.setEventName은 명시적인 stage.draw 이전에도 draw와 base.info를
+호출한다. 포트는 battleDrawRequested를 요구해 이 안내를 건너뛰었다.
+R_ 모듈의 EVENT는 draw 전에도 표시하고, skip 및 비 R_ 모듈의 기존 조건은 유지한다.
+
+이 발견으로 앞 단위의 인과관계 설명을 정정한다. 원본의 InfoLayer 선행 렌더는
+확인했지만, 당시 포트에서도 같은 안내창 수명주기와 atlas 요청 순서가 실행됐다고
+볼 근거는 없었다. 앞서 얻은 대사 픽셀 일치 결과는 유효하나, 그것만으로 atlas 배치
+이력이나 전체 장면의 동등성을 증명하지 않는다.
+
+원본 실제 InfoLayer의 자연 타이핑 완료 AFTER_DRAW와 다음 분리 프레임을 각각
+계측한다. 타이핑 핸들 종료, 자동 닫기 핸들 유지, 완성 문자열, opacity와 중간 문자열을
+기록한다. 포트도 정상 모달의 완성 프레임 다음에 배경만 분리하며 진행 입력은 0회다.
+비교 도구는 RGBA 길이/SHA, 프레임 순서와 문자열·상태 계약을 확인한다.
+
+원본 RichText exporter를 InfoLayer의 Arial 40 / lineHeight 50 계약으로 확장했다.
+R00 AST와 Python에서 문구를 읽고 빈 문자열 및 8개 prefix의 glyph texture와 크기를
+생성한다. 화면 캡처를 게임 텍스처로 사용하지 않는다. 기존 본문 exporter의 28개 PNG와
+계약은 재생성 후 동일했다. 포트는 측정된 label 크기와 prefab padding/anchor를 사용하며,
+아직 생성하지 않은 INFO/EVENT 문구는 기존 글꼴로 표시한다.
+
+현재 strict 비교는 실패 상태를 그대로 보존한다. 안내창 분리 영역 차이는 기존
+48,856픽셀에서 7,738픽셀로 감소했고, 전체 프레임은 91,428에서 50,310픽셀로 감소했다.
+남은 안내창 렌더 차이와 배경 차이는 후속 단위에서 조사한다. 타이핑 속도와 자동 닫기
+시간의 동등성, 안내창 각 prefix의 화면 일치는 아직 검증하지 않았다.
+
+검증: Kotlin core 6개 및 campaign 47개, Python opening 30개와 atlas 5개가 통과했다.
+수정 후 첫 세 대사 페이지, 첫 대사의 13개 prefix, resize 후 3개 표본은 모두 0픽셀 차이다.
+Gradle 회귀 실행은 60초 제한 내 18초에 끝났다. Node 구문과 git diff 검사도 통과했다.
+증거: `build/reports/opening-event-20260920/`의 `source/source-event.json`,
+`initial-comparison.json`, `label-comparison.json`, `pages-regression.json`,
+`prefix-regression.json`, `resize-regression.json`, `regression.log`.
+
+```sh
+./gradlew :verification:captureOpeningEvent
+python3 tools/verify_opening_event_pixels.py build/reports/opening-event-20260920/source/source-event.json verification/build/verification/opening-event/game-event.json --report build/reports/opening-event-20260920/label-comparison.json
+```
+
+이번 단위는 누락된 안내 복원과 렌더 개선, 남은 차이를 검출하는 도구 추가다.
+전체 게임 동일성 목표와 안내창 픽셀 일치 작업은 계속 진행한다.
