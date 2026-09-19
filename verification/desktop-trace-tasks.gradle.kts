@@ -451,12 +451,15 @@ tasks.register<JavaExec>("captureOpeningDialogueWindow") {
         )
         check(caseFile.isFile) { "Opening dialogue window case missing: $caseFile" }
         delete(destination)
+        providers.gradleProperty("jojo.dialogueWindow.bodyDiagnostics").orNull?.let { enabled ->
+            systemProperty("jojo.dialogueWindow.bodyDiagnostics", enabled)
+        }
         setArgs(listOf(caseFile.absolutePath, destination.get().asFile.absolutePath))
     }
     doLast {
         check(destination.get().file("game-dialogue-window.json").asFile.isFile)
         val rawFrames = destination.get().asFile.listFiles { file ->
-            file.name.startsWith("game-page-") && file.extension == "rgba"
+            file.name.startsWith("game-page-") && file.extension == "rgba" && "-segment-" !in file.name
         }.orEmpty()
         check(rawFrames.isNotEmpty())
         rawFrames.forEach { file ->

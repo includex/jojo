@@ -4,7 +4,11 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.math.Matrix4
+import com.badlogic.gdx.utils.BufferUtils
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
@@ -35,12 +39,14 @@ object OpeningDialogueWindowDesktopLauncher {
         require(args.size == 2) { "usage: OpeningDialogueWindowDesktopLauncher CASE_JSON OUTPUT_DIR" }
         val caseFile = File(args[0]).also { require(it.isFile) { "case JSON missing: $it" } }
         val case = readCase(caseFile)
+        val bodyDiagnosticsEnabled = java.lang.Boolean.getBoolean("jojo.dialogueWindow.bodyDiagnostics")
         val directory = File(args[1]).also { it.mkdirs() }
         directory.listFiles()?.forEach(File::delete)
 
         val captures = JsonValue(JsonValue.ValueType.array)
         val prefixObservations = JsonValue(JsonValue.ValueType.array)
         val prefixCaptures = JsonValue(JsonValue.ValueType.array)
+        val bodyDiagnostics = JsonValue(JsonValue.ValueType.array)
         val dialogueCompletions = JsonValue(JsonValue.ValueType.array)
         val inputs = JsonValue(JsonValue.ValueType.array)
         val pendingPixels = mutableListOf<Pair<JsonValue, ByteArray>>()
@@ -109,6 +115,11 @@ object OpeningDialogueWindowDesktopLauncher {
                             }
                             prefixCaptures.addChild(capture)
                             pendingPixels += capture to bytes
+                            if (bodyDiagnosticsEnabled) {
+                                bodyDiagnostics.addChild(
+                                    captureBodyDiagnostics(game, probe, expected.page, observedText, revision, pendingPixels),
+                                )
+                            }
                         }
                     }
 
@@ -217,6 +228,8 @@ object OpeningDialogueWindowDesktopLauncher {
                             addChild("captures", captures)
                             addChild("prefixObservations", prefixObservations)
                             addChild("prefixCaptures", prefixCaptures)
+                            addChild("bodyDiagnosticsEnabled", JsonValue(bodyDiagnosticsEnabled))
+                            addChild("bodyDiagnostics", bodyDiagnostics)
                         }
                         File(directory, "game-dialogue-window.json").writeText(
                             report.prettyPrint(JsonWriter.OutputType.json, 120),
@@ -362,6 +375,139 @@ object OpeningDialogueWindowDesktopLauncher {
             pixels.dispose()
         }
         return Triple(width, height, bytes)
+    }
+
+    private fun captureBodyDiagnostics(
+        game: JojoGame,
+        probe: ScenarioRuntimeProbe,
+        page: Int,
+        text: String,
+        revision: Long,
+        pendingPixels: MutableList<Pair<JsonValue, ByteArray>>,
+    ): JsonValue {
+        val screen = game.screen
+        val sceneAssets = field(screen, "sceneAssets")
+        val streetBodyLabels = field(sceneAssets, "streetBodyLabels")
+        @Suppress("UNCHECKED_CAST")
+        val layouts = field(streetBodyLabels, "layouts") as Map<String, List<Any>>
+        val segments = requireNotNull(layouts[text]) { "body layout was not cached for prefix $text" }
+        val overlayRenderer = Class.forName("com.jojo.game.presentation.scenario.render.ScenarioOverlayRenderer")
+        val dialogueRenderer = overlayRenderer.getDeclaredField("dialogueRenderer").let {
+            it.isAccessible = true
+            it.get(null)
+        }
+        val layout = field(dialogueRenderer, "layout")
+        val scale = (field(layout, "bodyLabelScale") as Number).toDouble()
+        val panelY = (field(layout, "panelY") as Number).toFloat() +
+            if (probe.dialogueAtTop) (field(layout, "topOffsetY") as Number).toFloat() else 0f
+        val sourceX = (field(
+            layout,
+            if (probe.dialogueSide == 0) "bodyLabelLeftSourceX" else "bodyLabelRightSourceX",
+        ) as Number).toDouble()
+        val sourceTop = panelY.toDouble() / scale +
+            (field(layout, "bodyLabelSourceTopOffsetY") as Number).toDouble()
+        val batch = field(screen, "batch")
+        val projection = field(batch, "projectionMatrix") as Matrix4
+        val transform = field(batch, "transformMatrix") as Matrix4
+        val sourceTransform = field(dialogueRenderer, "sourceBodyTransform") as Matrix4
+        val actualLastVertices = (field(dialogueRenderer, "bodyVertices") as FloatArray).copyOf()
+
+        val segmentRows = JsonValue(JsonValue.ValueType.array)
+        segments.forEachIndexed { index, segment ->
+            val texture = field(segment, "texture") as Texture
+            val segmentX = (field(segment, "x") as Number).toDouble()
+            val segmentY = (field(segment, "y") as Number).toDouble()
+            val bytes = readTextureRgba(texture)
+            val fileName = "game-page-$page-prefix-${text.length.toString().padStart(3, '0')}-segment-$index-${texture.width}x${texture.height}.rgba"
+            val row = JsonValue(JsonValue.ValueType.`object`).apply {
+                addChild("index", JsonValue(index.toLong()))
+                addChild("x", JsonValue(segmentX))
+                addChild("y", JsonValue(segmentY))
+                addChild("textureHandle", JsonValue(texture.textureObjectHandle.toLong()))
+                addChild("textureWidth", JsonValue(texture.width.toLong()))
+                addChild("textureHeight", JsonValue(texture.height.toLong()))
+                addChild("minFilter", JsonValue(texture.minFilter.name))
+                addChild("magFilter", JsonValue(texture.magFilter.name))
+                addChild("uv", floatArrayJson(floatArrayOf(0f, 0f, 1f, 1f)))
+                addChild(
+                    "computedSubmittedPositionUv",
+                    floatArrayJson(bodyPositionUv(sourceX + segmentX, sourceTop + segmentY, texture.width, texture.height)),
+                )
+                addChild("file", JsonValue(fileName))
+                addChild("width", JsonValue(texture.width.toLong()))
+                addChild("height", JsonValue(texture.height.toLong()))
+            }
+            segmentRows.addChild(row)
+            pendingPixels += row to bytes
+        }
+        return JsonValue(JsonValue.ValueType.`object`).apply {
+            addChild("page", JsonValue(page.toLong()))
+            addChild("length", JsonValue(text.length.toLong()))
+            addChild("text", JsonValue(text))
+            addChild("revision", JsonValue(revision))
+            addChild("evidenceKind", JsonValue("cached-body-texture-fbo-and-renderer-reflection"))
+            addChild("bodyLabelScale", JsonValue(scale))
+            addChild("sourceX", JsonValue(sourceX))
+            addChild("sourceTop", JsonValue(sourceTop))
+            addChild("batchProjection", floatArrayJson(projection.`val`))
+            addChild("batchTransformAfterRender", floatArrayJson(transform.`val`))
+            addChild("sourceBodyTransform", floatArrayJson(sourceTransform.`val`))
+            addChild("actualBodyPositionUvLastSegment", floatArrayJson(positionUv(actualLastVertices)))
+            addChild("segments", segmentRows)
+        }
+    }
+
+    /** Mirrors DialogueRenderer's submitted local quad layout for every cached segment. */
+    private fun bodyPositionUv(x: Double, y: Double, width: Int, height: Int): FloatArray {
+        val left = x.toFloat()
+        val bottom = y.toFloat()
+        val right = (x + width).toFloat()
+        val top = (y + height).toFloat()
+        return floatArrayOf(
+            left, top, 0f, 0f,
+            left, bottom, 0f, 1f,
+            right, bottom, 1f, 1f,
+            right, top, 1f, 0f,
+        )
+    }
+
+    private fun positionUv(spriteBatchVertices: FloatArray): FloatArray = FloatArray(16).also { result ->
+        repeat(4) { vertex ->
+            result[vertex * 4] = spriteBatchVertices[vertex * 5]
+            result[vertex * 4 + 1] = spriteBatchVertices[vertex * 5 + 1]
+            result[vertex * 4 + 2] = spriteBatchVertices[vertex * 5 + 3]
+            result[vertex * 4 + 3] = spriteBatchVertices[vertex * 5 + 4]
+        }
+    }
+
+    private fun readTextureRgba(texture: Texture): ByteArray {
+        val previousFramebuffer = BufferUtils.newIntBuffer(1)
+        Gdx.gl.glGetIntegerv(GL20.GL_FRAMEBUFFER_BINDING, previousFramebuffer)
+        val framebuffer = Gdx.gl.glGenFramebuffer()
+        val bytes = ByteArray(texture.width * texture.height * 4)
+        val pixels = BufferUtils.newByteBuffer(bytes.size)
+        try {
+            Gdx.gl.glBindFramebuffer(GL20.GL_FRAMEBUFFER, framebuffer)
+            Gdx.gl.glFramebufferTexture2D(
+                GL20.GL_FRAMEBUFFER,
+                GL20.GL_COLOR_ATTACHMENT0,
+                GL20.GL_TEXTURE_2D,
+                texture.textureObjectHandle,
+                0,
+            )
+            check(Gdx.gl.glCheckFramebufferStatus(GL20.GL_FRAMEBUFFER) == GL20.GL_FRAMEBUFFER_COMPLETE)
+            Gdx.gl.glReadPixels(0, 0, texture.width, texture.height, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, pixels)
+            pixels.rewind()
+            pixels.get(bytes)
+        } finally {
+            Gdx.gl.glBindFramebuffer(GL20.GL_FRAMEBUFFER, previousFramebuffer.get(0))
+            Gdx.gl.glDeleteFramebuffer(framebuffer)
+        }
+        return bytes
+    }
+
+    private fun floatArrayJson(values: FloatArray): JsonValue = JsonValue(JsonValue.ValueType.array).also { array ->
+        values.forEach { array.addChild(JsonValue(it.toDouble())) }
     }
 
     private fun actors(game: JojoGame, probe: ScenarioRuntimeProbe): JsonValue {

@@ -1700,3 +1700,20 @@ Kotlin compile/capture, 구문/diff 검사와 Astra 도구 검수를 통과했�
 assembler 정점·UV·VP 연산을 대조한다. body renderer의 GPU 행렬 계산 정밀도는
 후보일 뿐 아직 원인으로 확정하지 않았다. 타이핑 간격이나 미선택 frame의 픽셀 일치를
 증명한 것은 아니다.
+
+### 2026-09-20 본문 진단 보존 및 영천 전투로 우선순위 변경
+
+선택 prefix의 원본/포트 실제 GPU texture를 FBO로 읽는 선택적 진단을 추가했다.
+`나`·`성`의 31×52 texture는 원본 GPU·생성 PNG·포트 GPU가 byte 단위로 같았다.
+원본 정점/UV/ancestor transform과 포트의 실제 마지막 segment 제출값 및 나머지
+계산값을 구분하여 기록한다. 원본 left anchor와 포트 반올림 값의 3 ULP 차이를
+발견했지만, 그 값만 원본으로 바꿔도 두 14픽셀 차이는 그대로였다. 해당 production
+실험은 원복했다. 이 좌표 차이를 렌더 잔차의 원인 또는 해결책으로 확정하지 않는다.
+추가 후보는 생성 catalog와 원본 runtime의 segment 그리기 순서 차이다. 아직 실험하지 않았다.
+증거는 `build/reports/opening-body-segment-20260920/`의 source-diag-1/2,
+game-diag-1/2, game-fixed-1/2 및 fixed-1/2.json이다. fixed라는 경로명은 실험 이름이며
+비교 결과는 실패다. 진단 전후 원본 raw SHA는 유지됐고 FBO 상태 복원을 검수했다.
+
+사용자 지시에 따라 미세한 글자 차이는 최후순위로 옮긴다. 다음 작업은 영천 전투를
+진행하면서 동작·이동·전투 UI/입력·진행 불가 문제를 먼저 파악하고, 그 심각도와
+플레이 영향에 따라 수정하는 것이다. 이전 전투 관련 미커밋 작업은 보존한다.
