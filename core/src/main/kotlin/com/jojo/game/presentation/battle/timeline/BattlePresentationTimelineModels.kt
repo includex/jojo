@@ -89,9 +89,10 @@ internal object BattleScreenHitReactionDirectionScheduler {
         schedule: (Float, () -> Unit) -> Unit,
         isCurrentReaction: () -> Boolean,
         setDirection: (Int) -> Unit,
+        restorePreviousDirection: Boolean = sourceAction != 26,
     ) {
         schedule(startsAt) { setDirection(reactionDirection) }
-        if (sourceAction != 26 && previousDirection != null) {
+        if (restorePreviousDirection && previousDirection != null) {
             schedule(endsAt) {
                 if (isCurrentReaction()) setDirection(previousDirection)
             }

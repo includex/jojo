@@ -107,7 +107,10 @@ internal class ScriptedUnitActionCoordinator(
             action.direction.takeIf { it in 0..3 }?.let { port.applyDirection(unit, it) }
             when {
                 action.action == 0 -> port.clearVisual(unit.id)
-                action.action in setOf(6, 25, 48) -> port.startSourceAction(unit, action.action)
+                action.action in setOf(6, 25, 48) -> {
+                    port.clearVisual(unit.id)
+                    port.startSourceAction(unit, action.action)
+                }
                 else -> port.setVisual(unit.id, action.action, port.now())
             }
             if (!action.awaitsFinishedCallback) return@forEach

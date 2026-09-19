@@ -196,6 +196,7 @@ internal class ScriptedUnitPresentationLifecycle {
      */
 
     private val visualStates = mutableMapOf<String, ScriptedUnitVisual>()
+    private val visualRevisions = mutableMapOf<String, Long>()
 
     /**
      * `visual`: 조건과 입력 상태를 검증한다.
@@ -210,6 +211,7 @@ internal class ScriptedUnitPresentationLifecycle {
      */
 
     fun setVisual(unitId: String, visual: ScriptedUnitVisual) {
+        visualRevisions[unitId] = (visualRevisions[unitId] ?: 0L) + 1L
         visualStates[unitId] = visual
     }
 
@@ -219,7 +221,34 @@ internal class ScriptedUnitPresentationLifecycle {
      */
 
     fun clearVisual(unitId: String) {
+        visualRevisions[unitId] = (visualRevisions[unitId] ?: 0L) + 1L
         visualStates.remove(unitId)
+    }
+
+    /** Install a hit pose at its authored hit event unless another command supersedes it. */
+    fun scheduleVisual(
+        unitId: String,
+        visual: ScriptedUnitVisual,
+        schedule: (Float, () -> Unit) -> Unit,
+        isCurrent: () -> Boolean,
+    ) {
+        val revision = visualRevisions[unitId] ?: 0L
+        schedule(visual.startedAt) {
+            if ((visualRevisions[unitId] ?: 0L) == revision && isCurrent()) setVisual(unitId, visual)
+        }
+    }
+
+    /** A later blocked hit returns to defaultAction without reviving an older held pose. */
+    fun scheduleVisualClear(
+        unitId: String,
+        startsAt: Float,
+        schedule: (Float, () -> Unit) -> Unit,
+        isCurrent: () -> Boolean,
+    ) {
+        val revision = visualRevisions[unitId] ?: 0L
+        schedule(startsAt) {
+            if ((visualRevisions[unitId] ?: 0L) == revision && isCurrent()) clearVisual(unitId)
+        }
     }
 
     /**

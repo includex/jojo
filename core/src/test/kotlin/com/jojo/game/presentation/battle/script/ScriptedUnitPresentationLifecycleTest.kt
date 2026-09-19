@@ -13,6 +13,61 @@ import kotlin.test.assertTrue
 
 class ScriptedUnitPresentationLifecycleTest {
     @Test
+    fun `a later block clears the held pose at hit but cannot clear a newer action`() {
+        for (replace in listOf(false, true)) {
+            val lifecycle = ScriptedUnitPresentationLifecycle()
+            val callbacks = mutableListOf<() -> Unit>()
+            lifecycle.setVisual("u", ScriptedUnitVisual(32, 0f))
+            lifecycle.scheduleVisualClear("u", 1f, { _, callback -> callbacks += callback }, { true })
+            assertEquals(32, lifecycle.visual("u")?.action)
+            if (replace) lifecycle.setVisual("u", ScriptedUnitVisual(4, .5f))
+            callbacks.single().invoke()
+            assertEquals(if (replace) 4 else null, lifecycle.visual("u")?.action)
+        }
+    }
+
+    @Test
+    fun `scheduled hit pose starts at hit and persists until an explicit action`() {
+        val lifecycle = ScriptedUnitPresentationLifecycle()
+        val callbacks = mutableListOf<() -> Unit>()
+        lifecycle.setVisual("u", ScriptedUnitVisual(9, 0f))
+        lifecycle.scheduleVisual("u", ScriptedUnitVisual(32, 1f), { at, callback ->
+            assertEquals(1f, at)
+            callbacks += callback
+        }, { true })
+        assertEquals(9, lifecycle.visual("u")?.action, "do not show the hit pose early")
+        callbacks.single().invoke()
+        assertEquals(ScriptedUnitVisual(32, 1f), lifecycle.visual("u"))
+        assertTrue(!lifecycle.actionBusy, "a held pose must not keep script callbacks busy")
+        lifecycle.setVisual("u", ScriptedUnitVisual(4, 2f))
+        assertEquals(4, lifecycle.visual("u")?.action)
+        lifecycle.clearVisual("u")
+        assertNull(lifecycle.visual("u"))
+    }
+
+    @Test
+    fun `new visual or explicit clear cancels a delayed hit pose`() {
+        for (clear in listOf(false, true)) {
+            val lifecycle = ScriptedUnitPresentationLifecycle()
+            val callbacks = mutableListOf<() -> Unit>()
+            lifecycle.scheduleVisual("u", ScriptedUnitVisual(32, 1f), { _, callback -> callbacks += callback }, { true })
+            if (clear) lifecycle.clearVisual("u") else lifecycle.setVisual("u", ScriptedUnitVisual(4, .5f))
+            callbacks.single().invoke()
+            assertEquals(if (clear) null else 4, lifecycle.visual("u")?.action)
+        }
+    }
+
+    @Test
+    fun `superseded reaction cannot install its delayed pose`() {
+        val lifecycle = ScriptedUnitPresentationLifecycle()
+        val callbacks = mutableListOf<() -> Unit>()
+        lifecycle.setVisual("u", ScriptedUnitVisual(9, 0f))
+        lifecycle.scheduleVisual("u", ScriptedUnitVisual(32, 1f), { _, callback -> callbacks += callback }, { false })
+        callbacks.single().invoke()
+        assertEquals(9, lifecycle.visual("u")?.action)
+    }
+
+    @Test
     fun `hide dialogue and animation callbacks are owned by lifecycle`() {
         val lifecycle = ScriptedUnitPresentationLifecycle()
         val request = ScenarioUnitHideRequest(7, hideType = 1)

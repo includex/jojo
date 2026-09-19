@@ -21,6 +21,30 @@ import kotlin.test.assertTrue
 
 class BattleAiPresentationStepTest {
     @Test
+    fun `scripted hit holds reaction direction while scripted block restores it`() {
+        for (action in listOf(32, 26)) {
+            var direction = 0
+            val scheduler = BattleScreenMutationTestScheduler()
+            BattleScreenHitReactionDirectionScheduler.schedule(
+                sourceAction = action,
+                reactionDirection = 3,
+                previousDirection = direction,
+                startsAt = 1f,
+                endsAt = 2f,
+                schedule = scheduler::schedule,
+                isCurrentReaction = { true },
+                setDirection = { direction = it },
+                restorePreviousDirection = action == 26,
+            )
+            assertEquals(0, direction)
+            scheduler.advanceTo(1f)
+            assertEquals(3, direction)
+            scheduler.advanceTo(2f)
+            assertEquals(if (action == 32) 3 else 0, direction)
+        }
+    }
+
+    @Test
     fun `BattleScreen scheduler restores saved facing after normal anime32`() {
         var victimDirection = 0
         val scheduler = BattleScreenMutationTestScheduler()

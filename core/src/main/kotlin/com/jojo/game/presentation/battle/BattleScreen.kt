@@ -11735,6 +11735,7 @@ void main() {
             focusCameraOn(attacker)
             val sourceAction = if (action.flag and 1 != 0) 21 else 25
             val direction = battleDirection(attacker.id, target.id)
+            scriptedUnitPresentation.clearVisual(attacker.id)
             val attack = sourceActionAnimation(attacker.id, sourceAction, direction)
             val hitAt = attack.startedAt + requireNotNull(battleSprites.hitTime(sourceAction, direction)) {
                 "원본 BRAnime anime$sourceAction 방향 ${direction}에 hit 이벤트가 없습니다"
@@ -11745,7 +11746,24 @@ void main() {
             val reactionEndsAt = hitAt + reactionDuration
             actionAnimation = attack.copy(endsAt = reactionEndsAt)
             scriptedAttackCallbackEndsAt = maxOf(scriptedAttackCallbackEndsAt, reactionEndsAt)
-            scheduleHitReaction(target.id, reactionDirection, hitAt, reactionEndsAt, targetAction)
+            scheduleHitReaction(
+                target.id, reactionDirection, hitAt, reactionEndsAt, targetAction,
+                restorePreviousDirection = targetAction == 26,
+            )
+            val reaction = hitReactionAnimations[target.id]
+            if (targetAction == 32) {
+                // playAtkAnime leaves the hit frame until the next explicit action. A block
+                // (26) instead calls defaultAction with the target's previous direction.
+                scriptedUnitPresentation.scheduleVisual(
+                    target.id, ScriptedUnitVisual(targetAction, hitAt), ::scheduleBattleMutation,
+                    isCurrent = { hitReactionAnimations[target.id] === reaction },
+                )
+            } else {
+                scriptedUnitPresentation.scheduleVisualClear(
+                    target.id, hitAt, ::scheduleBattleMutation,
+                    isCurrent = { hitReactionAnimations[target.id] === reaction },
+                )
+            }
             eventMessage = "연출 공격: ${attacker.name} → ${target.name}"
             recordBattleTraceFrame(
                 0f,
@@ -11969,7 +11987,10 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun scheduleHitReaction(unitId: String, direction: Int, startsAt: Float, endsAt: Float, sourceAction: Int) {
+    private fun scheduleHitReaction(
+        unitId: String, direction: Int, startsAt: Float, endsAt: Float, sourceAction: Int,
+        restorePreviousDirection: Boolean = sourceAction != 26,
+    ) {
         val previousDirection = battle.presentation.presentationUnit(unitId)?.direction
         hitReactionAnimations[unitId] = UnitActionAnimation(
             unitId, UnitAnimationKind.HIT, direction, startsAt, endsAt, sourceAction,
@@ -11986,6 +12007,7 @@ void main() {
                 current?.startedAt == startsAt && current.endsAt == endsAt && current.sourceAction == sourceAction
             },
             setDirection = { facing -> battle.presentation.presentationUnit(unitId)?.direction = facing },
+            restorePreviousDirection = restorePreviousDirection,
         )
     }
 
