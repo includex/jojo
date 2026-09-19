@@ -75,9 +75,9 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
-        if (output.state == "opening-panel") {
+        if (output.state in setOf("opening-panel", "opening-portrait")) {
             if (scenario.playback != com.jojo.game.domain.scenario.PlaybackState.DIALOGUE) return
-            // The driver installs panel-only presentation on the next frame.
+            // The driver installs the requested isolated presentation on the next frame.
             if (!sawOpeningDialogue) { sawOpeningDialogue = true; return }
             check(scenario.module == "R_00" && scenario.sceneIndex == 1 && scenario.dialogueSpeakerId == "181") {
                 "opening panel capture did not reach the first R00 soldier dialogue"

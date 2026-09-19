@@ -129,3 +129,28 @@ python3 tools/verify_opening_panel_pixels.py build/opening-source-panel/source-s
 기존 geometry 도구는 패널의 절대 위치·크기를 무시하는 false green을 수정했다
 (`dbcf6c3`). 그 도구의 통과는 위치·크기만 의미하며 픽셀 일치는 위 strict RGBA
 comparator로 따로 판정한다. 전체 자연 화면 합성, 초상화, 텍스트, 음향은 여전히 남아 있다.
+
+
+## 첫 대사 패널 + 병사 초상화의 실제 픽셀 대조
+
+`opening-portrait`은 자연스럽게 도달한 첫 R00 대사에서 패널과 초상화를 함께
+분리한다. 원본은 병사 181의 frame 이름, 원본 크기 192×240, 텍스처 로딩 및
+노드 크기 96×120을 확인한 후 자연 `EVENT_AFTER_DRAW`에서 읽는다.
+기본 prefab 초상화가 남은 로딩 중 프레임은 거부한다.
+
+- 원본·포트 2560×1376 bottom-left RGBA8, 변경 픽셀 0(R/G/B/A 모두 동일).
+- 두 raw SHA256: `f17faae819ca2b4e9753f51ece04e01fd6b2ebe8841a28b7fd707c13c0785a78`.
+- 원본 메타데이터와 비교 결과: `build/reports/opening-portrait-20260919/`.
+- 포트 캡처: `verification/build/verification/opening-portrait/`.
+- 원본 새 실행 약 2.5초, 포트 캡처와 캠페인 테스트 실행 4초.
+- 원본 기본 panel 모드 회귀 캡처의 SHA256은 기존 `553aa220…e3d7`과 동일.
+- 캠페인 정책 테스트 및 strict RGBA comparator 테스트 통과.
+
+```sh
+JOJO_CAPTURE_STAGE=portrait node tools/capture_opening_source_panel.cjs build/opening-source-portrait
+./gradlew :verification:captureOpeningDialoguePortrait :verification:campaignUnitTest
+python3 tools/verify_opening_panel_pixels.py build/opening-source-portrait/source-street-portrait.rgba verification/build/verification/opening-portrait/game-portrait.rgba --stage portrait
+```
+
+이번 단위는 캡처·검증 확장이다. 이 범위에서 렌더 차이는 발견되지 않았다.
+첫 대사의 화자명·본문 픽셀, 전체 화면 합성 및 음향 대조는 아직 남아 있다.

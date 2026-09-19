@@ -163,26 +163,28 @@ tasks.register("captureDialogueStages") {
     dependsOn(dialogueStageCaptures)
 }
 
-tasks.register<JavaExec>("captureOpeningDialoguePanel") {
-    group = "verification"
-    description = "Isolates the panel from the naturally reached first R00 dialogue."
-    timeout.set(java.time.Duration.ofSeconds(30))
-    dependsOn(tasks.named("classes"))
-    classpath = verificationDesktopRuntime
-    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
-    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
-    val destination = layout.buildDirectory.dir("verification/opening-panel")
-    doFirst {
-        destination.get().asFile.mkdirs()
-        delete(destination.get().file("game-panel.rgba").asFile, destination.get().file("game-panel.png").asFile)
-        setArgs(listOf("--scenario=R_00", "--capture-state=opening-panel",
-            "--capture-raw=${destination.get().file("game-panel.rgba").asFile.absolutePath}",
-            "--capture=${destination.get().file("game-panel.png").asFile.absolutePath}"))
-    }
-    doLast {
-        check(destination.get().file("game-panel.rgba").asFile.length() == 2560L * 1376 * 4) {
-            "opening panel capture did not produce a complete RGBA frame"
+listOf("panel", "portrait").forEach { stage ->
+    tasks.register<JavaExec>("captureOpeningDialogue${stage.replaceFirstChar { it.uppercase() }}") {
+        group = "verification"
+        description = "Isolates the $stage stage from the naturally reached first R00 dialogue."
+        timeout.set(java.time.Duration.ofSeconds(30))
+        dependsOn(tasks.named("classes"))
+        classpath = verificationDesktopRuntime
+        mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+        if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+        jvmArgs("--enable-native-access=ALL-UNNAMED")
+        val destination = layout.buildDirectory.dir("verification/opening-$stage")
+        doFirst {
+            destination.get().asFile.mkdirs()
+            delete(destination.get().file("game-$stage.rgba").asFile, destination.get().file("game-$stage.png").asFile)
+            setArgs(listOf("--scenario=R_00", "--capture-state=opening-$stage",
+                "--capture-raw=${destination.get().file("game-$stage.rgba").asFile.absolutePath}",
+                "--capture=${destination.get().file("game-$stage.png").asFile.absolutePath}"))
+        }
+        doLast {
+            check(destination.get().file("game-$stage.rgba").asFile.length() == 2560L * 1376 * 4) {
+                "opening $stage capture did not produce a complete RGBA frame"
+            }
         }
     }
 }
