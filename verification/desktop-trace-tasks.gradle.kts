@@ -377,3 +377,21 @@ tasks.register<JavaExec>("captureOpeningFullScene") {
     doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
     doLast { check(destination.get().file("game-full.rgba").asFile.length() == 2560L * 1376 * 4) }
 }
+
+tasks.register<JavaExec>("captureOpeningFullPages") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningFullPagesDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-full-pages")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast {
+        check(destination.get().file("game-full-pages.json").asFile.isFile)
+        (1..3).forEach { page ->
+            check(destination.get().file("game-page-$page.rgba").asFile.length() == 2560L * 1376 * 4)
+        }
+    }
+}

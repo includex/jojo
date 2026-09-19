@@ -1300,3 +1300,37 @@ pages-regression.json, prefixes-regression.json, regression.log, final.log에 �
 이번 전체 화면 일치는첫 자연 완료 프레임에 한정한다. 이동 중 subpixel 좌표,
 다른 종횡비 및 이어지는 대사의 전체 화면·이후 게임 흐름은 추가검증 대상이며
 전체 게임 동등성 목표는 계속 진행한다.
+
+### 2026-09-20 첫 세 자연 완료 대사의 전체 화면 검증
+
+첫 자연 완료 전체 화면 검증을 정상 입력 두 번으로 이어지는 첫 세 대사까지 확장했다.
+새 source full-pages 도구와 OpeningFullPagesDesktopLauncher/captureOpeningFullPages는
+장면 격리·강제 reveal·portrait 준비 대기 없이 첫 본문 자연 완료 시점의 모든RGBA를
+저장한다. 원본은 최초 semantic completion frame과 AFTER_DRAW capture frame가 같음을
+assert한다. 포트는 정상 render observer의 최초 완료에서 캡처한다.
+
+원본 CDP pointer 요청과 실제 DialogueLayer._next 처리 시점을 구분했다. _next는
+pass-through 관측만 하며 정상 Panel_cancel pointer 경로가 실행한다. inputs의 frame/time은
+실제 처리값이고 요청값은 inputRequests에 별도 보존한다. 포트는 캡처 다음 observer frame에
+InputProcessor.keyDown/keyUp(SPACE)를 보낸다. 두 실행의 입력 지연을 같다고 주장하지 않고
+완료 캡처 이후·다음 대사 캡처 이전의 정상 입력 두 건임을 검증한다.
+
+verify_opening_full_pages.py는 자연 partial prefix, 최초 완료 endpoint, 실제 입력 순서,
+화자·본문·side, source layer lifecycle, port revision, actor 위치·방향·행동과 source말풍선을
+검증한 뒤 모든RGBA를 비교한다. 첫 두 대사의 source layer는같고 셋째는새layer이며,
+셋째는 중간 이동 이후의181(40,60),0(40,50),182(40,40),157(54,50) 배치와방향을검증한다.
+어느 페이지의 어떤 channel도 제외하지 않는다.
+
+세 전체 화면이 모두0픽셀 차이로 일치했다. source/port 각각 동일한 raw SHA-256:
+- 181 `대장님, 서둘러야 해요!`: `64e7d158f61c1547bcfee06f9c7987c9088124657d1792ba478241414bbb4dfc`
+- 0 `알아!`: `71075a2010075b03f8702aa5cdcf2065df085e6e0e942a176114cfe5f148791d`
+- 157 `잠시만 기다려 주세요!`: `9496cea99cf6c1382604596d5f3a84cc1a222f420526ea91114c4834471c0977`
+
+source fresh실행 약8초, port baseline8초/metadata보강후final7초로 bounded 실행을 마쳤다.
+기존 Python comparator64개 통과, 새 계약의6개 잘못된 metadata 사례(늦은캡처,
+완료전입력, 격리, partial누락, stale revision, 이전이동위치)는모두거부했다.
+Node 구문·diff검사 통과. Astra 계획·검수, Sol 포트 캡처, source agent 원본 캡처를사용했다.
+이번 단위는 production 변경 없이 기존 수정의 전체 화면 검증 범위를 확장한 것이다.
+증거는 `build/reports/opening-full-pages-20260920/`의 source, game-baseline, game-final,
+full-pages.json, final-full-pages.json, negative-contract-checks.json, game-final.log에 있다.
+이동 중 프레임 및 네 번째 이후 대사·후속 게임 흐름은 아직추가검증 대상이며 목표는계속한다.
