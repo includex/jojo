@@ -1161,8 +1161,12 @@ class ScenarioScreen(
         val speakerId = playback.currentDialogue?.speakerId?.toIntOrNull()
         val units = playback.stage.units.values.mapIndexed { index, unit ->
             val avatar = gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id
-            val animationTime = if (unit.action == 20) unit.animationElapsed else playbackFrame.elapsed
-            val frame = HallUnitRender.frame(avatar, unit.action, unit.direction, animationTime)
+            val frame = if (unit.action == 20 && unit.hallMoveDurationSeconds > 0.0) {
+                HallUnitRender.frame(avatar, unit.action, unit.direction, unit.hallAnimationElapsedSeconds)
+            } else {
+                val animationTime = if (unit.action == 20) unit.animationElapsed else playbackFrame.elapsed
+                HallUnitRender.frame(avatar, unit.action, unit.direction, animationTime)
+            }
             ScenarioBattlefieldUnitView(
                 id = unit.id,
                 visualX = unit.visualX,

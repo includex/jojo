@@ -46,6 +46,9 @@ data class TacticalUnit(
      */
 
     var animationElapsed: Float = 0f
+    /** Cocos JavaScript Number precision clock used by Hall walking sprite animation. */
+    var hallAnimationElapsedSeconds: Double = 0.0
+        internal set
     /**
      * `moveZIndex` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

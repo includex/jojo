@@ -6,6 +6,7 @@ import com.jojo.game.infrastructure.data.EncryptedGameDataCodec
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.presentation.scenario.overlay.*
+import com.jojo.game.presentation.scenario.hall.HallUnitRender
 
 import com.jojo.game.application.battle.Battle
 
@@ -794,6 +795,25 @@ class ScenarioRuntimeTest {
         assertEquals(10 to 10, unit.x to unit.y)
         stage.updateAnimations(1f)
         assertEquals(12 to 12, unit.x to unit.y)
+    }
+
+    @Test
+    fun `Hall walking animation preserves JavaScript Number time through sprite selection`() {
+        val stage = ScenarioStage()
+        stage.apply(ScenarioCommand.ShowUnit(0, 10, 10, 2))
+        stage.apply(ScenarioCommand.MoveUnit(0, 10, 30, 2))
+        val unit = stage.unit(0)
+        val delta = 1f / 60f
+
+        stage.updateAnimations(delta) // Source action prime; this delta is discarded.
+        repeat(45) { stage.updateAnimations(delta) }
+
+        assertEquals(delta.toDouble() * 45, unit.hallAnimationElapsedSeconds, 0.0)
+        assertEquals(unit.hallAnimationElapsedSeconds.toFloat(), unit.animationElapsed)
+        assertEquals(1, HallUnitRender.frame(0, unit.action, unit.direction, unit.hallAnimationElapsedSeconds).row)
+        var floatAccumulator = 0f
+        repeat(45) { floatAccumulator += delta }
+        assertEquals(2, HallUnitRender.frame(0, unit.action, unit.direction, floatAccumulator).row)
     }
 
     @Test

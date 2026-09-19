@@ -32,6 +32,11 @@ class HallUnitRenderTest {
         assertEquals(1, HallUnitRender.frame(0, 20, 2, 0f).row)
     }
 
+    @Test fun `Hall JavaScript Number clock selects the source row across a Float accumulation boundary`() {
+        assertEquals(2, HallUnitRender.frame(0, 20, 2, 0.7499999403953552f).row)
+        assertEquals(1, HallUnitRender.frame(0, 20, 2, 0.7500000391155481).row)
+    }
+
     @Test fun `standing is static and one-shot movement holds its last key`() {
         assertEquals(0, HallUnitRender.frame(0, 0, 2, 8f).row)
         assertEquals(1, HallUnitRender.frame(0, 21, 0, .12f).row)

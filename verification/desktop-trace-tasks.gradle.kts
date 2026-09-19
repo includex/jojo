@@ -433,3 +433,22 @@ tasks.register<JavaExec>("captureOpeningFirstGroupFrames") {
         }
     }
 }
+
+tasks.register<JavaExec>("captureOpeningFinalGroupFrames") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningFinalGroupFramesDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-final-group-frames")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast {
+        check(destination.get().file("game-final-group.json").asFile.isFile)
+        listOf(1, 12, 13, 24, 25, 36, 37, 45, 48, 49, 50, 53, 54).forEach { ordinal ->
+            val suffix = ordinal.toString().padStart(3, '0')
+            check(destination.get().file("game-final-group-$suffix.rgba").asFile.length() == 2560L * 1376 * 4)
+        }
+    }
+}

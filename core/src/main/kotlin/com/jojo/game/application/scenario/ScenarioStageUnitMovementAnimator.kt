@@ -41,6 +41,7 @@ internal class ScenarioStageUnitMovementAnimator {
         unit.moveElapsed = 0f
         unit.hallMoveElapsedSeconds = 0.0
         unit.animationElapsed = 0f
+        unit.hallAnimationElapsedSeconds = 0.0
         unit.moveDuration = duration
         unit.hallMoveDurationSeconds = if (battleTimeline) 0.0 else HallMoveTimeline.sourceDuration(path)
         if (!battleTimeline) unit.moveDuration = unit.hallMoveDurationSeconds.toFloat()
@@ -107,7 +108,15 @@ internal class ScenarioStageUnitMovementAnimator {
             unit.visualY = sample.y
             unit.moveZIndex = sample.zIndex
             val nextDirection = sample.direction.takeIf { it >= 0 } ?: unit.direction
-            if (nextDirection != unit.direction) unit.animationElapsed = 0f else unit.animationElapsed += elapsedDelta
+            if (nextDirection != unit.direction) {
+                unit.animationElapsed = 0f
+                if (!battleTimeline) unit.hallAnimationElapsedSeconds = 0.0
+            } else if (battleTimeline) {
+                unit.animationElapsed += elapsedDelta
+            } else {
+                unit.hallAnimationElapsedSeconds += elapsedDelta.toDouble()
+                unit.animationElapsed = unit.hallAnimationElapsedSeconds.toFloat()
+            }
             unit.direction = nextDirection
             val complete = if (battleTimeline) {
                 unit.moveElapsed >= unit.moveDuration

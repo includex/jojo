@@ -1400,3 +1400,38 @@ source agent원본도구를사용했다. production변경없이검증범위를�
 증거는 `build/reports/opening-first-group-pixels-20260920/`의source,game-baseline,
 baseline-pixel-diagnostic.json,first-group-pixels.json,negative-contract-checks.json에있다.
 다음은첫대사직전4인 group이동이며, 전체게임동등성목표는계속진행한다.
+
+### 2026-09-20 최종 4인 이동의 Hall 애니메이션 시간 정밀도 수정
+
+첫 대사 직전 마지막 unitsMove를 동일 Float32 1/60 시계로 검증했다.
+181·157은 20칸 직선(0.8000001192092896초)이지만, 0·182는 점유된 칸을
+피하는 22칸 우회 경로(0.88초)였다. 실제 source 경로와 root Sequence를 기록했다.
+네 유닛의 실제 prime을 ordinal0으로 정렬했으며, 직선 유닛은49, 우회 유닛은53에서
+완료한다. source의 그룹 resume와 delay(3)도 마지막 완료53에서 발생했다.
+
+55개 tick의 220개 actor 상태를 비교하면서 ordinal45의 157·181 walking row가
+원본1, 포트2인 차이를 발견했다. source AnimationState의 Double 시간은
+0.7500000391155481초지만 포트 Float 누적은0.749999940초였다.
+Hall 전용 Double 애니메이션 시계를 추가하여 누적부터 sprite row 선택까지 유지하고,
+이동 시작과 방향 전환에서 reset한다. 기존 battle Float 누적 분기는 유지한다.
+실제 animator의45tick 회귀 테스트와 row 경계 테스트를 추가했다.
+
+검증 도구는 모든55개 전체RGBA 프레임의 SHA-256을 기록하고, 그중13개 rawRGBA를
+보존·직접 비교한다. 수정 전 ordinal45는36,379픽셀이 달랐고 수정 후0픽셀이 되었다.
+수정 전후55개 중 바뀐 프레임은45 하나이며 다른54개는 그대로다.
+수정 후220개 상태와13개 raw 표본은 모두 일치한다.
+
+그러나 전체55개 hash gate는 아직 실패한다. 수정 전 불일치 [2,45,47] 중
+45만 해결되었고 [2,47]은 다음 작업 단위의 미해결 항목이다. 선택 표본의 성공을
+전체 이동의 성공으로 주장하지 않으며 comparator도 exit1을 유지한다.
+원본/포트의 자연 wall-clock 및 등록 callback의 subframe 동등성도 이번 범위 밖이다.
+
+기존 Python comparator64개 통과, digest누락·조기 actor완료·조기 그룹resume·
+raw/digest불일치의4개 계약 위반을 거부했다. Node구문검사 통과.
+Astra는 Hall Double 수정에 blocker 없음을 검수했다.
+증거는 `build/reports/opening-final-group-pixels-20260920/`의 source,
+game-baseline, game-current, baseline-final-group.json, fixed-final-group.json,
+negative-contract-checks.json에 있다. 전체 게임 동등성 목표는 계속 진행한다.
+
+수정 후 HallUnitRenderTest·ScenarioRuntimeTest 통과. 새 캡처로 첫 단독 이동7프레임,
+첫3인 이동7프레임, 첫 대사3페이지 전체 화면을 재검증하여17개 모두0픽셀 차이를 확인했다.

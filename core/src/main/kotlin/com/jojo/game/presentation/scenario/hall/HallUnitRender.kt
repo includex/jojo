@@ -25,11 +25,16 @@ object HallUnitRender {
      */
 
     fun frame(mapAvatar: Int, action: Int, direction: Int, elapsedSeconds: Float): HallUnitSpriteFrame {
+        return frame(mapAvatar, action, direction, elapsedSeconds.toDouble())
+    }
+
+    /** Selects a Hall sprite row without reducing the source JavaScript Number clock to Float. */
+    fun frame(mapAvatar: Int, action: Int, direction: Int, elapsedSeconds: Double): HallUnitSpriteFrame {
         val normalizedDirection = direction.takeIf { it in 0..3 } ?: 0
         val row = when (action) {
             0 -> 0
-            20 -> 1 + ((elapsedSeconds / .125f).toInt() and 1)
-            21 -> 1 + if (elapsedSeconds >= .125f) 1 else 0
+            20 -> 1 + ((elapsedSeconds / .125).toInt() and 1)
+            21 -> 1 + if (elapsedSeconds >= .125) 1 else 0
             in 1..17 -> action + 2
             18 -> 1
             19 -> 2
