@@ -20,7 +20,7 @@
 - 포트 정상 속도: `verification/build/verification/yingchuan-walkthrough-{30,90,120}sim/`. 120초에서 2턴 스크립트까지 진행. 단순 시간 제한 종료를 멈춤으로 분류하지 않는다. 90초 기록의 AI는 실제로 계속 행동했다.
 - 포트 정상 속도 실패: `verification/build/verification/yingchuan-walkthrough-normal-failure/`. 135.557초 PLAYER_INPUT, 137.924초 종료 확인창, 약 138.34초 확인 입력에서 같은 정산 중복 예외. 가속 전용 오류가 아니다.
 - 포트 8배속 실패: `verification/build/verification/yingchuan-walkthrough-functional-failure/yingchuan-walkthrough.json`. 1172프레임, 약 19.74초 실제 시간. PLAYER_INPUT → 선택 → 메뉴 → 종료 확인에서 `overlapping BattleScreen._jiesuan presentations`. 예외 전 캡처는 보존했으나 전체 전투 trace는 미완성이다.
-- 실행은 S_00 직접 전투 진입과 실제 입력을 사용한다. R_00부터 캠페인 전체를 통과한 증거나 전투 승리 증거가 아니다. 포트 수동 조작기는 기존 작업 트리의 미커밋 도구를 사용한다.
+- 실행은 S_00 직접 전투 진입과 실제 입력을 사용한다. R_00부터 캠페인 전체를 통과한 증거나 전투 승리 증거가 아니다. 초기 포트 기록은 기존 작업 트리의 미커밋 조작기를 사용했다. 아래 최종 전용 조작기는 해당 도구에 의존하지 않는다.
 - 원본 화면 도구는 `node tools/capture_yingchuan_source_walkthrough.cjs ../jojo_mobile/sgccz-desktop OUTPUT 30000`으로 실행한다. 원본 파일을 수정하지 않으며 종료 시 프로세스를 정리한다. `source-full-trace.json`은 조기 종료 때문에 없을 수 있으므로 화면 도구의 필수 산출물로 간주하지 않는다.
 
 각 수정은 해당 구간을 재실행하고 작업 단위로 커밋·push한다. 전투 전체 일치 여부는 아직 미확인이다.
@@ -36,3 +36,16 @@
 
 - 원본 `cocos-engine-web/cocos2d/core/assets/CCTexture2D.js`의 min/mag Linear 기본값에 맞춰 `BattleSettlementInfoAssets` 캐시 텍스처에 Linear를 지정했다. 막대 크기나 HP/MP 값은 바꾸지 않았다.
 - 정상 속도 30초 재실행 성공: `verification/build/verification/yingchuan-walkthrough-linear-bars/`. 25초 정산창을 원본 화면과 비교해 거친 색상 단계가 사라진 것을 확인했다. 해당 화면의 HP 수치와 애니메이션 시점은 서로 달라 전체 픽셀 일치 자료로 취급하지 않는다.
+
+## 전용 입력 조작기로 전투 진행
+
+- `captureYingchuanWalkthrough`는 기본 정상 속도 30초, 최대 실행 시간을 지정하는 bounded task다. `-Pjojo.yingchuanWalkthrough.maxSimSeconds=600 -Pjojo.yingchuanWalkthrough.timeScale=8`로 기능 검증한다.
+- 전용 `YingchuanWalkthroughDriver`는 기존 `BattleRuntimeProbe.screenPoint`와 실제 InputProcessor를 사용한다. 이동 후 COMMAND 창의 대기 입력을 추가해 검증 조작기의 멈춤을 해결했다. 실제 입력 시도와 시뮬레이션 시간을 별도 journal로 남긴다.
+- `verification/build/verification/yingchuan-walkthrough-dedicated-driver-final/`: 8배속에서 **7턴 PLAYER_VICTORY**, full trace 종료 사유 `battle-end`. 174개 입력 시도와 12개 의미별 화면 기록을 확보했다. 이는 기능 진행 증거이며 정상 속도 애니메이션 전체 일치 증거는 아니다.
+- 전용 도구는 `ManualBattleDriver`, 미커밋 parser 옵션 및 tileScreenPoint 추가 필드에 의존하지 않는다. 기존 게임 작업 트리에서 실행한 기록이므로 다른 미커밋 게임 변경을 포함한 상태라는 점은 유지한다.
+
+## 초반 피격 자세 차이
+
+- 원본 정상 속도 `build/reports/yingchuan-source-235-hit-hold-20260920/`: unit235 (7,16), anime32_3 종료 후 SpriteFrame rect `[1268,153,48,48]`를 다음 명시적 action 전까지 유지한다.
+- 포트 수정 전 정상 속도 `verification/build/verification/yingchuan-walkthrough-normal-hit-hold/`: 3.805945초 같은 유닛이 anime9_3의 부상 자세로 되돌아가 있다. 양쪽 실제 화면으로 차이를 확인했다.
+- 원본의 `playAtkAnime`는 비방어 피격32만 자세를 유지하며, 방어26은 이전 방향의 기본 자세로 복귀한다. 이 차이를 구분해 수정·검증 중이다.

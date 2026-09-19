@@ -543,3 +543,37 @@ tasks.register<JavaExec>("captureOpeningPostDialogueGroupFrames") {
         }
     }
 }
+
+tasks.register<JavaExec>("captureYingchuanWalkthrough") {
+    group = "verification"
+    description = "Captures a bounded production-input Yingchuan battle walkthrough (default 30 seconds)."
+    val maxSimulationSeconds = providers.gradleProperty("jojo.yingchuanWalkthrough.maxSimSeconds")
+        .map { value -> value.toInt().also { require(it in 1..1800) { "maxSimSeconds must be 1..1800" } } }
+        .orElse(30)
+    val timeScale = providers.gradleProperty("jojo.yingchuanWalkthrough.timeScale")
+        .map { value -> value.toInt().also { require(it in 1..8) { "timeScale must be 1..8" } } }
+        .orElse(1)
+    timeout.set(maxSimulationSeconds.zip(timeScale) { seconds, scale ->
+        java.time.Duration.ofSeconds((seconds / scale + 15).toLong())
+    })
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.YingchuanWalkthroughDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/yingchuan-walkthrough")
+    doFirst {
+        delete(destination)
+        setArgs(listOf(destination.get().asFile.absolutePath, maxSimulationSeconds.get().toString(), timeScale.get().toString()))
+    }
+    doLast {
+        val directory = destination.get().asFile
+        check(directory.resolve("yingchuan-manual-trace.json").isFile) { "manual battle trace was not written" }
+        check(directory.resolve("yingchuan-walkthrough.json").isFile) { "walkthrough manifest was not written" }
+        val screenshots = directory.listFiles { file -> file.extension == "png" }.orEmpty()
+        check(screenshots.isNotEmpty() && screenshots.size <= 12) {
+            "expected 1..12 walkthrough screenshots, found ${screenshots.size}"
+        }
+        check(screenshots.all { it.length() > 0L }) { "walkthrough contains an empty screenshot" }
+    }
+}
