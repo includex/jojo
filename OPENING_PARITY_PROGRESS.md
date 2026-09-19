@@ -525,3 +525,58 @@ python3 -m unittest discover -s tools -p 'test_verify_opening*py'
 
 첫 세 페이지의 분리 렌더 외에 중간 이동 화면·전체 화면·타이핑 속도·음향·전투·
 게임 전체의 일치는 아직 미검증이다. 다음에는 발견한 초상화 잔차를 해결한다.
+
+## 초상화 잔차의 atlas 배치 의존성 분리 (2026-09-20)
+
+세 번째 초상화의 92픽셀 차이를 이미지 내용과 atlas 배치로 나누어 조사했다.
+원본 DynamicAtlas의 실제 GPU texture에서 face214 내부와 주변 1px를 읽었다.
+내부 192×240은 원본/포트 Head PNG와 byte-exact이며 네 방향 1px strip은 원본
+edge를 정확히 복제한다. LINEAR/LINEAR 및 CLAMP_TO_EDGE도 확인했다.
+이는 파일 decode나 atlas 내부 픽셀 변환의 차이를 원인에서 제외하는 근거다.
+
+- native PNG SHA: `44722cbd404558030b770fcee41eba20c2015b1bd1ec3fc41f89738cabc4c274`
+- native RGBA SHA: `cf9a88cb7ffaa1e1ebf3c458c1fc0fcc02df4bb326aee0f39c5c6238f031434f`
+- GPU crop `[1128,1,194,242]` SHA: `b4d96db421e8da3df56edb8c9fb4792e1ad0adb707b1e610ba16ee13eecb60af`
+
+임시 포트 실험에서는 같은 native PNG를 2048² RGBA8888 texture에 넣고 Cocos와
+같은 x±1/y±1 복제 후 중앙 복사, LINEAR 필터로 그렸다. 원본 rect `[1129,2,192,240]`와
+UV를 사용하면 세 페이지 모두 픽셀 차이 0이다. 이미지·크기·테두리는 유지하고 위치만
+`[2,2,192,240]`으로 바꾸면 원래와 동일한 92픽셀 차이/SHA가 재현된다.
+따라서 atlas 배치·UV 표현과 관련된 샘플링 경로 의존성으로 좁혔다.
+Float32 정밀도가 유일한 원인이라고 단정하지 않는다.
+
+원본 atlas manager의 실제 삽입도 추적했다. 폭과 x는 순서대로
+`bg 19@2 → Mark_10-1 24@23 → U_select_11-1 344@49 → face181 192@395 →
+U_select_10-1 344@589 → face1 192@935 → face214 192@1129`이다.
+모두 y=2이며 원본 2px 간격 shelf allocator로 모든 위치가 정확히 도출된다.
+각 source texture URL·UUID·크기·삽입 순서·결과 atlas ID는 manifest에 남겼다.
+`bg`는 공용 InfoLayer 배경이고 `Mark_10-1`은 Hall qipao 표식이다. 두 말풍선
+패널은 DialogueLayer bg1/bg0에 속한다. 앞 두 자산의 삽입은 R00 시작 UI 상태에
+의존하므로 일반 대사창 생성 시 무조건 선삽입하는 방식은 아직 근거가 부족하다.
+이것은 특정 초상화 좌표를 production 상수로 고정할 근거가 아니라, 일반 배치 규칙과
+실제 자산 렌더 순서를 재현할 다음 구현의 근거다.
+
+source 도구의 `JOJO_CAPTURE_FACE_ATLAS=1`은 GPU crop·sampler·packing trace를 추가한다.
+기본 캡처에는 이 계측과 추가 필드가 없다. 새 `verify_portrait_atlas_crop.py`는 raw
+길이/SHA, native 크기, 내부·네 방향 edge strip과 packing trace를 검증한다.
+crop의 실제 atlas ID·크기·rect를 packing 기록과 연결하며 다른 atlas의 같은 좌표가
+통과하지 못하도록 검사한다. 원본 allocator의 행 넘김·texture 재사용도 테스트한다. 코너 padding은 검증 범위에서
+제외하며, texel 검증 통과 자체를 최종 화면 일치로 취급하지 않는다.
+
+실험용 portrait214 분기·고정좌표는 production에서 모두 제거했다. 원복 후 캡처도
+다시 비교해 앞 두 페이지 0, 세 번째 92픽셀 실패가 기존과 동일함을 확인했다.
+이번 커밋은 진단 도구와 원인 분리 근거이며 아직 게임 수정 완료가 아니다.
+다음은 원본 자산의 실제 렌더 요청 순서에 따른 일반 atlas 배치를 구현하는 것이다.
+
+증거 디렉터리: `build/reports/opening-atlas-20260920/`. `source/`는 최신 원본,
+`atlas-texels.json`은 내부/edge/packing 검사, `atlas-comparison.json`은 동일 위치,
+`relocated-comparison.json`은 위치 변경, `restored-comparison.json`은 production 원복
+결과다. `experiment.json`에는 source bundle/allocator SHA·필터·복제 순서가 있고,
+`matched.patch`·`relocated.patch`에 임시 실험의 정확한 diff를 보관했다.
+각 실행은 외부 60초 제한 내 10~11초에 끝났고 Python 검사 29개가 통과했다.
+
+```sh
+JOJO_CAPTURE_FACE_ATLAS=1 node tools/capture_opening_source_pages.cjs build/opening-atlas-source
+python3 tools/verify_portrait_atlas_crop.py build/opening-atlas-source/source-pages.json core/build/generated/map-assets/heads/214.png --report build/opening-atlas-texels.json
+python3 -m unittest discover -s tools -p test_verify_portrait_atlas_crop.py
+```
