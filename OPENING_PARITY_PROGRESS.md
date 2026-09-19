@@ -1236,3 +1236,28 @@ A11,305이며 원본 alpha는255, 포트는191..255였다. 배경과 대사 UI�
 기존64개 테스트 및 Node 문법 검사 통과. 증거는
 `build/reports/opening-full-scene-20260920/`의 source, source-repeat, game-baseline,
 game-current, baseline-full-scene.json에 있다. 전체 게임 동등성 목표는 계속 진행한다.
+
+### 2026-09-20 Hall 유닛 합성의 alpha 보존 수정
+
+ScenarioBattlefieldRenderer의 actor/head batch에서 RGB blend는 기존
+SRC_ALPHA/ONE_MINUS_SRC_ALPHA를 유지하고 alpha는 ONE/ONE_MINUS_SRC_ALPHA로
+합성하도록 수정했다. 불투명 배경 위 반투명 유닛 가장자리의 출력 alpha를 원본과
+같이255로 보존한다. 이전 네 blend factor를 저장하고 begin/draw/end 예외 경로에서도
+finally로 복원하며 색상도 WHITE로 되돌린다.
+
+첫 자연 완료 전체 화면의 차이는11,764→604픽셀로 감소했다. alpha 차이는11,305→0,
+나머지는 유닛182 영역 `[1772,1145,1877,1344]`의 RGB 값1 차이이다. 수정 후 raw SHA는
+`5449f5d32a5753a2e2623bc36eb7aa26f8ac90cf0a7112baf1521af4e4347c74`.
+전체 화면 비교기는 여전히 실패하며604픽셀을 허용하거나 제외하지 않는다.
+CPU projection 실험은 결과 bytes가 동일해 모두 되돌렸고 별도 helper는 남기지 않았다.
+남은 RGB 차이의 원인은 다음 작업 단위에서 source의 texture/filter/blend 제출 경로로
+범위를 좁혀 확인한다.
+
+검증: SourceSlicedPatchClipMath/ScenarioBattlefieldRenderGeometry/ScenarioStoryRenderer
+기존6개 테스트 통과. 첫 세 완성 대사 UI와 첫 대사13개 글자 단계 모두 strict RGBA
+0픽셀 차이를 유지했다. 캡처를 포함한 회귀 묶음은 외부60초 제한 안에서19초 완료.
+Astra가 blend 및 상태 복원을 검수했고 Sol이 production 수정을 맡았다. 증거는 같은
+보고서 디렉터리의 game-separate-alpha, separate-alpha-full-scene.json,
+regression.log, pages-regression.json, prefixes-regression.json,
+game-alpha-final, alpha-final.log에 있다. 첫 전체 화면과 전체 게임의 완전 일치는
+아직 달성하지 않았으며 목표는 계속 진행한다.

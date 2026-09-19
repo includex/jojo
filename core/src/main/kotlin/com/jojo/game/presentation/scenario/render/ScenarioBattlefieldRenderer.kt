@@ -47,24 +47,41 @@ internal object ScenarioBattlefieldRenderer {
         Gdx.gl.glDisable(GL20.GL_BLEND)
 
         batch.projectionMatrix = camera.combined
-        batch.begin()
-        /**
-         * `entries` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
+        val previousSrcColor = batch.blendSrcFunc
+        val previousDstColor = batch.blendDstFunc
+        val previousSrcAlpha = batch.blendSrcFuncAlpha
+        val previousDstAlpha = batch.blendDstFuncAlpha
+        batch.setBlendFunctionSeparate(
+            GL20.GL_SRC_ALPHA,
+            GL20.GL_ONE_MINUS_SRC_ALPHA,
+            GL20.GL_ONE,
+            GL20.GL_ONE_MINUS_SRC_ALPHA,
+        )
+        try {
+            batch.begin()
+            /**
+             * `entries` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+             * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+             */
 
-        val entries = buildList {
-            if (view.drawCharacters) {
-                if (view.drawUnits) view.units.filter { it.visible }.forEach { add(Entry(it.zIndex, it.siblingOrder, unit = it)) }
-                view.heads.filter { it.opacity > 0f }.forEach { add(Entry(it.zIndex, it.siblingOrder, head = it)) }
+            val entries = buildList {
+                if (view.drawCharacters) {
+                    if (view.drawUnits) view.units.filter { it.visible }.forEach { add(Entry(it.zIndex, it.siblingOrder, unit = it)) }
+                    view.heads.filter { it.opacity > 0f }.forEach { add(Entry(it.zIndex, it.siblingOrder, head = it)) }
+                }
+            }
+            entries.sortedWith(compareBy<Entry> { it.zIndex }.thenBy { it.siblingOrder }).forEach { entry ->
+                entry.head?.let { drawHead(assets, batch, camera, it) }
+                entry.unit?.let { drawUnit(assets, batch, it) }
+            }
+        } finally {
+            try {
+                if (batch.isDrawing) batch.end()
+            } finally {
+                batch.color = Color.WHITE
+                batch.setBlendFunctionSeparate(previousSrcColor, previousDstColor, previousSrcAlpha, previousDstAlpha)
             }
         }
-        entries.sortedWith(compareBy<Entry> { it.zIndex }.thenBy { it.siblingOrder }).forEach { entry ->
-            entry.head?.let { drawHead(assets, batch, camera, it) }
-            entry.unit?.let { drawUnit(assets, batch, it) }
-        }
-        batch.color = Color.WHITE
-        batch.end()
     }
 
     /**
