@@ -67,3 +67,13 @@ apply(from = "desktop-trace-tasks.gradle.kts")
 // their declarations here means they execute with this project's runtime
 // classpath and retain a one-way dependency on :core.
 apply(from = "trace-tasks.gradle.kts")
+
+// A small campaign policy test unit without the full source-oracle catalog
+// attached to `test`. Full verification still runs through the existing task.
+tasks.register<Test>("campaignUnitTest") {
+    group = "verification"
+    description = "Runs campaign driver unit tests without the full trace catalog."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    filter { includeTestsMatching("com.jojo.game.verification.campaign.*") }
+}

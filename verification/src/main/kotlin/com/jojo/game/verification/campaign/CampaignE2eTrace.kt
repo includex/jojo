@@ -25,7 +25,10 @@ data class CampaignE2eTraceConfig(
     val stopAt: CampaignE2eStopPoint = CampaignE2eStopPoint(),
     /** requireYingchuanBootstrapContract: 확장 데이터 기반 경로는 자체 검증 계약을 제공한 뒤 기본 경로에서 제외된다. */
     val requireYingchuanBootstrapContract: Boolean = true,
-)
+    val stopDialoguePages: Int? = null,
+) {
+    init { require(stopDialoguePages == null || stopDialoguePages > 0) { "stop-dialogue-pages must be positive" } }
+}
 
 
 /** CampaignE2eStopPoint: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
@@ -410,7 +413,8 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
     /** route: 검증 실행 계획을 담는다. */
     private val route = mutableListOf<String>()
     /** stopEvaluator: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
-    private val stopEvaluator = CampaignE2eStopEvaluator(config.stopAt)
+    private val stopEvaluator = CampaignE2eStopEvaluator(config.stopAt, config.stopDialoguePages)
+    private val dialoguePrefix = CampaignE2eDialoguePrefix(config.stopAt)
 
     /** elapsed: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
     private var elapsed = 0f
@@ -565,7 +569,8 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
             }
             sawR01DepartureDialogue = true
         }
-        when (stopEvaluator.evaluate(state.module, state.sceneIndex, state.campaignStage)) {
+        if (config.stopDialoguePages != null) dialoguePrefix.observe(state)
+        when (stopEvaluator.evaluate(state.module, state.sceneIndex, state.campaignStage, dialoguePrefix.pages.size)) {
             CampaignE2eStopEvaluator.Decision.REACHED ->
                 return finish(state.module, state.sceneIndex, forwardOvershoot = false)
             CampaignE2eStopEvaluator.Decision.FORWARD_OVERSHOOT ->
@@ -690,6 +695,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                 committedPlayerMove = committedPlayerMove, initialBattleScenes = observedInitialBattleScenes,
                 campaignStages = campaignStages, battlePreparations = battlePreparations,
                 sawR01DepartureDialogue = sawR01DepartureDialogue,
+                dialoguePages = dialoguePrefix.pages,
             ),
             actualModule = actualModule, actualSceneIndex = actualSceneIndex, forwardOvershoot = forwardOvershoot,
         )

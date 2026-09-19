@@ -2,7 +2,7 @@
 package com.jojo.game.verification.campaign
 
 /** CampaignE2eStopEvaluator: 캠페인 추적이 요청한 중단 지점에 도달했는지 판단하는 순수 정책이다. */
-internal class CampaignE2eStopEvaluator(stopAt: CampaignE2eStopPoint) {
+internal class CampaignE2eStopEvaluator(stopAt: CampaignE2eStopPoint, private val stopDialoguePages: Int? = null) {
     /** Decision: 검증 시나리오의 상태와 동작을 제공하는 타입이다. */
     enum class Decision { CONTINUE, REACHED, FORWARD_OVERSHOOT }
 
@@ -14,7 +14,11 @@ internal class CampaignE2eStopEvaluator(stopAt: CampaignE2eStopPoint) {
     private val requestedStage = stopModule.removePrefix("R_").toIntOrNull()?.times(2)
 
     /** evaluate: 검증 조건을 실행하고 결과를 판정한다. */
-    fun evaluate(module: String, sceneIndex: Int, campaignStage: Int): Decision = when {
+    fun evaluate(module: String, sceneIndex: Int, campaignStage: Int, observedDialoguePages: Int = 0): Decision = when {
+        stopDialoguePages != null && (module == stopModule && sceneIndex > stopSceneIndex || requestedStage != null && campaignStage > requestedStage) ->
+            error("requested dialogue prefix was not reached before leaving $stopModule:scene$stopSceneIndex")
+        stopDialoguePages != null && module == stopModule && sceneIndex == stopSceneIndex ->
+            if (observedDialoguePages >= stopDialoguePages) Decision.REACHED else Decision.CONTINUE
         module == stopModule && sceneIndex >= stopSceneIndex -> Decision.REACHED
         requestedStage != null && campaignStage > requestedStage -> Decision.FORWARD_OVERSHOOT
         else -> Decision.CONTINUE

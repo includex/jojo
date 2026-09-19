@@ -75,6 +75,8 @@ data class ScenarioRuntimeProbe(
     val randomTrace: List<ScenarioRandomTrace> = emptyList(),
     val randomDrawCount: Int = 0,
     val remainingInjectedRandomCount: Int = 0,
+    val dialogueSpeakerId: String? = null,
+    val dialogueRevision: Long = 0L,
 ) : RuntimeScreenProbe {
     /**
      * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.

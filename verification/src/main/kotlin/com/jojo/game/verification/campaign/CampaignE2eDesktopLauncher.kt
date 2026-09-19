@@ -74,6 +74,7 @@ internal data class CampaignE2eLaunchOptions(
                     maxSeconds = values["max-seconds"]?.toFloat() ?: 60f,
                     inputIntervalSeconds = values["input-interval"]?.toFloat() ?: .12f,
                     stopAt = stop,
+                    stopDialoguePages = values["stop-dialogue-pages"]?.toInt(),
                     requireYingchuanBootstrapContract = fullContract,
                 ),
                 visible = values["visible"] == "true",

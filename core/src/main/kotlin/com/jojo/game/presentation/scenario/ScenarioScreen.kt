@@ -376,6 +376,8 @@ class ScenarioScreen(
                         campaignStage = game.campaignStage(),
                         menuVisible = playback.stage.menuVisible,
                         dialogueText = playback.currentDialogue?.text,
+                        dialogueSpeakerId = playback.currentDialogue?.speakerId,
+                        dialogueRevision = playback.dialogueRevision,
                         hallBattleScenePending = scenarioNavigation.hallBattleScenePending,
                         battleButtonScreenX = battleButton.x.toInt(),
                         battleButtonScreenY = (Gdx.graphics.height - battleButton.y).toInt(),

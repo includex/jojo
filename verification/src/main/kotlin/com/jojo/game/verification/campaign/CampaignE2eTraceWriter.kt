@@ -29,6 +29,7 @@ internal object CampaignE2eTraceWriter {
         val battlePreparations: List<String>,
         /** sawR01DepartureDialogue: 검증 실행 문맥에서 사용하는 상태 값을 담는다. */
         val sawR01DepartureDialogue: Boolean,
+        val dialoguePages: List<CampaignE2eDialoguePrefix.Page> = emptyList(),
     )
 
     /** write: 검증 이벤트와 산출물을 기록한다. */
@@ -103,6 +104,10 @@ internal object CampaignE2eTraceWriter {
          */
 
         val preparations = snapshot.battlePreparations.joinToString(",") { "\"${escape(it)}\"" }
+        val dialoguePages = snapshot.dialoguePages.joinToString(",") { page ->
+            val speaker = page.speakerId?.let { "\"${escape(it)}\"" } ?: "null"
+            """{"module":"${escape(page.module)}","sceneIndex":${page.sceneIndex},"revision":${page.revision},"speakerId":$speaker,"text":"${escape(page.text)}","backgroundId":${page.backgroundId},"unitIds":[${page.unitIds.joinToString(",")}]}"""
+        }
         Files.writeString(
             output,
             """{"format":"jojo-campaign-screen-e2e/v1","route":[$route],"inputs":[$inputs],"inputRecords":[$inputRecords],"transitionEnterCount":${snapshot.transitionEnterCount},"screenClassesVerified":true,"playerMoveBeforeScene1":${snapshot.playerMoveBeforeScene1},"committedPlayerMove":$move,"campaignStages":[${
@@ -113,7 +118,7 @@ internal object CampaignE2eTraceWriter {
                 escape(
                     actualModule
                 )
-            }","sceneIndex":$actualSceneIndex},"completion":"${if (forwardOvershoot) "forward-overshoot" else "checkpoint"}","battlePreparations":[$preparations],"sawR01DepartureDialogue":${snapshot.sawR01DepartureDialogue}}""",
+            }","sceneIndex":$actualSceneIndex},"completion":"${if (forwardOvershoot) "forward-overshoot" else "checkpoint"}","battlePreparations":[$preparations],"sawR01DepartureDialogue":${snapshot.sawR01DepartureDialogue},"stopDialoguePages":${config.stopDialoguePages},"dialoguePages":[$dialoguePages]}""",
         )
         /**
          * `marker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -128,5 +133,13 @@ internal object CampaignE2eTraceWriter {
     }
 
     /** escape: JSON 특수 문자를 이스케이프한다. */
-    private fun escape(value: String) = value.replace("\\", "\\\\").replace("\"", "\\\"")
+    private fun escape(value: String) = buildString {
+        value.forEach { char ->
+            when (char) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                else -> if (char.code < 32) append("\\u%04x".format(char.code)) else append(char)
+            }
+        }
+    }
 }
