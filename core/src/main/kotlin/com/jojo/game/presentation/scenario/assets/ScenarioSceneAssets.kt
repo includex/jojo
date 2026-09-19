@@ -185,6 +185,10 @@ internal class ScenarioSceneAssets(
     val streetDialogueFont: BitmapFont
         get() = cachedStreetDialogueFont ?: KoreanFont.create(31, requiredGlyphs).also {
             it.data.setScale(544f / 540f, 60f / 56f)
+            // RichText's Label segments use linear-filtered Canvas textures in Cocos.
+            it.regions.forEach { region ->
+                region.texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+            }
             cachedStreetDialogueFont = it
         }
     /**
