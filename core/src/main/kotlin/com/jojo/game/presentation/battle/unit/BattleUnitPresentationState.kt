@@ -10,6 +10,16 @@ class BattleUnitPresentationState(
     initialHitPoints: Int,
     initialMaxHitPoints: Int,
 ) {
+    private var deferredHasActed: Boolean? = null
+
+    /** Source action commits precede the settlement callback that applies defaultAction. */
+    fun deferActedAppearance(hasActed: Boolean) {
+        deferredHasActed = hasActed
+    }
+
+    fun applyActedAppearance() {
+        deferredHasActed = null
+    }
     /** 상태 애니메이션: 상태 이상 아이콘의 현재 프레임과 활성 여부를 보관한다. */
     val stateAnimation = BattleUnitStateAnimation()
 
@@ -228,11 +238,12 @@ class BattleUnitPresentationState(
     /** 기본 동작 선택: 체력 비율·행동 완료·독·마비 상태에 맞는 원본 대기 action을 반환한다. */
     fun defaultAction(input: DefaultActionInput): DefaultAction {
         if (!input.visible) return DefaultAction(STAND, loop = true)
+        val hasActed = deferredHasActed ?: input.hasActed
         val lowHp = input.hitPoints < (input.maxHitPoints * (if (input.famous) 4 else 2) / 10)
         return if (lowHp) {
             when {
-                input.hasActed && input.poisoned -> DefaultAction(XU_RUO_ZD, true)
-                input.hasActed -> DefaultAction(XU_RUO_ACTION, false)
+                hasActed && input.poisoned -> DefaultAction(XU_RUO_ZD, true)
+                hasActed -> DefaultAction(XU_RUO_ACTION, false)
                 input.poisoned && input.paralyzed -> DefaultAction(CHUAN_QI_ZD_MB, true)
                 input.poisoned -> DefaultAction(CHUAN_QI_ZD, true)
                 input.paralyzed -> DefaultAction(CHUAN_QI_MB, true)
@@ -240,8 +251,8 @@ class BattleUnitPresentationState(
             }
         } else {
             when {
-                input.hasActed && input.poisoned -> DefaultAction(STAND_UP_ZD, true)
-                input.hasActed -> DefaultAction(STAND_UP_ACTION, false)
+                hasActed && input.poisoned -> DefaultAction(STAND_UP_ZD, true)
+                hasActed -> DefaultAction(STAND_UP_ACTION, false)
                 input.poisoned && input.paralyzed -> DefaultAction(STAND_ZD_MB, true)
                 input.poisoned -> DefaultAction(STAND_ZD, true)
                 input.paralyzed -> DefaultAction(STAND_MB, true)

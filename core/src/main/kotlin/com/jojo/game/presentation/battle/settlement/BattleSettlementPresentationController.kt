@@ -278,13 +278,14 @@ internal class BattleSettlementPresentationController {
                     state.waiting = Waiting.Action
                 }
                 is TurnSettlementOp.UnitInfo -> {
-                    // 경험치가 함께 붙은 경우 원본과 같이 한 장에 담고, 그만큼 표시 시간을 늘린다.
-                    val growthTicks = operation.grants.sumOf { grant ->
+                    // OtherUnitInfoLayer only animates HP/MP; experience rows belong to Mine.
+                    val panel = operation.plan.infoPanel ?: SettlementInfoPanel.MINE
+                    val displayedGrants = if (panel == SettlementInfoPanel.MINE) operation.grants else emptyList()
+                    val growthTicks = displayedGrants.sumOf { grant ->
                         kotlin.math.abs(grant.unitResult?.gained ?: grant.equipmentResult?.gained ?: 0).coerceAtMost(5)
                     }
-                    val panel = operation.plan.infoPanel ?: SettlementInfoPanel.MINE
                     info = SettlementInfoView(
-                        operation.plan.unitId, panel, now, operation.plan.infoDeltas, operation.grants, title = "",
+                        operation.plan.unitId, panel, now, operation.plan.infoDeltas, displayedGrants, title = "",
                     )
                     effects += Effect.UnitInfo(operation.plan, now)
                     val barrier =

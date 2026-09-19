@@ -64,5 +64,8 @@
 - 양쪽 모두 210 이동·공격 → 476 피격(97→70) → 476 반격 → 210 피격(119→104) 순서와 방향이 일치한다. 일반 피격32는 이전 방향, 방어26은 피격 방향으로 복귀하므로 scripted 공격 정책과 구분한다.
 - 원본 캡처: `node tools/capture_yingchuan_source_walkthrough.cjs ../jojo_mobile/sgccz-desktop OUTPUT 45000 first-normal-combat`.
 - 포트 캡처: `./gradlew :verification:captureYingchuanWalkthrough -Pjojo.yingchuanWalkthrough.captureMode=first-normal-combat`. 이 모드는 정상 속도만 허용한다. 캡처 간에 관찰하지 못한 세부 프레임이나 절대 시간 전체 일치를 주장하지 않는다.
-- 추가 차이 확인: 원본은 논리 hasActed가 바뀐 뒤 약 1.429초 동안 idle을 유지하고 해당 정산 Default에서 행동 완료 자세39로 바뀐다. 수정 전 포트는 hasActed와 동시에39로 바뀌었다. 표시용 acted 상태의 적용 시점을 분리해 수정 중이다.
-- 자세 유지 수정의 첫 재실행에서는 전환까지 2.442초가 걸렸다. OTHER 패널에 표시되지 않는 경험치 5틱×0.2초를 더하는 별도 오류를 찾았으며, 실제 성장 지급을 유지하면서 표시 대기만 수정·검증 중이다.
+- 추가 차이 확인: 원본은 논리 hasActed가 바뀐 뒤 약 1.429초 동안 idle을 유지하고 해당 정산 Default에서 행동 완료 자세39로 바뀐다. 수정 전 포트는 hasActed와 동시에39로 바뀌었다. 표시용 acted 상태를 해당 유닛 Default까지 유지하도록 수정했다. HP·상태이상·논리적 행동 완료 판정은 계속 갱신된다.
+- 자세 유지 수정의 첫 재실행에서는 전환까지 2.442초가 걸렸다. OTHER 패널에 표시되지 않는 경험치 5틱×0.2초를 더하는 별도 오류를 찾았으며, 실제 성장 지급을 유지하면서 MINE에만 표시용 경험치 행과 대기를 반영하도록 수정했다.
+
+- 최종 정상 속도 30초 실행: `verification/build/verification/yingchuan-first-normal-combat-final/`. 210은 23.243845초 hasActed=true 후 idle 유지, 24.685398초 해당 Default에서39로 전환했다. 간격 **1.441553초**로 원본 **1.429초**와 한 프레임 이내다. HP104와 공격·반격 순서는 유지됐다.
+- 관련 테스트 15개 통과. 다른 유닛의 Default 무영향, 피해에 따른 자세 갱신 유지, 빈 정산 cleanup, OTHER 1.4초/MINE 2.4초 표시 시간 구분을 포함한다. 마지막 검증은 이 첫 교전 구간에 한정하며 전투 전체의 정상 속도 일치를 뜻하지 않는다.

@@ -6945,7 +6945,12 @@ void main() {
     internal fun commitDeferredBattleAction(settlementActorId: String? = null) {
         settlementActorId?.let(battle.presentation::presentationUnit)?.let(::focusCameraOn)
         // 트랜잭션이 닫히면 before 스냅샷을 다시 볼 수 없으므로 커밋 직전에 받아 둔다.
-        battle.pendingActionTransaction?.let { pendingActionVitalsBefore = it.vitalsBefore() }
+        battle.pendingActionTransaction?.let {
+            pendingActionVitalsBefore = it.vitalsBefore()
+            settlementActorId?.let(battle.presentation::presentationUnit)?.let { actor ->
+                unitPresentationStore.stateFor(actor).deferActedAppearance(actor.hasActed)
+            }
+        }
         battle.pendingActionTransaction?.commitAll()
         // 경험치 지급은 commitAll의 완료 부수 효과에서 일어난다. 그 뒤에 걷어야 비어 있지 않다.
         battle.consumeActionGrowth().takeIf { it.isNotEmpty() }?.let { pendingActionGrowth = it }
@@ -7014,7 +7019,10 @@ void main() {
             }
         val subflows = growth.filterKeys { battle.presentation.presentationUnit(it) != null }
             .map { (unitId, grants) -> SettlementSubflow.Growth(unitId, grants) }
-        if (changes.isEmpty() && subflows.isEmpty()) return false
+        if (changes.isEmpty() && subflows.isEmpty()) {
+            unitPresentationStore.applyDeferredActedAppearances()
+            return false
+        }
         val faction = actorId?.let(battle.presentation::presentationUnit)?.effectiveFaction() ?: battle.activeFaction
         val settlement = CampSettlement(CampSettlementStage.START_STATE, faction, changes, subflows, subflowsCaptured = true)
         // 행동 도중의 `_jiesuan`은 진영 정산이 아니라 콜백 지역 정산이다. 진영 정산으로
@@ -7024,6 +7032,7 @@ void main() {
         )
         if (operationPlan.operations.isEmpty()) {
             refreshSettlementUnits(operationPlan.settlementPlan)
+            unitPresentationStore.applyDeferredActedAppearances()
             return false
         }
         startLocalSettlement(operationPlan.settlementPlan, operationPlan.operations)
@@ -7167,14 +7176,21 @@ void main() {
 
                 is BattleSettlementPresentationController.Effect.Refresh -> effect.unitIds.forEach { id ->
                     battle.presentation.presentationUnit(id)
-                        ?.let { unit -> unitPresentationStore.refresh(unit); unitSpriteFrameResolver.defaultAction(unit) }
+                        ?.let { unit ->
+                            unitPresentationStore.refresh(unit).applyActedAppearance()
+                            unitSpriteFrameResolver.defaultAction(unit)
+                        }
                 }
 
                 is BattleSettlementPresentationController.Effect.Default -> battle.presentation.presentationUnit(effect.unitId)
-                    ?.let(unitSpriteFrameResolver::defaultAction)
+                    ?.let { unit ->
+                        unitPresentationStore.stateFor(unit).applyActedAppearance()
+                        unitSpriteFrameResolver.defaultAction(unit)
+                    }
 
                 is BattleSettlementPresentationController.Effect.Finished -> {
                     refreshSettlementUnits(effect.plan)
+                    if (effect.local) unitPresentationStore.applyDeferredActedAppearances()
                     if (!effect.local) when (effect.plan.stage) {
                         CampSettlementStage.START_STATE -> turnController.completeCampStatePresentation()
                         CampSettlementStage.END_RESTORE -> turnController.completeCampRestorePresentation()
@@ -7201,7 +7217,7 @@ void main() {
     private fun refreshSettlementUnits(plan: BattleSettlementPlan) {
         plan.units.forEach { unitPlan ->
             battle.presentation.presentationUnit(unitPlan.unitId)?.let { unit ->
-                unitPresentationStore.refresh(unit)
+                unitPresentationStore.refresh(unit).applyActedAppearance()
                 unitSpriteFrameResolver.defaultAction(unit)
             }
         }

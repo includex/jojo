@@ -95,6 +95,11 @@ class BattleUnitPresentationStore {
         return stateFor(unit)
     }
 
+    /** Finish a local action even when its settlement has no visible operations. */
+    fun applyDeferredActedAppearances() {
+        states.values.forEach(BattleUnitPresentationState::applyActedAppearance)
+    }
+
     /** 전투 화면이 해제될 때 모든 화면 상태를 비웁니다. */
     fun clear() {
         states.clear()
