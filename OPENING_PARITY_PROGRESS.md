@@ -825,3 +825,44 @@ python3 tools/verify_opening_event_pixels.py build/reports/opening-panel-residua
 이번 일치는 관측한 8개 문자열 상태와 완성 프레임에 한정된다. 빈 문구의 초기 상태,
 타이핑 주기, 자동 닫기와 후속 스크립트 재개 시점은 다음 단위에서 확인한다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## 첫 EVENT 자연 타이핑과 자동 닫힘 규칙 일치 (2026-09-20)
+
+EVENT/INFO의 타이핑 상태를 ScenarioModalController 한 곳에서 관리한다. 원본처럼
+첫 scheduler update는 초기화에만 쓰고, 이후 0.04초 이상 누적되면 한 글자 단위만
+공개한 뒤 초과 시간을 버린다. 완성 뒤 1초 닫힘 타이머를 예약하며 완성 프레임의
+시간을 다시 세지 않는다. 입력으로 완성시킨 경우에는 다음 update가 닫힘 타이머의
+초기화 단계가 된다. 이전 총 수명 근사식의 추가 대기 0.35초를 제거했다.
+시나리오와 전투 INFO 화면 모두 이 상태를 읽도록 연결했다. 전투 화면의 픽셀
+동등성까지 이번 검증으로 주장하지 않는다.
+
+원본 계측은 시작 전 InfoLayer lifecycle과 Scheduler.update를 감싸고 실제 delta와
+프레임을 기록한다. getTotalTime의 벽시계 시간을 scheduler 시간으로 사용하지 않는다.
+강제 reveal, 입력, framebuffer 캡처 없이 첫 EVENT부터 첫 대사까지 관측했다.
+비교기는 각 실행의 실제 delta 열로 타이머 규칙을 재생하고 8개 공개 callback 및
+닫힘 프레임이 정확히 일치하는지 검사한다. 원본은 prefix 144/147/150/153/156/159/
+162/165, 닫힘 226; 포트는 2/5/8/11/14/17/20/23, 닫힘 83으로 각 예측과 일치했다.
+완성 후 닫힘은 원본 1.0167초, 포트 1.000038초로 각각의 프레임 간격에 맞는다.
+수정 전 포트의 완성 후 대기는 약 1.35초였고 같은 비교에서 실패했다.
+
+검증: 관련 core 161개, campaign 47개, Python opening 40개 통과.
+EVENT 완성 전체/분리 화면 및 자연 8개 prefix, 첫 대사 3페이지, 대사 13개 prefix,
+resize 후 3개 표본의 strict RGBA 차이 0 유지. 최종 입력 타이머 초기화 수정 후
+core 161개와 자연 타이밍 캡처를 다시 통과했다.
+
+증거: `build/reports/opening-event-timing-20260920/`의 `source/source-event-timing.json`,
+`game-baseline.json`, `game-final.json`, `baseline-timing-comparison.json`,
+`final-timing-comparison.json`, `final-regression.log`, `manual-timer-regression.log`,
+`event-pixels-regression.json`, `pages-regression.json`, `prefixes-regression.json`,
+`resize-regression.json`.
+
+```sh
+node tools/capture_opening_source_event_timing.cjs build/reports/opening-event-timing-20260920/source
+./gradlew :verification:captureOpeningEventTiming
+python3 tools/verify_opening_event_timing.py build/reports/opening-event-timing-20260920/source/source-event-timing.json verification/build/verification/opening-event-timing/game-event-timing.json
+```
+
+닫힘부터 첫 대사까지는 원본 2.1333초, 포트 2.048322초로 아직 차이가 있다.
+후속 이동/대기/대사 시작 시점과 빈 EVENT의 초기 framebuffer는 다음 검증 범위다.
+전체 게임 동등성 목표는 계속 진행한다.

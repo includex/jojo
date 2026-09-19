@@ -312,3 +312,24 @@ tasks.register<JavaExec>("captureOpeningEvent") {
         }
     }
 }
+
+tasks.register<JavaExec>("captureOpeningEventTiming") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-event-timing")
+    doFirst {
+        delete(destination)
+        destination.get().asFile.mkdirs()
+        setArgs(listOf("--scenario=R_00", "--capture-state=opening-event-timing",
+            "--capture-raw=${destination.get().file("unused.rgba").asFile.absolutePath}"))
+    }
+    doLast {
+        check(destination.get().file("game-event-timing.json").asFile.isFile) { "Natural event timing manifest missing" }
+        check(!destination.get().file("unused.rgba").asFile.exists()) { "Timing capture must not read framebuffer" }
+    }
+}

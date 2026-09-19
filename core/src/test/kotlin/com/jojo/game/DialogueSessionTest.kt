@@ -51,6 +51,22 @@ class DialogueSessionTest {
         assertEquals(DialogueSessionTransition.AdvanceModal, session.dispatch(DialogueSessionInput.Confirm))
     }
 
+    @Test
+    fun externallyOwnedModalRevealUpdatesAtTheSameRevisionWithoutInternalTyping() {
+        val session = DialogueSession()
+        session.presentModal(DialogueModal(1, DialogueModalKind.EVENT, "ABC", externalVisibleText = "", externalTextComplete = false))
+
+        session.update(10f, autoAdvanceEnabled = true)
+        assertEquals("", session.view.modalVisibleText)
+        assertFalse(session.view.textComplete)
+
+        session.presentModal(DialogueModal(1, DialogueModalKind.EVENT, "ABC", externalVisibleText = "AB", externalTextComplete = false))
+        assertEquals("AB", session.view.modalVisibleText)
+        session.presentModal(DialogueModal(1, DialogueModalKind.EVENT, "ABC", externalVisibleText = "ABC", externalTextComplete = true))
+        assertEquals("ABC", session.view.modalVisibleText)
+        assertTrue(session.view.textComplete)
+    }
+
     /** 자동 진행은 글자 공개 완료와 지연 시간이 모두 지난 뒤 한 번만 발생한다. */
     @Test
     fun autoAdvanceWaitsForRevealAndDelay() {

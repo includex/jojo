@@ -162,6 +162,10 @@ class ScenarioInterpreter internal constructor(
      */
 
     val currentModalFixedText: String get() = modalController.currentModalFixedText
+    /** EVENT/INFO에서 원본 InfoLayer 타이머가 현재까지 공개한 본문이다. */
+    val currentModalVisibleText: String get() = modalController.currentModalVisibleText
+    /** EVENT/INFO의 원본 InfoLayer 타이핑이 끝났는지 나타낸다. */
+    val currentModalTextComplete: Boolean get() = modalController.currentModalTextComplete
     /**
      * `ambitionFrom` (Int get()): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

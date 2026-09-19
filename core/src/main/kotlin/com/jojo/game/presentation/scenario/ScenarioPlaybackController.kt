@@ -91,11 +91,14 @@ internal class ScenarioPlaybackController(
             PlaybackState.DELAY -> Unit
             PlaybackState.MODAL -> {
                 if (playback.currentModalKind == ScenarioModalKind.AMBITION) return
-                if (playback.currentModalKind in setOf(
-                        ScenarioModalKind.EVENT,
-                        ScenarioModalKind.INFO,
-                        ScenarioModalKind.MAP_INFO
-                    ) &&
+                if (playback.currentModalKind in setOf(ScenarioModalKind.EVENT, ScenarioModalKind.INFO) &&
+                    !playback.currentModalTextComplete
+                ) {
+                    playback.completeModalTyping()
+                    dialogueSession.synchronize(playback)
+                    return
+                }
+                if (playback.currentModalKind == ScenarioModalKind.MAP_INFO &&
                     dialogueSession.dispatch(DialogueSessionInput.RevealAll) == DialogueSessionTransition.TextRevealed
                 ) {
                     playback.completeModalTyping()

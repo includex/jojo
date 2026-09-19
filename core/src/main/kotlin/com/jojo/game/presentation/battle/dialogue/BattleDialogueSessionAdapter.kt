@@ -52,12 +52,18 @@ internal class BattleDialogueSessionAdapter(
             } ?: session.clear()
 
             PlaybackState.MODAL -> runtime.currentModalText?.let { text ->
+                val externallyRevealed = runtime.currentModalKind in setOf(
+                    ScenarioModalKind.EVENT,
+                    ScenarioModalKind.INFO,
+                )
                 session.presentModal(
                     DialogueModal(
                         revision = modalRevision(text, runtime.currentModalKind, runtime.currentModalFixedText),
                         kind = runtime.currentModalKind.toDialogueModalKind(),
                         text = text,
                         fixedText = runtime.currentModalFixedText,
+                        externalVisibleText = runtime.currentModalVisibleText.takeIf { externallyRevealed },
+                        externalTextComplete = runtime.currentModalTextComplete.takeIf { externallyRevealed },
                     ),
                 )
             } ?: session.clear()

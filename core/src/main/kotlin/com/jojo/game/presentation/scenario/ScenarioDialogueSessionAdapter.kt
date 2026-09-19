@@ -61,12 +61,18 @@ internal class ScenarioDialogueSessionAdapter(
             } ?: session.clear()
 
             PlaybackState.MODAL -> playback.currentModalText?.let { text ->
+                val externallyRevealed = playback.currentModalKind in setOf(
+                    ScenarioModalKind.EVENT,
+                    ScenarioModalKind.INFO,
+                )
                 session.presentModal(
                     DialogueModal(
                         revision = modalRevision(text, playback.currentModalKind, playback.currentModalFixedText),
                         kind = playback.currentModalKind.toDialogueModalKind(),
                         text = text,
                         fixedText = playback.currentModalFixedText,
+                        externalVisibleText = playback.currentModalVisibleText.takeIf { externallyRevealed },
+                        externalTextComplete = playback.currentModalTextComplete.takeIf { externallyRevealed },
                     ),
                 )
             } ?: session.clear()

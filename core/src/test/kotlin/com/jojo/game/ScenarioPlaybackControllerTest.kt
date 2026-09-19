@@ -42,11 +42,19 @@ class ScenarioPlaybackControllerTest {
         assertEquals("재능의 첫 징후", runtime.currentModalText)
         assertEquals("", controller.viewState.modalVisibleText)
 
+        runtime.update(0f, autoCloseUi = false)
+        runtime.update(.041f, autoCloseUi = false)
+        controller.updatePresentation(0f, autoCloseEnabled = false, revealDialogueImmediately = false) {}
+        assertEquals("재", controller.viewState.modalVisibleText)
+
         controller.advance({}, { false }, { false }, {})
 
         assertEquals(PlaybackState.MODAL, runtime.state)
         assertEquals("재능의 첫 징후", controller.viewState.modalVisibleText)
         assertEquals(true, controller.viewState.modalTextComplete)
+
+        runtime.update(.9f, autoCloseUi = false)
+        assertEquals(PlaybackState.MODAL, runtime.state, "first click restarts the one-second close delay")
 
         controller.advance({}, { false }, { false }, {})
 

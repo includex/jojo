@@ -51,6 +51,7 @@ internal class VerificationArtifactObserver(
     /** scenarioArtifactSent: 검증 시나리오 식별자를 담는다. */
     private var scenarioArtifactSent = false
     private var sawOpeningDialogue = false
+    private val openingEventTiming by lazy { OpeningEventTimingCapture(output) }
     private val openingEvent by lazy { OpeningEventCapture(output) }
     private val openingPages by lazy { OpeningDialoguePageCapture(output) }
     private val openingPrefixes by lazy { OpeningDialoguePrefixCapture(output) }
@@ -78,6 +79,10 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
+        if (output.state == "opening-event-timing") {
+            openingEventTiming.onFrame(screen, scenario)
+            return
+        }
         if (output.state == "opening-event") {
             openingEvent.onFrame(scenario)
             return

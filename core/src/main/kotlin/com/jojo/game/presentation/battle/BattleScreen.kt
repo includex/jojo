@@ -1341,13 +1341,6 @@ void main() {
     private val dialogueSessionAdapter = BattleDialogueSessionAdapter()
 
     /**
-     * `battleInfoReveal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-     */
-
-    private val battleInfoReveal = SourceTextReveal()
-
-    /**
      * `sayAutoClose` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -4494,7 +4487,10 @@ void main() {
                 if (battleInfoPanelPressed) {
                     battleInfoPanelPressed = false
                     if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
-                        if (!battleInfoReveal.revealAllIfPending()) {
+                        if (!scriptRuntime.currentModalTextComplete) {
+                            scriptRuntime.completeModalTyping()
+                            dialogueSessionAdapter.synchronize(scriptRuntime)
+                        } else {
                             scriptRuntime.resumeModal()
                             syncScriptedUnits()
                             completeTurnScriptIfReady()
@@ -4883,10 +4879,7 @@ void main() {
         dialogueSessionAdapter.synchronize(scriptRuntime)
         dialogueSessionAdapter.update(delta, autoAdvanceEnabled = false)
         battle.syncScriptedOutcome(scriptRuntime.stage.scriptedBattleOutcome)
-        if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
-            scriptRuntime.currentModalText?.let { battleInfoReveal.update(it, delta) }
-        } else {
-            battleInfoReveal.reset()
+        if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) {
             battleInfoPanelPressed = false
         }
         scriptedMovementCampTransitionFrameBarrier.observe(
@@ -11453,7 +11446,7 @@ void main() {
 
     private fun drawScriptInfoLayer() {
         if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) return
-        val text = battleInfoReveal.visibleText
+        val text = scriptRuntime.currentModalVisibleText
         val sourceCanvasWidth = 1488.3721f
         val centreX = sourceCanvasWidth / 2f
         val centreY = 400f

@@ -59,6 +59,10 @@ data class DialogueModal(
     val text: String,
     /** 글자 표시 없이 항상 함께 보일 고정 본문이다. */
     val fixedText: String = "",
+    /** 외부 실행기가 타이핑을 소유할 때 현재 공개된 본문이다. */
+    val externalVisibleText: String? = null,
+    /** 외부 실행기가 타이핑을 소유할 때 공개 완료 여부다. */
+    val externalTextComplete: Boolean? = null,
     /** 자동 진행을 허용할지 여부이다. */
     val autoAdvance: Boolean = false,
     /** 글자 표시 완료 뒤 자동 진행까지 기다릴 시간이다. */
@@ -177,8 +181,8 @@ class DialogueSession(
             dialogueVisibleText = dialogueReveal.visibleText,
             choice = choice,
             modal = modal,
-            modalVisibleText = modalReveal.visibleText,
-            textComplete = activeReveal().isComplete,
+            modalVisibleText = modal?.externalVisibleText ?: modalReveal.visibleText,
+            textComplete = modal?.externalTextComplete ?: activeReveal().isComplete,
         )
 
     /** 대사를 표시하고 같은 갱신 번호가 아니면 글자 공개를 처음부터 시작한다. */
@@ -204,11 +208,18 @@ class DialogueSession(
 
     /** 모달을 표시하고 같은 갱신 번호가 아니면 글자 공개를 처음부터 시작한다. */
     fun presentModal(request: DialogueModal) {
-        if (mode == DialogueSessionMode.MODAL && modal?.revision == request.revision) return
+        if (mode == DialogueSessionMode.MODAL && modal?.revision == request.revision) {
+            modal = request
+            return
+        }
         clearExcept(DialogueSessionMode.MODAL)
         mode = DialogueSessionMode.MODAL
         modal = request
-        modalReveal.setSource(request.text)
+        if (request.externalVisibleText == null && request.externalTextComplete == null) {
+            modalReveal.setSource(request.text)
+        } else {
+            modalReveal.reset()
+        }
     }
 
     /** 모든 표시 상태와 진행 중인 글자 공개를 초기화한다. */
@@ -227,7 +238,13 @@ class DialogueSession(
         val delta = deltaSeconds.coerceAtLeast(0f)
         when (mode) {
             DialogueSessionMode.DIALOGUE -> dialogueReveal.update(delta)
-            DialogueSessionMode.MODAL -> modalReveal.update(delta)
+            DialogueSessionMode.MODAL -> {
+                if (modal?.externalVisibleText != null || modal?.externalTextComplete != null) {
+                    autoAdvanceRemainingSeconds = null
+                    return DialogueSessionTransition.Ignored
+                }
+                modalReveal.update(delta)
+            }
             DialogueSessionMode.IDLE, DialogueSessionMode.CHOICE -> return DialogueSessionTransition.Ignored
         }
         val request = modal ?: return updateDialogueAutoAdvance(delta, autoAdvanceEnabled)
