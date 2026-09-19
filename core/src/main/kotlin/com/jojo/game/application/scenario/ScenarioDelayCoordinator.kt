@@ -5,6 +5,9 @@ import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
 
+data class ScenarioHallUnitReadinessEntry(val index: Int, val command: ScenarioCommand.ShowUnit)
+data class ScenarioHallUnitReadinessRequest(val token: Long, val entries: List<ScenarioHallUnitReadinessEntry>)
+
 /** 시나리오 지연과 외부 연출 완료 시점을 조율한다. */
 internal class ScenarioDelayCoordinator(
     /**
@@ -69,6 +72,12 @@ internal class ScenarioDelayCoordinator(
     var externalFightPresentation: Boolean = false
 
     private var pendingHallMoveIds: Set<Int> = emptySet()
+    private var nextHallUnitReadinessToken = 1L
+    private var pendingHallUnitReadiness: ScenarioHallUnitReadinessRequest? = null
+    private val readyHallUnitEntryIndexes = mutableSetOf<Int>()
+
+    val hallUnitReadinessRequest: ScenarioHallUnitReadinessRequest?
+        get() = pendingHallUnitReadiness
 
     /**
      * `hasPendingBattleBackgroundLoad` (Boolean get()): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -90,6 +99,8 @@ internal class ScenarioDelayCoordinator(
         onSetDelayRemainingSeconds(0f)
         pendingBattleBackgroundLoadIndex = null
         pendingHallMoveIds = emptySet()
+        pendingHallUnitReadiness = null
+        readyHallUnitEntryIndexes.clear()
     }
 
     /** 남은 지연 시간을 설정한다. */
@@ -112,6 +123,31 @@ internal class ScenarioDelayCoordinator(
         onSetState(PlaybackState.DELAY)
     }
 
+    fun suspendForHallUnitReadiness(commands: List<ScenarioCommand.ShowUnit>) {
+        check(pendingHallUnitReadiness == null) { "Hall unit readiness request is already pending" }
+        val token = nextHallUnitReadinessToken++
+        pendingHallUnitReadiness = ScenarioHallUnitReadinessRequest(
+            token,
+            commands.mapIndexed { index, command -> ScenarioHallUnitReadinessEntry(index, command) },
+        )
+        readyHallUnitEntryIndexes.clear()
+        onSetDelayRemainingSeconds(Float.MAX_VALUE)
+        onSetState(PlaybackState.DELAY)
+    }
+
+    fun completeHallUnitReadiness(token: Long, entryIndex: Int): Boolean {
+        val request = pendingHallUnitReadiness ?: return false
+        if (request.token != token || entryIndex !in request.entries.indices) return false
+        if (!readyHallUnitEntryIndexes.add(entryIndex)) return false
+        stage.apply(request.entries[entryIndex].command)
+        if (readyHallUnitEntryIndexes.size < request.entries.size) return true
+        pendingHallUnitReadiness = null
+        readyHallUnitEntryIndexes.clear()
+        onSetDelayRemainingSeconds(0f)
+        onResumeExecution()
+        return true
+    }
+
     /** 전장 배경이 준비될 때까지 시나리오 실행을 일시 정지한다. */
     fun suspendForBattleBackgroundLoad(mapIndex: Int) {
         check(!hasPendingBattleBackgroundLoad) { "동시에 두 개의 loadBg 콜백이 대기 중입니다." }
@@ -131,6 +167,7 @@ internal class ScenarioDelayCoordinator(
         when (getState()) {
             PlaybackState.DELAY -> {
                 if (hasPendingBattleBackgroundLoad) return
+                if (pendingHallUnitReadiness != null) return
                 if (dialogueCoordinator.handleDelayTick()) return
                 if (pendingHallMoveIds.isNotEmpty()) {
                     if (pendingHallMoveIds.any { stage.unit(it).moveDuration > 0f }) return
@@ -157,6 +194,7 @@ internal class ScenarioDelayCoordinator(
     fun skipDelay() {
         if (getState() != PlaybackState.DELAY) return
         if (hasPendingBattleBackgroundLoad) return
+        if (pendingHallUnitReadiness != null) return
         stage.finishAnimations()
         pendingHallMoveIds = emptySet()
         onSetDelayRemainingSeconds(0f)
@@ -168,6 +206,9 @@ internal class ScenarioDelayCoordinator(
         check(getState() == PlaybackState.DELAY) { "재개할 외부 애니메이션 대기가 없습니다." }
         check(!hasPendingBattleBackgroundLoad) {
             "loadBg는 BattleScreen의 맵/아바타 완료 콜백으로만 재개해야 합니다."
+        }
+        check(pendingHallUnitReadiness == null) {
+            "Hall unit readiness는 texture 완료 콜백으로만 재개해야 합니다."
         }
         pendingHallMoveIds = emptySet()
         onSetDelayRemainingSeconds(0f)

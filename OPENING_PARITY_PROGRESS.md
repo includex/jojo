@@ -969,3 +969,61 @@ python3 tools/verify_opening_first_move.py build/reports/opening-post-event-2026
 유닛 비동기 준비, 이동 중 zIndex scheduler와 전체 화면, 후속 대사 시작 타이밍은
 계속 검증해야 한다. 현재 EVENT 종료→첫 글자 관측은 source 2.1초, port 2.167357초이며
 전체 구간 일치를 의미하지 않는다. 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## Hall 유닛의 두 텍스처 준비 후 등록·재개 (2026-09-20)
+
+원본은 신규 유닛의 R_AVATAR에 해당하는 두 Pmapobj2 텍스처를 순차 로드하고 anime를
+준비한 뒤 유닛을 등록·재개한다. 포트는 이동을 먼저 시작하고 draw에서 현재 방향의
+텍스처 한 장만 읽었다. 수정 전 실제 첫 등장에는 181의364, 0의2, 157의315,
+182의366이 각각 준비되지 않았다.
+
+ScenarioScreen의 Hall 실행에는 명시적 asset-readiness 모드를 켠다. 신규 showUnit은
+등록을 보류하고, showUnits는 entry별로 준비된 유닛을 등록하되 마지막 entry 완료에서만
+재개한다. 기존 showUnit의 재배치는 즉시 처리한다. token/index로 중복·이전 장면의
+callback을 거부하고, skipDelay 및 외부 resume도 준비 대기를 우회하지 못하게 했다.
+Headless의 기존 즉시 논리 실행 모드는 유지하며, 새 회귀 테스트는 readiness 모드를
+명시적으로 켜고 완료 신호를 전달한다.
+
+실제 Pixmap decode는 두 worker에서 수행하고 Texture 생성/upload는 render thread에서
+한다. 첫 텍스처 완료 후 두 번째를 요청하며 GPU upload 완료 callback만 안전 큐로
+넘긴다. Texture는 기존 unitTextures cache만 소유하고, 진행 중 중복 decode/load와
+종료 시 Pixmap 누수를 막았다. 파일 누락은 준비 완료로 처리하지 않는다.
+pre/post playback 두 지점에서 요청과 완료 큐를 처리하며, 캐시가 준비된 연속 요청은
+같은 안전 지점에서 처리한다. 고정 시간 또는 고정 한 프레임 대기를 넣지 않았다.
+
+원본 hook은 load request/callback, onInit, show 완료를 pass-through 관측한다.
+GPU 준비는 실제 GL handle로 판정하고 decoded·anime 상태와 구분한다. 병렬 group의
+0/157 완료 순서는 강제하지 않는다. 이번 fresh source는 157이 먼저 준비됐다.
+포트 역시 실제 GPU handle을 가진 cache 항목만 첫 등장 표본에 기록한다.
+네 유닛 모두 필요한 두 장이 준비된 결과로 바뀌었다.
+
+첫 이동 검증은 별도 Screen 등록 observer의 pre/post playback phase를 기대 tick의
+근거로 사용한다. moveJustStarted flag는 그 phase와 교차 검사하며 정답 선택의 근거로
+쓰지 않는다. 그룹 asset 대기 중에는 첫 이동 완료 후 idle action0이 정상이며,
+스크립트 재개는 후속 group 준비 요청이 생성된 프레임으로 확인한다.
+이번 source/port 첫 이동 완료·재개는 각 delta 예측과 같은 frame253/109였고,
+Float32 좌표도 정확히 일치했다.
+
+검증: core 181개, campaign 47개, Python opening 51개 통과. EVENT 자연 타이머 규칙
+회귀와 첫 세 분리 대사 화면 strict RGBA 0픽셀 차이를 유지했다. 최종 Gradle 실행은
+외부 60초 제한에서 22초에 완료했다. Astra가 자산 소유권·callback 경계·독립 phase
+검증을 검수했고 Sol이 runtime/asset bridge를 구현했다.
+
+증거: `build/reports/opening-unit-ready-20260920/`의 `source/source-event-timing.json`,
+`game-baseline.json`, `game-final.json`, `baseline-ready.json`, `fixed-ready.json`,
+`first-move-regression.json`, `event-timer-regression.json`, `pages-regression.json`,
+`final-regression.log`.
+
+```sh
+node tools/capture_opening_source_event_timing.cjs build/reports/opening-unit-ready-20260920/source
+./gradlew :verification:captureOpeningEventTiming
+python3 tools/verify_opening_unit_ready.py build/reports/opening-unit-ready-20260920/source/source-event-timing.json verification/build/verification/opening-event-timing/game-event-timing.json
+python3 tools/verify_opening_first_move.py build/reports/opening-unit-ready-20260920/source/source-event-timing.json verification/build/verification/opening-event-timing/game-event-timing.json
+```
+
+GPU 준비 표본은 첫 등장 프레임의 두 자산 존재를 입증하며, 그 표본만으로 프레임 내부
+전체 callback 순서나 로드 지연 시간까지 같다고 주장하지 않는다. EVENT 종료→첫 글자
+관측은 source 2.1499초, port 2.137342초이며 총량 동등성은 여전히 미검증이다.
+후속 delay·대사 시작 경계와 이동 중 zIndex/전체 화면 검증을 계속 진행한다.
+전체 게임 동등성 목표는 계속 진행한다.

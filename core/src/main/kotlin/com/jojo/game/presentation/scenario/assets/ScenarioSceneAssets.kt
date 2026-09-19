@@ -9,6 +9,9 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
+import com.badlogic.gdx.utils.async.AsyncExecutor
+import com.badlogic.gdx.utils.async.AsyncResult
+import com.badlogic.gdx.utils.async.AsyncTask
 import com.jojo.game.presentation.shared.SourceSlicedPatch
 
 /** ScenarioSceneAssets: 시나리오·거점 화면이 공유하는 텍스처와 글꼴을 지연 생성하고 수명 종료 때 해제한다. */
@@ -43,6 +46,14 @@ internal class ScenarioSceneAssets(
      */
 
     private val unitTextures = ScenarioSceneAssetCache<Int, Texture>(Texture::dispose)
+    private data class HallUnitTextureLoad(
+        val assetId: Int,
+        val result: AsyncResult<Pixmap>,
+        val callbacks: MutableList<() -> Unit>,
+    )
+    private val hallUnitTextureExecutor = AsyncExecutor(2, "hall-unit-textures")
+    private val hallUnitTextureLoads = mutableMapOf<Int, HallUnitTextureLoad>()
+    private val hallUnitTextureReadyCallbacks = ArrayDeque<() -> Unit>()
     /** 거점 UI 경로별 텍스처를 경로 키로 재사용하는 캐시다. */
     val hallMenuTextures = ScenarioSceneTextureCache()
 
@@ -327,10 +338,55 @@ internal class ScenarioSceneAssets(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun unitTexture(assetId: Int): Texture? = unitTextures[assetId] ?: loadTexture(
-        "maps/hall-units/$assetId.png",
-        Texture.TextureFilter.Linear,
-    )?.also { unitTextures[assetId] = it }
+    fun unitTexture(assetId: Int): Texture? {
+        unitTextures[assetId]?.let { return it }
+        if (assetId in hallUnitTextureLoads) return null
+        return loadTexture(
+            "maps/hall-units/$assetId.png",
+            Texture.TextureFilter.Linear,
+        )?.also { unitTextures[assetId] = it }
+    }
+
+    /** 두 방향 Hall sprite sheet를 실제 decode/upload 완료 순서로 준비한다. */
+    fun requestHallUnitTexturePair(firstAssetId: Int, secondAssetId: Int, onReady: () -> Unit) {
+        requestHallUnitTexture(firstAssetId) {
+            requestHallUnitTexture(secondAssetId, onReady)
+        }
+    }
+
+    private fun requestHallUnitTexture(assetId: Int, onReady: () -> Unit) {
+        if (unitTextures[assetId] != null) {
+            hallUnitTextureReadyCallbacks.addLast(onReady)
+            return
+        }
+        hallUnitTextureLoads[assetId]?.callbacks?.add(onReady) ?: run {
+            val file = Gdx.files.internal("maps/hall-units/$assetId.png")
+            val result = hallUnitTextureExecutor.submit(AsyncTask {
+                check(file.exists()) { "Missing Hall unit texture: ${file.path()}" }
+                Pixmap(file)
+            })
+            hallUnitTextureLoads[assetId] = HallUnitTextureLoad(assetId, result, mutableListOf(onReady))
+        }
+    }
+
+    /** render thread에서 완료된 Pixmap을 Texture로 올리고 readiness callback을 안전 큐에 넣는다. */
+    fun updateHallUnitTextureLoads() {
+        hallUnitTextureLoads.values.filter { it.result.isDone }.toList().forEach { load ->
+            hallUnitTextureLoads.remove(load.assetId)
+            val pixmap = load.result.get()
+            if (unitTextures[load.assetId] == null) {
+                val texture = try { Texture(pixmap) } finally { pixmap.dispose() }
+                texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+                unitTextures[load.assetId] = texture
+            } else pixmap.dispose()
+            load.callbacks.forEach(hallUnitTextureReadyCallbacks::addLast)
+        }
+    }
+
+    /** request 호출 스택이 반환된 뒤에만 callback을 실행한다. */
+    fun drainHallUnitTextureReadyCallbacks() {
+        while (hallUnitTextureReadyCallbacks.isNotEmpty()) hallUnitTextureReadyCallbacks.removeFirst().invoke()
+    }
 
     /**
      * `hallTexture`: 타입의 핵심 동작을 수행한다.
@@ -350,6 +406,10 @@ internal class ScenarioSceneAssets(
         streetBodyLabels.dispose()
         portraitTextures.dispose()
         backgroundTextures.dispose()
+        hallUnitTextureExecutor.dispose()
+        hallUnitTextureLoads.values.forEach { load -> runCatching { load.result.get().dispose() } }
+        hallUnitTextureLoads.clear()
+        hallUnitTextureReadyCallbacks.clear()
         unitTextures.dispose()
         hallMenuTextures.dispose()
         cachedOverlayPixel?.dispose()

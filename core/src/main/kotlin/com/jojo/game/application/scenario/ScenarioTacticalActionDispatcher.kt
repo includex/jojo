@@ -22,6 +22,8 @@ internal data class ScenarioTacticalEnvironment(
     val externalBattlePresentation: Boolean,
     val suspendFor: (Float) -> Unit,
     val suspendForHallMoves: (Set<Int>) -> Unit,
+    val externalHallUnitReadiness: Boolean,
+    val suspendForHallUnitReadiness: (List<ScenarioCommand.ShowUnit>) -> Unit,
     val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
     val unitReference: (JsonValue, Frame) -> ScenarioUnitReference?,
     val headReference: (JsonValue, Frame) -> HeadReference?,
@@ -357,7 +359,10 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.showUnit" -> {
-                env.stage.apply(ScenarioCommand.ShowUnit(args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3)))
+                val command = ScenarioCommand.ShowUnit(args.intAt(0), args.intAt(1), args.intAt(2), args.intAt(3))
+                if (env.externalHallUnitReadiness && !env.stage.hasUnit(command.unitId)) {
+                    env.suspendForHallUnitReadiness(listOf(command))
+                } else env.stage.apply(command)
                 return ScenarioHandledCall(null)
             }
 
@@ -377,22 +382,25 @@ internal object ScenarioTacticalActionDispatcher {
             }
 
             "stage.showUnits" -> {
-                args.firstOrNull().asList().forEach { values ->
+                val commands = args.firstOrNull().asList().mapNotNull { values ->
                     /**
                      * `entry` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
                      */
 
                     val entry = values.asList()
-                    if (entry.size >= 3) env.stage.apply(
+                    if (entry.size >= 3) {
                         ScenarioCommand.ShowUnit(
                             entry[0].asInt(),
                             entry[1].asInt(),
                             entry[2].asInt(),
                             entry.getOrNull(3).asInt()
                         )
-                    )
+                    } else null
                 }
+                if (env.externalHallUnitReadiness && commands.isNotEmpty()) {
+                    env.suspendForHallUnitReadiness(commands)
+                } else commands.forEach(env.stage::apply)
                 return ScenarioHandledCall(null)
             }
 

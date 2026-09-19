@@ -27,6 +27,12 @@ class ScenarioInterpreter internal constructor(
 ) {
     /** externalBattlePresentation: 전투 화면이 대화와 이동 연출을 자체적으로 표시하는 실행 모드다. */
     private var externalBattlePresentation = false
+    private var externalHallUnitReadiness = false
+    fun enableExternalHallUnitReadiness() { externalHallUnitReadiness = true }
+    val pendingHallUnitReadinessRequest: ScenarioHallUnitReadinessRequest?
+        get() = delayCoordinator.hallUnitReadinessRequest
+    fun completeHallUnitReadiness(token: Long, entryIndex: Int): Boolean =
+        delayCoordinator.completeHallUnitReadiness(token, entryIndex)
     /** stagePresentationSkipped: 무대 연출을 생략하고 논리 상태만 진행해야 하는지 나타낸다. */
     private var stagePresentationSkipped = false
     /** enableExternalBattlePresentation: 전투 장면의 이동·대화 연출 제어권을 외부 화면으로 넘긴다. */
@@ -303,6 +309,7 @@ class ScenarioInterpreter internal constructor(
         unhandledCalls = unhandledCalls,
         getBattleContext = { battleContext },
         isExternalBattlePresentation = { externalBattlePresentation },
+        isExternalHallUnitReadiness = { externalHallUnitReadiness },
         isStagePresentationSkipped = { stagePresentationSkipped },
         onEnd = { ended = true },
         onSetState = { state = it },

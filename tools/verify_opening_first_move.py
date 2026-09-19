@@ -112,6 +112,19 @@ def validate_game_clock(creation, moving_rows):
             raise ValueError('Hall action duration changed before arrival')
 
 
+def prime_offset(initial, creation_frame, commits):
+    commits = [c for c in commits if c['actorId'] == 181]
+    if len(commits) != 1 or commits[0]['frame'] != creation_frame:
+        raise ValueError('Missing independent first unit registration phase')
+    phase = commits[0]['phase']
+    if phase not in ('pre-playback', 'post-playback'):
+        raise ValueError('Unknown unit registration phase')
+    should_be_unprimed = phase == 'post-playback'
+    if initial.get('hallMoveJustStarted') is not should_be_unprimed:
+        raise ValueError('Action priming state contradicts independent registration phase')
+    return 1 if should_be_unprimed else 0
+
+
 def verify(source_path, game_path):
     source, game = [json.loads(p.read_text()) for p in (source_path, game_path)]
     source_root = Path(source['sourceRoot'])
@@ -144,12 +157,14 @@ def verify(source_path, game_path):
     initial = next(a for a in creation['actors'] if a['id'] == 181)
     if (initial['x'], initial['y'], initial['visualX'], initial['visualY']) != (40, 5, 40, 5):
         raise ValueError('Unexpected game move initial position')
-    validate_game_clock(initial, frames[first + 1:])
+    prime_index = first + prime_offset(initial, creation['frame'], game.get('unitReadyCommits', []))
+    validate_game_clock(initial, frames[prime_index:])
     observed_game = []
     complete = None
-    for row in frames[first + 1:]:
+    for row in frames[prime_index:]:
         a = next(a for a in row['actors'] if a['id'] == 181)
-        if not a['visible'] or a['direction'] != 2 or a['action'] != 20:
+        arrived = (a['x'], a['y']) == (40, 15)
+        if not a['visible'] or a['direction'] != 2 or a['action'] not in ((0, 20) if arrived else (20,)):
             raise ValueError('Game first move hidden or wrong direction/action')
         if (a['x'], a['y']) not in ((40, 5), (40, 15)):
             raise ValueError('Game logical position changed before arrival')
@@ -159,9 +174,11 @@ def verify(source_path, game_path):
             break
     if complete is None:
         raise ValueError('Game first move never completed')
-    normalized = [{'frame': r['frame'], 'delta': r['deltaSeconds']} for r in frames[first + 1:]]
+    normalized = [{'frame': r['frame'], 'delta': r['deltaSeconds']} for r in frames[prime_index:]]
     game_result = assess(normalized, observed_game, complete)
-    resumed = next(r['frame'] for r in frames[first + 1:] if any(a['id'] == 0 for a in r['actors']))
+    resumed = next(r['frame'] for r in frames[first + 1:]
+                   if set(r.get('pendingHallUnitReadinessIds', [])) == {0, 157}
+                   or any(a['id'] == 0 for a in r['actors']))
     game_result['scriptResumeFrame'] = resumed
     game_result['matchesActionRule'] &= resumed == complete
     source_resume = next(r['frame'] for r in source['flowEvents'] if r['kind'] == 'StageLayer.resume' and r['frame'] > moves[0]['frame'])

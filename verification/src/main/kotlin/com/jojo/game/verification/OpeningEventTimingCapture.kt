@@ -2,6 +2,7 @@ package com.jojo.game.verification
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.jojo.game.application.runtime.RenderCaptureConfiguration
@@ -13,6 +14,8 @@ import com.jojo.game.domain.scenario.PlaybackState
 internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
     private val file = Gdx.files.absolute(requireNotNull(output.rawCapturePath)).parent().child("game-event-timing.json")
     private val rows = JsonValue(JsonValue.ValueType.array)
+    private val readyCommits = JsonValue(JsonValue.ValueType.array)
+    private var readinessObserverInstalled = false
     private var frame = 0
     private var finished = false
     private var sawEvent = false
@@ -21,6 +24,22 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
 
     fun onFrame(screen: Screen?, probe: ScenarioRuntimeProbe) {
         if (finished) return
+        if (!readinessObserverInstalled) {
+            val observer: (Long, Int, Int, String) -> Unit = { token, entryIndex, actorId, phase ->
+                val commit = JsonValue(JsonValue.ValueType.`object`)
+                commit.addChild("frame", JsonValue((frame + 1).toLong()))
+                commit.addChild("token", JsonValue(token))
+                commit.addChild("entryIndex", JsonValue(entryIndex.toLong()))
+                commit.addChild("actorId", JsonValue(actorId.toLong()))
+                commit.addChild("phase", JsonValue(phase))
+                readyCommits.addChild(commit)
+            }
+            requireNotNull(screen).javaClass.getDeclaredField("hallUnitReadinessObserver").let {
+                it.isAccessible = true
+                it.set(screen, observer)
+            }
+            readinessObserverInstalled = true
+        }
         frame++
         check(frame < 900 && probe.elapsedSeconds < 10f) { "Natural event timing timed out" }
         check(probe.module == "R_00" && probe.sceneIndex == 1)
@@ -40,7 +59,22 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
         }
         val playback = field(requireNotNull(screen), "playback")
         val modal = field(playback, "modalController")
+        val textures = field(field(requireNotNull(screen), "sceneAssets"), "unitTextures")
+        val loadedTextureIds = (field(textures, "values") as Map<*, *>).filterValues {
+            val texture = it as Texture
+            texture.textureObjectHandle != 0 && texture.width > 0 && texture.height > 0
+        }.keys.map { (it as Number).toInt() }.sorted()
+        val textureIds = JsonValue(JsonValue.ValueType.array)
+        loadedTextureIds.forEach { textureIds.addChild(JsonValue(it.toLong())) }
+        row.addChild("loadedHallTextureIds", textureIds)
         row.addChild("delayRemainingSeconds", JsonValue((field(playback, "delayRemainingSeconds") as Number).toDouble()))
+        val pending = (playback as ScenarioInterpreter).pendingHallUnitReadinessRequest
+        if (pending != null) {
+            row.addChild("pendingHallUnitReadinessToken", JsonValue(pending.token))
+            val entries = JsonValue(JsonValue.ValueType.array)
+            pending.entries.forEach { entries.addChild(JsonValue(it.command.unitId.toLong())) }
+            row.addChild("pendingHallUnitReadinessIds", entries)
+        }
         val actors = JsonValue(JsonValue.ValueType.array)
         probe.actors.forEach { actor ->
             val value = JsonValue(JsonValue.ValueType.`object`)
@@ -52,6 +86,7 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
             value.addChild("moveElapsed", JsonValue(actor.moveElapsed.toDouble()))
             value.addChild("moveDuration", JsonValue(actor.moveDuration.toDouble()))
             val unit = requireNotNull((playback as ScenarioInterpreter).stage.units[actor.id])
+            value.addChild("hallMoveJustStarted", JsonValue(unit.moveJustStarted))
             value.addChild("hallMoveElapsedSeconds", JsonValue(unit.hallMoveElapsedSeconds))
             value.addChild("hallMoveDurationSeconds", JsonValue(unit.hallMoveDurationSeconds))
             value.addChild("direction", JsonValue(actor.direction.toLong()))
@@ -76,6 +111,7 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
         result.addChild("pixelReadback", JsonValue(false))
         result.addChild("isolation", JsonValue(false))
         result.addChild("frames", rows)
+        result.addChild("unitReadyCommits", readyCommits)
         file.parent().mkdirs()
         file.writeString(result.prettyPrint(JsonWriter.OutputType.json, 120), false)
         Gdx.app.log("JojoGame", "OPENING_EVENT_TIMING_COMPLETE frames=$frame")

@@ -26,12 +26,68 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertNotNull
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 /** ScenarioRuntimeTest: ScenarioRuntime의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class ScenarioRuntimeTest {
+    @Test
+    fun `external Hall readiness registers each group unit and resumes only after the last asset pair`() {
+        val runtime = ScenarioInterpreter.load("R_00")
+        runtime.enableExternalHallUnitReadiness()
+        runtime.start("scene1")
+        runtime.completeModalTyping()
+        runtime.resumeModal()
+
+        val single = requireNotNull(runtime.pendingHallUnitReadinessRequest)
+        assertEquals(listOf(181), single.entries.map { it.command.unitId })
+        assertFalse(runtime.stage.hasUnit(181))
+        runtime.skipDelay()
+        assertFalse(runtime.stage.hasUnit(181), "skip cannot bypass source asset readiness")
+        assertNotNull(runtime.pendingHallUnitReadinessRequest)
+        assertFailsWith<IllegalStateException> { runtime.resumeExternalDelay() }
+        assertFalse(runtime.completeHallUnitReadiness(single.token + 1, 0), "stale token must not register a unit")
+        assertTrue(runtime.completeHallUnitReadiness(single.token, 0))
+        assertTrue(runtime.stage.hasUnit(181))
+        assertNull(runtime.pendingHallUnitReadinessRequest)
+
+        runtime.skipDelay()
+        val group = requireNotNull(runtime.pendingHallUnitReadinessRequest)
+        assertEquals(listOf(0, 157), group.entries.map { it.command.unitId })
+        assertFalse(runtime.stage.hasUnit(0))
+        assertFalse(runtime.stage.hasUnit(157))
+
+        assertTrue(runtime.completeHallUnitReadiness(group.token, 1))
+        assertTrue(runtime.stage.hasUnit(157))
+        assertFalse(runtime.stage.hasUnit(0))
+        assertEquals(PlaybackState.DELAY, runtime.state)
+        assertNotNull(runtime.pendingHallUnitReadinessRequest)
+
+        assertTrue(runtime.completeHallUnitReadiness(group.token, 0))
+        assertTrue(runtime.stage.hasUnit(0))
+        assertNull(runtime.pendingHallUnitReadinessRequest)
+        assertEquals(PlaybackState.DELAY, runtime.state, "the completed group resumes into its scripted move")
+    }
+
+    @Test
+    fun `Hall readiness reset rejects late asset callback`() {
+        val runtime = ScenarioInterpreter.load("R_00")
+        runtime.enableExternalHallUnitReadiness()
+        runtime.start("scene1")
+        runtime.completeModalTyping()
+        runtime.resumeModal()
+        val stale = requireNotNull(runtime.pendingHallUnitReadinessRequest)
+
+        runtime.start("scene1")
+
+        assertFalse(runtime.completeHallUnitReadiness(stale.token, 0))
+        assertFalse(runtime.stage.hasUnit(181))
+        assertEquals(PlaybackState.MODAL, runtime.state)
+    }
+
     @Test
     fun `Hall delay keeps same destination move paused through prime and waits for its group`() {
         val stage = ScenarioStage()

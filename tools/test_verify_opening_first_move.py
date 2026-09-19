@@ -1,5 +1,5 @@
 import unittest
-from verify_opening_first_move import DURATION, EPSILON, assess, replay, source_contract, source_positions, validate_game_clock
+from verify_opening_first_move import DURATION, EPSILON, assess, replay, source_contract, source_positions, validate_game_clock, prime_offset
 
 
 class FirstMoveRuleTest(unittest.TestCase):
@@ -42,6 +42,15 @@ class FirstMoveRuleTest(unittest.TestCase):
         frames = [dict(frame=1, delta=0), dict(frame=2, delta=1)]
         observed = [dict(frame=1, x=40, y=5.000001), dict(frame=2, x=40, y=15)]
         self.assertFalse(assess(frames, observed, 2)['matchesActionRule'])
+
+    def test_prime_frame_comes_from_independent_commit_phase(self):
+        for phase, unprimed, offset in [('pre-playback', False, 0), ('post-playback', True, 1)]:
+            commits = [dict(actorId=181, frame=8, phase=phase)]
+            self.assertEqual(offset, prime_offset(dict(hallMoveJustStarted=unprimed), 8, commits))
+            with self.assertRaises(ValueError):
+                prime_offset(dict(hallMoveJustStarted=not unprimed), 8, commits)
+        with self.assertRaises(ValueError):
+            prime_offset(dict(hallMoveJustStarted=False), 8, [])
 
     def test_first_tick_discards_even_large_delta(self):
         result = replay([{'frame': 1, 'delta': 10}, {'frame': 2, 'delta': .2}, {'frame': 3, 'delta': .21}])

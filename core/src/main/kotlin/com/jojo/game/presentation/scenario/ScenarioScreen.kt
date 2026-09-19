@@ -120,7 +120,9 @@ class ScenarioScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    internal val playback = ScenarioInterpreter.load(moduleName, campaign).apply {
+    internal val playback = ScenarioInterpreter.load(moduleName, campaign).also {
+        it.enableExternalHallUnitReadiness()
+    }.apply {
         // `campaign.enter()`는 새 모듈 상태를 준비한다. 명시적으로 전달한 전역값은
         // 캠페인 진입 뒤에 적용하여, 장면 시작 시 원본의 보호 입력값이 사라지지 않게 한다.
         scriptedGlobals.forEach { (id, value) -> campaign.globalVariables[id] = value }
@@ -174,6 +176,9 @@ class ScenarioScreen(
             append(Gdx.files.internal("scenarios/$moduleName.py").readString("UTF-8"))
         }
     }
+    private var submittedHallUnitReadinessToken: Long? = null
+    private val readyHallUnitEntries = ArrayDeque<Pair<Long, Int>>()
+    internal var hallUnitReadinessObserver: ((Long, Int, Int, String) -> Unit)? = null
 
     /** Scene2D 대화 위젯이 공유할 Stage다. 기존 InputProcessor에는 연결하지 않는다. */
     private val dialogueScene2dStage = lazy { Stage(viewport) }
@@ -846,6 +851,7 @@ class ScenarioScreen(
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
         runtimeTraceCoordinator.applyRuntimeCommands()
+        processHallUnitAssetReadiness("pre-playback")
         if (!runtimeOverlayInstalled && runtimeOverlay != null) {
             runtimeOverlayInstalled = true
             when (runtimeOverlay) {
@@ -946,12 +952,49 @@ class ScenarioScreen(
             }
         }
         if (playbackFrame.updatePlayback(delta) == ScenarioRenderPhaseResult.ROUTED) return
+        processHallUnitAssetReadiness("post-playback")
         if (playbackFrame.elapsed > 0.15f && runtimeOverlay == RuntimeScenarioOverlay.CHOICE) {
             advanceSourceUntilChoice()
             playbackController.resetDialogueReveal()
         }
         playbackFrame.updatePresentation(delta)
         if (renderScenarioFrame() == ScenarioRenderPhaseResult.CAPTURED) return
+    }
+
+    /** 실제 두 방향 texture가 준비된 Hall unit만 등록하고 마지막 unit에서 script를 재개한다. */
+    private fun processHallUnitAssetReadiness(phase: String) {
+        sceneAssets.updateHallUnitTextureLoads()
+        var guard = 0
+        while (guard++ < 10_000) {
+            sceneAssets.drainHallUnitTextureReadyCallbacks()
+            if (readyHallUnitEntries.isNotEmpty()) {
+                while (readyHallUnitEntries.isNotEmpty()) {
+                    val (token, entryIndex) = readyHallUnitEntries.removeFirst()
+                    val entry = playback.pendingHallUnitReadinessRequest
+                        ?.takeIf { it.token == token }
+                        ?.entries
+                        ?.getOrNull(entryIndex)
+                    if (playback.completeHallUnitReadiness(token, entryIndex) && entry != null) {
+                        hallUnitReadinessObserver?.invoke(token, entryIndex, entry.command.unitId, phase)
+                    }
+                }
+                continue
+            }
+            val request = playback.pendingHallUnitReadinessRequest
+            if (request == null) {
+                submittedHallUnitReadinessToken = null
+                return
+            }
+            if (submittedHallUnitReadinessToken == request.token) return
+            submittedHallUnitReadinessToken = request.token
+            request.entries.forEach { entry ->
+                val avatar = gameDataCatalog.unitProfile(entry.command.unitId)?.mapAvatar ?: entry.command.unitId
+                sceneAssets.requestHallUnitTexturePair(1 + avatar * 2, 2 + avatar * 2) {
+                    readyHallUnitEntries.addLast(request.token to entry.index)
+                }
+            }
+        }
+        error("Hall unit readiness did not settle")
     }
 
     /** renderScenarioFrame: 현재 재생 상태를 읽어 장면·대사·오버레이를 한 프레임에 렌더링한다. */

@@ -105,6 +105,7 @@ internal class ScenarioCallCoordinator(
      */
 
     private val isExternalBattlePresentation: () -> Boolean,
+    private val isExternalHallUnitReadiness: () -> Boolean,
     /**
      * `isStagePresentationSkipped` (() -> Boolean,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -237,6 +238,8 @@ internal class ScenarioCallCoordinator(
         externalBattlePresentation = isExternalBattlePresentation(),
         suspendFor = delayCoordinator::suspendFor,
         suspendForHallMoves = delayCoordinator::suspendForHallMoves,
+        externalHallUnitReadiness = isExternalHallUnitReadiness(),
+        suspendForHallUnitReadiness = delayCoordinator::suspendForHallUnitReadiness,
         resolveStageUnitReference = resolveStageUnitReference,
         unitReference = ::unitReference,
         headReference = ::headReference,
