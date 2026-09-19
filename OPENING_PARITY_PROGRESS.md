@@ -1609,3 +1609,36 @@ third-prefixes.json,negative-contract-checks.json에있다.
 13개semantic표본과처음3frame의spritephase를증명하며자연시간간격/중간모든frame은
 범위밖이다. 다음4~6페이지는공통dialogue-window runner로완료화면부터검증할계획이다.
 현재생성된street-body-labels catalog는첫3본문만포함하므로후속본문fallback은추가검증대상이다.
+
+### 2026-09-20 재사용 가능한 4~6페이지 완료화면 baseline
+
+`tools/parity-cases/opening-pages-4-6.json`에 본문·화자·캡처 페이지와 actor ID,
+source layer 관계를 선언했다. source의 자연 AFTER_DRAW와 port의 post-render에서
+1~6페이지 첫 완료를 관측하고, 정상 입력 5회로 진행하며 4~6페이지 전체 RGBA만 저장한다.
+source 실제 pointer 요청과 `_next` handler를 별도로 기록한다. 큰 인코딩과 저장은
+관측 종료 뒤 수행하며 portrait 준비 대기나 화면 격리는 없다.
+
+6페이지는 authored line 3개가 합쳐진 하나의 페이지다. source rawText/rawContent의
+`<br/>`를 보존하고 명시적으로 newline으로 변환한 본문을 비교한다. 첫 두 페이지는
+동일 layer, 이후 각 페이지는 새 layer임을 case의 sourceLayerGroups로 검사한다.
+비교기는 case digest, 입력 순서, 최초 완료와 캡처 일치, 정확한 actor 집합과 상태,
+raw 크기·SHA 및 전체 RGBA를 검사한다.
+
+이번 단위는 **미해결 차이를 재현하는 baseline 도구**이며 production 수정은 없다.
+4/5/6페이지의 변경 픽셀은 각각 84,805 / 10,796 / 178,571이고 모두 본문 영역이다.
+재캡처에서도 source와 port 각각의 raw SHA가 유지됐다. actor 상태와 정상 입력은 일치한다.
+기존 body-label exporter가 첫 두 say 호출(3페이지)만 추출하여 이후 본문은 fallback
+font 경로로 들어가는 것을 확인했다. 다음 단위에서 catalog와 여러 줄 본문을 수정한다.
+
+검증 명령:
+```
+node tools/capture_opening_source_dialogue_window.cjs tools/parity-cases/opening-pages-4-6.json build/reports/opening-pages-4-6-20260920/source
+./gradlew :verification:captureOpeningDialogueWindow
+python3 tools/verify_opening_dialogue_window.py tools/parity-cases/opening-pages-4-6.json build/reports/opening-pages-4-6-20260920/source/source-dialogue-window.json verification/build/verification/opening-dialogue-window/game-dialogue-window.json
+```
+현재 comparator 종료코드 1은 위 본문 차이에 대한 의도된 실패다. 증거는
+`build/reports/opening-pages-4-6-20260920/`의 source, game-baseline, baseline.json,
+negative-contract-checks.json에 있다. 잘못된 화자·미완료 입력·지연 캡처·actor 누락/중복·
+raw 본문 불일치·layer 재사용·요청 화자 오류·case digest 오류 등 10개 반례를 거부했다.
+기존 Python comparator 테스트 64개와 Kotlin compile/capture, 구문 및 diff 검사를 통과했다.
+완료 화면 3개만 다루며 타이핑 중간 프레임이나 이후 게임 전체를 검증한 것은 아니다.

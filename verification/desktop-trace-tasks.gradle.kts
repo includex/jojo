@@ -434,6 +434,37 @@ tasks.register<JavaExec>("captureOpeningThirdPrefixes") {
     }
 }
 
+tasks.register<JavaExec>("captureOpeningDialogueWindow") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningDialogueWindowDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-dialogue-window")
+    doFirst {
+        val caseFile = rootProject.file(
+            providers.gradleProperty("jojo.dialogueWindow.case")
+                .orElse("tools/parity-cases/opening-pages-4-6.json")
+                .get(),
+        )
+        check(caseFile.isFile) { "Opening dialogue window case missing: $caseFile" }
+        delete(destination)
+        setArgs(listOf(caseFile.absolutePath, destination.get().asFile.absolutePath))
+    }
+    doLast {
+        check(destination.get().file("game-dialogue-window.json").asFile.isFile)
+        val rawFrames = destination.get().asFile.listFiles { file ->
+            file.name.startsWith("game-page-") && file.extension == "rgba"
+        }.orEmpty()
+        check(rawFrames.isNotEmpty())
+        rawFrames.forEach { file ->
+            check(file.length() == 2560L * 1376 * 4) { "Invalid dialogue window frame: $file" }
+        }
+    }
+}
+
 tasks.register<JavaExec>("captureOpeningFirstMoveFrames") {
     group = "verification"
     timeout.set(java.time.Duration.ofSeconds(20))
