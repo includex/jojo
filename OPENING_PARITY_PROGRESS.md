@@ -1261,3 +1261,42 @@ Astra가 blend 및 상태 복원을 검수했고 Sol이 production 수정을 맡
 regression.log, pages-regression.json, prefixes-regression.json,
 game-alpha-final, alpha-final.log에 있다. 첫 전체 화면과 전체 게임의 완전 일치는
 아직 달성하지 않았으며 목표는 계속 진행한다.
+
+### 2026-09-20 첫 자연 완료 전체 화면 strict RGBA 일치
+
+남아 있던 actor182 RGB604픽셀 차이의 원인을 실제GPU 텍스처와 assembler 자료로
+분리했다. source 도구의 `JOJO_CAPTURE_ACTOR_GPU=1` 진단은 자연 AFTER_DRAW 이후
+보존된 SimpleSpriteAssembler vDatas/uintVDatas/indices, renderer view pool 행렬 및
+기존 GLtexture의 전체RGBA를 기록한다. gl.uniform 호출 자체를 가로챈 자료는 아니다.
+포트도 정상 전체 framebuffer를 먼저 저장한 뒤 기존 unitTextures cache의 GPUtexture를
+FBO에 붙여 읽는다. 양쪽 모두 FBO binding을 복원하고 새 asset을 로드하지 않는다.
+`verify_opening_unit_textures.py`로 source/port181·182의 전체48×1280 texel이
+각각0픽셀 차이임을 확인했다. 따라서 decode/upload 차이가 원인이 아니었다.
+
+원본182 assembler 정점은x1012.465087890625..1108.465087890625,
+y664..792, UV의 아래v는0.05000000074505806이었다. 기존 포트는688높이 좌표에서
+Float 산술을 먼저 수행해 y571.0400390625..681.1200561523438을 만들었다.
+이전 CPU projection 실험은 이미 반올림된 이 좌표를 유지했기 때문에 효과가 없었다.
+
+SourceWorldQuad는800높이 원본 world 좌표에서 Double geometry를 계산하고
+정점을Float로 변환한 다음 원본 스케일의 projection을 적용한다. 일반 Hall 좌표식과
+유닛96×128/말풍선48×48 크기를 사용하며 특정actor나 캡처 위치 보정은 없다.
+축 정렬 orthographic 외 행렬은 기존 SpriteBatch 경로를 사용한다. 재사용 buffer/matrix와
+begin/end 예외 시 두 행렬 복원을 적용했다. production은 기존 원본 sprite assets로 그리며
+캡처 framebuffer를 재생하지 않는다.
+
+수정 후 첫181 대사 자연 완료 전체 화면은2560×1376의 모든RGBA에서0픽셀 차이다.
+source와 포트 raw SHA-256은 모두
+`64e7d158f61c1547bcfee06f9c7987c9088124657d1792ba478241414bbb4dfc`.
+source GPU 진단 on/off도 같은 전체 화면 hash이며, 최종 예외 복원 보강 후 재캡처에서도
+일치를 유지했다. 기존 첫 세 완성 대사 UI·첫 대사13개 prefix도 모두strict0 유지.
+관련 core6개와 기존 Python comparator64개 통과, Node 문법·diff검사 통과.
+회귀 묶음12초, 마지막 core+전체 캡처14초로 외부60초 제한 내 완료했다.
+
+Astra 계획·검수, Sol production 수정, source agent GPU 진단을 사용했다. 증거는
+`build/reports/opening-unit-gpu-20260920/`의 source, game-baseline, game-fixed,
+game-final, texture-comparison.json, fixed-full-scene.json, final-full-scene.json,
+pages-regression.json, prefixes-regression.json, regression.log, final.log에 있다.
+이번 전체 화면 일치는첫 자연 완료 프레임에 한정한다. 이동 중 subpixel 좌표,
+다른 종횡비 및 이어지는 대사의 전체 화면·이후 게임 흐름은 추가검증 대상이며
+전체 게임 동등성 목표는 계속 진행한다.

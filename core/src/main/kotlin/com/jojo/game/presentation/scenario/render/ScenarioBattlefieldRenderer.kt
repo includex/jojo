@@ -13,6 +13,8 @@ import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
 /** ScenarioBattlefieldRenderer: 배경·배치 유닛·이동 보간 좌표를 시나리오 전장 레이어에 그린다. */
 internal object ScenarioBattlefieldRenderer {
+    private val sourceWorldQuad = SourceWorldQuad()
+
     /**
      * `draw`: 화면 표시 상태를 렌더링한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
@@ -125,10 +127,40 @@ internal object ScenarioBattlefieldRenderer {
         assets.unitTexture(unit.textureAssetId)?.let { texture ->
             val x = ScenarioBattlefieldRenderGeometry.mapX(unit.visualX, unit.visualY); val y = ScenarioBattlefieldRenderGeometry.mapY(unit.visualX, unit.visualY)
             batch.color = Color.WHITE
-            batch.draw(texture, x - 41.28f, y - 55.04f, 82.56f, 110.08f, 0, unit.frameRow * 64, 48, 64, unit.flipX, false)
-            if (unit.showSpeechBubble) assets.streetSpeechBubbleRegion?.let { batch.draw(it, x + 20.64f, y + 34.4f, 41.28f, 41.28f) }
+            if (!sourceWorldQuad.begin(batch)) {
+                batch.draw(texture, x - 41.28f, y - 55.04f, 82.56f, 110.08f, 0, unit.frameRow * 64, 48, 64, unit.flipX, false)
+                if (unit.showSpeechBubble) assets.streetSpeechBubbleRegion?.let { batch.draw(it, x + 20.64f, y + 34.4f, 41.28f, 41.28f) }
+                return
+            }
+            try {
+                val sourceX = (unit.visualX.toDouble() - unit.visualY.toDouble() + 42.0) * SOURCE_TILE_X
+                val sourceY = SOURCE_MAP_TOP - (unit.visualX.toDouble() + unit.visualY.toDouble()) * SOURCE_TILE_Y
+                val inverseWidth = 1f / texture.width
+                val inverseHeight = 1f / texture.height
+                val sourceRow = unit.frameRow * 64
+                val uLeft = if (unit.flipX) 48f * inverseWidth else 0f
+                val uRight = if (unit.flipX) 0f else 48f * inverseWidth
+                sourceWorldQuad.draw(
+                    batch, texture,
+                    sourceX - 48.0, sourceY - 64.0, 96.0, 128.0,
+                    uLeft, (sourceRow + 64f) * inverseHeight, uRight, sourceRow * inverseHeight,
+                )
+                if (unit.showSpeechBubble) assets.streetSpeechBubbleRegion?.let { bubble ->
+                    sourceWorldQuad.draw(
+                        batch, bubble.texture,
+                        sourceX + 24.0, sourceY + 40.0, 48.0, 48.0,
+                        bubble.u, bubble.v2, bubble.u2, bubble.v,
+                    )
+                }
+            } finally {
+                sourceWorldQuad.end(batch)
+            }
         }
     }
+
+    private const val SOURCE_TILE_X = 16.0 / 0.86
+    private const val SOURCE_TILE_Y = 8.0
+    private const val SOURCE_MAP_TOP = 1248.0
 
     /**
      * `Entry`: 관련 상태와 동작을 묶는 class다.

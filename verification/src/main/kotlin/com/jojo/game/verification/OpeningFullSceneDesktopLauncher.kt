@@ -84,6 +84,7 @@ object OpeningFullSceneDesktopLauncher {
                     }
                     report.addChild("renderPlanAtCapture", renderUnits)
                     File(directory, "game-full.json").writeText(report.prettyPrint(JsonWriter.OutputType.json, 120))
+                    OpeningUnitTextureCapture.capture(screen, directory)
                     finished = true
                     Gdx.app.log("JojoGame", "OPENING_FULL_SCENE_COMPLETE frame=$frame")
                     Gdx.app.exit()
