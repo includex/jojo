@@ -1213,3 +1213,26 @@ renderer의 portraitTexture 동기 fallback을 막는다. 고정 한 프레임 �
 packing 순서, 실패 후 재요청 정책, 전체 프레임 시각 일치는 추가 검증 대상이다.
 이번 검증은 첫 세 정상 자산의 활성 face 준비 전이에 한정한다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+### 2026-09-20 첫 자연 완료 대사의 전체 framebuffer 검증 추가
+
+첫181 대사 `대장님, 서둘러야 해요!`가 자연 완료된 직후의 전체 화면을 새 검증 단위로
+추가했다. source는 EVENT_AFTER_DRAW, 포트는 정상 render observer에서2560×1376
+bottom-left RGBA8을 읽는다. 대사 입력·강제 reveal·장면 격리를 하지 않는다.
+본문 완료 뒤 portrait 준비를 별도로 기다리지 않으며, capture 시점의4개 유닛 상태와
+원본 sprite/texture/좌표 metadata도 기록한다. 포트 renderPlanAtCapture는 캡처 후
+계산한 render view이며 실제 GPU 제출 관측으로 주장하지 않는다.
+
+`capture_opening_source_full_scene.cjs`, `captureOpeningFullScene` task,
+`verify_opening_full_scene.py`를 추가했다. comparator는 완료 상태·배경·actor 상태·
+크기·origin·raw SHA를 검증한 뒤 알파를 포함한 모든 픽셀을 제외 영역 없이 비교한다.
+원본을 새로 두 번 실행한 결과 raw SHA가 모두
+`64e7d158f61c1547bcfee06f9c7987c9088124657d1792ba478241414bbb4dfc`였다.
+
+수정 전 포트는11,764픽셀 차이로 새 검증에 실패했다. 채널별 차이는R394/G276/B213/
+A11,305이며 원본 alpha는255, 포트는191..255였다. 배경과 대사 UI는 일치했다.
+이 검증 추가 자체는 전체 화면 일치 달성을 뜻하지 않으며 production 수정은 별도 단위로
+진행한다. Astra가 캡처·비교기 read-only 검수를 마쳤고, Python opening comparator
+기존64개 테스트 및 Node 문법 검사 통과. 증거는
+`build/reports/opening-full-scene-20260920/`의 source, source-repeat, game-baseline,
+game-current, baseline-full-scene.json에 있다. 전체 게임 동등성 목표는 계속 진행한다.

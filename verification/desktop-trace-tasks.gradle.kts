@@ -364,3 +364,16 @@ tasks.register<JavaExec>("captureOpeningPortraitReadiness") {
     doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
     doLast { check(destination.get().asFile.isFile) { "Opening portrait manifest missing" } }
 }
+
+tasks.register<JavaExec>("captureOpeningFullScene") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningFullSceneDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-full-scene")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast { check(destination.get().file("game-full.rgba").asFile.length() == 2560L * 1376 * 4) }
+}
