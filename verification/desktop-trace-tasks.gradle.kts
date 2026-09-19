@@ -236,27 +236,29 @@ tasks.register("printVerificationClasspath") {
 }
 
 // Selected live prefixes share the normal update clock; no fixture settling or RevealAll.
-tasks.register<JavaExec>("captureOpeningDialoguePrefixes") {
-    group = "verification"
-    timeout.set(java.time.Duration.ofSeconds(30))
-    dependsOn(tasks.named("classes"))
-    classpath = verificationDesktopRuntime
-    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
-    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
-    val destination = layout.buildDirectory.dir("verification/opening-prefixes")
-    doFirst {
-        delete(destination)
-        destination.get().asFile.mkdirs()
-        setArgs(listOf("--scenario=R_00", "--capture-state=opening-prefixes",
-            "--capture-raw=${destination.get().file("game-prefixes.rgba").asFile.absolutePath}",
-            "--capture=${destination.get().file("game-prefixes.png").asFile.absolutePath}"))
-    }
-    doLast {
-        check(destination.get().file("game-prefixes.json").asFile.isFile) { "Natural prefix manifest missing" }
-        for (length in listOf(5, 9, 13)) {
-            check(destination.get().file("game-prefix-${length.toString().padStart(3, '0')}.rgba").asFile.length() == 2560L * 1376 * 4) {
-                "Natural prefix $length raw frame missing"
+listOf("" to "opening-prefixes", "AfterResize" to "opening-prefixes-resize").forEach { (suffix, captureState) ->
+    tasks.register<JavaExec>("captureOpeningDialoguePrefixes$suffix") {
+        group = "verification"
+        timeout.set(java.time.Duration.ofSeconds(30))
+        dependsOn(tasks.named("classes"))
+        classpath = verificationDesktopRuntime
+        mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+        if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+        jvmArgs("--enable-native-access=ALL-UNNAMED")
+        val destination = layout.buildDirectory.dir("verification/$captureState")
+        doFirst {
+            delete(destination)
+            destination.get().asFile.mkdirs()
+            setArgs(listOf("--scenario=R_00", "--capture-state=$captureState",
+                "--capture-raw=${destination.get().file("game-prefixes.rgba").asFile.absolutePath}",
+                "--capture=${destination.get().file("game-prefixes.png").asFile.absolutePath}"))
+        }
+        doLast {
+            check(destination.get().file("game-prefixes.json").asFile.isFile) { "Natural prefix manifest missing" }
+            for (length in listOf(5, 9, 13)) {
+                check(destination.get().file("game-prefix-${length.toString().padStart(3, '0')}.rgba").asFile.length() == 2560L * 1376 * 4) {
+                    "Natural prefix $length raw frame missing"
+                }
             }
         }
     }

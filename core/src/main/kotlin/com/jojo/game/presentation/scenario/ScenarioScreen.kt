@@ -114,6 +114,7 @@ class ScenarioScreen(
      */
 
     private val batch = SpriteBatch()
+    private val sceneFrameTarget = ScenarioFrameTarget()
     /**
      * `playback` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -947,6 +948,11 @@ class ScenarioScreen(
 
     /** renderScenarioFrame: 현재 재생 상태를 읽어 장면·대사·오버레이를 한 프레임에 렌더링한다. */
     private fun renderScenarioFrame(): ScenarioRenderPhaseResult {
+        sceneFrameTarget.render { drawScenarioFrameContents() }
+        return ScenarioRenderPhaseResult.CONTINUE
+    }
+
+    private fun drawScenarioFrameContents() {
         if (runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL)) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         else Gdx.gl.glClearColor(0.08f, 0.11f, 0.15f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -987,8 +993,6 @@ class ScenarioScreen(
                 drawOverlay()
             }
         }
-
-        return ScenarioRenderPhaseResult.CONTINUE
     }
 
     /**
@@ -1011,6 +1015,7 @@ class ScenarioScreen(
         if (dialogueScene2dStage.isInitialized()) dialogueScene2dStage.value.dispose()
         if (dialogueScene2dSkin.isInitialized()) dialogueScene2dSkin.value.dispose()
         sceneAssets.dispose()
+        sceneFrameTarget.dispose()
         batch.dispose()
         shapes.dispose()
     }

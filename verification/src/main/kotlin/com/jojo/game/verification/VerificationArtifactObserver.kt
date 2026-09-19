@@ -76,7 +76,7 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
-        if (output.state == "opening-prefixes") {
+        if (output.state in setOf("opening-prefixes", "opening-prefixes-resize")) {
             openingPrefixes.onFrame(scenario)
             return
         }

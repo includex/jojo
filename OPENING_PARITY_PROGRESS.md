@@ -389,3 +389,52 @@ python3 -m unittest discover -s tools -p test_verify_opening_prefix_pixels.py
 다음 단위는 9글자 표본의 남은 화면 샘플링 차이를 분리하는 것이다. 해결 후 첫 문장
 전체 공개 단계와 다음 두 대사 화면으로 확장한다. 모든 prefix·공개 속도·전체 화면·음향·
 게임 전체의 일치는 여전히 미검증이다.
+
+## RGBA8 장면 합성으로 중간 프레임 13픽셀 차이 해결 (2026-09-20)
+
+이전 절에서 남았던 9글자 표본의 13픽셀 차이를 해결했다. 첫 문장의 길이 5·9·13
+세 표본 모두 2560×1376 RGBA 전체가 원본과 일치하며 strict comparator exit 0이다.
+9글자의 source/game SHA는 `4a5f98b4663247280daa0862ea47f1751acee8ddbb9f7ae13185ca484792bdc7`이다.
+화자명 회귀도 0픽셀 차이를 유지했다.
+
+원인 분리는 다음 근거로 진행했다. 본문에만 흰색/texture-only 진단 shader를 적용해도
+차이는 같았으므로 vertex 색 곱·alpha correction을 원인으로 취급하지 않았다.
+원래 본문 draw 직후 default framebuffer의 문제 구간은 RGB 54였다.
+동일 정점·texture·shader를 RGBA8 FBO에 같은 RGB 179 배경과 합성하면 원본처럼 53이었다.
+후속 draw가 아니라 render target에 따라 관측되는 래스터 결과 차이로 좁혔다.
+이것은 GPU 내부 구현의 세부 원인까지 확정했다는 뜻은 아니다.
+
+`ScenarioFrameTarget`은 모든 ScenarioScreen 장면을 물리 backbuffer 크기의 RGBA8 FBO에
+먼저 합성한다. 결과는 NEAREST·1:1 크기·blending 없이 화면에 복사한다. 화면 캡처나
+특정 대사의 보정 이미지를 사용하지 않으며, 실제 장면의 정상 렌더러가 FBO에 그린다.
+특정 문자열·237px 폭·문제 픽셀에 대한 분기가 없다. 임시 shader/ROI/native replay
+계측 코드는 production에서 제거했다. 렌더 타깃 하나와 전체 화면 복사 pass가 추가된다.
+
+FrameBuffer 크기가 달라지면 새 자원을 만든 뒤 이전 자원을 해제하고, 화면 종료 시
+FBO와 복사용 SpriteBatch를 해제한다. 기존 framebuffer/viewport는 생성 전에 저장하고
+생성·그리기·복사 실패 경로에서도 복원한다. 원래 장면의 viewport 배치와 입력 계산은
+유지하며 FrameBuffer texture의 Y축 방향은 복사 시 처리한다.
+
+실제 창 크기를 줄였다 복원하는 `captureOpeningDialoguePrefixesAfterResize`를 추가했다.
+관측된 backbuffer는 1280×688 → 2560×1376이며, 복원 후 세 표본 모두 원본과 0픽셀 차이다.
+일반 prefix·화자명·campaign 검사는 14초, resize 검사는 빌드 포함 11초에 끝났다.
+관련 Python 검사 17개도 통과했다. 각 실행은 외부 60초 제한을 유지했다.
+
+원본 계측에는 `JOJO_CAPTURE_DRAW_STATE=1` opt-in을 추가했다. 실제 본문 texture identity와
+9글자 문자열을 함께 확인한 draw call에서 uniform·shader·blend·sampler 상태를 기록한다.
+기존 AFTER_DRAW 마지막 program 관측의 한계를 보완하며 기본 캡처에서는 hook이 비활성이다.
+
+로컬 증거는 `build/reports/opening-sampling-20260920/`의 `final-comparison.json`,
+`resize-comparison.json`, `speaker-regression.json`, `game-body-immediate.rgba`,
+`game-replayed-blend.rgba` 및 실행 로그다. 원본 draw 상태는
+`build/reports/opening-prefixes-20260920/source-draw-state/`에 있다.
+
+```sh
+./gradlew :verification:captureOpeningDialoguePrefixes :verification:captureOpeningDialoguePrefixesAfterResize :verification:captureOpeningDialogueSpeaker :verification:campaignUnitTest
+python3 tools/verify_opening_prefix_pixels.py build/reports/opening-prefixes-20260920/source/source-prefixes.json verification/build/verification/opening-prefixes/game-prefixes.json
+python3 tools/verify_opening_prefix_pixels.py build/reports/opening-prefixes-20260920/source/source-prefixes.json verification/build/verification/opening-prefixes-resize/game-prefixes.json
+```
+
+다음은 첫 문장의 나머지 공개 단계와 다음 두 대사 화면이다. 이번 세 표본과 resize
+회귀의 일치를 모든 prefix·타이핑 속도·다른 시나리오 화면·음향·전투·게임 전체의
+동등성으로 확대하지 않는다. 전체 목표는 계속 진행 중이다.

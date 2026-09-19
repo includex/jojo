@@ -20,10 +20,31 @@ internal class OpeningDialoguePrefixCapture(output: RenderCaptureConfiguration) 
     private val records = JsonValue(JsonValue.ValueType.array)
     private var frame = 0
     private var finished = false
+    private val resizeDuringOpening = output.state == "opening-prefixes-resize"
+    private val initialWidth = Gdx.graphics.width
+    private val initialHeight = Gdx.graphics.height
+    private val initialBufferWidth = Gdx.graphics.backBufferWidth
+    private val initialBufferHeight = Gdx.graphics.backBufferHeight
+    private val resizeObservations = JsonValue(JsonValue.ValueType.array)
 
     fun onFrame(probe: ScenarioRuntimeProbe) {
         if (finished) return
         frame++
+        if (resizeDuringOpening) {
+            when (frame) {
+                10 -> check(Gdx.graphics.setWindowedMode(initialWidth / 2, initialHeight / 2))
+                20 -> check(Gdx.graphics.setWindowedMode(initialWidth, initialHeight))
+                12, 22 -> {
+                    val divisor = if (frame == 12) 2 else 1
+                    check(Gdx.graphics.backBufferWidth == initialBufferWidth / divisor &&
+                        Gdx.graphics.backBufferHeight == initialBufferHeight / divisor) { "Backbuffer resize did not complete" }
+                    val observation = JsonValue(JsonValue.ValueType.`object`)
+                    observation.addChild("width", JsonValue(Gdx.graphics.backBufferWidth.toLong()))
+                    observation.addChild("height", JsonValue(Gdx.graphics.backBufferHeight.toLong()))
+                    resizeObservations.addChild(observation)
+                }
+            }
+        }
         check(probe.elapsedSeconds < 12f) { "Timed out waiting for natural prefixes; missing=${expected - captured}" }
         if (probe.playback != PlaybackState.DIALOGUE || !probe.naturalStreetTextIsolation) return
         check(probe.module == "R_00" && probe.sceneIndex == 1 && probe.dialogueSpeakerId == "181") {
@@ -63,6 +84,7 @@ internal class OpeningDialoguePrefixCapture(output: RenderCaptureConfiguration) 
             manifest.addChild("fullText", JsonValue(fullText))
             manifest.addChild("dialogueInputs", JsonValue(0L))
             manifest.addChild("scope", JsonValue("selected visible strings; readback affects timing; no typing-speed equivalence claim"))
+            manifest.addChild("resizeObservations", resizeObservations)
             manifest.addChild("captures", records)
             directory.child("game-prefixes.json").writeString(manifest.prettyPrint(JsonWriter.OutputType.json, 120), false)
             finished = true
