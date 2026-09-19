@@ -34,6 +34,13 @@ object YingchuanWalkthroughDesktopLauncher {
         require(maxSimulationSeconds in 1f..1800f) { "walkthrough duration must be 1..1800 simulated seconds" }
         val timeScale = args.getOrNull(2)?.toFloat() ?: 1f
         require(timeScale in .25f..8f) { "walkthrough time scale must be .25..8" }
+        val captureMode = args.getOrNull(3) ?: "semantic-walkthrough"
+        require(captureMode in setOf("semantic-walkthrough", "first-normal-combat")) {
+            "unknown walkthrough capture mode: $captureMode"
+        }
+        require(captureMode != "first-normal-combat" || timeScale == 1f) {
+            "first-normal-combat requires normal speed"
+        }
         outputDirectory.mkdirs()
         val trace = File(outputDirectory, "yingchuan-manual-trace.json")
         val options = VerificationDesktopLaunchOptions.parse(
@@ -49,7 +56,7 @@ object YingchuanWalkthroughDesktopLauncher {
         )
         val baseConfiguration = options.toGameConfiguration()
         val driver = YingchuanWalkthroughDriver()
-        val recorder = WalkthroughRecorder(outputDirectory, driver, maxSimulationSeconds, timeScale)
+        val recorder = WalkthroughRecorder(outputDirectory, driver, maxSimulationSeconds, timeScale, captureMode)
         val configuration = baseConfiguration.copy(runtimeBattleDriver = driver, runtimeScreenObserver = recorder)
         val game = JojoGame(configuration)
         val window = Lwjgl3ApplicationConfiguration().apply {
@@ -94,6 +101,7 @@ private class WalkthroughRecorder(
     private val driver: YingchuanWalkthroughDriver,
     private val maxSimulationSeconds: Float,
     private val timeScale: Float,
+    private val captureMode: String,
 ) : RuntimeScreenObserver {
     private data class PendingCapture(
         val key: String,
@@ -112,6 +120,8 @@ private class WalkthroughRecorder(
     private var elapsedSeconds = 0.0
     private var frame = 0L
     private var finished = false
+    private var combatAnchorSeconds: Double? = null
+    private var nextCombatCapture = 0
 
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
         elapsedSeconds += delta.toDouble()
@@ -138,9 +148,26 @@ private class WalkthroughRecorder(
             previousSignature = signature
         }
 
-        semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
-            if (captures.size < MAX_CAPTURES) capture(key, probe)
+        if (captureMode == "first-normal-combat") {
+            captureFirstNormalCombat(probe)
+        } else {
+            semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
+                if (captures.size < MAX_CAPTURES) capture(key, probe)
+            }
         }
+    }
+
+    private fun captureFirstNormalCombat(probe: BattleRuntimeScreenProbe) {
+        if (combatAnchorSeconds == null && probe.bootstrapComplete && probe.turnPhase == "AI" &&
+            probe.activeFaction == Faction.FRIEND
+        ) {
+            combatAnchorSeconds = elapsedSeconds
+        }
+        val anchor = combatAnchorSeconds ?: return
+        if (nextCombatCapture >= MAX_CAPTURES) return
+        if (elapsedSeconds + 1e-9 < anchor + nextCombatCapture * COMBAT_CAPTURE_INTERVAL_SECONDS) return
+        val ordinal = nextCombatCapture++
+        capture("first-normal-combat-${ordinal.toString().padStart(2, '0')}", probe)
     }
 
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
@@ -230,6 +257,7 @@ private class WalkthroughRecorder(
             addChild("driverClassName", JsonValue(driver.javaClass.name))
             addChild("driverInputs", driver.inputJournal())
             addChild("timeScale", JsonValue(timeScale.toDouble()))
+            addChild("captureMode", JsonValue(captureMode))
             addChild("maxSimulationSeconds", JsonValue(maxSimulationSeconds.toDouble()))
             addChild("frameCount", JsonValue(frame))
             addChild("elapsedSeconds", JsonValue(elapsedSeconds))
@@ -260,6 +288,7 @@ private class WalkthroughRecorder(
 
     private companion object {
         const val MAX_CAPTURES = 12
+        const val COMBAT_CAPTURE_INTERVAL_SECONDS = .3
     }
 }
 

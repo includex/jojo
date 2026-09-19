@@ -56,3 +56,13 @@
 - lifecycle, scripted coordinator, 피격 방향, sprite resolver의 관련 29개 테스트 통과. 자세 유지가 스크립트 진행을 막지 않는 것도 정상 속도 실행에서 확인했다.
 
 다음 확인은 일반 전투의 이동·공격·피격·사망 연결과 명령/정산 UI의 정상 속도 동작이다. 7턴 승리 기록은 이번 자세 수정 전 기능 검증이며, 마지막 자세 수정은 해당 초반 10초를 재검증했다. 전투 전체의 정상 속도 시각적 일치는 아직 주장하지 않는다.
+
+## 첫 일반 교전 정상 속도 검증
+
+- 원본 `build/reports/yingchuan-source-first-combat-20260920/`: 실제 공격·피격·반격·정산 4장과 정상 속도 full trace 2,895프레임. 도구가 원본의 45초 제한 종료를 기다려 trace를 보존한다.
+- 포트 수정 전 `verification/build/verification/yingchuan-first-normal-combat/`: 첫 FRIEND AI 진입부터 0.3초 간격 12장과 30초 trace.
+- 양쪽 모두 210 이동·공격 → 476 피격(97→70) → 476 반격 → 210 피격(119→104) 순서와 방향이 일치한다. 일반 피격32는 이전 방향, 방어26은 피격 방향으로 복귀하므로 scripted 공격 정책과 구분한다.
+- 원본 캡처: `node tools/capture_yingchuan_source_walkthrough.cjs ../jojo_mobile/sgccz-desktop OUTPUT 45000 first-normal-combat`.
+- 포트 캡처: `./gradlew :verification:captureYingchuanWalkthrough -Pjojo.yingchuanWalkthrough.captureMode=first-normal-combat`. 이 모드는 정상 속도만 허용한다. 캡처 간에 관찰하지 못한 세부 프레임이나 절대 시간 전체 일치를 주장하지 않는다.
+- 추가 차이 확인: 원본은 논리 hasActed가 바뀐 뒤 약 1.429초 동안 idle을 유지하고 해당 정산 Default에서 행동 완료 자세39로 바뀐다. 수정 전 포트는 hasActed와 동시에39로 바뀌었다. 표시용 acted 상태의 적용 시점을 분리해 수정 중이다.
+- 자세 유지 수정의 첫 재실행에서는 전환까지 2.442초가 걸렸다. OTHER 패널에 표시되지 않는 경험치 5틱×0.2초를 더하는 별도 오류를 찾았으며, 실제 성장 지급을 유지하면서 표시 대기만 수정·검증 중이다.

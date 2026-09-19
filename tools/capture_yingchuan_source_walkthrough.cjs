@@ -11,7 +11,7 @@ const outputRoot = path.resolve(process.argv[3] || 'build/reports/yingchuan-sour
 const maxWallMs = Number(process.argv[4] || 30000);
 if (!Number.isInteger(maxWallMs) || maxWallMs < 10000 || maxWallMs > 60000) throw new Error('duration must be an integer from 10000 through 60000 ms');
 const semanticMode = process.argv[5] || '';
-if (semanticMode && semanticMode !== '235-hit-hold') throw new Error(`unknown semantic mode ${semanticMode}`);
+if (semanticMode && !['235-hit-hold', 'first-normal-combat'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
 const port = 9400 + (process.pid % 200);
 const deadlineMs = maxWallMs + 15000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -77,7 +77,7 @@ const stateExpression = `(() => {
   if(battle)for(const u of Object.values(battle._unitSet||{}).filter(Boolean)){const source=u.unit&&u.unit(),node=u.node,n=node&&node.getChildByName('mask')&&node.getChildByName('mask').getChildByName('node'),a=n&&n.getComponent(cc.Animation),sprite=n&&n.getComponent(cc.Sprite),frame=sprite&&sprite.spriteFrame,playing=a&&a._nameToState&&Object.entries(a._nameToState).find(([,s])=>s&&s.isPlaying);units.push({id:source&&source.id?source.id():null,index:u.index?u.index():null,x:u.x?u.x():null,y:u.y?u.y():null,direction:u.dir?u.dir():null,action:source&&source.action?source.action():null,animation:playing?playing[0]:null,spriteFrame:frame&&frame.name||null,spriteRect:frame&&frame._rect?[frame._rect.x,frame._rect.y,frame._rect.width,frame._rect.height]:null});}
   const dialogue=layers.includes('SayLayer');
   const camera=battle&&battle._scrollView&&battle._scrollView.content&&battle._scrollView.content.position;
-  return {ready:!!battle,frame:cc.director.getTotalFrames?cc.director.getTotalFrames():null,scene:scene.name,round:battle&&battle.round?battle.round():null,camp:battle&&battle.curCamp?battle.curCamp():null,camera:camera?[camera.x,camera.y]:null,dialogue,layers:[...new Set(layers)],units:units.filter(u=>[32,3,33,474,235,477,334].includes(u.id))};
+  return {ready:!!battle,frame:cc.director.getTotalFrames?cc.director.getTotalFrames():null,scene:scene.name,round:battle&&battle.round?battle.round():null,camp:battle&&battle.curCamp?battle.curCamp():null,camera:camera?[camera.x,camera.y]:null,dialogue,layers:[...new Set(layers)],units:units.filter(u=>[32,3,33,474,235,477,334,210,476].includes(u.id))};
 })()`;
 
 (async () => {
@@ -86,6 +86,7 @@ const stateExpression = `(() => {
   const trace = path.join(outputRoot, 'source-full-trace.json');
   const logFd = fs.openSync(path.join(outputRoot, 'source-process.log'), 'w');
   const child = spawn('npm', ['exec', '--', 'electron', '.', '--battle', '--scenario=S_00', `--full-battle-trace=${trace}`, '--full-battle-time-scale=1', `--full-battle-max-wall-ms=${maxWallMs}`, '--full-battle-seed=1000', '--full-battle-math-seed=305419896', `--remote-debugging-port=${port}`], { cwd: sourceRoot, stdio: ['ignore', logFd, logFd], detached: true });
+  const childExit = new Promise(resolve => child.once('exit', (code, signal) => resolve({ code, signal })));
   let client;
   const watchdog = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, deadlineMs);
   try {
@@ -123,6 +124,34 @@ const stateExpression = `(() => {
         await delay(8);
       }
       throw new Error(`semantic state not observed: sawHit=${sawHit}; transitions=${JSON.stringify(transitions)}`);
+    }
+    if (semanticMode === 'first-normal-combat') {
+      const transitions = [], wanted = ['ally210-attack', 'enemy476-reaction', 'enemy476-counter-ally210-reaction', 'settlement'];
+      const seen = new Set(); let prior = '';
+      async function captureSemantic(name, state) {
+        const image = await client.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+        const file = `source-${name}.png`; fs.writeFileSync(path.join(outputRoot, file), Buffer.from(image.data, 'base64'));
+        captures.push({ wallSeconds: (Date.now() - started) / 1000, file, semantic: name, ...state }); seen.add(name);
+      }
+      while (Date.now() - started < Math.min(maxWallMs - 1000, 44000) && seen.size < wanted.length) {
+        const evaluated = await client.send('Runtime.evaluate', { expression: stateExpression, returnByValue: true });
+        if (evaluated.exceptionDetails) throw new Error(JSON.stringify(evaluated.exceptionDetails));
+        const state = evaluated.result.value, ally = state.units.find(x => x.id === 210), enemy = state.units.find(x => x.id === 476);
+        const key = JSON.stringify([ally&&[ally.action,ally.animation,ally.spriteRect],enemy&&[enemy.action,enemy.animation,enemy.spriteRect],state.layers]);
+        if (key !== prior) { transitions.push({ wallSeconds: (Date.now() - started) / 1000, frame: state.frame, ally, enemy, layers: state.layers }); prior = key; }
+        if (!seen.has(wanted[0]) && ally?.animation?.startsWith('anime25')) await captureSemantic(wanted[0], state);
+        else if (seen.has(wanted[0]) && !seen.has(wanted[1]) && enemy?.animation?.startsWith('anime32')) await captureSemantic(wanted[1], state);
+        else if (seen.has(wanted[1]) && !seen.has(wanted[2]) && enemy?.animation?.startsWith('anime25') && ally?.animation?.startsWith('anime32')) await captureSemantic(wanted[2], state);
+        else if (seen.has(wanted[2]) && !seen.has(wanted[3]) && state.layers.some(x => /^(Mine|Other)UnitInfoLayer$/.test(x)) && !ally?.animation?.startsWith('anime32') && !enemy?.animation?.startsWith('anime25')) await captureSemantic(wanted[3], state);
+        await delay(8);
+      }
+      if (seen.size !== wanted.length) throw new Error(`combat semantic states incomplete: ${JSON.stringify({seen:[...seen],transitions})}`);
+      fs.writeFileSync(path.join(outputRoot, 'screens.json'), JSON.stringify({ contract: 'source-yingchuan-normal-clock-combat-screens-v1', evidenceKind: 'actual-source-renderer-direct-battle-bootstrap', sourceRoot, scenario: 'S_00', timeScale: 1, maxWallMs, semanticMode, transitions, bootstrap: { route: 'HallLayer.jumpScene(0)', seededBattleUnits: [0], normalDialogueInput: 'SayLayer Panel_cancel TOUCH_END', fixture: false, fullCampaignEntry: false }, captures }, null, 2) + '\n');
+      // Let the bounded source driver reach its own max-wall terminal so it
+      // flushes the authoritative frame trace beside the semantic screens.
+      await childExit;
+      if (!fs.existsSync(trace)) throw new Error('source combat trace was not flushed');
+      console.log(`SOURCE_YINGCHUAN_COMBAT_SCREENS_OK ${captures.length}`); return;
     }
     const sampleIntervalMs = maxWallMs > 30000 ? 10000 : 5000;
     const targets = Array.from({ length: Math.min(8, Math.ceil(maxWallMs / sampleIntervalMs)) }, (_, index) => index * sampleIntervalMs);

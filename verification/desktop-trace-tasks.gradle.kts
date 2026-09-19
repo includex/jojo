@@ -553,6 +553,11 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
     val timeScale = providers.gradleProperty("jojo.yingchuanWalkthrough.timeScale")
         .map { value -> value.toInt().also { require(it in 1..8) { "timeScale must be 1..8" } } }
         .orElse(1)
+    val captureMode = providers.gradleProperty("jojo.yingchuanWalkthrough.captureMode")
+        .map { value ->
+            value.also { require(it in setOf("semantic-walkthrough", "first-normal-combat")) { "unknown captureMode: $it" } }
+        }
+        .orElse("semantic-walkthrough")
     timeout.set(maxSimulationSeconds.zip(timeScale) { seconds, scale ->
         java.time.Duration.ofSeconds((seconds / scale + 15).toLong())
     })
@@ -564,7 +569,14 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
     val destination = layout.buildDirectory.dir("verification/yingchuan-walkthrough")
     doFirst {
         delete(destination)
-        setArgs(listOf(destination.get().asFile.absolutePath, maxSimulationSeconds.get().toString(), timeScale.get().toString()))
+        setArgs(
+            listOf(
+                destination.get().asFile.absolutePath,
+                maxSimulationSeconds.get().toString(),
+                timeScale.get().toString(),
+                captureMode.get(),
+            ),
+        )
     }
     doLast {
         val directory = destination.get().asFile
