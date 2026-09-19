@@ -265,6 +265,7 @@ internal class BattleActorEffectViewComposer(
             sourceHighlight = highlightValue != null,
             highlightValue = highlightValue ?: 0f,
             opacity = frame.opacity,
+            colorRgb = frame.colorRgb,
             hpTexture = port.hpTexture(unit),
             hpRatio = port.hpRatio(unit, now),
             // 원본이 체력·상태 노드를 감추는 길은 `setOhterNodeVisible(!1)` 하나뿐이고,

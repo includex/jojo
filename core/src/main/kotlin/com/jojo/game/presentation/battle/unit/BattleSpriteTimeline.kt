@@ -69,6 +69,8 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
          */
 
         val opacity: Float = 1f,
+        /** 원본 애니메이션 노드에 곱해지는 24-bit RGB 색상이다. */
+        val colorRgb: Int = 0xffffff,
     )
     /**
      * `Keyframe`: 관련 상태와 동작을 묶는 class다.
@@ -130,6 +132,8 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
          */
 
         val opacity: Int?,
+        /** 이 키프레임이 지정하는 24-bit RGB 색상이다. */
+        val colorRgb: Int?,
     )
 
     /** resolvedClip: 입력 조건과 전투 규칙에 맞는 결과를 계산한다. */
@@ -222,6 +226,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
         var offsetX = 0
         var offsetY = 0
         var opacity = OPAQUE
+        var colorRgb = WHITE
         for (key in clip) {
             key.atlas?.let { atlas = it }
             key.index?.let { index = it }
@@ -229,6 +234,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
             key.offsetX?.let { offsetX = it }
             key.offsetY?.let { offsetY = it }
             key.opacity?.let { opacity = it }
+            key.colorRgb?.let { colorRgb = it }
             used += key.ticks
             if (tick < used) break
         }
@@ -244,6 +250,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
             offsetX = offsetX.toFloat() * 2f,
             offsetY = offsetY.toFloat() * 2f,
             opacity = opacity / OPAQUE.toFloat(),
+            colorRgb = colorRgb,
         )
     }
 
@@ -258,6 +265,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
          */
 
         private const val OPAQUE = 255
+        private const val WHITE = 0xffffff
         /**
          * `cached` (BattleSpriteTimeline by lazy): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -348,6 +356,15 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
                     else -> raw.asInt()
                 }
             }
+            val color = props?.get("color")
+            // 현재 원본 카탈로그의 color 키는 모두 constant 곡선이다. 첫 값이 해당
+            // 키프레임부터 적용되고, color가 없는 후속 키프레임은 앞 값을 유지한다.
+            val colorRgb = color?.get(0)?.let { raw ->
+                when (raw.type()) {
+                    JsonValue.ValueType.array -> raw.getInt(0)
+                    else -> raw.asInt()
+                }
+            }
             return Keyframe(
                 ticks = value.getInt("frame", 1),
                 atlas = atlas,
@@ -358,6 +375,7 @@ class BattleSpriteTimeline private constructor(private val clips: Map<String, Li
                 hit = hitEvent,
                 material = materialEvent,
                 opacity = opacity,
+                colorRgb = colorRgb,
             )
         }
     }

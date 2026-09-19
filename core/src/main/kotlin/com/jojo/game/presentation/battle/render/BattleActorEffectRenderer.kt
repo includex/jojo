@@ -40,6 +40,8 @@ internal data class BattleActorRenderUnit(
     val highlightValue: Float = 1f,
     /** 현재 클립이 지정한 알파값이다. 퇴각·사망 연출이 이 값으로 깜빡이고 사라진다. */
     val opacity: Float = 1f,
+    /** 애니메이션 색상 키가 sprite에 곱하는 24-bit RGB 값이다. */
+    val colorRgb: Int = 0xffffff,
     val hpTexture: Texture?,
     val hpRatio: Float,
     val showHpBar: Boolean,
@@ -94,7 +96,12 @@ internal class BattleActorEffectRenderer(
                     batch.shader = shader
                     shader.setUniformf("u_value", actor.highlightValue)
                 }
-                batch.setColor(1f, 1f, 1f, actor.opacity)
+                batch.setColor(
+                    ((actor.colorRgb ushr 16) and 0xff) / 255f,
+                    ((actor.colorRgb ushr 8) and 0xff) / 255f,
+                    (actor.colorRgb and 0xff) / 255f,
+                    actor.opacity,
+                )
                 drawMasked(actor.terrainMask, x, y, actor.size, view.tileSize) {
                     batch.draw(
                         texture, x, y, actor.size, actor.size, 0,

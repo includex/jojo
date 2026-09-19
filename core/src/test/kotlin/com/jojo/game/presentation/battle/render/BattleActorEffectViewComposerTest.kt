@@ -34,6 +34,7 @@ class BattleActorEffectViewComposerTest {
         assertEquals(4f, view.actors.single().tileX)
         assertEquals(5f, view.actors.single().tileY)
         assertEquals(0.25f, view.actors.single().hpRatio)
+        assertEquals(0x7f7f7f, view.actors.single().colorRgb)
         assertFalse(view.actors.single().showHpBar)
     }
 
@@ -64,7 +65,11 @@ class BattleActorEffectViewComposerTest {
         override fun stateEffectAnimationClock() = 3f
         override fun dialogueBlendRoute() = false
         override fun battleMenuOpen() = false
-        override fun spriteFrame(unit: BattleUnit) = UnitSpriteFrame(UnitSpriteSource.MOVEMENT, sourceY = 12)
+        override fun spriteFrame(unit: BattleUnit) = UnitSpriteFrame(
+            UnitSpriteSource.MOVEMENT,
+            sourceY = 12,
+            colorRgb = 0x7f7f7f,
+        )
         override fun activeAction(unitId: String, now: Float): UnitActionAnimation? = null
         override fun deathAnimationActive(unitId: String, now: Float) = true
         override fun timelineMaterialValue(action: Int, direction: Int, elapsed: Float, loop: Boolean): Float? = null

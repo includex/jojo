@@ -23,6 +23,27 @@ class BattleSpriteTimelineTest {
     }
 
     @Test
+    fun `original finished and command actions retain their authored RGB colors`() {
+        val timeline = originalTimeline()
+
+        // FINISHED(39)은 첫 프레임부터 회색이다. 방향별 clip도 같은 색상 키를 갖는다.
+        (0..3).forEach { direction ->
+            assertEquals(0x7f7f7f, timeline.frame(39, direction, 0f)?.colorRgb)
+        }
+        // COMMAND(40)은 16틱 동안 녹색을 유지한 뒤 회색으로 바뀐다.
+        assertEquals(0x7fff7f, timeline.frame(40, 2, 0f)?.colorRgb)
+        assertEquals(0x7fff7f, timeline.frame(40, 2, 15f / 24f)?.colorRgb)
+        assertEquals(0x7f7f7f, timeline.frame(40, 2, 16f / 24f)?.colorRgb)
+        assertEquals(0x7f7f7f, timeline.frame(40, 2, 31f / 24f)?.colorRgb)
+        // 색상 키가 없는 새 clip은 직전 clip 색상을 물려받지 않고 흰색에서 시작한다.
+        assertEquals(0xffffff, timeline.frame(0, 2, 0f)?.colorRgb)
+        // ACTION(36)은 두 번째 키에 color가 없어 첫 녹색을 상속하고, 세 번째 키에서 흰색으로 바뀐다.
+        assertEquals(0x00c000, timeline.frame(36, 2, 0f)?.colorRgb)
+        assertEquals(0x00c000, timeline.frame(36, 2, 8f / 24f)?.colorRgb)
+        assertEquals(0xffffff, timeline.frame(36, 2, 16f / 24f)?.colorRgb)
+    }
+
+    @Test
     fun `retreat and death clips blink and fade through the original opacity channel`() {
         val timeline = originalTimeline()
         // anime23은 5틱마다 255/0을 세 번 반복한다.

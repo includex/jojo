@@ -167,6 +167,7 @@ internal class BattleUnitSpriteFrameResolver(
                 frame.offsetX,
                 frame.offsetY,
                 frame.opacity,
+                frame.colorRgb,
             )
         }
 
