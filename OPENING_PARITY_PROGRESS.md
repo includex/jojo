@@ -1368,3 +1368,35 @@ Sol포트검증launcher, source agent원본도구를사용했다. 증거는
 `build/reports/opening-first-move-pixels-20260920/`의source,game-baseline,game-subpixel,
 first-move-pixels.json,negative-contract-checks.json에있다.
 다음은첫group이동의각유닛prime과화면안쪽이동을검증한다. 전체게임목표는계속한다.
+
+### 2026-09-20 첫 3인 group 이동의 전체 화면 검증
+
+동일Float32 1/60 시계검증을 첫unitsMove의181(40,15→25),0(40,5→15),
+157(54,95→85)로확장했다. source실제AStar경로는모두11점의직선이며 실제rootSequence
+기간은각0.40000011920928963이었다. source각_move2등록을관측하고 각actor의
+실제elapsed0/firstTick=false/action20을확인해동시prime임을검증했다.
+포트도세개의새이동경로와elapsed0/moveJustStarted=false가같은frame에관측됐다.
+포트firstObserved*는render후최초관측값이며 registrationcallback시점으로주장하지않는다.
+비동기texture준비순서나이동시작을검증도구가강제하지않았다.
+
+source_first_group 도구와OpeningFirstGroupFramesDesktopLauncher/
+captureOpeningFirstGroupFrames를추가했다. pose나장면을수정하지않고 각실제이동의
+0..24tick, 전체RGBA ordinal1/6/12/13/18/19/24를기록했다. 유닛집합은정확히
+0/157/181이고182는없다. 완료프레임에는다음182의비동기생성이개입하므로제외했다.
+
+verify_opening_first_group_pixels.py는source실제경로·기간·rootactionclock,
+각prime·tick연속성·원점논리좌표·행동·방향·texture짝과sprite row를검증한다.
+source node의두축을독립적으로역투영해격자X/Y를복원하므로경로수직방향오차도검출한다.
+25tick×3actor의75개상태에서Float32격자좌표및sprite row가일치했고,
+7개전체RGBA도모두0픽셀차이였다. 부분적으로만보였던첫단독이동보다이번에는
+181과157의몸체를화면안쪽에서더검증했다. 자연wall-clock이나subframe callback동등성은
+이번controlledframe결과의범위가아니다.
+
+sourcefresh약7초, portcapture및metadata보강후재캡처각3초완료. 기존Python
+comparator64개통과. prime불일치·182조기등장·actor시계오차·texture오류·source경로변경
+등6개계약위반과캡처없는tick의source수직방향위치오차1개를모두거부했다.
+Node구문·diff검사통과. Astra계획/검수에서역투영gate를보강했고Sol포트도구,
+source agent원본도구를사용했다. production변경없이검증범위를확장했다.
+증거는 `build/reports/opening-first-group-pixels-20260920/`의source,game-baseline,
+baseline-pixel-diagnostic.json,first-group-pixels.json,negative-contract-checks.json에있다.
+다음은첫대사직전4인 group이동이며, 전체게임동등성목표는계속진행한다.
