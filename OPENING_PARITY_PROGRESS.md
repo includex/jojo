@@ -1435,3 +1435,38 @@ negative-contract-checks.json에 있다. 전체 게임 동등성 목표는 계�
 
 수정 후 HallUnitRenderTest·ScenarioRuntimeTest 통과. 새 캡처로 첫 단독 이동7프레임,
 첫3인 이동7프레임, 첫 대사3페이지 전체 화면을 재검증하여17개 모두0픽셀 차이를 확인했다.
+
+### 2026-09-20 Hall 이동 좌표의 원본 정점 정밀도 보존
+
+이전 단위의 미해결 ordinal2·47을 rawRGBA로 추가 캡처했다. 각각717·697픽셀이
+달랐으며 두 차이는 모두157의 sprite 영역에 한정됐다. alpha 차이는 없었다.
+원본 재실행의55개 hash는 앞선 원본 캡처와 모두 같아 재현성을 확인했다.
+
+원인은 Float grid 위치를 원본 world 위치로 재투영하면서 잃는 정밀도였다.
+원본 HallLayer는 width=(1280/.86), _w=width/160, _h=800/200으로 계산한다.
+_w는9.302325581395348이며 수학적으로 같은400/43은 JS에서1ULP 다르다.
+turnPos의 순차 곱셈·덧셈, MoveBy의 node endpoint Double 보간, 부모 scale2와
+translation(width/2,400)을 보존하고 최종 sprite corner에서만 Float로 변환했다.
+계산된 corner를 실제 renderer와 검증 metadata가 함께 사용한다.
+Hall 이동 전용 world 위치를 전달하며 기존 Float grid 상태 및 battle 경로는 유지한다.
+위치 재설정 시 cache 무효화, 즉시 이동 시 world 재계산, 활성 Hall 이동에서만
+cache 사용을 적용하여 이전 위치가 남는 문제도 막았다.
+
+최종 comparator는 원본 실제 assembler vData와220개 actor의4개 world corner를
+모두 비교한다. 기존 Float grid·row·방향·flip 비교도 유지한다. 추가 raw2/47을 포함한
+15개 전체RGBA 모두0픽셀 차이이며, 전체55개 frameDigest도 모두 일치한다.
+이전 미해결 [2,47]은 해결되었다. 비표본 tick의 corner 오차와 hash 오차를 각각
+주입해 두 gate가 독립적으로 실패하는 것도 확인했다.
+
+원본 corner2/47 회귀 테스트를 추가했으며 Astra 최종 검수에 blocker가 없었다.
+기존 Python comparator64개와 diff 검사를 통과했다.
+증거: `build/reports/opening-final-group-pixels-20260920/`의 source-extra,
+game-extra(수정 전), game-geometry-fixed(수정 후), geometry-baseline.json,
+geometry-fixed.json, geometry-negative-checks.json, source-geometry-audit.json.
+이번 증거는 기존2560×1376 controlled 시계 구간에 한정한다. 다른 viewport·자연 시계·
+임의의 전체 이동과 후속 게임 흐름은 아직 별도 검증 대상이다.
+
+HallMoveTimelineTest·HallMoveSourceFixtureTest·ScenarioBattlefieldRenderGeometryTest·
+ScenarioRuntimeTest·ScenarioHallSourcePositionTest 통과. 새 위치 재설정 및 즉시 이동
+회귀 테스트를 포함한다. 첫 단독7프레임·첫3인7프레임·첫대사3페이지도 새 캡처에서
+각각 모두 원본과0픽셀 차이를 확인했다.

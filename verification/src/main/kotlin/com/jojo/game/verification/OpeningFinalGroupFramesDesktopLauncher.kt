@@ -23,7 +23,7 @@ import java.security.MessageDigest
 /** Captures the final four-actor Hall move at controlled Float32 frame deltas. */
 object OpeningFinalGroupFramesDesktopLauncher {
     private val actorIds = setOf(0, 157, 181, 182)
-    private val captureOrdinals = setOf(1, 12, 13, 24, 25, 36, 37, 45, 48, 49, 50, 53, 54)
+    private val captureOrdinals = setOf(1, 2, 12, 13, 24, 25, 36, 37, 45, 47, 48, 49, 50, 53, 54)
     private val starts = mapOf(181 to (40 to 25), 0 to (40 to 15), 182 to (40 to 5), 157 to (54 to 85))
     private val ends = mapOf(181 to (40 to 45), 0 to (40 to 35), 182 to (40 to 25), 157 to (54 to 65))
     private const val fixedDelta = 1f / 60f
@@ -268,6 +268,21 @@ object OpeningFinalGroupFramesDesktopLauncher {
             actorRow.addChild("animationElapsed", JsonValue(unit.animationElapsed.toDouble()))
             actorRow.addChild("hallAnimationElapsedSeconds", JsonValue(unit.hallAnimationElapsedSeconds))
             actorRow.addChild("moveJustStarted", JsonValue(unit.moveJustStarted))
+            actorRow.addChild("sourceWorldCenterX", JsonValue((field(renderUnit, "sourceWorldCenterX") as Number).toDouble()))
+            actorRow.addChild("sourceWorldCenterY", JsonValue((field(renderUnit, "sourceWorldCenterY") as Number).toDouble()))
+            val sourceWorldCorners = JsonValue(JsonValue.ValueType.array)
+            listOf(
+                "sourceWorldLeft" to "sourceWorldBottom",
+                "sourceWorldRight" to "sourceWorldBottom",
+                "sourceWorldLeft" to "sourceWorldTop",
+                "sourceWorldRight" to "sourceWorldTop",
+            ).forEach { (xName, yName) ->
+                val corner = JsonValue(JsonValue.ValueType.array)
+                corner.addChild(JsonValue((field(renderUnit, xName) as Number).toDouble()))
+                corner.addChild(JsonValue((field(renderUnit, yName) as Number).toDouble()))
+                sourceWorldCorners.addChild(corner)
+            }
+            actorRow.addChild("sourceWorldCorners", sourceWorldCorners)
             val sprite = JsonValue(JsonValue.ValueType.`object`)
             sprite.addChild("frameRow", JsonValue((field(renderUnit, "frameRow") as Number).toLong()))
             sprite.addChild("textureAssetId", JsonValue((field(renderUnit, "textureAssetId") as Number).toLong()))

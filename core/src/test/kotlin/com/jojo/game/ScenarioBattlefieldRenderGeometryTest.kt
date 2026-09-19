@@ -23,6 +23,10 @@ class ScenarioBattlefieldRenderGeometryTest {
     }
 
     private fun unit(id: Int, z: Float, order: Int, visible: Boolean = true) =
-        ScenarioBattlefieldUnitView(id, 0f, 0f, visible, z, order, 1, 0, false, false)
+        ScenarioBattlefieldUnitView(
+            id, 0f, 0f,
+            0.0, 0.0, -48f, -64f, 48f, 64f,
+            visible, z, order, 1, 0, false, false,
+        )
     private fun head(id: Int, z: Float, order: Int) = ScenarioBattlefieldHeadView(id, 0f, 0f, 1f, z, order)
 }

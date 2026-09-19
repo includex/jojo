@@ -62,6 +62,8 @@ internal class ScenarioStageUnitRegistry {
             moveFromY = visualY
             moveElapsed = 0f
             hallMoveElapsedSeconds = 0.0
+            hallSourceWorldX = Double.NaN
+            hallSourceWorldY = Double.NaN
             moveDuration = 0f
             hallMoveDurationSeconds = 0.0
             movePath = emptyList()
@@ -91,6 +93,8 @@ internal class ScenarioStageUnitRegistry {
             moveToY = y
             visualX = x.toFloat()
             visualY = y.toFloat()
+            hallSourceWorldX = Double.NaN
+            hallSourceWorldY = Double.NaN
             moveDuration = 0f
             hallMoveDurationSeconds = 0.0
             movePath = emptyList()

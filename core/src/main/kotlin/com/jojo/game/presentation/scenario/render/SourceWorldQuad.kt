@@ -73,6 +73,26 @@ internal class SourceWorldQuad {
         batch.draw(texture, vertices, 0, vertices.size)
     }
 
+    fun drawCorners(
+        batch: Batch,
+        texture: Texture,
+        left: Float,
+        bottom: Float,
+        right: Float,
+        top: Float,
+        uLeft: Float,
+        vBottom: Float,
+        uRight: Float,
+        vTop: Float,
+    ) {
+        val color = batch.packedColor
+        vertex(0, left.toDouble(), bottom.toDouble(), color, uLeft, vBottom)
+        vertex(1, left.toDouble(), top.toDouble(), color, uLeft, vTop)
+        vertex(2, right.toDouble(), top.toDouble(), color, uRight, vTop)
+        vertex(3, right.toDouble(), bottom.toDouble(), color, uRight, vBottom)
+        batch.draw(texture, vertices, 0, vertices.size)
+    }
+
     private fun vertex(index: Int, x: Double, y: Double, color: Float, u: Float, v: Float) {
         val offset = index * 5
         val matrix = combined.`val`

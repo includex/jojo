@@ -11,7 +11,7 @@ DURATIONS = {0: .88, 182: .88, 181: .8 + 1.192092896e-7, 157: .8 + 1.192092896e-
 COMPLETE = {actor_id: next(i for i in range(100) if i * STEP >= duration)
             for actor_id, duration in DURATIONS.items()}
 LAST_COMPLETE = max(COMPLETE.values())
-ORDINALS = [1, 12, 13, 24, 25, 36, 37, 45, 48, 49, 50, 53, 54]
+ORDINALS = [1, 2, 12, 13, 24, 25, 36, 37, 45, 47, 48, 49, 50, 53, 54]
 PATHS = {0: [[40, y] for y in range(15, 25)] + [[41, y] for y in range(24, 36)] + [[40, 35]],
          182: [[40, y] for y in range(5, 15)] + [[41, y] for y in range(14, 26)] + [[40, 25]],
          157: [[54, y] for y in range(85, 64, -1)], 181: [[40, y] for y in range(25, 46)]}
@@ -29,7 +29,7 @@ def validate(document, source=False):
     require((document['width'], document['height'], document['origin']) == (2560, 1376, 'bottom-left'), 'frame dimensions/origin')
     ticks, captures = document['ticks'], document['captures']
     require([t['ordinal'] for t in ticks] == list(range(LAST_COMPLETE + 2)), 'contiguous group ticks')
-    require([c['ordinal'] for c in captures] == ORDINALS, 'all thirteen ordered captures')
+    require([c['ordinal'] for c in captures] == ORDINALS, 'all fifteen ordered captures')
     if source:
         require(document['simultaneousPrime'] is True, 'source group prime offsets differ')
         require({int(key) for key in document['references']} == set(PATHS), 'source group identities')
@@ -125,8 +125,13 @@ def verify(source_path, game_path):
             game_grid = [port_actor['visualX'], port_actor['visualY']]
             source_vertices = actor['sprite']['assembler']['vDatas'][0]
             source_flip = source_vertices[5] < source_vertices[0]
+            source_corners = sorted([source_vertices[i:i+2] for i in (0, 5, 10, 15)])
+            game_corners = port_actor['sourceWorldCorners']
+            require(len(game_corners) == 4 and all(len(corner) == 2 for corner in game_corners), 'four world corners required')
             states.append({'ordinal': source_tick['ordinal'], 'actorId': actor_id, 'sourceGridFloat32': source_grid,
                            'gameGridFloat32': game_grid, 'positionsEqual': source_grid == game_grid,
+                           'sourceWorldCorners': source_corners, 'gameWorldCorners': sorted(game_corners),
+                           'worldCornersEqual': source_corners == sorted(game_corners),
                            'spriteRowsEqual': actor['sprite']['frameRow'] == port_actor['sprite']['frameRow'],
                            'directionsEqual': actor['direction'] == port_actor['direction'],
                            'flipsEqual': source_flip == port_actor['sprite']['flipX']})
@@ -142,7 +147,7 @@ def verify(source_path, game_path):
         result.update(contract='controlled-opening-final-group-frame/v1', ordinal=source_row['ordinal'],
                       scope='Entire controlled-clock final group framebuffer, all RGBA channels without excluded regions.')
         samples.append(result)
-    state_equal = all(row['positionsEqual'] and row['spriteRowsEqual'] and row['directionsEqual'] and row['flipsEqual'] for row in states)
+    state_equal = all(row['positionsEqual'] and row['worldCornersEqual'] and row['spriteRowsEqual'] and row['directionsEqual'] and row['flipsEqual'] for row in states)
     hashes = [{'ordinal': a['ordinal'], 'equal': a['sha256'] == b['sha256'],
                'sourceSha256': a['sha256'], 'gameSha256': b['sha256']}
               for a, b in zip(source['frameDigests'], game['frameDigests'])]

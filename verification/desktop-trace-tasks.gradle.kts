@@ -446,7 +446,7 @@ tasks.register<JavaExec>("captureOpeningFinalGroupFrames") {
     doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
     doLast {
         check(destination.get().file("game-final-group.json").asFile.isFile)
-        listOf(1, 12, 13, 24, 25, 36, 37, 45, 48, 49, 50, 53, 54).forEach { ordinal ->
+        listOf(1, 2, 12, 13, 24, 25, 36, 37, 45, 47, 48, 49, 50, 53, 54).forEach { ordinal ->
             val suffix = ordinal.toString().padStart(3, '0')
             check(destination.get().file("game-final-group-$suffix.rgba").asFile.length() == 2560L * 1376 * 4)
         }

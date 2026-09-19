@@ -65,7 +65,46 @@ object HallMoveTimeline {
      * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
      */
 
-    data class Sample(val x: Float, val y: Float, val direction: Int, val zIndex: Float)
+    data class Sample(
+        val x: Float,
+        val y: Float,
+        val direction: Int,
+        val zIndex: Float,
+        /** Cocos node interpolation followed by its parent world transform, before Float32 vertex storage. */
+        val sourceWorldX: Double,
+        val sourceWorldY: Double,
+    )
+
+    data class SourceWorldPosition(val x: Double, val y: Double)
+
+    /**
+     * Replays HallLayer.turnPos and the map node's world transform in their source operation order.
+     * The source interpolates these node coordinates as JavaScript Numbers, rather than interpolating
+     * grid coordinates and converting the rounded Float result during rendering.
+     */
+    fun sourceWorldPosition(x: Double, y: Double): SourceWorldPosition {
+        val node = sourceNodePosition(x, y)
+        return sourceWorldPosition(node)
+    }
+
+    private fun sourceNodePosition(x: Double, y: Double): SourceNodePosition {
+        val r = x - 50.0
+        val n = 50.0 - y
+        var nodeX = r * SOURCE_NODE_TILE_X
+        var nodeY = -r * SOURCE_NODE_TILE_Y
+        nodeX += n * SOURCE_NODE_TILE_X
+        nodeY += n * SOURCE_NODE_TILE_Y
+        nodeX += 2.0 * SOURCE_NODE_TILE_X
+        nodeY += SOURCE_NODE_Y_OFFSET
+        return SourceNodePosition(nodeX, nodeY)
+    }
+
+    private fun sourceWorldPosition(node: SourceNodePosition): SourceWorldPosition {
+        return SourceWorldPosition(
+            node.x * SOURCE_PARENT_SCALE + SOURCE_PARENT_X,
+            node.y * SOURCE_PARENT_SCALE + SOURCE_PARENT_Y,
+        )
+    }
 
 
     /**
@@ -148,7 +187,9 @@ object HallMoveTimeline {
                 point.first.toFloat(),
                 point.second.toFloat(),
                 -1,
-                z(point.first.toFloat(), point.second.toFloat())
+                z(point.first.toFloat(), point.second.toFloat()),
+                sourceWorldPosition(point.first.toDouble(), point.second.toDouble()).x,
+                sourceWorldPosition(point.first.toDouble(), point.second.toDouble()).y,
             )
         }
 
@@ -157,17 +198,25 @@ object HallMoveTimeline {
          * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
          */
 
-        fun positionAt(time: Double): Triple<Float, Float, Int> {
+        fun positionAt(time: Double): PositionSample {
             val scheduled = schedule.moves.firstOrNull { time < it.startsAt + it.action.duration }
                 ?: schedule.moves.last()
             val segment = scheduled.action
             val progress =
                 if (segment.duration <= 0.0) 1.0
                 else ((time - scheduled.startsAt) / segment.duration).coerceIn(0.0, 1.0)
-            return Triple(
-                (segment.fromX + (segment.toX - segment.fromX) * progress).toFloat(),
-                (segment.fromY + (segment.toY - segment.fromY) * progress).toFloat(),
-                segment.direction,
+            val gridX = segment.fromX + (segment.toX - segment.fromX) * progress
+            val gridY = segment.fromY + (segment.toY - segment.fromY) * progress
+            val fromNode = sourceNodePosition(segment.fromX, segment.fromY)
+            val toNode = sourceNodePosition(segment.toX, segment.toY)
+            // cc.MoveBy.update computes delta * progress and then adds the start node position.
+            val sourceNode = SourceNodePosition(
+                (toNode.x - fromNode.x) * progress + fromNode.x,
+                (toNode.y - fromNode.y) * progress + fromNode.y,
+            )
+            val sourceWorld = sourceWorldPosition(sourceNode)
+            return PositionSample(
+                gridX.toFloat(), gridY.toFloat(), segment.direction, sourceWorld.x, sourceWorld.y,
             )
         }
 
@@ -189,7 +238,7 @@ object HallMoveTimeline {
          */
 
         val zPoint = positionAt(zTime)
-        return Sample(current.first, current.second, current.third, z(zPoint.first, zPoint.second))
+        return Sample(current.x, current.y, current.direction, z(zPoint.x, zPoint.y), current.sourceWorldX, current.sourceWorldY)
     }
 
     /**
@@ -198,4 +247,22 @@ object HallMoveTimeline {
      */
 
     private fun z(x: Float, y: Float) = 4f * (x + y) - 424f
+
+    private data class PositionSample(
+        val x: Float,
+        val y: Float,
+        val direction: Int,
+        val sourceWorldX: Double,
+        val sourceWorldY: Double,
+    )
+
+    private data class SourceNodePosition(val x: Double, val y: Double)
+
+    private val SOURCE_CANVAS_WIDTH = 1280.0 / 0.86
+    private val SOURCE_NODE_TILE_X = SOURCE_CANVAS_WIDTH / 160.0
+    private const val SOURCE_NODE_TILE_Y = 4.0
+    private const val SOURCE_NODE_Y_OFFSET = 24.0
+    private const val SOURCE_PARENT_SCALE = 2.0
+    private val SOURCE_PARENT_X = SOURCE_CANVAS_WIDTH / 2.0
+    private const val SOURCE_PARENT_Y = 400.0
 }

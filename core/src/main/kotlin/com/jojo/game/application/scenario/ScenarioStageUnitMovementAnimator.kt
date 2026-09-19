@@ -42,6 +42,15 @@ internal class ScenarioStageUnitMovementAnimator {
         unit.hallMoveElapsedSeconds = 0.0
         unit.animationElapsed = 0f
         unit.hallAnimationElapsedSeconds = 0.0
+        if (battleTimeline) {
+            unit.hallSourceWorldX = Double.NaN
+            unit.hallSourceWorldY = Double.NaN
+        } else {
+            HallMoveTimeline.sourceWorldPosition(unit.visualX.toDouble(), unit.visualY.toDouble()).also {
+                unit.hallSourceWorldX = it.x
+                unit.hallSourceWorldY = it.y
+            }
+        }
         unit.moveDuration = duration
         unit.hallMoveDurationSeconds = if (battleTimeline) 0.0 else HallMoveTimeline.sourceDuration(path)
         if (!battleTimeline) unit.moveDuration = unit.hallMoveDurationSeconds.toFloat()
@@ -62,6 +71,12 @@ internal class ScenarioStageUnitMovementAnimator {
             unit.y = unit.moveToY
             unit.visualX = unit.x.toFloat()
             unit.visualY = unit.y.toFloat()
+            if (!battleTimeline) {
+                HallMoveTimeline.sourceWorldPosition(unit.x.toDouble(), unit.y.toDouble()).also {
+                    unit.hallSourceWorldX = it.x
+                    unit.hallSourceWorldY = it.y
+                }
+            }
             unit.action = 0
             unit.direction = direction
             onScriptedDirection(id to direction)
@@ -102,10 +117,16 @@ internal class ScenarioStageUnitMovementAnimator {
                 ScenarioMovementSample(point.x, point.y, point.direction, 4f * (point.x + point.y) - 424f)
             } else {
                 val point = HallMoveTimeline.sample(unit.movePath, unit.hallMoveElapsedSeconds)
-                ScenarioMovementSample(point.x, point.y, point.direction, point.zIndex)
+                ScenarioMovementSample(
+                    point.x, point.y, point.direction, point.zIndex, point.sourceWorldX, point.sourceWorldY,
+                )
             }
             unit.visualX = sample.x
             unit.visualY = sample.y
+            if (!battleTimeline) {
+                unit.hallSourceWorldX = sample.sourceWorldX
+                unit.hallSourceWorldY = sample.sourceWorldY
+            }
             unit.moveZIndex = sample.zIndex
             val nextDirection = sample.direction.takeIf { it >= 0 } ?: unit.direction
             if (nextDirection != unit.direction) {
@@ -146,6 +167,12 @@ internal class ScenarioStageUnitMovementAnimator {
         }
         unit.visualX = unit.x.toFloat()
         unit.visualY = unit.y.toFloat()
+        if (unit.hallSourceWorldX.isFinite() && unit.hallSourceWorldY.isFinite()) {
+            HallMoveTimeline.sourceWorldPosition(unit.x.toDouble(), unit.y.toDouble()).also {
+                unit.hallSourceWorldX = it.x
+                unit.hallSourceWorldY = it.y
+            }
+        }
         if (refreshZIndex) unit.moveZIndex = 4f * (unit.visualX + unit.visualY) - 424f
         unit.moveDuration = 0f
         unit.action = if (unit.movePath.isNotEmpty()) 0 else unit.action
@@ -158,4 +185,11 @@ internal class ScenarioStageUnitMovementAnimator {
  * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
  */
 
-private data class ScenarioMovementSample(val x: Float, val y: Float, val direction: Int, val zIndex: Float)
+private data class ScenarioMovementSample(
+    val x: Float,
+    val y: Float,
+    val direction: Int,
+    val zIndex: Float,
+    val sourceWorldX: Double = Double.NaN,
+    val sourceWorldY: Double = Double.NaN,
+)

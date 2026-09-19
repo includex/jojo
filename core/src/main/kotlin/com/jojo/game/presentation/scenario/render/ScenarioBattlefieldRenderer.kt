@@ -133,16 +133,16 @@ internal object ScenarioBattlefieldRenderer {
                 return
             }
             try {
-                val sourceX = (unit.visualX.toDouble() - unit.visualY.toDouble() + 42.0) * SOURCE_TILE_X
-                val sourceY = SOURCE_MAP_TOP - (unit.visualX.toDouble() + unit.visualY.toDouble()) * SOURCE_TILE_Y
+                val sourceX = unit.sourceWorldCenterX
+                val sourceY = unit.sourceWorldCenterY
                 val inverseWidth = 1f / texture.width
                 val inverseHeight = 1f / texture.height
                 val sourceRow = unit.frameRow * 64
                 val uLeft = if (unit.flipX) 48f * inverseWidth else 0f
                 val uRight = if (unit.flipX) 0f else 48f * inverseWidth
-                sourceWorldQuad.draw(
+                sourceWorldQuad.drawCorners(
                     batch, texture,
-                    sourceX - 48.0, sourceY - 64.0, 96.0, 128.0,
+                    unit.sourceWorldLeft, unit.sourceWorldBottom, unit.sourceWorldRight, unit.sourceWorldTop,
                     uLeft, (sourceRow + 64f) * inverseHeight, uRight, sourceRow * inverseHeight,
                 )
                 if (unit.showSpeechBubble) assets.streetSpeechBubbleRegion?.let { bubble ->
@@ -157,10 +157,6 @@ internal object ScenarioBattlefieldRenderer {
             }
         }
     }
-
-    private const val SOURCE_TILE_X = 16.0 / 0.86
-    private const val SOURCE_TILE_Y = 8.0
-    private const val SOURCE_MAP_TOP = 1248.0
 
     /**
      * `Entry`: 관련 상태와 동작을 묶는 class다.

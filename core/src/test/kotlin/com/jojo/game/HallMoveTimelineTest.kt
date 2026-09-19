@@ -66,4 +66,21 @@ class HallMoveTimelineTest {
         close(-48f, after.zIndex)
         close(45.975f, before.x)
     }
+
+    @Test fun `Hall render position preserves source Double node interpolation before Float32 vertices`() {
+        val path = (85 downTo 65).map { 54 to it }
+        val fixedDelta = (1f / 60f).toDouble()
+        val expected = listOf(
+            2 to listOf(172.1549835205078f, 78.66664123535156f, 268.1549987792969f, 206.66664123535156f),
+            47 to listOf(520.9921875f, 228.66665649414062f, 616.9921875f, 356.6666564941406f),
+        )
+
+        expected.forEach { (ordinal, corners) ->
+            val sample = HallMoveTimeline.sample(path, fixedDelta * ordinal)
+            assertEquals(corners[0], (sample.sourceWorldX - 48.0).toFloat(), "left at ordinal $ordinal")
+            assertEquals(corners[1], (sample.sourceWorldY - 64.0).toFloat(), "bottom at ordinal $ordinal")
+            assertEquals(corners[2], (sample.sourceWorldX + 48.0).toFloat(), "right at ordinal $ordinal")
+            assertEquals(corners[3], (sample.sourceWorldY + 64.0).toFloat(), "top at ordinal $ordinal")
+        }
+    }
 }

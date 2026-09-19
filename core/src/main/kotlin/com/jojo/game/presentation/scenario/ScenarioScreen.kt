@@ -16,6 +16,7 @@ import com.jojo.game.presentation.battle.preparation.HallPreparationFlow
 import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioModalKind
+import com.jojo.game.application.scenario.HallMoveTimeline
 import com.jojo.game.application.hall.HallManagementCommandAdapter
 import com.jojo.game.application.runtime.RuntimeScenarioPresentation
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
@@ -1167,10 +1168,24 @@ class ScenarioScreen(
                 val animationTime = if (unit.action == 20) unit.animationElapsed else playbackFrame.elapsed
                 HallUnitRender.frame(avatar, unit.action, unit.direction, animationTime)
             }
+            val sourceWorld = if (
+                unit.action == 20 && unit.hallMoveDurationSeconds > 0.0 &&
+                unit.hallSourceWorldX.isFinite() && unit.hallSourceWorldY.isFinite()
+            ) {
+                HallMoveTimeline.SourceWorldPosition(unit.hallSourceWorldX, unit.hallSourceWorldY)
+            } else {
+                HallMoveTimeline.sourceWorldPosition(unit.visualX.toDouble(), unit.visualY.toDouble())
+            }
             ScenarioBattlefieldUnitView(
                 id = unit.id,
                 visualX = unit.visualX,
                 visualY = unit.visualY,
+                sourceWorldCenterX = sourceWorld.x,
+                sourceWorldCenterY = sourceWorld.y,
+                sourceWorldLeft = (sourceWorld.x - 48.0).toFloat(),
+                sourceWorldBottom = (sourceWorld.y - 64.0).toFloat(),
+                sourceWorldRight = (sourceWorld.x + 48.0).toFloat(),
+                sourceWorldTop = (sourceWorld.y + 64.0).toFloat(),
                 visible = unit.visible,
                 zIndex = unit.moveZIndex,
                 siblingOrder = index,
