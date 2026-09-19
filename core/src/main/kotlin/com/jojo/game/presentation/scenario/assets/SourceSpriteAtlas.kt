@@ -29,6 +29,9 @@ internal class SourceSpriteAtlas : Disposable {
     private val regions = mutableMapOf<String, TextureRegion>()
     private val standaloneTextures = mutableListOf<Texture>()
 
+    /** 이미 atlas에 들어간 region만 반환하며 파일 decode나 GPU upload를 시작하지 않는다. */
+    fun peek(path: String): TextureRegion? = regions[path]
+
     fun file(path: String): TextureRegion? {
         regions[path]?.let { return it }
         val file = Gdx.files.internal(path)

@@ -350,3 +350,17 @@ tasks.register<JavaExec>("captureOpeningDialogueAutoAdvance") {
     }
     doLast { check(destination.get().asFile.isFile) { "Opening auto advance manifest missing" } }
 }
+
+// Observe the actual returned portrait regions through three naturally completed pages.
+tasks.register<JavaExec>("captureOpeningPortraitReadiness") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningPortraitReadinessDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.file("verification/opening-portraits/game-portraits.json")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast { check(destination.get().asFile.isFile) { "Opening portrait manifest missing" } }
+}

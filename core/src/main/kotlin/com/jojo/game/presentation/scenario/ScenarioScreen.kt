@@ -851,6 +851,7 @@ class ScenarioScreen(
     override fun render(delta: Float) {
         playbackFrame.advanceClock(delta)
         runtimeTraceCoordinator.applyRuntimeCommands()
+        sceneAssets.updatePortraitRegionLoads()
         processHallUnitAssetReadiness("pre-playback")
         if (!runtimeOverlayInstalled && runtimeOverlay != null) {
             runtimeOverlayInstalled = true
@@ -952,6 +953,7 @@ class ScenarioScreen(
             }
         }
         if (playbackFrame.updatePlayback(delta) == ScenarioRenderPhaseResult.ROUTED) return
+        sceneAssets.updatePortraitRegionLoads()
         processHallUnitAssetReadiness("post-playback")
         if (playbackFrame.elapsed > 0.15f && runtimeOverlay == RuntimeScenarioOverlay.CHOICE) {
             advanceSourceUntilChoice()

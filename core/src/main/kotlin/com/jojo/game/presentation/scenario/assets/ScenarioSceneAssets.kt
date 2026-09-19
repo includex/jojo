@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.async.AsyncExecutor
 import com.badlogic.gdx.utils.async.AsyncResult
 import com.badlogic.gdx.utils.async.AsyncTask
@@ -31,6 +32,8 @@ internal class ScenarioSceneAssets(
      */
 
     private val spriteAtlas = SourceSpriteAtlas()
+    /** 검증 실행이 실제 대사 portrait region 선택과 atlas cache hit를 관찰하는 선택 hook이다. */
+    internal var portraitRegionObserver: ((Int, TextureRegion?, Boolean) -> Unit)? = null
     private val infoLabels = InfoLabels()
     fun infoLabel(text: String) = infoLabels.get(text)
     private val portraitTextures = ScenarioSceneAssetCache<Int, Texture>(Texture::dispose)
@@ -54,6 +57,14 @@ internal class ScenarioSceneAssets(
     private val hallUnitTextureExecutor = AsyncExecutor(2, "hall-unit-textures")
     private val hallUnitTextureLoads = mutableMapOf<Int, HallUnitTextureLoad>()
     private val hallUnitTextureReadyCallbacks = ArrayDeque<() -> Unit>()
+    private data class PortraitRegionLoad(
+        val portraitId: Int,
+        val path: String,
+        val result: AsyncResult<Pixmap>,
+    )
+    private val portraitRegionExecutor = AsyncExecutor(1, "dialogue-portraits")
+    private val portraitRegionLoads = mutableMapOf<Int, PortraitRegionLoad>()
+    private val failedPortraitRegionIds = mutableSetOf<Int>()
     /** 거점 UI 경로별 텍스처를 경로 키로 재사용하는 캐시다. */
     val hallMenuTextures = ScenarioSceneTextureCache()
 
@@ -318,7 +329,55 @@ internal class ScenarioSceneAssets(
     fun dialoguePanelRegion(isLeft: Boolean) = spriteAtlas.file(
         if (isLeft) "maps/ui/fight-speech-left.png" else "maps/ui/dialogue-panel.png",
     )
-    fun portraitRegion(id: Int) = spriteAtlas.file("maps/heads/$id.png")
+    fun portraitRegion(id: Int): TextureRegion? {
+        val path = "maps/heads/$id.png"
+        val cached = spriteAtlas.peek(path)
+        if (cached != null) {
+            portraitRegionObserver?.invoke(id, cached, true)
+            return cached
+        }
+        if (id !in portraitRegionLoads && id !in failedPortraitRegionIds) {
+            val file = Gdx.files.internal(path)
+            portraitRegionLoads[id] = PortraitRegionLoad(
+                portraitId = id,
+                path = path,
+                result = portraitRegionExecutor.submit(AsyncTask {
+                    check(file.exists()) { "Missing dialogue portrait: ${file.path()}" }
+                    Pixmap(file)
+                }),
+            )
+        }
+        portraitRegionObserver?.invoke(id, null, false)
+        return null
+    }
+
+    /** 대사 renderer가 pending/failed portrait를 별도 동기 texture로 우회하지 않게 한다. */
+    fun isPortraitRegionPending(id: Int): Boolean = id in portraitRegionLoads || id in failedPortraitRegionIds
+
+    /** render thread에서 완료된 portrait Pixmap을 기존 source atlas 경로에 삽입한다. */
+    fun updatePortraitRegionLoads() {
+        portraitRegionLoads.values.filter { it.result.isDone }.toList().forEach { load ->
+            portraitRegionLoads.remove(load.portraitId)
+            val pixmap = runCatching { load.result.get() }.getOrElse { failure ->
+                failedPortraitRegionIds += load.portraitId
+                Gdx.app?.error(
+                    "ScenarioSceneAssets",
+                    "Could not load dialogue portrait ${load.portraitId}: ${failure.message}",
+                    failure,
+                )
+                return@forEach
+            }
+            try {
+                if (spriteAtlas.peek(load.path) == null) {
+                    checkNotNull(spriteAtlas.insert(load.path, pixmap)) {
+                        "Could not insert dialogue portrait ${load.portraitId} into source atlas"
+                    }
+                }
+            } finally {
+                pixmap.dispose()
+            }
+        }
+    }
     val streetSpeechBubbleRegion get() = spriteAtlas.file("maps/ui/street-speech-bubble.png")
 
     /** portraitTexture: 인물 초상화를 처음 요청할 때만 로드해 캐시에 보관한다. */
@@ -410,6 +469,10 @@ internal class ScenarioSceneAssets(
         hallUnitTextureLoads.values.forEach { load -> runCatching { load.result.get().dispose() } }
         hallUnitTextureLoads.clear()
         hallUnitTextureReadyCallbacks.clear()
+        portraitRegionExecutor.dispose()
+        portraitRegionLoads.values.forEach { load -> runCatching { load.result.get().dispose() } }
+        portraitRegionLoads.clear()
+        failedPortraitRegionIds.clear()
         unitTextures.dispose()
         hallMenuTextures.dispose()
         cachedOverlayPixel?.dispose()

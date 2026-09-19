@@ -1165,3 +1165,51 @@ strict RGBA 0픽셀 차이 유지. 자연 포트 실행8초, 회귀 캡처 묶�
 명시flag0 설정 override, 동일 원본 DialogueLayer 여러 페이지 사이 설정 변경,
 전체 로딩 지연·초상화 준비·이동 중 전체 화면은 별도 검증 대상이다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## 첫 세 대사의 초상화 준비 프레임 (2026-09-20)
+
+완성된 대사 화면의 픽셀 일치와 별개로, 초상화 첫 표시 순서의 차이를 발견했다.
+원본 DialogueLayer는 패널·화자·본문을 먼저 만든 뒤 초상화를 비동기로 요청한다.
+포트는 첫 draw의 portraitRegion 호출에서 Pixmap decode와 atlas upload를 동기 실행해
+대사 생성 프레임부터 초상화를 표시했다. 수정 전 첫 세 페이지 모두 이 차이가 있었다.
+
+원본의 실제 loadByUrl 요청/캐시/콜백과 매 AFTER_DRAW의 양쪽 face를 관측했다.
+첫181은 layer Node.298에서 frame349 활성 오른쪽 null→350 frame181 GL-ready였다.
+둘째0은 같은 layer·face nodes를 사용하며 frame390 활성 왼쪽 null→391 frame1 ready,
+비활성 오른쪽에는181이 남았다. 셋째157은 새 layer Node.312로 바뀌어 양쪽 face가
+초기화됐고 frame459 활성 오른쪽 null→460 frame214 ready였다. 따라서 셋째에서
+이전 오른쪽181을 임의로 유지하지 않는다. 완료·초상화 준비 후에만 원본 Panel_cancel
+실제 클릭 두 번으로 진행했다. 원본 자연 artifact SHA-256:
+`e0a875ebb3e22ab00b2ff6d89882506ff5a383c259aba56e29469eb5bd81b891`.
+
+ScenarioSceneAssets의 portraitRegion은 첫 요청에서 worker에 Pixmap decode를 맡기고
+null을 반환한다. 완료된 Pixmap만 render thread의 pre/post playback 안전 지점에서
+기존 SourceSpriteAtlas.insert로 업로드한다. 동일ID 요청은 병합하며 pending 상태에서
+renderer의 portraitTexture 동기 fallback을 막는다. 고정 한 프레임 지연은 넣지 않았다.
+실패는 한 번 기록하고 terminal 상태로 남겨 화면 예외·재요청 loop·동기 fallback을
+막는다. executor 종료 후 미소비 Pixmap을 정리하며 업로드한 Pixmap도 finally에서 해제한다.
+
+검증용 null 기본 observer는 실제 반환된 region과 요청 전 cache hit를 기록한다.
+비로딩 peek만 사용하므로 관측이 자산 준비를 앞당기지 않는다. 포트 standalone launcher는
+첫 세 자연 완료 대사와 정상 SPACE 입력 두 번을 거치며 framebuffer readback·격리를
+하지 않는다. 요청 portraitId만으로 ready를 판정하지 않고 실제 region의 GL handle,
+크기와 atlas 좌표를 사용한다.
+
+수정 후 포트는208→209,248→249,318→319에서 각각 빈 상태→ready였다. 원본과
+각 portrait의 atlas rect `[395,2,192,240]`, `[935,2,192,240]`, `[1129,2,192,240]`가
+일치한다. comparator는 수정 전 세 페이지 모두 실패, 수정 후 모두 통과했다.
+이 결과는 특정 한 프레임 로드 시간이 항상 같다는 주장과 구분한다.
+
+검증: core203개, campaign47개, Python opening66개 통과. 첫 세 완성 대사 화면 및
+13개 글자 단계 strict RGBA 0픽셀 차이 유지. EVENT, 첫 이동, 유닛 준비, stage.delay,
+첫 대사 typing 규칙 회귀 모두 통과. native 캡처·회귀 묶음은 외부60초 제한 안에서
+25초, 최종 core는1초에 완료했다. Astra가 계획·검수를, Sol이 준비 경로를 맡았다.
+증거는 `build/reports/opening-portrait-ready-20260920/`의 source, `game-baseline.json`,
+`game-fixed.json`, `baseline-readiness.json`, `fixed-readiness.json`, pixel/timing regression,
+`fixed-regression.log`, `core-final.log`에 있다.
+
+비활성 side의 일반 재사용, cache-hit 자산의 callback 순서, 화면을 떠난 자산과 일반 atlas
+packing 순서, 실패 후 재요청 정책, 전체 프레임 시각 일치는 추가 검증 대상이다.
+이번 검증은 첫 세 정상 자산의 활성 face 준비 전이에 한정한다.
+전체 게임 동등성 목표는 계속 진행한다.
