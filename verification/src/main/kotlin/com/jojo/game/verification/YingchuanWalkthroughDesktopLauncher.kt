@@ -37,6 +37,7 @@ object YingchuanWalkthroughDesktopLauncher {
         val captureMode = args.getOrNull(3) ?: "semantic-walkthrough"
         require(captureMode in setOf(
             "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
+            "first-round-end",
         )) {
             "unknown walkthrough capture mode: $captureMode"
         }
@@ -128,6 +129,7 @@ private class WalkthroughRecorder(
     private val nextActionCaptureCounts = mutableMapOf<Int, Int>()
     private var enemyArrivalAnchorSeconds: Double? = null
     private var nextEnemyCapture = 0
+    private val previousFirstRoundEnemyHasActed = mutableMapOf<Int, Boolean>()
 
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
         elapsedSeconds += delta.toDouble()
@@ -159,6 +161,7 @@ private class WalkthroughRecorder(
             "next-normal-actions" -> captureNextNormalActions(probe)
             "enemy-first-combat" -> captureEnemyFirstCombat(probe)
             "enemy-settlement" -> captureEnemySettlement(probe)
+            "first-round-end" -> captureFirstRoundEnd(probe)
             else -> {
                 semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
                     if (captures.size < MAX_CAPTURES) capture(key, probe)
@@ -220,6 +223,44 @@ private class WalkthroughRecorder(
         if (nextEnemyCapture >= MAX_CAPTURES) return
         if (elapsedSeconds < anchor + 2.5 + nextEnemyCapture * .25) return
         capture("enemy-settlement-${(nextEnemyCapture++).toString().padStart(2, '0')}", probe)
+    }
+
+    /**
+     * Records state boundaries at the end of the first enemy round. A unit row is captured when
+     * its domain `hasActed` value first commits; this is not labelled as an attack animation frame.
+     * The reinforcement camp is recorded only if it survives as an observable post-render state.
+     */
+    private fun captureFirstRoundEnd(probe: BattleRuntimeScreenProbe) {
+        val tracked = probe.battle.snapshot.units.filter { it.characterId in FIRST_ROUND_END_CHARACTER_IDS }
+        if (probe.round == 1 && probe.activeFaction == Faction.ENEMY) {
+            tracked.forEach { unit ->
+                val characterId = unit.characterId ?: return@forEach
+                val previous = previousFirstRoundEnemyHasActed[characterId]
+                if (previous == false && unit.hasActed) {
+                    captureOnce("round1-enemy-action-committed-$characterId", probe)
+                }
+                previousFirstRoundEnemyHasActed[characterId] = unit.hasActed
+            }
+        } else if (probe.round <= 1) {
+            tracked.forEach { unit ->
+                unit.characterId?.let { previousFirstRoundEnemyHasActed.putIfAbsent(it, unit.hasActed) }
+            }
+        }
+
+        if (probe.round == 1 && probe.activeFaction == Faction.REINFORCEMENTS) {
+            captureOnce("round1-reinforcements-camp-observed", probe)
+        }
+        if (probe.round == 2) captureOnce("round2-start-observed", probe)
+        if (probe.round == 2 && probe.playback == PlaybackState.DIALOGUE) {
+            captureOnce("round2-start-dialogue", probe)
+        }
+        if (probe.round == 2 && probe.turnPhase == "CAMP_CARD") {
+            captureOnce("round2-camp-card-banner", probe)
+        }
+    }
+
+    private fun captureOnce(key: String, probe: BattleRuntimeScreenProbe) {
+        if (key !in capturedKeys && captures.size < MAX_CAPTURES) capture(key, probe)
     }
 
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
@@ -343,6 +384,7 @@ private class WalkthroughRecorder(
         const val COMBAT_CAPTURE_INTERVAL_SECONDS = .3
         val NEXT_ACTION_OFFSETS_SECONDS = doubleArrayOf(0.0, .5, 1.0, 1.5, 2.2, 3.2)
         val ENEMY_CAPTURE_OFFSETS_SECONDS = doubleArrayOf(0.0, .15, .3, .6, 1.0, 1.5, 2.2, 3.0, 4.0, 5.0, 6.0, 7.0)
+        val FIRST_ROUND_END_CHARACTER_IDS = setOf(484, 485, 475, 476)
     }
 }
 

@@ -114,3 +114,13 @@
 - 원본 action39의 `props.color=8355711(0x7f7f7f)`를 timeline parser가 버려 완료 병사가 정상 밝기로 남았다. RGB를 timeline→UnitSpriteFrame→BattleActorRenderUnit→SpriteBatch 본체 렌더까지 전달하고 기존 alpha는 유지했다. 본체 이후 WHITE 복원으로 HP막대·아이콘에 색이 번지지 않게 한다.
 - 원본 `UIFrame.CreateAnime`는 새 clip 첫 색이 없으면 흰색을 넣고, 이후 색 없는 key는 이전 색을 유지한다. 현재 battle 카탈로그의 색상 키는 모두 constant다. 실제39 방향별 회색,40의16틱 녹색→회색,36의중간키상속/흰색전환,0의흰색복귀와 composer RGB전달 테스트가 통과했다. 향후 선형색상 데이터 지원까지 검증한 것으로 확대하지 않는다.
 - 정상 속도60초 `verification/build/verification/yingchuan-477-rgb-fixed/` 성공. 두 번째 정산창 PNG09에서 완료한474/477의 어두운 몸체를 원본 PNG와 대조했고, 미행동 병사·HP막대는 기존 색을 유지한다. 정산창 배치와 교전 진행도 유지됐다.
+
+
+## 첫 적군 턴 종료와 2턴 진입
+
+- 정상 속도90초 원본 `build/reports/yingchuan-source-first-round-end-20260920/`(5,795프레임)과 포트 `verification/build/verification/yingchuan-first-round-end-20260920/`(5,402프레임)는 모두 제한 종료까지 진행했다. 원본 직접 S_00 진입 및 현재 작업 트리 실행이며 전체 캠페인/깨끗한 HEAD 검증은 아니다.
+- 마지막484 이동·공격은 unit3 HP155→154, 반격484 HP97→49. 485는 이동만 수행하고,475/476은 제자리 공격·반격으로 각각 HP70→50 /41→21, 대상211/210은104→83 /83→62가 된다. 위치·방향과 이 결과가 양쪽에서 일치한다.
+- 첫 round2 프레임의 공통26유닛 x/y/HP/MP/방향/표시 비교 결과는 `round2-boundary-comparison.json`에 보존했다. 유일한 차이는 양쪽 모두 숨겨진 bootstrap unit0의 미지정 y(null 대0)이며, 보이는 유닛의 비교 필드는 모두 같다. 원본79.0641초/포트77.915054초로 진입 절대 시간에는 약1.149초 차이가 있어 전체 프레임 타이밍 일치를 주장하지 않는다.
+- 양쪽7장의 캡처와 full trace를 확보했다. 원본은 실제 action clip, 포트는 domain hasActed 커밋을 캡처하므로 같은 공격 프레임으로 간주하지 않는다. round2 시작과 대화 캡처는 같은 대화 구간이며, 별도 턴 배너는 관찰하지 못했다. 90초 종료 시 양쪽 모두2턴 스크립트 도중이므로 플레이어 조작 인계까지 확인한 것은 아니다.
+- 캡처 도구 `first-round-end` 모드를 추가했다. 원본은 이 모드만90초 상한을 허용하고 미충족 gate도 partial manifest로 남긴다. 포트는 정상 속도만 허용하고 중복 없는 상태 경계 캡처를 사용한다. 원본 node 구문 검사와 포트 실제90초 실행이 통과했다.
+- 다음 우선순위는2턴 화공 연출, 등장 인물 이동과 카메라, 대화 종료 후 조작 인계다. 사소한 글자 차이는 계속 후순위다.
