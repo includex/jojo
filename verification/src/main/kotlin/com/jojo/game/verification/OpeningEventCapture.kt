@@ -15,6 +15,9 @@ internal class OpeningEventCapture(output: RenderCaptureConfiguration) {
     private val expected = "재능의 첫 징후"
     private val manifest = JsonValue(JsonValue.ValueType.`object`)
     private val observed = linkedSetOf<String>()
+    private val prefixTexts = linkedSetOf<String>()
+    private val prefixes = JsonValue(JsonValue.ValueType.array)
+    private val capturePrefixes = System.getenv("JOJO_CAPTURE_EVENT_PREFIXES") == "1"
     private var frame = 0
     private var fullCaptured = false
     private var finished = false
@@ -27,6 +30,26 @@ internal class OpeningEventCapture(output: RenderCaptureConfiguration) {
         check(probe.module == "R_00" && probe.sceneIndex == 1 && probe.modalKind == "EVENT" && probe.modalText == expected)
         check(expected.startsWith(probe.modalVisibleText))
         observed.add(probe.modalVisibleText)
+        if (capturePrefixes && probe.modalVisibleText.isNotEmpty() && !probe.naturalModalIsolation && prefixTexts.add(probe.modalVisibleText)) {
+            val width = Gdx.graphics.backBufferWidth
+            val height = Gdx.graphics.backBufferHeight
+            check(width == 2560 && height == 1376)
+            val pixels = ScreenUtils.getFrameBufferPixmap(0, 0, width, height)
+            val bytes = ByteArray(width * height * 4)
+            try { pixels.pixels.rewind(); pixels.pixels.get(bytes) } finally { pixels.dispose() }
+            directory.mkdirs()
+            val file = "game-event-prefix-${prefixTexts.size}.rgba"
+            directory.child(file).writeBytes(bytes, false)
+            val prefix = JsonValue(JsonValue.ValueType.`object`)
+            prefix.addChild("file", JsonValue(file))
+            prefix.addChild("sha256", JsonValue(MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }))
+            prefix.addChild("text", JsonValue(probe.modalVisibleText))
+            prefix.addChild("complete", JsonValue(probe.modalTextComplete))
+            prefix.addChild("naturalModalIsolation", JsonValue(probe.naturalModalIsolation))
+            prefix.addChild("width", JsonValue(width.toLong())); prefix.addChild("height", JsonValue(height.toLong()))
+            prefix.addChild("frame", JsonValue(frame.toLong())); prefix.addChild("elapsedSeconds", JsonValue(probe.elapsedSeconds.toDouble()))
+            prefixes.addChild(prefix)
+        }
         if (!probe.modalTextComplete) return
         check(probe.modalVisibleText == expected)
         val isolated = probe.naturalModalIsolation
@@ -52,6 +75,7 @@ internal class OpeningEventCapture(output: RenderCaptureConfiguration) {
         Gdx.app.log("JojoGame", "OPENING_EVENT_CAPTURE: isolated=$isolated frame=$frame text=${probe.modalVisibleText}")
         if (!isolated) {
             if (System.getenv("JOJO_CAPTURE_BACKGROUND_TEXTURE") == "1") OpeningBackgroundCapture.capture(directory, probe.backgroundId)
+            if (System.getenv("JOJO_CAPTURE_PANEL_TEXTURE") == "1") OpeningPanelTextureCapture.capture(directory)
             fullCaptured = true
             return
         }
@@ -64,6 +88,10 @@ internal class OpeningEventCapture(output: RenderCaptureConfiguration) {
         val strings = JsonValue(JsonValue.ValueType.array)
         observed.forEach { strings.addChild(JsonValue(it)) }
         manifest.addChild("observedStrings", strings)
+        if (capturePrefixes) {
+            check(prefixTexts.toList() == (1..expected.length).map { expected.take(it) }) { "Natural event prefix capture missed a string: $prefixTexts" }
+            manifest.addChild("prefixes", prefixes)
+        }
         val clear = JsonValue(JsonValue.ValueType.array)
         listOf(0, 0, 0, 1).forEach { clear.addChild(JsonValue(it.toLong())) }
         row.addChild("clearColor", clear)

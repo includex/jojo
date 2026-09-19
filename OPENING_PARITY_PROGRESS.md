@@ -771,3 +771,57 @@ python3 tools/verify_opening_background_pixels.py build/reports/opening-backgrou
 실제 R00 scene1을 실행하는 회귀 테스트가 첫 입력의 문구 완성·모달 유지와 두 번째
 입력의 닫힘을 확인한다. ScenarioPlaybackControllerTest와 Astra 검수가 통과했다.
 실제 OS 입력 경로나 자연 타이핑·닫힘 시간의 동등성을 입증한 것은 아니다.
+
+
+## 첫 EVENT 전체 화면과 자연 8개 문자열 strict 일치 (2026-09-20)
+
+남은 안내창 왼쪽 테두리 259픽셀을 해결했다. 완성 문구의 전체 화면과 분리 안내창,
+자연 타이핑으로 관측한 8개 비어 있지 않은 prefix의 전체 화면 모두 strict RGBA 차이 0이다.
+전체 화면 SHA는 원본과 같은
+`1c73f7ceea33a8e5391f1fd6bf0f8212b4c4a2bec0499e3d08a0dee634e4ade3`,
+분리 화면은 `44b1aa971446d648c79e28d9e35b3cc7c6741d3918d2e1453911f11c48be1188`이다.
+
+원인 분리를 위해 양쪽 실제 GPU InfoLayer atlas [1,1,21,19]를 읽었다. 원본 19×17
+영역과 1px padding을 포함한 1,596byte 전체가 동일했으며 SHA는
+`f92e90ab9655a150ba755f2bbcadb8b9b357539baaa22f06e97418ee323e16f0`이다.
+원본 현재 GL program의 실제 cc_matViewProj XY 항과 포트의 합성 행렬 XY 항도
+Float32 값이 같았다. 원본 sliced 정점·UV·indices와 shader 원문도 계측했다.
+삼각형 순서 실험은 이번에 실제 코드 치환을 확인하고 다시 수행해 259픽셀 유지로
+확인했다. 앞 단위의 치환이 적용되지 않은 실험은 해당 결론의 근거에서 제외한다.
+
+좌표 반올림을 분리한 대조 실험에서 Float 곱셈·덧셈을 각각 반올림하면 259픽셀 차이가
+재현됐고, 입력 정점과 행렬은 Float32로 유지하되 곱셈·덧셈을 Double로 계산한 뒤
+clip 좌표를 Float32로 한 번 반올림하면 차이가 없어졌다. 특정 픽셀/문자에 대한
+보정 상수는 없다. 원본 GPU의 FMA 명령을 완전히 재현했다고 단정하지 않는다.
+
+SourceSlicedPatch는 유한한 축 정렬 2D 직교 행렬에만 이 CPU 투영을 적용한다.
+GPU에 identity XY로 제출하고 constant Z는 원래 합성행렬 M23을 유지한다.
+회전·전단·원근·깊이 변화 등 지원하지 않는 행렬은 기존 GPU 투영 경로를 사용한다.
+행렬 설정과 복원은 try/finally로 감싸고 좌표/UV/행렬 저장 공간은 재사용한다.
+
+자연 prefix 캡처는 강제 reveal이나 입력 없이 실제 각 문자열을 관측한다. 원본은
+AFTER_DRAW, content/joined/remaining/typingHandle, opacity 255 및 texture upload를
+확인하며 포트는 실제 modal complete와 isolation 상태를 기록한다. 비교기는 8개
+문자열의 누락·순서·프레임·시간·raw SHA·상태를 검증한다. 캡처 비용이 시간 흐름에
+영향을 주므로 이 결과를 타이핑/닫힘 시간 동등성의 근거로 사용하지 않는다.
+
+최종 회귀: core 5개(입력/투영 수학), campaign 47개, Python opening 35개 통과.
+첫 세 대사 페이지, 13개 대사 prefix, resize 후 3개 표본도 모두 0픽셀 차이 유지.
+최종 Gradle 실행은 외부 60초 제한 내 28초에 끝났다. Astra 코드 검수의 지원 범위,
+Z 보존 및 포트 prefix 상태 기록 요구를 반영했다.
+
+증거: `build/reports/opening-panel-residual-20260920/`의 `source/`, `prefix-source/`,
+`final-game/`, `texel-comparison.json`, `cpu-float-comparison.json`,
+`cpu-clip-comparison.json`, `final-prefix-comparison.json`, `pages-regression.json`,
+`prefixes-regression.json`, `resize-regression.json`, `final-regression.log`.
+
+```sh
+JOJO_CAPTURE_PANEL_TEXTURE=1 node tools/capture_opening_source_event.cjs build/reports/opening-panel-residual-20260920/source
+JOJO_CAPTURE_EVENT_PREFIXES=1 node tools/capture_opening_source_event.cjs build/reports/opening-panel-residual-20260920/prefix-source
+JOJO_CAPTURE_EVENT_PREFIXES=1 JOJO_CAPTURE_PANEL_TEXTURE=1 ./gradlew :verification:captureOpeningEvent
+python3 tools/verify_opening_event_pixels.py build/reports/opening-panel-residual-20260920/prefix-source/source-event.json verification/build/verification/opening-event/game-event.json --require-prefixes
+```
+
+이번 일치는 관측한 8개 문자열 상태와 완성 프레임에 한정된다. 빈 문구의 초기 상태,
+타이핑 주기, 자동 닫기와 후속 스크립트 재개 시점은 다음 단위에서 확인한다.
+전체 게임 동등성 목표는 계속 진행한다.

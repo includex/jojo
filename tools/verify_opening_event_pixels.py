@@ -44,11 +44,42 @@ def validate(manifest, source=False):
     return rows
 
 
-def verify(source_path, game_path):
+def validate_prefixes(manifest, source=False):
+    rows = manifest.get('prefixes', [])
+    if [r.get('text') for r in rows] != [TEXT[:i] for i in range(1, len(TEXT) + 1)]:
+        raise ValueError('all natural event prefixes are required in order')
+    previous_frame, previous_time = -1, -1.0
+    for row in rows:
+        frame, time = row['frame'], row['elapsedSeconds']
+        if (row.get('width'), row.get('height')) != (2560, 1376):
+            raise ValueError('invalid event prefix dimensions')
+        if not math.isfinite(time) or frame <= previous_frame or time <= previous_time:
+            raise ValueError('prefix capture order must increase')
+        if frame > manifest['fullFrame']['frame'] or time > manifest['fullFrame']['elapsedSeconds']:
+            raise ValueError('prefix captured after completed event')
+        if source:
+            text = row['text']
+            handle = None if text == TEXT else 'active'
+            expected = (text, text, TEXT[len(text):], handle, 255, True, 'EVENT_AFTER_DRAW')
+            actual = tuple(row.get(k) for k in ('joined', 'content', 'remaining', 'typingHandle', 'effectiveOpacity', 'uploaded', 'trigger'))
+            if actual != expected:
+                raise ValueError('source prefix not naturally observed after draw')
+        elif row.get('complete') is not (row['text'] == TEXT) or row.get('naturalModalIsolation') is not False:
+            raise ValueError('game prefix state mismatch')
+        previous_frame, previous_time = frame, time
+    return rows
+
+
+def verify(source_path, game_path, require_prefixes=False):
     source, game = [json.loads(p.read_text()) for p in (source_path, game_path)]
     source_rows, game_rows = validate(source, True), validate(game)
     samples = []
-    for stage, sr, gr in zip(('fullFrame', 'isolatedOverlay'), source_rows, game_rows):
+    stages = ['fullFrame', 'isolatedOverlay']
+    if require_prefixes:
+        source_rows += validate_prefixes(source, True)
+        game_rows += validate_prefixes(game)
+        stages += [f'prefix-{i}' for i in range(1, len(TEXT) + 1)]
+    for stage, sr, gr in zip(stages, source_rows, game_rows):
         buffers = []
         for path, row in ((source_path, sr), (game_path, gr)):
             raw = (path.parent / row['file']).read_bytes()
@@ -56,7 +87,8 @@ def verify(source_path, game_path):
                 raise ValueError('corrupt event capture')
             buffers.append(raw)
         result = compare(*buffers, stage='text')
-        result.update(stage=stage, scope='same completed natural event text; no typing or auto-close timing equivalence claim')
+        result.update(stage=stage, scope='same observed natural event text; no typing or auto-close timing equivalence claim')
+        result['text'] = sr['text']
         samples.append(result)
     return dict(contract='natural-opening-event-pixels/v1', equal=all(x['equal'] for x in samples), samples=samples)
 
@@ -66,8 +98,9 @@ def main():
     parser.add_argument('source', type=Path)
     parser.add_argument('game', type=Path)
     parser.add_argument('--report', type=Path)
+    parser.add_argument('--require-prefixes', action='store_true')
     args = parser.parse_args()
-    result = verify(args.source, args.game)
+    result = verify(args.source, args.game, args.require_prefixes)
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
