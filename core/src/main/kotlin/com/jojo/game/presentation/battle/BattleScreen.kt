@@ -2103,6 +2103,8 @@ void main() {
 
     private var pendingBattleSettlementActorId: String? = null
     private var pendingPhysicalSettlementOrder: List<String>? = null
+    private var settlementPlacementKey: Pair<String, Float>? = null
+    private var settlementPlacementOffset = 0f to 0f
 
     /**
      * `pendingActionVitalsBefore` (Map?): 직전 행동 시작 시점의 유닛별 체력·기력이다.
@@ -8155,67 +8157,86 @@ void main() {
      */
 
     private fun drawSettlementOverlays() {
+        if (settlementPresentation.infoView() == null) settlementPlacementKey = null
         settlementPresentation.infoView()?.let { overlay ->
             val unit = battle.presentation.presentationUnit(overlay.unitId) ?: return@let
             val frame = settlementAnimationFrame(overlay)
             val mine = overlay.panel == SettlementInfoPanel.MINE
             val panel = if (mine) SettlementInfoRenderContract.Panel.MINE else SettlementInfoRenderContract.Panel.OTHER
             val h = if (mine) 258f else 193.5f
-            batch.projectionMatrix = viewport.camera.combined
-            batch.begin()
-            batch.color = Color.WHITE
-            // 원본 프리팹 좌표는 `SettlementInfoRenderContract`가 들고 있다. 배경·상태 아이콘·
-            // 진행 막대 바탕을 그 순서 그대로 깔고, 값에 따라 길이가 변하는 막대만 따로 덮는다.
-            val sprites = SettlementInfoRenderContract.sprites(panel)
-            sprites.forEach { sprite ->
-                if (sprite.path in SETTLEMENT_VALUE_BARS) return@forEach
-                settlementInfoAssets.draw(
-                    batch, sprite.path, sprite.x, sprite.y, sprite.width, sprite.height, sprite.capInset,
+            val placementKey = overlay.unitId to overlay.startedAt
+            if (settlementPlacementKey != placementKey) {
+                val (visualX, visualY) = visualTile(unit)
+                val nodeX = boardLeft + (visualX + .5f) * boardTile
+                val nodeY = tileBottom(visualY) + boardTile / 2f
+                settlementPlacementOffset = SettlementInfoRenderContract.placementOffset(
+                    panel, nodeX, nodeY, viewport.worldWidth, viewport.worldHeight,
                 )
+                settlementPlacementKey = placementKey
             }
-            font.data.setScale(32f / 26f)
-            font.color = Color.WHITE
-            val titleY = if (mine) 294.5f + 40f else 226.85f + 40f
-            font.draw(batch, overlay.title, 744.4f, titleY)
-            font.draw(batch, "Lv ${unit.level}", if (mine) 911.105f else 912.256f, titleY)
-            font.draw(batch, gameDataCatalog.postsName(unit.posts), if (mine) 1045.55f else 1049.3f, titleY)
-            val rows = buildList {
-                overlay.deltas.forEach { delta ->
-                    val index = if (delta.kind == SettlementInfoKind.HP) 0 else 1
-                    val max = if (index == 0) unit.maxHitPoints else unit.maxMagicPoints
-                    add(SettlementRow(index, delta.kind.name, frame.numbers[index] ?: delta.before, max))
+            val previousTransform = batch.transformMatrix.cpy()
+            batch.transformMatrix = previousTransform.cpy().translate(
+                settlementPlacementOffset.first, settlementPlacementOffset.second, 0f,
+            )
+            try {
+                batch.projectionMatrix = viewport.camera.combined
+                batch.begin()
+                batch.color = Color.WHITE
+                // 원본 프리팹 좌표는 `SettlementInfoRenderContract`가 들고 있다. 배경·상태 아이콘·
+                // 진행 막대 바탕을 그 순서 그대로 깔고, 값에 따라 길이가 변하는 막대만 따로 덮는다.
+                val sprites = SettlementInfoRenderContract.sprites(panel)
+                sprites.forEach { sprite ->
+                    if (sprite.path in SETTLEMENT_VALUE_BARS) return@forEach
+                    settlementInfoAssets.draw(
+                        batch, sprite.path, sprite.x, sprite.y, sprite.width, sprite.height, sprite.capInset,
+                    )
                 }
-                overlay.grants.forEach { grant ->
-                    val growth = when (grant.kind) {
-                        SettlementGrowthKind.UNIT_EXP ->
-                            grant.unitResult?.let { Triple(2, it.oldExperience, it.gained) }
+                font.data.setScale(32f / 26f)
+                font.color = Color.WHITE
+                val titleY = if (mine) 294.5f + 40f else 226.85f + 40f
+                font.draw(batch, overlay.title, 744.4f, titleY)
+                font.draw(batch, "Lv ${unit.level}", if (mine) 911.105f else 912.256f, titleY)
+                font.draw(batch, gameDataCatalog.postsName(unit.posts), if (mine) 1045.55f else 1049.3f, titleY)
+                val rows = buildList {
+                    overlay.deltas.forEach { delta ->
+                        val index = if (delta.kind == SettlementInfoKind.HP) 0 else 1
+                        val max = if (index == 0) unit.maxHitPoints else unit.maxMagicPoints
+                        add(SettlementRow(index, delta.kind.name, frame.numbers[index] ?: delta.before, max))
+                    }
+                    overlay.grants.forEach { grant ->
+                        val growth = when (grant.kind) {
+                            SettlementGrowthKind.UNIT_EXP ->
+                                grant.unitResult?.let { Triple(2, it.oldExperience, it.gained) }
 
-                        SettlementGrowthKind.WEAPON_EXP ->
-                            grant.equipmentResult?.let { Triple(3, it.oldExperience, it.gained) }
+                            SettlementGrowthKind.WEAPON_EXP ->
+                                grant.equipmentResult?.let { Triple(3, it.oldExperience, it.gained) }
 
-                        SettlementGrowthKind.ARMOR_EXP ->
-                            grant.equipmentResult?.let { Triple(4, it.oldExperience, it.gained) }
-                    } ?: return@forEach
-                    val (index, old, gained) = growth
-                    val label = when (index) { 2 -> "EXP"; 3 -> "WQ"; else -> "HJ" }
-                    add(SettlementRow(index, label, frame.numbers[index] ?: old, (old + gained).coerceAtLeast(1)))
+                            SettlementGrowthKind.ARMOR_EXP ->
+                                grant.equipmentResult?.let { Triple(4, it.oldExperience, it.gained) }
+                        } ?: return@forEach
+                        val (index, old, gained) = growth
+                        val label = when (index) { 2 -> "EXP"; 3 -> "WQ"; else -> "HJ" }
+                        add(SettlementRow(index, label, frame.numbers[index] ?: old, (old + gained).coerceAtLeast(1)))
+                    }
                 }
-            }
-            // 값 막대는 원본 `ProgressBar`처럼 바탕 위에서 progress 비율만큼만 채운다.
-            // 길이는 숫자와 달리 1초짜리 트윈이 정한다.
-            rows.forEachIndexed { row, entry ->
-                val slot = settlementBarSlot(panel, entry.label, row) ?: return@forEachIndexed
-                val ratio = frame.ratios[entry.index]
-                    ?: (entry.value.toFloat() / entry.max.coerceAtLeast(1)).coerceIn(0f, 1f)
-                settlementInfoAssets.texture(slot.barAsset)?.let {
-                    batch.draw(it, slot.barX, slot.barY, 370f * ratio, 20f)
+                // 값 막대는 원본 `ProgressBar`처럼 바탕 위에서 progress 비율만큼만 채운다.
+                // 길이는 숫자와 달리 1초짜리 트윈이 정한다.
+                rows.forEachIndexed { row, entry ->
+                    val slot = settlementBarSlot(panel, entry.label, row) ?: return@forEachIndexed
+                    val ratio = frame.ratios[entry.index]
+                        ?: (entry.value.toFloat() / entry.max.coerceAtLeast(1)).coerceIn(0f, 1f)
+                    settlementInfoAssets.texture(slot.barAsset)?.let {
+                        batch.draw(it, slot.barX, slot.barY, 370f * ratio, 20f)
+                    }
+                    font.draw(batch, entry.value.toString(), slot.valueX, slot.labelY)
+                    font.draw(batch, "/", slot.slashX, slot.labelY)
+                    font.draw(batch, entry.max.toString(), slot.maxX, slot.labelY)
                 }
-                font.draw(batch, entry.value.toString(), slot.valueX, slot.labelY)
-                font.draw(batch, "/", slot.slashX, slot.labelY)
-                font.draw(batch, entry.max.toString(), slot.maxX, slot.labelY)
+                font.data.setScale(1f)
+                batch.end()
+            } finally {
+                batch.transformMatrix = previousTransform
             }
-            font.data.setScale(1f)
-            batch.end()
         }
         settlementPresentation.info2View()?.let { overlay ->
             val elapsed = (animationClock() - overlay.startedAt).coerceAtLeast(0f)

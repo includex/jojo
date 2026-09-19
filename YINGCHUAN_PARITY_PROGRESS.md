@@ -96,3 +96,14 @@
 
 - 수정 후 정상 속도60초 재생 `verification/build/verification/yingchuan-477-settlement-fixed/` 성공(3,598프레임, timeout). 실제 PNG03은 첫477 HP창, PNG09는 두 번째210 HP창을 보여준다. 477 hasActed51.314888→완료39 52.764854로1.449966초이며 원본과 같은 약1.45초다. 483 공격은59.064850초 unit3 HP156→155로 실제 피해1을 확인했다. 이전 중단 구간도 통과했다.
 - 별도 UI 위치 후보: 첫477 HP창은 카메라/맵이 맞는 실제 화면에서 원본보다 포트가 왼쪽 아래에 있다. 원본/포트의 창 위치 계산을 다음에 확인한다. 작은 글자·font 차이는 계속 후순위다.
+
+
+## 대상 유닛 기준 정산창 배치
+
+- 원본 `InfoBaseLayer._setpos`는 대상 unit.node 옆에 창을 배치하고 아래 넘침 반전→오른쪽 넘침 반전→위쪽 제한 순서로 보정한다. 포트는 모든 정산창을 고정(736,96)에 그려 첫477 HP창의 위치가 틀렸다.
+- 배경 크기는 실제 prefab의 OTHER471×193.5 / MINE471×258이다. root prefab1280×800은 고정 runtime 경계가 아니다. `UIScene._onLoadLayer`가 네 방향 Widget 정렬을 갱신한 뒤 onCreate를 부르므로 실제 viewport 경계를 사용한다.
+- 실제 visualTile의 node 중심으로 생성 시 위치를 계산하고, unitId/startedAt별로 보관한다. SpriteBatch 공통 이동으로 배경·막대·아이콘·숫자·이름을 함께 옮기고 finally에서 transform을 복원한다. 작은 글꼴 차이는 이번 수정 범위가 아니다.
+- 대상 이동, 아래/오른쪽 반전, MINE/OTHER의 위쪽 제한을 확인하는3개 배치 테스트가 통과했다. Astra가 좌표 변환과 원본 로딩 순서를 독립 검토했다.
+
+- 수정 후 정상 속도60초 `verification/build/verification/yingchuan-477-placement-fixed/` 성공. 첫477 HP창(PNG03)은 원본처럼 유닛 오른쪽 위, 다음210 HP창(PNG09)은 그 유닛 옆 아래로 이동한다. 양쪽 실제 PNG를 대조했다. 이는 두 OTHER 창의 위치 검증이며 전체 글자/막대 애니메이션 프레임의 픽셀 일치 주장이 아니다. MINE 가장자리 공식은 단위 테스트 범위다.
+- 다음 캐릭터 후보: 원본 두 번째 정산창 화면에서 행동 완료한477/474가 어두워지지만 포트는 같은 완료 자세에도 정상 밝기로 보인다. 색상 적용 경로를 확인한다.

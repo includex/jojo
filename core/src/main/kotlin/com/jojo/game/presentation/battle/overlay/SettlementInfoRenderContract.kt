@@ -55,6 +55,17 @@ object SettlementInfoRenderContract {
 
     private const val ROOT_W = 471f
 
+    /** InfoBaseLayer._setpos in bottom-left viewport coordinates; preserves its edge flips. */
+    fun placementOffset(panel: Panel, nodeX: Float, nodeY: Float, width: Float, height: Float): Pair<Float, Float> {
+        val panelHeight = if (panel == Panel.MINE) 258f else 193.5f
+        var left = nodeX + 48f
+        var bottom = nodeY + 48f - panelHeight
+        if (bottom < 0f) bottom += panelHeight - 96f
+        if (left + ROOT_W > width) left -= ROOT_W + 96f
+        bottom = minOf(bottom, height - panelHeight)
+        return left - ROOT_X to bottom - ROOT_Y
+    }
+
     /**
      * `BG2` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
