@@ -471,3 +471,22 @@ tasks.register<JavaExec>("captureOpeningFinalGroupFrames") {
         }
     }
 }
+
+tasks.register<JavaExec>("captureOpeningPostDialogueGroupFrames") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningPostDialogueGroupFramesDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-post-dialogue-group-frames")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast {
+        check(destination.get().file("game-post-dialogue-group.json").asFile.isFile)
+        listOf(0, 1, 7, 8, 22, 23, 36, 37, 40, 41, 42).forEach { ordinal ->
+            val suffix = ordinal.toString().padStart(3, '0')
+            check(destination.get().file("game-post-dialogue-group-$suffix.rgba").asFile.length() == 2560L * 1376 * 4)
+        }
+    }
+}

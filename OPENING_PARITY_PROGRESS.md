@@ -1544,3 +1544,40 @@ regression-first-move.json, regression-first-group.json, regression-final-group.
 3page 회귀는 opening-full-pages-20260920/phase-fixed-comparison.json에 있다.
 첫 대사 타이핑 의미상14개 endpoint 검증을 완료했으며, 후속 이동·대사와 전체 게임 목표는
 계속 진행한다.
+
+### 2026-09-20 첫 두 대사 뒤4인 이동 전체43프레임 검증
+
+첫 두 대사181/0이 완성된 뒤 정상 Panel_cancel pointer 및 SPACE 입력을 각각2회
+보내 다음 unitsMove로 진행했다. source completion poll과 실제_next handler 양쪽에서
+speakerId를 실제 s_lastId로 관측한다. 포트도 완료된 probe의 speaker/text를 기록한다.
+고정 Float32 1/60 시계이며 자연 wall-clock 입력/시간 동등성 주장은 아니다.
+
+실제 source AStar 경로는181(40,45→60),157(54,65→50)이15칸 직선이고,
+0은(40,35)에서(40,44)→(41,44)→(41,50)→(40,50),182는같은형태의
+(40,25)→(40,34)→(41,34)→(41,40)→(40,40) 우회였다.
+source duration은 직선0.6000001192092895, 우회0.6799999999999999초다.
+실제공동prime0부터직선완료37, 우회완료41, 첫idle42까지43프레임을 기록했다.
+157의완료방향은0이며, 이후delay3가 끝나고 세 번째 대사를 열 때의3과 구분한다.
+
+모든43개 전체RGBA hash,11개 raw,172개 actor의grid/sprite/방향/flip 및 실제world
+corner가 모두일치했다. raw차이는전부0픽셀이다. 같은구간에활성대사창은없다.
+source는41에서그룹resume와delay(3)가각1회발생하며42까지세번째대사는시작하지않는다.
+readPixels버퍼는매frame독립이며큰이미지인코딩/파일저장은수집종료후실행한다.
+
+입력 프레임은 엔진 내부 frame index 관측값이다. source pointer handler와첫ActionManager
+prime이같은index일수있으므로완료관측≤실제handler≤등록≤prime순서를검사한다.
+같은index의request/handler는관측elapsed로순서를확인한다. 서로다른실행의절대frame을
+맞추거나입력직후프레임을임의로버리지않는다.
+
+이단위는production변경없이후속이동의검증범위를확장했다. 증거는
+`build/reports/opening-post-dialogue-group-20260920/`의source-identity,game-delay-evidence,
+post-dialogue-group.json,negative-contract-checks.json에있다. 원본speaker관측보강후에도
+이전source대비43hash와11raw가전부같았다. 기존Python comparator64개와diff검사통과.
+후속대사와전체게임목표는계속진행한다.
+
+포트의실제delayCoordinator도추가관측했다. ordinal40까지이동barrier4개와stageDelay=null,
+41에서barrier해제와duration0.30000000000000004/elapsed0/primed=true,
+42에서elapsed=0.01666666753590107및남은시간을확인했다. comparator가이경계를검사한다.
+미완료입력·관측화자오류·prime뒤입력·digest누락·조기actor완료·조기resume·조기세번째대사·
+후속delay누락과비표본hash/정점오류까지10개반례를거부했다. 마지막두반례는11raw가
+모두통과해도최종gate가실패함을확인했다. Astra최종검수를통과했다.
