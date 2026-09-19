@@ -35,11 +35,13 @@ object YingchuanWalkthroughDesktopLauncher {
         val timeScale = args.getOrNull(2)?.toFloat() ?: 1f
         require(timeScale in .25f..8f) { "walkthrough time scale must be .25..8" }
         val captureMode = args.getOrNull(3) ?: "semantic-walkthrough"
-        require(captureMode in setOf("semantic-walkthrough", "first-normal-combat")) {
+        require(captureMode in setOf(
+            "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat",
+        )) {
             "unknown walkthrough capture mode: $captureMode"
         }
-        require(captureMode != "first-normal-combat" || timeScale == 1f) {
-            "first-normal-combat requires normal speed"
+        require(captureMode == "semantic-walkthrough" || timeScale == 1f) {
+            "$captureMode requires normal speed"
         }
         outputDirectory.mkdirs()
         val trace = File(outputDirectory, "yingchuan-manual-trace.json")
@@ -122,6 +124,10 @@ private class WalkthroughRecorder(
     private var finished = false
     private var combatAnchorSeconds: Double? = null
     private var nextCombatCapture = 0
+    private val nextActionAnchors = mutableMapOf<Int, Double>()
+    private val nextActionCaptureCounts = mutableMapOf<Int, Int>()
+    private var enemyArrivalAnchorSeconds: Double? = null
+    private var nextEnemyCapture = 0
 
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
         elapsedSeconds += delta.toDouble()
@@ -148,11 +154,14 @@ private class WalkthroughRecorder(
             previousSignature = signature
         }
 
-        if (captureMode == "first-normal-combat") {
-            captureFirstNormalCombat(probe)
-        } else {
-            semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
-                if (captures.size < MAX_CAPTURES) capture(key, probe)
+        when (captureMode) {
+            "first-normal-combat" -> captureFirstNormalCombat(probe)
+            "next-normal-actions" -> captureNextNormalActions(probe)
+            "enemy-first-combat" -> captureEnemyFirstCombat(probe)
+            else -> {
+                semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
+                    if (captures.size < MAX_CAPTURES) capture(key, probe)
+                }
             }
         }
     }
@@ -168,6 +177,37 @@ private class WalkthroughRecorder(
         if (elapsedSeconds + 1e-9 < anchor + nextCombatCapture * COMBAT_CAPTURE_INTERVAL_SECONDS) return
         val ordinal = nextCombatCapture++
         capture("first-normal-combat-${ordinal.toString().padStart(2, '0')}", probe)
+    }
+
+    private fun captureNextNormalActions(probe: BattleRuntimeScreenProbe) {
+        val destinations = mapOf(211 to (9 to 16), 234 to (10 to 17))
+        destinations.forEach { (characterId, destination) ->
+            val unit = probe.battle.snapshot.units.firstOrNull { it.characterId == characterId }
+            if (unit != null && unit.x == destination.first && unit.y == destination.second) {
+                nextActionAnchors.putIfAbsent(characterId, elapsedSeconds)
+            }
+        }
+        for (characterId in listOf(211, 234)) {
+            val anchor = nextActionAnchors[characterId] ?: continue
+            val index = nextActionCaptureCounts[characterId] ?: 0
+            if (index >= NEXT_ACTION_OFFSETS_SECONDS.size) continue
+            if (elapsedSeconds + 1e-9 < anchor + NEXT_ACTION_OFFSETS_SECONDS[index]) continue
+            capture("next-normal-$characterId-${index.toString().padStart(2, '0')}", probe)
+            nextActionCaptureCounts[characterId] = index + 1
+            return
+        }
+    }
+
+    private fun captureEnemyFirstCombat(probe: BattleRuntimeScreenProbe) {
+        val unit = probe.battle.snapshot.units.firstOrNull { it.characterId == 474 }
+        if (enemyArrivalAnchorSeconds == null && unit != null && unit.x == 9 && unit.y == 17) {
+            enemyArrivalAnchorSeconds = elapsedSeconds
+        }
+        val anchor = enemyArrivalAnchorSeconds ?: return
+        if (nextEnemyCapture >= ENEMY_CAPTURE_OFFSETS_SECONDS.size) return
+        if (elapsedSeconds + 1e-9 < anchor + ENEMY_CAPTURE_OFFSETS_SECONDS[nextEnemyCapture]) return
+        val ordinal = nextEnemyCapture++
+        capture("enemy-first-combat-${ordinal.toString().padStart(2, '0')}", probe)
     }
 
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
@@ -289,6 +329,8 @@ private class WalkthroughRecorder(
     private companion object {
         const val MAX_CAPTURES = 12
         const val COMBAT_CAPTURE_INTERVAL_SECONDS = .3
+        val NEXT_ACTION_OFFSETS_SECONDS = doubleArrayOf(0.0, .5, 1.0, 1.5, 2.2, 3.2)
+        val ENEMY_CAPTURE_OFFSETS_SECONDS = doubleArrayOf(0.0, .15, .3, .6, 1.0, 1.5, 2.2, 3.0, 4.0, 5.0, 6.0, 7.0)
     }
 }
 

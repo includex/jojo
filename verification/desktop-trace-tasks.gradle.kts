@@ -555,7 +555,13 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
         .orElse(1)
     val captureMode = providers.gradleProperty("jojo.yingchuanWalkthrough.captureMode")
         .map { value ->
-            value.also { require(it in setOf("semantic-walkthrough", "first-normal-combat")) { "unknown captureMode: $it" } }
+            value.also {
+                require(it in setOf(
+                    "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat",
+                )) {
+                    "unknown captureMode: $it"
+                }
+            }
         }
         .orElse("semantic-walkthrough")
     timeout.set(maxSimulationSeconds.zip(timeScale) { seconds, scale ->
