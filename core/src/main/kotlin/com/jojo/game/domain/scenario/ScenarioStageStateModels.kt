@@ -49,6 +49,15 @@ data class TacticalUnit(
     /** Cocos JavaScript Number precision clock used by Hall walking sprite animation. */
     var hallAnimationElapsedSeconds: Double = 0.0
         internal set
+    /** Hall animation state sampled at the source AnimationManager phase for the current render. */
+    var hallRenderAction: Int = action
+        internal set
+    var hallRenderDirection: Int = direction
+        internal set
+    var hallRenderAnimationElapsedSeconds: Double = 0.0
+        internal set
+    var hallRenderSelectionInitialized: Boolean = false
+        internal set
     /** Hall source scene-graph center before its Float32 sprite vertex storage. */
     var hallSourceWorldX: Double = Double.NaN
         internal set

@@ -1500,3 +1500,47 @@ hash·7개 raw·25개 상태 모두 일치했다. 초기 화면 밖 유닛 구�
 game-all-frames, all-frames.json, all-frame-negative-checks.json.
 production변경 없이 이전 표본 사이의 검증 빈틈을 채운 단위다.
 다음 단위는 첫 대사의 빈 본문과13개 자연 prefix의 전체 장면 검증이다.
+
+### 2026-09-20 첫 대사 전체 타이핑 화면과 Hall 애니메이션 적용 단계 수정
+
+격리 없는 첫 대사의 빈 본문과 자연 prefix1..13을 각각 최초 렌더에서 캡처했다.
+시계 고정·대사 입력·초상화 준비 대기는 없다. 초기 도구가 매 프레임14MB를 base64로
+변환하면서 원본 프레임과 비동기 로딩을 지연시킨 것을 발견했다. 원본은 fresh RGBA
+버퍼만 프레임 안에서 보관하고 base64 변환은 수집 종료 후로 옮겼다. 포트도 파일 저장과
+SHA 계산을 종료 후로 옮겼다. 경량 원본 캡처에서 prefix 간격은3프레임으로 돌아왔고,
+이전에 나타난 prefix1..8 초상화 차이는 사라졌다. 계측 부하를 production 오류로
+오인해 로딩 순서를 수정하지 않았다.
+
+경량 비교에서도 빈 본문 프레임의181 sprite에16,609픽셀 차이가 남았다.
+원본 logical direction은0이지만 실제 sprite는 이전dir2의asset363이었다. 바로 다음
+렌더에서는asset364로 바뀌었다. 원본 Director/Scheduler 등록 순서는
+ActionManager → AnimationManager → custom timer이므로 stage.delay 콜백에서
+setAction(0,0)을 호출한 프레임은 이미 샘플된 이전 그림을 유지한다.
+포트는 logical direction 변경을 같은 렌더에 바로 적용하고 있었다.
+
+Hall의 렌더용 action/direction/animation clock을 별도로 snapshot한다. 이동 갱신과
+이동 완료 continuation은 snapshot 전에, custom timer continuation은 snapshot 후에
+처리한다. 기존 dialogue callback barrier 우선순위와 Battle 렌더 경로는 유지한다.
+새 unit은 snapshot 초기화 전까지 기존 live 선택을 사용한다. 전역 한 프레임 지연이나
+181/첫 대사 특수 분기는 넣지 않았다.
+
+수정 후14개 전체RGBA는 빈 본문 포함 모두0픽셀 차이이며,14개 초상화 준비 상태와
+실제 actor texture 선택도 일치한다. 처음3개 대사 프레임에서181의sprite363→364→364를
+양쪽에서 직접 관측했다. 그 사이 본문·portrait 상태는 자연delta에 따른 진단값이며
+실제 시간 간격이나 중간 모든 framebuffer 동등성은 이번 근거로 주장하지 않는다.
+
+HallRenderSelectionPhaseTest2개(타이머 다음 sample/이동 완료 같은 sample),
+StageDelaySourceFixtureTest1개, ScenarioRuntimeTest158개가 통과했다.
+새 캡처 회귀: 첫 단독25+첫3인25+마지막4인55=총105개 전체frame hash 모두 일치,
+기존 raw와 상태 gate도 통과했다. 첫3대사 완성 페이지도 새 캡처에서0픽셀 차이다.
+기존 Python comparator64개 통과. 빈 본문 누락·최초관측 후 지연·공백 제거·시계 변경·
+말풍선 오류·phase frame누락을 거부했고,14raw가 같아도 sprite 전환을 한 프레임
+더 늦춘 metadata는 phase gate에서 실패한다. Astra 최종 검수 지적을 반영했다.
+
+증거: `build/reports/opening-full-prefixes-20260920/`의 source/game(계측 부하 baseline),
+source-light/game-light, source-phase, game-phase-fixed, baseline-full-prefixes.json,
+light-full-prefixes.json, fixed-full-prefixes.json, negative-prefix-contract-checks.json,
+regression-first-move.json, regression-first-group.json, regression-final-group.json.
+3page 회귀는 opening-full-pages-20260920/phase-fixed-comparison.json에 있다.
+첫 대사 타이핑 의미상14개 endpoint 검증을 완료했으며, 후속 이동·대사와 전체 게임 목표는
+계속 진행한다.

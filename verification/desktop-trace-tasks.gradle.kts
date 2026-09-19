@@ -396,6 +396,25 @@ tasks.register<JavaExec>("captureOpeningFullPages") {
     }
 }
 
+tasks.register<JavaExec>("captureOpeningFullPrefixes") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningFullPrefixesDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-full-prefixes")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast {
+        check(destination.get().file("game-full-prefixes.json").asFile.isFile)
+        (0..13).forEach { prefixLength ->
+            val suffix = prefixLength.toString().padStart(2, '0')
+            check(destination.get().file("game-prefix-$suffix.rgba").asFile.length() == 2560L * 1376 * 4)
+        }
+    }
+}
+
 tasks.register<JavaExec>("captureOpeningFirstMoveFrames") {
     group = "verification"
     timeout.set(java.time.Duration.ofSeconds(20))

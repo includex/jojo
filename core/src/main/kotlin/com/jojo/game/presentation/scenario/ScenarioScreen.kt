@@ -1162,11 +1162,19 @@ class ScenarioScreen(
         val speakerId = playback.currentDialogue?.speakerId?.toIntOrNull()
         val units = playback.stage.units.values.mapIndexed { index, unit ->
             val avatar = gameDataCatalog.unitProfile(unit.id)?.mapAvatar ?: unit.id
-            val frame = if (unit.action == 20 && unit.hallMoveDurationSeconds > 0.0) {
-                HallUnitRender.frame(avatar, unit.action, unit.direction, unit.hallAnimationElapsedSeconds)
+            val useHallRenderSelection = !playback.stage.usesBattleMovementTimeline && unit.hallRenderSelectionInitialized
+            val renderAction = if (useHallRenderSelection) unit.hallRenderAction else unit.action
+            val renderDirection = if (useHallRenderSelection) unit.hallRenderDirection else unit.direction
+            val renderHallAnimationElapsed = if (useHallRenderSelection) {
+                unit.hallRenderAnimationElapsedSeconds
             } else {
-                val animationTime = if (unit.action == 20) unit.animationElapsed else playbackFrame.elapsed
-                HallUnitRender.frame(avatar, unit.action, unit.direction, animationTime)
+                unit.hallAnimationElapsedSeconds
+            }
+            val frame = if (renderAction == 20 && unit.hallMoveDurationSeconds > 0.0) {
+                HallUnitRender.frame(avatar, renderAction, renderDirection, renderHallAnimationElapsed)
+            } else {
+                val animationTime = if (renderAction == 20) unit.animationElapsed else playbackFrame.elapsed
+                HallUnitRender.frame(avatar, renderAction, renderDirection, animationTime)
             }
             val sourceWorld = if (
                 unit.action == 20 && unit.hallMoveDurationSeconds > 0.0 &&

@@ -197,16 +197,31 @@ internal class ScenarioDelayCoordinator(
         stage.updateAnimations(delta)
         when (getState()) {
             PlaybackState.DELAY -> {
-                if (hasPendingBattleBackgroundLoad) return
-                if (pendingHallUnitReadiness != null) return
+                if (hasPendingBattleBackgroundLoad) {
+                    stage.snapshotHallRenderSelection()
+                    return
+                }
+                if (pendingHallUnitReadiness != null) {
+                    stage.snapshotHallRenderSelection()
+                    return
+                }
+                // AnimationManager precedes timer-driven dialogue callbacks in the source scheduler.
+                stage.snapshotHallRenderSelection()
                 if (dialogueCoordinator.handleDelayTick()) return
                 if (pendingHallMoveIds.isNotEmpty()) {
-                    if (pendingHallMoveIds.any { stage.unit(it).moveDuration > 0f }) return
+                    if (pendingHallMoveIds.any { stage.unit(it).moveDuration > 0f }) {
+                        return
+                    }
                     pendingHallMoveIds = emptySet()
                     onSetDelayRemainingSeconds(0f)
                     onResumeExecution()
+                    // Source ActionManager completes moves and runs their continuation before
+                    // AnimationManager samples the new Hall action/direction in the same frame.
+                    stage.snapshotHallRenderSelection()
                     return
                 }
+                // AnimationManager is a scheduler update target. CallbackTimer-based dialogue and
+                // stage delays run afterwards, so their action changes become visible next frame.
                 stageDelayDurationSeconds?.let { duration ->
                     if (!stageDelayPrimed) {
                         stageDelayPrimed = true
@@ -231,8 +246,11 @@ internal class ScenarioDelayCoordinator(
                 }
             }
 
-            PlaybackState.MODAL -> modalController.update(delta, autoCloseUi)
-            else -> Unit
+            PlaybackState.MODAL -> {
+                stage.snapshotHallRenderSelection()
+                modalController.update(delta, autoCloseUi)
+            }
+            else -> stage.snapshotHallRenderSelection()
         }
     }
 

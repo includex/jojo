@@ -638,6 +638,14 @@ class ScenarioStage private constructor(
      */
 
     fun updateAnimations(delta: Float) = movementCoordinator.updateAnimations(delta, units)
+
+    /** Samples the state that Cocos AnimationManager has applied before custom scheduler timers run. */
+    fun snapshotHallRenderSelection() = units.values.forEach { unit ->
+        unit.hallRenderAction = unit.action
+        unit.hallRenderDirection = unit.direction
+        unit.hallRenderAnimationElapsedSeconds = unit.hallAnimationElapsedSeconds
+        unit.hallRenderSelectionInitialized = true
+    }
     /**
      * `finishAnimations`: 조건과 입력 상태를 검증한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
