@@ -11715,12 +11715,15 @@ void main() {
                         focusCameraOnTile(sample.x, sample.y)
                     }
                 } else if (scriptedUnitPresentation.visual(unit.id)?.action == 20) {
-                    scriptedMovementCameraCursors[scripted.id]?.crossed(
-                        scripted.movePath,
-                        BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
-                        scripted.moveElapsed,
-                    )?.forEach { sample ->
-                        focusCameraOnTile(sample.x, sample.y)
+                    // A new script context can reseed the unit and clear its completed path.
+                    if (scripted.movePath.size >= 2) {
+                        scriptedMovementCameraCursors[scripted.id]?.crossed(
+                            scripted.movePath,
+                            BattleUnitMoveTimeline.schedule(scripted.movePath, fastMove = true),
+                            scripted.moveElapsed,
+                        )?.forEach { sample ->
+                            focusCameraOnTile(sample.x, sample.y)
+                        }
                     }
                     scriptedUnitPresentation.clearVisual(unit.id)
                     scriptedMovementCameraCursors.remove(scripted.id)

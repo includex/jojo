@@ -352,8 +352,8 @@ internal class AiPresentationCoordinator(
                 }
                 AiPresentationStage.MOVING -> {
                     if (port.movementActive()) return
-                    port.finishMovement(resolution)
                     port.commitMovement(resolution, updateActionState = resolution.result == null)
+                    port.finishMovement(resolution)
                     port.markPlayerMove(resolution)
                     if (camp == Faction.PLAYER && !state.playerMoveScriptStarted) {
                         state.playerMoveScriptStarted = true

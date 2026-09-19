@@ -43,12 +43,69 @@ class AiPresentationCoordinatorTest {
         assertEquals(false, coordinator.hasActiveCamp)
     }
 
+    @Test
+    fun `movement commits final path direction before arrival idle and attack facing`() {
+        val actor = battleUnit("enemy", 6, 16).apply { direction = 2 }
+        val before = snapshot(actor)
+        actor.tileX = 9
+        actor.tileY = 17
+        actor.direction = 2
+        actor.hasMoved = true
+        val after = snapshot(actor)
+        before.states.values.forEach(BattleUnitMemento::restore)
+        val transaction = transaction(actor, before, after)
+        val resolution = AiUnitResolution(
+            actorId = actor.id,
+            fromX = 6,
+            fromY = 16,
+            toX = 9,
+            toY = 17,
+            path = listOf(6 to 16, 6 to 17, 7 to 17, 8 to 17, 9 to 17),
+            targetId = "target",
+            result = TacticalActionResult.Attack(damage = 10, defeated = false),
+        )
+        val port = FakePort(mutableListOf(), resolution).apply {
+            nowSeconds = 0f
+            movementStarts = true
+            pendingTransaction = transaction
+            presentationActor = actor
+            attackFacingDirection = 3
+        }
+        val coordinator = AiPresentationCoordinator { port }
+
+        coordinator.beginCamp(Faction.ENEMY)
+        port.nowSeconds = .31f
+        coordinator.drive()
+
+        assertEquals(AiPresentationStage.ACTION_DELAY, coordinator.stage)
+        assertEquals(1, port.arrivalIdleDirection)
+        assertEquals(1, actor.direction)
+
+        port.nowSeconds = .60f
+        coordinator.drive()
+
+        assertEquals(AiPresentationStage.ACTION_DELAY, coordinator.stage)
+        assertEquals(1, actor.direction)
+
+        port.nowSeconds = .62f
+        coordinator.drive()
+
+        assertEquals(AiPresentationStage.ACTION, coordinator.stage)
+        assertEquals(3, actor.direction)
+    }
+
     private class FakePort(
         private val events: MutableList<String>,
         private val resolution: AiUnitResolution,
     ) : AiPresentationCoordinator.Port {
         private var pending = true
-        override fun now() = 1f
+        var nowSeconds = 1f
+        var movementStarts = false
+        var pendingTransaction: BattleActionTransaction? = null
+        var presentationActor: BattleUnit? = null
+        var attackFacingDirection: Int? = null
+        var arrivalIdleDirection: Int? = null
+        override fun now() = nowSeconds
         override fun resolve(camp: Faction) = AiTurnResult(0, 0, 1).also {
             events += "resolve"
             pending = false
@@ -61,17 +118,28 @@ class AiPresentationCoordinatorTest {
         override fun beginActorBarriers(hasPhysicalCounter: Boolean) { events += "barriers" }
         override fun finishDeathCallbacks() { events += "death" }
         override fun focusTile(x: Float, y: Float) = Unit
-        override fun startMovement(resolution: AiUnitResolution) = false
+        override fun startMovement(resolution: AiUnitResolution) = movementStarts
         override fun movementActive() = false
-        override fun finishMovement(resolution: AiUnitResolution) = Unit
-        override fun commitMovement(resolution: AiUnitResolution, updateActionState: Boolean) = Unit
+        override fun finishMovement(resolution: AiUnitResolution) {
+            val finalDirection = BattleUnitMoveTimeline.schedule(resolution.path, fastMove = true)
+                .segments
+                .last()
+                .direction
+            presentationActor?.direction = finalDirection
+            arrivalIdleDirection = presentationActor?.direction
+        }
+        override fun commitMovement(resolution: AiUnitResolution, updateActionState: Boolean) {
+            pendingTransaction?.commitMovement(commitActionState = updateActionState)
+        }
         override fun markPlayerMove(resolution: AiUnitResolution) = Unit
         override fun scriptState() = PlaybackState.COMPLETE
         override fun runScript() = PlaybackState.COMPLETE.also { events += "run-script" }
         override fun battleEndedByScript() = false
         override fun playerMoveScriptFinished() = false
         override fun finishScriptEndedTurn() = Unit
-        override fun applyAction(resolution: AiUnitResolution) = Unit
+        override fun applyAction(resolution: AiUnitResolution) {
+            attackFacingDirection?.let { presentationActor?.direction = it }
+        }
         override fun combatBusy() = false
         override fun yieldCounterattackIdle() = false
         override fun commitAction(actorId: String) { events += "commit" }
@@ -88,4 +156,44 @@ class AiPresentationCoordinatorTest {
         override fun yieldBeforeNextNoResult(nextIsNoResult: Boolean) = false
         override fun markNoResultCompleted() = Unit
     }
+
+    private fun transaction(
+        actor: BattleUnit,
+        before: BattleActionSnapshot,
+        after: BattleActionSnapshot,
+    ): BattleActionTransaction = BattleActionTransaction(
+        actorId = actor.id,
+        before = before,
+        after = after,
+        hitSideEffects = emptyList(),
+        completionSideEffects = emptyList(),
+        restoreSnapshot = { state -> state.states.values.forEach(BattleUnitMemento::restore) },
+        adjustEconomy = { _, _ -> },
+        presentationUnit = { id -> before.states[id]?.unit },
+        activeUnit = { id -> before.states[id]?.unit },
+        onCompleted = {},
+    )
+
+    private fun snapshot(unit: BattleUnit): BattleActionSnapshot = BattleActionSnapshot(
+        topology = Battlefield.TopologySnapshot(listOf(unit.id), emptyList()),
+        states = mapOf(unit.id to BattleUnitMemento.capture(unit)),
+        playerMoney = 0,
+        enemyMoney = 0,
+        skillTemps = emptyMap(),
+        moveLength = 0,
+        lastMovePaths = emptyMap(),
+        traceActions = emptyList(),
+    )
+
+    private fun battleUnit(id: String, x: Int, y: Int): BattleUnit = BattleUnit(
+        id = id,
+        name = id,
+        faction = Faction.ENEMY,
+        tileX = x,
+        tileY = y,
+        hitPoints = 100,
+        maxHitPoints = 100,
+        magicPoints = 40,
+        maxMagicPoints = 40,
+    )
 }

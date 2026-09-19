@@ -78,3 +78,10 @@
 - 적474 정상 속도 도착 방향 차이: 원본 `build/reports/yingchuan-source-enemy-arrival-20260920/`의 실제 도착 PNG는 (9,17) idle0 방향1. 포트 수정 전 `verification/build/verification/yingchuan-enemy-first-combat-success-2/`는 도착 후 약0.3초 동안 방향2였다가 공격 때1로 바뀐다.
 - 같은 포트60초 실행의 첫 시도는 약42.906초에 `move2 needs a start and destination point`로 중단했다. `.../yingchuan-enemy-first-combat-failure-1/`에 부분 manifest와 stack을 보존했으며, 동일한 두 번째 실행은 성공했다. active 이동 중 잘못된 경로가 아니라, 새 script context의 reseed가 path를 지운 뒤 남은 visual20/cursor를 정리하는 분기에서 발생한 예외다.
 - 캡처 도구에 `next-normal-actions`, `enemy-first-combat`를 추가했다. 포트의 상세 교전 모드는 정상 배속만 허용한다. 원본 `enemy-arrival-only`는 도착 장면 한 장을 캡처하며, 원본 프로세스의 제한 종료까지 기다려 trace를 보존한다. source/port의 spriteRect는 서로 다른 texture 좌표계이므로 숫자 차이만으로 sprite 오류를 판정하지 않는다.
+
+
+## 이동 완료 정리와 도착 방향 수정
+
+- 새 스크립트 context가 경로를 비운 경우 완료 분기의 마지막 카메라 샘플링만 건너뛴다. visual20 제거, cursor 제거, 방향 반영은 항상 실행하며 실제 이동 중 경로 검증은 그대로 유지한다. 기존 카메라/시나리오 이동 테스트는 통과했으나 이 Screen 예외를 직접 재현하는 단위 테스트로 분류하지 않는다. 검증 근거는 실제 실패 stack, reseed 호출 경로, Astra 검토와 수정 후 재생이다.
+- AI 이동 완료 시 계산 상태를 먼저 커밋하고 마지막 이동 구간 방향을 이후 적용한다. 실제 BattleActionTransaction(after.direction=2)과 BattleUnitMoveTimeline(last.direction=1)을 사용하는 회귀 테스트에서 도착 후 지연 동안1 유지, 공격 시 별도 방향 전환을 검증했다.
+- 두 수정 후 정상 속도60초 재실행 성공: `verification/build/verification/yingchuan-enemy-first-combat-fixed/`, full trace3,598프레임, 제한 종료. 474 도착43.977초와44.144초 실제 캡처는 idle0 방향1,44.294초 공격25도 방향1이다. 234 HP16→0 피격32, 사망23, 숨김을 지나477 공격/반격과483 행동까지 진행했다. 기존 간헐적 예외가 이번 재생에서 재발하지 않았으며 전체 정상 속도 전투의 완료/시각적 일치를 의미하지 않는다.
