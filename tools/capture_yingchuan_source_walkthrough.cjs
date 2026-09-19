@@ -10,9 +10,9 @@ const sourceRoot = path.resolve(process.argv[2] || '../jojo_mobile/sgccz-desktop
 const outputRoot = path.resolve(process.argv[3] || 'build/reports/yingchuan-source-screens');
 const semanticMode = process.argv[5] || '';
 const maxWallMs = Number(process.argv[4] || 30000);
-const maxAllowedWallMs = semanticMode === 'first-round-end' ? 90000 : 60000;
+const maxAllowedWallMs = semanticMode === 'round2-handoff' ? 150000 : semanticMode === 'first-round-end' ? 90000 : 60000;
 if (!Number.isInteger(maxWallMs) || maxWallMs < 10000 || maxWallMs > maxAllowedWallMs) throw new Error(`duration must be an integer from 10000 through ${maxAllowedWallMs} ms`);
-if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order', 'first-round-end'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
+if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order', 'first-round-end', 'round2-handoff'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
 const port = 9400 + (process.pid % 200);
 const deadlineMs = maxWallMs + 15000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -72,13 +72,14 @@ async function poll(fn, label, expires) {
 }
 
 const stateExpression = `(() => {
-  const scene=globalThis.cc&&cc.director&&cc.director.getScene(); let battle=null; const units=[]; const layers=[]; const infoPanels=[];
+  const scene=globalThis.cc&&cc.director&&cc.director.getScene(); let battle=null,say=null; const units=[]; const layers=[]; const infoPanels=[];
   if(!scene)return {ready:false};
-  (function visit(node){if(!node)return; for(const component of node._components||[]){const name=cc.js.getClassName(component); if(name==='BattleLayer')battle=component; if(/Layer$/.test(name)&&node.activeInHierarchy)layers.push(name);if(name==='OtherUnitInfoLayer'&&node.activeInHierarchy){const labels=[];(function labelsOf(n,p){for(const c of n._components||[]){if(c instanceof cc.Label)labels.push({path:p,text:c.string});}n.children.forEach(ch=>labelsOf(ch,p+'/'+ch.name));})(node,node.name);infoPanels.push({identity:node.uuid||node._id||null,labels,bars:(component._bars||[]).map(b=>b&&b.progress),value:component._value||null,pendingValues:(component._arys||[]).slice()});}} node.children.forEach(visit)})(scene);
+  (function visit(node){if(!node)return; for(const component of node._components||[]){const name=cc.js.getClassName(component); if(name==='BattleLayer')battle=component;if(name==='SayLayer'&&node.activeInHierarchy)say=component; if(/Layer$/.test(name)&&node.activeInHierarchy)layers.push(name);if(name==='OtherUnitInfoLayer'&&node.activeInHierarchy){const labels=[];(function labelsOf(n,p){for(const c of n._components||[]){if(c instanceof cc.Label)labels.push({path:p,text:c.string});}n.children.forEach(ch=>labelsOf(ch,p+'/'+ch.name));})(node,node.name);infoPanels.push({identity:node.uuid||node._id||null,labels,bars:(component._bars||[]).map(b=>b&&b.progress),value:component._value||null,pendingValues:(component._arys||[]).slice()});}} node.children.forEach(visit)})(scene);
   if(battle)for(const u of Object.values(battle._unitSet||{}).filter(Boolean)){const source=u.unit&&u.unit(),node=u.node,n=node&&node.getChildByName('mask')&&node.getChildByName('mask').getChildByName('node'),a=n&&n.getComponent(cc.Animation),sprite=n&&n.getComponent(cc.Sprite),frame=sprite&&sprite.spriteFrame,playing=a&&a._nameToState&&Object.entries(a._nameToState).find(([,s])=>s&&s.isPlaying);units.push({id:source&&source.id?source.id():null,index:u.index?u.index():null,x:u.x?u.x():null,y:u.y?u.y():null,hitPoints:u.hp_cur?u.hp_cur():null,direction:u.dir?u.dir():null,action:source&&source.action?source.action():null,visible:u.visible?u.visible():null,exists:u.isExist?u.isExist():null,animation:playing?playing[0]:null,spriteFrame:frame&&frame.name||null,spriteRect:frame&&frame._rect?[frame._rect.x,frame._rect.y,frame._rect.width,frame._rect.height]:null});}
   const dialogue=layers.includes('SayLayer');
   const camera=battle&&battle._scrollView&&battle._scrollView.content&&battle._scrollView.content.position;
-  return {ready:!!battle,frame:cc.director.getTotalFrames?cc.director.getTotalFrames():null,scene:scene.name,round:battle&&battle.round?battle.round():null,camp:battle&&battle.curCamp?battle.curCamp():null,camera:camera?[camera.x,camera.y]:null,dialogue,layers:[...new Set(layers)],infoPanels,units:units.filter(u=>[32,3,33,235,334,210,211,234,474,475,476,477,478,479,480,481,482,483,484,485].includes(u.id))};
+  const gateKeys=battle&&battle._gateNodes?Object.keys(battle._gateNodes).map(Number).sort((a,b)=>a-b):[];
+  return {ready:!!battle,frame:cc.director.getTotalFrames?cc.director.getTotalFrames():null,scene:scene.name,round:battle&&battle.round?battle.round():null,camp:battle&&battle.curCamp?battle.curCamp():null,camera:camera?[camera.x,camera.y]:null,dialogue,dialogueSpeakerId:say&&say.constructor&&say.constructor.s_lastId!=null?String(say.constructor.s_lastId):null,dialogueText:say&&say._curLab?say._curLab.string:null,dialogueRemaining:say&&say._nextString!=null?say._nextString:null,layers:[...new Set(layers)],gateKeys,infoPanels,units:units.filter(u=>[0,3,32,33,157,210,211,234,235,258,259,334,474,475,476,477,478,479,480,481,482,483,484,485].includes(u.id))};
 })()`;
 
 (async () => {
@@ -236,6 +237,32 @@ const stateExpression = `(() => {
       await childExit;if(!fs.existsSync(trace))throw Error('source first-round-end trace was not flushed');
       if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);return;}
       console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_OK ${captures.length}`);return;
+    }
+    if(semanticMode==='round2-handoff'){
+      const wanted=['first-fire-13-5','second-fire-cluster','speaker157-dialogue','firestorm','enemy484-panic','reinforcements-shown','reinforcements-positioned','win-condition','post-win-condition-camp0'];
+      const seen=new Set(),transitions=[];let prior='';
+      const gate=(x,y)=>x*256+y;
+      async function captureSemantic(name,state){const image=await client.send('Page.captureScreenshot',{format:'png',fromSurface:true}),file=`source-${name}.png`;fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({wallSeconds:(Date.now()-started)/1000,file,semantic:name,...state});seen.add(name);}
+      while(Date.now()-started<Math.min(maxWallMs-1000,149000)&&seen.size<wanted.length){
+        const evaluated=await client.send('Runtime.evaluate',{expression:stateExpression,returnByValue:true});if(evaluated.exceptionDetails)throw Error(JSON.stringify(evaluated.exceptionDetails));const state=evaluated.result.value,u=id=>state.units.find(x=>x.id===id),g=new Set(state.gateKeys||[]);
+        const key=JSON.stringify([state.round,state.camp,state.dialogue,state.dialogueSpeakerId,state.dialogueText,state.layers,state.gateKeys,[0,3,32,33,157,258,259,484].map(id=>{const x=u(id);return x&&[id,x.x,x.y,x.direction,x.action,x.animation,x.visible,x.exists]})]);
+        if(key!==prior){transitions.push({wallSeconds:(Date.now()-started)/1000,frame:state.frame,round:state.round,camp:state.camp,dialogue:state.dialogue,dialogueSpeakerId:state.dialogueSpeakerId,dialogueText:state.dialogueText,layers:state.layers,gateKeys:state.gateKeys,units:state.units});prior=key;}
+        if(!seen.has(wanted[0])&&g.has(gate(13,5)))await captureSemantic(wanted[0],state);
+        else if(!seen.has(wanted[1])&&g.has(gate(6,4))&&g.has(gate(7,5)))await captureSemantic(wanted[1],state);
+        else if(!seen.has(wanted[2])&&state.dialogue&&state.dialogueText==='헤헤, 하!<br/>그럼, 이건 어때?')await captureSemantic(wanted[2],state);
+        else if(!seen.has(wanted[3])&&[[14,4],[15,7],[13,9],[5,8],[6,9]].every(([x,y])=>g.has(gate(x,y))))await captureSemantic(wanted[3],state);
+        else if(!seen.has(wanted[4])&&u(484)?.animation==='anime8')await captureSemantic(wanted[4],state);
+        else if(!seen.has(wanted[5])&&[u(0),u(258),u(259)].every(x=>x?.visible===true))await captureSemantic(wanted[5],state);
+        else if(!seen.has(wanted[6])&&u(0)?.x===8&&u(0)?.y===2&&u(258)?.x===7&&u(258)?.y===2&&u(259)?.x===8&&u(259)?.y===1)await captureSemantic(wanted[6],state);
+        else if(!seen.has(wanted[7])&&state.layers.includes('WinConditionsLayer'))await captureSemantic(wanted[7],state);
+        else if(!seen.has(wanted[8])&&seen.has(wanted[7])&&state.round===2&&state.camp===0&&!state.dialogue&&!state.layers.includes('WinConditionsLayer'))await captureSemantic(wanted[8],state);
+        await delay(8);
+      }
+      const missingCaptures=wanted.filter(name=>!seen.has(name));
+      fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-round2-handoff-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:missingCaptures.length===0,missingCaptures,transitions,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
+      await childExit;if(!fs.existsSync(trace))throw Error('source round2-handoff trace was not flushed');
+      if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_ROUND2_HANDOFF_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);return;}
+      console.log(`SOURCE_YINGCHUAN_ROUND2_HANDOFF_OK ${captures.length}`);return;
     }
     const sampleIntervalMs = maxWallMs > 30000 ? 10000 : 5000;
     const targets = Array.from({ length: Math.min(8, Math.ceil(maxWallMs / sampleIntervalMs)) }, (_, index) => index * sampleIntervalMs);

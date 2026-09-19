@@ -37,7 +37,7 @@ object YingchuanWalkthroughDesktopLauncher {
         val captureMode = args.getOrNull(3) ?: "semantic-walkthrough"
         require(captureMode in setOf(
             "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
-            "first-round-end",
+            "first-round-end", "round2-handoff",
         )) {
             "unknown walkthrough capture mode: $captureMode"
         }
@@ -130,6 +130,17 @@ private class WalkthroughRecorder(
     private var enemyArrivalAnchorSeconds: Double? = null
     private var nextEnemyCapture = 0
     private val previousFirstRoundEnemyHasActed = mutableMapOf<Int, Boolean>()
+    private var round2PreviousPlayback: PlaybackState? = null
+    private var round2FirstDialogueObserved = false
+    private var round2FirstDialogueClosed = false
+    private var round2FirstDialogueClosedAt: Double? = null
+    private var round2FirstPostDialogueOffset = 0
+    private var round2Unit3DialogueObserved = false
+    private var round2Unit3DialogueClosed = false
+    private var round2Unit3DialogueClosedAt: Double? = null
+    private var round2Unit3PostDialogueOffset = 0
+    private var round2NewUnitsVisible = false
+    private var round2NewUnitPositionChanged = false
 
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
         elapsedSeconds += delta.toDouble()
@@ -162,6 +173,7 @@ private class WalkthroughRecorder(
             "enemy-first-combat" -> captureEnemyFirstCombat(probe)
             "enemy-settlement" -> captureEnemySettlement(probe)
             "first-round-end" -> captureFirstRoundEnd(probe)
+            "round2-handoff" -> captureRound2Handoff(probe)
             else -> {
                 semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
                     if (captures.size < MAX_CAPTURES) capture(key, probe)
@@ -259,8 +271,94 @@ private class WalkthroughRecorder(
         }
     }
 
-    private fun captureOnce(key: String, probe: BattleRuntimeScreenProbe) {
-        if (key !in capturedKeys && captures.size < MAX_CAPTURES) capture(key, probe)
+    private fun captureOnce(key: String, probe: BattleRuntimeScreenProbe): Boolean {
+        if (key in capturedKeys || captures.size >= MAX_CAPTURES) return false
+        capture(key, probe)
+        return true
+    }
+
+    /** Captures only post-render states exposed by the production battle probe during round two. */
+    private fun captureRound2Handoff(probe: BattleRuntimeScreenProbe) {
+        if (probe.round < 2) {
+            round2PreviousPlayback = probe.playback
+            return
+        }
+
+        val previousPlayback = round2PreviousPlayback
+        if (!round2FirstDialogueObserved && probe.round == 2 && probe.playback == PlaybackState.DIALOGUE) {
+            round2FirstDialogueObserved = true
+            captureOnce("round2-first-dialogue-observed", probe)
+        }
+        if (round2FirstDialogueObserved && !round2FirstDialogueClosed &&
+            previousPlayback == PlaybackState.DIALOGUE && probe.playback != PlaybackState.DIALOGUE
+        ) {
+            round2FirstDialogueClosed = true
+            round2FirstDialogueClosedAt = elapsedSeconds
+        }
+        round2FirstDialogueClosedAt?.let { closedAt ->
+            if (round2FirstPostDialogueOffset < ROUND2_POST_DIALOGUE_OFFSETS_SECONDS.size &&
+                elapsedSeconds + 1e-9 >= closedAt + ROUND2_POST_DIALOGUE_OFFSETS_SECONDS[round2FirstPostDialogueOffset]
+            ) {
+                val offset = ROUND2_POST_DIALOGUE_OFFSET_LABELS[round2FirstPostDialogueOffset]
+                captureOnce("round2-first-dialogue-closed-after-${offset}s", probe)
+                round2FirstPostDialogueOffset += 1
+            }
+        }
+
+        val unit3 = probe.battle.snapshot.units.firstOrNull { it.characterId == 3 }
+        if (!round2Unit3DialogueObserved && unit3?.x == 8 && unit3.y == 5 &&
+            probe.playback == PlaybackState.DIALOGUE
+        ) {
+            round2Unit3DialogueObserved = true
+            captureOnce("round2-unit-3-destination-dialogue-observed", probe)
+        }
+        if (round2Unit3DialogueObserved && !round2Unit3DialogueClosed &&
+            previousPlayback == PlaybackState.DIALOGUE && probe.playback != PlaybackState.DIALOGUE
+        ) {
+            round2Unit3DialogueClosed = true
+            round2Unit3DialogueClosedAt = elapsedSeconds
+        }
+        round2Unit3DialogueClosedAt?.let { closedAt ->
+            if (round2Unit3PostDialogueOffset < ROUND2_POST_DIALOGUE_OFFSETS_SECONDS.size &&
+                elapsedSeconds + 1e-9 >= closedAt + ROUND2_POST_DIALOGUE_OFFSETS_SECONDS[round2Unit3PostDialogueOffset]
+            ) {
+                val offset = ROUND2_POST_DIALOGUE_OFFSET_LABELS[round2Unit3PostDialogueOffset]
+                captureOnce("round2-unit-3-dialogue-closed-after-${offset}s", probe)
+                round2Unit3PostDialogueOffset += 1
+            }
+        }
+
+        val newUnits = probe.battle.snapshot.units.filter { it.characterId in ROUND2_NEW_CHARACTER_IDS }
+        if (!round2NewUnitsVisible && ROUND2_NEW_CHARACTER_IDS.all { characterId ->
+                newUnits.any { it.characterId == characterId && it.visible }
+            }
+        ) {
+            round2NewUnitsVisible = true
+            captureOnce("round2-units-0-258-259-all-visible", probe)
+        }
+        if (round2NewUnitsVisible && !round2NewUnitPositionChanged && newUnits.any { unit ->
+                unit.characterId?.let { characterId ->
+                    ROUND2_NEW_STARTS[characterId]?.let { start -> start != (unit.x to unit.y) }
+                } == true
+            }
+        ) {
+            round2NewUnitPositionChanged = true
+            captureOnce("round2-units-0-258-259-position-change-observed", probe)
+        }
+        if (ROUND2_NEW_DESTINATIONS.all { (characterId, destination) ->
+                newUnits.any { it.characterId == characterId && it.visible && (it.x to it.y) == destination }
+            }
+        ) {
+            captureOnce("round2-units-0-258-259-destinations-observed", probe)
+        }
+        if (probe.winConditionsOpen) captureOnce("round2-win-conditions-open", probe)
+        if (probe.round == 2 && probe.turnPhase == "PLAYER_INPUT") {
+            captureOnce("round2-player-input-observed", probe)
+            if (probe.selectedUnitId != null && "round2-player-input-unit-selected" !in capturedKeys) {
+                captureOnce("round2-player-input-unit-selected", probe)
+            }
+        }
+        round2PreviousPlayback = probe.playback
     }
 
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
@@ -316,6 +414,8 @@ private class WalkthroughRecorder(
             probe.battle.snapshot.units.filter { it.visible }.forEach { unit ->
                 units.addChild(JsonValue(JsonValue.ValueType.`object`).apply {
                     addChild("id", JsonValue(unit.id))
+                    addChild("characterId", unit.characterId?.let { JsonValue(it.toLong()) }
+                        ?: JsonValue(JsonValue.ValueType.nullValue))
                     addChild("faction", JsonValue(unit.effectiveFaction.name))
                     addChild("x", JsonValue(unit.x.toLong()))
                     addChild("y", JsonValue(unit.y.toLong()))
@@ -385,6 +485,13 @@ private class WalkthroughRecorder(
         val NEXT_ACTION_OFFSETS_SECONDS = doubleArrayOf(0.0, .5, 1.0, 1.5, 2.2, 3.2)
         val ENEMY_CAPTURE_OFFSETS_SECONDS = doubleArrayOf(0.0, .15, .3, .6, 1.0, 1.5, 2.2, 3.0, 4.0, 5.0, 6.0, 7.0)
         val FIRST_ROUND_END_CHARACTER_IDS = setOf(484, 485, 475, 476)
+        val ROUND2_NEW_CHARACTER_IDS = setOf(0, 258, 259)
+        val ROUND2_NEW_STARTS = mapOf(0 to (7 to 0), 258 to (6 to 0), 259 to (5 to 0))
+        // Scenario requests unit 0 at (10,6), but source findEmptyPos observes 484 occupying it
+        // and resolves the actual destination to (10,5).
+        val ROUND2_NEW_DESTINATIONS = mapOf(0 to (10 to 5), 258 to (9 to 7), 259 to (10 to 7))
+        val ROUND2_POST_DIALOGUE_OFFSETS_SECONDS = doubleArrayOf(.15, 1.2)
+        val ROUND2_POST_DIALOGUE_OFFSET_LABELS = arrayOf("0.15", "1.20")
     }
 }
 
