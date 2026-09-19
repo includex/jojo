@@ -44,7 +44,7 @@ internal object ScenarioRuntimeSnapshotProjector {
             palace = screen.runtimePresentation == RuntimeScenarioPresentation.PALACE,
             section = screen.runtimePresentation == RuntimeScenarioPresentation.SECTION,
             street = ScenarioStreetDialogueStages.nameAt(screen.runtimePresentationDetail)
-                ?.takeIf { screen.runtimePresentation == RuntimeScenarioPresentation.STREET }?.let { stage -> ScenarioStoryEvidenceView.StreetDialogue(
+                ?.takeIf { screen.runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL) }?.let { stage -> ScenarioStoryEvidenceView.StreetDialogue(
                 stage = stage,
                 dialogueVisible = dialogue != null,
                 visibleText = screen.scenarioViewState.dialogueVisibleText,

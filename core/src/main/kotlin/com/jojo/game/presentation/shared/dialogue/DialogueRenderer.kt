@@ -24,6 +24,10 @@ class DialogueRenderer(
      */
     private val separateAlphaBlend: Boolean = true,
 ) {
+    private val bodyVertices = FloatArray(20)
+    private val savedBodyTransform = Matrix4()
+    private val sourceBodyTransform = Matrix4()
+
     /** 대화 오버레이 모델의 모든 층을 정해진 순서로 렌더링한다. */
     fun draw(
         batch: SpriteBatch,
@@ -158,17 +162,25 @@ class DialogueRenderer(
             return
         }
         assets.bodyLabels(model.visibleText)?.let { segments ->
-            val x = if (model.isLeft) {
-                layout.bodyLabelLeftX + (placement.panelX - layout.panelLeftX)
-            } else {
-                layout.bodyLabelRightX + (placement.panelX - layout.panelRightX)
-            }
-            val top = placement.panelY + layout.bodyLabelTopOffsetY
             val scale = layout.bodyLabelScale
+            val x = if (model.isLeft) {
+                layout.bodyLabelLeftSourceX + (placement.panelX - layout.panelLeftX) / scale
+            } else {
+                layout.bodyLabelRightSourceX + (placement.panelX - layout.panelRightX) / scale
+            }
+            val top = placement.panelY / scale + layout.bodyLabelSourceTopOffsetY
             batch.color = Color.WHITE
-            segments.forEach { segment ->
-                batch.draw(segment.texture, x + segment.x * scale, top + segment.y * scale,
-                    segment.texture.width * scale, segment.texture.height * scale)
+            // Cocos computes world vertices in Number precision, stores Float32 vertices,
+            // then applies the camera scale in the shader. Preserve that rounding order.
+            savedBodyTransform.set(batch.transformMatrix)
+            sourceBodyTransform.set(savedBodyTransform).scale(scale.toFloat(), scale.toFloat(), 1f)
+            batch.transformMatrix = sourceBodyTransform
+            try {
+                segments.forEach { segment ->
+                    drawBodySegment(batch, segment.texture, x + segment.x, top + segment.y)
+                }
+            } finally {
+                batch.transformMatrix = savedBodyTransform
             }
             return
         }
@@ -179,6 +191,22 @@ class DialogueRenderer(
         font.color = Color.BLACK
         font.draw(batch, model.visibleText, placement.textX, placement.textDrawY, placement.textWidth, Align.left, true)
         font.data.setScale(baseScaleX, baseScaleY)
+    }
+
+    /** Cocos splits its label quad along bottom-right to top-left. */
+    private fun drawBodySegment(batch: SpriteBatch, texture: Texture, x: Double, y: Double) {
+        val left = x.toFloat()
+        val bottom = y.toFloat()
+        val right = (x + texture.width).toFloat()
+        val top = (y + texture.height).toFloat()
+        val color = Color.WHITE.toFloatBits()
+        // SpriteBatch indices [0,1,2,2,3,0] produce Cocos's TL-BL-BR and BR-TR-TL triangles.
+        val values = bodyVertices
+        values[0] = left; values[1] = top; values[2] = color; values[3] = 0f; values[4] = 0f
+        values[5] = left; values[6] = bottom; values[7] = color; values[8] = 0f; values[9] = 1f
+        values[10] = right; values[11] = bottom; values[12] = color; values[13] = 1f; values[14] = 1f
+        values[15] = right; values[16] = top; values[17] = color; values[18] = 1f; values[19] = 0f
+        batch.draw(texture, values, 0, values.size)
     }
 
     /** 글꼴 대신 넘어온 원본 래스터 조각을 그린다. */

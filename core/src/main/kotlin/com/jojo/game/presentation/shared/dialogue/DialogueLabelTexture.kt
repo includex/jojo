@@ -12,6 +12,6 @@ data class DialogueLabelTexture(
 /** One RichText segment's uploaded canvas and bottom-left offset from the RichText anchor. */
 data class DialogueBodySegment(
     val texture: Texture,
-    val x: Float,
-    val y: Float,
+    val x: Double,
+    val y: Double,
 )

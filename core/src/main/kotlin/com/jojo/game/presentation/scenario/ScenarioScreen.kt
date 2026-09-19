@@ -381,6 +381,7 @@ class ScenarioScreen(
                         dialogueRevision = playback.dialogueRevision,
                         dialogueVisibleText = scenarioViewState.dialogueVisibleText,
                         dialogueTextComplete = scenarioViewState.dialogueTextComplete,
+                        naturalStreetTextIsolation = runtimePresentation == RuntimeScenarioPresentation.STREET_NATURAL && runtimePresentationDetail == 3,
                         actors = playback.stage.units.values.map { unit ->
                             com.jojo.game.application.runtime.ScenarioActorRuntimeProbe(
                                 unit.id, unit.x, unit.y, unit.visualX, unit.visualY,
@@ -946,11 +947,11 @@ class ScenarioScreen(
 
     /** renderScenarioFrame: 현재 재생 상태를 읽어 장면·대사·오버레이를 한 프레임에 렌더링한다. */
     private fun renderScenarioFrame(): ScenarioRenderPhaseResult {
-        if (runtimePresentation == RuntimeScenarioPresentation.STREET) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        if (runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL)) Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         else Gdx.gl.glClearColor(0.08f, 0.11f, 0.15f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         viewport.apply()
-        if (runtimePresentation == RuntimeScenarioPresentation.STREET) {
+        if (runtimePresentation in setOf(RuntimeScenarioPresentation.STREET, RuntimeScenarioPresentation.STREET_NATURAL)) {
             val stageIndex = runtimePresentationDetail
             if (stageIndex >= 0) {
                 if (stageIndex >= ScenarioStreetDialogueStages.backgroundIndex()) {

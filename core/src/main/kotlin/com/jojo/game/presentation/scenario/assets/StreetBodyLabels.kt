@@ -7,7 +7,7 @@ import com.jojo.game.presentation.shared.dialogue.DialogueBodySegment
 
 /** Source RichText layouts for independently rendered visible prefixes. */
 internal class StreetBodyLabels {
-    private data class Segment(val file: String, val x: Float, val y: Float)
+    private data class Segment(val file: String, val x: Double, val y: Double)
     private val entries by lazy {
         val root = JsonReader().parse(Gdx.files.internal("street-body-labels/manifest.json"))
         check(root.getInt("contractVersion") == 1) { "Unsupported body label contract" }
@@ -17,7 +17,7 @@ internal class StreetBodyLabels {
         root.get("entries").associate { row ->
             check(row.getFloat("width") == 728f) { "Unexpected street RichText width" }
             row.getString("text") to row.get("segments").map { segment ->
-                Segment(segment.getString("file"), segment.getFloat("x"), segment.getFloat("y"))
+                Segment(segment.getString("file"), segment.getDouble("x"), segment.getDouble("y"))
             }
         }
     }

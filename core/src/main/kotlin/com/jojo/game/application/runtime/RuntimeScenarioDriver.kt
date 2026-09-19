@@ -110,7 +110,11 @@ sealed interface RuntimeScenarioCommand {
 }
 
 /** RuntimeScenarioPresentation: 자동 재생에서 선택할 시나리오 장면 표현 유형이다. */
-enum class RuntimeScenarioPresentation { STANDARD, STREET, PALACE, SECTION }
+enum class RuntimeScenarioPresentation {
+    STANDARD, STREET, PALACE, SECTION,
+    /** Isolated street rendering without settling fixtures or revealing dialogue immediately. */
+    STREET_NATURAL,
+}
 
 /** RuntimeScenarioOverlay: 자동 재생 중 열 수 있는 시나리오 보조 화면의 종류다. */
 enum class RuntimeScenarioOverlay {

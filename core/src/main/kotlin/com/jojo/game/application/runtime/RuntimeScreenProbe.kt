@@ -87,6 +87,7 @@ data class ScenarioRuntimeProbe(
     val dialogueRevision: Long = 0L,
     val dialogueVisibleText: String = "",
     val dialogueTextComplete: Boolean = false,
+    val naturalStreetTextIsolation: Boolean = false,
     val actors: List<ScenarioActorRuntimeProbe> = emptyList(),
 ) : RuntimeScreenProbe {
     /**

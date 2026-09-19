@@ -23,4 +23,14 @@ class OpeningPanelCapturePolicyTest {
             assertTrue(driver.commands(dialogue).isEmpty())
         }
     }
+    @Test fun `natural prefix route isolates without fixture settling or scripted input`() {
+        val driver = VerificationScenarioDriver("opening-prefixes")
+        val delay = RuntimeScenarioFrame("R_00", 1f, PlaybackState.DELAY, false)
+        assertTrue(driver.commands(delay).isEmpty())
+        val dialogue = delay.copy(playback = PlaybackState.DIALOGUE)
+        assertEquals(listOf(RuntimeScenarioCommand.Present(RuntimeScenarioPresentation.STREET_NATURAL, 3)), driver.commands(dialogue))
+        assertTrue(driver.commands(dialogue).isEmpty())
+        assertTrue(driver.commands(dialogue.copy(dialogueTextComplete = true)).isEmpty())
+        assertTrue(driver.commands(delay).isEmpty())
+    }
 }

@@ -250,10 +250,10 @@ data class DialogueRenderLayout(
     val speakerLabelRightOffsetY: Float = 139.25808f,
     val speakerLabelScale: Float = .86f,
     /** Original RichText top-left anchors and parent scale. */
-    val bodyLabelLeftX: Float = 328.93882f,
-    val bodyLabelRightX: Float = 341.12346f,
-    val bodyLabelTopOffsetY: Float = 122.32124f,
-    val bodyLabelScale: Float = .86f,
+    val bodyLabelLeftSourceX: Double = 382.487,
+    val bodyLabelRightSourceX: Double = 396.65518604651146,
+    val bodyLabelSourceTopOffsetY: Double = 142.234,
+    val bodyLabelScale: Double = .86,
     /** 왼쪽 본문 X 좌표다. */
     val textLeftX: Float = 328.93882f,
     /** 오른쪽 본문 X 좌표다. */

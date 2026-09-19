@@ -335,3 +335,57 @@ python3 tools/verify_opening_panel_pixels.py build/reports/opening-text-20260920
 생성했다는 사실은 실제 중간 공개 프레임·공개 속도·두 번째와 세 번째 화면의 일치 증거가
 아니다. 다음 단위는 첫 문장의 중간 공개와 다음 대사 화면 검증이며, 전체 배경·인물 합성,
 음향·입력·이후 게임 전체의 동등성은 계속 확인해야 한다.
+
+## 첫 문장의 자연 공개 중간 프레임과 정점 정밀도 (2026-09-20)
+
+`STREET_NATURAL`은 실제 첫 대사에 도달한 뒤 화면만 분리한다. 기존 STREET fixture의
+즉시 공개, DELAY/MODAL 건너뛰기, 애니메이션 완료 처리를 실행하지 않는다.
+포트 observer는 렌더 후 probe에서 이 표시 모드와 실제 문자열·완료 여부를 확인한다.
+원본은 Login 시작 전에 frame hook을 설치하고 실제 Label 업로드와 문구를 확인한 뒤
+EVENT_AFTER_DRAW에서 읽는다. 양쪽 모두 대사 입력은 0회다. 원본의 Login 준비 후
+1.5초 대기는 시작 이벤트 전 bootstrap 안정화를 위한 것이며 대사 timer는 바꾸지 않는다.
+
+첫 문장 13글자 중 길이 5(끝 공백 포함), 9, 13의 세 표본을 수집했다.
+원본 5/9 표본은 scheduler active 및 남은 suffix를, 13은 handle null·빈 suffix를
+확인했다. 비교기는 표본 누락/중복, 순서, SHA, natural 표시 모드, source scheduler와
+실제 RichText/segment 내용까지 검사한다. 강제 공개 결과는 통과시키지 않는다.
+
+- 길이 5 `대장님, `: 변경 픽셀 0, SHA `6d2f445af9ead2962a01c181056fe82c57c122abc75856f13fed9ce717d7e37d`.
+- 길이 9 `대장님, 서둘러야`: **미일치**. 최초 22픽셀·RGBA 절대오차 66에서
+  수정 후 13픽셀·절대오차 39로 감소했다. 잔여 범위 bottom-left [831,321,832,334),
+  RGB 각 채널 차이 1이며 strict comparator는 계속 exit 1이다.
+- 길이 13: 변경 픽셀 0, 완료 화면 SHA `b4b95be6…af3` 유지.
+
+원본에서 직접 읽은 9글자 GL texture(237×52)는 생성 PNG를 해제한 RGBA와 바이트 단위로
+같다(raw SHA `2954017d624ccf2fb1e996abd3600d778b2bfdb24784eb3117f0e019177132a1`).
+따라서 잔여 문제를 글자 자산이 아닌 화면 변환·샘플링 단계로 좁혔다.
+원본 actual assembler는 정수 texture 크기를 double world 위치에 더한 뒤 각 corner를
+Float32로 저장한다. 이 계산 순서를 포트에서도 유지하고, 원본의 BR↔TL 대각선으로
+quad를 나누도록 수정했다. 특정 문자열·폭·픽셀에 대한 보정값은 사용하지 않는다.
+스케일은 batch의 combined matrix에 반영하며 원래 transform을 finally에서 복원한다.
+
+원본 실제 shader uniform의 X/Y 계수는 .0013437500456348062/.0024999999441206455,
+translation은 -1/-1이다. source sampler는 LINEAR/CLAMP_TO_EDGE이며 shader는 highp다.
+AFTER_DRAW current program은 마지막 body draw임이 입증되지 않았으므로 generic sprite
+shader 상태 증거로만 사용한다. 13픽셀의 세부 원인은 아직 미확정이다.
+
+증거 디렉터리는 `build/reports/opening-prefixes-20260920/`이다.
+`comparison.json`은 수정 전, `source-coordinates-comparison.json`은 최종 결과다.
+`source/`, `source-vertices-camera/`, `source-uniforms/`, `source-shaders/`에 실제 원본
+프레임·texture·정점·카메라·shader 자료를 보존했다. 포트 표본은
+`verification/build/verification/opening-prefixes/`에 있다.
+소스 캡처는 약 9초, 포트 캡처는 빌드 포함 3~11초였으며 외부 60초 제한을 유지했다.
+캡처 자체가 실행 간격에 영향을 주므로 시간 기록을 양쪽 공개 속도의 동등성 증거로 쓰지 않는다.
+최종 화자명 회귀는 0픽셀 차이를 유지했고 campaignUnitTest 및 opening Python 검사 17개가 통과했다.
+
+```sh
+node tools/capture_opening_source_prefixes.cjs build/opening-source-prefixes
+./gradlew :verification:captureOpeningDialoguePrefixes
+# 현재 9글자 표본의 13픽셀 차이 때문에 exit 1이 정상적으로 반환된다.
+python3 tools/verify_opening_prefix_pixels.py build/opening-source-prefixes/source-prefixes.json verification/build/verification/opening-prefixes/game-prefixes.json
+python3 -m unittest discover -s tools -p test_verify_opening_prefix_pixels.py
+```
+
+다음 단위는 9글자 표본의 남은 화면 샘플링 차이를 분리하는 것이다. 해결 후 첫 문장
+전체 공개 단계와 다음 두 대사 화면으로 확장한다. 모든 prefix·공개 속도·전체 화면·음향·
+게임 전체의 일치는 여전히 미검증이다.
