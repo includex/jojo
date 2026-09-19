@@ -1,0 +1,3638 @@
+{
+  "contract": "controlled-source-hall-move-steps-v1",
+  "evidenceKind": "actual-source-engine-production-method-controlled-delta",
+  "controlledEvidence": true,
+  "naturalRun": false,
+  "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop",
+  "startedAt": "2026-09-19T18:32:16.045Z",
+  "completedAt": "2026-09-19T18:32:16.615Z",
+  "source": {
+    "hallUnit": {
+      "path": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/recovered-js/modules/game-data/HallUnit.js",
+      "sha256": "1256e75ffe151cc23ed06ad926e4a2aebd1a4ade8911d5de095b23658f1465b0"
+    },
+    "engine": {
+      "path": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/web/cocos2d-js.js",
+      "sha256": "9a450c3bde95a72c81411ead393a2031aeb0ef18c63bbbfe3a475bd4e0c9d0ee"
+    },
+    "pathOracle": {
+      "path": "/Users/ain/workspace/jojo/tools/r00_opening_source_move_harness.js",
+      "sha256": "d1e879a3f58b3587d1655d43696b80f60487250bc206a063922e75d3cc45797b",
+      "evidenceKind": "recovered-source-runtime"
+    }
+  },
+  "engineVersion": "2.0.0 alpha",
+  "sourceFloatEpsilon": 1.192092896e-7,
+  "javaScriptNumberEpsilon": 2.220446049250313e-16,
+  "floatPointFour": 0.4000000059604645,
+  "coordinateFixture": {
+    "kind": "identity-turnPos",
+    "note": "grid coordinates are used as source node coordinates solely to isolate ActionInterval stepping"
+  },
+  "paths": {
+    "singleton": [
+      [
+        40,
+        5
+      ]
+    ],
+    "straight": [
+      [
+        40,
+        5
+      ],
+      [
+        40,
+        6
+      ],
+      [
+        40,
+        7
+      ],
+      [
+        40,
+        8
+      ],
+      [
+        40,
+        9
+      ],
+      [
+        40,
+        10
+      ],
+      [
+        40,
+        11
+      ],
+      [
+        40,
+        12
+      ],
+      [
+        40,
+        13
+      ],
+      [
+        40,
+        14
+      ],
+      [
+        40,
+        15
+      ]
+    ],
+    "turn": [
+      [
+        40,
+        15
+      ],
+      [
+        40,
+        16
+      ],
+      [
+        40,
+        17
+      ],
+      [
+        40,
+        18
+      ],
+      [
+        40,
+        19
+      ],
+      [
+        40,
+        20
+      ],
+      [
+        40,
+        21
+      ],
+      [
+        40,
+        22
+      ],
+      [
+        40,
+        23
+      ],
+      [
+        40,
+        24
+      ],
+      [
+        41,
+        24
+      ],
+      [
+        41,
+        25
+      ],
+      [
+        41,
+        26
+      ],
+      [
+        41,
+        27
+      ],
+      [
+        41,
+        28
+      ],
+      [
+        41,
+        29
+      ],
+      [
+        41,
+        30
+      ],
+      [
+        41,
+        31
+      ],
+      [
+        41,
+        32
+      ],
+      [
+        41,
+        33
+      ],
+      [
+        41,
+        34
+      ],
+      [
+        41,
+        35
+      ],
+      [
+        40,
+        35
+      ]
+    ]
+  },
+  "cases": [
+    {
+      "name": "singleton",
+      "path": [
+        [
+          40,
+          5
+        ]
+      ],
+      "schedule": "singleton_double_small_steps",
+      "inputKind": "JavaScript double small steps",
+      "actionDuration": 1.192092896e-7,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0,
+        5.96046448e-8,
+        5.96046448e-8
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": -1,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": []
+        },
+        {
+          "index": 2,
+          "dt": 5.96046448e-8,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": []
+        },
+        {
+          "index": 3,
+          "dt": 5.96046448e-8,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": true,
+          "callbackDirection": -1,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "complete",
+              "stepIndex": 3
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        -1
+      ],
+      "completionCount": 1
+    },
+    {
+      "name": "singleton",
+      "path": [
+        [
+          40,
+          5
+        ]
+      ],
+      "schedule": "singleton_float_small_steps",
+      "inputKind": "Math.fround every delta",
+      "actionDuration": 1.192092896e-7,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0,
+        5.960464477539063e-8,
+        5.960464477539063e-8
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": -1,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": []
+        },
+        {
+          "index": 2,
+          "dt": 5.960464477539063e-8,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": []
+        },
+        {
+          "index": 3,
+          "dt": 5.960464477539063e-8,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": -1,
+          "completionCount": 0,
+          "callbacks": []
+        }
+      ],
+      "callbackDirections": [
+        -1
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "straight",
+      "path": [
+        [
+          40,
+          5
+        ],
+        [
+          40,
+          6
+        ],
+        [
+          40,
+          7
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          9
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          12
+        ],
+        [
+          40,
+          13
+        ],
+        [
+          40,
+          14
+        ],
+        [
+          40,
+          15
+        ]
+      ],
+      "schedule": "before_0_4",
+      "inputKind": "JavaScript double",
+      "actionDuration": 0.40000011920928963,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.3999998807907104
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.3999998807907104,
+          "position": [
+            40,
+            14.999994039535519
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        }
+      ],
+      "callbackDirections": [
+        2,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "straight",
+      "path": [
+        [
+          40,
+          5
+        ],
+        [
+          40,
+          6
+        ],
+        [
+          40,
+          7
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          9
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          12
+        ],
+        [
+          40,
+          13
+        ],
+        [
+          40,
+          14
+        ],
+        [
+          40,
+          15
+        ]
+      ],
+      "schedule": "exact_0_4",
+      "inputKind": "JavaScript double",
+      "actionDuration": 0.40000011920928963,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.4
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.4,
+          "position": [
+            40,
+            14.99999701976776
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        }
+      ],
+      "callbackDirections": [
+        2,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "straight",
+      "path": [
+        [
+          40,
+          5
+        ],
+        [
+          40,
+          6
+        ],
+        [
+          40,
+          7
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          9
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          12
+        ],
+        [
+          40,
+          13
+        ],
+        [
+          40,
+          14
+        ],
+        [
+          40,
+          15
+        ]
+      ],
+      "schedule": "after_0_4",
+      "inputKind": "JavaScript double",
+      "actionDuration": 0.40000011920928963,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0.40000011920928963
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.40000011920928963,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": true,
+          "callbackDirection": 2,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "complete",
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        2
+      ],
+      "completionCount": 1
+    },
+    {
+      "name": "straight",
+      "path": [
+        [
+          40,
+          5
+        ],
+        [
+          40,
+          6
+        ],
+        [
+          40,
+          7
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          9
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          12
+        ],
+        [
+          40,
+          13
+        ],
+        [
+          40,
+          14
+        ],
+        [
+          40,
+          15
+        ]
+      ],
+      "schedule": "float_0_4",
+      "inputKind": "Math.fround then JavaScript number",
+      "actionDuration": 0.40000011920928963,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.4000000059604645
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.4000000059604645,
+          "position": [
+            40,
+            14.999997168779371
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        }
+      ],
+      "callbackDirections": [
+        2,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "straight",
+      "path": [
+        [
+          40,
+          5
+        ],
+        [
+          40,
+          6
+        ],
+        [
+          40,
+          7
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          9
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          12
+        ],
+        [
+          40,
+          13
+        ],
+        [
+          40,
+          14
+        ],
+        [
+          40,
+          15
+        ]
+      ],
+      "schedule": "float_0_4_then_epsilon",
+      "inputKind": "Math.fround every delta",
+      "actionDuration": 0.40000011920928963,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0.4000000059604645,
+        1.1920928955078125e-7
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.4000000059604645,
+          "position": [
+            40,
+            14.999997168779371
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        },
+        {
+          "index": 2,
+          "dt": 1.1920928955078125e-7,
+          "position": [
+            40,
+            15.000000000000002
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": true,
+          "callbackDirection": 2,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "complete",
+              "stepIndex": 2
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        2
+      ],
+      "completionCount": 1
+    },
+    {
+      "name": "straight",
+      "path": [
+        [
+          40,
+          5
+        ],
+        [
+          40,
+          6
+        ],
+        [
+          40,
+          7
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          9
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          12
+        ],
+        [
+          40,
+          13
+        ],
+        [
+          40,
+          14
+        ],
+        [
+          40,
+          15
+        ]
+      ],
+      "schedule": "split_0_4",
+      "inputKind": "JavaScript double split",
+      "actionDuration": 0.40000011920928963,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.2,
+        0.2
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            5
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.2,
+          "position": [
+            40,
+            9.999997019767761
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        },
+        {
+          "index": 2,
+          "dt": 0.2,
+          "position": [
+            40,
+            14.99999701976776
+          ],
+          "logical": [
+            40,
+            5
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        }
+      ],
+      "callbackDirections": [
+        2,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "split_boundary_before",
+      "inputKind": "JavaScript double",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.3599998807907104
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.3599998807907104,
+          "position": [
+            40.99999966886308,
+            23.99999701976776
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": []
+        }
+      ],
+      "callbackDirections": [
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "split_boundary_exact",
+      "inputKind": "JavaScript double",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.36
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.36,
+          "position": [
+            41,
+            24
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "split_boundary_after",
+      "inputKind": "JavaScript double",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.3600001192092896
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.3600001192092896,
+          "position": [
+            41,
+            24.000002980232242
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_before_0_4",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.3999998807907104
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.3999998807907104,
+          "position": [
+            41,
+            24.99999701976776
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_exact_0_4",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.4
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.4,
+          "position": [
+            41,
+            25.000000000000004
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_after_0_4",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.40000011920928963
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.40000011920928963,
+          "position": [
+            40.9999997290698,
+            25.000002709302038
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_before_0_84",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.8399998807907104
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.8399998807907104,
+          "position": [
+            40.0000002709302,
+            34.99999729069796
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_exact_0_84",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.84
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.84,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 3,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_after_0_84",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.8400001192092895
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.8400001192092895,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 3,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_before_0_88",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": false,
+      "deltas": [
+        0,
+        0.8799998807907105
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.8799998807907105,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 3,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 0
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_exact_0_88",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0.88
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.88,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            35
+          ],
+          "isDone": true,
+          "callbackDirection": 3,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "complete",
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 1
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_after_0_88",
+      "inputKind": "JavaScript double cumulative",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0.8800001192092896
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.8800001192092896,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            35
+          ],
+          "isDone": true,
+          "callbackDirection": 3,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 1
+            },
+            {
+              "kind": "complete",
+              "stepIndex": 1
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 1
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_segmented_double",
+      "inputKind": "JavaScript double directional segments",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0.36,
+        0.04,
+        0.44,
+        0.04
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.36,
+          "position": [
+            41,
+            24
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "dt": 0.04,
+          "position": [
+            41,
+            25
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 2
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "dt": 0.44,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 3,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 3
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 3
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "dt": 0.04,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            35
+          ],
+          "isDone": true,
+          "callbackDirection": 3,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "complete",
+              "stepIndex": 4
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 1
+    },
+    {
+      "name": "turn",
+      "path": [
+        [
+          40,
+          15
+        ],
+        [
+          40,
+          16
+        ],
+        [
+          40,
+          17
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          40,
+          19
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          40,
+          21
+        ],
+        [
+          40,
+          22
+        ],
+        [
+          40,
+          23
+        ],
+        [
+          40,
+          24
+        ],
+        [
+          41,
+          24
+        ],
+        [
+          41,
+          25
+        ],
+        [
+          41,
+          26
+        ],
+        [
+          41,
+          27
+        ],
+        [
+          41,
+          28
+        ],
+        [
+          41,
+          29
+        ],
+        [
+          41,
+          30
+        ],
+        [
+          41,
+          31
+        ],
+        [
+          41,
+          32
+        ],
+        [
+          41,
+          33
+        ],
+        [
+          41,
+          34
+        ],
+        [
+          41,
+          35
+        ],
+        [
+          40,
+          35
+        ]
+      ],
+      "schedule": "turn_segmented_float",
+      "inputKind": "Math.fround every delta",
+      "actionDuration": 0.88,
+      "stoppedAfterDone": true,
+      "deltas": [
+        0,
+        0.36000001430511475,
+        0.03999999910593033,
+        0.4399999976158142,
+        0.03999999910593033
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 0,
+          "position": [
+            40,
+            15
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.36000001430511475,
+          "position": [
+            41,
+            24.00000035762787
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 1,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 1,
+              "forced": true,
+              "stepIndex": 1
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "dt": 0.03999999910593033,
+          "position": [
+            40.99999996952035,
+            25.00000030479648
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 2,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 2,
+              "forced": true,
+              "stepIndex": 2
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "dt": 0.4399999976158142,
+          "position": [
+            40.00000000000001,
+            35
+          ],
+          "logical": [
+            40,
+            15
+          ],
+          "isDone": false,
+          "callbackDirection": 3,
+          "completionCount": 0,
+          "callbacks": [
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 3
+            },
+            {
+              "kind": "setAction",
+              "action": 20,
+              "direction": 3,
+              "forced": true,
+              "stepIndex": 3
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "dt": 0.03999999910593033,
+          "position": [
+            40,
+            35
+          ],
+          "logical": [
+            40,
+            35
+          ],
+          "isDone": true,
+          "callbackDirection": 3,
+          "completionCount": 1,
+          "callbacks": [
+            {
+              "kind": "complete",
+              "stepIndex": 4
+            }
+          ]
+        }
+      ],
+      "callbackDirections": [
+        2,
+        1,
+        2,
+        3,
+        3
+      ],
+      "completionCount": 1
+    }
+  ]
+}

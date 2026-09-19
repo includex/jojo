@@ -9,6 +9,32 @@ import kotlin.test.assertEquals
 /** HallMoveTimelineTest: HallMoveTimeline의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class HallMoveTimelineTest {
+    @Test
+    fun `same destination source move keeps zero duration MoveTo epsilon`() {
+        val path = listOf(4 to 7)
+
+        assertEquals(HallMoveTimeline.SOURCE_ACTION_EPSILON_SECONDS, HallMoveTimeline.sourceDuration(path), 0.0)
+        val sample = HallMoveTimeline.sample(path, HallMoveTimeline.SOURCE_ACTION_EPSILON_SECONDS)
+        assertEquals(4f, sample.x)
+        assertEquals(7f, sample.y)
+        assertEquals(-1, sample.direction)
+    }
+
+    @Test
+    fun `straight source sequence includes one nested zero duration epsilon`() {
+        val path = (0..10).map { 4 to it }
+
+        assertEquals(0.4 + HallMoveTimeline.SOURCE_ACTION_EPSILON_SECONDS, HallMoveTimeline.sourceDuration(path), 0.0)
+        assertEquals(0f, HallMoveTimeline.sample(path, HallMoveTimeline.SOURCE_ACTION_EPSILON_SECONDS / 2).y)
+    }
+
+    @Test
+    fun `curved source sequence starts with call then positive move and has no epsilon`() {
+        val path = listOf(0 to 0, 1 to 0, 1 to 1)
+
+        assertEquals(0.08, HallMoveTimeline.sourceDuration(path), 1e-15)
+    }
+
     private fun close(expected: Float, actual: Float) = assertEquals(expected, actual, .0001f)
 
     @Test fun `straight source moveTo interpolates continuously between forty millisecond grid steps`() {

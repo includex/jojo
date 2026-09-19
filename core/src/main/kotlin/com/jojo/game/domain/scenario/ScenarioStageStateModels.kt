@@ -37,6 +37,9 @@ data class TacticalUnit(
      */
 
     var moveElapsed: Float = 0f
+    /** Cocos JavaScript Number와 같은 정밀도로 누적하는 Hall 이동 시간이다. */
+    var hallMoveElapsedSeconds: Double = 0.0
+        internal set
     /**
      * `animationElapsed` (Float): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -55,6 +58,9 @@ data class TacticalUnit(
      */
 
     var moveDuration: Float = 0f
+    /** 중첩 Sequence의 zero-duration epsilon을 포함한 Hall 이동 완료 시간이다. */
+    var hallMoveDurationSeconds: Double = 0.0
+        internal set
     /**
      * `movePath` (List<Pair<Int, Int>>): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

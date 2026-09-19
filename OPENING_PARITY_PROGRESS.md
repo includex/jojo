@@ -914,3 +914,58 @@ python3 tools/verify_opening_first_move.py build/reports/opening-post-event-2026
 EVENT 종료부터 첫 글자까지 fresh 관측은 source 2.1초, port 2.150788초였다. 이 구간에는
 비동기 showUnit(s), 여러 이동, 명시적 delay와 대사 typing이 섞여 있어 총량만으로
 일치 여부를 판정하지 않는다. 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## Hall 이동의 Double 시간 및 zero-duration 경계 일치 (2026-09-20)
+
+이전 단위의 미반영 sequence epsilon을 수정했다. 원본 HallUnit._move2의 action 순서를
+만들고 cc.sequence의 왼쪽 결합 규칙으로 시간을 계산한다. 직선은 처음 두 CallFunc의
+duration 합이 0이어서 `1.192092896e-7`초가 추가되며, 꺾인 경로는 첫 결합부터 양수라
+추가되지 않는다. Hall의 elapsed/duration은 Double을 실제 판정 기준으로 쓰고 표시
+좌표만 Float로 내보낸다. planner와 animator도 같은 원본 duration을 사용한다.
+
+동일 목적지의 1점 경로도 원본 AStar가 실제 반환할 수 있다. 원본은 Call→MoveTo(0)→Call을
+실행하며 MoveTo의 0이 epsilon으로 바뀐다. 포트의 즉시 완료를 이 짧은 액션과 실제 완료
+대기로 변경했다. Float epsilon 두 반쪽의 합조차 원본 Double epsilon보다 조금 작아
+미완료로 남는 경계도 실제 source 결과와 같다. 전투 이동의 기존 시간 규칙은 유지했다.
+
+새 `export_source_hall_move_steps.cjs`는 Electron 원본 엔진에서 production `_move2`가
+생성한 실제 cc.Sequence를 `startWithTarget`/`step`으로 실행한다. identity turnPos와
+명시적 delta를 쓰는 controlled evidence이며 자연 실행이나 화면 캡처로 표시하지 않는다.
+직선, 실제 R00 두 번째 그룹의 꺾인 경로, 제자리 경로에서 22개 schedule을 관측했다.
+원본 .4 전후/정확값, Float 입력, 회전 .36/.4/.84, 완료 .88 및 분할 입력을 포함한다.
+모든 Float 입력은 왕복 변환으로 delta가 변하지 않는지 검사한다.
+
+실제 원본 fixture를 `core/src/test/resources/parity/hall-move-source.json`에 저장했고
+HallMoveSourceFixtureTest가 duration, 각 표본의 Float32 좌표, callback 방향, 완료 여부를
+대조한다. Float schedule은 production animator의 logical commit까지 검사한다.
+22개 schedule 모두 통과했다. callbackDirection=-1은 원본 호출 인자 관측이며 최종
+렌더 방향 전체가 같다는 의미는 아니다.
+
+자연 첫 이동 비교도 기존 2e-5칸 허용오차에서 **Float32로 표현한 좌표의 정확한 일치**로
+강화했다. 실제 Hall Double duration과 프레임 delta 합도 검사한다. source 25개/port 26개
+표본, 완료·재개 frame251/109가 각 실행의 예상과 일치했다. 포트의 최대 raw Double 대비
+좌표 오차 3.95e-7칸은 Float 변환 후 동일하다. 전체 이동 framebuffer의 픽셀 동등성은
+이 결과만으로 주장하지 않는다.
+
+검증: core 179개, campaign 47개, Python opening 47개 통과. EVENT 자연 타이머 규칙
+회귀 통과, 첫 세 분리 대사 화면 strict RGBA 0픽셀 차이 유지. 최종 Gradle 실행은
+외부 60초 제한에서 14초에 끝났다. Astra가 설계/production/fixture와 Float 입력
+정확성을 검수했고 Sol이 production 및 경계 테스트를 구현했다.
+
+증거: `build/reports/opening-hall-precision-20260920/`의
+`source/source-hall-move-steps.json` (SHA-256
+`9ea4600634ae71b830e7375b1f3ad9b3e4f665bda3884e25f9abfe4cbf53dec0`),
+`game-final.json`, `natural-first-move.json`, `event-timer-regression.json`,
+`pages-regression.json`, `final-regression.log`.
+
+```sh
+node tools/export_source_hall_move_steps.cjs build/reports/opening-hall-precision-20260920/source
+./gradlew :core:test --tests com.jojo.game.HallMoveSourceFixtureTest
+./gradlew :verification:captureOpeningEventTiming
+python3 tools/verify_opening_first_move.py build/reports/opening-post-event-20260920/source/source-event-timing.json verification/build/verification/opening-event-timing/game-event-timing.json
+```
+
+유닛 비동기 준비, 이동 중 zIndex scheduler와 전체 화면, 후속 대사 시작 타이밍은
+계속 검증해야 한다. 현재 EVENT 종료→첫 글자 관측은 source 2.1초, port 2.167357초이며
+전체 구간 일치를 의미하지 않는다. 전체 게임 동등성 목표는 계속 진행한다.

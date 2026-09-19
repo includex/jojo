@@ -153,7 +153,9 @@ internal class ScenarioStageMovementCoordinator {
          */
 
         val path = planner.pathFor(id, x, y, units) ?: return
-        unitAnimator.begin(unit, path, x, y, direction, planner.duration(path), onScriptedDirection)
+        unitAnimator.begin(
+            unit, path, x, y, direction, planner.duration(path), battleMovementTimeline, onScriptedDirection,
+        )
     }
 
     /**
@@ -180,6 +182,7 @@ internal class ScenarioStageMovementCoordinator {
                 movement.request.y,
                 movement.request.direction,
                 planner.duration(movement.path),
+                battleMovementTimeline,
                 onScriptedDirection,
             )
         }

@@ -5,6 +5,7 @@ import ast
 import hashlib
 import json
 import math
+import struct
 from pathlib import Path
 from verify_opening_event_timing import validate_source
 
@@ -57,6 +58,8 @@ def assess(frames, observed, actual_completion):
     expected = replay(frames)
     by_frame = {r['frame']: r for r in observed}
     errors = []
+    float_positions_match = True
+    f32 = lambda value: struct.unpack("f", struct.pack("f", value))[0]
     for row in expected:
         actual = by_frame.get(row['frame'])
         if actual is None:
@@ -64,10 +67,12 @@ def assess(frames, observed, actual_completion):
         if not all(math.isfinite(actual[axis]) for axis in ('x', 'y')):
             raise ValueError('Non-finite observed position')
         errors.append(max(abs(actual['x'] - 40), abs(actual['y'] - row['y'])))
-    return {'matchesActionRule': expected[-1]['frame'] == actual_completion and max(errors) <= 2e-5,
+        float_positions_match &= f32(actual['x']) == f32(40) and f32(actual['y']) == f32(row['y'])
+    return {'matchesActionRule': expected[-1]['frame'] == actual_completion and float_positions_match,
+            'float32ProjectedPositionsMatch': float_positions_match,
             'expectedCompletionFrame': expected[-1]['frame'], 'actualCompletionFrame': actual_completion,
             'firstTickFrame': expected[0]['frame'], 'sampleCount': len(expected),
-            'maxGridCoordinateError': max(errors), 'coordinateTolerance': 2e-5}
+            'maxGridCoordinateError': max(errors), 'comparison': 'exact Float32 projected grid coordinates'}
 
 
 def source_positions(rows, reference):
@@ -88,6 +93,23 @@ def source_positions(rows, reference):
         dy = (row['node'][1] - node_start[1]) / step_y
         observed.append({'frame': row['frame'], 'x': 40 + (dx - dy) / 2, 'y': 5 + (-dx - dy) / 2})
     return observed
+
+
+def validate_game_clock(creation, moving_rows):
+    if creation.get('hallMoveElapsedSeconds') != 0 or creation.get('hallMoveDurationSeconds') != DURATION:
+        raise ValueError('Missing or incorrect authoritative Hall action duration')
+    elapsed = 0.0
+    for index, row in enumerate(moving_rows):
+        if index:
+            elapsed += row['deltaSeconds']
+        actor = next(a for a in row['actors'] if a['id'] == 181)
+        if (actor['x'], actor['y']) == (40, 15):
+            break  # Next move may already have replaced the completed action clock.
+        actual = actor.get('hallMoveElapsedSeconds')
+        if actual is None or not math.isfinite(actual) or abs(actual - elapsed) > 1e-12:
+            raise ValueError('Hall action clock differs from actual frame delta accumulation')
+        if actor.get('hallMoveDurationSeconds') != DURATION:
+            raise ValueError('Hall action duration changed before arrival')
 
 
 def verify(source_path, game_path):
@@ -122,6 +144,7 @@ def verify(source_path, game_path):
     initial = next(a for a in creation['actors'] if a['id'] == 181)
     if (initial['x'], initial['y'], initial['visualX'], initial['visualY']) != (40, 5, 40, 5):
         raise ValueError('Unexpected game move initial position')
+    validate_game_clock(initial, frames[first + 1:])
     observed_game = []
     complete = None
     for row in frames[first + 1:]:
@@ -148,8 +171,8 @@ def verify(source_path, game_path):
             'observedFirstMoveMatchesSourceRule': source_result['matchesActionRule'] and game_result['matchesActionRule'],
             'source': source_result, 'game': game_result,
             'sourceHashes': {'R_00': hashlib.sha256(script.encode()).hexdigest(), 'HallUnit': hashlib.sha256(hall.encode()).hexdigest()},
-            'scope': 'observed deltas only: first 181 move initialization, positions within stated grid tolerance, completion and script resume; no framebuffer or later async setup parity claim',
-            'knownUnmatchedSemantics': ['port does not yet include nested zero-duration Cocos sequence epsilon; unobserved boundary deltas may complete a frame early']}
+            'scope': 'observed deltas only: first 181 move initialization, exact Float32 projected grid positions, completion and script resume; no framebuffer or later async setup parity claim',
+            'authoritativeHallClockVerified': True}
 
 
 if __name__ == '__main__':

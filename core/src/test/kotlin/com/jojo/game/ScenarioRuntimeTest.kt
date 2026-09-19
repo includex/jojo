@@ -33,6 +33,46 @@ import kotlin.test.assertTrue
 
 class ScenarioRuntimeTest {
     @Test
+    fun `Hall delay keeps same destination move paused through prime and waits for its group`() {
+        val stage = ScenarioStage()
+        stage.apply(ScenarioCommand.ShowUnit(1, 4, 7, 2))
+        stage.apply(ScenarioCommand.ShowUnit(2, 8, 7, 2))
+        stage.moveUnits(listOf(
+            ScenarioCommand.MoveUnit(1, 4, 7, 1),
+            ScenarioCommand.MoveUnit(2, 9, 7, 1),
+        ))
+        var state = PlaybackState.COMPLETE
+        var remaining = 0f
+        var resumes = 0
+        val dialogue = ScenarioDialogueCoordinator(stage, { state = it }, {}, { remaining = it })
+        lateinit var delay: ScenarioDelayCoordinator
+        val modal = ScenarioModalController(stage, { state = it }, {})
+        delay = ScenarioDelayCoordinator(
+            stage, dialogue, modal,
+            getState = { state },
+            onSetState = { state = it },
+            onResumeExecution = { resumes += 1; state = PlaybackState.COMPLETE },
+            getDelayRemainingSeconds = { remaining },
+            onSetDelayRemainingSeconds = { remaining = it },
+        )
+
+        delay.suspendForHallMoves(setOf(1, 2))
+        delay.update(1f)
+        assertEquals(PlaybackState.DELAY, state, "the large first delta only primes both Hall actions")
+        delay.update(HallMoveTimeline.SOURCE_ACTION_EPSILON_SECONDS.toFloat())
+        assertTrue(stage.unit(1).moveDuration > 0f, "Float epsilon remains below the source Double completion boundary")
+        assertEquals(PlaybackState.DELAY, state)
+        delay.update(1e-12f)
+        assertEquals(0f, stage.unit(1).moveDuration)
+        assertTrue(stage.unit(2).moveDuration > 0f)
+        assertEquals(PlaybackState.DELAY, state, "the completed singleton still waits for the moving group member")
+
+        delay.update(0.05f)
+        assertEquals(1, resumes)
+        assertEquals(PlaybackState.COMPLETE, state)
+    }
+
+    @Test
     fun `R00 Hall movement primes its first tick and resumes from actual completion`() {
         val runtime = ScenarioInterpreter.load("R_00")
         runtime.start("scene1")
@@ -47,6 +87,8 @@ class ScenarioRuntimeTest {
         assertEquals(PlaybackState.DELAY, runtime.state)
 
         runtime.update(0.4f)
+        assertEquals(40 to 5, caoCao.x to caoCao.y, "the source epsilon keeps the exact nominal boundary active")
+        runtime.update(0.000001f)
         assertEquals(40 to 15, caoCao.x to caoCao.y)
         assertEquals(0f, caoCao.moveElapsed, "the following group starts without consuming the completion-frame delta")
         assertEquals(PlaybackState.DELAY, runtime.state, "completion resumes into the next scripted group move")
@@ -60,19 +102,21 @@ class ScenarioRuntimeTest {
         runtime.completeModalTyping()
         runtime.resumeModal()
         runtime.update(0f)
-        runtime.update(0.4f)
+        runtime.update(0.400001f)
 
         val caoCao = runtime.stage.unit(181)
         val caoRen = runtime.stage.unit(157)
         caoRen.moveDuration = 0.8f
+        caoRen.hallMoveDurationSeconds = 0.8
         runtime.update(0f)
-        runtime.update(0.4f)
+        runtime.update(caoCao.moveDuration)
 
         assertEquals(0f, caoCao.moveDuration)
-        assertEquals(0.4f, caoRen.moveElapsed, 0.001f)
+        assertEquals(caoCao.hallMoveDurationSeconds, caoRen.hallMoveElapsedSeconds, 1e-7)
         assertEquals(PlaybackState.DELAY, runtime.state)
 
         runtime.update(0.4f)
+        runtime.update(0.000001f)
         assertEquals(54 to 85, caoRen.x to caoRen.y)
         assertEquals(0f, caoRen.moveElapsed, "the following group starts at elapsed zero")
         assertTrue(runtime.stage.unit(182).moveDuration > 0f, "the script resumes only after the final group member completes")
@@ -88,7 +132,7 @@ class ScenarioRuntimeTest {
         repeat(3) {
             runtime.update(0f)
             val duration = runtime.stage.units.values.maxOf { unit -> unit.moveDuration }
-            runtime.update(duration)
+            runtime.update(duration + 0.000001f)
         }
 
         runtime.update(0.29f)

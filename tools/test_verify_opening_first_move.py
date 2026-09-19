@@ -1,5 +1,5 @@
 import unittest
-from verify_opening_first_move import DURATION, EPSILON, assess, replay, source_contract, source_positions
+from verify_opening_first_move import DURATION, EPSILON, assess, replay, source_contract, source_positions, validate_game_clock
 
 
 class FirstMoveRuleTest(unittest.TestCase):
@@ -26,6 +26,22 @@ class FirstMoveRuleTest(unittest.TestCase):
         reference = dict(actorId=181, pathStart=[40, 5], pathEnd=[40, 15], nodeStart=[100, 200], nodeEnd=[0, 160])
         with self.assertRaises(ValueError):
             source_positions([dict(frame=1, node=[100, 200]), dict(frame=2, node=[0, float('nan')])], reference)
+
+    def test_authoritative_duration_and_double_clock_are_required(self):
+        initial = dict(hallMoveElapsedSeconds=0, hallMoveDurationSeconds=DURATION)
+        actor = dict(id=181, x=40, y=5, hallMoveElapsedSeconds=0, hallMoveDurationSeconds=DURATION)
+        rows = [dict(deltaSeconds=10, actors=[actor])]
+        validate_game_clock(initial, rows)
+        with self.assertRaises(ValueError):
+            validate_game_clock(dict(initial, hallMoveDurationSeconds=.4), rows)
+        actor['hallMoveElapsedSeconds'] = 1e-8
+        with self.assertRaises(ValueError):
+            validate_game_clock(initial, rows)
+
+    def test_small_error_that_changes_float_projection_is_rejected(self):
+        frames = [dict(frame=1, delta=0), dict(frame=2, delta=1)]
+        observed = [dict(frame=1, x=40, y=5.000001), dict(frame=2, x=40, y=15)]
+        self.assertFalse(assess(frames, observed, 2)['matchesActionRule'])
 
     def test_first_tick_discards_even_large_delta(self):
         result = replay([{'frame': 1, 'delta': 10}, {'frame': 2, 'delta': .2}, {'frame': 3, 'delta': .21}])

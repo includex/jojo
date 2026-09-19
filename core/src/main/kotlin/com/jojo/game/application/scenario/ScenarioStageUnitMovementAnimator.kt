@@ -27,6 +27,7 @@ internal class ScenarioStageUnitMovementAnimator {
         requestedY: Int,
         direction: Int,
         duration: Float,
+        battleTimeline: Boolean,
         onScriptedDirection: (Pair<Int, Int>) -> Unit,
     ) {
         /**
@@ -38,8 +39,11 @@ internal class ScenarioStageUnitMovementAnimator {
         unit.moveFromX = unit.visualX
         unit.moveFromY = unit.visualY
         unit.moveElapsed = 0f
+        unit.hallMoveElapsedSeconds = 0.0
         unit.animationElapsed = 0f
         unit.moveDuration = duration
+        unit.hallMoveDurationSeconds = if (battleTimeline) 0.0 else HallMoveTimeline.sourceDuration(path)
+        if (!battleTimeline) unit.moveDuration = unit.hallMoveDurationSeconds.toFloat()
         unit.movePath = path
         unit.moveZIndex = 4f * (unit.visualX + unit.visualY) - 424f
         unit.moveFinalDirection = direction
@@ -83,13 +87,20 @@ internal class ScenarioStageUnitMovementAnimator {
                 // Battle movement retains its existing callback timeline semantics.
                 if (!battleTimeline) return@forEach
             }
-            unit.moveElapsed = (unit.moveElapsed + elapsedDelta).coerceAtMost(unit.moveDuration)
+            if (!battleTimeline) {
+                unit.hallMoveElapsedSeconds =
+                    (unit.hallMoveElapsedSeconds + elapsedDelta.toDouble()).coerceAtMost(unit.hallMoveDurationSeconds)
+                unit.moveElapsed = unit.hallMoveElapsedSeconds.toFloat()
+                unit.moveDuration = unit.hallMoveDurationSeconds.toFloat()
+            } else {
+                unit.moveElapsed = (unit.moveElapsed + elapsedDelta).coerceAtMost(unit.moveDuration)
+            }
             val sample = if (battleTimeline) {
                 val timeline = BattleUnitMoveTimeline.schedule(unit.movePath, fastMove = true)
                 val point = BattleUnitMoveTimeline.sample(unit.movePath, timeline, unit.moveElapsed)
                 ScenarioMovementSample(point.x, point.y, point.direction, 4f * (point.x + point.y) - 424f)
             } else {
-                val point = HallMoveTimeline.sample(unit.movePath, unit.moveElapsed)
+                val point = HallMoveTimeline.sample(unit.movePath, unit.hallMoveElapsedSeconds)
                 ScenarioMovementSample(point.x, point.y, point.direction, point.zIndex)
             }
             unit.visualX = sample.x
@@ -98,7 +109,12 @@ internal class ScenarioStageUnitMovementAnimator {
             val nextDirection = sample.direction.takeIf { it >= 0 } ?: unit.direction
             if (nextDirection != unit.direction) unit.animationElapsed = 0f else unit.animationElapsed += elapsedDelta
             unit.direction = nextDirection
-            if (unit.moveElapsed >= unit.moveDuration) finish(unit, refreshZIndex = true)
+            val complete = if (battleTimeline) {
+                unit.moveElapsed >= unit.moveDuration
+            } else {
+                unit.hallMoveElapsedSeconds >= unit.hallMoveDurationSeconds
+            }
+            if (complete) finish(unit, refreshZIndex = true)
         }
     }
 

@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.jojo.game.application.runtime.RenderCaptureConfiguration
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
+import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.domain.scenario.PlaybackState
 
 /** Observe normal frames without pixel readback, isolation, or generated input. */
@@ -50,6 +51,9 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
             value.addChild("visualY", JsonValue(actor.visualY.toDouble()))
             value.addChild("moveElapsed", JsonValue(actor.moveElapsed.toDouble()))
             value.addChild("moveDuration", JsonValue(actor.moveDuration.toDouble()))
+            val unit = requireNotNull((playback as ScenarioInterpreter).stage.units[actor.id])
+            value.addChild("hallMoveElapsedSeconds", JsonValue(unit.hallMoveElapsedSeconds))
+            value.addChild("hallMoveDurationSeconds", JsonValue(unit.hallMoveDurationSeconds))
             value.addChild("direction", JsonValue(actor.direction.toLong()))
             value.addChild("action", JsonValue(actor.action.toLong()))
             value.addChild("visible", JsonValue(actor.visible))

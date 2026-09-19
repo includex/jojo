@@ -64,8 +64,11 @@ internal class ScenarioStageMovementPlanner {
 
     fun duration(path: List<Pair<Int, Int>>): Float {
         val edges = (path.size - 1).coerceAtLeast(0)
-        if (edges == 0) return 0f
-        return if (battleMovementTimeline) edges * 0.08f + 0.1f else edges * 0.04f
+        return if (battleMovementTimeline) {
+            if (edges == 0) 0f else edges * 0.08f + 0.1f
+        } else {
+            HallMoveTimeline.sourceDuration(path).toFloat()
+        }
     }
 
     /**
