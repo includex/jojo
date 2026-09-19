@@ -7,8 +7,8 @@ from pathlib import Path
 
 
 def compare(source, game, width=2560, height=1376, stage="panel"):
-    if stage not in ("panel", "portrait", "speaker"):
-        raise ValueError("stage must be panel, portrait or speaker")
+    if stage not in ("panel", "portrait", "speaker", "text"):
+        raise ValueError("stage must be panel, portrait, speaker or text")
     expected = width * height * 4
     if len(source) != expected or len(game) != expected:
         raise ValueError(f"both RGBA buffers must have {expected} bytes")
@@ -39,7 +39,9 @@ def compare(source, game, width=2560, height=1376, stage="panel"):
                       if stage == "panel" else
                       "panel plus portrait isolated after first R00 dialogue; no full-screen, text or audio claim"
                       if stage == "portrait" else
-                      "panel plus portrait and speaker isolated after first R00 dialogue; no full-screen, body text or audio claim")}
+                      "panel plus portrait and speaker isolated after first R00 dialogue; no full-screen, body text or audio claim"
+                      if stage == "speaker" else
+                      "completed first R00 dialogue isolated; no full-screen or audio claim")}
 
 
 def main():
@@ -47,7 +49,7 @@ def main():
     parser.add_argument("source", type=Path)
     parser.add_argument("game", type=Path)
     parser.add_argument("--report", type=Path)
-    parser.add_argument("--stage", choices=("panel", "portrait", "speaker"), default="panel")
+    parser.add_argument("--stage", choices=("panel", "portrait", "speaker", "text"), default="panel")
     args = parser.parse_args()
     report = compare(args.source.read_bytes(), args.game.read_bytes(), stage=args.stage)
     if args.report:

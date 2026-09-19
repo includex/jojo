@@ -354,6 +354,7 @@ class ScenarioScreen(
                     elapsedSeconds = playbackFrame.elapsed,
                     playback = playback.state,
                     choiceAvailable = playback.currentChoice != null,
+                    dialogueTextComplete = scenarioViewState.dialogueTextComplete,
                 )
 
                 /**
@@ -378,6 +379,8 @@ class ScenarioScreen(
                         dialogueText = playback.currentDialogue?.text,
                         dialogueSpeakerId = playback.currentDialogue?.speakerId,
                         dialogueRevision = playback.dialogueRevision,
+                        dialogueVisibleText = scenarioViewState.dialogueVisibleText,
+                        dialogueTextComplete = scenarioViewState.dialogueTextComplete,
                         actors = playback.stage.units.values.map { unit ->
                             com.jojo.game.application.runtime.ScenarioActorRuntimeProbe(
                                 unit.id, unit.x, unit.y, unit.visualX, unit.visualY,

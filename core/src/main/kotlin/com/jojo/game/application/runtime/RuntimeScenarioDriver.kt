@@ -19,6 +19,7 @@ data class RuntimeScenarioFrame(
     val elapsedSeconds: Float,
     val playback: PlaybackState,
     val choiceAvailable: Boolean,
+    val dialogueTextComplete: Boolean = false,
 )
 
 /** RuntimeScenarioCommand: 자동 시나리오 구동기가 화면에 전달하는 진행·표시 명령의 공통 타입이다. */

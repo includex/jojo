@@ -5,7 +5,7 @@ from verify_opening_panel_pixels import compare
 class OpeningPanelPixelsTest(unittest.TestCase):
     def test_exact_color_and_alpha(self):
         source = bytes([100, 100, 100, 255])
-        for stage in ("panel", "portrait", "speaker"):
+        for stage in ("panel", "portrait", "speaker", "text"):
             self.assertTrue(compare(source, source, 1, 1, stage=stage)["equal"])
         for pixel in ([99, 100, 100, 255], [100, 100, 100, 254]):
             result = compare(source, bytes(pixel), 1, 1)

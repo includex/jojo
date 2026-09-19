@@ -163,7 +163,7 @@ tasks.register("captureDialogueStages") {
     dependsOn(dialogueStageCaptures)
 }
 
-listOf("panel", "portrait", "speaker").forEach { stage ->
+listOf("panel", "portrait", "speaker", "text").forEach { stage ->
     tasks.register<JavaExec>("captureOpeningDialogue${stage.replaceFirstChar { it.uppercase() }}") {
         group = "verification"
         description = "Isolates the $stage stage from the naturally reached first R00 dialogue."

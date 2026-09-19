@@ -20,10 +20,11 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
     override fun commands(frame: RuntimeScenarioFrame): List<RuntimeScenarioCommand> {
         // Isolate the real first R00 dialogue after its authored movement,
         // without replacing the scene or changing the speaker to fixture 0.
-        if (state in setOf("opening-panel", "opening-portrait", "opening-speaker")) {
+        if (state in setOf("opening-panel", "opening-portrait", "opening-speaker", "opening-text")) {
+            if (state == "opening-text" && !frame.dialogueTextComplete) return emptyList()
             if (!presentationSent && frame.playback == PlaybackState.DIALOGUE) {
                 presentationSent = true
-                return listOf(Present(RuntimeScenarioPresentation.STREET, listOf("opening-panel", "opening-portrait", "opening-speaker").indexOf(state)))
+                return listOf(Present(RuntimeScenarioPresentation.STREET, listOf("opening-panel", "opening-portrait", "opening-speaker", "opening-text").indexOf(state)))
             }
             return emptyList()
         }

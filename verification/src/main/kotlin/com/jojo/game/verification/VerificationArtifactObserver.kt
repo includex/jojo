@@ -75,10 +75,22 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
-        if (output.state in setOf("opening-panel", "opening-portrait", "opening-speaker")) {
+        if (output.state in setOf("opening-panel", "opening-portrait", "opening-speaker", "opening-text")) {
             if (scenario.playback != com.jojo.game.domain.scenario.PlaybackState.DIALOGUE) return
+            if (output.state == "opening-text") {
+                if (!scenario.dialogueTextComplete) return
+                check(scenario.dialogueVisibleText == "대장님, 서둘러야 해요!") {
+                    "opening text capture has not rendered the complete first dialogue"
+                }
+            }
             // The driver installs the requested isolated presentation on the next frame.
-            if (!sawOpeningDialogue) { sawOpeningDialogue = true; return }
+            if (!sawOpeningDialogue) {
+                if (output.state == "opening-text") {
+                    Gdx.app.log("JojoGame", "OPENING_TEXT_NATURALLY_COMPLETE: elapsed=${scenario.elapsedSeconds} text=${scenario.dialogueVisibleText}")
+                }
+                sawOpeningDialogue = true
+                return
+            }
             check(scenario.module == "R_00" && scenario.sceneIndex == 1 && scenario.dialogueSpeakerId == "181") {
                 "opening panel capture did not reach the first R00 soldier dialogue"
             }

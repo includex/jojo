@@ -239,3 +239,56 @@ python3 -m unittest discover -s tools -p test_street_speaker_label_contract.py
 214개 이름을 생성한 것은 214개 실제 대사 화면 전체의 일치를 검증했다는 뜻은 아니다.
 다른 화자·좌우 배치의 실제 대사, 목록 밖 변경 이름, 본문, 전체 화면 합성,
 음향 및 이후 게임은 계속 검증해야 한다. 다음 단위는 첫 대사의 본문이다.
+
+
+## 첫 본문의 자연 공개 완료 캡처와 필터 수정 (2026-09-20)
+
+`opening-text` 누적 캡처를 추가했다. 기존 STREET 표시 모드는 본문을 즉시 공개하므로
+그 모드부터 켜면 자연 글자 공개 완료를 증명할 수 없었다. 새 runtime 읽기 필드로
+실제 `dialogueVisibleText`와 세션 `textComplete`를 전달하고, 캡처 driver는 자연 완료
+전까지 표시 전환 명령을 보내지 않는다. Observer도 전체 본문을 검사한 뒤 한 프레임을
+건너뛰고 분리 렌더를 읽는다. 임의 입력이나 RevealAll로 완료시키지 않는다.
+
+포트 실행 로그의 자연 완료는 경과 약 2.52초, 본문 `대장님, 서둘러야 해요!`다.
+원본은 실제 RichText 문자열과 child Label 문자열 결합, GL 업로드 상태를 확인한다.
+기존 `--verify-python-source` 자동 진행은 남은 글자를 즉시 공개하는 것으로 확인됐다.
+새 text 캡처는 자동 진행이 없는 `--verify-desktop`의 새 프로필에서 원본 Login
+시작 이벤트를 한 번 보낸다(기존 bootstrap과 같은 entitlement gate 우회 포함).
+최종 fresh 실행은 그 뒤 R00가 자동 시작되어 시나리오 행 클릭은 0회였다.
+Hall이라는 씬 이름만으로 선택 대기 상태를 단정하지 않고 실제 대사 노드로 진입을 판정한다.
+대사에는 입력하지 않고 `_handle == null`, `_nextString == ""`, 전체 본문 일치를 기다린다.
+원본 검증기의 5초 뒤 자체 screenshot/exit는 별도 Electron entry wrapper에서
+capturePage 완료만 유예한다. Cocos 타이머·게임 입력 처리는 바꾸지 않으며 외부
+55초 종료 제한은 유지한다. 기존 강제 공개 캡처와 새 자연 완료 캡처의 픽셀이 같더라도
+완료 경로의 근거는 구분한다.
+이것은 전체 공개된 시점의 픽셀 검증이며, 중간 글자 공개 속도가 같다는 증거는 아니다.
+
+원본 첫 본문은 Arial 36px·lineHeight 42·검정색·outline 없음인 Label segment 하나다.
+RichText anchor는 (0,1), segment anchor는 (0,0)이다. segment node는 320.27×52.92,
+실제 texture는 320×52이며 선형 필터를 사용한다. 포트 본문 atlas의 최근접 필터를
+선형 필터로 수정했다. 기존 31px 및 경험적 X/Y 배율은 아직 남아 있다.
+
+- 원본 full dialogue SHA256: `b4b95be614f7a57260628d5b65e45a6d768cff34b475568f58542a194f5daaf3`.
+- 본문은 **미일치**: 수정 전/후 다른 픽셀 수 48286 → 48634.
+- RGBA 절대오차 합 5036685 → 4720092 (약 6.3% 감소).
+- RGBA 제곱오차 합 696052617 → 586264860 (약 15.8% 감소).
+- 차이 범위 bottom-left [682,265,1233,354), 본문 segment 영역 안이다.
+  Strict RGBA gate는 계속 exit 1을 반환한다. 오차 감소를 완전 일치로 취급하지 않는다.
+- 첫 패널+초상화+화자명 회귀는 0픽셀, `bdd41d0e…650d` 유지.
+- 캡처 정책 테스트는 DELAY·공개 중에 명령 없음, 자연 완료 후에만 빈 fixture의
+  Present(TEXT)를 한 번 보내는 것을 확인한다. 캠페인 정책 및 comparator 테스트 통과.
+- 캡처/캠페인 테스트 실행 11~12초, 화자명 회귀 3초(외부 제한 각 60초).
+- 로컬 결과: `build/reports/opening-text-20260920/`의 before.json, linear.json,
+  source metadata, linear.log, source-body.png, linear-body.png, speaker-regression.json.
+
+```sh
+JOJO_CAPTURE_STAGE=text node tools/capture_opening_source_panel.cjs build/opening-source-text
+./gradlew :verification:captureOpeningDialogueText :verification:campaignUnitTest
+# 현재 본문 불일치를 보고하며 exit 1을 반환한다.
+python3 tools/verify_opening_panel_pixels.py build/opening-source-text/source-street-text.rgba verification/build/verification/opening-text/game-text.rgba --stage text
+```
+
+다음에는 화자명에서 검증한 Canvas→WebGL→PNG 경로를 본문의 RichText 규칙으로
+확장해야 한다. 표시 중인 prefix마다 줄바꿈과 segment를 계산해야 하므로 완성된
+문장 이미지를 단순히 잘라 공개하는 방식은 사용하지 않는다. 본문 완전 일치,
+중간 공개 과정, 다른 대사, 전체 화면·음향·이후 게임 검증은 계속 남아 있다.
