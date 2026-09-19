@@ -1667,3 +1667,36 @@ python-catalog, catalog-parity.json에 있다. helper의 3+1줄 분할·화자 �
 회귀 증거는 `build/reports/opening-full-pages-20260920/`의 game-six-page-labels와
 comparison-six-page-labels.json이다. 본문 fallback 로그는 4~6 구간에서 발생하지 않았다.
 Astra 코드 검수와 완료 화면/기존 페이지 회귀 승인 조건을 모두 충족했다.
+
+### 2026-09-20 6페이지 줄바꿈 prefix 검증과 미해결 1LSB 차이
+
+기존 dialogue-window runner에 선택 prefix 캡처를 추가했다. 두 case는 각각 본문 길이
+19/20/21과 37/38/39를 선택하고, 길이 57 완료 화면도 함께 저장한다. 20과 38은
+줄바꿈만 추가된 상태다. 각 실행에서 전체 0~57의 서로 다른 본문 58개를 최초 관측하며,
+raw framebuffer는 선택 3개와 완료 1개만 읽는다. 인코딩/저장은 종료 후 수행한다.
+정상 완료 입력 5회, 실제 source layer와 port revision/fullText로 6페이지를 식별하며
+동일 화자인 5페이지의 이전 layer를 잘못 선택하지 않는다. sourceLayerGroups에 따라
+같은 layer 내 페이지 전환도 지원한다. 준비 상태 대기나 고정 시간은 추가하지 않았다.
+
+source pointer handler와 직후 AFTER_DRAW가 같은 Director frame index를 가질 수 있으므로
+input frame<=observation frame과 elapsed 순서를 함께 검사한다. 모든 prefix의 raw 본문,
+canonical 본문, 남은 본문, typing 상태, 입력 수, layer/revision 및 최초 관측 frame을
+검사하고 전체 RGBA 크기·SHA를 확인한다. trailing newline을 trim하지 않는다.
+
+새롭게 **미해결 렌더 차이**를 발견했다. 길이 19/20/37/38 및 두 완료 화면은 모두
+0픽셀 차이다. 길이 21(새 줄 첫 글자 '나')과 39('성')는 각각 14픽셀 차이다.
+차이는 RGB에서만 ±1이며 알파는 같다. 길이 21의 absolute/squared RGBA error는
+34/34, 길이 39는 17/17이다. 비교기는 두 case 모두 실패를 반환하며 허용 오차는 없다.
+원본에서 newline-only frame은 직전과 같은 픽셀이지만 본문 변화 자체는 정상 관측됐다.
+
+증거는 `build/reports/opening-page-6-newlines-20260920/`의 source-1/2, game-1/2,
+comparison-1/2.json과 negative-contract-checks.json이다. newline 누락/trim, 오래된
+layer/revision, 잘못된 fullText/remaining, 지연 캡처, 잘못된 입력 수, actor 누락,
+raw hash 오류 등 두 case 총 24개 반례를 거부했다. 기존 Python 테스트 64개,
+Kotlin compile/capture, 구문/diff 검사와 Astra 도구 검수를 통과했다.
+
+이 단위는 production 수정 없이 잔차를 드러내는 검증 범위를 확장했다. 다음은 해당
+31×52 글자 segment의 실제 source GPU texel과 생성 PNG/port texture를 비교하고,
+assembler 정점·UV·VP 연산을 대조한다. body renderer의 GPU 행렬 계산 정밀도는
+후보일 뿐 아직 원인으로 확정하지 않았다. 타이핑 간격이나 미선택 frame의 픽셀 일치를
+증명한 것은 아니다.

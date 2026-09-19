@@ -1,0 +1,67 @@
+{
+  "contract": "opening-dialogue-window-case-v1",
+  "scenario": "R_00",
+  "actorIds": [
+    0,
+    157,
+    181,
+    182
+  ],
+  "sourceLayerGroups": [
+    1,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "expectedPages": [
+    {
+      "page": 1,
+      "speakerId": "181",
+      "text": "대장님, 서둘러야 해요!"
+    },
+    {
+      "page": 2,
+      "speakerId": "0",
+      "text": "알아!"
+    },
+    {
+      "page": 3,
+      "speakerId": "157",
+      "text": "잠시만 기다려 주세요!"
+    },
+    {
+      "page": 4,
+      "speakerId": "181",
+      "text": "이 신참은 누구야? 군인들을 막고 싶어?"
+    },
+    {
+      "page": 5,
+      "speakerId": "0",
+      "text": "잠깐."
+    },
+    {
+      "page": 6,
+      "speakerId": "0",
+      "text": "선생님, 저한테 필요한 게 있나요?\n나는 정부 기병대의 지휘관이다,\n성은 조, 본명은 조, 자식 맹덕."
+    }
+  ],
+  "capturePages": [
+    6
+  ],
+  "capturePrefixes": [
+    {
+      "page": 6,
+      "length": 37
+    },
+    {
+      "page": 6,
+      "length": 38
+    },
+    {
+      "page": 6,
+      "length": 39
+    }
+  ]
+}

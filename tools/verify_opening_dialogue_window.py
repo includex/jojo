@@ -18,6 +18,61 @@ def canonical(text):
     return text.replace('<br/>', '\n')
 
 
+def validate_prefixes(manifest, case, source=False):
+    targets = case.get('capturePrefixes', [])
+    if not targets:
+        require(not manifest.get('prefixCaptures') and not manifest.get('prefixObservations'), 'unexpected prefix evidence')
+        return []
+    require(manifest['capturePrefixes'] == targets, 'prefix target contract')
+    pairs = [(r['page'], r['length']) for r in targets]
+    require(pairs == sorted(set(pairs)), 'unique ordered prefix targets')
+    for page, length in pairs:
+        require(type(page) is int and type(length) is int and 1 <= page <= len(case['expectedPages']), 'prefix target types/page')
+        require(0 <= length < len(case['expectedPages'][page - 1]['text']), 'prefix target must precede completion')
+    observations = manifest['prefixObservations']
+    captures = manifest['prefixCaptures']
+    require([(r['page'], r['length']) for r in captures] == pairs, 'selected prefix capture sequence')
+    rows = manifest['completions'] if source else manifest['dialogueCompletions']
+    expected_sequence = [(page, length) for page in sorted({p for p, _ in pairs})
+                         for length in range(len(case['expectedPages'][page - 1]['text']) + 1)]
+    require([(r['page'], r['length']) for r in observations] == expected_sequence, 'complete prefix observation sequence')
+    by_pair = {(r['page'], r['length']): r for r in observations}
+    previous = None
+    for row in observations:
+        page, length = row['page'], row['length']
+        expected = case['expectedPages'][page - 1]
+        full = expected['text']
+        require(row['text'] == full[:length] and row['speakerId'] == expected['speakerId'], 'observed prefix identity')
+        require(row['complete'] == (length == len(full)) and row['dialogueInputs'] == page - 1, 'prefix completion/input count')
+        require(row['frame'] == row['firstObservedFrame'] and math.isfinite(row['elapsedSeconds']), 'first prefix observation')
+        if previous:
+            require(previous['frame'] < row['frame'] and previous['elapsedSeconds'] <= row['elapsedSeconds'], 'prefix ordering')
+        previous = row
+        ids = [a['id'] for a in row['actors']]
+        require(len(ids) == len(set(ids)) and sorted(ids) == case['actorIds'], 'prefix actor identities')
+        if page > 1:
+            event = manifest['inputs'][page - 2]
+            # A source pointer handler and the following AFTER_DRAW can share
+            # the Director's frame index; elapsed observation time orders them.
+            require(event['frame'] <= row['frame'] and event['elapsedSeconds'] <= row['elapsedSeconds'], 'prefix after normal input')
+        completion = rows[page - 1]
+        if source:
+            require(row['rawContent'] == row['rawText'] and canonical(row['rawText']) == row['text'], 'raw prefix text')
+            require(canonical(row['remaining']) == full[length:] and row['typingActive'] == (length < len(full)), 'source remaining/typing')
+            require(row['layerIdentity'] == completion['layerIdentity'] and row['trigger'] == 'EVENT_AFTER_DRAW', 'prefix source lifecycle/phase')
+        else:
+            require(row['revision'] == completion['revision'] and row['observationPhase'] == 'post-render', 'prefix port lifecycle/phase')
+            require(row['fullText'] == full, 'port full dialogue identity')
+        if length == len(full):
+            require(row['frame'] == completion['frame'], 'prefix completion first frame')
+    for capture in captures:
+        observed = by_pair[(capture['page'], capture['length'])]
+        for key, value in observed.items():
+            require(capture.get(key) == value, 'capture differs from first prefix observation: ' + key)
+        require((capture['width'], capture['height']) == (2560, 1376), 'prefix raw dimensions')
+    return captures
+
+
 def validate(manifest, case, case_hash, source=False):
     require(manifest['contract'] == 'natural-opening-dialogue-window-rgba8', 'contract')
     require((manifest['width'], manifest['height'], manifest['origin']) ==
@@ -95,8 +150,10 @@ def verify(case_path, source_path, game_path):
     source, game = [json.loads(p.read_text()) for p in (source_path, game_path)]
     digest = hashlib.sha256(case_bytes).hexdigest()
     source_rows, game_rows = validate(source, case, digest, True), validate(game, case, digest)
+    source_prefixes = validate_prefixes(source, case, True)
+    game_prefixes = validate_prefixes(game, case)
     samples = []
-    for sr, gr in zip(source_rows, game_rows):
+    for sr, gr in list(zip(source_rows, game_rows)) + list(zip(source_prefixes, game_prefixes)):
         source_actors = {a['id']: a for a in sr['actors']}
         game_actors = {a['id']: a for a in gr['actors']}
         require(source_actors.keys() == game_actors.keys(), 'actor identities')
@@ -113,10 +170,13 @@ def verify(case_path, source_path, game_path):
         result.update(contract='natural-opening-dialogue-completion-comparison/v1',
                       scope='Entire natural completed dialogue framebuffer, all RGBA channels without excluded regions.',
                       page=sr['page'], speakerId=sr['speakerId'], text=sr['text'])
+        if 'length' in sr:
+            result.update(contract='natural-opening-dialogue-prefix-comparison/v1', length=sr['length'],
+                          scope='Entire first observed natural prefix framebuffer, all RGBA channels without excluded regions.')
         samples.append(result)
     return {'contract': 'natural-opening-dialogue-window-comparison/v1',
             'equal': all(r['equal'] for r in samples), 'samples': samples,
-            'scope': 'Selected first natural completed dialogue full RGBA frames; intermediate frames are not covered.'}
+            'scope': 'Selected first natural completed/prefix full RGBA frames; unselected frames are not covered.'}
 
 
 if __name__ == '__main__':
