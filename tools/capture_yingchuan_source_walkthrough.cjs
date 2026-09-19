@@ -11,7 +11,7 @@ const outputRoot = path.resolve(process.argv[3] || 'build/reports/yingchuan-sour
 const maxWallMs = Number(process.argv[4] || 30000);
 if (!Number.isInteger(maxWallMs) || maxWallMs < 10000 || maxWallMs > 60000) throw new Error('duration must be an integer from 10000 through 60000 ms');
 const semanticMode = process.argv[5] || '';
-if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
+if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
 const port = 9400 + (process.pid % 200);
 const deadlineMs = maxWallMs + 15000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -71,13 +71,13 @@ async function poll(fn, label, expires) {
 }
 
 const stateExpression = `(() => {
-  const scene=globalThis.cc&&cc.director&&cc.director.getScene(); let battle=null; const units=[]; const layers=[];
+  const scene=globalThis.cc&&cc.director&&cc.director.getScene(); let battle=null; const units=[]; const layers=[]; const infoPanels=[];
   if(!scene)return {ready:false};
-  (function visit(node){if(!node)return; for(const component of node._components||[]){const name=cc.js.getClassName(component); if(name==='BattleLayer')battle=component; if(/Layer$/.test(name)&&node.activeInHierarchy)layers.push(name);} node.children.forEach(visit)})(scene);
-  if(battle)for(const u of Object.values(battle._unitSet||{}).filter(Boolean)){const source=u.unit&&u.unit(),node=u.node,n=node&&node.getChildByName('mask')&&node.getChildByName('mask').getChildByName('node'),a=n&&n.getComponent(cc.Animation),sprite=n&&n.getComponent(cc.Sprite),frame=sprite&&sprite.spriteFrame,playing=a&&a._nameToState&&Object.entries(a._nameToState).find(([,s])=>s&&s.isPlaying);units.push({id:source&&source.id?source.id():null,index:u.index?u.index():null,x:u.x?u.x():null,y:u.y?u.y():null,direction:u.dir?u.dir():null,action:source&&source.action?source.action():null,visible:u.visible?u.visible():null,exists:u.isExist?u.isExist():null,animation:playing?playing[0]:null,spriteFrame:frame&&frame.name||null,spriteRect:frame&&frame._rect?[frame._rect.x,frame._rect.y,frame._rect.width,frame._rect.height]:null});}
+  (function visit(node){if(!node)return; for(const component of node._components||[]){const name=cc.js.getClassName(component); if(name==='BattleLayer')battle=component; if(/Layer$/.test(name)&&node.activeInHierarchy)layers.push(name);if(name==='OtherUnitInfoLayer'&&node.activeInHierarchy){const labels=[];(function labelsOf(n,p){for(const c of n._components||[]){if(c instanceof cc.Label)labels.push({path:p,text:c.string});}n.children.forEach(ch=>labelsOf(ch,p+'/'+ch.name));})(node,node.name);infoPanels.push({identity:node.uuid||node._id||null,labels,bars:(component._bars||[]).map(b=>b&&b.progress),value:component._value||null,pendingValues:(component._arys||[]).slice()});}} node.children.forEach(visit)})(scene);
+  if(battle)for(const u of Object.values(battle._unitSet||{}).filter(Boolean)){const source=u.unit&&u.unit(),node=u.node,n=node&&node.getChildByName('mask')&&node.getChildByName('mask').getChildByName('node'),a=n&&n.getComponent(cc.Animation),sprite=n&&n.getComponent(cc.Sprite),frame=sprite&&sprite.spriteFrame,playing=a&&a._nameToState&&Object.entries(a._nameToState).find(([,s])=>s&&s.isPlaying);units.push({id:source&&source.id?source.id():null,index:u.index?u.index():null,x:u.x?u.x():null,y:u.y?u.y():null,hitPoints:u.hp_cur?u.hp_cur():null,direction:u.dir?u.dir():null,action:source&&source.action?source.action():null,visible:u.visible?u.visible():null,exists:u.isExist?u.isExist():null,animation:playing?playing[0]:null,spriteFrame:frame&&frame.name||null,spriteRect:frame&&frame._rect?[frame._rect.x,frame._rect.y,frame._rect.width,frame._rect.height]:null});}
   const dialogue=layers.includes('SayLayer');
   const camera=battle&&battle._scrollView&&battle._scrollView.content&&battle._scrollView.content.position;
-  return {ready:!!battle,frame:cc.director.getTotalFrames?cc.director.getTotalFrames():null,scene:scene.name,round:battle&&battle.round?battle.round():null,camp:battle&&battle.curCamp?battle.curCamp():null,camera:camera?[camera.x,camera.y]:null,dialogue,layers:[...new Set(layers)],units:units.filter(u=>[32,3,33,474,235,477,334,210,476,211,475,234].includes(u.id))};
+  return {ready:!!battle,frame:cc.director.getTotalFrames?cc.director.getTotalFrames():null,scene:scene.name,round:battle&&battle.round?battle.round():null,camp:battle&&battle.curCamp?battle.curCamp():null,camera:camera?[camera.x,camera.y]:null,dialogue,layers:[...new Set(layers)],infoPanels,units:units.filter(u=>[32,3,33,474,235,477,334,210,476,211,475,234].includes(u.id))};
 })()`;
 
 (async () => {
@@ -195,6 +195,26 @@ const stateExpression = `(() => {
       let observed=null;
       while(Date.now()-started<Math.min(maxWallMs-1000,59000)){const evaluated=await client.send('Runtime.evaluate',{expression:stateExpression,returnByValue:true});if(evaluated.exceptionDetails)throw Error(JSON.stringify(evaluated.exceptionDetails));const state=evaluated.result.value,enemy=state.units.find(x=>x.id===474),ally=state.units.find(x=>x.id===234);if(enemy?.x===9&&enemy?.y===17&&enemy?.direction===1&&enemy?.action===0&&enemy?.animation==='anime0_1'&&ally?.exists===true){observed={wallSeconds:(Date.now()-started)/1000,...state};const image=await client.send('Page.captureScreenshot',{format:'png',fromSurface:true}),file='source-enemy474-arrival-idle-dir1.png';fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({...observed,file,semantic:'enemy474-arrival-idle-dir1-before-attack'});break;}await delay(4);}
       if(!observed)throw Error('enemy474 pre-attack arrival was not observed');fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-enemy-arrival-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');await childExit;if(!fs.existsSync(trace))throw Error('source enemy-arrival trace was not flushed');console.log('SOURCE_YINGCHUAN_ENEMY_ARRIVAL_OK');return;
+    }
+    if(semanticMode==='477-settlement-order'){
+      const observedIdentities=new Set(),observations=[];let priorObservation='';
+      while(Date.now()-started<Math.min(maxWallMs-1000,59000)&&captures.length<2){
+        const evaluated=await client.send('Runtime.evaluate',{expression:stateExpression,returnByValue:true});if(evaluated.exceptionDetails)throw Error(JSON.stringify(evaluated.exceptionDetails));
+        const state=evaluated.result.value,unit477=state.units.find(x=>x.id===477);
+        for(const panel of state.infoPanels||[]){
+          const hpTransition=panel.value&&panel.value.idx===0&&((panel.value.src===104&&panel.value.dsc===83)||(panel.value.src===97&&panel.value.dsc===77));
+          if(!unit477||!hpTransition||observedIdentities.has(panel.identity))continue;
+          observedIdentities.add(panel.identity);const image=await client.send('Page.captureScreenshot',{format:'png',fromSurface:true}),ordinal=captures.length+1,file=`source-477-settlement-${ordinal}.png`;
+          fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({wallSeconds:(Date.now()-started)/1000,file,semantic:`477-counter-settlement-${ordinal}`,panel,...state});
+        }
+        const observationKey=JSON.stringify([unit477&&unit477.hitPoints,(state.infoPanels||[]).map(p=>[p.identity,p.labels,p.bars,p.value,p.pendingValues])]);
+        if(observationKey!==priorObservation){observations.push({wallSeconds:(Date.now()-started)/1000,frame:state.frame,unit477,infoPanels:state.infoPanels});priorObservation=observationKey;}
+        await delay(8);
+      }
+      const complete=captures.length===2;
+      fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-477-settlement-order-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete,observations,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
+      if(!complete)throw Error(`477 settlement panels incomplete: ${captures.length}/2`);
+      await childExit;if(!fs.existsSync(trace))throw Error('source 477 settlement trace was not flushed');console.log('SOURCE_YINGCHUAN_477_SETTLEMENT_OK 2');return;
     }
     const sampleIntervalMs = maxWallMs > 30000 ? 10000 : 5000;
     const targets = Array.from({ length: Math.min(8, Math.ceil(maxWallMs / sampleIntervalMs)) }, (_, index) => index * sampleIntervalMs);

@@ -2102,6 +2102,7 @@ void main() {
      */
 
     private var pendingBattleSettlementActorId: String? = null
+    private var pendingPhysicalSettlementOrder: List<String>? = null
 
     /**
      * `pendingActionVitalsBefore` (Map?): 직전 행동 시작 시점의 유닛별 체력·기력이다.
@@ -6996,8 +6997,8 @@ void main() {
      *
      * 원본 `BattleLayer._jiesuan(t, this.g_charinfo)`에 해당한다. 행동 중 기록해 둔 체력·기력
      * 이전 값과 현재 값을 비교해 변한 유닛만 모으고, 같은 행동에서 지급한 경험치를 성장
-     * 흐름으로 함께 넘긴다. 원본은 피해를 입은 대상이 먼저 기록되고 행동한 유닛의 경험치가
-     * 마지막에 붙으므로 행동자를 목록 끝에 둔다.
+     * 흐름으로 함께 넘긴다. 물리 공격은 공격자의 무력 공적을 먼저 기록하므로 실제 공격
+     * 패스의 최초 기록 순서를 유지한다.
      */
     internal fun presentActionSettlement(): Boolean {
         val before = pendingActionVitalsBefore ?: return false
@@ -7005,8 +7006,11 @@ void main() {
         val growth = pendingActionGrowth
         pendingActionGrowth = emptyMap()
         val actorId = pendingBattleSettlementActorId
-        val changes = before.keys
-            .sortedBy { it == actorId }
+        val orderedIds = pendingPhysicalSettlementOrder?.let { (it + before.keys).distinct() }
+            ?: before.keys.sortedBy { it == actorId }
+        pendingPhysicalSettlementOrder = null
+        val changes = orderedIds
+            .filter { it in before }
             .mapNotNull { unitId ->
                 val vitals = before.getValue(unitId)
                 val unit = battle.presentation.presentationUnit(unitId) ?: return@mapNotNull null
@@ -7234,6 +7238,7 @@ void main() {
         pendingBattleActionCommitted = false
         pendingBattleSettlementActorId = null
         pendingActionVitalsBefore = null
+        pendingPhysicalSettlementOrder = null
         pendingActionGrowth = emptyMap()
         actionSettlementPresented = false
         deathTimeline.finishPostActionCallbacks()
@@ -7706,6 +7711,9 @@ void main() {
             val characterId = battle.presentation.presentationUnit(actorId)?.characterId
             scriptRuntime.presentExternalBattleDialogue(Dialogue(characterId?.toString(), firstCriticalSpeech))
             return
+        }
+        pendingPhysicalSettlementOrder = (result as? TacticalActionResult.Attack)?.let {
+            physicalSettlementUnitOrder(it, actorId, targetId)
         }
         movementAnimation = if (result == TacticalActionResult.Success && moveActorId != null) {
             /**

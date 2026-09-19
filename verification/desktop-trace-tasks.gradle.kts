@@ -557,7 +557,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
         .map { value ->
             value.also {
                 require(it in setOf(
-                    "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat",
+                    "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
                 )) {
                     "unknown captureMode: $it"
                 }

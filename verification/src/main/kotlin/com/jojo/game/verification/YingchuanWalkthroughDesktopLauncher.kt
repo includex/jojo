@@ -36,7 +36,7 @@ object YingchuanWalkthroughDesktopLauncher {
         require(timeScale in .25f..8f) { "walkthrough time scale must be .25..8" }
         val captureMode = args.getOrNull(3) ?: "semantic-walkthrough"
         require(captureMode in setOf(
-            "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat",
+            "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
         )) {
             "unknown walkthrough capture mode: $captureMode"
         }
@@ -158,6 +158,7 @@ private class WalkthroughRecorder(
             "first-normal-combat" -> captureFirstNormalCombat(probe)
             "next-normal-actions" -> captureNextNormalActions(probe)
             "enemy-first-combat" -> captureEnemyFirstCombat(probe)
+            "enemy-settlement" -> captureEnemySettlement(probe)
             else -> {
                 semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
                     if (captures.size < MAX_CAPTURES) capture(key, probe)
@@ -208,6 +209,17 @@ private class WalkthroughRecorder(
         if (elapsedSeconds + 1e-9 < anchor + ENEMY_CAPTURE_OFFSETS_SECONDS[nextEnemyCapture]) return
         val ordinal = nextEnemyCapture++
         capture("enemy-first-combat-${ordinal.toString().padStart(2, '0')}", probe)
+    }
+
+    private fun captureEnemySettlement(probe: BattleRuntimeScreenProbe) {
+        val unit = probe.battle.snapshot.units.firstOrNull { it.characterId == 477 }
+        if (enemyArrivalAnchorSeconds == null && unit != null && unit.x == 11 && unit.y == 15) {
+            enemyArrivalAnchorSeconds = elapsedSeconds
+        }
+        val anchor = enemyArrivalAnchorSeconds ?: return
+        if (nextEnemyCapture >= MAX_CAPTURES) return
+        if (elapsedSeconds < anchor + 2.5 + nextEnemyCapture * .25) return
+        capture("enemy-settlement-${(nextEnemyCapture++).toString().padStart(2, '0')}", probe)
     }
 
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
