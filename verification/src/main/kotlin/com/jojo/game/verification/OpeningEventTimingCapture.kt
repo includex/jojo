@@ -53,6 +53,7 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
         row.addChild("text", JsonValue(probe.modalVisibleText))
         row.addChild("complete", JsonValue(probe.modalTextComplete))
         row.addChild("dialogueText", JsonValue(probe.dialogueVisibleText))
+        row.addChild("dialogueComplete", JsonValue(probe.dialogueTextComplete))
         row.addChild("dialogueSpeakerId", JsonValue(probe.dialogueSpeakerId))
         fun field(owner: Any, name: String): Any = owner.javaClass.getDeclaredField(name).let {
             it.isAccessible = true; requireNotNull(it.get(owner))
@@ -102,7 +103,7 @@ internal class OpeningEventTimingCapture(output: RenderCaptureConfiguration) {
             check(probe.modalText == "재능의 첫 징후")
             sawComplete = sawComplete || probe.modalTextComplete
         }
-        if (probe.playback != PlaybackState.DIALOGUE || probe.dialogueVisibleText.isEmpty()) return
+        if (probe.playback != PlaybackState.DIALOGUE || !probe.dialogueTextComplete) return
         check(sawEvent && sawComplete && probe.dialogueSpeakerId == "181")
         val result = JsonValue(JsonValue.ValueType.`object`)
         result.addChild("contract", JsonValue("natural-opening-event-timing-game/v1"))

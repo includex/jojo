@@ -1061,3 +1061,56 @@ resume하며 연속 delay는 step3과6에 resume한다. fixture SHA-256:
 새 verifier는 첫 명시적 delay만 판정하며 대사 첫 글자 타이머와 전체 지연 동등성을
 주장하지 않는다. EVENT 종료→첫 글자 관측은 source2.1166초, port2.153527초다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## 첫 Hall 대사의 자연 글자 타이머 (2026-09-20)
+
+실제 표시 경로인 DialogueSession의 DialogueTextReveal은 생성 프레임 delta부터
+Float로 누적하고 while로 여러 글자를 따라잡으며 잔여 시간을 보존했다. 원본
+DialogueLayer의 CallbackTimer는 첫 update에서 elapsed를 0으로 초기화하고 이후
+Double `.04` 이상일 때 한 단위만 표시한 뒤 elapsed를 0으로 버린다.
+
+수정 전 자연 표본은 frame208 생성 후209에 첫 글자를 표시했다. 생성 프레임을
+제외한 실제 delta로는210이 첫 공개여야 했다. 전체13글자도 조기에 완료했다.
+ScenarioDialogueSessionAdapter가 원본 timer 정책을 선택하게 하여 creation prime,
+Double literal .04, update당 한 단위, 잔여 시간 폐기를 적용했다. 전투와 일반 모달의
+타이머 정책은 변경하지 않았다. 별도로 새 revision의 같은 본문도 다시 타이핑하도록
+공통 setSource 초기화 계약을 바로잡았다.
+
+자연 캡처는 첫 비어 있지 않은 대사에서 멈추던 것을 첫 문장 완료까지 확장했다.
+원본 hook의 초기 callback 대체 방식이 unschedule(_handle)의 함수 identity를 깨뜨리는
+문제도 발견했다. 원래 callback을 그대로 등록하고 실제 timer.trigger/update만
+관측하도록 수정했다. 최종 verifier는 identity 보존, 마지막 update의 scheduler registry
+제거, 완료 이후 update 없음,13개 after-draw prefix와 callback 일치를 모두 확인한다.
+기존 DialogueLayer.firstText 이벤트도 유지해 이전 회귀 verifier와 호환된다.
+
+최종 자연 source는352 생성→355 첫 글자→391 완료, port는209 생성→212 첫 글자→248
+완료였다. 각 실행의 실제 delta로 독립 예측한13개 callback frame이 모두 일치했다.
+수정 전 baseline은 같은 oracle에서 실패한다. 절대 frame 번호나 총 로딩 시간이
+서로 같다는 의미는 아니다.
+
+Controlled fixture는 실제 DialogueLayer._next와 cc.Scheduler를 실행한다. UI 입력은
+continuation 본문 초기화 상태와 label sink로 제한하며 첫 onCreate 재현을 주장하지
+않는다. 큰 첫 delta10 prime, Float .04가 Double .04보다 작은 경계, .1f에서도 한 글자,
+초과 시간 폐기,13글자 완료·timer 제거·이후 무변화를 포함한다. 모든 입력 delta는
+Float roundtrip이 가능하며 Kotlin production session에서 원본 step을 재생한다.
+fixture SHA-256:
+`a9a311a51fbafd17823539df462e9de89c4b6bc7fb9cef324fef492dbdd4d0de`.
+
+검증: core191개 및 campaign47개, Python opening57개 통과. 추가 source fixture 소비
+테스트도 별도 집중 실행에서 통과했다.13개 prefix와 첫 세 분리
+대사 화면 strict RGBA 0픽셀 차이 유지. EVENT, 첫 이동, 네 유닛 자산 준비, stage.delay
+자연 규칙 회귀 모두 통과. Gradle 캡처·회귀 묶음은60초 제한 안에서20초 완료했다.
+Astra가 계획과 production 검수를 맡았고 Sol이 production과 fixture 소비 테스트를
+구현했다.
+
+증거: `build/reports/opening-dialogue-timing-20260920/`의 source, controlled,
+`game-baseline.json`, `game-final.json`, `baseline-dialogue.json`, `fixed-dialogue.json`,
+`prefix-regression.json`, `pages-regression.json`, 각 timing regression과 `regression.log`.
+원본 자연 artifact SHA-256:
+`712374486a668071e167cb31521c3201792cfb1040baa1c09066e6f880064cfd`.
+
+대사 자동 넘김은 원본1.6초와 포트1초의 차이가 별도로 남아 있다. 초상화 준비 순서,
+이동 중 전체 화면, 이후 대사·게임 전체는 이번 타이핑 검증 범위가 아니다.
+EVENT 종료→첫 글자 관측은 source2.1314초, port2.162935초이며 전체 구간 동등성은
+계속 검증해야 한다. 전체 게임 동등성 목표는 계속 진행한다.

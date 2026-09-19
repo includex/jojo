@@ -5,10 +5,12 @@ import com.jojo.game.presentation.shared.dialogue.DialogueChoice
 import com.jojo.game.presentation.shared.dialogue.DialogueMessage
 import com.jojo.game.presentation.shared.dialogue.DialogueModal
 import com.jojo.game.presentation.shared.dialogue.DialogueModalKind
+import com.jojo.game.presentation.shared.dialogue.DialogueRevealTiming
 import com.jojo.game.presentation.shared.dialogue.DialogueSession
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionMode
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
+import com.jojo.game.presentation.shared.dialogue.DialogueTextReveal
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -77,5 +79,49 @@ class DialogueSessionTest {
         assertTrue(session.view.textComplete)
         assertEquals(DialogueSessionTransition.Ignored, session.update(.5f, autoAdvanceEnabled = true))
         assertEquals(DialogueSessionTransition.AutoAdvance, session.update(.5f, autoAdvanceEnabled = true))
+    }
+
+    @Test
+    fun cocosCallbackTimerPrimesThenRevealsAtMostOneUnitAndDropsOvershoot() {
+        val reveal = DialogueTextReveal(timing = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        reveal.setSource("ABC")
+
+        reveal.update(10f)
+        assertEquals("", reveal.visibleText, "first update only primes the source timer")
+
+        reveal.update(.1f)
+        assertEquals("A", reveal.visibleText, "a large delta triggers only one callback")
+
+        reveal.update(.039f)
+        assertEquals("A", reveal.visibleText, "overshoot from the previous callback is discarded")
+        reveal.update(.001f)
+        assertEquals("AB", reveal.visibleText)
+    }
+
+    @Test
+    fun cocosCallbackTimerUsesJavaScriptPointZeroFourThreshold() {
+        val reveal = DialogueTextReveal(timing = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        reveal.setSource("A")
+        reveal.update(0f)
+
+        reveal.update(.04f)
+        assertEquals("", reveal.visibleText, "Float .04 widened to Double remains below JavaScript Number .04")
+        reveal.update(.000000001f)
+        assertEquals("A", reveal.visibleText)
+    }
+
+    @Test
+    fun aNewRevisionRestartsTypingEvenWhenDialogueTextIsUnchanged() {
+        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val message = DialogueMessage(1, null, "같음")
+        session.presentDialogue(message)
+        session.update(0f, autoAdvanceEnabled = false)
+        session.update(.1f, autoAdvanceEnabled = false)
+        assertEquals("같", session.view.dialogueVisibleText)
+
+        session.presentDialogue(message.copy(revision = 2))
+        assertEquals("", session.view.dialogueVisibleText)
+        session.update(10f, autoAdvanceEnabled = false)
+        assertEquals("", session.view.dialogueVisibleText, "the restarted timer primes before revealing")
     }
 }
