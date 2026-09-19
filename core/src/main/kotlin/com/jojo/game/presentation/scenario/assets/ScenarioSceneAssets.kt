@@ -17,6 +17,8 @@ internal class ScenarioSceneAssets(
 ) {
     /** 장면별로 필요한 문자만 포함해 글꼴 생성 비용을 줄이는 글리프 집합이다. */
     private val requiredGlyphs by lazy(requiredGlyphsProvider)
+    private val streetBodyLabels = StreetBodyLabels()
+    fun bodyLabels(text: String) = streetBodyLabels.get(text)
     private val streetSpeakerLabels = StreetSpeakerLabels()
     fun speakerLabel(text: String) = streetSpeakerLabels.get(text)
     /**
@@ -335,6 +337,7 @@ internal class ScenarioSceneAssets(
         if (disposed) return
         disposed = true
         streetSpeakerLabels.dispose()
+        streetBodyLabels.dispose()
         portraitTextures.dispose()
         backgroundTextures.dispose()
         unitTextures.dispose()

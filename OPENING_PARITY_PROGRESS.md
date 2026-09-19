@@ -292,3 +292,46 @@ python3 tools/verify_opening_panel_pixels.py build/opening-source-text/source-st
 확장해야 한다. 표시 중인 prefix마다 줄바꿈과 segment를 계산해야 하므로 완성된
 문장 이미지를 단순히 잘라 공개하는 방식은 사용하지 않는다. 본문 완전 일치,
 중간 공개 과정, 다른 대사, 전체 화면·음향·이후 게임 검증은 계속 남아 있다.
+
+
+## 첫 본문 RichText 자산 경로와 RGBA 일치 (2026-09-20)
+
+첫 대사의 자연 공개 완료 뒤 패널·초상화·화자명·본문을 합친 분리 화면이
+2560×1376 bottom-left RGBA8 전체에서 일치했다. source/game SHA256은 모두
+`b4b95be614f7a57260628d5b65e45a6d768cff34b475568f58542a194f5daaf3`이다.
+본문 변경 픽셀·절대오차·제곱오차는 모두 0이며 strict comparator exit 0이다.
+직전 Linear-only 결과의 변경 픽셀 48634 / 절대오차 4720092가 해결됐다.
+기존 패널+초상화+화자명 회귀도 변경 픽셀 0, `bdd41d0e…650d`를 유지했다.
+
+`export_street_body_labels.cjs`는 R_00 scene1의 처음 두 say 호출에 포함된 첫 세 페이지를
+AST에서 추출한다. 초기 적용 범위는 `대장님, 서둘러야 해요!`, `알아!`,
+`잠시만 기다려 주세요!`의 모든 28개 비어 있지 않은 공개 prefix다.
+각 prefix를 독립적으로 원본 실행 엔진의 cc.RichText에 전달해 segment 배치와
+업로드된 Label 텍스처를 생성한다. 완료 이미지 crop이나 화면 캡처를 자산으로 쓰지 않는다.
+PNG는 GL readPixels의 RGBA를 손실 없이 저장하며 파일 digest로 중복을 제거한다.
+원본 분석 소스뿐 아니라 실제 실행 bundle `web/cocos2d-js.js`, 폰트·Electron·OS도
+생성 계약으로 고정한다. 생성 제한은 55초, Gradle 태스크 제한은 60초다.
+
+포트는 RichText top-left 기준 segment 좌표에 .86 배율을 적용하고 integer texture
+크기를 그대로 그린다. float node 크기로 texture를 늘리지 않는다. 첫 segment는
+상대 위치 (0,-52.92), node 320.27×52.92, texture 320×52다.
+생성 자산은 필요할 때 로드하고 화면 종료 시 해제한다. 자산에 없는 prefix는 로그를
+남기고 기존 글꼴로 표시하므로 해당 범위의 픽셀 일치는 아직 보장하지 않는다.
+
+본문·화자명 캡처와 campaignUnitTest는 함께 19초에 끝났다. 본문 자연 완료 로그는
+약 2.53초다. 로컬 증거는 `build/reports/opening-body-canvas-20260920/`의
+`capture.log`, `text.json`, `speaker.json`이다.
+추가 생성기 검사에서 폭 80의 `가나AB 다라`는 세 줄(높이 136.92)로 나뉘며
+segment bounds가 폭 안에 있음을 확인했다. 결과는
+`build/reports/street-body-label-width80-probe/manifest.json`에 있다.
+현재 생성기는 plain BMP 문자 입력만 지원하며 markup·surrogate 입력은 명시적으로 거부한다.
+
+```sh
+./gradlew :verification:captureOpeningDialogueText :verification:captureOpeningDialogueSpeaker :verification:campaignUnitTest
+python3 tools/verify_opening_panel_pixels.py build/reports/opening-text-20260920/source/source-street-text.rgba verification/build/verification/opening-text/game-text.rgba --stage text
+```
+
+이 결과는 **첫 문장의 자연 완료 시점에 분리한 대사창**에 한정된다. 모든 prefix를
+생성했다는 사실은 실제 중간 공개 프레임·공개 속도·두 번째와 세 번째 화면의 일치 증거가
+아니다. 다음 단위는 첫 문장의 중간 공개와 다음 대사 화면 검증이며, 전체 배경·인물 합성,
+음향·입력·이후 게임 전체의 동등성은 계속 확인해야 한다.

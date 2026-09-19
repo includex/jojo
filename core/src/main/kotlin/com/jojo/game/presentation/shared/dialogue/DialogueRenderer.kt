@@ -157,6 +157,21 @@ class DialogueRenderer(
             drawOverlay(batch, it)
             return
         }
+        assets.bodyLabels(model.visibleText)?.let { segments ->
+            val x = if (model.isLeft) {
+                layout.bodyLabelLeftX + (placement.panelX - layout.panelLeftX)
+            } else {
+                layout.bodyLabelRightX + (placement.panelX - layout.panelRightX)
+            }
+            val top = placement.panelY + layout.bodyLabelTopOffsetY
+            val scale = layout.bodyLabelScale
+            batch.color = Color.WHITE
+            segments.forEach { segment ->
+                batch.draw(segment.texture, x + segment.x * scale, top + segment.y * scale,
+                    segment.texture.width * scale, segment.texture.height * scale)
+            }
+            return
+        }
         val font = assets.bodyFont
         val baseScaleX = font.data.scaleX
         val baseScaleY = font.data.scaleY

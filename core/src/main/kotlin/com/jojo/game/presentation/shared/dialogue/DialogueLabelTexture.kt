@@ -8,3 +8,10 @@ data class DialogueLabelTexture(
     val nodeWidth: Float,
     val nodeHeight: Float,
 )
+
+/** One RichText segment's uploaded canvas and bottom-left offset from the RichText anchor. */
+data class DialogueBodySegment(
+    val texture: Texture,
+    val x: Float,
+    val y: Float,
+)

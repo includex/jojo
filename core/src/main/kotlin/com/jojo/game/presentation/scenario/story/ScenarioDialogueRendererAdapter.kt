@@ -27,6 +27,7 @@ internal class ScenarioDialogueRendererAssetsAdapter(
     /** 시나리오 인물 ID를 원본 초상화 자원으로 변환한다. */
     override fun portrait(portraitId: Int) = source.portraitTexture(portraitId)
     override fun speakerLabel(text: String) = source.speakerLabel(text)
+    override fun bodyLabels(text: String) = source.bodyLabels(text)
 }
 
 /** 기존 거리 대사 view를 공용 대사 표시 모델로 변환한다. */

@@ -204,6 +204,9 @@ interface DialogueRenderAssets {
 
     /** Optional whole-string label generated from the screen's font/style contract. */
     fun speakerLabel(text: String): DialogueLabelTexture? = null
+
+    /** Independently laid out and rasterized visible prefix, relative to its RichText top-left. */
+    fun bodyLabels(text: String): List<DialogueBodySegment>? = null
 }
 
 /** 원본 좌표를 화면별 자산 어댑터와 분리하기 위한 공용 배치 설정이다. */
@@ -246,6 +249,11 @@ data class DialogueRenderLayout(
     val speakerLabelLeftOffsetY: Float = 139.5092f,
     val speakerLabelRightOffsetY: Float = 139.25808f,
     val speakerLabelScale: Float = .86f,
+    /** Original RichText top-left anchors and parent scale. */
+    val bodyLabelLeftX: Float = 328.93882f,
+    val bodyLabelRightX: Float = 341.12346f,
+    val bodyLabelTopOffsetY: Float = 122.32124f,
+    val bodyLabelScale: Float = .86f,
     /** 왼쪽 본문 X 좌표다. */
     val textLeftX: Float = 328.93882f,
     /** 오른쪽 본문 X 좌표다. */
