@@ -68,8 +68,19 @@ def main() -> int:
     args = parser.parse_args()
     source, game = read(args.source), read(args.game)
     errors = audit(source, "source") + audit(game, "game")
+    if not source:
+        errors.append("source draw stream is empty")
+    if not game:
+        errors.append("game draw stream is empty")
     if len(source) != len(game):
         errors.append(f"draw count differs source={len(source)} game={len(game)}")
+    else:
+        for index, (source_row, game_row) in enumerate(zip(source, game)):
+            if source_row != game_row:
+                errors.append(
+                    f"draw[{index}] differs source={source_row} game={game_row}"
+                )
+                break
     # Keep the report useful even when an implementation emits a wrong stream.
     report = {"source": str(args.source), "game": str(args.game), "sourceDraws": len(source), "gameDraws": len(game), "errors": errors, "equal": not errors}
     if args.output:

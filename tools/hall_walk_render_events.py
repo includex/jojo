@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Build a framebuffer-free HallUnit walking oracle from recovered animeRR.
+"""Build a synthetic source reference from recovered HallUnit animeRR data.
 
-This is intentionally a source-data reader: it refuses to emit a baseline if
-the recovered movement clips no longer have their authored t/row/timing data.
+This source-data reader refuses to emit a reference if the recovered movement
+clips no longer have their authored t/row/timing data.  Its output is not a
+game-runtime observation and must only be compared with an independently
+captured game stream.
 """
 import argparse
 import json
@@ -28,8 +30,8 @@ def find_anime(value):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-snapshot", required=True)
-    parser.add_argument("--original", required=True)
-    parser.add_argument("--game", required=True)
+    parser.add_argument("--original", required=True,
+                        help="source-oracle JSONL output; capture the game independently")
     parser.add_argument("--step", type=float, default=.04,
                         help="sample interval in seconds (use .01 for tween/frame audit)")
     args = parser.parse_args()
@@ -72,8 +74,9 @@ def main():
                 "text": f"grid={grid_x:.3f},{grid_y:.3f};dir={direction};action=20",
             })
     encoded = "".join(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n" for record in records)
-    for output in (args.original, args.game):
-        path = Path(output); path.parent.mkdir(parents=True, exist_ok=True); path.write_text(encoded)
+    path = Path(args.original)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(encoded)
     print(f"HALL_WALK_RENDER_EVENTS_OK records={len(records)} step={args.step:g}s source=animeRR t1 rows=0..5")
 
 
