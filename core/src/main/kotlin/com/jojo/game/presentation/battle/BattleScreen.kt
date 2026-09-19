@@ -3509,6 +3509,10 @@ void main() {
                 aiPresentation.beginCamp(camp)
             },
             hasPendingAiPresentation = { aiPresentation.hasActiveCamp },
+            playerPresentationReady = {
+                scriptRuntime.state == PlaybackState.COMPLETE &&
+                    !combatPresentationBusy() && !outcomeCallbacksPending()
+            },
             presentCampState = { settlement -> presentTurnSettlement(settlement) },
             presentDeaths = { checkpoint -> deathTimeline.begin(checkpoint.toDeathTimelineCheckpoint()) },
             presentCampRestore = { settlement -> presentTurnSettlement(settlement) },
@@ -5668,7 +5672,7 @@ void main() {
      * 위임을 고른 응답은 `COLLOCATION` 플래그를 세운 뒤 같은 경로로 진행한다.
      */
     private fun requestEndRound() {
-        if (turnController.snapshot.phase != BattleTurnPhase.PLAYER_INPUT) return
+        if (!turnController.canEndPlayerTurn()) return
         if (autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return
         endRoundPromptOffered = true
         autoBattleFlow.openEndRoundPrompt()
@@ -9874,6 +9878,8 @@ void main() {
      */
 
     private fun answerAutoBattle(tag: Int) {
+        // Validate before answer changes the prompt, saved preference or delegation state.
+        if (tag == 0 && !turnController.canEndPlayerTurn()) return
         val before = autoBattleFlow.view().endRoundRequests
         if (!autoBattleFlow.answer(tag, AutoBattleFlow.TOUCH_END)) return
         recordFullBattleInput("$sourceScenario:auto-battle-confirm")

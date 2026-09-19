@@ -79,6 +79,8 @@ class BattleTurnController(
 
     private val onCampEvents: (TurnResult) -> Unit = {},
     initialPhase: BattleTurnPhase = BattleTurnPhase.PLAYER_INPUT,
+    /** Action callbacks must finish before a player request can start another camp. */
+    private val playerPresentationReady: () -> Boolean = { true },
 ) {
     /**
      * `state` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -116,13 +118,14 @@ class BattleTurnController(
 
     /** endPlayerTurn: 플레이어 턴 종료 요청을 검증하고 진영 복원 단계로 진행한다. */
     fun endPlayerTurn(): Boolean {
-        if (!BattleTurnPolicy.acceptsPlayerEnd(
-        BattleTurnEntryRequest(state.phase, battle.activeFaction, battle.outcome()),
-    )
-) return false
+        if (!canEndPlayerTurn()) return false
         beginCampRestore()
         return true
     }
+
+    fun canEndPlayerTurn(): Boolean = BattleTurnPolicy.acceptsPlayerEnd(
+        BattleTurnEntryRequest(state.phase, battle.activeFaction, battle.outcome()),
+    ) && playerPresentationReady()
 
     /**
      * `playerCampHasOperableUnit`: 아군 진영에 아직 조작할 유닛이 남았는지 판별한다.
@@ -140,10 +143,7 @@ class BattleTurnController(
 
     /** runCollocatedPlayerTurn: 공동 배치된 플레이어 진영의 AI 처리를 실행하고 후속 복원을 예약한다. */
     fun runCollocatedPlayerTurn(): Boolean {
-        if (!BattleTurnPolicy.acceptsPlayerEnd(
-        BattleTurnEntryRequest(state.phase, battle.activeFaction, battle.outcome()),
-    )
-) return false
+        if (!canEndPlayerTurn()) return false
         state.phase = BattleTurnPhase.AI
         state.lastAiResult = runAi(Faction.PLAYER)
         if (!hasPendingAiPresentation()) beginCampRestore()
