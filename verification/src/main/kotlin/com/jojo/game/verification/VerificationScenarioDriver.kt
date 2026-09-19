@@ -18,6 +18,15 @@ class VerificationScenarioDriver(private val state: String?) : RuntimeScenarioDr
 
     /** commands: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     override fun commands(frame: RuntimeScenarioFrame): List<RuntimeScenarioCommand> {
+        // Isolate the real first R00 dialogue after its authored movement,
+        // without replacing the scene or changing the speaker to fixture 0.
+        if (state == "opening-panel") {
+            if (!presentationSent && frame.playback == PlaybackState.DIALOGUE) {
+                presentationSent = true
+                return listOf(Present(RuntimeScenarioPresentation.STREET, 0))
+            }
+            return emptyList()
+        }
         presentationCommand()?.let { command ->
             if (!presentationSent) {
                 presentationSent = true

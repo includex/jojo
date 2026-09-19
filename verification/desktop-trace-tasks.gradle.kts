@@ -163,6 +163,30 @@ tasks.register("captureDialogueStages") {
     dependsOn(dialogueStageCaptures)
 }
 
+tasks.register<JavaExec>("captureOpeningDialoguePanel") {
+    group = "verification"
+    description = "Isolates the panel from the naturally reached first R00 dialogue."
+    timeout.set(java.time.Duration.ofSeconds(30))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-panel")
+    doFirst {
+        destination.get().asFile.mkdirs()
+        delete(destination.get().file("game-panel.rgba").asFile, destination.get().file("game-panel.png").asFile)
+        setArgs(listOf("--scenario=R_00", "--capture-state=opening-panel",
+            "--capture-raw=${destination.get().file("game-panel.rgba").asFile.absolutePath}",
+            "--capture=${destination.get().file("game-panel.png").asFile.absolutePath}"))
+    }
+    doLast {
+        check(destination.get().file("game-panel.rgba").asFile.length() == 2560L * 1376 * 4) {
+            "opening panel capture did not produce a complete RGBA frame"
+        }
+    }
+}
+
 // --- 전투 대사창(SayLayer) 단계별 렌더 캡처 ---------------------------------
 // 거리 대사와 같은 누적 구성이다. 원본은
 // .verification-work/raw-framebuffer-common-space/dialogue-components/source-<stage>.rgba 이다.

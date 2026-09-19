@@ -50,6 +50,7 @@ internal class VerificationArtifactObserver(
     override val keepsScenarioOpen get() = wantsFrame || wantsEventLog
     /** scenarioArtifactSent: 검증 시나리오 식별자를 담는다. */
     private var scenarioArtifactSent = false
+    private var sawOpeningDialogue = false
 
     /** 직전 프레임의 렌더 이벤트다. 같은 값이 이어져야 화면이 자리를 잡은 것으로 본다. */
     private var settledEventLog: String? = null
@@ -74,6 +75,14 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
+        if (output.state == "opening-panel") {
+            if (scenario.playback != com.jojo.game.domain.scenario.PlaybackState.DIALOGUE) return
+            // The driver installs panel-only presentation on the next frame.
+            if (!sawOpeningDialogue) { sawOpeningDialogue = true; return }
+            check(scenario.module == "R_00" && scenario.sceneIndex == 1 && scenario.dialogueSpeakerId == "181") {
+                "opening panel capture did not reach the first R00 soldier dialogue"
+            }
+        }
         if (scenario.elapsedSeconds <= TITLE_ARTIFACT_DELAY_SECONDS || scenarioArtifactSent) return
         if (wantsEventLog && scenario.elapsedSeconds <= SCENARIO_ARTIFACT_TIMEOUT_SECONDS) {
             val current = screen.eventLog(output.state)

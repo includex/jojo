@@ -33,7 +33,7 @@ verification 기준이다. 앱의 25초 제한과 별개로 이번 통합 실행
 
 ## 다음 검증 단위
 
-동일한 첫 대사 구간에서 배경·인물·대화창 렌더와 프레임 안의 콜백 순서를
+동일한 첫 대사 구간에서 초상화·화자명·본문·배경·인물 렌더와 프레임 안의 콜백 순서를
 대조한다. 이를 맞추기 전에 S00 전체 전투나 다음 장으로
 확장하지 않는다. 첫 3페이지 이후 대사, 선택 분기, 전투, 엔딩은 완료 증거가 없다.
 기존 작업 트리의 전투·폰트 수정은 이번 화자/본문 검증만으로 검수 완료 처리하지 않는다.
@@ -97,3 +97,35 @@ python3 tools/verify_opening_group_moves.py build/opening-source.json verificati
 현재 첫 대사 이전의 세 이동 단위에서 확정된 게임 동작 차이는 없다. 대사 이후 그룹,
 실제 Cocos/LibGDX 프레임 스케줄 동기화, 프레임 안 callback, 픽셀 및 음향은
 이번 검증에 포함되지 않는다. 이전 절의 “이후 그룹 미증명”은 그 실행 당시의 범위다.
+
+## 첫 대사 패널의 실제 픽셀 대조
+
+기존 `street-panel` 포트 캡처는 임의 회관 장면과 화자 0을 설치했다. 원본 첫 대사는
+병사 181이므로 이 두 캡처는 꼬리 방향부터 달랐다. 새 `opening-panel`은 실제 R00의
+첫 DIALOGUE를 기다린 뒤 장면을 교체하지 않고 패널만 분리한다. 첫 관측 프레임을
+건너뛰어 표시 설정이 적용된 다음 렌더 결과를 읽는다. 포트 캡처 태스크 제한은 30초다.
+
+원본 역시 실제 첫 대사 `대장님, 서둘러야 해요!`의 DialogueLayer에서 다른 구성요소를
+숨긴 뒤 WebGL `readPixels`로 캡처했다. 이것은 패널 분리 대조이며 화면 전체 대조가 아니다.
+
+- 원본·포트 모두 2560×1376 bottom-left RGBA8.
+- 변경 픽셀 0, R/G/B/A 모두 오차 0.
+- 두 raw 파일 SHA256:
+  `553aa2207f24cb470c53e15a2c0fb29e2a06467b20a37386762f887939f7e3d7`.
+- 로컬 결과: `build/reports/opening-visual-20260919/panel-comparison.json`.
+  최종 원본 캡처 메타데이터는 `build/reports/opening-source-panel-final2/`,
+  포트 캡처는 `verification/build/verification/opening-panel/`.
+- 캠페인 정책 테스트 45개, geometry gate 회귀 5개, RGBA comparator 회귀 2개 통과.
+- 추적되는 독립 원본 스크립트 재실행 5.5초, 포트 재실행 3초.
+  원본은 새 프로세스의 CDP 페이지와 자연 `EVENT_AFTER_DRAW`를 확인한다.
+  양쪽 모두 실패 전에 오래된 캡처 출력을 지워 이전 결과 재사용을 막는다.
+
+```sh
+node tools/capture_opening_source_panel.cjs build/opening-source-panel
+./gradlew :verification:captureOpeningDialoguePanel
+python3 tools/verify_opening_panel_pixels.py build/opening-source-panel/source-street-panel.rgba verification/build/verification/opening-panel/game-panel.rgba
+```
+
+기존 geometry 도구는 패널의 절대 위치·크기를 무시하는 false green을 수정했다
+(`dbcf6c3`). 그 도구의 통과는 위치·크기만 의미하며 픽셀 일치는 위 strict RGBA
+comparator로 따로 판정한다. 전체 자연 화면 합성, 초상화, 텍스트, 음향은 여전히 남아 있다.
