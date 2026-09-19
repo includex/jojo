@@ -203,6 +203,11 @@ internal class ScenarioSceneAssets(
             fillColor = Color(35f / 255f, 2f / 255f, 234f / 255f, 1f),
         ).also {
             it.data.setScale(110f / 116f, 1f)
+            // Cocos cc.Label samples its canvas texture with linear filtering.
+            // The glyph atlas must interpolate too when the viewport scales it.
+            it.regions.forEach { region ->
+                region.texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+            }
             cachedStreetSpeakerFont = it
         }
     /**

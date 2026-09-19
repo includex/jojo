@@ -154,3 +154,41 @@ python3 tools/verify_opening_panel_pixels.py build/opening-source-portrait/sourc
 
 이번 단위는 캡처·검증 확장이다. 이 범위에서 렌더 차이는 발견되지 않았다.
 첫 대사의 화자명·본문 픽셀, 전체 화면 합성 및 음향 대조는 아직 남아 있다.
+
+
+## 첫 화자명 차이 확인 및 선형 필터 수정 (2026-09-20)
+
+첫 자연 대사의 `opening-speaker` 누적 단계(패널+초상화+화자명)를 추가했다.
+원본은 `병사 ` 문자열과 실제 GL 업로드된 라벨 텍스처를 확인한 뒤 캡처한다.
+원본 Label은 Arial 36px, lineHeight 40, outline 2px, center 정렬이며,
+노드는 76.28×54.4, 캔버스 텍스처는 76×54다.
+
+화자명은 **아직 픽셀 일치하지 않는다**. 원본 Cocos Texture2D는 기본 선형
+필터인데 포트의 streetSpeakerFont atlas는 기본 최근접 필터였다. 해당 atlas만
+선형 필터로 수정했다. Astra가 원본 CCLabel/CCTexture2D 경로를 검수했다.
+
+- 원본 raw SHA256: `bdd41d0e9e094fa5661ed6963d1c63d2d01572b55a92ef22ab2da642b61d650d`.
+- 수정 전/후 RGBA 절대오차 합: 485018 → 434885 (약 10.3% 감소).
+- 수정 전/후 RGBA 제곱오차 합: 46695288 → 33848503 (약 27.5% 감소).
+- 서로 다른 픽셀 수는 11624 → 11863. 선형 보간으로 작은 차이가 생긴 픽셀까지
+  포함되므로 일치율이 개선됐다고 주장하지 않는다. strict gate는 계속 실패한다.
+- 차이 범위는 bottom-left [727,343,857,436), 원본 라벨 사각형 안이다.
+- 원본 ttf.js는 outline 색으로 alpha 약 1/255의 배경을 먼저 칠한다.
+  수정 전 6786픽셀은 원본 (178,179,179), 포트 (179,179,179)의 배경 차이다.
+- fresh 패널+초상화 회귀는 픽셀 차이 0, 기존 SHA 유지.
+- 캠페인 정책 테스트와 RGBA comparator 3개 테스트 통과.
+- 로컬 증거: `build/reports/opening-speaker-20260919/`의 source metadata,
+  before.json, linear.json, error-metrics.json, 전후 crop.
+  원본/포트 캡처는 각각 수초, 재빌드 포함 최대 10초에 종료했다.
+
+```sh
+JOJO_CAPTURE_STAGE=speaker node tools/capture_opening_source_panel.cjs build/opening-source-speaker
+./gradlew :verification:captureOpeningDialogueSpeaker :verification:campaignUnitTest
+# 현재 불일치를 올바르게 보고하며 exit 1을 반환한다.
+python3 tools/verify_opening_panel_pixels.py build/opening-source-speaker/source-street-speaker.rgba verification/build/verification/opening-speaker/game-speaker.rgba --stage speaker
+```
+
+다음 수정은 원본 해상도의 문자열 래스터·기준선·외곽선·저알파 배경을 일반
+라벨 렌더 경로로 재현하는 것이다. 현재 31px와 X축 경험 보정은 아직 남아 있다.
+캡처한 글자 이미지를 특정 대사에 덮어쓰는 방법은 사용하지 않았다.
+본문, 전체 화면 합성, 음향 및 이후 게임 전체의 동등성도 계속 미완료다.

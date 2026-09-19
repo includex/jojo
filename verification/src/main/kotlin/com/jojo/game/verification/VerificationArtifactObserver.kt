@@ -75,7 +75,7 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
-        if (output.state in setOf("opening-panel", "opening-portrait")) {
+        if (output.state in setOf("opening-panel", "opening-portrait", "opening-speaker")) {
             if (scenario.playback != com.jojo.game.domain.scenario.PlaybackState.DIALOGUE) return
             // The driver installs the requested isolated presentation on the next frame.
             if (!sawOpeningDialogue) { sawOpeningDialogue = true; return }

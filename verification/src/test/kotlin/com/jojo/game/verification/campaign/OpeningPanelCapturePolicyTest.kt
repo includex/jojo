@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 
 class OpeningPanelCapturePolicyTest {
     @Test fun `opening capture waits for authored dialogue and does not install a fixture`() {
-        for ((index, stage) in listOf("panel", "portrait").withIndex()) {
+        for ((index, stage) in listOf("panel", "portrait", "speaker").withIndex()) {
             val driver = VerificationScenarioDriver("opening-$stage")
             val delay = RuntimeScenarioFrame("R_00", 1f, PlaybackState.DELAY, false)
             assertTrue(driver.commands(delay).isEmpty())
