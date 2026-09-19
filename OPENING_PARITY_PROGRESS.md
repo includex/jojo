@@ -33,8 +33,8 @@ verification 기준이다. 앱의 25초 제한과 별개로 이번 통합 실행
 
 ## 다음 검증 단위
 
-동일한 첫 대사 구간에서 나머지 그룹의 이동 경로·방향·대기 및 콜백 순서와
-배경·인물·대화창 렌더를 대조한다. 이를 맞추기 전에 S00 전체 전투나 다음 장으로
+동일한 첫 대사 구간에서 배경·인물·대화창 렌더와 프레임 안의 콜백 순서를
+대조한다. 이를 맞추기 전에 S00 전체 전투나 다음 장으로
 확장하지 않는다. 첫 3페이지 이후 대사, 선택 분기, 전투, 엔딩은 완료 증거가 없다.
 기존 작업 트리의 전투·폰트 수정은 이번 화자/본문 검증만으로 검수 완료 처리하지 않는다.
 
@@ -67,3 +67,33 @@ python3 -m unittest discover -s tools -p 'test_verify_opening*.py'
 첫 직선 이동에서 확정된 게임 동작 차이는 발견하지 못했다. 이 검증은 실제 Cocos의
 프레임 스케줄과 직접 동기화한 비교가 아니며, 프레임 안의 idle 콜백·z 순서·픽셀,
 이후 그룹의 우회 경로는 아직 증명하지 않는다.
+
+## 첫 대사 이전 그룹 이동 대조
+
+새 원본 도구는 recovered `HallLayer.AStar`와 `HallUnit._move2`를 직접 호출하고
+원본 Pmap30 장애물 데이터로 Cocos 이동 명령 목록을 만든다. 실제 Cocos 화면을
+실행하는 도구는 아니며, nominal action/경로 계약을 독립적으로 도출한다.
+R00의 연속된 원본 구문, 지도 UUID·버전 및 사용 파일 hash로 출처를 확인한다.
+
+`build/reports/opening-group-20260919/`의 fresh `source.json`과 `live.json` 대조:
+
+- 단독 이동: 26프레임, 원본 0.4초.
+- 첫 3인 그룹: 23프레임, 모두 원본 0.4초.
+- 두 번째 4인 그룹: 52프레임. 181/157은 20칸·0.8초,
+  0/182는 앞 인물의 출발 위치를 우회해 22칸·0.88초.
+- 원본 특유의 모서리 보간, 이동 방향, 개별 논리 좌표 확정, 전체 완료 후 재개,
+  최종 시각 목적지·가시성·idle·스크립트 지정 방향 확인.
+- `stage.delay(3)`의 nominal 0.3초 뒤 대사 진입. 이번 관측은 다음 렌더 프레임인
+  0.3166663초에 대사로 바뀌었다. 실제 프레임 간격을 기준으로 검사한다.
+- 원본 실행/변형 테스트 2개와 opening Python 테스트 10개 통과.
+  실제 게임은 첫 대사에서 멈췄고 Gradle 포함 3초에 종료(외부 제한 90초).
+
+```sh
+node tools/r00_opening_source_move_harness.js build/opening-source.json
+./gradlew :verification:campaignE2e '-PcampaignE2eArgs=--stop=R_00:1 --stop-dialogue-pages=1 --max-seconds=15' -PcampaignE2eOutput=build/opening-group.json
+python3 tools/verify_opening_group_moves.py build/opening-source.json verification/build/opening-group.json
+```
+
+현재 첫 대사 이전의 세 이동 단위에서 확정된 게임 동작 차이는 없다. 대사 이후 그룹,
+실제 Cocos/LibGDX 프레임 스케줄 동기화, 프레임 안 callback, 픽셀 및 음향은
+이번 검증에 포함되지 않는다. 이전 절의 “이후 그룹 미증명”은 그 실행 당시의 범위다.
