@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""대화창(SayLayer 말풍선) 렌더링만 분리해 원본 캡처와 대조한다.
+"""대화창 구성요소의 캡처 기하를 원본과 대조한다.
+
+통과 판정은 위치·크기만 검사한다. 색상·알파·블렌딩 등 픽셀 지표는 보고 전용이다.
 
 거리 대사 캡처의 panel/portrait/speaker/text 단계는 검은 배경 위에 대화창
 구성요소만 누적해서 그린다. 따라서 이 네 단계의 프레임은 그 자체가 "대화상자
@@ -124,6 +126,19 @@ def metrics(source: Image.Image, game: Image.Image) -> dict[str, float]:
     }
 
 
+def geometry_matches(row: dict, tolerance: float) -> bool:
+    """Gate panel placement/size and component placement/size, not pixel colors."""
+    if not isinstance(row.get("source"), dict) or not isinstance(row.get("game"), dict):
+        return False
+    delta = row.get("delta", {})
+    position = delta if row["component"] == "panel" else row.get("relative")
+    if not isinstance(position, dict):
+        return False
+    return all(abs(position.get(key, float("inf"))) <= tolerance for key in ("x", "y")) and all(
+        abs(delta.get(key, float("inf"))) <= tolerance for key in ("w", "h")
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--target", choices=sorted(TARGETS), default="street", help="검증할 대화창 (street: 거리/회관, battle: 전투)")
@@ -132,6 +147,8 @@ def main() -> int:
     parser.add_argument("--report", type=Path, help="JSON 보고서 출력 경로")
     parser.add_argument("--tolerance", type=float, default=DEFAULT_TOLERANCE, help="구성요소 위치 허용 오차(설계 단위)")
     args = parser.parse_args()
+    if not 0 <= args.tolerance < float("inf"):
+        parser.error("--tolerance must be finite and nonnegative")
     target = TARGETS[args.target]
     captures = args.captures or target["captures"]
     game_dir = args.game or target["game"]
@@ -183,10 +200,10 @@ def main() -> int:
         rows.append(row)
         previous_source, previous_game = source[stage], game[stage]
 
-    # 대화창은 화자를 따라 통째로 움직인다. 창 자체의 기하는 패널 기준 상대 위치로 판정하고,
-    # 창을 어디에 놓았는지는 별도 항목으로 보고한다.
+    # 동일 화자·카메라에서 패널의 절대 위치도 일치해야 한다. 내부 구성요소는
+    # 패널 기준 상대 위치를 추가로 검사해 잘못된 배치가 상쇄되지 않도록 한다.
     panel = next((row for row in rows if row["component"] == "panel"), None)
-    panel_ok = isinstance(panel, dict) and isinstance(panel.get("source"), dict)
+    panel_ok = isinstance(panel, dict) and isinstance(panel.get("source"), dict) and isinstance(panel.get("game"), dict)
     if panel_ok:
         for row in rows:
             if not isinstance(row.get("source"), dict):
@@ -206,18 +223,20 @@ def main() -> int:
     print("-" * 78)
     failures = []
     for row in rows:
-        if not isinstance(row.get("source"), dict):
+        if not isinstance(row.get("source"), dict) or not isinstance(row.get("game"), dict):
             print(f"{row['component']:<10}{'차분 결과 없음':>60}")
             failures.append(row["component"])
             continue
         rel = row.get("relative")
         if rel is None:
+            row["withinTolerance"] = False
+            failures.append(row["component"])
             continue
         source_dx = round(row["source"]["x"] - panel["source"]["x"], 3)
         source_dy = round(row["source"]["y"] - panel["source"]["y"], 3)
         game_dx = round(row["game"]["x"] - panel["game"]["x"], 3)
         game_dy = round(row["game"]["y"] - panel["game"]["y"], 3)
-        within = abs(rel["x"]) <= args.tolerance and abs(rel["y"]) <= args.tolerance
+        within = geometry_matches(row, args.tolerance)
         row["withinTolerance"] = within
         if not within:
             failures.append(row["component"])
@@ -255,13 +274,14 @@ def main() -> int:
     print(f"  최대 채널 차이   : {frame['maxChannelAbs']}")
     print()
     print(f"위치 허용 오차: ±{args.tolerance} 설계 단위 (캡처 1픽셀 = 0.581 설계 단위)")
-    print("판정은 패널 기준 상대 위치로 한다. 대화창은 화자를 따라 통째로 움직이므로")
-    print("창의 절대 위치는 캡처 당시 화자·카메라 상태에 따라 달라진다.")
-    print("글꼴 래스터라이저가 달라 글자 획 자체의 픽셀 일치는 기대하지 않는다.")
-    print("패널과 초상화는 같은 텍스처를 쓰므로 Δ 0.000 을 요구한다.")
+    print("기하 판정: 패널의 절대 위치·크기 및 각 구성요소의 패널 기준 상대 위치·크기.")
+    print("같은 화자·카메라 상태의 캡처를 사용해야 한다.")
+    print("색상·불투명도·블렌딩·글자 획의 픽셀 차이는 보고만 하며 이 판정에 포함하지 않는다.")
 
     report = {
-        "contract": "dialogue-window-component-parity",
+        "contract": "dialogue-window-component-geometry",
+        "pixelMetricsReportOnly": True,
+        "gateScope": "panel absolute x/y/w/h; component panel-relative x/y and w/h",
         "target": args.target,
         "captureDimensions": [WIDTH, HEIGHT],
         "designSpace": [round(WIDTH / (CAPTURE_SCALE * DESIGN_SCALE), 3), round(HEIGHT / (CAPTURE_SCALE * DESIGN_SCALE), 3)],
