@@ -31,9 +31,9 @@ PROHIBITED_ARGUMENT_PREFIXES = (
     "--capture",
     "--choice-trace=",
     "--random-trace=",
-    # These values are owned by this harness. DesktopLauncher resolves the
-    # first matching argument, so allowing an earlier runner-arg would let a
-    # caller redirect the trace or replace the requested stop point.
+    # These values are owned by this harness. Allowing runner arguments to
+    # inject them would let a caller redirect the trace or replace the
+    # requested stop point.
     "--campaign-e2e-",
     # Full-battle tracing changes battle RNG/delta and writes one recorder per
     # BattleScreen. It is deliberately separate from campaign route evidence.
@@ -81,7 +81,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--output", type=Path, default=Path("build/game-campaign-checkpoints/manifest.json"))
-    parser.add_argument("--runner", type=Path, default=Path("desktop/build/install/desktop/bin/desktop"))
+    parser.add_argument("--runner", type=Path, default=Path("gradlew"))
     parser.add_argument("--runner-arg", action="append", default=[])
     parser.add_argument("--timeout-seconds", type=float, default=7200.0)
     parser.add_argument("--jobs", type=int, default=1)
@@ -107,11 +107,16 @@ def trace_path(manifest_path: Path, checkpoint: str) -> Path:
 
 
 def invocation(options: argparse.Namespace, checkpoint: str, trace: Path) -> list[str]:
+    campaign_args = " ".join((
+        f"--stop={checkpoint}:{options.scene_index}",
+        f"--max-seconds={options.timeout_seconds:g}",
+    ))
     command = [
         str(options.runner),
         *options.runner_arg,
-        f"--campaign-e2e-trace={trace}",
-        f"--campaign-e2e-stop={checkpoint}:{options.scene_index}",
+        ":verification:campaignE2e",
+        f"-PcampaignE2eArgs={campaign_args}",
+        f"-PcampaignE2eOutput={trace}",
     ]
     assert not any(
         argument.startswith(PROHIBITED_ARGUMENT_PREFIXES)
@@ -272,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
             )))
         return 0
     if not options.runner.is_file():
-        print(f"runner is missing: {options.runner}; run ./gradlew :desktop:installDist", file=sys.stderr)
+        print(f"Gradle runner is missing: {options.runner}", file=sys.stderr)
         return 2
 
     previous = prior_results(options.output, options.resume, set(options.checkpoints))

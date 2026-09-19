@@ -44,7 +44,10 @@ tasks.register<JavaExec>("campaignE2e") {
     val configuredArgs = providers.gradleProperty("campaignE2eArgs")
         .map { it.trim().split(Regex("\\s+")).filter(String::isNotBlank) }
         .orElse(emptyList())
-    doFirst { setArgs(configuredArgs.get()) }
+    val configuredOutput = providers.gradleProperty("campaignE2eOutput")
+        .map { listOf("--output=$it") }
+        .orElse(emptyList())
+    doFirst { setArgs(configuredArgs.get() + configuredOutput.get()) }
 }
 
 kotlin {

@@ -132,13 +132,37 @@ class CampaignCheckpointBatchTest(unittest.TestCase):
             "R_02",
             Path("trace.json"),
         )
-        self.assertIn("--campaign-e2e-stop=R_02:1", command)
-        self.assertIn("--campaign-e2e-trace=trace.json", command)
+        self.assertIn(":verification:campaignE2e", command)
+        self.assertIn(
+            "-PcampaignE2eArgs=--stop=R_02:1 --max-seconds=7200",
+            command,
+        )
+        self.assertIn("-PcampaignE2eOutput=trace.json", command)
+        self.assertNotIn("--campaign-e2e-stop=R_02:1", command)
+        self.assertNotIn("--campaign-e2e-trace=trace.json", command)
         self.assertFalse(any(argument.startswith("--full-battle-") for argument in command))
         self.assertFalse(any(argument == "--verify" for argument in command))
         self.assertFalse(any(argument.startswith("--scenario=") for argument in command))
         self.assertFalse(any(argument == "--battle" for argument in command))
         self.assertFalse(any("choice-script" in argument for argument in command))
+
+    def test_invocation_bounds_launcher_and_process_with_same_timeout(self):
+        options = MODULE.parse_args([
+            "--checkpoint", "R_00", "--timeout-seconds", "45",
+        ])
+        command = MODULE.invocation(options, "R_00", Path("trace.json"))
+        self.assertIn("--max-seconds=45", command[-2])
+
+    def test_invocation_preserves_output_paths_with_spaces(self):
+        options = MODULE.parse_args(["--checkpoint", "R_00"])
+        command = MODULE.invocation(
+            options, "R_00", Path("build/opening audit/R_00.json"),
+        )
+        self.assertIn(
+            "-PcampaignE2eOutput=build/opening audit/R_00.json",
+            command,
+        )
+        self.assertNotIn("--output=build/opening", command[-2])
 
     def test_rejects_runner_arguments_that_bypass_production_route(self):
         for argument in (
