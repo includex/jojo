@@ -23,7 +23,12 @@ class BattleSettlementInfoAssets : Disposable {
 
     /** `texture`: 계약이 지정한 자원 경로의 텍스처를 돌려준다. */
     fun texture(path: String): Texture? = textures.getOrPut(path) {
-        Gdx.files.internal(path).takeIf { it.exists() }?.let { Texture(it) }
+        Gdx.files.internal(path).takeIf { it.exists() }?.let {
+            Texture(it).also { texture ->
+                // Cocos Texture2D uses linear filtering, including the 8x8 HP/MP bars.
+                texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+            }
+        }
     }
 
     /**
