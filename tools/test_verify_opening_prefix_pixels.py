@@ -53,3 +53,24 @@ class PrefixCoverageTest(unittest.TestCase):
                 a.write_text(json.dumps(source_value)); b.write_text(json.dumps(game_value))
                 with self.assertRaisesRegex(ValueError, message):
                     verify(a, b)
+
+    def test_all_prefixes_require_complete_ordered_coverage(self):
+        full = self.manifest['fullText']
+        all_rows = [dict(text=full[:n], complete=n == len(full)) for n in range(1, len(full) + 1)]
+        manifest = dict(self.manifest, sampleLengths=list(range(1, len(full) + 1)), captures=all_rows)
+        self.assertEqual(len(index_captures(manifest)), len(full))
+        for rows in (all_rows[1:], all_rows[:4] + all_rows[5:], all_rows + [all_rows[0]], list(reversed(all_rows))):
+            with self.assertRaises(ValueError):
+                index_captures(dict(manifest, captures=rows))
+
+    def test_all_gate_rejects_selected_only_and_mismatched_coverage(self):
+        base = dict(self.manifest, contract='natural-first-dialogue-prefixes-rgba8',
+                    width=2560, height=1376, origin='bottom-left')
+        with tempfile.TemporaryDirectory() as directory:
+            a, b = Path(directory) / 'source.json', Path(directory) / 'game.json'
+            a.write_text(json.dumps(base)); b.write_text(json.dumps(base))
+            with self.assertRaisesRegex(ValueError, 'all prefixes required'):
+                verify(a, b, require_all=True)
+            b.write_text(json.dumps(dict(base, sampleLengths=list(range(1, len(base['fullText']) + 1)))))
+            with self.assertRaisesRegex(ValueError, 'sampleLengths'):
+                verify(a, b)

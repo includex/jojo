@@ -438,3 +438,38 @@ python3 tools/verify_opening_prefix_pixels.py build/reports/opening-prefixes-202
 다음은 첫 문장의 나머지 공개 단계와 다음 두 대사 화면이다. 이번 세 표본과 resize
 회귀의 일치를 모든 prefix·타이핑 속도·다른 시나리오 화면·음향·전투·게임 전체의
 동등성으로 확대하지 않는다. 전체 목표는 계속 진행 중이다.
+
+## 첫 대사 전체 13개 자연 출력 문자열 검증 (2026-09-20)
+
+첫 병사의 `대장님, 서둘러야 해요!`가 공개되는 1~13글자 모든 비어 있지 않은
+문자열을 실제 원본과 포트에서 관찰했다. 2560×1376 bottom-left RGBA8 비교 결과
+13개 모두 변경 픽셀 0이며 SHA-256도 각각 같다. 공백으로 끝나는 5·10글자도 포함한다.
+기존 RGBA8 장면 합성 수정 이후 추가 production 보정 없이 통과했다.
+
+원본은 `JOJO_CAPTURE_ALL_PREFIXES=1`, 포트는
+`:verification:captureOpeningDialoguePrefixesAll`로 전체 범위를 선택한다.
+기본 5·9·13 표본 경로는 유지한다. 양쪽 manifest에 `sampleLengths`를 기록하며,
+비교기는 양쪽 범위 일치·정확한 행 순서·누락·중복·완성 상태와 기존 자연 재생
+provenance를 확인한다. `--require-all`은 3개 표본만 있는 결과를 거부한다.
+첫 글자 삭제, 공백 prefix 삭제, 중복, 역순, 표본만 있는 manifest, 양쪽 범위 불일치
+검사를 추가했고 관련 opening Python 검사 19개가 통과했다.
+
+원본 캡처는 11.45초, 포트는 빌드 포함 11초에 끝났다. 원본 frame 350~362,
+포트 frame 119~149에서 각각 13개를 수집했다. 강제 텍스트 설정·공개·대사 입력이나
+clock 정지 없이 자연 scheduler를 관찰했다. 각 실행은 기존 외부 60초 제한을 유지했다.
+캡처 readback의 부하가 실행 간격에 영향을 주므로 두 frame/시간열은 타이핑 속도
+동등성의 증거가 아니다. 검증 대상은 첫 대사의 13개 문자열별 고립 렌더 결과다.
+
+증거는 `build/reports/opening-all-prefixes-20260920/`의 `source/`, `game-capture.log`,
+`comparison.json`과 `verification/build/verification/opening-prefixes-all/`에 있다.
+
+```sh
+JOJO_CAPTURE_ALL_PREFIXES=1 node tools/capture_opening_source_prefixes.cjs build/reports/opening-all-prefixes-20260920/source
+./gradlew :verification:captureOpeningDialoguePrefixesAll
+python3 tools/verify_opening_prefix_pixels.py build/reports/opening-all-prefixes-20260920/source/source-prefixes.json verification/build/verification/opening-prefixes-all/game-prefixes.json --require-all --report build/reports/opening-all-prefixes-20260920/comparison.json
+python3 -m unittest discover -s tools -p 'test_verify_opening*py'
+```
+
+다음 단위는 정상 입력으로 넘긴 다음 두 페이지의 화자·본문·배치다. 첫 대사의
+문자열별 일치를 입력 전환·타이핑 속도·전체 화면·음향·전투·게임 전체의 일치로
+확대하지 않는다. 전체 목표는 계속 진행 중이다.

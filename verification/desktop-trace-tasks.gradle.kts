@@ -236,7 +236,7 @@ tasks.register("printVerificationClasspath") {
 }
 
 // Selected live prefixes share the normal update clock; no fixture settling or RevealAll.
-listOf("" to "opening-prefixes", "AfterResize" to "opening-prefixes-resize").forEach { (suffix, captureState) ->
+listOf("" to "opening-prefixes", "AfterResize" to "opening-prefixes-resize", "All" to "opening-prefixes-all").forEach { (suffix, captureState) ->
     tasks.register<JavaExec>("captureOpeningDialoguePrefixes$suffix") {
         group = "verification"
         timeout.set(java.time.Duration.ofSeconds(30))
@@ -255,7 +255,7 @@ listOf("" to "opening-prefixes", "AfterResize" to "opening-prefixes-resize").for
         }
         doLast {
             check(destination.get().file("game-prefixes.json").asFile.isFile) { "Natural prefix manifest missing" }
-            for (length in listOf(5, 9, 13)) {
+            for (length in if (captureState == "opening-prefixes-all") (1..13).toList() else listOf(5, 9, 13)) {
                 check(destination.get().file("game-prefix-${length.toString().padStart(3, '0')}.rgba").asFile.length() == 2560L * 1376 * 4) {
                     "Natural prefix $length raw frame missing"
                 }

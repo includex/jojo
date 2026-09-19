@@ -15,7 +15,9 @@ internal class OpeningDialoguePrefixCapture(output: RenderCaptureConfiguration) 
     private val directory = Gdx.files.absolute(requireNotNull(output.rawCapturePath)).parent()
     private val fullText = JsonReader().parse(Gdx.files.internal("street-body-labels/manifest.json"))
         .get("catalog").get("pages").getString(0)
-    private val expected = listOf(5, 9, fullText.length).map { fullText.take(it) }
+    private val sampleLengths = if (output.state == "opening-prefixes-all") (1..fullText.length).toList()
+        else listOf(5, 9, fullText.length)
+    private val expected = sampleLengths.map { fullText.take(it) }
     private val captured = linkedSetOf<String>()
     private val records = JsonValue(JsonValue.ValueType.array)
     private var frame = 0
@@ -83,6 +85,9 @@ internal class OpeningDialoguePrefixCapture(output: RenderCaptureConfiguration) 
             manifest.addChild("origin", JsonValue("bottom-left"))
             manifest.addChild("fullText", JsonValue(fullText))
             manifest.addChild("dialogueInputs", JsonValue(0L))
+            val lengths = JsonValue(JsonValue.ValueType.array)
+            sampleLengths.forEach { lengths.addChild(JsonValue(it.toLong())) }
+            manifest.addChild("sampleLengths", lengths)
             manifest.addChild("scope", JsonValue("selected visible strings; readback affects timing; no typing-speed equivalence claim"))
             manifest.addChild("resizeObservations", resizeObservations)
             manifest.addChild("captures", records)
