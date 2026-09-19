@@ -1581,3 +1581,31 @@ post-dialogue-group.json,negative-contract-checks.json에있다. 원본speaker�
 미완료입력·관측화자오류·prime뒤입력·digest누락·조기actor완료·조기resume·조기세번째대사·
 후속delay누락과비표본hash/정점오류까지10개반례를거부했다. 마지막두반례는11raw가
 모두통과해도최종gate가실패함을확인했다. Astra최종검수를통과했다.
+
+### 2026-09-20 세 번째 대사 시작과전체prefix 검증
+
+첫두완성대사에정상입력2회를보낸뒤speaker157의 `잠시만 기다려 주세요!`를관측했다.
+빈본문부터12자전체까지13개의최초AFTER_DRAW/post-render 전체RGBA를기록했다.
+자연시계이며격리·준비대기·추가입력은없고, 큰인코딩/저장은모든표본수집후실행한다.
+앞선2페이지의화자는요청과실제handler 양쪽에서관측한181/0으로검사한다.
+
+157의방향0→3은texture316을유지하고좌우반전만바꾸므로texture ID만으로는
+애니메이션적용순서를검증할수없다. source의실제anime.scaleX와sprite정점을기록하고,
+canonical flipX를실제scale부호에서계산했다. logical direction으로만유도하지않는다.
+source와port는첫빈frame에서logical dir3이지만flipfalse, 다음두frame은fliptrue였다.
+기존Hall sprite phase수정이다른유닛의mirrored clip에도맞음을확인했다.
+
+13개전체RGBA모두0픽셀차이이며actor4개의texture/flip/위치/행동과표본별portrait준비
+상태도일치했다. 실제portraitId는speaker157과다른214이다. 처음두페이지는동일layer,
+세번째는새layer이며모든타깃관측이그layer에속함을검사했다. 준비된sourceface는214,
+port실제선택도214임을검증한다. 빈본문에서초상화준비를기다리지않았다.
+
+빈본문누락·선행화자오류·미완료입력·지연캡처·이전layer재사용·논리방향에서잘못유도한
+flip·잘못된portrait·flip적용한frame추가지연의8개반례를거부했다. 마지막반례는13raw가
+같아도초기phase gate가실패한다. 기존Python comparator64개,구문/diff검사통과.
+Astra최종검수통과. production변경없이검증범위를확장한단위다.
+증거는 `build/reports/opening-third-prefixes-20260920/`의source,game,
+third-prefixes.json,negative-contract-checks.json에있다.
+13개semantic표본과처음3frame의spritephase를증명하며자연시간간격/중간모든frame은
+범위밖이다. 다음4~6페이지는공통dialogue-window runner로완료화면부터검증할계획이다.
+현재생성된street-body-labels catalog는첫3본문만포함하므로후속본문fallback은추가검증대상이다.
