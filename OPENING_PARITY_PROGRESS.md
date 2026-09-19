@@ -761,3 +761,13 @@ python3 tools/verify_opening_background_pixels.py build/reports/opening-backgrou
 
 다음 단위는 안내창 왼쪽 테두리의 잔여 259픽셀과 초기 안내의 시간 동작이다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## EVENT 타이핑 중 입력 처리 수정 (2026-09-20)
+
+원본 InfoLayer는 타이핑 중 첫 클릭에서 문구를 모두 공개하고, 완성 후 다음 클릭에서
+닫는다. 포트의 reveal 우선 분기에 EVENT가 빠져 첫 클릭에 바로 닫히던 동작을 수정했다.
+기존 INFO/MAP_INFO 분기에 EVENT를 포함했고 타이밍 계산은 이번 단위에서 바꾸지 않았다.
+실제 R00 scene1을 실행하는 회귀 테스트가 첫 입력의 문구 완성·모달 유지와 두 번째
+입력의 닫힘을 확인한다. ScenarioPlaybackControllerTest와 Astra 검수가 통과했다.
+실제 OS 입력 경로나 자연 타이핑·닫힘 시간의 동등성을 입증한 것은 아니다.

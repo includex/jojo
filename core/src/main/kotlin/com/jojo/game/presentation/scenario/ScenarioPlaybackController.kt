@@ -92,6 +92,7 @@ internal class ScenarioPlaybackController(
             PlaybackState.MODAL -> {
                 if (playback.currentModalKind == ScenarioModalKind.AMBITION) return
                 if (playback.currentModalKind in setOf(
+                        ScenarioModalKind.EVENT,
                         ScenarioModalKind.INFO,
                         ScenarioModalKind.MAP_INFO
                     ) &&
