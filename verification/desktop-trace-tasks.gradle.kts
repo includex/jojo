@@ -263,3 +263,29 @@ listOf("" to "opening-prefixes", "AfterResize" to "opening-prefixes-resize", "Al
         }
     }
 }
+
+// Advance only after each natural completion through the installed production input processor.
+tasks.register<JavaExec>("captureOpeningDialoguePages") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(30))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.VerificationDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-pages")
+    doFirst {
+        delete(destination)
+        destination.get().asFile.mkdirs()
+        setArgs(listOf("--scenario=R_00", "--capture-state=opening-pages",
+            "--capture-raw=${destination.get().file("game-pages.rgba").asFile.absolutePath}"))
+    }
+    doLast {
+        check(destination.get().file("game-pages.json").asFile.isFile) { "Natural page manifest missing" }
+        for (page in 1..3) {
+            check(destination.get().file("game-page-$page.rgba").asFile.length() == 2560L * 1376 * 4) {
+                "Natural page $page raw frame missing"
+            }
+        }
+    }
+}

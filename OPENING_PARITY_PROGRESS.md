@@ -473,3 +473,55 @@ python3 -m unittest discover -s tools -p 'test_verify_opening*py'
 다음 단위는 정상 입력으로 넘긴 다음 두 페이지의 화자·본문·배치다. 첫 대사의
 문자열별 일치를 입력 전환·타이핑 속도·전체 화면·음향·전투·게임 전체의 일치로
 확대하지 않는다. 전체 목표는 계속 진행 중이다.
+
+## 정상 진행 입력 뒤 첫 세 페이지 비교와 초상화 잔차 발견 (2026-09-20)
+
+첫 대사 자연 완료 뒤 정상 입력으로 두 페이지를 더 열어 비교했다. 첫 페이지
+`대장님, 서둘러야 해요!`와 두 번째 `알아!`는 각각 전체 RGBA 0픽셀 차이다.
+세 번째 `잠시만 기다려 주세요!`는 초상화 영역에 92픽셀 차이가 남는다.
+차이 bbox는 bottom-left `[2106,121,2223,478]`, RGBA 절대오차 합은 150이며,
+차이가 난 채널은 각각 1 차이다. comparator는 이를 실패(exit 1)로 반환한다.
+
+- page 1 source/game: `b4b95be614f7a57260628d5b65e45a6d768cff34b475568f58542a194f5daaf3`
+- page 2 source/game: `2c6e8d48d59b18ddb189ae0d150394d8cfa155479ff4649bbacccf321952a330`
+- page 3 source: `246313e50fca4eca920063c4734d283dbeebab95255457e884449b043e9e118f`
+- page 3 game: `ca2512b3f22111187a6333ec44d1aeb52207444b7d737c2171fc35a2626d8f72`
+
+원본은 실제 Panel_cancel 중앙을 CDP pointer로 눌렀고 포트는 설치된 실제
+InputProcessor에 SPACE keyDown/keyUp을 보냈다. 양쪽 모두 완료 화면을 캡처한 뒤
+다음 프레임 이후에만 입력하며 전체 입력은 2회다. 각 페이지에서 자연 부분 문자열을
+관찰하고 강제 RevealAll·interpreter 직결·이동 완료·delay skip을 사용하지 않는다.
+2페이지 뒤 이동과 지연을 거쳐 3페이지에 도달한다. 이것은 두 게임의 입력 지연이나
+동작 시간 동등성을 검증했다는 뜻은 아니다.
+
+Astra 검수에서 원본 화자 ID의 기대값 기록과 새 DialogueLayer isolation 문제를
+찾아 보강했다. ID는 actual constructor.s_lastId를 관측하고 표시명·face도 assert한다.
+원본 새 layer를 감지하면 isolation을 재적용한 뒤 이후 AFTER_DRAW에서 캡처한다.
+양쪽 bg를 보존해 원본 자체의 right→left→right 전환을 유지한다. 포트도 실제
+viewState의 좌우·상하 배치를 읽기 전용 probe로 기록한다. 비교기는 실제 화자
+181→0→157, side right→left→right, 3페이지 coverage, 부분 문자열, 완료 상태,
+2회 입력의 프레임·시간 순서와 구체적인 입력 경로를 검사한다.
+
+진단으로 초상화 quad의 대각선과 Cocos world Float32 정점→camera scale 순서를
+각각 맞춰 봤으나 92픽셀 차이가 변하지 않았다. 효과 없는 renderer 실험은 모두
+되돌렸다. 원본 face214는 atlas rect `[1129,2,192,240]`를 사용하고 포트는 별도
+head PNG를 사용하므로 다음 단위는 실제 atlas texture/UV와 개별 PNG 샘플링을
+분리한다. 현재 이 차이를 원인으로 확정한 것은 아니다.
+
+최종 source 증거는 `build/reports/opening-pages-20260920/source-face-geometry/`,
+포트는 `verification/build/verification/opening-pages/`, 비교 보고서는
+`build/reports/opening-pages-20260920/final-comparison.json`이다.
+포트 최종 캡처와 campaignUnitTest는 13초에 통과했다. 관련 Python 검사 24개도
+통과했다. 픽셀 비교는 위 잔차 때문에 실패 상태를 유지한다. 각 구동은 외부 60초,
+포트 task 30초·재생시간 20초, 원본 deadline 55초로 제한한다.
+
+```sh
+node tools/capture_opening_source_pages.cjs build/opening-source-pages
+./gradlew :verification:captureOpeningDialoguePages
+# 세 번째 페이지 92픽셀 잔차로 현재 exit 1
+python3 tools/verify_opening_page_pixels.py build/opening-source-pages/source-pages.json verification/build/verification/opening-pages/game-pages.json --report build/opening-page-comparison.json
+python3 -m unittest discover -s tools -p 'test_verify_opening*py'
+```
+
+첫 세 페이지의 분리 렌더 외에 중간 이동 화면·전체 화면·타이핑 속도·음향·전투·
+게임 전체의 일치는 아직 미검증이다. 다음에는 발견한 초상화 잔차를 해결한다.

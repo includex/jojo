@@ -381,6 +381,8 @@ class ScenarioScreen(
                         dialogueSpeakerId = playback.currentDialogue?.speakerId,
                         dialogueRevision = playback.dialogueRevision,
                         dialogueVisibleText = scenarioViewState.dialogueVisibleText,
+                        dialogueSide = scenarioViewState.dialogueSide,
+                        dialogueAtTop = scenarioViewState.dialogueAtTop,
                         dialogueTextComplete = scenarioViewState.dialogueTextComplete,
                         naturalStreetTextIsolation = runtimePresentation == RuntimeScenarioPresentation.STREET_NATURAL && runtimePresentationDetail == 3,
                         actors = playback.stage.units.values.map { unit ->

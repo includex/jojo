@@ -51,6 +51,7 @@ internal class VerificationArtifactObserver(
     /** scenarioArtifactSent: 검증 시나리오 식별자를 담는다. */
     private var scenarioArtifactSent = false
     private var sawOpeningDialogue = false
+    private val openingPages by lazy { OpeningDialoguePageCapture(output) }
     private val openingPrefixes by lazy { OpeningDialoguePrefixCapture(output) }
 
     /** 직전 프레임의 렌더 이벤트다. 같은 값이 이어져야 화면이 자리를 잡은 것으로 본다. */
@@ -76,6 +77,10 @@ internal class VerificationArtifactObserver(
      */
     override fun onFrame(screen: Screen?, probe: RuntimeScreenProbe) {
         val scenario = probe as? ScenarioRuntimeProbe ?: return
+        if (output.state == "opening-pages") {
+            openingPages.onFrame(scenario)
+            return
+        }
         if (output.state in setOf("opening-prefixes", "opening-prefixes-resize", "opening-prefixes-all")) {
             openingPrefixes.onFrame(scenario)
             return

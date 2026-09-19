@@ -65,6 +65,8 @@ internal data class ScenarioRuntimeTraceProbeInput(
     val dialogueVisibleText: String = "",
     val dialogueTextComplete: Boolean = false,
     val naturalStreetTextIsolation: Boolean = false,
+    val dialogueSide: Int = 0,
+    val dialogueAtTop: Boolean = false,
     val actors: List<ScenarioActorRuntimeProbe> = emptyList(),
 ) {
     /** 기존 verification observer가 소비하는 runtime probe 형식으로 변환한다. */
@@ -86,6 +88,8 @@ internal data class ScenarioRuntimeTraceProbeInput(
         dialogueVisibleText = dialogueVisibleText,
         dialogueTextComplete = dialogueTextComplete,
         naturalStreetTextIsolation = naturalStreetTextIsolation,
+        dialogueSide = dialogueSide,
+        dialogueAtTop = dialogueAtTop,
         actors = actors,
         hallBattleScenePending = hallBattleScenePending,
         battleButtonScreenX = battleButtonScreenX,
