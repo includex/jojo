@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "platform": "darwin",
+  "electronVersion": "44.0.0",
+  "sourceSha256": {
+    "cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js": "afeffaf1205a73d7242d6c6d91cbbc00b724e4be55138f7e745dba915dacf4be",
+    "cocos-engine-web/cocos2d/core/utils/text-utils.js": "0eecc74822b9397c1a57d5cba095a5bae25f641cd5664b0cd1f0da40a1e9ef74",
+    "cocos-engine-web/cocos2d/core/renderer/utils/utils.js": "f7d3e995d92a22a3e72df5ec8dd9e190bf7ac153826a480f319ca2d098f30b97",
+    "recovered-js/modules/game-data/Unit.js": "62a64dd6dc14b081661a8f58cc0a51754fd70b48712e30a2a6440dbd381baad7",
+    "cocos-engine-web/cocos2d/core/assets/CCTexture2D.js": "819492c405ede50e923595494290e21253ec7bc3651251fa5e7a8c7c969ecd95",
+    "cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js": "2d02658e532c3216de102263a3eb70a84c816fccf3d51bbd12d41cb3eec836c8",
+    "cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js": "637842f53bb0c36d5ff6f83f2d67c7c4a4d8fb485084fc3fee9c6b04981c803f"
+  },
+  "fontSha256": {
+    "/System/Library/Fonts/AppleSDGothicNeo.ttc": "e33989af92c53dd2b80efd88f50c404094a046658d0e7a7692619587570e616c",
+    "/System/Library/Fonts/Supplemental/Arial.ttf": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9"
+  },
+  "osRelease": "25.5.0",
+  "arch": "arm64"
+}

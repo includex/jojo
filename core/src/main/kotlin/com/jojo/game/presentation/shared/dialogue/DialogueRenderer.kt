@@ -106,6 +106,22 @@ class DialogueRenderer(
             drawOverlay(batch, it)
             return
         }
+        assets.speakerLabel(model.speaker)?.let { label ->
+            // Cocos anchors the integer-sized canvas quad against the float node height.
+            // The Label node has anchor (0, .5); its quad is not stretched to nodeSize.
+            val sourceScale = layout.speakerLabelScale
+            val x = if (model.isLeft) {
+                layout.speakerLabelLeftX + (placement.panelX - layout.panelLeftX)
+            } else {
+                layout.speakerLabelRightX + (placement.panelX - layout.panelRightX)
+            }
+            val centerY = placement.panelY +
+                if (model.isLeft) layout.speakerLabelLeftOffsetY else layout.speakerLabelRightOffsetY
+            batch.color = Color.WHITE
+            batch.draw(label.texture, x, centerY - label.nodeHeight * sourceScale / 2f,
+                label.texture.width * sourceScale, label.texture.height * sourceScale)
+            return
+        }
         val style = model.speakerStyle
         val font = assets.speakerFont
         // 화면별 글꼴은 이미 자체 배율을 구워 둘 수 있으므로 곱해서 적용하고 원래 값으로 되돌린다.

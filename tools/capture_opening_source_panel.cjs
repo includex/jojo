@@ -109,6 +109,15 @@ const readbackExpression = `new Promise(resolve=>{let done=false;const capture=(
         !isolation.text.includes('대장님, 서둘러야 해요!')) {
       throw new Error(`source ${stage} isolation state rejected: ${JSON.stringify(isolation)}`);
     }
+    if (isolation.speakerLabel) {
+      isolation.speakerLabel.isBold = Boolean(isolation.speakerLabel.isBold);
+      isolation.speakerLabel.isItalic = Boolean(isolation.speakerLabel.isItalic);
+      isolation.speakerLabel.isUnderline = Boolean(isolation.speakerLabel.isUnderline);
+      isolation.speakerLabel.fontNative = {
+        family: isolation.speakerLabel.fontFamily,
+        assetNativeUrl: isolation.speakerLabel.fontAsset && isolation.speakerLabel.fontAsset.nativeUrl || null,
+      };
+    }
     await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
     const raw = await evaluate(readbackExpression);
     if (!raw || !raw.data) throw new Error(`source panel readback failed: ${JSON.stringify(raw)}`);

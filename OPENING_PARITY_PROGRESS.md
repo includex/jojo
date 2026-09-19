@@ -192,3 +192,50 @@ python3 tools/verify_opening_panel_pixels.py build/opening-source-speaker/source
 라벨 렌더 경로로 재현하는 것이다. 현재 31px와 X축 경험 보정은 아직 남아 있다.
 캡처한 글자 이미지를 특정 대사에 덮어쓰는 방법은 사용하지 않았다.
 본문, 전체 화면 합성, 음향 및 이후 게임 전체의 동등성도 계속 미완료다.
+
+
+## 원본 Canvas 규칙으로 첫 화자명 픽셀 일치 (2026-09-20)
+
+앞 절에 남았던 첫 화자명 불일치를 수정했다. 단일 FreeType 글꼴에 36px와
+0.86 배율만 적용한 실험은 오차가 커져 채택하지 않았다. 원본은 `36px Arial`에서
+한글 fallback과 Arial 공백 폭을 혼합하므로 문자열 전체의 Canvas 래스터가 필요하다.
+
+새 `export_street_speaker_labels.cjs`는 원본 unit.bin에서 숫자 이후를 제거한
+214개 고유 화자명을 동일한 Canvas 규칙으로 생성한다. 화면 캡처나 잘라낸 글자
+이미지를 입력으로 쓰지 않는다. 임의의 단일 행 이름 카탈로그에도 같은 생성 규칙을
+적용한다. 글자별·화자별 좌표 보정도 없다.
+
+- 36px Arial, lineHeight 40, outline 2px, center 정렬과 원본 저알파 배경.
+- 원본은 canvas 크기 재할당으로 context 상태가 초기화되어 실제 lineJoin이
+  `miter`다. 초기 pool의 `round` 설정을 그대로 쓰면 외곽선이 달라졌다.
+- Canvas→WebGL 업로드(false premultiply/flip) 후 RGBA를 PNG로 직접 인코딩한다.
+  Canvas.toDataURL은 원본 GL 텍스처와 8픽셀의 red ±1 반올림 차이가 있었으며,
+  이 GPU 업로드 경로로 같은 바이트를 얻었다.
+- float 노드 76.28×54.4에 anchor(0,.5)를 적용하되, 실제 quad는 정수 캔버스
+  76×54를 사용한다. 양쪽 Label 노드 위치는 원본 runtime에서 별도로 확인했다.
+- 런타임은 화자명별 텍스처를 지연 로드하고 화면 종료 시 해제한다.
+  생성 목록 밖의 이름은 로그를 남기고 기존 글꼴을 사용하므로 그 경우는 미검증이다.
+- 생성기는 검증된 OS/아키텍처·Electron·폰트 및 원본 코드 hash가 달라지면 실패한다.
+  Gradle도 원본 코드·생성 계약·폰트·실행 환경을 입력으로 추적한다.
+
+최종 fresh 캡처 결과:
+
+- 첫 대사의 패널+초상화+화자명 2560×1376 RGBA 차이 **0픽셀**.
+- 원본·포트 SHA256: `bdd41d0e9e094fa5661ed6963d1c63d2d01572b55a92ef22ab2da642b61d650d`.
+- 병사 라벨의 생성 PNG를 디코딩한 RGBA도 실제 원본 GL 텍스처와 바이트 단위 동일.
+- 패널+초상화 회귀 역시 0픽셀, 기존 `f17faae8…5a78` 유지.
+- 캠페인 정책 테스트, 214개 PNG의 크기·고유 이름·hash 검사 통과.
+- 생성 계약 변경 시 기존 출력 보존/실패 테스트(원본 hash·폰트 hash 변조) 통과.
+- Astra 최종 검수 승인. 생성+게임 캡처+캠페인 테스트는 최종 16초에 완료.
+- 로컬 증거: `build/reports/opening-speaker-20260920/final.json`,
+  `portrait-regression.json`, `source-label-contract.json`, `source-texture/`.
+
+```sh
+./gradlew :core:exportStreetSpeakerLabels :verification:captureOpeningDialogueSpeaker :verification:campaignUnitTest
+python3 tools/verify_opening_panel_pixels.py build/reports/opening-speaker-20260919/source/source-street-speaker.rgba verification/build/verification/opening-speaker/game-speaker.rgba --stage speaker
+python3 -m unittest discover -s tools -p test_street_speaker_label_contract.py
+```
+
+214개 이름을 생성한 것은 214개 실제 대사 화면 전체의 일치를 검증했다는 뜻은 아니다.
+다른 화자·좌우 배치의 실제 대사, 목록 밖 변경 이름, 본문, 전체 화면 합성,
+음향 및 이후 게임은 계속 검증해야 한다. 다음 단위는 첫 대사의 본문이다.

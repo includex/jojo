@@ -201,6 +201,9 @@ interface DialogueRenderAssets {
 
     /** 식별자에 대응하는 초상화를 반환한다. */
     fun portrait(portraitId: Int): Texture?
+
+    /** Optional whole-string label generated from the screen's font/style contract. */
+    fun speakerLabel(text: String): DialogueLabelTexture? = null
 }
 
 /** 원본 좌표를 화면별 자산 어댑터와 분리하기 위한 공용 배치 설정이다. */
@@ -237,6 +240,12 @@ data class DialogueRenderLayout(
     val speakerRightX: Float = 365.315f,
     /** 화자 이름 기준선의 패널 Y 오프셋이다. */
     val speakerOffsetY: Float = 147.03f,
+    /** Original Label node anchors, distinct from the fallback bitmap font's draw origin. */
+    val speakerLabelLeftX: Float = 347.35048f,
+    val speakerLabelRightX: Float = 363.3149f,
+    val speakerLabelLeftOffsetY: Float = 139.5092f,
+    val speakerLabelRightOffsetY: Float = 139.25808f,
+    val speakerLabelScale: Float = .86f,
     /** 왼쪽 본문 X 좌표다. */
     val textLeftX: Float = 328.93882f,
     /** 오른쪽 본문 X 좌표다. */

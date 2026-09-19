@@ -1,3 +1,5 @@
+import java.time.Duration
+
 plugins {
     kotlin("jvm")
 }
@@ -45,6 +47,7 @@ tasks.test { dependsOn(auditScenarioBranchSurface) }
 val cocosAssetsDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/assets")
 val generatedAstDirectory = layout.buildDirectory.dir("generated/scenario-ast")
 val generatedMapAssetsDirectory = layout.buildDirectory.dir("generated/map-assets")
+val generatedStreetSpeakerLabelsDirectory = layout.buildDirectory.dir("generated/street-speaker-labels")
 val generatedAudioAssetsDirectory = layout.buildDirectory.dir("generated/audio-assets")
 val generatedTitleAssetsDirectory = layout.buildDirectory.dir("generated/title-assets")
 val generatedTitleLoadConfirmationDirectory = layout.buildDirectory.dir("generated/title-load-confirmations")
@@ -86,6 +89,34 @@ val exportAudioAssets = tasks.register<Exec>("exportAudioAssets") {
     outputs.dir(generatedAudioAssetsDirectory)
     commandLine("python3", rootProject.file("tools/export_audio_assets.py").absolutePath,
         cocosAssetsDirectory.absolutePath, generatedAudioAssetsDirectory.get().asFile.absolutePath)
+}
+val exportStreetSpeakerLabels = tasks.register<Exec>("exportStreetSpeakerLabels") {
+    dependsOn(exportMapAssets)
+    timeout.set(Duration.ofSeconds(60))
+    inputs.file(rootProject.file("tools/export_street_speaker_labels.cjs"))
+    inputs.file(rootProject.file("tools/street_speaker_label_contract.json"))
+    inputs.file(generatedMapAssetsDirectory.map { it.file("data/unit.bin") })
+    inputs.file(cocosAssetsDirectory.parentFile.resolve("package-lock.json"))
+    inputs.files(
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/assets/CCTexture2D.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js"),
+        cocosAssetsDirectory.parentFile.resolve("recovered-js/modules/game-data/Unit.js"),
+        cocosAssetsDirectory.parentFile.resolve("node_modules/electron/package.json"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/utils/text-utils.js"),
+        cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/utils/utils.js"),
+    )
+    inputs.property("labelPlatform", System.getProperty("os.name") + " " + System.getProperty("os.version"))
+    inputs.files(listOf(
+        file("/System/Library/Fonts/AppleSDGothicNeo.ttc"),
+        file("/System/Library/Fonts/Supplemental/Arial.ttf"),
+    ).filter { it.isFile })
+    outputs.dir(generatedStreetSpeakerLabelsDirectory)
+    commandLine("node", rootProject.file("tools/export_street_speaker_labels.cjs").absolutePath,
+        cocosAssetsDirectory.parentFile.absolutePath,
+        generatedMapAssetsDirectory.get().file("data/unit.bin").asFile.absolutePath,
+        generatedStreetSpeakerLabelsDirectory.get().asFile.absolutePath)
 }
 val verifyBattleSpriteAssets = tasks.register<Exec>("verifyBattleSpriteAssets") {
     dependsOn(exportMapAssets)
@@ -147,11 +178,12 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
     into(generatedReferenceFramebuffersDirectory)
 }
 tasks.processResources {
-    dependsOn(exportScenarioAst, exportMapAssets, exportAudioAssets, exportTitleLoginReference,
+    dependsOn(exportScenarioAst, exportMapAssets, exportAudioAssets, exportStreetSpeakerLabels, exportTitleLoginReference,
         extractTitleLoadConfirmations, exportScenarioChoiceReference)
     from(restoredScenarioDirectory) { include("*.py", "manifest.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
     from(generatedMapAssetsDirectory) { into("maps") }
+    from(generatedStreetSpeakerLabelsDirectory) { include("*.png", "manifest.json"); into("street-speaker-labels") }
     from(generatedAudioAssetsDirectory) { into("audio") }
     from(generatedTitleAssetsDirectory) { into("title") }
     from(generatedTitleLoadConfirmationDirectory) { into("title") }

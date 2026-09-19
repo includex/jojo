@@ -17,6 +17,8 @@ internal class ScenarioSceneAssets(
 ) {
     /** 장면별로 필요한 문자만 포함해 글꼴 생성 비용을 줄이는 글리프 집합이다. */
     private val requiredGlyphs by lazy(requiredGlyphsProvider)
+    private val streetSpeakerLabels = StreetSpeakerLabels()
+    fun speakerLabel(text: String) = streetSpeakerLabels.get(text)
     /**
      * `portraitTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -328,6 +330,7 @@ internal class ScenarioSceneAssets(
     fun dispose() {
         if (disposed) return
         disposed = true
+        streetSpeakerLabels.dispose()
         portraitTextures.dispose()
         backgroundTextures.dispose()
         unitTextures.dispose()
