@@ -1,6 +1,7 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.jojo.game.presentation.shared.SourceSlicedPatch
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -372,19 +373,22 @@ class DialogueRenderer(
     /** InfoLayer prefab: 20px horizontal/10px vertical padding, anchor (.5,.28), text y=18.5. */
     private fun drawInfoLabel(batch: SpriteBatch, assets: DialogueRenderAssets, label: DialogueInfoLabel) {
         val scale = .86
-        val width = ((label.width + 40.0) * scale).toFloat()
-        val height = ((label.height + 20.0) * scale).toFloat()
-        val x = (layout.width - width) / 2f
-        val y = layout.height / 2f - height * .28f
+        val width = label.width + 40.0
+        val height = label.height + 20.0
+        val x = (layout.width / scale - width) / 2
+        val y = layout.height / (2 * scale) - height * .28
         batch.color = Color.WHITE
-        assets.infoPanel?.draw(batch, x, y, width, height)
-            ?: assets.dialoguePanel?.let { batch.draw(it, x, y, width, height) }
         val sourceLeft = (layout.width / scale - label.width) / 2
         val sourceTop = layout.height / (2 * scale) + 18.5 + label.height / 2
         savedBodyTransform.set(batch.transformMatrix)
         sourceBodyTransform.set(savedBodyTransform).scale(scale.toFloat(), scale.toFloat(), 1f)
         batch.transformMatrix = sourceBodyTransform
         try {
+            when (val panel = assets.infoPanel) {
+                is SourceSlicedPatch -> panel.drawSource(batch, x, y, width, height)
+                null -> assets.dialoguePanel?.let { batch.draw(it, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat()) }
+                else -> panel.draw(batch, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+            }
             label.segments.forEach { drawBodySegment(batch, it.texture, sourceLeft + it.x, sourceTop + it.y) }
         } finally { batch.transformMatrix = savedBodyTransform }
     }

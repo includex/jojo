@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
+import com.jojo.game.presentation.shared.SourceSlicedPatch
 
 /** ScenarioSceneAssets: 시나리오·거점 화면이 공유하는 텍스처와 글꼴을 지연 생성하고 수명 종료 때 해제한다. */
 internal class ScenarioSceneAssets(
@@ -405,7 +406,9 @@ internal class ScenarioSceneAssets(
              */
 
             try {
-                spriteAtlas.insert("InfoLayer/bg", pixmap)?.let { NinePatch(it, 8, 8, 7, 7) }
+                spriteAtlas.insert("InfoLayer/bg", pixmap)?.let {
+                    SourceSlicedPatch(it, insetLeft = 7, insetTop = 6, insetRight = 6, insetBottom = 6)
+                }
             } finally { pixmap.dispose() }
         }
 }

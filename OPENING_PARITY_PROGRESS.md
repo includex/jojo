@@ -680,3 +680,37 @@ python3 tools/verify_opening_event_pixels.py build/reports/opening-event-2026092
 
 이번 단위는 누락된 안내 복원과 렌더 개선, 남은 차이를 검출하는 도구 추가다.
 전체 게임 동일성 목표와 안내창 픽셀 일치 작업은 계속 진행한다.
+
+
+## 안내창 sliced 테두리의 원본 규칙 적용 (2026-09-20)
+
+첫 안내창의 7,738픽셀 차이를 공간별로 분리하니 글자 영역은 이미 동일했고 차이는
+전부 패널 테두리에 있었다. 기존 코드는 패널 전체 크기에만 .86 배율을 적용하고
+NinePatch의 고정 테두리는 포트 단위로 그렸다. 패널도 원본 좌표 변환 안에서 그리자
+차이가 403픽셀로 감소했다.
+
+원본 bg SpriteFrame의 capInsets와 실제 업로드 정점을 추가 계측했다.
+실제 inset은 left7/right6/top6/bottom6이며 기존 8/8/7/7과 달랐다.
+`SourceSlicedPatch`는 원본 경계 UV, BR↔TL 삼각형 대각선, 작은 패널에서의 테두리
+비례 축소를 적용한다. LibGDX NinePatch의 늘어나는 영역 half-texel 보정을 제거하고,
+원본 Double 좌표를 정점 제출 시 Float32로 변환한다. 실제 atlas region을 사용한다.
+
+최종 안내창 분리 비교는 259픽셀 차이로 아직 실패다. 차이는 왼쪽 테두리의
+bottom-left bbox [1054,654,1056,785]에만 남으며 채널별 절댓값 차이는 모두 1이다.
+전체 화면은 42,790픽셀 차이다. Double 좌표 및 같은 대각선의 삼각형 순서 변경은
+최종 픽셀 결과를 바꾸지 않았다. 이 결과를 완전 일치로 취급하지 않는다.
+
+패널 밖의 42,531픽셀 차이는 42,488개가 최대 채널 오차 1, 43개가 오차 2였다.
+배경은 원본 JPEG와 포트 maps/71.jpg의 파일 바이트가 동일함을 확인했다.
+다음 단위에서는 JPEG 디코딩 결과와 실제 GPU 텍스처를 비교해 배경 차이를 분리한다.
+
+증거: `build/reports/opening-event-20260920/`의 `scaled-comparison.json`,
+`sliced-comparison.json`, `double-comparison.json`, `triangle-comparison.json`.
+`source/source-event.json`에 실제 panel world matrix, vertices, UV와 insets를 보관했다.
+원본 재캡처 SHA는 기존과 동일했다. 픽셀 비교기는 차이가 남은 상태를 exit 1로 보고한다.
+
+수정 후 첫 세 대사·13개 prefix·resize 3개 표본은 모두 strict 0픽셀 차이를 유지했다.
+campaignUnitTest 47개와 Python opening 30개가 통과했고 Astra 코드 리뷰에서 blocking
+문제는 없었다. 원본과 같은 규칙을 적용했지만 부동소수점 연산 순서까지 동일하다는
+주장은 하지 않는다. 회귀 증거는 `sliced-regression.log`, `sliced-pages.json`,
+`sliced-prefixes.json`, `sliced-resize.json`이다.
