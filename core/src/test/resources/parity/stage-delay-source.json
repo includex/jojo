@@ -1,0 +1,385 @@
+{
+  "contract": "controlled-source-stage-delay-steps-v1",
+  "evidenceKind": "actual-source-engine-production-stage-delay-controlled-delta",
+  "controlledEvidence": true,
+  "naturalRun": false,
+  "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop",
+  "startedAt": "2026-09-19T18:55:28.455Z",
+  "completedAt": "2026-09-19T18:55:29.017Z",
+  "source": {
+    "stageLayer": {
+      "path": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/recovered-js/modules/ui/StageLayer.js",
+      "sha256": "ff6d9b1952fa830df7452ba0f261040804b95f591dc31b648f62da45e44c5e0e"
+    },
+    "engine": {
+      "path": "/Users/ain/workspace/jojo_mobile/sgccz-desktop/web/cocos2d-js.js",
+      "sha256": "9a450c3bde95a72c81411ead393a2031aeb0ef18c63bbbfe3a475bd4e0c9d0ee"
+    }
+  },
+  "engineVersion": "2.0.0 alpha",
+  "floatPointOne": 0.10000000149011612,
+  "cases": [
+    {
+      "name": "outside-register-f32-tenths",
+      "mode": "outside",
+      "deltas": [
+        10,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 10,
+          "timers": [
+            {
+              "elapsed": 0,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 1,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.10000000149011612,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 2,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.20000000298023224,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 3,
+          "dt": 0.10000000149011612,
+          "timers": [],
+          "events": [
+            {
+              "kind": "resume",
+              "stepIndex": 3
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "kind": "pause",
+          "stepIndex": -1
+        },
+        {
+          "kind": "resume",
+          "stepIndex": 3
+        }
+      ],
+      "pauseCount": 1,
+      "resumeCount": 1
+    },
+    {
+      "name": "register-during-update-f32-tenths",
+      "mode": "inside-update",
+      "deltas": [
+        10,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 10,
+          "timers": [
+            {
+              "elapsed": 0,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": [
+            {
+              "kind": "pause",
+              "stepIndex": 0
+            },
+            {
+              "kind": "registeredInsideUpdate",
+              "stepIndex": 0
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.10000000149011612,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 2,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.20000000298023224,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 3,
+          "dt": 0.10000000149011612,
+          "timers": [],
+          "events": [
+            {
+              "kind": "resume",
+              "stepIndex": 3
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "kind": "pause",
+          "stepIndex": 0
+        },
+        {
+          "kind": "registeredInsideUpdate",
+          "stepIndex": 0
+        },
+        {
+          "kind": "resume",
+          "stepIndex": 3
+        }
+      ],
+      "pauseCount": 1,
+      "resumeCount": 1
+    },
+    {
+      "name": "chain-register-no-remainder",
+      "mode": "chain",
+      "deltas": [
+        10,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "dt": 10,
+          "timers": [
+            {
+              "elapsed": 0,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 1,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.10000000149011612,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 2,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.20000000298023224,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 3,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": [
+            {
+              "kind": "resume",
+              "stepIndex": 3
+            },
+            {
+              "kind": "pause",
+              "stepIndex": 3
+            },
+            {
+              "kind": "chainDelayRegistered",
+              "stepIndex": 3,
+              "timers": [
+                {
+                  "elapsed": 0.30000000447034836,
+                  "delay": 0.30000000000000004,
+                  "interval": 0,
+                  "timesExecuted": 0,
+                  "useDelay": true,
+                  "callbackActive": true
+                },
+                {
+                  "elapsed": -1,
+                  "delay": 0.30000000000000004,
+                  "interval": 0,
+                  "timesExecuted": 0,
+                  "useDelay": true,
+                  "callbackActive": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.10000000149011612,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 5,
+          "dt": 0.10000000149011612,
+          "timers": [
+            {
+              "elapsed": 0.20000000298023224,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ],
+          "events": []
+        },
+        {
+          "index": 6,
+          "dt": 0.10000000149011612,
+          "timers": [],
+          "events": [
+            {
+              "kind": "resume",
+              "stepIndex": 6
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "kind": "pause",
+          "stepIndex": -1
+        },
+        {
+          "kind": "resume",
+          "stepIndex": 3
+        },
+        {
+          "kind": "pause",
+          "stepIndex": 3
+        },
+        {
+          "kind": "chainDelayRegistered",
+          "stepIndex": 3,
+          "timers": [
+            {
+              "elapsed": 0.30000000447034836,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            },
+            {
+              "elapsed": -1,
+              "delay": 0.30000000000000004,
+              "interval": 0,
+              "timesExecuted": 0,
+              "useDelay": true,
+              "callbackActive": true
+            }
+          ]
+        },
+        {
+          "kind": "resume",
+          "stepIndex": 6
+        }
+      ],
+      "pauseCount": 2,
+      "resumeCount": 2
+    }
+  ]
+}

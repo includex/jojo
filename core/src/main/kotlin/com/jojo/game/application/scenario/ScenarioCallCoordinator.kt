@@ -263,6 +263,7 @@ internal class ScenarioCallCoordinator(
         externalBattlePresentation = isExternalBattlePresentation(),
         pendingAskResult = choiceCoordinator.pendingAskResult,
         suspendFor = delayCoordinator::suspendFor,
+        suspendForStageDelay = delayCoordinator::suspendForStageDelay,
         suspendForBattleBackgroundLoad = delayCoordinator::suspendForBattleBackgroundLoad,
         suspendForInfo = modalController::suspendForInfo,
         suspendForAmbition = modalController::suspendForAmbition,

@@ -23,6 +23,7 @@ internal data class ScenarioStageCallEnvironment(
     val externalBattlePresentation: Boolean,
     val pendingAskResult: Int?,
     val suspendFor: (Float) -> Unit,
+    val suspendForStageDelay: (Int) -> Unit,
     val suspendForBattleBackgroundLoad: (Int) -> Unit,
     val suspendForInfo: (String, ScenarioModalKind, Float) -> Unit,
     val suspendForAmbition: (Int) -> Unit,

@@ -1027,3 +1027,37 @@ GPU 준비 표본은 첫 등장 프레임의 두 자산 존재를 입증하며, 
 관측은 source 2.1499초, port 2.137342초이며 총량 동등성은 여전히 미검증이다.
 후속 delay·대사 시작 경계와 이동 중 zIndex/전체 화면 검증을 계속 진행한다.
 전체 게임 동등성 목표는 계속 진행한다.
+
+
+## 첫 stage.delay의 정밀도와 등록 프레임 (2026-09-20)
+
+원본 StageLayer.delay(3)은 JavaScript Double의 `.1 * 3`초를 CallbackTimer로
+누적한다. 기존 포트의 Float 차감은 `.1f` 세 번 뒤 작은 양의 잔여 시간을 남겨
+네 번째 update까지 기다릴 수 있었다. stage.delay만 Double 누적으로 분리하고,
+update 밖 등록은 다음 update에서 elapsed 0으로 prime하며, update 안 등록은
+그 프레임에 이미 prime된 상태로 다음 프레임부터 누적한다. 완료 delta의 잔여분은
+다음 delay에 넘기지 않는다. 일반 Float 지연과 Hall 이동 타이머는 유지했다.
+
+원본의 실제 CallbackTimer.update를 감싸 직접 관측했다. scheduler 바깥의 다음
+update를 첫 timer update로 추정하는 초기 계측은 폐기했다. 실제 첫 delay는 Hall
+이동 완료와 같은 frame329에서 elapsed -1→0으로 prime했고 frame347에서 실행됐다.
+따라서 Hall 완료 뒤 별도의 prime 프레임을 추가하지 않는다.
+
+`export_source_stage_delay_steps.cjs`는 실제 원본 StageLayer.delay와 격리한
+cc.Scheduler에 delta를 넣어 외부 등록, update 내부 등록, callback 연속 등록
+세 사례를 추출한다. 첫 delta10은 모두 prime으로 버리고, Float32 `.1` 세 번 후
+resume하며 연속 delay는 step3과6에 resume한다. fixture SHA-256:
+`730887725c4ef7399de159fb7b660bb30fa34e658ec64d8371dbb36d55b8ea7c`.
+
+자연 재생에서는 source329→347, port190→208의 delay 완료가 각 실행의 delta로
+계산한 임계 프레임과 일치했다. 수정 전 자연 표본도 통과했으므로 자연 표본만으로
+정밀도 결함을 입증하지 않는다. Float32 경계 반례와 실제 원본 controlled fixture가
+그 결함의 회귀 근거다. EVENT, 첫 이동, 네 유닛 텍스처 준비 검증 및 첫 세 분리 대사
+화면 strict RGBA 0픽셀 차이를 유지했다. campaign47, Python opening53개 통과.
+
+증거: `build/reports/opening-delay-boundary-20260920/`의 source, controlled,
+`game-final.json`, `final-delay.json`, `first-move-regression.json`,
+`ready-regression.json`, `event-regression.json`, `pages-regression.json`, `regression.log`.
+새 verifier는 첫 명시적 delay만 판정하며 대사 첫 글자 타이머와 전체 지연 동등성을
+주장하지 않는다. EVENT 종료→첫 글자 관측은 source2.1166초, port2.153527초다.
+전체 게임 동등성 목표는 계속 진행한다.

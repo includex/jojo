@@ -75,6 +75,10 @@ internal class ScenarioDelayCoordinator(
     private var nextHallUnitReadinessToken = 1L
     private var pendingHallUnitReadiness: ScenarioHallUnitReadinessRequest? = null
     private val readyHallUnitEntryIndexes = mutableSetOf<Int>()
+    private var stageDelayDurationSeconds: Double? = null
+    private var stageDelayElapsedSeconds = 0.0
+    private var stageDelayPrimed = false
+    private var isUpdating = false
 
     val hallUnitReadinessRequest: ScenarioHallUnitReadinessRequest?
         get() = pendingHallUnitReadiness
@@ -101,22 +105,37 @@ internal class ScenarioDelayCoordinator(
         pendingHallMoveIds = emptySet()
         pendingHallUnitReadiness = null
         readyHallUnitEntryIndexes.clear()
+        clearStageDelay()
+        isUpdating = false
     }
 
     /** 남은 지연 시간을 설정한다. */
     fun setDelayRemainingSeconds(seconds: Float) {
+        clearStageDelay()
         onSetDelayRemainingSeconds(seconds)
     }
 
     /** 지정 시간 동안 시나리오 실행을 일시 정지한다. */
     fun suspendFor(seconds: Float) {
+        clearStageDelay()
         pendingHallMoveIds = emptySet()
         onSetDelayRemainingSeconds(seconds.coerceAtLeast(0f))
         onSetState(PlaybackState.DELAY)
     }
 
+    /** Cocos CallbackTimer와 같이 stage.delay만 Double 누적과 첫 tick prime을 사용한다. */
+    fun suspendForStageDelay(ticks: Int) {
+        pendingHallMoveIds = emptySet()
+        stageDelayDurationSeconds = ticks.coerceAtLeast(0) * 0.1
+        stageDelayElapsedSeconds = 0.0
+        stageDelayPrimed = isUpdating
+        onSetDelayRemainingSeconds(stageDelayDurationSeconds!!.toFloat())
+        onSetState(PlaybackState.DELAY)
+    }
+
     /** Hall 스크립트는 예상 시간이 아니라 실제 이동 완료까지 기다린다. */
     fun suspendForHallMoves(unitIds: Set<Int>) {
+        clearStageDelay()
         pendingHallMoveIds = unitIds.filterTo(mutableSetOf()) { stage.unit(it).moveDuration > 0f }
         if (pendingHallMoveIds.isEmpty()) return
         onSetDelayRemainingSeconds(Float.MAX_VALUE)
@@ -124,6 +143,7 @@ internal class ScenarioDelayCoordinator(
     }
 
     fun suspendForHallUnitReadiness(commands: List<ScenarioCommand.ShowUnit>) {
+        clearStageDelay()
         check(pendingHallUnitReadiness == null) { "Hall unit readiness request is already pending" }
         val token = nextHallUnitReadinessToken++
         pendingHallUnitReadiness = ScenarioHallUnitReadinessRequest(
@@ -150,6 +170,7 @@ internal class ScenarioDelayCoordinator(
 
     /** 전장 배경이 준비될 때까지 시나리오 실행을 일시 정지한다. */
     fun suspendForBattleBackgroundLoad(mapIndex: Int) {
+        clearStageDelay()
         check(!hasPendingBattleBackgroundLoad) { "동시에 두 개의 loadBg 콜백이 대기 중입니다." }
         pendingBattleBackgroundLoadIndex = mapIndex
         onSetDelayRemainingSeconds(Float.MAX_VALUE)
@@ -163,6 +184,16 @@ internal class ScenarioDelayCoordinator(
 
     /** 지연·연출·모달 대기 상태를 한 프레임 갱신한다. */
     fun update(delta: Float, autoCloseUi: Boolean = true) {
+        val wasUpdating = isUpdating
+        isUpdating = true
+        try {
+            updateInternal(delta, autoCloseUi)
+        } finally {
+            isUpdating = wasUpdating
+        }
+    }
+
+    private fun updateInternal(delta: Float, autoCloseUi: Boolean) {
         stage.updateAnimations(delta)
         when (getState()) {
             PlaybackState.DELAY -> {
@@ -174,6 +205,21 @@ internal class ScenarioDelayCoordinator(
                     pendingHallMoveIds = emptySet()
                     onSetDelayRemainingSeconds(0f)
                     onResumeExecution()
+                    return
+                }
+                stageDelayDurationSeconds?.let { duration ->
+                    if (!stageDelayPrimed) {
+                        stageDelayPrimed = true
+                        return
+                    }
+                    stageDelayElapsedSeconds += delta.coerceAtLeast(0f).toDouble()
+                    val remaining = (duration - stageDelayElapsedSeconds).coerceAtLeast(0.0)
+                    onSetDelayRemainingSeconds(remaining.toFloat())
+                    if (stageDelayElapsedSeconds >= duration) {
+                        clearStageDelay()
+                        onSetDelayRemainingSeconds(0f)
+                        onResumeExecution()
+                    }
                     return
                 }
                 val remaining = getDelayRemainingSeconds() - delta.coerceAtLeast(0f)
@@ -197,6 +243,7 @@ internal class ScenarioDelayCoordinator(
         if (pendingHallUnitReadiness != null) return
         stage.finishAnimations()
         pendingHallMoveIds = emptySet()
+        clearStageDelay()
         onSetDelayRemainingSeconds(0f)
         onResumeExecution()
     }
@@ -211,6 +258,7 @@ internal class ScenarioDelayCoordinator(
             "Hall unit readiness는 texture 완료 콜백으로만 재개해야 합니다."
         }
         pendingHallMoveIds = emptySet()
+        clearStageDelay()
         onSetDelayRemainingSeconds(0f)
         onResumeExecution()
     }
@@ -225,5 +273,11 @@ internal class ScenarioDelayCoordinator(
         pendingBattleBackgroundLoadIndex = null
         onSetDelayRemainingSeconds(0f)
         onResumeExecution()
+    }
+
+    private fun clearStageDelay() {
+        stageDelayDurationSeconds = null
+        stageDelayElapsedSeconds = 0.0
+        stageDelayPrimed = false
     }
 }

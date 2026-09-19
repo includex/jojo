@@ -50,7 +50,7 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
                 0
             }
 
-            "stage.delay" -> { env.suspendFor(args.firstOrNull().asInt() * 0.1f); 0 }
+            "stage.delay" -> { env.suspendForStageDelay(args.firstOrNull().asInt()); 0 }
             "stage.draw" -> { stage.drawBattle(); 0 }
             "stage.info" -> {
                 /**

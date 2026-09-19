@@ -111,6 +111,7 @@ class ScenarioStageCallDispatcherTest {
             externalBattlePresentation = false,
             pendingAskResult = null,
             suspendFor = {},
+            suspendForStageDelay = {},
             suspendForBattleBackgroundLoad = {},
             suspendForInfo = suspendForInfo,
             suspendForAmbition = {},

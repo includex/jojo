@@ -35,6 +35,93 @@ import kotlin.test.assertTrue
 
 class ScenarioRuntimeTest {
     @Test
+    fun `source stage delay primes outside update and accumulates Float deltas in Double`() {
+        val stage = ScenarioStage()
+        var state = PlaybackState.COMPLETE
+        var remaining = 0f
+        var resumes = 0
+        val dialogue = ScenarioDialogueCoordinator(stage, { state = it }, {}, { remaining = it })
+        val modal = ScenarioModalController(stage, { state = it }, {})
+        val delay = ScenarioDelayCoordinator(
+            stage, dialogue, modal,
+            getState = { state }, onSetState = { state = it },
+            onResumeExecution = { resumes += 1; state = PlaybackState.COMPLETE },
+            getDelayRemainingSeconds = { remaining }, onSetDelayRemainingSeconds = { remaining = it },
+        )
+
+        delay.suspendForStageDelay(3)
+        delay.update(9f)
+        assertEquals(PlaybackState.DELAY, state, "outside registration discards its first scheduler delta")
+        assertEquals(0, resumes)
+
+        repeat(3) { delay.update(0.1f) }
+        assertEquals(1, resumes, "three Float tenths exceed the source Double 0.3 boundary")
+
+        state = PlaybackState.COMPLETE
+        resumes = 0
+        delay.suspendFor(0.3f)
+        repeat(3) { delay.update(0.1f) }
+        assertEquals(PlaybackState.DELAY, state, "generic Float waits retain their existing arithmetic")
+        delay.update(0.1f)
+        assertEquals(1, resumes)
+    }
+
+    @Test
+    fun `source stage delay chain drops completion frame remainder and primes inside update`() {
+        val stage = ScenarioStage()
+        var state = PlaybackState.COMPLETE
+        var remaining = 0f
+        var resumes = 0
+        val dialogue = ScenarioDialogueCoordinator(stage, { state = it }, {}, { remaining = it })
+        val modal = ScenarioModalController(stage, { state = it }, {})
+        lateinit var delay: ScenarioDelayCoordinator
+        delay = ScenarioDelayCoordinator(
+            stage, dialogue, modal,
+            getState = { state }, onSetState = { state = it },
+            onResumeExecution = {
+                resumes += 1
+                if (resumes == 1) delay.suspendForStageDelay(2) else state = PlaybackState.COMPLETE
+            },
+            getDelayRemainingSeconds = { remaining }, onSetDelayRemainingSeconds = { remaining = it },
+        )
+
+        delay.suspendForStageDelay(1)
+        delay.update(0f)
+        delay.update(0.31f)
+        assertEquals(1, resumes)
+        assertEquals(PlaybackState.DELAY, state)
+
+        delay.update(0.19f)
+        assertEquals(1, resumes, "the first timer remainder is not reused by the chained timer")
+        delay.update(0.02f)
+        assertEquals(2, resumes, "a timer registered inside update is already primed")
+    }
+
+    @Test
+    fun `delay coordinator restores update context after callback failure`() {
+        val stage = ScenarioStage()
+        var state = PlaybackState.COMPLETE
+        var remaining = 0f
+        var fail = true
+        val dialogue = ScenarioDialogueCoordinator(stage, { state = it }, {}, { remaining = it })
+        val modal = ScenarioModalController(stage, { state = it }, {})
+        val delay = ScenarioDelayCoordinator(
+            stage, dialogue, modal,
+            getState = { state }, onSetState = { state = it },
+            onResumeExecution = { if (fail) error("callback failure") else state = PlaybackState.COMPLETE },
+            getDelayRemainingSeconds = { remaining }, onSetDelayRemainingSeconds = { remaining = it },
+        )
+        delay.suspendFor(0.01f)
+        assertFailsWith<IllegalStateException> { delay.update(0.02f) }
+
+        fail = false
+        delay.suspendForStageDelay(1)
+        delay.update(9f)
+
+        assertEquals(PlaybackState.DELAY, state, "failed update must not make later outside registration look pre-primed")
+    }
+
+    @Test
     fun `external Hall readiness registers each group unit and resumes only after the last asset pair`() {
         val runtime = ScenarioInterpreter.load("R_00")
         runtime.enableExternalHallUnitReadiness()
