@@ -1334,3 +1334,37 @@ Node 구문·diff검사 통과. Astra 계획·검수, Sol 포트 캡처, source 
 증거는 `build/reports/opening-full-pages-20260920/`의 source, game-baseline, game-final,
 full-pages.json, final-full-pages.json, negative-contract-checks.json, game-final.log에 있다.
 이동 중 프레임 및 네 번째 이후 대사·후속 게임 흐름은 아직추가검증 대상이며 목표는계속한다.
+
+### 2026-09-20 동일 Float32 시계의 첫 이동 화면 검증
+
+실행별 자연 delta가다른 상태에서 서로다른 이동 순간의 pixel을비교하지 않도록,
+검증 전용으로 양쪽에 Float32 `1f/60f`(`0.01666666753590107`, bits1015580809)를
+공급했다. source는 Director.calculateDeltaTime 원본호출 뒤_deltaTime만고정하고
+component/scheduler/action/animation/render를원래경로로실행한다. 포트는 verification의
+Graphics proxy가 getDeltaTime/getRawDeltaTime만바꾸며 game.render()를그대로호출한다.
+proxy는각render의finally에서복원한다. production hook·수동 pose·입력·격리는없다.
+이 결과는 자연 wall-clock 실행 프레임 동등성 주장이 아닌 controlled-clock 검증이다.
+
+첫181(40,5→15)의실제 ActionManager Sequence 상태로 prime ordinal0을정렬했다.
+0..24의25tick을기록하고1/6/12/13/18/19/24의7개 전체RGBA를캡처했다.
+source root action의elapsed/firstTick/duration/done을기록해 geometricProgress로
+시계를대체하지않았다. ordinal24 elapsed는0.40000002086162567로 실제duration
+0.40000011920928963보다작다. 완료직후다음유닛들의비동기등록이개입하므로 완료frame은
+이번pixel범위에서제외했다. 기존자연이동완료 timing검증을대체하지않는다.
+
+source world canvas는800높이이므로 초기1/6의유닛은화면밖이다. 12/13/18/19/24는
+유닛일부가보이며,13/19는소수좌표이동을검사한다. sourceassembler 정점/UV/행렬과
+실제스프라이트row도각tick에기록했다. port renderPlan은관측후계산한renderer선택값이다.
+
+verify_opening_first_move_pixels.py는고정시계bit·실제actionclock·prime·연속tick·
+캡처와tick의동일성·sourcepath를검증한다. source node위치에서역산한Float32격자좌표와
+port좌표, 스프라이트row는25tick모두일치했다. 모든7개전체RGBA도0픽셀차이였다.
+초기1/6은배경만비교한다는한계를보고서에명시했다. production수정은추가하지않았다.
+
+sourcefresh약7초, port추가subpixel표본캡처3초로bounded실행을마쳤다. 기존Python
+comparator64개통과, 잘못된시계·미완료prime·잘못된actionelapsed·표본누락·다른tick캡처·
+조기완료의6개계약위반을거부했다. Node구문·diff검사통과. Astra계획/검수,
+Sol포트검증launcher, source agent원본도구를사용했다. 증거는
+`build/reports/opening-first-move-pixels-20260920/`의source,game-baseline,game-subpixel,
+first-move-pixels.json,negative-contract-checks.json에있다.
+다음은첫group이동의각유닛prime과화면안쪽이동을검증한다. 전체게임목표는계속한다.

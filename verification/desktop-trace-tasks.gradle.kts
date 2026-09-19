@@ -395,3 +395,22 @@ tasks.register<JavaExec>("captureOpeningFullPages") {
         }
     }
 }
+
+tasks.register<JavaExec>("captureOpeningFirstMoveFrames") {
+    group = "verification"
+    timeout.set(java.time.Duration.ofSeconds(20))
+    dependsOn(tasks.named("classes"))
+    classpath = verificationDesktopRuntime
+    mainClass.set("com.jojo.game.verification.OpeningFirstMoveFramesDesktopLauncher")
+    if (System.getProperty("os.name").contains("Mac", true)) jvmArgs("-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val destination = layout.buildDirectory.dir("verification/opening-first-move-frames")
+    doFirst { delete(destination); setArgs(listOf(destination.get().asFile.absolutePath)) }
+    doLast {
+        check(destination.get().file("game-first-move.json").asFile.isFile)
+        listOf(1, 6, 12, 13, 18, 19, 24).forEach { ordinal ->
+            val suffix = ordinal.toString().padStart(3, '0')
+            check(destination.get().file("game-move-$suffix.rgba").asFile.length() == 2560L * 1376 * 4)
+        }
+    }
+}
