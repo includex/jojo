@@ -9,6 +9,7 @@ import com.jojo.game.application.runtime.RuntimeScenarioFrame
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
 import com.jojo.game.application.runtime.RuntimeScenarioPresentation
 import com.jojo.game.application.runtime.RuntimeScenarioScene
+import com.jojo.game.application.runtime.ScenarioActorRuntimeProbe
 import com.jojo.game.application.runtime.ScenarioRuntimeProbe
 import com.jojo.game.application.scenario.ScenarioChoiceTrace
 import com.jojo.game.application.scenario.ScenarioInterpreter
@@ -61,6 +62,7 @@ internal data class ScenarioRuntimeTraceProbeInput(
     val remainingInjectedRandomCount: Int,
     val dialogueSpeakerId: String? = null,
     val dialogueRevision: Long = 0L,
+    val actors: List<ScenarioActorRuntimeProbe> = emptyList(),
 ) {
     /** 기존 verification observer가 소비하는 runtime probe 형식으로 변환한다. */
     fun toRuntimeProbe(): ScenarioRuntimeProbe = ScenarioRuntimeProbe(
@@ -78,6 +80,7 @@ internal data class ScenarioRuntimeTraceProbeInput(
         dialogueText = dialogueText,
         dialogueSpeakerId = dialogueSpeakerId,
         dialogueRevision = dialogueRevision,
+        actors = actors,
         hallBattleScenePending = hallBattleScenePending,
         battleButtonScreenX = battleButtonScreenX,
         battleButtonScreenY = battleButtonScreenY,

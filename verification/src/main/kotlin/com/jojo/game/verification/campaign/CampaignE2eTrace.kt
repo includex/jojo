@@ -696,6 +696,7 @@ internal class CampaignE2eDriver(private val config: CampaignE2eTraceConfig) {
                 campaignStages = campaignStages, battlePreparations = battlePreparations,
                 sawR01DepartureDialogue = sawR01DepartureDialogue,
                 dialoguePages = dialoguePrefix.pages,
+                scenarioFrames = dialoguePrefix.frames,
             ),
             actualModule = actualModule, actualSceneIndex = actualSceneIndex, forwardOvershoot = forwardOvershoot,
         )

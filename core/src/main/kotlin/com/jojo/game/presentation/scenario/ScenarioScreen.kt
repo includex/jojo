@@ -378,6 +378,12 @@ class ScenarioScreen(
                         dialogueText = playback.currentDialogue?.text,
                         dialogueSpeakerId = playback.currentDialogue?.speakerId,
                         dialogueRevision = playback.dialogueRevision,
+                        actors = playback.stage.units.values.map { unit ->
+                            com.jojo.game.application.runtime.ScenarioActorRuntimeProbe(
+                                unit.id, unit.x, unit.y, unit.visualX, unit.visualY,
+                                unit.direction, unit.action, unit.visible, unit.moveElapsed, unit.moveDuration,
+                            )
+                        },
                         hallBattleScenePending = scenarioNavigation.hallBattleScenePending,
                         battleButtonScreenX = battleButton.x.toInt(),
                         battleButtonScreenY = (Gdx.graphics.height - battleButton.y).toInt(),

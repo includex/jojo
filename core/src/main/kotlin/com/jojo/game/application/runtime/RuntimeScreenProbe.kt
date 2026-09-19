@@ -52,6 +52,14 @@ data class TitleRuntimeProbe(
     override val screenName: String = "TitleScreen"
 }
 
+/** Immutable actor state read from the production scenario frame. */
+data class ScenarioActorRuntimeProbe(
+    val id: Int, val x: Int, val y: Int,
+    val visualX: Float, val visualY: Float,
+    val direction: Int, val action: Int, val visible: Boolean,
+    val moveElapsed: Float, val moveDuration: Float,
+)
+
 /** ScenarioRuntimeProbe: 시나리오 진행·선택·배경·캠페인 상태를 자동 구동기에 전달하는 탐침 값이다. */
 data class ScenarioRuntimeProbe(
     val module: String,
@@ -77,6 +85,7 @@ data class ScenarioRuntimeProbe(
     val remainingInjectedRandomCount: Int = 0,
     val dialogueSpeakerId: String? = null,
     val dialogueRevision: Long = 0L,
+    val actors: List<ScenarioActorRuntimeProbe> = emptyList(),
 ) : RuntimeScreenProbe {
     /**
      * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.

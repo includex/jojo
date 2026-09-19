@@ -29,6 +29,17 @@ class CampaignE2eDialoguePrefixTest {
     }
 
     @Test
+    fun `movement frames remain observable before dialogue without generating samples`() {
+        val prefix = CampaignE2eDialoguePrefix(stop)
+        val moving = probe(0).copy(playback = PlaybackState.DELAY, elapsedSeconds = .2f)
+        prefix.observe(moving)
+        prefix.observe(probe(1).copy(elapsedSeconds = .4f))
+        assertEquals(listOf(.2f, .4f), prefix.frames.map { it.time })
+        assertEquals(listOf("DELAY", "DIALOGUE"), prefix.frames.map { it.playback })
+        assertEquals(1, prefix.pages.size)
+    }
+
+    @Test
     fun `only requested scene dialogue is recorded`() {
         val prefix = CampaignE2eDialoguePrefix(stop)
         prefix.observe(probe(1).copy(sceneIndex = 0))
