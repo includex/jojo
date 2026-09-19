@@ -137,6 +137,10 @@ val exportStreetSpeakerLabels = tasks.register<Exec>("exportStreetSpeakerLabels"
         generatedStreetSpeakerLabelsDirectory.get().asFile.absolutePath)
 }
 val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
+    val maxRenderedPages = providers.gradleProperty("jojo.bodyLabels.maxPages").orElse("6")
+    inputs.property("maxRenderedPages", maxRenderedPages)
+    environment("JOJO_BODY_LABEL_MAX_PAGES", maxRenderedPages.get())
+    inputs.file(rootProject.file("tools/street_body_label_pages.cjs"))
     dependsOn(exportScenarioAst)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))
@@ -170,6 +174,7 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
         generatedStreetBodyLabelsDirectory.get().asFile.absolutePath)
 }
 val exportInfoLabels = tasks.register<Exec>("exportInfoLabels") {
+    inputs.file(rootProject.file("tools/street_body_label_pages.cjs"))
     dependsOn(exportScenarioAst)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))

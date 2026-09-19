@@ -1642,3 +1642,28 @@ negative-contract-checks.json에 있다. 잘못된 화자·미완료 입력·지
 raw 본문 불일치·layer 재사용·요청 화자 오류·case digest 오류 등 10개 반례를 거부했다.
 기존 Python comparator 테스트 64개와 Kotlin compile/capture, 구문 및 diff 검사를 통과했다.
 완료 화면 3개만 다루며 타이핑 중간 프레임이나 이후 게임 전체를 검증한 것은 아니다.
+
+### 2026-09-20 4~6페이지 본문 catalog 수정
+
+본문 생성기의 첫 두 say 호출 제한을 제거하고, 정적 AST의 첫 6개 렌더 페이지까지
+수집하도록 변경했다. `jojo.bodyLabels.maxPages` Gradle 속성으로 범위를 지정할 수 있다.
+원본처럼 빈 authored line을 제외하고 화자 block마다 최대 3줄로 나누며, 화자 없는
+call과 지원하지 않는 markup/nonliteral은 선택 범위에서 오류로 처리한다. manifest에는
+생성 범위와 call index, call 내부 페이지, 화자, 문자열 내부 authored line 번호를 기록한다.
+이는 이후 분기의 실제 실행 순서를 보장하는 catalog라는 의미는 아니다.
+
+manifest의 본문 key는 newline을 유지하지만 Cocos RichText에는 원본과 동일하게
+`<br/>`로 변환하여 전달한다. 화면 캡처를 asset으로 사용하지 않고 기존 원본 RichText
+segment texture 추출 경로를 사용했다. Python 원본과 JSON AST 입력을 독립 실행하여
+6페이지·110개 prefix의 segment 배치와 texture SHA가 모두 같음을 확인했다.
+
+수정 후 4/5/6 완료 화면은 전체 RGBA에서 각각 0픽셀 차이로 일치했다.
+이전 84,805 / 10,796 / 178,571픽셀의 본문 차이가 해결됐다. 증거는
+`build/reports/opening-pages-4-6-20260920/`의 game-fixed, fixed.json,
+python-catalog, catalog-parity.json에 있다. helper의 3+1줄 분할·화자 변경·빈줄·범위 제한·
+잘못된 입력 테스트 5개와 구문/diff 검사를 통과했다. 생성은 기존 55초 제한을 유지했다.
+6페이지 줄바꿈 직전/직후의 자연 타이핑 프레임은 다음 검증 단위로 남긴다.
+첫 3페이지도 새 catalog로 다시 캡처하여 모두 0픽셀 차이를 확인했다.
+회귀 증거는 `build/reports/opening-full-pages-20260920/`의 game-six-page-labels와
+comparison-six-page-labels.json이다. 본문 fallback 로그는 4~6 구간에서 발생하지 않았다.
+Astra 코드 검수와 완료 화면/기존 페이지 회귀 승인 조건을 모두 충족했다.
