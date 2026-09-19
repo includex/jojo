@@ -1470,3 +1470,19 @@ HallMoveTimelineTest·HallMoveSourceFixtureTest·ScenarioBattlefieldRenderGeomet
 ScenarioRuntimeTest·ScenarioHallSourcePositionTest 통과. 새 위치 재설정 및 즉시 이동
 회귀 테스트를 포함한다. 첫 단독7프레임·첫3인7프레임·첫대사3페이지도 새 캡처에서
 각각 모두 원본과0픽셀 차이를 확인했다.
+
+### 2026-09-20 첫3인 이동 전체25프레임 검증
+
+Astra가 권고한 다음 빈틈인 첫3인 이동의 비표본 프레임을 검사했다. 원본과 포트의
+실제 prime부터 ordinal0..24까지 모든 전체RGBA hash를 추가로 기록했다.
+기존7개 raw와75개 actor 상태 검증은 그대로 유지했다. 원본 digest는 fresh readPixels
+버퍼를 사용하며 WebCrypto가 모두 끝난 뒤 결과를 반환하고, 캡처 구간은 먼저 닫는다.
+
+새 source-all-frames와 game-all-frames 결과에서25개 hash·7개 raw·75개 상태가
+전부 일치했다. raw는모두0픽셀 차이다. digest누락·다른frame번호·raw와digest불일치의
+3개 계약 위반을 거부했으며, raw표본이 없는ordinal2의hash만 변경해도 상태와7raw가
+통과한 채 최종gate는 실패함을 확인했다. 이번 단위는 production변경이 없다.
+증거는 `build/reports/opening-first-group-pixels-20260920/`의 source-all-frames,
+game-all-frames, all-frames.json, source-all-frames/negative-digest-contract-checks.json.
+비동기 유닛 등록 구간과 완료 이후, 자연 시계 실행 전체는 이25프레임의 범위 밖이다.
+다음은 첫 단독 이동의 전체 프레임 및 첫 대사 타이핑의 전체 화면 검증이다.

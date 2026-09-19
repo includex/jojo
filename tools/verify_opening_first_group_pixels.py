@@ -61,6 +61,13 @@ def validate(document, source=False):
         tick = ticks[capture['ordinal']]
         require(all(capture[key] == tick[key] for key in ('frame', 'delta', 'actors')), 'capture/tick identity')
         require((capture['width'], capture['height']) == (2560, 1376), 'capture dimensions')
+    digests = document['frameDigests']
+    require([row['ordinal'] for row in digests] == list(range(25)), 'every movement frame digest required')
+    for row in digests:
+        require(row['frame'] == ticks[row['ordinal']]['frame'] and (row['width'], row['height']) == (2560, 1376), 'digest frame identity')
+        require(len(row['sha256']) == 64 and all(c in '0123456789abcdef' for c in row['sha256']), 'SHA-256 digest format')
+    for capture in captures:
+        require(capture['sha256'] == digests[capture['ordinal']]['sha256'], 'raw capture and all-frame digest must agree')
     return ticks, captures
 
 
@@ -101,9 +108,12 @@ def verify(source_path, game_path):
                       scope='Entire controlled-clock first group framebuffer, all RGBA channels without excluded regions.')
         samples.append(result)
     state_equal = all(row['positionsEqual'] and row['spriteRowsEqual'] for row in states)
+    hashes = [{'ordinal': a['ordinal'], 'equal': a['sha256'] == b['sha256'],
+               'sourceSha256': a['sha256'], 'gameSha256': b['sha256']}
+              for a, b in zip(source['frameDigests'], game['frameDigests'])]
     return {'contract': 'controlled-opening-first-group-comparison/v1',
-            'equal': state_equal and all(row['equal'] for row in samples), 'stateEqual': state_equal,
-            'states': states, 'samples': samples,
+            'equal': state_equal and all(row['equal'] for row in samples) and all(row['equal'] for row in hashes), 'stateEqual': state_equal,
+            'states': states, 'samples': samples, 'frameDigests': hashes,
             'scope': 'First three-actor move under identical fixed Float32 clock. Registration subframe timing, natural frame timing, completion and subsequent groups are not proven.'}
 
 
@@ -118,5 +128,6 @@ if __name__ == '__main__':
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'equal': report['equal'], 'stateEqual': report['stateEqual'],
+                      'mismatchedFrameOrdinals': [row['ordinal'] for row in report['frameDigests'] if not row['equal']],
                       'changedPixels': {s['ordinal']: s['changedPixels'] for s in report['samples']}}))
     raise SystemExit(0 if report['equal'] else 1)

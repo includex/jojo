@@ -46,6 +46,7 @@ object OpeningFirstGroupFramesDesktopLauncher {
         directory.listFiles()?.forEach(File::delete)
         val captures = JsonValue(JsonValue.ValueType.array)
         val ticks = JsonValue(JsonValue.ValueType.array)
+        val frameDigests = JsonValue(JsonValue.ValueType.array)
         val timings = actorIds.associateWith { Timing() }
         var frame = 0
         var groupOrdinal = -1
@@ -102,7 +103,7 @@ object OpeningFirstGroupFramesDesktopLauncher {
                     val selectedActors = actorIds.sorted().map { requireNotNull(actors[it]) }
                     val renderUnits = renderUnits(game)
                     ticks.addChild(sample(groupOrdinal, frame, delta, selectedActors, playback, renderUnits))
-                    if (groupOrdinal in captureOrdinals) {
+                    run {
                         val width = Gdx.graphics.backBufferWidth
                         val height = Gdx.graphics.backBufferHeight
                         check(width == 2560 && height == 1376)
@@ -114,11 +115,20 @@ object OpeningFirstGroupFramesDesktopLauncher {
                         } finally {
                             pixels.dispose()
                         }
+                        val digest = sha256(bytes)
+                        val digestRow = JsonValue(JsonValue.ValueType.`object`)
+                        digestRow.addChild("ordinal", JsonValue(groupOrdinal.toLong()))
+                        digestRow.addChild("frame", JsonValue(frame.toLong()))
+                        digestRow.addChild("width", JsonValue(width.toLong()))
+                        digestRow.addChild("height", JsonValue(height.toLong()))
+                        digestRow.addChild("sha256", JsonValue(digest))
+                        frameDigests.addChild(digestRow)
+                        if (groupOrdinal !in captureOrdinals) return@run
                         val fileName = "game-group-${groupOrdinal.toString().padStart(3, '0')}.rgba"
                         File(directory, fileName).writeBytes(bytes)
                         val row = sample(groupOrdinal, frame, delta, selectedActors, playback, renderUnits)
                         row.addChild("file", JsonValue(fileName))
-                        row.addChild("sha256", JsonValue(sha256(bytes)))
+                        row.addChild("sha256", JsonValue(digest))
                         row.addChild("width", JsonValue(width.toLong()))
                         row.addChild("height", JsonValue(height.toLong()))
                         captures.addChild(row)
@@ -154,6 +164,7 @@ object OpeningFirstGroupFramesDesktopLauncher {
                         }
                         report.addChild("actorTimings", timingRows)
                         report.addChild("ticks", ticks)
+                        report.addChild("frameDigests", frameDigests)
                         report.addChild("captures", captures)
                         File(directory, "game-first-group.json").writeText(
                             report.prettyPrint(JsonWriter.OutputType.json, 120),
