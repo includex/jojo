@@ -415,3 +415,12 @@
 - **과거 "성공" 실행의 도착 PNG는 실제로 도착이 아니었다.** frame2809, `action=1`, 234는 이미 사망 상태의 공격 후 idle이었다. 게이트 이름을 엄격하게 바꾼 것이 잘못된 증거를 드러낸 것이다.
 - 실패 시 trace 유실도 고쳤다. `await childExit`와 존재 확인을 throw 앞으로 옮기고 `tracePreserved`를 실패 JSON에 담는다. `477-settlement-order`도 같은 모양이라 함께 고쳤다.
 - 남은 도구 문제를 기록한다. `first-normal-combat`, `next-normal-actions`, `enemy-arrival-only`은 실패 시 `screens.json`조차 쓰기 전에 throw해 trace와 기록을 모두 잃는다. 계약에 `missingCaptures`/`complete`가 없어 수정 모양이 달라 손대지 않았다. `235-hit-hold`는 어느 경로에서도 `childExit`를 기다리지 않는다. `first-round-end`와 `round2-handoff`는 **PARTIAL인데 종료 코드 0**을 낸다. 부분 성공이 성공 코드를 내면 자동 게이트가 이를 통과로 센다.
+
+## 정정 — 퇴각→숨김 차이도 포트 결함이 아니다
+
+- trace의 유닛 tuple 인덱스15에 `cc.AnimationState.time`, 즉 클립 자체 시각이 들어 있다(`electron/full-battle-trace-renderer.js:404`). 이 값으로 다시 재면 **양쪽 모두 클립 완료에서 숨긴다.** 원본은 클립 시각 **1.2500**에서 아직 보이고 다음 프레임에 숨으며 wall 구간은 1.1616초다. 포트는 클립 시각 1.2333에서 숨고 wall 구간은 1.2500초다.
+- 원본의 클립 시계는 퇴각 구간에서 뛴다. 해당 구간 `dt`에 3~22틱짜리 spike가 있어 1.25초짜리 애니메이션이 wall 1.16초에 소화된다. 따라서 wall로 잰 +0.088초는 **원본 캡처의 프레임 pacing**이지 게임 동작 차이가 아니다.
+- 클립 시계 기준으로는 오히려 포트가 1틱(16.7ms) **먼저** 숨긴다. 부호가 반대다. 원인은 `BattleDeathPresentationTimeline.kt:250`이 `now >= endsAt`로 완료하고 Cocos 2.x는 `time > duration`에서 FINISHED를 내기 때문이다. 다만 포트의 모든 애니메이션 완료 경로가 같은 `>=` 규약을 쓰므로 여기만 뒤집으면 죽음 타임라인이 나머지와 어긋난다. 16.7ms를 위해 검증된 숨김 시점들을 위험에 빠뜨리지 않는다. 기록만 한다.
+- 원본 클립 길이도 확인했다. `UIFrame.js:770-774`가 `sample=24`, `_duration = 홀드 합/24`이며 `anime23`은 6개 항목의 홀드 합 30으로 정확히 30/24 = 1.2500초다.
+- **대조 스크립트를 고쳤다.** 애니메이션 길이는 wall이 아니라 클립 시계로 판정한다. `retreat_to_hidden_s`의 wall 델타는 보고만 하고 판정하지 않으며, 대신 숨김 직전의 클립 시각을 기록한다. 이 구간의 미해결 차이는 **0이 되었다.**
+- **이 교훈은 이 프로젝트가 이미 배운 것이었다.** 위 `2턴 유비 첫 필살 공격 검증` 절에 "wall timestamp 구간 차이를 animation 길이 버그로 오인해 수정하지 않는다"가 남아 있는데 다시 걸어 들어갔다. 세션을 넘겨 남도록 별도 메모리에 기록했다.
