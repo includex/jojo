@@ -9,6 +9,7 @@ import com.jojo.game.domain.battle.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /** OtherUnitInfoLayerTest: OtherUnitInfoLayer의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
@@ -42,5 +43,21 @@ class OtherUnitInfoLayerTest {
             ),
             SettlementInfoRenderContract.sprites(SettlementInfoRenderContract.Panel.OTHER),
         )
+    }
+
+    /**
+     * 원본 `OtherUnitInfoLayer` 프리팹(60e799d9…1b511)도 `_color`를 적은 노드가 투명한
+     * `Panel_cancel`뿐이라 라벨은 기본 흰색이다. 그리기 쪽과 같은 상수를 읽는지 확인한다.
+     */
+    @Test
+    fun `other panel labels record the drawing font colour and sprites record none`() {
+        assertEquals("#ffffffff", SettlementInfoRenderContract.LABEL_COLOR)
+        val unit = BattleUnit("43", "보병 ", Faction.FRIEND, 10, 17, 119, 119, 11, 11, level = 1)
+        val rows = OtherUnitInfoRenderEvents.jsonl(OtherUnitInfoLayer().onCreate(unit, "경보병"))
+            .lineSequence().filter { it.isNotBlank() }.toList()
+        val labels = rows.filter { it.contains("\"drawType\":\"label\"") }
+        assertEquals(10, labels.size)
+        assertTrue(labels.all { it.contains("\"color\":\"${SettlementInfoRenderContract.LABEL_COLOR}\"") })
+        assertTrue(rows.filterNot { it.contains("\"drawType\":\"label\"") }.all { it.contains("\"color\":null") })
     }
 }

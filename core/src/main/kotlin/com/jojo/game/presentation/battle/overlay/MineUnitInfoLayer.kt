@@ -30,6 +30,12 @@ class MineUnitInfoLayer {
 
         val exp: Int, val maxExp: Int, val weaponExp: Int, val armorExp: Int,
         /**
+         * `maxWeaponExp`/`maxArmorExp`: 원본 `MineUnitInfoLayer.js:77,83`의 `I`/`L`이다.
+         * 장비의 `expLimit()`이며 장비가 없으면 100이다. 값이 상한과 같은 줄만 "MAX"로 바뀐다.
+         */
+
+        val maxWeaponExp: Int, val maxArmorExp: Int,
+        /**
          * `attached` (Boolean, val completionDelay: Float,): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
@@ -60,7 +66,7 @@ class MineUnitInfoLayer {
         this.completion = completion
         return View(
             displayName, unit.level, post, unit.hitPoints, unit.maxHitPoints, unit.magicPoints, unit.maxMagicPoints,
-            0, 100, 0, 0, true, .3f
+            0, 100, 0, 0, 100, 100, true, .3f
         ).also { current = it }
     }
 
@@ -122,7 +128,11 @@ object MineUnitInfoRenderEvents {
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
-        fun t(path: String, x: Float, y: Float, w: Float, h: Float = 54.4f, text: String) = l.draw(
+        fun t(
+            path: String, x: Float, y: Float, w: Float, h: Float = 54.4f, text: String,
+            // 무기·방어구 경험치 줄만 상한에 닿았을 때 색이 바뀐다.
+            color: String = SettlementInfoRenderContract.LABEL_COLOR,
+        ) = l.draw(
             p,
             "MineUnitInfoLayer",
             path,
@@ -132,7 +142,9 @@ object MineUnitInfoRenderEvents {
             w,
             h,
             blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"),
-            text = text
+            text = text,
+            // 그리기 쪽 `drawSettlementOverlays`가 글꼴에 넣는 것과 같은 상수다.
+            color = color,
         )
         l.draw(
             p,
@@ -228,7 +240,8 @@ object MineUnitInfoRenderEvents {
             97.8f,
             22.25f,
             50.4f,
-            v.weaponExp.toString()
+            SettlementInfoRenderContract.equipmentExperienceText(v.weaponExp, v.maxWeaponExp),
+            SettlementInfoRenderContract.equipmentExperienceColor(v.weaponExp, v.maxWeaponExp),
         )
         s("Canvas/Layer/bg/Mark_62-1", "sprite", 919.5f, 107f, 32f, 32f, "Mark_62-1"); t(
             "Canvas/Layer/bg/label4",
@@ -236,7 +249,8 @@ object MineUnitInfoRenderEvents {
             97.8f,
             22.25f,
             50.4f,
-            v.armorExp.toString()
+            SettlementInfoRenderContract.equipmentExperienceText(v.armorExp, v.maxArmorExp),
+            SettlementInfoRenderContract.equipmentExperienceColor(v.armorExp, v.maxArmorExp),
         )
         return l.jsonl()
     }

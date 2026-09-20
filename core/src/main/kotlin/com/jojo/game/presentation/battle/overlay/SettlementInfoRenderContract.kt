@@ -67,6 +67,42 @@ object SettlementInfoRenderContract {
     }
 
     /**
+     * `LABEL_COLOR`: 두 패널의 모든 라벨 글자색이다.
+     *
+     * 원본 프리팹 `MineUnitInfoLayer`(dd2699f7…528ab)와 `OtherUnitInfoLayer`(60e799d9…1b511)에서
+     * `_color`를 적어 둔 노드는 투명한 `Panel_cancel`(opacity 0) 하나뿐이고, 라벨 노드에는
+     * `_color`가 없어 `cc.Label` 기본값인 흰색이다. 글자 주위의 `cc.LabelOutline._color`는
+     * 별도 값(대부분 검정, 이름 라벨만 (192,80,0))이라 노드 색과 섞지 않는다.
+     *
+     * 그리기 쪽 `BattleScreen.drawSettlementOverlays`와 `Mine/OtherUnitInfoRenderEvents`가
+     * 같은 상수를 읽으므로 화면과 증거가 갈라질 수 없다.
+     */
+    const val LABEL_COLOR = "#ffffffff"
+
+    /**
+     * `MAX_LABEL_COLOR`: 무기·방어구 경험치 라벨(label3/label4)이 상한에 닿았을 때의 글자색이다.
+     *
+     * 원본 `recovered-js/modules/ui/MineUnitInfoLayer.js:173-176`이 `T >= 3 && A[0] == A[1]`인 줄에만
+     * `x.string = "MAX"`와 `x.node.color = cc.color(17, 17, 251)`을 준다. 17/17/251 = `#1111fb`.
+     * 프리팹에는 없는 값이라 원본 코드가 유일한 출처다.
+     *
+     * 그리기 쪽 `BattleScreen.drawSettlementOverlays`와 `MineUnitInfoRenderEvents`가 같은 상수를
+     * 읽으므로 화면과 증거가 갈라질 수 없다.
+     */
+    const val MAX_LABEL_COLOR = "#1111fbff"
+
+    /** 원본 `MineUnitInfoLayer.js:173`의 `T >= 3 && A[0] == A[1]` 판정이다. */
+    fun equipmentExperienceMaxed(value: Int, limit: Int) = value == limit
+
+    /** 원본 `MineUnitInfoLayer.js:173-176`이 label3/label4에 쓰는 글자다. */
+    fun equipmentExperienceText(value: Int, limit: Int) =
+        if (equipmentExperienceMaxed(value, limit)) "MAX" else value.toString()
+
+    /** 원본 `MineUnitInfoLayer.js:175`가 label3/label4 노드에 주는 색이다. */
+    fun equipmentExperienceColor(value: Int, limit: Int) =
+        if (equipmentExperienceMaxed(value, limit)) MAX_LABEL_COLOR else LABEL_COLOR
+
+    /**
      * `BG2` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */

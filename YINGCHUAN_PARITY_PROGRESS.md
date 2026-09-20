@@ -590,3 +590,24 @@
 - 원본의 검정 행 하나는 `Canvas/Layer/Panel_cancel`(불투명도30 스크림)이고 포트도 색을 싣지 않아 한쪽뿐이라 건너뛴다.
 - **따라서 메뉴 라벨 수정은 캡처가 아니라 게이트로 검증됐다.** 수정 전이었다면 이 게이트가 검정 대 흰색으로 실패했을 것이다.
 - **한계를 분명히 한다.** 포트는 지금 `BattleMenuRenderEvents`의 세 라벨에만 색을 싣는다. 다른 모든 행은 한쪽뿐이라 건너뛰어지므로 **색 비교는 이 fixture 하나에만 무장돼 있다.** 다른 상태로 넓히려면 각 recorder가 색을 실어야 한다.
+
+## 정산 패널의 색 기록과 MAX 규칙
+
+- 색 비교를 정산 패널로 넓히려면 "이 라벨이 무슨 색으로 그려지는가"를 코드에서 추적해야 했고, **그 과정에서 색이 아닌 결함이 드러났다.**
+- 원본 `recovered-js/modules/ui/MineUnitInfoLayer.js:159`는 `F = [[hp,hpMax],[mp,mpMax],[exp,expLimit],[E,I],[N,L]]`을 만들고 `:173-176`에서 `T >= 3 && A[0] == A[1]`이면 라벨을 `"MAX"`로 바꾸고 `cc.color(17,17,251)`(`#1111fb`, 파랑)로 칠한다. 대상은 index 3(label3, 무기 경험치)과 4(label4, 방어구 경험치)다. `>=`가 아니라 `==`이며 그대로 옮겼다.
+- 포트의 실제 경로는 항상 흰색 숫자를 그렸고 한계 검사가 없었다. 더구나 **한계를 그 자리에서 100으로 하드코딩**하고 있어 비교 자체가 불가능했다. `GameDataCatalog.equipmentExperienceLimit`과 `campaign.inventory.equippedItems()`로 실제 한계를 끌어오도록 배선했다. 장비가 없으면 원본 `:77,83`처럼 100으로 떨어진다.
+- 색은 그리기와 기록이 **같은 상수**를 읽는다. `SettlementInfoRenderContract`에 `LABEL_COLOR = "#ffffffff"`와 `MAX_LABEL_COLOR = "#1111fbff"`, 그리고 `equipmentExperienceMaxed/Text/Color` 도우미를 두어 두 경로가 갈라질 수 없게 했다.
+- **스프라이트 행에는 색을 싣지 않는다.** 포트는 텍스처의 제 색을 그대로 그리고 tint를 적용하지 않으므로 `#ffffffff`를 적는 것은 우연히 맞는 거짓말이다. 비교기는 한쪽뿐인 행을 건너뛰므로 이 쪽이 정직하다.
+- 두 prefab(`import/dd/dd2699f7-…`, `import/60/60e799d9-…`)을 해독해 `_color`를 가진 노드는 `Panel_cancel`(검정, 불투명도0) 하나뿐임을 확인했다. **정적 prefab 대비 색 불일치는 없다.** 이번 결함은 prefab이 아니라 런타임 규칙이다.
+
+### 영천전투에서는 관측할 수 없다
+
+- 실제 `maps/data/config.bin`은 `comEquip {lvLimit 3, expLimit 100, upgrade 5}`, `speEquip {lvLimit 9, expLimit 100, upgrade 7}`이다. `R_00.py:2471-2472`의 `setJoinEquip(0, 33, 0, 0, 0, 0)`으로 조조는 무기 33(의천검, speEquip)만 들고 **방어구는 장착하지 않는다.** 방어구 경험치는 애초에 움직이지 않는다.
+- 무기 MAX는 레벨9에 경험치150, 누적 약1000이 필요해 공격 334회 이상이고 S_00의 20턴 상한과 플레이어 유닛 하나로는 닿지 않는다. 직접 전투 경로(단검·가죽 갑옷, comEquip)로도 약67회가 필요하다.
+- **따라서 이 분기는 캡처로 검증할 수 없고 단위 테스트와 렌더 이벤트 기록만이 근거다.** 이 구분을 남겨 다음 사람이 "검증됐다"고 오해하지 않게 한다.
+
+### 회귀 확인
+
+- 한계를 하드코딩 100에서 실제 값으로 바꾼 것이 막대 길이를 바꿀 위험이 있었다. `SettlementRow.max`는 라벨 텍스트에만 쓰이고 막대 비율은 `maxHitPoints`/`maxMagicPoints`와 성장 grant에서 오며, diff의 `progress`는 주석 한 줄뿐이다. WQ/HJ 행은 max를 출력하지 않는다.
+- 실제 재실행에서 OTHER 패널의 차이는 HP 숫자가 애니메이션 중 다른 시점에 잡힌 `119/119` 대 `116/119`뿐이고 막대 길이는 같다. OTHER 패널에는 label3/label4가 없어 애초에 영향 밖이다.
+- **`BattleScreen`의 그리기 변경은 커밋하지 않는다.** 진행 중인 정산 재작업과 같은 hunk에서 세 번 충돌해 분리하면 남의 미완성 변경을 함께 담게 된다. 이번 커밋에는 `SettlementInfoRenderContract`의 상수·도우미와 두 recorder, 그리고 테스트만 담는다.

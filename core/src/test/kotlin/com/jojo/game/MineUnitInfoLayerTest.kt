@@ -30,4 +30,57 @@ class MineUnitInfoLayerTest {
   )
   assertEquals(4,sprites.count{it.capInset>0})
  }
+
+ /**
+  * 원본 `MineUnitInfoLayer` 프리팹(dd2699f7…528ab)에서 `_color`를 적은 노드는 투명한
+  * `Panel_cancel` 하나뿐이라 라벨은 모두 `cc.Label` 기본 흰색이다. 그리기 쪽
+  * `drawSettlementOverlays`와 이 증거 로그가 같은 상수를 읽는지 확인한다.
+  */
+ @Test fun `mine panel labels record the drawing font colour and sprites record none`(){
+  assertEquals("#ffffffff",SettlementInfoRenderContract.LABEL_COLOR)
+  val u=BattleUnit("43","보병 ",Faction.FRIEND,10,17,119,119,11,11,level=1)
+  val rows=MineUnitInfoRenderEvents.jsonl(MineUnitInfoLayer().onCreate(u,"경보병"))
+   .lineSequence().filter{it.isNotBlank()}.toList()
+  val labels=rows.filter{it.contains("\"drawType\":\"label\"")}
+  assertEquals(15,labels.size)
+  assertTrue(labels.all{it.contains("\"color\":\"${SettlementInfoRenderContract.LABEL_COLOR}\"")})
+  // 판때기·막대는 원본 텍스처 색 그대로 그리고 물들이지 않으므로 색을 적지 않는다.
+  assertTrue(rows.filterNot{it.contains("\"drawType\":\"label\"")}.all{it.contains("\"color\":null")})
+ }
+
+ /**
+  * 원본 `recovered-js/modules/ui/MineUnitInfoLayer.js:173-176`:
+  * `T >= 3 && A[0] == A[1]`인 줄(무기 경험치 label3, 방어구 경험치 label4)만
+  * 글자가 "MAX"가 되고 노드 색이 `cc.color(17, 17, 251)`이 된다. 나머지는 숫자에 기본 흰색이다.
+  */
+ @Test fun `equipment exp rows read MAX in blue only at the limit`(){
+  assertEquals("#1111fbff",SettlementInfoRenderContract.MAX_LABEL_COLOR)
+  val u=BattleUnit("43","보병 ",Faction.FRIEND,10,17,119,119,11,11,level=1)
+  val base=MineUnitInfoLayer().onCreate(u,"경보병")
+
+  /** label3/label4 두 줄의 (글자, 색)을 증거 로그에서 뽑는다. */
+  fun equipRows(v:MineUnitInfoLayer.View)=MineUnitInfoRenderEvents.jsonl(v).lineSequence()
+   .filter{it.contains("Canvas/Layer/bg/label3\"")||it.contains("Canvas/Layer/bg/label4\"")}
+   .map{row->Regex("\"text\":\"([^\"]*)\"").find(row)!!.groupValues[1] to Regex("\"color\":\"([^\"]*)\"").find(row)!!.groupValues[1]}
+   .toList()
+
+  // 상한에 닿지 않은 줄: 현재 값을 그대로, 다른 라벨과 같은 흰색으로 적는다.
+  assertEquals(
+   listOf("17" to SettlementInfoRenderContract.LABEL_COLOR,"199" to SettlementInfoRenderContract.LABEL_COLOR),
+   equipRows(base.copy(weaponExp=17,maxWeaponExp=200,armorExp=199,maxArmorExp=200)),
+  )
+  // 값이 상한과 같은 줄만 "MAX"에 파란색이다.
+  assertEquals(
+   listOf("MAX" to SettlementInfoRenderContract.MAX_LABEL_COLOR,"0" to SettlementInfoRenderContract.LABEL_COLOR),
+   equipRows(base.copy(weaponExp=200,maxWeaponExp=200,armorExp=0,maxArmorExp=100)),
+  )
+  assertEquals(
+   listOf("MAX" to SettlementInfoRenderContract.MAX_LABEL_COLOR,"MAX" to SettlementInfoRenderContract.MAX_LABEL_COLOR),
+   equipRows(base.copy(weaponExp=250,maxWeaponExp=250,armorExp=100,maxArmorExp=100)),
+  )
+  // 체력·내공·경험치 줄(T < 3)은 값이 상한과 같아도 숫자와 흰색을 지킨다.
+  val full=MineUnitInfoRenderEvents.jsonl(base).lineSequence()
+   .filter{it.contains("Canvas/Layer/bg/p0/label0\"")}.single()
+  assertTrue(full.contains("\"text\":\"119\"")&&full.contains("\"color\":\"${SettlementInfoRenderContract.LABEL_COLOR}\""))
+ }
 }

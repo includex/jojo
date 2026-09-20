@@ -122,7 +122,9 @@ object OtherUnitInfoRenderEvents {
         fun label(path: String, x: Float, y: Float, w: Float, text: String) =
             log.draw(
                 phase, "OtherUnitInfoLayer", path, "label", x, y, w, 54.4f,
-                blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), text = text
+                blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), text = text,
+                // 그리기 쪽 `drawSettlementOverlays`가 글꼴에 넣는 것과 같은 상수다.
+                color = SettlementInfoRenderContract.LABEL_COLOR,
             )
 
         log.draw(
