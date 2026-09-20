@@ -361,4 +361,34 @@ object TerrainLayerChromeRenderContract {
             text,
         )
     }
+
+    /**
+     * `RISE_COLORS`: 병종 적합도 기호 여섯 단계의 글자색이다.
+     *
+     * 원본 `battle/TerrainLayer.js:110`이 기호 목록 `["★","◎","○","△","×","--"]`와 나란히 든
+     * `[cc.color(240,144,32), cc.color(240,96,0), cc.color(0,144,0), cc.color(0,0,160),
+     * cc.color(112,64,128), cc.color(32,32,32)]`을 그대로 옮긴 것이다. 같은 줄 아래
+     * `a.node.color = T[i]`가 등급별로 이 색을 준다.
+     *
+     * 포트는 이 값을 0~1 실수로 근사해 두어 네 단계가 채널마다 1씩 어긋났고(예: ★이
+     * (240,143,33)), 마지막 `--` 단계는 (199,199,199)로 아예 달랐다. 증거가 색을 적지
+     * 않아 비교기가 그 행을 건너뛰었으므로 어떤 게이트도 떨어지지 않았다.
+     */
+    val RISE_COLORS = listOf("#f09020", "#f06000", "#009000", "#0000a0", "#704080", "#202020")
+
+    /** 등급 색: 등급이 없는 칸(기동력 소모 표)은 마지막 단계와 같은 색으로 둔다. */
+    fun riseColor(grade: Int?): String = RISE_COLORS.getOrElse(grade ?: RISE_COLORS.lastIndex) { RISE_COLORS.last() }
+
+    /**
+     * `ROW_NAME_COLOR`: 지형 이름 글자색이다.
+     *
+     * 원본 `battle/TerrainLayer.js:102`는 `label`에 문자열만 넣고 노드 색을 건드리지 않는다.
+     * 프리팹 기본값이라 하네스는 검정을 낸다. 포트는 짝/홀 행을 크림색(255,240,199)과
+     * 회색(219,219,219)으로 그리고 있었다.
+     */
+    const val ROW_NAME_COLOR = "#000000"
+
+    /** 표 제목과 열 머리글 색: 원본도 노드 색을 두지 않아 프리팹 기본 검정이다. */
+    const val HEADER_COLOR = "#000000"
+
 }

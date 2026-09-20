@@ -58,11 +58,12 @@ object TerrainLayerRenderEvents {
 
         fun draw(
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
-            asset: String? = null, text: String = "", blend: Any = listOf(770, 771), opacity: Float = 1f
+            asset: String? = null, text: String = "", blend: Any = listOf(770, 771), opacity: Float = 1f,
+            color: String? = null
         ) =
             log.draw(
                 phase, if (path == "Canvas/Layer/Panel_cancel") "HallLayer" else layer,
-                path, type, x, y, w, h, asset, opacity, blend, true, text
+                path, type, x, y, w, h, asset, opacity, blend, true, text, color
             )
 
         /**
@@ -80,16 +81,19 @@ object TerrainLayerRenderEvents {
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
-        fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
-            draw(path, "label", x, y, w, h, text = text, blend = alphaBlend)
+        fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String, color: String) =
+            draw(path, "label", x, y, w, h, text = text, blend = alphaBlend, color = color)
 
         /**
          * `labelBox`: 계약이 들고 있는 문구 상자를 그대로 그리기 항목으로 옮긴다.
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
-        fun labelBox(path: String, box: TerrainLayerChromeRenderContract.Box, text: String) =
-            label(path, box.x, box.y, box.width, box.height, text)
+        fun labelBox(
+            path: String, box: TerrainLayerChromeRenderContract.Box, text: String,
+            // 그리기 쪽 `BattleTerrainOverlayRenderer`가 글꼴에 넣는 것과 같은 계약이다.
+            color: String = chrome.HEADER_COLOR,
+        ) = label(path, box.x, box.y, box.width, box.height, text, color)
 
         drawBox(
             "Canvas/Layer/Panel_cancel", "sprite", chrome.dimmer,
@@ -113,13 +117,19 @@ object TerrainLayerRenderEvents {
             if (rowIndex < chrome.ROW_ICON_COUNT) {
                 drawBox("$base/icon", "sprite", chrome.rowIconBox(rowIndex), row.iconIndex.toString())
             }
-            labelBox("$base/label", chrome.rowNameBox(rowIndex, row.terrainName.length), row.terrainName)
+            labelBox(
+                "$base/label", chrome.rowNameBox(rowIndex, row.terrainName.length), row.terrainName,
+                chrome.ROW_NAME_COLOR,
+            )
             if (rowIndex >= chrome.ROW_ICON_COUNT) return@forEachIndexed
             row.enabledSkills.forEachIndexed { index, _ ->
                 drawBox("$base/skill/skill_$index", "sprite", chrome.skillBox(rowIndex, index), "${index + 1}-1")
             }
             row.values.forEachIndexed { index, value ->
-                labelBox("$base/label$index", chrome.valueBox(rowIndex, index, value.text), value.text)
+                labelBox(
+                    "$base/label$index", chrome.valueBox(rowIndex, index, value.text), value.text,
+                    chrome.riseColor(value.grade),
+                )
             }
         }
 

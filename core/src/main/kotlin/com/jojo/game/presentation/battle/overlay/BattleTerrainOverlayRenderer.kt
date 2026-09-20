@@ -96,7 +96,8 @@ class BattleTerrainOverlayRenderer(
             batch.draw(it, box.x, box.y, box.width, box.height)
         }
         setFontSize(chrome.ROW_NAME_FONT_SIZE)
-        font.color = if (even) Color(1f, 0.94f, 0.78f, 1f) else Color(0.86f, 0.86f, 0.86f, 1f)
+        // 원본은 이름 라벨의 노드 색을 건드리지 않아 프리팹 기본 검정이다.
+        font.color = Color.valueOf("${chrome.ROW_NAME_COLOR}ff")
         drawText(row.terrainName, chrome.rowNameBox(index, row.terrainName.length))
         setFontSize(chrome.VALUE_FONT_SIZE)
         row.enabledSkills.forEachIndexed { bit, enabled ->
@@ -104,14 +105,8 @@ class BattleTerrainOverlayRenderer(
             drawText(if (enabled) "●" else "○", chrome.skillBox(index, bit))
         }
         row.values.forEachIndexed { armIndex, value ->
-            font.color = when (value.grade) {
-                0 -> Color(0.94f, 0.56f, 0.13f, 1f)
-                1 -> Color(0.94f, 0.38f, 0f, 1f)
-                2 -> Color(0f, 0.56f, 0f, 1f)
-                3 -> Color(0f, 0f, 0.63f, 1f)
-                4 -> Color(0.44f, 0.25f, 0.5f, 1f)
-                else -> Color(0.78f, 0.78f, 0.78f, 1f)
-            }
+            // 등급별 색은 원본 `TerrainLayer.js:110`의 목록을 그대로 든 계약에서 읽는다.
+            font.color = Color.valueOf("${chrome.riseColor(value.grade)}ff")
             drawText(value.text, chrome.valueBox(index, armIndex, value.text))
         }
     }
