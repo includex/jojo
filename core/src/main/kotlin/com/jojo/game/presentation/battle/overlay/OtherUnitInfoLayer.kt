@@ -110,8 +110,31 @@ object OtherUnitInfoRenderEvents {
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
-        fun sprite(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String) =
-            log.draw(phase, "OtherUnitInfoLayer", path, type, x, y, w, h, asset)
+        // 막대 비율: 원본 `cc.ProgressBar.progress`와 같은 0~1이다.
+        fun progress(value: Int, max: Int): Float =
+            (value.coerceAtLeast(0).toFloat() / max.coerceAtLeast(1)).coerceIn(0f, 1f)
+
+        /**
+         * 스프라이트 기하는 그리기 쪽 `drawSettlementOverlays`가 읽는 것과 **같은 계약**에서
+         * 순서대로 꺼낸다. 앞서는 이 증거표가 좌표를 따로 적어 두어, 두 값이 각자 맞으면
+         * 어긋남이 드러나지 않았다. 순서나 개수가 맞지 않으면 여기서 터진다.
+         */
+        val geometry = SettlementInfoRenderContract
+            .sprites(SettlementInfoRenderContract.Panel.OTHER).iterator()
+
+        /**
+         * `sprite`: 타입의 핵심 동작을 수행한다.
+         *
+         * `ratio`는 값에 따라 길이가 변하는 막대만 준다. 계약이 든 폭은 가득 찼을 때의 길이다.
+         */
+        fun sprite(path: String, type: String, asset: String, ratio: Float? = null) {
+            val g = geometry.next()
+            val w = if (ratio == null) g.width else g.width * ratio
+            log.draw(
+                phase, "OtherUnitInfoLayer", path, type, g.x, g.y, w, g.height, asset,
+                color = SettlementInfoRenderContract.SPRITE_WHITE,
+            )
+        }
 
 
         /**
@@ -127,26 +150,29 @@ object OtherUnitInfoRenderEvents {
                 color = SettlementInfoRenderContract.LABEL_COLOR,
             )
 
+        // 배경 지도와 메뉴 단추도 색조가 없다. 지도는 `BattleMapRenderer`가, 단추는
+        // `drawBattleHudChrome`이 각각 `batch.color = Color.WHITE`로 그린다.
         log.draw(
             phase, "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite",
             -320f, -96f, 1920f, 1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>",
+            color = SettlementInfoRenderContract.SPRITE_WHITE,
         )
         log.draw(
             phase, "HallLayer", "Canvas/Layer/menu_button/Background", "sprite",
-            1353.953f, 8f, 60f, 60f, "menu"
+            1353.953f, 8f, 60f, 60f, "menu", color = SettlementInfoRenderContract.SPRITE_WHITE,
         )
-        sprite("Canvas/Layer/bg", "sprite", 736f, 96f, 471f, 193.5f, "bg2")
-        sprite("Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 471f, 193f, "box1")
-        sprite("Canvas/Layer/bg/terrain0", "sprite", 747.5f, 179.75f, 48f, 40f, "Mark_7-1")
-        sprite("Canvas/Layer/bg/p0", "sliced-sprite", 808.5f, 177.75f, 374f, 24f, "default_scrollbar_bg")
-        sprite("Canvas/Layer/bg/p0/bar", "sliced-sprite", 810.5f, 179.75f, 370f, 20f, "Mark_3-1")
+        sprite("Canvas/Layer/bg", "sprite", "bg2")
+        sprite("Canvas/Layer/bg/box3", "sliced-sprite", "box1")
+        sprite("Canvas/Layer/bg/terrain0", "sprite", "Mark_7-1")
+        sprite("Canvas/Layer/bg/p0", "sliced-sprite", "default_scrollbar_bg")
+        sprite("Canvas/Layer/bg/p0/bar", "sliced-sprite", "Mark_3-1", ratio = progress(view.hp, view.maxHp))
         label("Canvas/Layer/bg/p0/label0", 906.73f, 174.55f, 67.77f, view.hp.toString())
         label("Canvas/Layer/bg/p0/label1", 1016.5f, 174.55f, 67.77f, view.maxHp.toString())
         label("Canvas/Layer/bg/p0/label", 987.945f, 174.55f, 15.11f, "/")
-        sprite("Canvas/Layer/bg/terrain0", "sprite", 746.5f, 121.75f, 48f, 48f, "Mark_8-1")
-        sprite("Canvas/Layer/bg/p1", "sliced-sprite", 808.5f, 119.75f, 374f, 24f, "default_scrollbar_bg")
-        sprite("Canvas/Layer/bg/p1/bar", "sliced-sprite", 810.5f, 121.75f, 370f, 20f, "Mark_2-1")
+        sprite("Canvas/Layer/bg/terrain0", "sprite", "Mark_8-1")
+        sprite("Canvas/Layer/bg/p1", "sliced-sprite", "default_scrollbar_bg")
+        sprite("Canvas/Layer/bg/p1/bar", "sliced-sprite", "Mark_2-1", ratio = progress(view.mp, view.maxMp))
         label("Canvas/Layer/bg/p1/label", 987.945f, 116.55f, 15.11f, "/")
         label("Canvas/Layer/bg/p1/label0", 928.98f, 116.55f, 45.52f, view.mp.toString())
         label("Canvas/Layer/bg/p1/label1", 1016.5f, 116.55f, 45.52f, view.maxMp.toString())
@@ -154,6 +180,7 @@ object OtherUnitInfoRenderEvents {
         label("Canvas/Layer/bg/label", 912.256f, 226.815f, 46.25f, "Lv")
         label("Canvas/Layer/bg/label1", 1005.002f, 226.815f, 26.25f, view.level.toString())
         label("Canvas/Layer/bg/label2", 1049.3f, 226.85f, 147.6f, view.post)
+        require(!geometry.hasNext()) { "그리기 계약의 스프라이트가 증거보다 많다" }
         return log.jsonl()
     }
 }

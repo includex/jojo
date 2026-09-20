@@ -80,6 +80,17 @@ object SettlementInfoRenderContract {
     const val LABEL_COLOR = "#ffffffff"
 
     /**
+     * `SPRITE_WHITE`: 두 패널의 모든 스프라이트 색조다.
+     *
+     * 그리기 쪽 `BattleScreen.drawSettlementOverlays`는 `batch.color = Color.WHITE`를 세우고
+     * 패널이 끝날 때까지 바꾸지 않으므로 흰 색조는 포트가 실제로 아는 값이다. 원본 프리팹의
+     * 이 노드들도 `_color`가 없어 `cc.Sprite` 기본 흰색이고, 하네스도 `#ffffff`를 낸다.
+     * 증거에 적지 않으면 비교기가 한쪽만 있는 색을 건너뛰어 색조가 들어가도 아무 게이트가
+     * 떨어지지 않는다.
+     */
+    const val SPRITE_WHITE = "#ffffff"
+
+    /**
      * `MAX_LABEL_COLOR`: 무기·방어구 경험치 라벨(label3/label4)이 상한에 닿았을 때의 글자색이다.
      *
      * 원본 `recovered-js/modules/ui/MineUnitInfoLayer.js:173-176`이 `T >= 3 && A[0] == A[1]`인 줄에만

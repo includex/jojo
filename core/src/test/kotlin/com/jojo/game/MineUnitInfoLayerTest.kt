@@ -44,8 +44,12 @@ class MineUnitInfoLayerTest {
   val labels=rows.filter{it.contains("\"drawType\":\"label\"")}
   assertEquals(15,labels.size)
   assertTrue(labels.all{it.contains("\"color\":\"${SettlementInfoRenderContract.LABEL_COLOR}\"")})
-  // 판때기·막대는 원본 텍스처 색 그대로 그리고 물들이지 않으므로 색을 적지 않는다.
-  assertTrue(rows.filterNot{it.contains("\"drawType\":\"label\"")}.all{it.contains("\"color\":null")})
+  // 판때기·막대도 색을 적는다. 그리기 쪽 `drawSettlementOverlays`가 `batch.color = Color.WHITE`를
+  // 세우고 패널이 끝날 때까지 바꾸지 않으므로 흰 색조는 포트가 실제로 아는 값이다. 비워 두면
+  // 비교기가 그 행을 건너뛰어 색조가 들어가도 아무 게이트가 떨어지지 않는다.
+  assertTrue(rows.filterNot{it.contains("\"drawType\":\"label\"")}
+   .all{it.contains("\"color\":\"${SettlementInfoRenderContract.SPRITE_WHITE}\"")})
+  assertTrue(rows.none{it.contains("\"color\":null")})
  }
 
  /**

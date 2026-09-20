@@ -58,6 +58,10 @@ class OtherUnitInfoLayerTest {
         val labels = rows.filter { it.contains("\"drawType\":\"label\"") }
         assertEquals(10, labels.size)
         assertTrue(labels.all { it.contains("\"color\":\"${SettlementInfoRenderContract.LABEL_COLOR}\"") })
-        assertTrue(rows.filterNot { it.contains("\"drawType\":\"label\"") }.all { it.contains("\"color\":null") })
+        // 판때기·막대도 색을 적는다. 그리기 쪽이 `batch.color = Color.WHITE`를 세우고 패널이
+        // 끝날 때까지 바꾸지 않으므로 흰 색조는 포트가 실제로 아는 값이다.
+        assertTrue(rows.filterNot { it.contains("\"drawType\":\"label\"") }
+            .all { it.contains("\"color\":\"${SettlementInfoRenderContract.SPRITE_WHITE}\"") })
+        assertTrue(rows.none { it.contains("\"color\":null") })
     }
 }

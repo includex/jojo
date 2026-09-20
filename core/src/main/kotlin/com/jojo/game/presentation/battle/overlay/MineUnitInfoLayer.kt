@@ -119,8 +119,34 @@ object MineUnitInfoRenderEvents {
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
-        fun s(path: String, type: String, x: Float, y: Float, w: Float, h: Float, a: String) =
-            l.draw(p, "MineUnitInfoLayer", path, type, x, y, w, h, a)
+        /**
+         * 스프라이트 기하는 그리기 쪽 `drawSettlementOverlays`가 읽는 것과 **같은 계약**에서
+         * 순서대로 꺼낸다. 앞서는 이 증거표가 좌표를 따로 적어 두어, 그리기가 경험치 아이콘을
+         * 2px 크게 그려도 두 값이 각자 맞아 어떤 게이트도 떨어지지 않았다. 순서가 어긋나거나
+         * 개수가 맞지 않으면 여기서 터진다.
+         */
+        // 막대 비율: 원본 `cc.ProgressBar.progress`와 같은 0~1이다.
+        fun progress(value: Int, max: Int): Float =
+            (value.coerceAtLeast(0).toFloat() / max.coerceAtLeast(1)).coerceIn(0f, 1f)
+
+        val geometry = SettlementInfoRenderContract
+            .sprites(SettlementInfoRenderContract.Panel.MINE).iterator()
+
+        /**
+         * `s`: 타입의 핵심 동작을 수행한다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         *
+         * `ratio`는 값에 따라 길이가 변하는 막대만 준다. 계약이 든 폭은 가득 찼을 때의
+         * 길이이고, 그리기 쪽도 그 막대들만 계약의 폭을 쓰지 않고 따로 덮는다.
+         */
+        fun s(path: String, type: String, a: String, ratio: Float? = null) {
+            val g = geometry.next()
+            val w = if (ratio == null) g.width else g.width * ratio
+            // 색: 그리기 쪽은 `batch.color = Color.WHITE`를 세우고 패널이 끝날 때까지 바꾸지
+            // 않으므로 흰 색조는 포트가 실제로 아는 값이다. 원본 프리팹의 이 노드들도 `_color`가
+            // 없어 엔진 기본 흰색이다.
+            l.draw(p, "MineUnitInfoLayer", path, type, g.x, g.y, w, g.height, a, color = SettlementInfoRenderContract.SPRITE_WHITE)
+        }
 
 
         /**
@@ -155,27 +181,17 @@ object MineUnitInfoRenderEvents {
             -96f,
             1920f,
             1920f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>",
+            // 배경 지도와 메뉴 단추도 색조가 없다. 지도는 `BattleMapRenderer`가, 단추는
+            // `drawBattleHudChrome`이 각각 `batch.color = Color.WHITE`로 그린다.
+            color = SettlementInfoRenderContract.SPRITE_WHITE,
         )
-        l.draw(p, "HallLayer", "Canvas/Layer/menu_button/Background", "sprite", 1353.953f, 8f, 60f, 60f, "menu")
-        s("Canvas/Layer/bg", "sprite", 736f, 96f, 471f, 258f, "bg2"); s(
-            "Canvas/Layer/bg/box3",
-            "sliced-sprite",
-            736f,
-            96f,
-            471f,
-            257.5f,
-            "box1"
+        l.draw(
+            p, "HallLayer", "Canvas/Layer/menu_button/Background", "sprite", 1353.953f, 8f, 60f, 60f, "menu",
+            color = SettlementInfoRenderContract.SPRITE_WHITE,
         )
-        s("Canvas/Layer/bg/terrain0", "sprite", 747.5f, 251f, 48f, 40f, "Mark_7-1"); s(
-            "Canvas/Layer/bg/p0",
-            "sliced-sprite",
-            805.5f,
-            249f,
-            374f,
-            24f,
-            "default_progressbar_bg"
-        ); s("Canvas/Layer/bg/p0/bar", "sliced-sprite", 807.5f, 251f, 370f, 20f, "Mark_3-1")
+        s("Canvas/Layer/bg", "sprite", "bg2"); s("Canvas/Layer/bg/box3", "sliced-sprite", "box1")
+        s("Canvas/Layer/bg/terrain0", "sprite", "Mark_7-1"); s("Canvas/Layer/bg/p0", "sliced-sprite", "default_progressbar_bg"); s("Canvas/Layer/bg/p0/bar", "sliced-sprite", "Mark_3-1", ratio = progress(v.hp, v.maxHp))
         t(
             "Canvas/Layer/bg/p0/label1",
             1015.5f,
@@ -189,15 +205,7 @@ object MineUnitInfoRenderEvents {
             67.77f,
             text = v.hp.toString()
         ); t("Canvas/Layer/bg/p0/label", 984.945f, 245.8f, 15.11f, text = "/")
-        s("Canvas/Layer/bg/terrain0", "sprite", 747.5f, 200f, 48f, 48f, "Mark_8-1"); s(
-            "Canvas/Layer/bg/p1",
-            "sliced-sprite",
-            805.5f,
-            198f,
-            374f,
-            24f,
-            "default_progressbar_bg"
-        ); s("Canvas/Layer/bg/p1/bar", "sliced-sprite", 807.5f, 200f, 370f, 20f, "Mark_2-1")
+        s("Canvas/Layer/bg/terrain0", "sprite", "Mark_8-1"); s("Canvas/Layer/bg/p1", "sliced-sprite", "default_progressbar_bg"); s("Canvas/Layer/bg/p1/bar", "sliced-sprite", "Mark_2-1", ratio = progress(v.mp, v.maxMp))
         t("Canvas/Layer/bg/p1/label", 984.945f, 191.8f, 15.11f, text = "/"); t(
             "Canvas/Layer/bg/p1/label0",
             923.98f,
@@ -205,15 +213,7 @@ object MineUnitInfoRenderEvents {
             45.52f,
             text = v.mp.toString()
         ); t("Canvas/Layer/bg/p1/label1", 1015.5f, 191.8f, 45.52f, text = v.maxMp.toString())
-        s("Canvas/Layer/bg/terrain0", "sprite", 747.5f, 149f, 48f, 46f, "Mark_9-1"); s(
-            "Canvas/Layer/bg/p2",
-            "sliced-sprite",
-            805.5f,
-            147f,
-            374f,
-            24f,
-            "default_progressbar_bg"
-        ); s("Canvas/Layer/bg/p2/bar", "sliced-sprite", 807.5f, 149f, 0f, 20f, "Mark_6-1")
+        s("Canvas/Layer/bg/terrain0", "sprite", "Mark_9-1"); s("Canvas/Layer/bg/p2", "sliced-sprite", "default_progressbar_bg"); s("Canvas/Layer/bg/p2/bar", "sliced-sprite", "Mark_6-1", ratio = progress(v.exp, v.maxExp))
         t("Canvas/Layer/bg/p2/label", 984.945f, 140.8f, 15.11f, text = "/"); t(
             "Canvas/Layer/bg/p2/label0",
             943.25f,
@@ -234,7 +234,7 @@ object MineUnitInfoRenderEvents {
             26.25f,
             text = v.level.toString()
         ); t("Canvas/Layer/bg/label2", 1045.55f, 294.5f, 153.5f, text = v.post)
-        s("Canvas/Layer/bg/Mark_61-1", "sprite", 769.5f, 108f, 30f, 30f, "Mark_61-1"); t(
+        s("Canvas/Layer/bg/Mark_61-1", "sprite", "Mark_61-1"); t(
             "Canvas/Layer/bg/label3",
             810.5f,
             97.8f,
@@ -243,7 +243,7 @@ object MineUnitInfoRenderEvents {
             SettlementInfoRenderContract.equipmentExperienceText(v.weaponExp, v.maxWeaponExp),
             SettlementInfoRenderContract.equipmentExperienceColor(v.weaponExp, v.maxWeaponExp),
         )
-        s("Canvas/Layer/bg/Mark_62-1", "sprite", 919.5f, 107f, 32f, 32f, "Mark_62-1"); t(
+        s("Canvas/Layer/bg/Mark_62-1", "sprite", "Mark_62-1"); t(
             "Canvas/Layer/bg/label4",
             958.5f,
             97.8f,
@@ -252,6 +252,8 @@ object MineUnitInfoRenderEvents {
             SettlementInfoRenderContract.equipmentExperienceText(v.armorExp, v.maxArmorExp),
             SettlementInfoRenderContract.equipmentExperienceColor(v.armorExp, v.maxArmorExp),
         )
+        // 계약이 든 스프라이트를 하나도 남기지 않고 다 썼는지 확인한다.
+        require(!geometry.hasNext()) { "그리기 계약의 스프라이트가 증거보다 많다" }
         return l.jsonl()
     }
 }
