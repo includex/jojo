@@ -1,11 +1,14 @@
 # 첫 적군 턴의 마지막 네 행동(484/485/475/476)과 2턴 진입.
-# 교차 델타로 판정하고, 측정 창 안의 정체 프레임(dt>0.05)이 있으면 그 지표는 판정하지 않는다.
+# 교차 델타로 판정하고, 측정 창 안의 정체 폭은 허용치에 더해 판정한다.
 import json,sys,re
 from pathlib import Path
 def u(f,i):return next((x for x in f['units'] if x[1]==i),None)
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
 TOL=0.06
-STALL_DT=0.05
+# 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
+FRAME=1/60
+# 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다.
+STALL=0.05
 def summarize(path):
  d=json.loads(Path(path).read_text());fs=d['frames']
  mv484 =next(i for i,f in enumerate(fs) if u(f,484) and u(f,484)[3:5]==[10,6])
@@ -40,18 +43,20 @@ def summarize(path):
         'e475_attack_to_hit_s':(atk475,hit211),'a211_counter_to_hit_s':(hit211,hit475),
         'e476_attack_to_hit_s':(atk476,hit210),'a210_counter_to_hit_s':(hit210,hit476)}
  timing={k:round(t(b)-t(a),4) for k,(a,b) in spans.items()}
- stalls={k:[round(fs[i]['dt'],4) for i in range(a,b+1) if fs[i]['dt']>STALL_DT] for k,(a,b) in spans.items()}
- return {'checks':checks,'timing':timing,'stallFrames':{k:v for k,v in stalls.items() if v},
-         'frames':len(fs),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'frames':len(fs),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 r['disagreements']={k:(r['source']['checks'][k],r['port']['checks'][k])
                     for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['timingDeltas']={k:round(r['port']['timing'][k]-r['source']['timing'][k],4) for k in r['source']['timing']}
-contaminated={k for k in r['timingDeltas']
-              if r['source'].get('stallFrames',{}).get(k) or r['port'].get('stallFrames',{}).get(k)}
-r['contaminatedWindows']={k:{'source':r['source'].get('stallFrames',{}).get(k),
-                             'port':r['port'].get('stallFrames',{}).get(k)} for k in contaminated}
-r['timingChecks']={k:(True if k in contaminated else abs(v)<=TOL) for k,v in r['timingDeltas'].items()}
+# 허용치 = 고정 폭 + 양쪽 창의 정체 폭.
+r['stalls']={k:{'source':r['source']['stalls'][k],'port':r['port']['stalls'][k]} for k in r['timingDeltas']}
+r['tolerances']={k:round(TOL+r['source']['stalls'][k]+r['port']['stalls'][k],4) for k in r['timingDeltas']}
+r['timingChecks']={k:abs(v)<=r['tolerances'][k] for k,v in r['timingDeltas'].items()}
 r['allPass']=(all(r[s]['checks'][k] for s in ('source','port') for k in r[s]['checks'])
               and not r['disagreements'] and all(r['timingChecks'].values()))
 print(json.dumps(r,ensure_ascii=False,indent=2))

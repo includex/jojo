@@ -4,7 +4,10 @@ from pathlib import Path
 def u(f,i):return next((x for x in f['units'] if x[1]==i),None)
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
 TOL=0.06
-STALL_DT=0.05
+# 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
+FRAME=1/60
+# 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다.
+STALL=0.05
 # 조작기 입력을 사이에 낀 구간은 판정하지 않는다. 원본은 CDP 포인터로, 포트는 자체
 # InputProcessor로 입력을 넣으므로 "이동 완료를 감지하고 명령창을 열어 공격을 누르기까지"의
 # 간격은 게임이 아니라 조작기의 반응 속도다. 실제로 AI가 움직이는 구간의 이동→공격은
@@ -45,19 +48,22 @@ def summarize(path):
  }
  spans={'move_to_attack_s':(mv,atk),'attack_to_hit_s':(atk,hit),
         'hit_to_acted_s':(hit,act),'acted_to_pose39_s':(act,done)}
- timing={k:round(t(b)-t(a),4) for k,(a,b) in spans.items()}
- stalls={k:[round(fs[i]['dt'],4) for i in range(a,b+1) if fs[i]['dt']>STALL_DT] for k,(a,b) in spans.items()}
- return {'checks':checks,'timing':timing,'stallFrames':{k:v for k,v in stalls.items() if v},
-         'frames':len(fs),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'frames':len(fs),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 r['disagreements']={k:(r['source']['checks'][k],r['port']['checks'][k])
                     for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['timingDeltas']={k:round(r['port']['timing'][k]-r['source']['timing'][k],4) for k in r['source']['timing']}
-contaminated={k for k in r['timingDeltas']
-              if r['source'].get('stallFrames',{}).get(k) or r['port'].get('stallFrames',{}).get(k)}
-r['contaminatedWindows']={k:{'source':r['source'].get('stallFrames',{}).get(k),
-                             'port':r['port'].get('stallFrames',{}).get(k)} for k in contaminated}
-r['timingChecks']={k:(True if (k in contaminated or k in DRIVER_SPANNED or k in QUANTIZED) else abs(v)<=TOL)
+# 허용치 = 고정 폭(TOL) + 양쪽 창의 정체 폭. DRIVER_SPANNED/QUANTIZED는 정체와 무관한
+# 이유로 이미 판정하지 않으므로 그대로 둔다.
+skip=DRIVER_SPANNED|QUANTIZED
+r['stalls']={k:{'source':r['source']['stalls'][k],'port':r['port']['stalls'][k]} for k in r['timingDeltas']}
+r['tolerances']={k:round(TOL+r['source']['stalls'][k]+r['port']['stalls'][k],4) for k in r['timingDeltas']}
+r['timingChecks']={k:(True if k in skip else abs(v)<=r['tolerances'][k])
                    for k,v in r['timingDeltas'].items()}
 r['quantizedNotJudged']={k:r['timingDeltas'][k] for k in QUANTIZED if k in r['timingDeltas']}
 r['driverSpannedNotJudged']={k:r['timingDeltas'][k] for k in DRIVER_SPANNED if k in r['timingDeltas']}

@@ -4,6 +4,10 @@ from pathlib import Path
 def u(f,i):return next((x for x in f['units'] if x[1]==i),None)
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
 TOL=0.06
+# 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
+FRAME=1/60
+# 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다.
+STALL=0.05
 # 정산 패널 생성 프레임 비용이 실행마다 달라 그 창만 여유를 둔다(기록1.439 대 재실행1.417).
 JITTER={'acted_to_pose39_s':0.10}
 def summarize(path):
@@ -48,13 +52,25 @@ def summarize(path):
          'acted_to_pose39_s':round(t(done)-t(act),4),
          'a234_move_to_special_s':round(t(satk)-t(smv),4),
          'a234_special_to_hit_s':round(t(shit)-t(satk),4)}
- return {'checks':checks,'timing':timing,'frames':len(fs),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ spans={'a211_move_to_attack_s':(mv,atk),'a211_attack_to_hit_s':(atk,hit),
+        'a211_hit_to_counter_s':(hit,cnt),'a211_counter_to_hit_s':(cnt,chit),
+        'a211_hit_to_acted_s':(chit,act),'acted_to_pose39_s':(act,done),
+        'a234_move_to_special_s':(smv,satk),'a234_special_to_hit_s':(satk,shit)}
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'frames':len(fs),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 r['disagreements']={k:(r['source']['checks'][k],r['port']['checks'][k])
                     for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['timingDeltas']={k:round(r['port']['timing'][k]-r['source']['timing'][k],4) for k in r['source']['timing']}
-r['tolerances']={k:JITTER.get(k,TOL) for k in r['timingDeltas']}
-r['timingChecks']={k:abs(v)<=JITTER.get(k,TOL) for k,v in r['timingDeltas'].items()}
+# 허용치 = 고정 폭 + 양쪽 창의 정체 폭.
+r['stalls']={k:{'source':r['source']['stalls'][k],'port':r['port']['stalls'][k]} for k in r['timingDeltas']}
+r['tolerances']={k:round(JITTER.get(k,TOL)+r['source']['stalls'][k]+r['port']['stalls'][k],4)
+                 for k in r['timingDeltas']}
+r['timingChecks']={k:abs(v)<=r['tolerances'][k] for k,v in r['timingDeltas'].items()}
 r['allPass']=(all(r[s]['checks'][k] for s in ('source','port') for k in r[s]['checks'])
               and not r['disagreements'] and all(r['timingChecks'].values()))
 print(json.dumps(r,ensure_ascii=False,indent=2))

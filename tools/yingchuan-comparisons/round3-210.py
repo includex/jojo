@@ -2,6 +2,12 @@ import json,sys,re
 from pathlib import Path
 def u(f,i):return next(x for x in f['units'] if x[1]==i)
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
+# 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
+FRAME=1/60
+# 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다. 이 파일은 세 번 거듭 고쳐진
+# summarize/판정 블록을 이어 갖고 있고(뒤의 정의가 앞을 덮어 마지막 블록만 실행 결과에
+# 반영되지만, 각 블록의 summarize는 정의되는 즉시 호출되므로) 이 상수는 맨 위에 한 번만 둔다.
+STALL=0.05
 def summarize(path):
  d=json.loads(Path(path).read_text())
  fs=[f for f in d['frames'] if f.get('round')==3 and f.get('camp')==1]
@@ -39,7 +45,16 @@ def summarize(path):
          'attack_to_hit_s':round(fs[hit]['t']-fs[0]['t'],4),
          'target_lowpose_to_retreat_s':round(fs[ret]['t']-fs[low]['t'],4) if (low is not None and ret is not None) else None,
          'target_retreat_to_hidden_s':round(fs[hid]['t']-fs[ret]['t'],4) if (hid is not None and ret is not None) else None}
- return {'checks':checks,'timing':timing,'events':events,'frames':len(d['frames']),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  if a is None or b is None: return 0.0
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ spans={'hit_to_acted_s':(hit,acted),'acted_to_pose39_s':(acted,done),'attack_to_hit_s':(0,hit),
+        'target_lowpose_to_retreat_s':(low,ret),'target_retreat_to_hidden_s':(ret,hid)}
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'events':events,
+         'frames':len(d['frames']),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 agree={k:(r['source']['checks'][k],r['port']['checks'][k]) for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['disagreements']=agree
@@ -95,7 +110,16 @@ def summarize(path):
          'attack_to_hit_s':round(fs[hit]['t']-fs[0]['t'],4),
          'target_lowpose_to_retreat_s':round(fs[ret]['t']-fs[low]['t'],4) if (low is not None and ret is not None) else None,
          'target_retreat_to_hidden_s':round(fs[hid]['t']-fs[ret]['t'],4) if (hid is not None and ret is not None) else None}
- return {'checks':checks,'timing':timing,'events':events,'frames':len(d['frames']),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  if a is None or b is None: return 0.0
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ spans={'hit_to_acted_s':(hit,acted),'acted_to_pose39_s':(acted,done),'attack_to_hit_s':(0,hit),
+        'target_lowpose_to_retreat_s':(low,ret),'target_retreat_to_hidden_s':(ret,hid)}
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'events':events,
+         'frames':len(d['frames']),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 agree={k:(r['source']['checks'][k],r['port']['checks'][k]) for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['disagreements']=agree
@@ -154,7 +178,16 @@ def summarize(path):
          'attack_to_hit_s':round(fs[hit]['t']-fs[0]['t'],4),
          'target_lowpose_to_retreat_s':round(fs[ret]['t']-fs[low]['t'],4) if (low is not None and ret is not None) else None,
          'target_retreat_to_hidden_s':round(fs[hid]['t']-fs[ret]['t'],4) if (hid is not None and ret is not None) else None}
- return {'checks':checks,'timing':timing,'events':events,'frames':len(d['frames']),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  if a is None or b is None: return 0.0
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ spans={'hit_to_acted_s':(hit,acted),'acted_to_pose39_s':(acted,done),'attack_to_hit_s':(0,hit),
+        'target_lowpose_to_retreat_s':(low,ret),'target_retreat_to_hidden_s':(ret,hid)}
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'events':events,
+         'frames':len(d['frames']),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 agree={k:(r['source']['checks'][k],r['port']['checks'][k]) for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['disagreements']=agree
@@ -174,12 +207,18 @@ ACCEPTED={
    'this window and the retreat clip is 30/24=1.25s. The port at 1.2664 is correct.'),
 }
 r['timingDeltas']={k:(round(r['port']['timing'][k]-r['source']['timing'][k],4) if (r['source']['timing'][k] is not None and r['port']['timing'][k] is not None) else None) for k in r['source']['timing']}
+# 허용치 = 고정 폭(TOL) + 양쪽 창의 정체 폭. WALL_ONLY는 정체와 무관한(클립 시계 사유의)
+# 이유로 이미 판정하지 않으므로 그대로 둔다.
+r['stalls']={k:{'source':r['source']['stalls'].get(k,0),'port':r['port']['stalls'].get(k,0)}
+             for k in r['timingDeltas']}
 def judge(k,v):
  if v is None: return False
- return abs(v)<=TOL
+ tol=TOL+r['stalls'][k]['source']+r['stalls'][k]['port']
+ return abs(v)<=tol
 r['timingChecks']={k:(True if k in WALL_ONLY else judge(k,v)) for k,v in r['timingDeltas'].items()}
 r['reportedNotJudged']={k:r['timingDeltas'][k] for k in WALL_ONLY if k in r['timingDeltas']}
-r['tolerances']={k:('not judged' if k in WALL_ONLY else TOL) for k in r['timingDeltas']}
+r['tolerances']={k:('not judged' if k in WALL_ONLY else round(TOL+r['stalls'][k]['source']+r['stalls'][k]['port'],4))
+                for k in r['timingDeltas']}
 r['timingTolerance']=TOL
 r['allPass']=(all(r[s]['checks'][k] for s in ('source','port') for k in r[s]['checks'])
               and not agree and all(r['timingChecks'].values()))

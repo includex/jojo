@@ -5,6 +5,10 @@ from pathlib import Path
 def u(f,i):return next((x for x in f['units'] if x[1]==i),None)
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
 TOL=0.06
+# 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
+FRAME=1/60
+# 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다.
+STALL=0.05
 # Tolerance comes from how much the ORIGINAL disagrees with ITSELF, measured across two real
 # source runs of this segment (yingchuan-source-round3-210-20260920 and -srgb-20260920):
 #   hit1_to_counter_s 0.0199  counter_to_kill_s 0.0117  kill_to_hit2_s 0.0018
@@ -63,20 +67,30 @@ def summarize(path):
          'hit2_to_lowpose_s':round(t(low)-t(hit2),4),
          'lowpose_to_retreat_s':round(t(ret)-t(low),4),
          'retreat_to_hidden_s':round(t(hid)-t(ret),4)}
- return {'checks':checks,'timing':timing,'frames':len(d['frames']),'reason':d.get('reason')}
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ spans={'hit1_to_counter_s':(hit1,cnt),'counter_to_kill_s':(cnt,kill),'kill_to_hit2_s':(kill,hit2),
+        'hit2_to_lowpose_s':(hit2,low),'lowpose_to_retreat_s':(low,ret),'retreat_to_hidden_s':(ret,hid)}
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,'frames':len(d['frames']),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 r['disagreements']={k:(r['source']['checks'][k],r['port']['checks'][k])
                     for k in r['source']['checks'] if r['source']['checks'][k]!=r['port']['checks'][k]}
 r['timingDeltas']={k:round(r['port']['timing'][k]-r['source']['timing'][k],4) for k in r['source']['timing']}
+# 허용치 = 고정 폭(SOURCE_JITTER 또는 TOL) + 양쪽 창의 정체 폭.
+r['stalls']={k:{'source':r['source']['stalls'][k],'port':r['port']['stalls'][k]} for k in r['timingDeltas']}
+def tol(k):return round(SOURCE_JITTER.get(k,TOL)+r['stalls'][k]['source']+r['stalls'][k]['port'],4)
 def judge(k,v):
- if abs(v)<=SOURCE_JITTER.get(k,TOL): return True
+ if abs(v)<=tol(k): return True
  e=OPEN.get(k)
  # an open difference may persist at its recorded size, but not grow beyond source jitter
- return e is not None and abs(v-e[0])<=SOURCE_JITTER.get(k,TOL)
+ return e is not None and abs(v-e[0])<=tol(k)
 r['timingChecks']={k:judge(k,v) for k,v in r['timingDeltas'].items()}
-r['tolerances']={k:SOURCE_JITTER.get(k,TOL) for k in r['timingDeltas']}
+r['tolerances']={k:tol(k) for k in r['timingDeltas']}
 r['openDifferences']={k:{'recordedDelta':e[0],'actualDelta':r['timingDeltas'][k],'reason':e[1]}
-                      for k,e in OPEN.items() if abs(r['timingDeltas'][k])>SOURCE_JITTER.get(k,TOL)}
+                      for k,e in OPEN.items() if abs(r['timingDeltas'][k])>tol(k)}
 r['allPass']=(all(r[s]['checks'][k] for s in ('source','port') for k in r[s]['checks'])
               and not r['disagreements'] and all(r['timingChecks'].values()))
 print(json.dumps(r,ensure_ascii=False,indent=2))

@@ -6,6 +6,12 @@ from pathlib import Path
 def u(f,i):return next((x for x in f['units'] if x[1]==i),None)
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
 TOL=0.06
+# 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
+FRAME=1/60
+# 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다. 프레임마다의 작은 흔들림까지
+# 더하면 체계적으로 느린 쪽을 흡수해 판정력이 사라지므로, 정체 폭은 그 창의 정체 프레임만 모아
+# 잰다.
+STALL=0.05
 # 허용치는 원본이 스스로 어긋나는 폭에서 온다. 이 구간의 원본을 두 번 실행해 측정했다.
 #   (A) yingchuan-source-enemy-first-combat-20260920-final, (B) yingchuan-source-enemy-first-srgb2-20260920
 #   lowpose_to_retreat_s  2.1812 vs 1.9034 -> 0.278   <- 원본 자체 편차가 매우 크다
@@ -56,7 +62,17 @@ def summarize(path):
          'retreat_to_hidden_s':round(t(hid)-t(ret),4),
          'retreat_clip_time_at_last_visible':fs[hid-1]['units'][[u[1] for u in fs[hid-1]['units']].index(234)][15],
          'pose_before_retreat_s':round(t(ret)-t(pose),4) if pose is not None else None}
- return {'checks':checks,'timing':timing,'poseObservation':{'anime39_times':poses,'count':len(poses)},
+ # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
+ def stall(a,b):
+  if a is None or b is None: return 0.0
+  return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
+                   for i in range(a+1,b+1) if fs[i]['t']-fs[i-1]['t']>STALL),4)
+ spans={'move_to_arrival_s':(mv,arr),'arrival_to_attack_s':(arr,atk),'attack_to_hit_s':(atk,hit),
+        'hit_to_lowpose_s':(hit,low),'lowpose_to_retreat_s':(low,ret),
+        'retreat_to_hidden_s':(ret,hid),'pose_before_retreat_s':(pose,ret)}
+ stalls={k:stall(*v) for k,v in spans.items()}
+ return {'checks':checks,'timing':timing,'stalls':stalls,
+         'poseObservation':{'anime39_times':poses,'count':len(poses)},
          'frames':len(fs),'reason':d.get('reason')}
 r={k:summarize(p) for k,p in zip(('source','port'),sys.argv[1:])}
 r['disagreements']={k:(r['source']['checks'][k],r['port']['checks'][k])
@@ -64,9 +80,13 @@ r['disagreements']={k:(r['source']['checks'][k],r['port']['checks'][k])
 r['timingDeltas']={k:(round(r['port']['timing'][k]-r['source']['timing'][k],4)
                       if r['source']['timing'][k] is not None and r['port']['timing'][k] is not None else None)
                    for k in r['source']['timing']}
+# 허용치 = 고정 폭 + 양쪽 창의 정체 폭. 정체가 없는 창은 종전과 같은 판정력을 그대로 갖는다.
+r['stalls']={k:{'source':r['source']['stalls'].get(k,0),'port':r['port']['stalls'].get(k,0)}
+             for k in r['timingDeltas']}
 def judge(k,v):
  if v is None: return False
- if abs(v)<=SOURCE_JITTER.get(k,TOL): return True
+ tol=SOURCE_JITTER.get(k,TOL)+r['stalls'][k]['source']+r['stalls'][k]['port']
+ if abs(v)<=tol: return True
  e=OPEN.get(k); return e is not None and abs(v-e[0])<=TOL
 WALL_ONLY={'retreat_to_hidden_s'}  # 원본 캡처 pacing이 섞이므로 보고만 하고 판정하지 않는다
 r['timingChecks']={k:(True if k in WALL_ONLY else judge(k,v)) for k,v in r['timingDeltas'].items()}
