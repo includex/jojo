@@ -3372,6 +3372,10 @@ void main() {
 
     private var battleCommandPressedTag: Int? = null
 
+    /** Source CommandLayer caches `_setpos` when this command instance opens. */
+    private var battleCommandPlacementUnitId: String? = null
+    private var battleCommandPlacementOffset: Pair<Float, Float> = 0f to 0f
+
     /**
      * `pendingBattleCommandUnit` (String?): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -5539,7 +5543,9 @@ void main() {
          */
 
         val autoView = autoBattleFlow.view()
-        val attackCommandVisual = BattleCommandRenderModel.visuals.first()
+        val commandOffset = currentBattleCommandPlacementOffset()
+        val attackCommandCenter = BattleCommandRenderModel.buttonCenter(0, commandOffset)
+        val waitCommandCenter = BattleCommandRenderModel.buttonCenter(5, commandOffset)
         return BattleRuntimeProbeCoordinator.create(
             BattleRuntimeScreenProbeInput(
                 sourceScenario,
@@ -5562,7 +5568,7 @@ void main() {
                 battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION,
                 magickListLayer != null,
                 magicMode,
-                projectWorldPointAt(1060.6f, 225.42f),
+                projectWorldPointAt(waitCommandCenter.first, waitCommandCenter.second),
                 projectWorldPointAt(15.13372f + 8f * 88f + 44f, 160.29f),
                 projectWorldPointAt(1383.9535f, 38f),
                 projectWorldPointAt(579.4365f, 295.197f),
@@ -5577,10 +5583,7 @@ void main() {
                 selectedUnitId,
                 playerPresentationReady = scriptRuntime.state == PlaybackState.COMPLETE &&
                     !combatPresentationBusy() && !outcomeCallbacksPending(),
-                commandAttack = projectWorldPointAt(
-                    attackCommandVisual.x + attackCommandVisual.width / 2f,
-                    attackCommandVisual.y + attackCommandVisual.height / 2f,
-                ),
+                commandAttack = projectWorldPointAt(attackCommandCenter.first, attackCommandCenter.second),
             ),
             object : BattleRuntimeProbePort {
                 /**
@@ -7543,6 +7546,8 @@ void main() {
                 battleCommandMask(unit),
             )
         }
+        battleCommandPlacementUnitId = null
+        currentBattleCommandPlacementOffset()
         pendingBattleCommandUnit = null
         eventMessage = "${unit.name} 명령 선택"
     }
@@ -7633,15 +7638,27 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun battleCommandTagAt(x: Float, y: Float): Int? = when {
-        x in 743.6f..863.6f && y in 291.175f..411.175f -> 0
-        x in 871.6f..991.6f && y in 291.175f..411.175f -> 1
-        x in 1000.6f..1120.6f && y in 291.175f..411.175f -> 2
-        x in 743.6f..863.6f && y in 165.42f..285.42f -> 3
-        x in 871.6f..991.6f && y in 165.42f..285.42f -> 4
-        x in 1000.6f..1120.6f && y in 165.42f..285.42f -> 5
-        x in 842.65f..1024.55f && y in 106.491f..156.491f -> 6
-        else -> null
+    private fun battleCommandTagAt(x: Float, y: Float): Int? =
+        BattleCommandRenderModel.tagAt(x, y, currentBattleCommandPlacementOffset())
+
+    /** Returns the placement cached for the current CommandLayer instance; probe and draw share it. */
+    private fun currentBattleCommandPlacementOffset(): Pair<Float, Float> {
+        if (battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND) {
+            // Child overlays remove CommandLayer; returning to COMMAND creates a fresh source instance.
+            battleCommandPlacementUnitId = null
+            return 0f to 0f
+        }
+        val unit = selectedUnitId?.let(battle.units::get) ?: return battleCommandPlacementOffset
+        if (battleCommandPlacementUnitId != unit.id) {
+            val (visualX, visualY) = visualTile(unit)
+            val nodeX = boardLeft + (visualX + .5f) * boardTile
+            val nodeY = tileBottom(visualY) + boardTile / 2f
+            battleCommandPlacementOffset = BattleCommandRenderModel.placementOffset(
+                nodeX, nodeY, viewport.worldWidth, viewport.worldHeight,
+            )
+            battleCommandPlacementUnitId = unit.id
+        }
+        return battleCommandPlacementOffset
     }
 
     /**
@@ -7652,6 +7669,7 @@ void main() {
     private fun dispatchBattleCommand(tag: Int) {
         val selected = selectedUnitId?.let(battle.units::get) ?: return
         val outcome = battleCommandFlow.touch(tag, BattleCommandFlow.TOUCH_END)
+        if (outcome is BattleCommandFlow.Result.OpenChild) battleCommandPlacementUnitId = null
         // 원본 `CommandLayer`는 명령 단추를 깃발 1로 등록한다. 받아들여진 누름에만 소리가 난다.
         if (outcome !is BattleCommandFlow.Result.Ignored) audio.playUiSound(UiSound.CLICK)
         when (val result = outcome) {
@@ -10297,49 +10315,74 @@ void main() {
             0f, 0f, 1488.372f, 800f
         )
         shapes.end()
-        batch.projectionMatrix = viewport.camera.combined; batch.begin()
-        batch.color = Color(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
-        for (ty in 0..3) for (tx in 0..4) {
-            val width = minOf(96f, 397.2f - tx * 96f)
-            val height = minOf(96f, 322.5f - ty * 96f)
-            if (width > 0f && height > 0f) batch.draw(
-                unitInfoAssets.unitInfoLogo, 736f + tx * 96f, 96f + ty * 96f, width, height
-            )
-        }
-        batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-            batch, 736f, 96f, 397.2f, 322.5f
-        )
-        // itemUpgradeFont는 36px로 굽는다. 26px 기준 배율을 그대로 쓰면 55px로 커져
-        // 문구가 버튼 밖으로 넘친다.
-        itemUpgradeFont.data.setScale(40f / 36f)
-        battleCommandFlow.view().forEachIndexed { index, button ->
-            val visual = BattleCommandRenderModel.visuals[index]
-            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-                batch, visual.x, visual.y, visual.width, visual.height
-            )
-            itemUpgradeFont.color = if (button.interactable) Color.BLACK else Color(
-                BattleCommandRenderModel.DISABLED_COMPONENT,
-                BattleCommandRenderModel.DISABLED_COMPONENT,
-                BattleCommandRenderModel.DISABLED_COMPONENT,
-                1f
-            )
-            // `포위 공격`만 두 어절이라 한 줄에 안 들어간다. 원본 버튼도 정사각형이라
-            // 줄바꿈으로 받는다. 한 어절짜리 문구는 줄바꿈 여부와 무관하게 같은 자리다.
-            itemUpgradeFont.draw(batch, BATTLE_COMMAND_LABELS[index], visual.labelX, visual.labelY + 40f, 100f, Align.center, true)
-            val iconColor = if (button.interactable) Color.WHITE else Color(
-                BattleCommandRenderModel.DISABLED_COMPONENT,
-                BattleCommandRenderModel.DISABLED_COMPONENT,
-                BattleCommandRenderModel.DISABLED_COMPONENT,
-                1f
-            )
-            visual.icons.forEach { icon ->
-                val iconIndex = icon.asset.removePrefix("command").toInt()
-                batch.color = iconColor
-                batch.draw(hudAssets.battleCommandIcons.getValue(iconIndex), icon.x, icon.y, icon.width, icon.height)
+        val previousTransform = batch.transformMatrix.cpy()
+        val commandOffset = currentBattleCommandPlacementOffset()
+        batch.transformMatrix = previousTransform.cpy().translate(commandOffset.first, commandOffset.second, 0f)
+        try {
+            batch.projectionMatrix = viewport.camera.combined; batch.begin()
+            batch.color = Color(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
+            for (ty in 0..3) for (tx in 0..4) {
+                val width = minOf(96f, BattleCommandRenderModel.PANEL_WIDTH - tx * 96f)
+                val height = minOf(96f, BattleCommandRenderModel.PANEL_HEIGHT - ty * 96f)
+                if (width > 0f && height > 0f) batch.draw(
+                    unitInfoAssets.unitInfoLogo,
+                    BattleCommandRenderModel.PANEL_LEFT + tx * 96f,
+                    BattleCommandRenderModel.PANEL_BOTTOM + ty * 96f,
+                    width,
+                    height,
+                )
             }
+            batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
+                batch,
+                BattleCommandRenderModel.PANEL_LEFT,
+                BattleCommandRenderModel.PANEL_BOTTOM,
+                BattleCommandRenderModel.PANEL_WIDTH,
+                BattleCommandRenderModel.PANEL_HEIGHT,
+            )
+            // itemUpgradeFont는 36px로 굽는다. 26px 기준 배율을 그대로 쓰면 55px로 커져
+            // 문구가 버튼 밖으로 넘친다.
+            itemUpgradeFont.data.setScale(40f / 36f)
+            battleCommandFlow.view().forEachIndexed { index, button ->
+                val visual = BattleCommandRenderModel.visuals[index]
+                NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
+                    batch, visual.x, visual.y, visual.width, visual.height
+                )
+                itemUpgradeFont.color = if (button.interactable) Color.BLACK else Color(
+                    BattleCommandRenderModel.DISABLED_COMPONENT,
+                    BattleCommandRenderModel.DISABLED_COMPONENT,
+                    BattleCommandRenderModel.DISABLED_COMPONENT,
+                    1f
+                )
+                // `포위 공격`만 두 어절이라 한 줄에 안 들어간다. 원본 버튼도 정사각형이라
+                // 줄바꿈으로 받는다. 한 어절짜리 문구는 줄바꿈 여부와 무관하게 같은 자리다.
+                itemUpgradeFont.draw(
+                    batch, BATTLE_COMMAND_LABELS[index], visual.labelX, visual.labelY + 40f,
+                    100f, Align.center, true,
+                )
+                val iconColor = if (button.interactable) Color.WHITE else Color(
+                    BattleCommandRenderModel.DISABLED_COMPONENT,
+                    BattleCommandRenderModel.DISABLED_COMPONENT,
+                    BattleCommandRenderModel.DISABLED_COMPONENT,
+                    1f
+                )
+                visual.icons.forEach { icon ->
+                    val iconIndex = icon.asset.removePrefix("command").toInt()
+                    batch.color = iconColor
+                    batch.draw(
+                        hudAssets.battleCommandIcons.getValue(iconIndex),
+                        icon.x, icon.y, icon.width, icon.height,
+                    )
+                }
+                batch.color = Color.WHITE
+            }
+            batch.end()
+        } finally {
+            if (batch.isDrawing) batch.end()
+            itemUpgradeFont.data.setScale(1f)
+            itemUpgradeFont.color = Color.WHITE
             batch.color = Color.WHITE
+            batch.transformMatrix = previousTransform
         }
-        itemUpgradeFont.data.setScale(1f); itemUpgradeFont.color = Color.WHITE; batch.color = Color.WHITE; batch.end()
     }
 
     /** 명령 화면 증거: 현재 자동 실행 경로를 전용 기록기에 전달한다. */

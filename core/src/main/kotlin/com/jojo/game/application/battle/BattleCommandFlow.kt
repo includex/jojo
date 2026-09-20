@@ -337,6 +337,41 @@ object BattleCommandRenderModel {
 
     const val DISABLED_COMPONENT = 160f / 255f
 
+    const val PANEL_LEFT = 736f
+    const val PANEL_BOTTOM = 96f
+    const val PANEL_WIDTH = 397.2f
+    const val PANEL_HEIGHT = 322.5f
+    private const val SOURCE_ADJACENT_OFFSET = 48f
+    private const val SOURCE_FLIP_GAP = 96f
+
+    /**
+     * Source `InfoBaseLayer._setpos`: place the panel beside the target node, preserving its
+     * bottom/right edge flips and upper clamp. The result translates authored prefab coordinates.
+     */
+    fun placementOffset(nodeX: Float, nodeY: Float, viewportWidth: Float, viewportHeight: Float): Pair<Float, Float> {
+        var left = nodeX + SOURCE_ADJACENT_OFFSET
+        var bottom = nodeY + SOURCE_ADJACENT_OFFSET - PANEL_HEIGHT
+        if (bottom < 0f) bottom += PANEL_HEIGHT - SOURCE_FLIP_GAP
+        if (left + PANEL_WIDTH > viewportWidth) left -= PANEL_WIDTH + SOURCE_FLIP_GAP
+        bottom = minOf(bottom, viewportHeight - PANEL_HEIGHT)
+        return left - PANEL_LEFT to bottom - PANEL_BOTTOM
+    }
+
+    /** Returns the source-authored button under a world point after undoing panel translation. */
+    fun tagAt(x: Float, y: Float, offset: Pair<Float, Float> = 0f to 0f): Int? {
+        val localX = x - offset.first
+        val localY = y - offset.second
+        return visuals.indexOfFirst { visual ->
+            localX in visual.x..visual.x + visual.width && localY in visual.y..visual.y + visual.height
+        }.takeIf { it >= 0 }
+    }
+
+    /** World-space center of an authored command button after source placement. */
+    fun buttonCenter(tag: Int, offset: Pair<Float, Float>): Pair<Float, Float> {
+        val visual = visuals.getOrNull(tag) ?: error("unknown battle command tag: $tag")
+        return visual.x + visual.width / 2f + offset.first to visual.y + visual.height / 2f + offset.second
+    }
+
 
     /**
      * `Node` 클래스: battle 패키지의 관련 상태와 동작을 묶는다.

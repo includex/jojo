@@ -11,6 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** BattleCommandFlowTest: BattleCommandFlow의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
@@ -134,4 +135,35 @@ class BattleCommandFlowTest {
         assertEquals(listOf(28f, 28f), swap.icons.map { it.height })
         assertTrue(BattleCommandRenderModel.visuals[6].icons.isEmpty())
     }
+    @Test
+    fun `command panel placement follows source edge flips and upper clamp`() {
+        assertEquals(112f to 29.5f, BattleCommandRenderModel.placementOffset(800f, 400f, 1488.372f, 800f))
+        assertEquals(268.8f, BattleCommandRenderModel.placementOffset(1450f, 400f, 1488.372f, 800f).first, .0001f)
+        assertEquals(-112f, BattleCommandRenderModel.placementOffset(800f, 32f, 1488.372f, 800f).second, .0001f)
+        assertEquals(381.5f, BattleCommandRenderModel.placementOffset(800f, 780f, 1488.372f, 800f).second, .0001f)
+    }
+
+    @Test
+    fun `translated command centers and hit testing use the same placement`() {
+        val offset = 500f to 200f
+        val attack = BattleCommandRenderModel.buttonCenter(0, offset)
+        val wait = BattleCommandRenderModel.buttonCenter(5, offset)
+
+        assertEquals(0, BattleCommandRenderModel.tagAt(attack.first, attack.second, offset))
+        assertEquals(5, BattleCommandRenderModel.tagAt(wait.first, wait.second, offset))
+        assertNull(BattleCommandRenderModel.tagAt(attack.first, attack.second))
+    }
+
+    @Test
+    fun `Yingchuan command matches observed source panel and attack button`() {
+        // Actual CommandLayer after character 0 moves to (11,5): unit world center (1104,656).
+        val offset = BattleCommandRenderModel.placementOffset(1104f, 656f, 1488.372f, 800f)
+        assertEquals(658.8f, BattleCommandRenderModel.PANEL_LEFT + offset.first, .001f)
+        assertEquals(381.5f, BattleCommandRenderModel.PANEL_BOTTOM + offset.second, .001f)
+        val attack = BattleCommandRenderModel.buttonCenter(0, offset)
+        assertEquals(726.4f, attack.first, .001f)
+        assertEquals(636.675f, attack.second, .001f)
+        assertEquals(0, BattleCommandRenderModel.tagAt(attack.first, attack.second, offset))
+    }
+
 }
