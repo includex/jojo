@@ -1,5 +1,33 @@
 # 영천전투 작업 중지 및 재개 안내
 
+## 2026-09-21 재개 결과
+
+이 아래의 2026-09-20 상태·"남은 일"은 당시 기록이다. 이번 재개 작업으로 다음을 완료해
+모두 `origin/main`에 push했다.
+
+- 피격 뒤 다음 물리 패스가 바로 시작하던 경로를 수정했다 (`c2f9e43`). 피격 종료가 실제
+  화면에 한 번 반영된 뒤 다음 패스를 시작한다. `first-round-end`의 피격→반격 간격은
+  포트 0.5833초에서 0.6000초로 바뀌어 원본 0.6329초와의 차이가 0.0329초가 됐다.
+  `first-normal-combat`, `next-normal-actions`, `first-round-end` 세 구간 모두 통과했다.
+- 남았던 구간 7개(`round2-handoff`, `single-player-action`, `round2-followup`,
+  `round2-first-combat`, `round3-first-combat`, `round3-followup`, `round3-counterattack`)를
+  원본·포트 trace로 모두 대조해 통과했다. 뒤의 세 구간은 가장 긴
+  `round3-counterattack` trace 한 쌍에서 각각 검사했다. 비교 스크립트 네 곳의 빠진
+  `timing` 계산을 복구했고, `round3-followup`의 이동 완료→공격 시작 경계에 있던 원본
+  정체 프레임(0.1251초)을 판정 허용치에 반영했다 (`5650c3f`, `eaf94f7`, `4749c5d`).
+- 손으로 적힌 렌더 기록기 세 곳을 실제 그리기 값과 연결했다. 패배 확인창의 "비" 라벨
+  (`1dd2c20`), 미니맵 화면 범위 상자와 비교기의 캔버스 크기 (`44a7d7a`), 전장 편집창
+  제목 띠 (`8d0efae`)다. 각 경로는 정상 대조와 값 변경 음성 대조를 통과했다.
+- 위 수정 뒤 `:core:test :verification:test`는 통과했다. 기존 미완 작업 파일은 그대로
+  작업 트리에 남겼고, 커밋은 해당 hunk만 골라 만들었다.
+
+다음 우선순위는 아직 고정 표를 쓰는 나머지 전투 렌더 기록기, `postsCanEquip`의
+WEAPONS·ARMOR·AUXILIARY 갈래, 전당 `battle-view` 색 비교다. 장시간 캡처의 원본·포트
+trace는 `/tmp/src-*`와 `verification/build/verification/yingchuan-walkthrough/`에 있고
+영구 보관 자료가 아니므로 재현 시 다시 캡처해야 한다.
+
+---
+
 기록일: 2026-09-20 (갱신)
 
 상태: **사용자 요청으로 중지. 모든 커밋은 `origin/main`에 push 완료.**
