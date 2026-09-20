@@ -63,7 +63,15 @@ object TerrainLayerRenderEvents {
         ) =
             log.draw(
                 phase, if (path == "Canvas/Layer/Panel_cancel") "HallLayer" else layer,
-                path, type, x, y, w, h, asset, opacity, blend, true, text, color
+                path, type, x, y, w, h, asset, opacity, blend, true, text,
+                // 스프라이트 색조: 그리기 쪽 `BattleTerrainOverlayRenderer`는 그리는 자리마다
+                // `batch.color = Color.WHITE`를 세우고 색조를 주지 않는다. 흐림막만 검정이다.
+                // 글자색은 호출자가 계약에서 꺼내 넘긴다.
+                color ?: when {
+                    type == "label" -> null
+                    path == "Canvas/Layer/Panel_cancel" -> "#000000"
+                    else -> "#ffffff"
+                },
             )
 
         /**

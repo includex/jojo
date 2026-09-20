@@ -131,8 +131,10 @@ private object BattleInitRenderEvents {
         draw(log, phase, layer, "Canvas/Layer/bg/btn/Background", "sliced-sprite", 1418.372f, 730f, 70f, 70f, "bg1")
         draw(log, phase, layer, "Canvas/Layer/bg/btn/Background/tool11", "sprite", 1418.572f, 730.2f, 69.6f, 69.6f, "tool11")
         draw(log, phase, layer, "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.372f, 800f, "assets/resources/native/59/5961a224-35cd-4838-b67a-a072b0b31ca4.14b27.jpg#Logo_5-1")
-        draw(log, phase, layer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
-        draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
+        // 원본 `BattleInitLayer` 프리팹: fontSize 140 굵게, `label0`(검정 그림자) 위에 `label1`(흰색)이
+        // 겹친다. 그리기 쪽 `BattleRewardOverlayRenderer.drawSection`도 같은 두 색으로 두 번 그린다.
+        draw(log, phase, layer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels, color = "#000000")
+        draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels, color = "#ffffff")
     }
 }
 /**
