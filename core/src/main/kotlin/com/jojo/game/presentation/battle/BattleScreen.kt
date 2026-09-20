@@ -5514,6 +5514,12 @@ void main() {
                         unitSpriteFrameResolver::clipFrame,
                     )
                 }
+        /**
+         * `mapObjects` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val mapObjects = coordinator.observeMapObjects(scriptRuntime.stage)
         coordinator.recordFrame(
             RuntimeBattleTraceFrameInput(
                 0L,
@@ -5537,8 +5543,8 @@ void main() {
                 if (bootstrapComplete) emptyList() else bootstrapPresentationBusyReasons(),
                 battleCamera.contentX,
                 battleCamera.contentY,
-                0,
-                "null",
+                mapObjects.revision,
+                mapObjects.json,
                 battleTraceFightJson(),
                 aiTrace,
                 battle.traceActions.toList(),

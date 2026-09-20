@@ -151,6 +151,57 @@ internal data class RuntimeBattleTraceSpriteInput(val sourceY: Int, val sourceWi
 
 internal data class RuntimeBattleTracePoint(val x: Int, val y: Int)
 
+/** RuntimeBattleTraceMapObject: 원본 gate 배열 한 칸에 해당하는 지도 객체 원시값이다. */
+internal data class RuntimeBattleTraceMapObject(
+    val x: Int,
+    val y: Int,
+    val objectId: Int,
+    val terrainId: Int,
+    val enabled: Boolean,
+)
+
+/** RuntimeBattleTraceMapObjectSnapshot: 변화한 프레임에만 행을 싣는 지도 객체 관측 결과다. */
+internal data class RuntimeBattleTraceMapObjectSnapshot(val revision: Int, val json: String)
+
+/**
+ * RuntimeBattleTraceMapObjectJournal: 원본 full-battle-trace-renderer의 mapObjectObservation과 같은 규칙으로
+ * 지도 객체를 관측한다. 행은 `[TYPE, TERRAIN, X, Y]` 순서이고(BATTLE_GATE_ATTR), 꺼진 객체는 원본에서
+ * gate 칸이 TYPE=65535로 비워지므로 제외하며, 서명이 바뀐 프레임에서만 행과 증가한 revision을 싣는다.
+ */
+internal class RuntimeBattleTraceMapObjectJournal {
+    /** `revision` (상태 값): 마지막으로 부여한 지도 객체 변경 번호를 보관한다. */
+    private var revision = 0
+
+    /** `signature` (상태 값): 마지막으로 기록한 행 서명을 보관해 변화 여부만 판정한다. */
+    private var signature: String? = null
+
+    /** `observe`: 현재 지도 객체를 관측해 변화한 프레임에만 행을 싣는 스냅샷을 만든다. */
+    fun observe(objects: Collection<RuntimeBattleTraceMapObject>): RuntimeBattleTraceMapObjectSnapshot {
+        val rows = objects.asSequence().filter { it.enabled }
+            .sortedWith(
+                compareBy<RuntimeBattleTraceMapObject>({ it.x }, { it.y }, { it.objectId }, { terrainOf(it) }),
+            )
+            .joinToString(",") { "[${it.objectId},${terrainOf(it)},${it.x},${it.y}]" }
+        val next = "[$rows]"
+        if (next == signature) return RuntimeBattleTraceMapObjectSnapshot(revision, "null")
+        signature = next
+        revision++
+        return RuntimeBattleTraceMapObjectSnapshot(revision, next)
+    }
+
+    /**
+     * `terrainOf`: 원본 BattleLayer.setObject2가 TYPE<3인 객체의 지형을 [HUO, CHUAN, HUO]로 덮어쓴 뒤
+     * gate 배열에 넣는 것과 같게, 대본이 넘긴 지형 대신 기록용 지형을 고른다.
+     */
+    private fun terrainOf(objectValue: RuntimeBattleTraceMapObject): Int =
+        OBJECT_TERRAIN.getOrNull(objectValue.objectId) ?: objectValue.terrainId
+
+    private companion object {
+        /** TERRAIN.HUO=26, TERRAIN.CHUAN=27 (원본 Config.js). */
+        val OBJECT_TERRAIN = intArrayOf(26, 27, 26)
+    }
+}
+
 /** RuntimeBattleTraceFrameProjector: 원시 전투 프레임을 검증 파일용 RuntimeBattleTraceView로 직렬화한다. */
 internal object RuntimeBattleTraceFrameProjector {
     /**

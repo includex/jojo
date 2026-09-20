@@ -18,14 +18,6 @@ class FullBattleTraceEvidenceSessionTest {
     @Test
     fun `map callbacks drain before repeated snapshots and terminal completion waits three frames`() {
         val session = session()
-        assertEquals(
-            "[[7,3,2,1]]",
-            session.mapSnapshot(listOf(FullBattleTraceMapObject(7, 3, 2, 1, true))).json,
-        )
-        assertEquals(
-            "null",
-            session.mapSnapshot(listOf(FullBattleTraceMapObject(7, 3, 2, 1, true))).json,
-        )
         val calls = listOf(FullBattleTraceMapObjectsCall(true, 3, listOf(FullBattleTraceMapObjectCall(7, 2, 1))))
         assertEquals(
             listOf("transition:objects:1:3:7,2,1"),

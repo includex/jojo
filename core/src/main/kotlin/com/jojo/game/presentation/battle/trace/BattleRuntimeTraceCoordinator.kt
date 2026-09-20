@@ -14,8 +14,12 @@ import com.jojo.game.application.runtime.RuntimeBattleTraceAiPresentationInput
 import com.jojo.game.application.runtime.RuntimeBattleTraceDriverInput
 import com.jojo.game.application.runtime.RuntimeBattleTraceFrameInput
 import com.jojo.game.application.runtime.RuntimeBattleTraceFrameProjector
+import com.jojo.game.application.runtime.RuntimeBattleTraceMapObject
+import com.jojo.game.application.runtime.RuntimeBattleTraceMapObjectJournal
+import com.jojo.game.application.runtime.RuntimeBattleTraceMapObjectSnapshot
 import com.jojo.game.application.runtime.RuntimeBattleTraceUnitInput
 import com.jojo.game.application.runtime.RuntimeGridPoint
+import com.jojo.game.application.scenario.ScenarioStageWorldAccess
 import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.Faction
 
@@ -64,6 +68,13 @@ internal class BattleRuntimeTraceCoordinator(
 
     private val session = BattleTraceRuntimeSession(configuration, observer)
 
+    /**
+     * `mapObjectJournal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
+    private val mapObjectJournal = RuntimeBattleTraceMapObjectJournal()
+
     /** 결정적 난수열: 전투가 trace 실행 중일 때 사용할 재현 가능한 난수 공급원이다. */
     val randomSource: BattleTraceRandomStreams get() = session.randomSource
 
@@ -80,6 +91,32 @@ internal class BattleRuntimeTraceCoordinator(
     fun recordFrame(input: RuntimeBattleTraceFrameInput, advanceFrame: Boolean) {
         val frame = session.nextFrame(input.elapsed, advanceFrame)
         session.record(RuntimeBattleTraceFrameProjector.project(input.copy(frame = frame)))
+    }
+
+    /**
+     * 지도 객체 관측: 대본이 배치한 불·배·문을 원본 gate 행 형식으로 옮기고 변화한 프레임만 행을 싣는다.
+     *
+     * 원본 BattleLayer는 setObject2·setFire를 모두 하나의 gate 배열에 `x << 8 | y` 칸으로 적는다.
+     * 포트는 같은 상태를 stage.mapObjects와 stage.fires로 나눠 들고 있으므로 관측 시점에 칸 단위로
+     * 합쳐 원본과 같은 한 벌로 만든다. 꺼진 칸은 원본에서 gate 칸 자체가 비므로 행에서 빠진다.
+     */
+    fun observeMapObjects(stage: ScenarioStageWorldAccess): RuntimeBattleTraceMapObjectSnapshot {
+        /**
+         * `rows` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+         */
+
+        val rows = LinkedHashMap<Pair<Int, Int>, RuntimeBattleTraceMapObject>()
+        stage.mapObjects.values.forEach { objectValue ->
+            rows[objectValue.x to objectValue.y] = RuntimeBattleTraceMapObject(
+                objectValue.x, objectValue.y, objectValue.objectId, objectValue.terrainId, objectValue.enabled,
+            )
+        }
+        // 원본 setFire는 setObject2(TYPE=0, TERRAIN.HUO)와 같은 한 줄을 남긴다.
+        stage.fires.values.forEach { fire ->
+            rows[fire.x to fire.y] = RuntimeBattleTraceMapObject(fire.x, fire.y, 0, 26, fire.enabled)
+        }
+        return mapObjectJournal.observe(rows.values)
     }
 
     /** AI 연출 투영: 현재 AI 행동 상태를 trace 프레임에 넣을 불변 입력으로 변환한다. */

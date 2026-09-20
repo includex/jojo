@@ -6,22 +6,7 @@ import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.application.battle.NaturalBattleTransition
 import com.jojo.game.domain.scenario.PlaybackState
-import com.jojo.game.domain.scenario.ScenarioMapObject
 import com.jojo.game.application.runtime.RuntimeBattleTraceView
-
-/** FullBattleTraceMapObject: 증거 직렬화 전에 BattleScreen이 전달하는 값 전용 지도 행이다. */
-internal data class FullBattleTraceMapObject(
-    /** objectId: 객체 식별자 값을 보관한다. */
-    val objectId: Int,
-    /** terrainId: 지형 식별자 값을 보관한다. */
-    val terrainId: Int,
-    /** x: X 좌표 값을 보관한다. */
-    val x: Int,
-    /** y: Y 좌표 값을 보관한다. */
-    val y: Int,
-    /** enabled: 활성화 여부 여부를 나타낸다. */
-    val enabled: Boolean,
-)
 
 /** FullBattleTraceMapObjectsCall: 원본 Stage.setObjects 호출 하나를 값만으로 복사한 기록이다. */
 internal data class FullBattleTraceMapObjectsCall(
@@ -35,8 +20,6 @@ internal data class FullBattleTraceMapObjectsCall(
 
 /** FullBattleTraceMapObjectCall: 전장 객체 설정 호출의 객체 식별자와 좌표를 기록한다. */
 internal data class FullBattleTraceMapObjectCall(val objectId: Int, val x: Int, val y: Int)
-/** FullBattleTraceMapSnapshot: 특정 리비전의 전장 객체 지도를 직렬화한 불변 기록이다. */
-internal data class FullBattleTraceMapSnapshot(val revision: Int, val json: String)
 
 /** FullBattleTraceDriveSnapshot: 불변 장벽 관찰값이며 코디네이터는 BattleScreen을 다시 참조하지 않는다. */
 internal data class FullBattleTraceDriveSnapshot(
@@ -100,10 +83,6 @@ internal class FullBattleTraceEvidenceSession(
     private var lastDriverAt = Float.NEGATIVE_INFINITY
     /** terminalFrames: 종료 프레임 목록 상태를 검증 흐름에 전달한다. */
     private var terminalFrames = 0
-    /** mapObjectRevision: 지도 객체 버전 상태를 검증 흐름에 전달한다. */
-    private var mapObjectRevision = 0
-    /** mapObjectSignature: 지도 객체 서명 상태를 검증 흐름에 전달한다. */
-    private var mapObjectSignature: String? = null
     /** mapObjectsCallCursor: 지도 객체 호출 위치 상태를 검증 흐름에 전달한다. */
     private var mapObjectsCallCursor = 0
     /** finished: 완료 여부 여부를 나타낸다. */
@@ -146,18 +125,6 @@ internal class FullBattleTraceEvidenceSession(
             ) terminalFrames++ else terminalFrames = 0
             if (terminalFrames >= 3) requestFinish("battle-end")
         }
-    }
-
-    /** mapSnapshot: 지도 상태 스냅샷을 생성한다. */
-    fun mapSnapshot(objects: Collection<FullBattleTraceMapObject>): FullBattleTraceMapSnapshot {
-        val rows = objects.asSequence().filter(FullBattleTraceMapObject::enabled)
-            .sortedWith(compareBy<FullBattleTraceMapObject>({ it.x }, { it.y }, { it.objectId }, { it.terrainId }))
-            .joinToString(",") { "[${it.objectId},${it.terrainId},${it.x},${it.y}]" }
-        val signature = "[$rows]"
-        return if (signature != mapObjectSignature) {
-            mapObjectSignature = signature
-            FullBattleTraceMapSnapshot(++mapObjectRevision, signature)
-        } else FullBattleTraceMapSnapshot(mapObjectRevision, "null")
     }
 
     /** mapObjectCallObservations: 추가 전용 원본 콜백을 일반 RAF 행보다 먼저 한 번씩 소비한다. */

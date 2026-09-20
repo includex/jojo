@@ -458,3 +458,22 @@
 - `235-hit-hold`의 성공 경로는 한 글자도 바꾸지 않았다. 성공 시 자식을 기다리게 하면 빠른 성공 실행이 매번 최대 대기 시간을 쓰게 되어 성공 경로의 타이밍을 바꾼다.
 - PARTIAL이 종료 코드 0을 내던 `first-round-end`와 `round2-handoff`도 막았다. 이제 미완료 경로는 모두 throw하거나 명시적으로 비정상 종료를 낸다.
 - 게이트 조건, 캡처 조건, 폴링 간격, 상한 시간, 성공 로그는 전부 그대로다. 짧은 `first-normal-combat` 재실행으로 성공 경로가 살아 있음을 확인했다(`complete:true`, `missingCaptures:[]`).
+
+## 2턴 화공·증원·조작 인계 재검증 — `round2-handoff`
+
+- 원본 `build/reports/yingchuan-source-round2-handoff-srgb-20260920/`(9장, `complete:true`), 포트 `verification/build/verification/yingchuan-round2-handoff-fire2-20260920/`. 대조는 10개 검사와 화염 좌표 집합 비교다.
+- 이전에 누락됐던 `speaker157-dialogue` 캡처도 이번에는 받았다. 기록에 남아 있던 도구의 speaker accessor 문제가 해소된 상태다.
+- 증원은 258이 (9,7), 259가 (10,7)에 도착하고 259는 이후 t=133.2에 (10,6)으로 움직인다. 도착 좌표와 이후 이동을 구분해 검사한다. 스크립트 요청 좌표 0(10,6)·32(9,6)이 점유돼 실제 도착은 (10,5)·(9,5)이며, **요청 좌표가 아니라 실제 도착으로** 검사한다.
+- **10개 검사가 양쪽 모두 통과하고 불일치는 0이다.** 258→259 도착 간격은 -0.0001초다.
+- **화염 27개 좌표가 완전히 일치한다.** 집합 차집합이 양쪽 모두 비어 있다. 기록에 "총 27개 포트 좌표의 기계적 일치까지 검증한 것은 아니다"로 남아 있던 공백을 메웠다.
+
+### 화염이 포트 trace에 기록되지 않던 이유
+
+- 포트는 화염을 그리면서도 trace에는 0개를 기록했다. 화면에는 분명히 그려지므로 렌더링 문제가 아니라 **검증 공백**이었고, 포트가 화염을 엉뚱한 타일에 그려도 어떤 게이트도 잡지 못하는 상태였다.
+- 원본 형식은 `[TYPE, TERRAIN, X, Y]`다(`electron/full-battle-trace-renderer.js:296-313`, `core/Config.js:1404-1408`). `TYPE===65535`는 빈 슬롯이며 비활성은 "행이 없음"이다. 화공은 `TYPE=0, TERRAIN=26`이고, 이 26은 스크립트 인자가 아니라 `BattleLayer.setObject2(:1250-1254)`가 `TYPE<3`에서 `[26,27,26]`으로 덮어쓴 값이다.
+- **근본 원인은 포트가 원본의 한 구조를 둘로 쪼갠 것이다.** 원본은 `setFire`(`BattleLayer.js:1597`)가 `setObject2`를 거쳐 같은 gate 배열에 넣지만, 포트는 `stage.fires`와 `stage.mapObjects`를 따로 둔다(`ScenarioStageWorldState.kt:135,168,176`). `mapObjects`만 읽으면 화염이 비어 보인다.
+- `BattleScreen.kt:5691-5692`는 그 자리에 리터럴 `0, "null"`을 넣고 있었다. 이제 두 맵을 타일 기준으로 합쳐 원본의 단일 슬롯을 재현하고 `RuntimeBattleTraceMapObjectJournal`이 원본 규칙(비활성 제외, x/y/type/terrain 정렬, 변화 시에만 기록, `TYPE<3` 지형 덮어쓰기)을 적용한다.
+- **고아 구현을 하나 제거했다.** `verification/.../FullBattleTraceEvidence.kt:151 mapSnapshot`이 같은 규칙을 구현하고 자기 테스트로 초록이면서 **프로덕션 호출자가 0개**였다. core→verification 경계가 이미 투영된 view만 넘기므로 stage 상태에 닿을 수 없어 구조적으로 도달 불가였다. 삭제하고 core 쪽 하나로 합쳤으며, 남은 쪽은 `mapSnapshot`에 없던 지형 덮어쓰기를 갖는다.
+- 새 테스트는 **배선 자체**를 검사한다. 실제 `ScenarioStageWorldState`를 스크립트 인터페이스(`setFires`/`setMapObjects`/`setFire`)로 구동해 observer가 실제로 받는 프레임의 `mapObjectsJson`을 확인하므로, 생산자가 호출을 멈추거나 엉뚱한 stage 필드를 읽으면 실패한다. 기존의 순수 함수 테스트는 그것을 잡지 못했다.
+- 남은 고아를 기록한다. `FullBattleTraceFrameInput`/`FullBattleTraceFrameProjector`와 `FullBattleTraceEvidence.mapObjectCallObservations`는 모두 테스트 전용이며 프로덕션 호출자가 없다. 이번 범위 밖으로 둔다.
+- 한계도 남긴다. 한 타일에 지도 객체와 화염이 동시에 있으면 원본은 공유 슬롯의 마지막 쓰기가 이기지만 포트는 두 맵에 공유 순서가 없다. S_00 2턴에는 그런 타일이 없어 이번 대조는 유효하나 그런 스테이지에서는 순서가 갈릴 수 있다. 지형 덮어쓰기도 trace 시점 변환이며 포트가 저장하는 값 자체는 바꾸지 않았다.
