@@ -95,6 +95,18 @@ class BattleUsePropertyRenderEventRecorderTest {
         }
     }
 
+    @Test
+    fun `equipment eligibility follows source posts bits and arm list`() {
+        val contract = UsePropertyDetailRenderContract
+        assertTrue(contract.postsCanEquip(contract.CATEGORY_WEAPONS, 3, 4, setOf(4, 20), emptyList()))
+        assertFalse(contract.postsCanEquip(contract.CATEGORY_ARMOR, 3, 21, setOf(4, 20), emptyList()))
+        assertTrue(contract.postsCanEquip(contract.CATEGORY_AUXILIARY, 6, 26, emptySet(), listOf(2, 255)))
+        assertTrue(contract.postsCanEquip(contract.CATEGORY_AUXILIARY, 60, 26, emptySet(), listOf(20, 255)))
+        assertFalse(contract.postsCanEquip(contract.CATEGORY_AUXILIARY, 60, 26, emptySet(), listOf(21, 255, 20)))
+        assertTrue(contract.postsCanEquip(contract.CATEGORY_AUXILIARY, 38, 26, emptySet(), listOf(255)))
+        assertFalse(contract.postsCanEquip(contract.CATEGORY_PROPERTY, 3, 4, setOf(4), listOf(255)))
+    }
+
     /** 표 길이: 39는 상수가 아니라 13행 × 3열에서 나온다. */
     @Test
     fun `row count comes from the posts table length`() {

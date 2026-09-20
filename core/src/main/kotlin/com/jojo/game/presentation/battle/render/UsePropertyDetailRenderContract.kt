@@ -161,4 +161,27 @@ internal object UsePropertyDetailRenderContract {
             else -> false
         }
     }
+
+    /**
+     * 원본 `Item.js:282-305`의 장비 세 갈래. [equippableTypes]는 해당 직위의
+     * `posts.EQUIPS` 열, [upgradeArms]는 아이템의 `UPGRADE_ARM`와 `ARMS` 열에서 온다.
+     * 실제 테이블 접근은 호출자가 제공하므로 없는 값을 장착 불가로 오인하지 않는다.
+     */
+    fun postsCanEquip(
+        itemCategory: Int,
+        postsId: Int,
+        itemType: Int,
+        equippableTypes: Set<Int>,
+        upgradeArms: List<Int>,
+    ): Boolean {
+        require(postsId >= 0) { "직위 번호는 0 이상이어야 한다: $postsId" }
+        return when (itemCategory) {
+            CATEGORY_WEAPONS, CATEGORY_ARMOR -> itemType in equippableTypes
+            CATEGORY_AUXILIARY -> {
+                val arm = if (postsId < 60) postsId / 3 else postsId - 40
+                upgradeArms.firstOrNull() == 255 || arm in upgradeArms.takeWhile { it != 255 }
+            }
+            else -> false
+        }
+    }
 }
