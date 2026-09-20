@@ -38,14 +38,21 @@ object YingchuanWalkthroughDesktopLauncher {
         require(captureMode in setOf(
             "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
             "first-round-end", "round2-handoff", "single-player-action", "round2-followup", "round2-first-combat",
+            "round3-player-action",
+            "round3-first-combat",
         )) {
             "unknown walkthrough capture mode: $captureMode"
         }
         require(captureMode == "semantic-walkthrough" || timeScale == 1f) {
             "$captureMode requires normal speed"
         }
-        require(captureMode !in setOf("single-player-action", "round2-followup", "round2-first-combat") || maxSimulationSeconds == 180f) {
-            "$captureMode requires exactly 180 simulated seconds"
+        val requiredSimulationSeconds = when (captureMode) {
+            "single-player-action", "round2-followup", "round2-first-combat" -> 180f
+            "round3-player-action", "round3-first-combat" -> 210f
+            else -> null
+        }
+        require(requiredSimulationSeconds == null || maxSimulationSeconds == requiredSimulationSeconds) {
+            "$captureMode requires exactly ${requiredSimulationSeconds?.toInt()} simulated seconds"
         }
         outputDirectory.mkdirs()
         val trace = File(outputDirectory, "yingchuan-manual-trace.json")
@@ -146,6 +153,7 @@ private class WalkthroughRecorder(
     private var round2NewUnitPositionChanged = false
     private var previousSingleActionPhase: String? = null
     private var previousRound2FollowupPhase: String? = null
+    private var previousRound3PlayerActionPhase: String? = null
 
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
         elapsedSeconds += delta.toDouble()
@@ -182,6 +190,14 @@ private class WalkthroughRecorder(
             "single-player-action" -> captureSinglePlayerAction(probe)
             "round2-followup" -> captureRound2Followup(probe)
             "round2-first-combat" -> captureRound2Followup(probe)
+            "round3-player-action" -> {
+                captureRound2Followup(probe)
+                captureRound3PlayerAction(probe)
+            }
+            "round3-first-combat" -> {
+                captureRound2Followup(probe)
+                captureRound3PlayerAction(probe)
+            }
             else -> {
                 semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
                     if (captures.size < MAX_CAPTURES) capture(key, probe)
@@ -394,10 +410,10 @@ private class WalkthroughRecorder(
         val singlePhase = driver.singlePlayerActionPhase
         if (singlePhase != previousSingleActionPhase) {
             previousSingleActionPhase = singlePhase
-            val key = when (singlePhase) {
+            val key = if (captureMode in setOf("round3-player-action", "round3-first-combat")) null else when (singlePhase) {
+                "COMMAND_READY" -> "followup-command-open"
                 "SELECT_SENT" -> if (captureMode == "round2-first-combat") null else "followup-unit-0-selected"
                 "MOVE_SENT" -> if (captureMode == "round2-first-combat") null else "followup-move-to-11-5-sent"
-                "COMMAND_READY" -> "followup-command-open"
                 "TARGET_SENT" -> "followup-target-484-input-sent"
                 "COMPLETE" -> "followup-player-action-settled"
                 "FAILED" -> "followup-player-action-failed"
@@ -409,14 +425,22 @@ private class WalkthroughRecorder(
         if (phase != previousRound2FollowupPhase) {
             previousRound2FollowupPhase = phase
             val key = when (phase) {
-                "PROMPT_OBSERVED" -> "followup-automatic-prompt-observed"
-                "CONFIRM_SENT" -> "followup-automatic-confirm-input-sent"
-                "CAMP_ADVANCED" -> "followup-next-camp-observed"
-                "ACTION_STATE_CHANGED" -> "followup-first-action-state-change"
-                "ACTION_COMMITTED" -> if (captureMode == "round2-first-combat") null else "followup-first-action-committed"
+                "PROMPT_OBSERVED" -> if (captureMode in setOf("round3-player-action", "round3-first-combat")) null else "followup-automatic-prompt-observed"
+                "CONFIRM_SENT" -> if (captureMode in setOf("round3-player-action", "round3-first-combat")) null else "followup-automatic-confirm-input-sent"
+                "CAMP_ADVANCED" -> if (captureMode in setOf("round3-player-action", "round3-first-combat")) null else "followup-next-camp-observed"
+                "ACTION_STATE_CHANGED" -> if (captureMode in setOf("round3-player-action", "round3-first-combat")) null else "followup-first-action-state-change"
+                "ACTION_COMMITTED" -> if (captureMode in setOf("round2-first-combat", "round3-player-action", "round3-first-combat")) {
+                    null
+                } else {
+                    "followup-first-action-committed"
+                }
                 "CRITICAL_DIALOGUE_READY" -> "followup-critical-dialogue-complete"
-                "CRITICAL_DIALOGUE_CLOSE_SENT" -> "followup-critical-dialogue-close-input-sent"
-                "COMPLETE" -> "followup-first-action-settled"
+                "CRITICAL_DIALOGUE_CLOSE_SENT" -> if (captureMode in setOf("round3-player-action", "round3-first-combat")) {
+                    null
+                } else {
+                    "followup-critical-dialogue-close-input-sent"
+                }
+                "COMPLETE" -> if (captureMode in setOf("round3-player-action", "round3-first-combat")) null else "followup-first-action-settled"
                 "TERMINAL_DIALOGUE" -> "followup-authored-blocking-dialogue-terminal"
                 "FAILED" -> "followup-failed"
                 else -> null
@@ -426,13 +450,46 @@ private class WalkthroughRecorder(
         val activeActionCharacterId = probe.battle.snapshot.units
             .firstOrNull { it.id == probe.activeActionActorId }
             ?.characterId
-        if (captureMode == "round2-first-combat" &&
+        if (captureMode in setOf("round2-first-combat", "round3-player-action", "round3-first-combat") &&
             driver.round2FirstCombatCriticalDialogueCloseSent &&
             activeActionCharacterId == 32 &&
             probe.activeActionSourceAction in setOf(21, 49)
         ) {
             captureOnce("followup-first-ai-critical-clip-${probe.activeActionSourceAction}", probe)
         }
+    }
+
+    /** Captures the fail-closed round-three player action after the round-two evidence flow. */
+    private fun captureRound3PlayerAction(probe: BattleRuntimeScreenProbe) {
+        val phase = driver.round3PlayerActionPhase
+        if (phase == "TARGET_SENT" && probe.settlementInfoVisible) {
+            captureOnce("round3-settlement-active", probe)
+        }
+        val activeActionCharacterId = probe.battle.snapshot.units
+            .firstOrNull { it.id == probe.activeActionActorId }
+            ?.characterId
+        if (phase == "TARGET_SENT" && activeActionCharacterId == 0 &&
+            probe.activeActionSourceAction in setOf(21, 25, 48, 49)
+        ) {
+            captureOnce("round3-character-0-action-${probe.activeActionSourceAction}", probe)
+        }
+        if (phase == previousRound3PlayerActionPhase) return
+        previousRound3PlayerActionPhase = phase
+        val key = when (phase) {
+            "READY" -> if (captureMode == "round3-first-combat") null else "round3-player-input-ready"
+            "SELECT_SENT" -> if (captureMode == "round3-first-combat") null else "round3-unit-0-selection-input-sent"
+            "MOVE_SENT" -> if (captureMode == "round3-first-combat") null else "round3-move-to-10-5-input-sent"
+            "COMMAND_READY" -> "round3-command-open"
+            "ATTACK_COMMAND_SENT" -> "round3-attack-command-input-sent"
+            "TARGET_SENT" -> "round3-target-483-input-sent"
+            "CRITICAL_DIALOGUE_READY" -> "round3-critical-dialogue-complete"
+            "CRITICAL_DIALOGUE_CLOSE_SENT" -> "round3-critical-dialogue-close-input-sent"
+            "COMPLETE" -> "round3-action-settlement-complete"
+            "TERMINAL_DIALOGUE" -> "round3-authored-blocking-dialogue-terminal"
+            "FAILED" -> "round3-action-failed"
+            else -> null
+        }
+        key?.let { captureOnce(it, probe) }
     }
 
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
@@ -494,6 +551,8 @@ private class WalkthroughRecorder(
                 ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("activeActionSourceAction", probe.activeActionSourceAction?.let { JsonValue(it.toLong()) }
                 ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("settlementInfoVisible", JsonValue(probe.settlementInfoVisible))
+            addChild("round3PlayerActionPhase", JsonValue(driver.round3PlayerActionPhase))
             addChild("playerMoveCommitted", JsonValue(probe.playerMoveCommitted))
             addChild("committedPlayerMove", probe.committedPlayerMove?.let(::JsonValue) ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("battleCommandOpen", JsonValue(probe.battleCommandOpen))
@@ -562,6 +621,21 @@ private class WalkthroughRecorder(
             addChild("round2FollowupCompletedActorId", driver.round2FollowupCompletedActorId?.let(::JsonValue)
                 ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("round2FirstCombatCriticalDialogueCloseSent", JsonValue(driver.round2FirstCombatCriticalDialogueCloseSent))
+            addChild("round3PlayerActionPhase", JsonValue(driver.round3PlayerActionPhase))
+            addChild("round3PlayerActionComplete", JsonValue(driver.round3PlayerActionComplete))
+            addChild("round3PlayerActionTerminal", JsonValue(driver.round3PlayerActionTerminal))
+            addChild("round3PlayerActionObservedEnd", JsonValue(driver.round3PlayerActionObservedEnd))
+            addChild("round3CriticalDialogueCloseSent", JsonValue(driver.round3CriticalDialogueCloseSent))
+            addChild("round3PlayerActionFailure", driver.round3PlayerActionFailure?.let(::JsonValue)
+                ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("round3PlayerActionCompletionKind", driver.round3PlayerActionCompletionKind?.let(::JsonValue)
+                ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("round3PlayerActionRequestedAction", driver.round3PlayerActionRequestedActionJson())
+            addChild("round3PlayerActionReachableTiles", driver.round3PlayerActionReachableTilesJson())
+            addChild("round3TargetHitPointsBefore", driver.round3TargetHitPointsBefore?.let { JsonValue(it.toLong()) }
+                ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("round3TargetHitPointsAfter", driver.round3TargetHitPointsAfter?.let { JsonValue(it.toLong()) }
+                ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("timeScale", JsonValue(timeScale.toDouble()))
             addChild("captureMode", JsonValue(captureMode))
             addChild("maxSimulationSeconds", JsonValue(maxSimulationSeconds.toDouble()))
@@ -622,6 +696,12 @@ private class YingchuanWalkthroughDriver(
         ACTION_STATE_CHANGED, ACTION_COMMITTED, COMPLETE, TERMINAL_DIALOGUE, FAILED,
     }
 
+    private enum class Round3PlayerActionPhase {
+        WAIT_ROUND3, READY, SELECT_SENT, MOVE_SENT, COMMAND_READY, ATTACK_COMMAND_SENT, TARGET_SENT,
+        CRITICAL_DIALOGUE_TYPING, CRITICAL_DIALOGUE_READY, CRITICAL_DIALOGUE_CLOSE_SENT,
+        COMPLETE, TERMINAL_DIALOGUE, FAILED,
+    }
+
     private class SinglePlayerActionFailure(message: String) : RuntimeException(message)
 
     private var nextTapAt = Float.NEGATIVE_INFINITY
@@ -659,14 +739,37 @@ private class YingchuanWalkthroughDriver(
     val round2FollowupPhase: String get() = round2Followup.name
     val round2FollowupComplete: Boolean
         get() = round2Followup in setOf(Round2FollowupPhase.COMPLETE, Round2FollowupPhase.TERMINAL_DIALOGUE) &&
-            (captureMode != "round2-first-combat" || round2FirstCombatCriticalDialogueCloseSent)
+            (!requiresCriticalDialogueClose() || round2FirstCombatCriticalDialogueCloseSent)
+    private var round3ActionPhase = Round3PlayerActionPhase.WAIT_ROUND3
+    private var round3ActorId: String? = null
+    private var round3TargetId: String? = null
+    private var round3ReachableTiles: List<RuntimeGridPoint> = emptyList()
+    var round3TargetHitPointsBefore: Int? = null
+        private set
+    var round3TargetHitPointsAfter: Int? = null
+        private set
+    var round3PlayerActionFailure: String? = null
+        private set
+    var round3PlayerActionCompletionKind: String? = null
+        private set
+    var round3CriticalDialogueCloseSent = false
+        private set
+    val round3PlayerActionPhase: String get() = round3ActionPhase.name
+    val round3PlayerActionComplete: Boolean
+        get() = round3ActionPhase == Round3PlayerActionPhase.COMPLETE &&
+            (captureMode != "round3-first-combat" || round3CriticalDialogueCloseSent)
+    val round3PlayerActionTerminal: Boolean get() = round3ActionPhase == Round3PlayerActionPhase.TERMINAL_DIALOGUE
+    val round3PlayerActionObservedEnd: Boolean get() = round3PlayerActionComplete || round3PlayerActionTerminal
 
     override fun commands(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe): List<RuntimeBattleCommand> {
         if (probe.outcome != null || frame.elapsed < nextTapAt) return emptyList()
-        if (captureMode in setOf("round2-followup", "round2-first-combat") &&
+        if (captureMode in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat") &&
             round2Followup >= Round2FollowupPhase.CONFIRM_SENT
         ) {
             driveRound2Followup(frame, probe)
+            if (captureMode in setOf("round3-player-action", "round3-first-combat") && round2FollowupComplete) {
+                driveRound3PlayerAction(frame, probe)
+            }
             return emptyList()
         }
         if (probe.playback == PlaybackState.DIALOGUE) {
@@ -680,19 +783,19 @@ private class YingchuanWalkthroughDriver(
             return emptyList()
         }
         if (!probe.bootstrapComplete || probe.collocation) return emptyList()
-        if (captureMode in setOf("single-player-action", "round2-followup", "round2-first-combat") &&
+        if (captureMode in setOf("single-player-action", "round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat") &&
             (probe.round >= 2 || singleActionPhase != SinglePlayerActionPhase.WAIT_ROUND2)
         ) {
             try {
                 driveSinglePlayerAction(frame, probe)
-                if (captureMode in setOf("round2-followup", "round2-first-combat") &&
+                if (captureMode in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat") &&
                     singleActionPhase == SinglePlayerActionPhase.COMPLETE
                 ) {
                     driveRound2Followup(frame, probe)
                 }
             } catch (_: SinglePlayerActionFailure) {
                 // Expected fail-closed validation remains observable until the natural trace timeout.
-                if (captureMode in setOf("round2-followup", "round2-first-combat")) {
+                if (captureMode in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat")) {
                     failRound2Followup(singlePlayerActionFailure ?: "player action failed")
                 }
             }
@@ -863,7 +966,7 @@ private class YingchuanWalkthroughDriver(
 
     /** Sends exactly one automatic-prompt confirmation, then observes without further input. */
     private fun driveRound2Followup(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe) {
-        if (captureMode == "round2-first-combat" &&
+        if (requiresCriticalDialogueClose() &&
             round2Followup >= Round2FollowupPhase.CONFIRM_SENT &&
             round2Followup !in setOf(
                 Round2FollowupPhase.COMPLETE,
@@ -894,7 +997,7 @@ private class YingchuanWalkthroughDriver(
 
             Round2FollowupPhase.CONFIRM_SENT -> {
                 if (probe.playback == PlaybackState.DIALOGUE) {
-                    if (captureMode == "round2-first-combat") {
+                    if (requiresCriticalDialogueClose()) {
                         if (!requireCriticalDialogue(probe)) return
                         if (probe.dialogueTextComplete) {
                             markCriticalDialogueReady(frame)
@@ -1028,7 +1131,10 @@ private class YingchuanWalkthroughDriver(
     }
 
     private fun followupMayComplete(): Boolean =
-        captureMode != "round2-first-combat" || round2FirstCombatCriticalDialogueCloseSent
+        !requiresCriticalDialogueClose() || round2FirstCombatCriticalDialogueCloseSent
+
+    private fun requiresCriticalDialogueClose(): Boolean =
+        captureMode in setOf("round2-first-combat", "round3-player-action", "round3-first-combat")
 
     private fun isCriticalDialogue(probe: BattleRuntimeScreenProbe): Boolean =
         probe.dialogueSpeakerId == ROUND2_CRITICAL_DIALOGUE_SPEAKER &&
@@ -1057,6 +1163,231 @@ private class YingchuanWalkthroughDriver(
         followupHitPoints = probe.battle.snapshot.units.filter { it.visible }.associate { it.id to it.hitPoints }
         followupHasActed = active.associate { it.id to it.hasActed }
         round2Followup = Round2FollowupPhase.CAMP_ADVANCED
+    }
+
+    /** Executes only the authored round-three action; every invalid assumption fails without fallback input. */
+    private fun driveRound3PlayerAction(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe) {
+        if (round3ActionPhase in setOf(
+                Round3PlayerActionPhase.COMPLETE,
+                Round3PlayerActionPhase.TERMINAL_DIALOGUE,
+                Round3PlayerActionPhase.FAILED,
+            )
+        ) return
+        if (round2Followup == Round2FollowupPhase.TERMINAL_DIALOGUE) {
+            return failRound3PlayerAction("authored dialogue blocked round-three player input")
+        }
+        if (probe.round > 3) return failRound3PlayerAction("round advanced past 3 before the player action completed")
+        if (frame.elapsed < nextTapAt) return
+        if (captureMode == "round3-first-combat" &&
+            round3ActionPhase >= Round3PlayerActionPhase.TARGET_SENT &&
+            handleRound3CriticalDialogue(frame, probe)
+        ) return
+        if (captureMode == "round3-player-action" &&
+            round3ActionPhase == Round3PlayerActionPhase.TARGET_SENT && probe.playback == PlaybackState.DIALOGUE
+        ) {
+            round3PlayerActionCompletionKind = "authored-blocking-dialogue-after-target-input"
+            round3ActionPhase = Round3PlayerActionPhase.TERMINAL_DIALOGUE
+            return
+        }
+        val units = probe.battle.snapshot.units
+        val actor = units.firstOrNull { it.visible && it.hitPoints > 0 && it.characterId == 0 }
+        val target = units.firstOrNull { it.visible && it.hitPoints > 0 && it.characterId == 483 }
+        val destination = ROUND3_PLAYER_ACTION_DESTINATION
+
+        when (round3ActionPhase) {
+            Round3PlayerActionPhase.WAIT_ROUND3 -> {
+                if (probe.round != 3 || probe.turnPhase != "PLAYER_INPUT" || !probe.playerPresentationReady ||
+                    probe.playback != PlaybackState.COMPLETE || probe.autoBattleOverlay != "NONE" || probe.winConditionsOpen
+                ) return
+                val readyActor = actor ?: return failRound3PlayerAction("visible living character 0 was not found at round-three input")
+                if (readyActor.x != 11 || readyActor.y != 5) {
+                    return failRound3PlayerAction("character 0 is not at required start (11,5): (${readyActor.x},${readyActor.y})")
+                }
+                val readyTarget = target ?: return failRound3PlayerAction("visible living target character 483 was not found")
+                if (readyTarget.x != 9 || readyTarget.y != 6 || readyTarget.hitPoints != 19) {
+                    return failRound3PlayerAction(
+                        "target 483 expected at (9,6) HP19, observed (${readyTarget.x},${readyTarget.y}) HP${readyTarget.hitPoints}",
+                    )
+                }
+                round3ReachableTiles = probe.battle.reachableTiles(readyActor.id)
+                    .sortedWith(compareBy(RuntimeGridPoint::x, RuntimeGridPoint::y))
+                if (destination !in round3ReachableTiles) {
+                    return failRound3PlayerAction("character 0 cannot reach required destination (10,5)")
+                }
+                round3ActorId = readyActor.id
+                round3TargetId = readyTarget.id
+                round3TargetHitPointsBefore = readyTarget.hitPoints
+                round3ActionPhase = Round3PlayerActionPhase.READY
+            }
+
+            Round3PlayerActionPhase.READY -> {
+                val readyActor = actor ?: return failRound3PlayerAction("character 0 disappeared before round-three selection")
+                val point = probe.battle.screenPoint(RuntimeGridPoint(readyActor.x, readyActor.y))
+                if (!tap(frame, "round3-select-character-0", point.x, point.y)) {
+                    return failRound3PlayerAction("no InputProcessor was available for round-three selection")
+                }
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                round3ActionPhase = Round3PlayerActionPhase.SELECT_SENT
+            }
+
+            Round3PlayerActionPhase.SELECT_SENT -> {
+                val selectedActor = actor ?: return failRound3PlayerAction("character 0 disappeared after round-three selection")
+                if (probe.selectedUnitId != selectedActor.id) return
+                if (destination !in probe.battle.reachableTiles(selectedActor.id)) {
+                    return failRound3PlayerAction("required destination (10,5) stopped being reachable after selection")
+                }
+                val point = probe.battle.screenPoint(destination)
+                if (!tap(frame, "round3-move-character-0-to-10-5", point.x, point.y)) {
+                    return failRound3PlayerAction("no InputProcessor was available for round-three movement")
+                }
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                round3ActionPhase = Round3PlayerActionPhase.MOVE_SENT
+            }
+
+            Round3PlayerActionPhase.MOVE_SENT -> {
+                if (!probe.battleCommandOpen) return
+                val movedActor = actor ?: return failRound3PlayerAction("character 0 disappeared during round-three movement")
+                if (movedActor.x != 10 || movedActor.y != 5) {
+                    return failRound3PlayerAction("CommandLayer opened before character 0 reached (10,5)")
+                }
+                nextTapAt = frame.elapsed + COMMAND_OBSERVATION_SECONDS
+                round3ActionPhase = Round3PlayerActionPhase.COMMAND_READY
+            }
+
+            Round3PlayerActionPhase.COMMAND_READY -> {
+                if (!probe.battleCommandOpen) return failRound3PlayerAction("CommandLayer closed before round-three ATTACK input")
+                if (!tap(frame, "round3-open-attack-command", probe.commandAttackScreenX, probe.commandAttackScreenY)) {
+                    return failRound3PlayerAction("no InputProcessor was available for round-three ATTACK")
+                }
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                round3ActionPhase = Round3PlayerActionPhase.ATTACK_COMMAND_SENT
+            }
+
+            Round3PlayerActionPhase.ATTACK_COMMAND_SENT -> {
+                if (!probe.battleTargetSelectionOpen) return
+                val currentTarget = target ?: return failRound3PlayerAction("target 483 disappeared before target input")
+                if (currentTarget.id != round3TargetId || currentTarget.x != 9 || currentTarget.y != 6) {
+                    return failRound3PlayerAction("target 483 identity or tile changed before target input")
+                }
+                val point = probe.battle.screenPoint(RuntimeGridPoint(9, 6))
+                if (!tap(frame, "round3-attack-character-483", point.x, point.y)) {
+                    return failRound3PlayerAction("no InputProcessor was available for round-three target input")
+                }
+                nextTapAt = frame.elapsed + ACTION_INTERVAL
+                round3ActionPhase = Round3PlayerActionPhase.TARGET_SENT
+            }
+
+            Round3PlayerActionPhase.TARGET_SENT -> {
+                val currentActor = units.firstOrNull { it.id == round3ActorId }
+                    ?: return failRound3PlayerAction("character 0 disappeared during round-three settlement")
+                round3TargetHitPointsAfter = units.firstOrNull { it.id == round3TargetId }?.hitPoints ?: 0
+                val terminalInputState = probe.autoBattleOverlay == "PROMPT" ||
+                    (probe.turnPhase == "PLAYER_INPUT" && probe.autoBattleOverlay == "NONE")
+                if (!currentActor.hasActed || !probe.playerPresentationReady || !terminalInputState ||
+                    probe.selectedUnitId != null || probe.battleCommandOpen || probe.battleTargetSelectionOpen
+                ) return
+                round3ActionPhase = Round3PlayerActionPhase.COMPLETE
+                round3PlayerActionCompletionKind = if (probe.autoBattleOverlay == "PROMPT") {
+                    "automatic-prompt"
+                } else {
+                    "free-player-input"
+                }
+            }
+
+            Round3PlayerActionPhase.CRITICAL_DIALOGUE_TYPING -> Unit
+
+            Round3PlayerActionPhase.CRITICAL_DIALOGUE_READY -> {
+                if (!isRound3CriticalDialogue(probe) || !probe.dialogueTextComplete) {
+                    return failRound3PlayerAction("round-three critical dialogue changed before close input")
+                }
+                if (!tap(frame, "round3-close-critical-dialogue", probe.battleMenuButtonScreenX, probe.battleMenuButtonScreenY + 200)) {
+                    return failRound3PlayerAction("no InputProcessor was available to close the round-three critical dialogue")
+                }
+                round3CriticalDialogueCloseSent = true
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                round3ActionPhase = Round3PlayerActionPhase.CRITICAL_DIALOGUE_CLOSE_SENT
+            }
+
+            Round3PlayerActionPhase.CRITICAL_DIALOGUE_CLOSE_SENT -> Unit
+
+            Round3PlayerActionPhase.COMPLETE, Round3PlayerActionPhase.TERMINAL_DIALOGUE,
+            Round3PlayerActionPhase.FAILED -> Unit
+        }
+    }
+
+    private fun handleRound3CriticalDialogue(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe): Boolean {
+        if (probe.playback != PlaybackState.DIALOGUE) {
+            return when (round3ActionPhase) {
+                Round3PlayerActionPhase.CRITICAL_DIALOGUE_TYPING,
+                Round3PlayerActionPhase.CRITICAL_DIALOGUE_READY -> {
+                    failRound3PlayerAction("round-three critical dialogue closed without the required input")
+                    true
+                }
+
+                Round3PlayerActionPhase.CRITICAL_DIALOGUE_CLOSE_SENT -> {
+                    round3ActionPhase = Round3PlayerActionPhase.TARGET_SENT
+                    true
+                }
+
+                else -> false
+            }
+        }
+        if (round3CriticalDialogueCloseSent &&
+            round3ActionPhase != Round3PlayerActionPhase.CRITICAL_DIALOGUE_CLOSE_SENT
+        ) {
+            round3PlayerActionCompletionKind = "authored-blocking-dialogue-after-critical-speech"
+            round3ActionPhase = Round3PlayerActionPhase.TERMINAL_DIALOGUE
+            return true
+        }
+        if (!isRound3CriticalDialogue(probe)) {
+            round3PlayerActionCompletionKind = "authored-blocking-dialogue-after-target-input"
+            round3ActionPhase = Round3PlayerActionPhase.TERMINAL_DIALOGUE
+            return true
+        }
+        return when (round3ActionPhase) {
+            Round3PlayerActionPhase.CRITICAL_DIALOGUE_READY -> false
+            Round3PlayerActionPhase.CRITICAL_DIALOGUE_CLOSE_SENT -> true
+            else -> {
+                if (probe.dialogueTextComplete) {
+                    round3ActionPhase = Round3PlayerActionPhase.CRITICAL_DIALOGUE_READY
+                    nextTapAt = frame.elapsed + COMMAND_OBSERVATION_SECONDS
+                } else {
+                    round3ActionPhase = Round3PlayerActionPhase.CRITICAL_DIALOGUE_TYPING
+                }
+                true
+            }
+        }
+    }
+
+    private fun isRound3CriticalDialogue(probe: BattleRuntimeScreenProbe): Boolean =
+        probe.dialogueSpeakerId == ROUND3_CRITICAL_DIALOGUE_SPEAKER &&
+            probe.dialogueText == ROUND3_CRITICAL_DIALOGUE_TEXT
+
+    private fun failRound3PlayerAction(message: String) {
+        round3PlayerActionFailure = message
+        round3ActionPhase = Round3PlayerActionPhase.FAILED
+    }
+
+    fun round3PlayerActionRequestedActionJson(): JsonValue = JsonValue(JsonValue.ValueType.`object`).apply {
+        addChild("actorCharacterId", JsonValue(0L))
+        addChild("startX", JsonValue(11L))
+        addChild("startY", JsonValue(5L))
+        addChild("destinationX", JsonValue(ROUND3_PLAYER_ACTION_DESTINATION.x.toLong()))
+        addChild("destinationY", JsonValue(ROUND3_PLAYER_ACTION_DESTINATION.y.toLong()))
+        addChild("command", JsonValue("ATTACK"))
+        addChild("targetCharacterId", JsonValue(483L))
+        addChild("targetX", JsonValue(9L))
+        addChild("targetY", JsonValue(6L))
+        addChild("targetInitialHitPoints", JsonValue(19L))
+    }
+
+    fun round3PlayerActionReachableTilesJson(): JsonValue = JsonValue(JsonValue.ValueType.array).also { rows ->
+        round3ReachableTiles.forEach { tile ->
+            rows.addChild(JsonValue(JsonValue.ValueType.`object`).apply {
+                addChild("x", JsonValue(tile.x.toLong()))
+                addChild("y", JsonValue(tile.y.toLong()))
+            })
+        }
     }
 
     private fun failRound2Followup(message: String) {
@@ -1135,9 +1466,12 @@ private class YingchuanWalkthroughDriver(
 
     private companion object {
         val SINGLE_PLAYER_ACTION_DESTINATION = RuntimeGridPoint(11, 5)
+        val ROUND3_PLAYER_ACTION_DESTINATION = RuntimeGridPoint(10, 5)
         const val COMMAND_OBSERVATION_SECONDS = .2f
         const val ROUND2_CRITICAL_DIALOGUE_SPEAKER = "32"
         const val ROUND2_CRITICAL_DIALOGUE_TEXT = "이것은 만민의 분노입니다!"
+        const val ROUND3_CRITICAL_DIALOGUE_SPEAKER = "0"
+        const val ROUND3_CRITICAL_DIALOGUE_TEXT = "내 이 기술을 받아라! 이것이 바로 황천지검이다!"
         const val TAP_INTERVAL = .4f
         const val ACTION_INTERVAL = 1.5f
         const val MAX_JOURNAL_ROWS = 256

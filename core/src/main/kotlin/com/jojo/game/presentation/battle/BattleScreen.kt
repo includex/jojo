@@ -5617,6 +5617,7 @@ void main() {
                 dialogueTextComplete = dialogueReveal.isComplete,
                 activeActionActorId = actionAnimation?.takeIf { animationClock() < it.endsAt }?.unitId,
                 activeActionSourceAction = actionAnimation?.takeIf { animationClock() < it.endsAt }?.sourceAction,
+                settlementInfoVisible = settlementPresentation.infoView() != null || settlementPresentation.info2View() != null,
             ),
             object : BattleRuntimeProbePort {
                 /**

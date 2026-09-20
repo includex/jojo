@@ -199,3 +199,12 @@
 - `BattleTurnController`의 일반 PLAYER_INPUT 직전에 카메라 보정 callback을 연결한다. 사망/종료/idle-skip 이후이며 기존 `focusFirstCampCameraUnit(PLAYER)`와 ensureVisible을 재사용한다. 강제 중앙정렬이나 clamp 계산 변경이 아니다. 호출 순서/정상1회/AI중복 없음/idle-skip 없음 관련 controller 테스트15개가 통과했고 Astra의 원본 순서 검토도 통과했다.
 - 최종 정상180초 `verification/build/verification/yingchuan-round3-camera-fixed-20260920/` 성공:10,805프레임,11장. 3턴 PLAYER_INPUT camera가 원본과 같은[96,-176]이며 표시20개 부대의 x/y/HP/MP/방향/visible 차이가 없다. 자동 확인·필살 대사 실제 close·첫 공격 정산도 다시 통과했다. `final-comparison.json`에 기계 비교를 보존한다.
 - 이번 `followup-first-ai-critical-clip-21`은 대사 close frame7782 다음 실제 필살 frame7783을 캡처했다. 초기 clip을 잘못 잡았던 이전 이미지와 구분하며, 원본 필살 PNG의 유비 무기를 든 자세와 대조했다. 이후 진행 대상은 3턴 실제 플레이어 조작이다. 전체 영천전투 완료나 모든 후속 연출의 완전 일치를 선언하지 않는다.
+
+## 3턴 실제 이동·조조 필살 공격
+
+- 이전 goal turn은 명령창 회색조/투명도와 PLAYER 진입 카메라 수정 및 push로 진행됐다. 이번 범위는 조조0(11,5)→(10,5) 실제 이동 후483(9,6) 공격→정산/퇴각→자동 확인창이다. (10,5)는 빈 평원이며 실제 reachable과 enabled ATTACK을 별도로 검증한다. 점유된(10,6)로 우회하지 않는다.
+- 첫 원본 정상210초 `build/reports/yingchuan-source-round3-player-action-20260920/`는 실제 입력10회 후 speaker0의 `내 이 기술을 받아라! 이것이 바로 황천지검이다!`에서 멈췄다.13,598프레임을 보존했으며 공격/피해 이전이므로 PARTIAL이다. 대사 도달을 공격 완료로 표시하지 않는다.
+- 원본에서 확인한 exact 화자/전체본문과 자연 타이핑 완료를 조건으로 한 번만 닫는 `round3-first-combat` 모드를 추가했다. 기존 blocking 모드는 유지한다. 후속/예상외 대사에는 추가 입력을 보내지 않으며 실제 close 증거가 없으면 완료될 수 없다. 포트 status창 캡처 probe는 정산 lifecycle 활성 여부가 아니라 실제 info/info2 view의 존재를 조회한다.
+- 원본 정상210초 `build/reports/yingchuan-source-round3-first-combat-20260920/` 성공:13,581프레임,10장,실제 입력11회. 조조0 이동20→필살21→483 피격32/HP19→0→기본9→조조 경험치 정산→483 퇴각23/숨김→자동 MsgBox의 순서를 확인했다.0 HP123/MP36 유지, 경험치6→30. MineUnitInfoLayer 원본 labels/bars와 경험치 보간값도 기록했다. 마지막 확인창은 누르지 않았다.
+- 포트 정상210초 `verification/build/verification/yingchuan-round3-first-combat-20260920/`도 입력11회·캡처10장으로 자동 확인창에 도달했다(12,605프레임). 이것은 입력 시나리오 완료이며 원본 일치 판정이 아니다. 최종 표시 부대 상태는 같지만, 필살21 시작부터 대상483 HP0 및 조조 acted/경험치30이 조기에 반영됐다. 원본은 피격32에서 HP0, 공격 완료에서 acted/경험치를 반영한다. 첫 정산창도 원본 조조 경험치 창과 달리 포트는 황건군 HP19 창이다. 이 동작·UI 차이를 다음 수정 단위로 우선 처리한다.
+- 전체 부대 비교에서는 숨겨진157의 능력치 두 항목에 각각+60 차이가 남는다. 현재 표시 부대 결과와 구분해 추적하며 이번 입력 도구 추가를 전체 전투 일치로 확대하지 않는다.

@@ -181,6 +181,8 @@ data class BattleRuntimeScreenProbe(
     /** Currently active BattleUnit action clip, if any. */
     val activeActionActorId: String? = null,
     val activeActionSourceAction: Int? = null,
+    /** A source `_jiesuan` info or info2 view is currently drawable. */
+    val settlementInfoVisible: Boolean = false,
     val battle: BattleRuntimeProbe,
 ) : RuntimeScreenProbe {
     /**
