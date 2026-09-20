@@ -18,6 +18,17 @@ class RenderLogComparatorTest(unittest.TestCase):
     def canonical(self, draws, timestamp=1):
         return {"viewport": [1280, 688], "timestamp": timestamp, "draws": draws}
 
+    def test_battle_jsonl_keeps_minimap_at_edge_of_battle_canvas(self):
+        event = {"nodePath": "Canvas/Layer/bg/box", "phase": "battle-mini-map-shown",
+                 "x": 1286.372, "y": 570, "w": 186.047, "h": 100}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "minimap.jsonl"
+            path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+            self.assertEqual(1, len(MODULE.adapt(MODULE.load_input(path))[1]))
+            event["phase"] = "hall-map"
+            path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+            self.assertEqual(0, len(MODULE.adapt(MODULE.load_input(path))[1]))
+
     def test_timing_noise_and_float_serialization_are_ignored(self):
         left = self.canonical([{"path": "ui/panel", "rect": [1, 2, 3, 4], "asset": "panel", "opacity": 255,
                                 "blend": [770, 771], "visible": True, "text": "대화"}], 10)

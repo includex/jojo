@@ -8919,7 +8919,7 @@ void main() {
         battleEdit2RouteState?.let { return BattleEditLayer2RenderEvents.jsonl(it, requireNotNull(battleEdit2)) }
         if (battleCommandRouteState != null) return battleCommandRenderEventLog()
         if (roundRouteState != null) return roundRenderEventLog()
-        if (miniMapRouteState != null) return MiniMapRenderEvents.jsonl(miniMapLayer.shown)
+        if (miniMapRouteState != null) return MiniMapRenderEvents.jsonl(miniMapLayer.shown, miniMapViewportBox())
         if (autoBattleRouteState != null) return autoBattleRenderEventLog()
         if (battleCharacterRouteState != null) return battleCharacterRouteRenderEventLog()
         if (jiqiRouteFixture) return jiqiRenderEventLog()
@@ -9470,19 +9470,19 @@ void main() {
     /**
      * `miniMapViewportBox`: 현재 보이는 전장 영역을 미니맵 축척으로 옮긴다.
      *
-     * 원본은 스크롤뷰 콘텐츠 위치를 8로 나눠 상자를 옮기는데, 그 8은 전체 맵과 미니맵의
-     * 크기 비다. 맵 크기가 다른 전투에서도 맞도록 비율을 그때그때 계산한다.
+     * 원본 `MiniMapLayer`는 `MAP_SCROLLING`의 콘텐츠 위치를 8로 나눠 상자를 옮기고,
+     * 화면 크기도 8로 나눠 상자 크기를 정한다.
      */
     private fun miniMapViewportBox(): BattleGridMiniMapBox {
-        val mapLeft = SourceBattleMapGeometry.boardLeft(terrainGrid.width, battleCamera.x) - 48f
+        val mapLeft = SourceBattleMapGeometry.boardLeft(terrainGrid.width, battleCamera.x)
         val mapBottom = SourceBattleMapGeometry.mapBottom(terrainGrid.height, battleCamera.y)
-        val scaleX = miniMapScaleX()
-        val scaleY = miniMapScaleY()
+        val scaleX = 1f / 8f
+        val scaleY = 1f / 8f
         return BattleGridMiniMapBox(
             x = miniMapLeft - mapLeft * scaleX,
             y = miniMapBottom - mapBottom * scaleY,
-            width = viewport.worldWidth * scaleX,
-            height = viewport.worldHeight * scaleY,
+            width = MiniMapRenderEvents.CANVAS_WIDTH * scaleX,
+            height = MiniMapRenderEvents.CANVAS_HEIGHT * scaleY,
         )
     }
 

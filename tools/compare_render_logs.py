@@ -312,7 +312,12 @@ def load_input(path: Path) -> Any:
         if event.get("x") == 0 and event.get("y") == 0
         and isinstance(event.get("w"), (int, float)) and isinstance(event.get("h"), (int, float))
     ]
-    viewport = max(root_sizes, key=lambda size: size[0] * size[1]) if root_sizes else (1280.0, 688.0)
+    # The mini-map fixture has no root draw to declare its 1488.372x800 canvas.
+    # Its right-side box starts beyond the generic 1280x688 fallback.
+    battle_overlay = any(str(event.get("phase", "")).startswith("battle-mini-map-") for event in events)
+    viewport = max(root_sizes, key=lambda size: size[0] * size[1]) if root_sizes else (
+        (1488.372, 800.0) if battle_overlay else (1280.0, 688.0)
+    )
 
     def intersects_viewport(event: dict[str, Any]) -> bool:
         """Mirror the harness's own `actualDrawsOnly` test.

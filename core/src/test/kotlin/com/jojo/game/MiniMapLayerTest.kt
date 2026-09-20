@@ -2,6 +2,7 @@
 package com.jojo.game
 
 import com.jojo.game.presentation.battle.overlay.*
+import com.jojo.game.presentation.battle.render.BattleGridMiniMapBox
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,6 +12,7 @@ import kotlin.test.assertTrue
 /** MiniMapLayerTest: MiniMapLayer의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class MiniMapLayerTest {
+    private val sourceBox = BattleGridMiniMapBox(1286.372f, 570f, 186.047f, 100f)
     @Test
     fun `authored button toggles persistent layer without selecting the tactical map`() {
         var loaded = 0
@@ -51,8 +53,8 @@ class MiniMapLayerTest {
 
     @Test
     fun `stable shown and hidden render contracts include only actual visible submissions`() {
-        val shown = MiniMapRenderEvents.jsonl(shown = true).lineSequence().filter(String::isNotBlank).toList()
-        val hidden = MiniMapRenderEvents.jsonl(shown = false).lineSequence().filter(String::isNotBlank).toList()
+        val shown = MiniMapRenderEvents.jsonl(shown = true, box = sourceBox).lineSequence().filter(String::isNotBlank).toList()
+        val hidden = MiniMapRenderEvents.jsonl(shown = false, box = sourceBox).lineSequence().filter(String::isNotBlank).toList()
         assertEquals(25, shown.size)
         assertEquals(2, hidden.size)
         assertTrue(shown[1].contains("\"opacity\":0.659"))
@@ -70,7 +72,7 @@ class MiniMapLayerTest {
     @Test
     fun `mini map rows all record untinted white`() {
         listOf(true, false).forEach { shown ->
-            val rows = MiniMapRenderEvents.jsonl(shown).lineSequence().filter(String::isNotBlank).toList()
+            val rows = MiniMapRenderEvents.jsonl(shown, sourceBox).lineSequence().filter(String::isNotBlank).toList()
             assertTrue(rows.isNotEmpty(), "shown=$shown recorded no rows")
             rows.forEach { row ->
                 val colour = Regex("\"color\":(\"[^\"]*\"|null)").find(row)?.groupValues?.get(1)?.trim('"')
@@ -83,7 +85,7 @@ class MiniMapLayerTest {
     /** 투명도 분리: 168/255·127/255로 낮춘 두 행도 색에는 알파를 섞지 않는다. */
     @Test
     fun `dimmed mini map rows keep opacity out of the colour string`() {
-        val shown = MiniMapRenderEvents.jsonl(shown = true).lineSequence().filter(String::isNotBlank).toList()
+        val shown = MiniMapRenderEvents.jsonl(shown = true, box = sourceBox).lineSequence().filter(String::isNotBlank).toList()
 
         assertTrue(shown[1].contains("\"opacity\":0.659") && shown[1].contains("\"color\":\"#ffffff\""), shown[1])
         assertTrue(shown[21].contains("\"opacity\":0.498") && shown[21].contains("\"color\":\"#ffffff\""), shown[21])

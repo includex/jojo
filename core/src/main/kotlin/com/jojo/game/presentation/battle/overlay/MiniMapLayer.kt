@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import com.jojo.game.presentation.battle.render.BattleGridMiniMapBox
 
 /** 전투 지도의 크기와 날씨를 초기화하고 유닛·기지 표식을 좌표로 갱신한다. */
 class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = {}) {
@@ -253,6 +254,9 @@ class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = 
  */
 
 object MiniMapRenderEvents {
+    /** 원본 MiniMapLayer가 참조하는 전투 캔버스의 논리 크기. */
+    const val CANVAS_WIDTH = 1488.372f
+    const val CANVAS_HEIGHT = 800f
     /**
      * 미니맵 노드 색: 원본 `MiniMapLayer` 프리팹
      * (`assets/resources/import/1e/1e1e9ef6-9835-40c9-8076-26af80ae38a6.6c573.json`)의
@@ -296,7 +300,7 @@ object MiniMapRenderEvents {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun append(log: RenderEventLog, shown: Boolean) {
+    fun append(log: RenderEventLog, shown: Boolean, box: BattleGridMiniMapBox) {
         val phase = "battle-mini-map-${if (shown) "shown" else "hidden"}"
         /**
          * `draw`: 화면 표시 상태를 렌더링한다.
@@ -315,7 +319,7 @@ object MiniMapRenderEvents {
                 draw("Canvas/Layer/bg/map/tiled", "sprite", marker.x, marker.y, 16f, 16f, marker.asset)
             }
             draw("Canvas/Layer/bg/weather", "sprite", 1248.372f, 560f, 57.6f, 57.6f, "weather_0", 127f / 255f)
-            draw("Canvas/Layer/bg/box", "sliced-sprite", 1286.372f, 570f, 186.047f, 100f, "box6")
+            draw("Canvas/Layer/bg/box", "sliced-sprite", box.x, box.y, box.width, box.height, "box6")
         }
         val buttonX = if (shown) 1174.372f else 1418.372f
         draw("Canvas/Layer/bg/btn/Background", "sliced-sprite", buttonX, 730f, 70f, 70f, "bg1")
@@ -328,5 +332,6 @@ object MiniMapRenderEvents {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun jsonl(shown: Boolean): String = RenderEventLog().also { append(it, shown) }.jsonl()
+    fun jsonl(shown: Boolean, box: BattleGridMiniMapBox): String =
+        RenderEventLog().also { append(it, shown, box) }.jsonl()
 }
