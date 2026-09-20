@@ -9,6 +9,27 @@ object BattleDialogRenderContract {
     /** 대화 창 스프라이트: 원본 자원 경로와 화면 출력 사각형을 함께 보관한다. */
     data class Sprite(val path: String, val x: Float, val y: Float, val width: Float, val height: Float)
 
+    /**
+     * 마법 카드 글자색: 원본 `battle/MagickListLayer.js:64-68`의 `_dis`가 정하는 세 색이다.
+     *
+     * ```
+     * for (n = 0; n < 2; n++) seekNodeByName("label"+n, t).color = r ? cc.color(0) : cc.color(8355711);
+     * seekNodeByName("label2", t).color = r ? cc.color(0) : e ? cc.color(139,33,33) : cc.color(8355711);
+     * ```
+     * `r`은 쓸 수 있는 마법, `e`는 MP가 모자란 경우다. 곧 이름·위력은 검정 아니면
+     * `8355711 = 0x7f7f7f`이고, **비용(label2)만** MP 부족일 때 (139,33,33)으로 바뀐다.
+     *
+     * 포트는 비활성 색으로 `Color(.5f, .5f, .5f, 1f)` = (128,128,128)을 써서 한 채널씩
+     * 어긋났고, 비용 라벨의 붉은 색은 아예 없었다.
+     */
+    const val CARD_LABEL_COLOR = "#000000"
+
+    /** 쓸 수 없는 마법의 이름·위력 색: `cc.color(8355711)`이다. */
+    const val CARD_DISABLED_COLOR = "#7f7f7f"
+
+    /** MP가 모자란 마법의 비용 색: `cc.color(139, 33, 33)`이다. */
+    const val CARD_SHORT_MP_COLOR = "#8b2121"
+
     /** 목록 아이콘: 마법 행의 기준 좌표에서 아이콘 출력 사각형을 계산한다. */
     fun magicListIcon(magic: MagicUiList.Magic, x: Float, y: Float) =
         Sprite(BattleUiAssets.magicIcon(magic.icon), x + 5.073f, y + 57.383f, 76.8f, 76.8f)

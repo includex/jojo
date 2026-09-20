@@ -16,7 +16,11 @@ internal data class BattleMagickRenderEventView(
 internal data class BattleMagickListView(val rows: List<BattleMagickRowView>)
 
 /** 마법 행: 목록 카드에서 이름·MP 소모·위력·아이콘을 표시하는 값이다. */
-internal data class BattleMagickRowView(val name: String, val cost: Int, val power: Int?, val icon: Int)
+internal data class BattleMagickRowView(
+    val name: String, val cost: Int, val power: Int?, val icon: Int,
+    /** MP가 모자라지 않아 지금 쓸 수 있는 마법인지. 원본 `_dis`의 `r`에 해당한다. */
+    val enabled: Boolean = true,
+)
 
 /** 마법 상세: 상세 패널의 범위·설명까지 표시하는 선택 마법 정보이다. */
 internal data class BattleMagickDetailView(
@@ -70,20 +74,41 @@ internal object BattleMagickRenderEventRecorder {
             val root = "Canvas/Layer/bg0/box2/scrollview/view/content/item"
             append("MagickListLayer", root, "sliced-sprite", x, y, 262f, 140f, "box3")
             append("MagickListLayer", "$root/skill_0", "sprite", x + 5.073f, y + 57.383f, 76.8f, 76.8f, "Game/Magic/${magic.icon + 1}-1")
-            append("MagickListLayer", "$root/label0", "label", x + 92f, y + 86.8f, rowWidths[index], text = magic.name)
-            append("MagickListLayer", "$root/label", "label", x + 92f, y + 45.8f, 94.6f, text = "MP：")
-            append("MagickListLayer", "$root/label2", "label", x + 175.879f, y + 45.8f, if (magic.cost < 10) 22.25f else 44.49f, text = magic.cost.toString())
+            // 색은 그리기 쪽 `drawMagickListLayer`가 쓰는 것과 같은 계약에서 온다.
+            val nameColor =
+                if (magic.enabled) BattleDialogRenderContract.CARD_LABEL_COLOR
+                else BattleDialogRenderContract.CARD_DISABLED_COLOR
+            val costColor =
+                if (magic.enabled) BattleDialogRenderContract.CARD_LABEL_COLOR
+                else BattleDialogRenderContract.CARD_SHORT_MP_COLOR
+            append(
+                "MagickListLayer", "$root/label0", "label", x + 92f, y + 86.8f, rowWidths[index],
+                text = magic.name, color = nameColor,
+            )
+            // 「MP：」와 「피해 계수: 」는 `_dis`가 건드리지 않는 고정 문구라 늘 검정이다.
+            append(
+                "MagickListLayer", "$root/label", "label", x + 92f, y + 45.8f, 94.6f, text = "MP：",
+                color = BattleDialogRenderContract.CARD_LABEL_COLOR,
+            )
+            append(
+                "MagickListLayer", "$root/label2", "label", x + 175.879f, y + 45.8f,
+                if (magic.cost < 10) 22.25f else 44.49f, text = magic.cost.toString(), color = costColor,
+            )
             // 피해 계수 두 줄은 카드 아래쪽에 있어 마지막 줄(y = -62.5)에서는 화면 아래로
             // 완전히 벗어난다. 원본 하네스는 화면에 걸치지 않는 노드를 기록하지 않으므로
             // 여기서도 같은 조건으로 뺀다. 앞서는 `index < 8`이라는 손으로 적은 수를 썼고,
             // 그것은 이 픽스처의 배치에서만 우연히 맞는 값이었다.
             val labelY = y + 4.8f
             if (labelY + LABEL_HEIGHT > 0f) {
-                append("MagickListLayer", "$root/label", "label", x + 2.097f, labelY, 171.74f, text = "피해 계수: ")
+                append(
+                    "MagickListLayer", "$root/label", "label", x + 2.097f, labelY, 171.74f, text = "피해 계수: ",
+                    color = BattleDialogRenderContract.CARD_LABEL_COLOR,
+                )
                 append(
                     "MagickListLayer", "$root/label1", "label", x + 179.637f, labelY, 77.85f,
                     // 그리기 쪽 `drawMagickListLayer`가 쓰는 것과 같은 계약이다.
                     text = BattleDialogRenderContract.damageCoefficientText(magic.power),
+                    color = nameColor,
                 )
             }
         }
@@ -138,8 +163,8 @@ internal object BattleMagickRenderEventRecorder {
 /** 마법 증거 추가기: 라벨과 스프라이트의 원본 알파 혼합 규칙을 이벤트마다 적용한다. */
 private class BattleMagickEventAppender(private val log: RenderEventLog, private val phase: String) {
     /** 추가: 경로·레이어·좌표·자산·문구를 가진 렌더 이벤트 한 건을 기록한다. */
-    operator fun invoke(layer: String, path: String, type: String, x: Float, y: Float, width: Float, height: Float = 50.4f, asset: String? = null, opacity: Float = 1f, text: String = "") {
-        log.draw(phase, layer, path, type, x, y, width, height, asset, opacity, if (type == "label") labels else sprites, true, text)
+    operator fun invoke(layer: String, path: String, type: String, x: Float, y: Float, width: Float, height: Float = 50.4f, asset: String? = null, opacity: Float = 1f, text: String = "", color: String? = null) {
+        log.draw(phase, layer, path, type, x, y, width, height, asset, opacity, if (type == "label") labels else sprites, true, text, color)
     }
 
     /** JSONL: 누적한 이벤트를 검증 캡처 파일 형식으로 내보낸다. */

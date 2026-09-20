@@ -9030,7 +9030,10 @@ void main() {
                 route = magickRouteState,
                 list = magickListLayer?.let { layer ->
                     BattleMagickListView(layer.rows.map { magic ->
-                        BattleMagickRowView(magic.name, magic.cost, magic.power, magic.icon)
+                        BattleMagickRowView(
+                            magic.name, magic.cost, magic.power, magic.icon,
+                            enabled = layer.enabled(layer.rows.indexOf(magic)),
+                        )
                     })
                 },
                 detail = magickInfoLayer?.magic?.let { magic ->
@@ -11244,9 +11247,22 @@ void main() {
             BattleDialogRenderContract.magicListIcon(magic, x, y).let { icon ->
                 dynamicTextures.battleDialog(icon.path)?.let { batch.draw(it, icon.x, icon.y, icon.width, icon.height) }
             }
-            font.color = if (layer.enabled(index)) Color.BLACK else Color(.5f, .5f, .5f, 1f)
-            font.draw(batch, magic.name, x + 92f, y + 129f); font.draw(batch, "MP：", x + 92f, y + 88f)
-            font.draw(batch, magic.cost.toString(), x + 176f, y + 88f); font.draw(batch, "피해 계수: ", x + 2f, y + 47f)
+            // 색은 증거 기록기와 같은 계약에서 온다. 원본 `MagickListLayer.js:64-68`의 `_dis`는
+            // 이름·위력만 회색으로 바꾸고 비용은 MP 부족일 때 따로 붉은 색을 준다.
+            val enabled = layer.enabled(index)
+            val cardColor = Color.valueOf(
+                "${if (enabled) BattleDialogRenderContract.CARD_LABEL_COLOR else BattleDialogRenderContract.CARD_DISABLED_COLOR}ff"
+            )
+            val costColor = Color.valueOf(
+                "${if (enabled) BattleDialogRenderContract.CARD_LABEL_COLOR else BattleDialogRenderContract.CARD_SHORT_MP_COLOR}ff"
+            )
+            val fixedColor = Color.valueOf("${BattleDialogRenderContract.CARD_LABEL_COLOR}ff")
+            font.color = cardColor
+            font.draw(batch, magic.name, x + 92f, y + 129f)
+            font.color = fixedColor; font.draw(batch, "MP：", x + 92f, y + 88f)
+            font.color = costColor; font.draw(batch, magic.cost.toString(), x + 176f, y + 88f)
+            font.color = fixedColor; font.draw(batch, "피해 계수: ", x + 2f, y + 47f)
+            font.color = cardColor
             // 원본 `MagickListLayer.js:147-148`의 문구 규칙은 증거와 같은 계약이 든다.
             font.draw(batch, BattleDialogRenderContract.damageCoefficientText(magic.power), x + 180f, y + 47f)
         }
