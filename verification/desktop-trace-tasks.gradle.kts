@@ -561,7 +561,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                     "first-round-end", "round2-handoff", "single-player-action", "round2-followup", "round2-first-combat",
                     "round3-player-action",
                     "round3-first-combat",
-                    "round3-followup", "round3-counterattack",
+                    "round3-followup", "round3-counterattack", "round3-210",
                 )) {
                     "unknown captureMode: $it"
                 }
@@ -583,9 +583,14 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                 "${captureMode.get()} requires maxSimSeconds=180 and timeScale=1"
             }
         }
-        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack")) {
-            require(maxSimulationSeconds.get() == (if (captureMode.get() == "round3-counterattack") 240 else 210) && timeScale.get() == 1) {
-                "${captureMode.get()} requires its fixed duration (210 seconds; counterattack 240) and timeScale=1"
+        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack", "round3-210")) {
+            val requiredSeconds = when (captureMode.get()) {
+                "round3-210" -> 300
+                "round3-counterattack" -> 240
+                else -> 210
+            }
+            require(maxSimulationSeconds.get() == requiredSeconds && timeScale.get() == 1) {
+                "${captureMode.get()} requires its fixed duration ($requiredSeconds seconds) and timeScale=1"
             }
         }
         delete(destination)
@@ -613,34 +618,43 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                 "single player action did not complete; inspect preserved walkthrough manifest"
             }
         }
-        if (captureMode.get() in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack")) {
+        if (captureMode.get() in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack", "round3-210")) {
             val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
             check(Regex(""""round2FollowupComplete"\s*:\s*true""").containsMatchIn(manifest)) {
                 "round2 follow-up did not reach its observed terminal; inspect preserved walkthrough manifest"
             }
-            if (captureMode.get() in setOf("round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack")) {
+            if (captureMode.get() in setOf("round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack", "round3-210")) {
                 check(Regex(""""round2FirstCombatCriticalDialogueCloseSent"\s*:\s*true""").containsMatchIn(manifest)) {
                     "round2 first-combat did not send the required critical-dialogue close input"
                 }
             }
         }
-        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack")) {
+        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack", "round3-210")) {
             val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
             check(Regex(""""round3PlayerActionComplete"\s*:\s*true""").containsMatchIn(manifest)) {
                 "round3 player action did not reach its post-settlement prompt or free-input boundary"
             }
-            if (captureMode.get() in setOf("round3-first-combat", "round3-followup", "round3-counterattack")) {
+            if (captureMode.get() in setOf("round3-first-combat", "round3-followup", "round3-counterattack", "round3-210")) {
                 check(Regex(""""round3CriticalDialogueCloseSent"\s*:\s*true""").containsMatchIn(manifest)) {
                     "round3 first-combat did not send the required critical-dialogue close input"
                 }
             }
-            if (captureMode.get() == "round3-counterattack") {
+            if (captureMode.get() in setOf("round3-counterattack", "round3-210")) {
                 check(Regex("\"round3CounterattackCloseSent\"\\s*:\\s*true").containsMatchIn(manifest) &&
                     Regex("\"round3CounterattackObservedEnd\"\\s*:\\s*true").containsMatchIn(manifest)) {
                     "round3 counterattack did not close the required dialogue and reach its observed boundary"
                 }
             }
-            if (captureMode.get() in setOf("round3-followup", "round3-counterattack")) {
+            if (captureMode.get() == "round3-210") {
+                check(Regex("\"round3Speaker210CloseSent\"\\s*:\\s*true").containsMatchIn(manifest) &&
+                    Regex("\"round3Speaker210ObservedEnd\"\\s*:\\s*true").containsMatchIn(manifest)) {
+                    "round3-210 did not close speaker 210's dialogue and reach its observed boundary"
+                }
+                check(Regex("\"round3Speaker210Failure\"\\s*:\\s*null").containsMatchIn(manifest)) {
+                    "round3-210 recorded a speaker-210 failure; inspect preserved walkthrough manifest"
+                }
+            }
+            if (captureMode.get() in setOf("round3-followup", "round3-counterattack", "round3-210")) {
                 check(Regex(""""round3FollowupConfirmSent"\s*:\s*true""").containsMatchIn(manifest)) {
                     "round3 follow-up did not send the required automatic-prompt confirmation"
                 }

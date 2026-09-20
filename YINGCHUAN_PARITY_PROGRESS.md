@@ -252,3 +252,32 @@
 
 - 사용자 요청에 따라 현재 상태를 `YINGCHUAN_WORK_HANDOFF.md`에 정리하고 작업을 중지한다. 게임 실행과 빌드는 모두 종료됐고 하위 에이전트도 완료 상태다.
 - 영천전투 전체 또는 전체 캠페인 완전 일치를 완료했다고 선언하지 않는다. 실행 근거는 기존 미커밋 변경이 포함된 작업 트리 기준이다. 기존 작업 중인 변경은 유지하며 이번 검증 완료 변경과 기록만 분리해서 커밋한다.
+
+## 반격자 경험치 확정 시점 — 내부 차이로 확정 (수정 없음)
+
+- 원본 비압축 복원 소스 `../jojo_mobile/sgccz-desktop/recovered-js/modules/battle/BattleLayer.js`를 근거로 확인했다. 공격 `_attack2(..., ZHUDONG)`와 반격 `_attack2(..., FAN_JI)`가 각각 `:6307 setCharInfoBykey(..., EXP_ADD, ...)`로 같은 `g_charinfo`에 경험치를 쌓고, 행동 전체가 끝난 뒤 `:10616 _jiesuan(r, l.g_charinfo)`이 `index` 순서로 한 번 정산한다. 146의 `:6678 unitAddExp`는 루프가 146 차례에 도달할 때 실행되므로 258 정산창이 닫힌 뒤가 된다. 별도 콜백이나 두 번째 jiesuan이 아니다.
+- 포트는 같은 행동의 두 pass를 `BattleActionTransaction.kt:205 commitAll`의 `completionSideEffects`로 한 번에 flush하고, 표시 순서만 `BattleSettlementOperationCoordinator`의 `sourceUnitOrder`로 따로 재현한다. 그래서 146 성장이 258과 같은 commit에 들어간다.
+- **화면 영향은 없다.** 원본 `:6752 showOtherunitInfo`는 HP 또는 MP가 변한 경우에만 열리는데 146은 HP105/MP47을 유지한다. `:6646`의 MINE 분기와 `:6753-6772` 안내도 해당하지 않는다. 포트도 `BattleSettlementOperationCoordinator.kt:163-179`에서 경험치 전용 창을 PLAYER로만 제한한다. 양쪽 모두 `Focus(146)`(원본 `centerUnit`)만 낸다. 이번 구간에는 레벨업도 없다.
+- 패널에 표시되는 값은 기록된 `SettlementGrowthGrant`/transaction 전후 snapshot에서 오고 렌더 시점의 live 상태를 읽지 않으므로, 확정 시점이 패널 숫자를 바꿀 경로도 찾지 못했다. staged closure의 상대 순서도 258→146으로 원본과 같아 `averageLv()`/`expLimit()` 입력이 동일하다.
+- 따라서 **수정하지 않고 내부 전용 순서 차이로 확정**한다. 원본 순서를 문자 그대로 맞추려면 성장 grant 계산과 상태 변이를 분리해야 하는데(`BattleScreen.kt:7153-7154`가 `commitAll` 이후 `consumeActionGrowth`를 전제), 화면 이득 없이 방금 검증한 정산 순서를 깨뜨릴 위험이 크다.
+- 향후 반격자의 레벨업이 공격자 패널보다 먼저 보이는 사례가 관측되면 재검토한다. 그때의 최소 형태는 staged effect에 수신 유닛 id를 붙이고 `commitGrowthFor(unitId)`를 정산 루프의 유닛 분기에서 호출하는 것이다. 현재는 그런 사례를 구성하지 못했다.
+
+## 숨김157 능력치 +60 — 내부 차이로 확정 (수정 보류)
+
+- 차이 항목을 확정했다. `growth.abilities`의 defense `131→191`, spirit `198→258`이며 attack61/critical92/morale92와 hp/mp/위치/방향/표시/레벨31/posts29/arm9는 모두 같다. 세 comparison json의 `unitDifferences["157"]`이 모두 같은 값이다.
+- 원본 규칙을 복원 소스에서 확인했다. `recovered-js/modules/game-data/Unit.js:824-856 _baseBility`는 `t <= UNIT_ATTR_NAME2.SPR`(ATT/DEF/SPR)에만 `_equips[slot].value()`를 더한다. CRI/MOR에는 더하지 않으며 이는 관측된 차이 항목과 정확히 일치한다. `_equips`는 `equipItem()(:647-685)`으로만 채워지고, 그 호출은 `equipDefaultWeapon()(:162-182)` → `countDefEquip()(:277-320)` 뿐이며, 이는 `core/Model.js:1925-1937 createUnitById`에서만 불린다.
+- 게이트는 `battle/BattleLayer.js:3966-3988 _createBattleUnit`의 `if (n = Model.unit(i)) { if (!(camp > BATTLE_CAMP.FRIEND)) break; ... }`다. FRIEND 진영에서 해당 character의 `Unit`이 이미 해석돼 있으면 `equipDefaultWeapon`을 다시 돌리지 않고 그대로 재사용한다. 원본은 기본 장비를 최초 1회만 계산해 기억한다.
+- 포트에는 그 기억이 없다. `BattleScenarioAssembler.kt:47`이 `BattleUnitProjector.project()`를 모든 유닛에 대해 매 전투 materialization마다 다시 돌리고, 장비 기록이 없으면 `GameDataCatalogEquipmentDomain.kt:146-161 defaultEquipment()`가 posts/level에서 무장을 합성해 `equipmentBonus()(:114-131)`를 더한다. itemType 20/22/24→defense, 14/16→spirit 매핑이 관측된 +60/+60과 맞는다.
+- 다음 가설은 근거로 기각했다. **숨김 유닛 제외**: 같은 전투 내내 숨겨진 334(posts24)는 차이가 없다. **posts29가 장비 불가**: 원본 `posts.bin`/`item.bin`을 포트의 `EncryptedGameDataCodec` 키로 복호해 확인한 결과 posts29의 후보 타입 `[16,17,22,23]`에 실제 가격/값을 가진 아이템이 존재한다. 그리고 **동일한 후보 집합을 갖는 posts30의 146/147은 양쪽이 일치**한다. 즉 합성 알고리즘 자체는 옳으며, 차이는 원본에서 그 1회 계산이 애초에 일어났는지 여부에 달려 있다.
+- **화면 영향은 없다.** `S_00.py:897-899`의 `show(); guide(); hide()`에서 `BattleLayer.prototype.guide`는 `recovered-js/modules/battle/BattleLayer.js:948`의 **빈 함수**다. 패널이 전혀 뜨지 않으며 show/hide 사이에 프레임도 없다. 157은 이 전투에서 다시 보이지 않고 싸우지도 않는다.
+- 따라서 **이번에는 수정하지 않는다.** 제안된 수정은 최초 계산 결과를 campaign 영속 상태에 기억시키는 것인데, 원본에서 `Model.unit(157)`이 왜 이미 해석돼 있는지는 정적 독해로 증명되지 않았고(세션/세이브 상태), 영속화는 모든 유닛의 능력치 경로에 영향을 주는 변경이다. 화면 이득 0에 회귀 위험이 크다. 157이 이후 스테이지에서 보이거나 전투에 참여하면 그때 재검토한다.
+
+## 3턴 210 필살 공격과 474 격파 — `round3-210`
+
+- 새 `round3-210` 모드는 `round3-counterattack`의 입력을 그대로 재사용하고, 화자210의 `하아……!`가 자연 완성된 뒤 한 번만 닫는다. 이후 추가 입력은 없다. 상한 300초·정상 속도 전용이다. 원본 cjs 6곳, 포트 launcher 31곳, gradle 9곳의 모드 열거를 모두 보완했다.
+- 원본 `build/reports/yingchuan-source-round3-210-20260920/` 성공: 19,145프레임·5장·실제 입력14회, `complete:true`. 종점은 frame11795 camp2, `completedActorId:210`이다. 이번 실행으로 이전에 node 검사만 통과했던 **146/147 allowlist 보완이 런타임에서 검증**됐다(`counterAttackCaptured:true`).
+- 포트 `verification/build/verification/yingchuan-round3-210-20260920/` 성공: 18,011프레임·7장. `round3Speaker210Phase:COMPLETE`, close 전송과 friend-3 실제 행동 완료를 확인했다.
+- `build/reports/yingchuan-round3-210-comparison-20260920/comparison.json`의 14개 검사가 **양쪽 모두 통과**하고 불일치는 0이다. 210은 (10,16)에서 이동 없이 `anime21`로 (9,17)의 474를 공격해 HP39→0, 피격32→낮은HP 기본9→퇴각23→숨김, 210은 HP41/MP11 유지에 경험치45→81이다.
+- **다만 타이밍 비교에서 새 결함을 찾았다.** 행동확정→완료자세39가 원본1.6591초, 포트0.0333초다. 공격→타격(0.9259/0.9331)과 타격→행동확정(0.6153/0.5832)은 맞는다. 같은 결함이 `round3-followup`의 32→480 격파에서도 재현된다(원본1.5253초, 포트0.0333초). 대상이 살아남는 기존 구간(477의1.449/1.450, 이전210의1.429/1.441)은 정상이므로 **대상이 죽는 경로만 유지 규칙을 건너뛴다.**
+- 부수 차이로 대상의 낮은HP 기본9→퇴각23 간격이 원본1.8332초, 포트1.4497초다. 같은 원인인지는 함께 확인한다.
+- 이번 검사들이 통과했다는 것은 위치·피해·성장·순서가 같다는 뜻이며, 위 타이밍 차이가 남아 있으므로 이 구간의 시각적 일치를 주장하지 않는다.
