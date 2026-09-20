@@ -192,3 +192,10 @@
 - 새 우선 문제는 3턴 카메라다. 원본[96,-176],포트[96,-80]으로 한 칸 차이가 남는다. 다음 수정은 이 카메라 이행이며 글자 차이는 계속 후순위다. 비교 자료는 `build/reports/yingchuan-round2-first-combat-20260920/attack-order-and-round3.json`이다.
 - AI 완료 counter 회귀 테스트와 verification 컴파일이 통과했다. 현재 실행 증거는 기존 미커밋 변경도 포함한 작업 트리 기준이며 clean HEAD 전체 캠페인 통과로 확대하지 않는다.
 - Astra의 clip clock 검수에서 이번 피격/퇴각 길이 회귀는 확인되지 않았다. 포트 첫 피격 관측은 이미 elapsed0.016541이며0.583115 뒤 기본자세로 복귀해 자산 길이14/24초와 맞는다. 원본 퇴각은 첫 row 뒤 elapsed0.1334로 뛰고1.25 다음 프레임에 숨겨져 자산 길이30/24초와 맞는다. wall timestamp 구간 차이를 animation 길이 버그로 오인해 수정하지 않는다.
+
+## 3턴 플레이어 진입 카메라 보정
+
+- 첫 차이는 3턴 PLAYER 진입이다. 양쪽2턴 종료 camera는[96,-80]인데 원본은 PLAYER 진입 시[96,-176]으로 바뀌고 포트는 그대로 남았다. 원본은 진영 상태/사망 처리 및 종료·조작 가능 여부 검사 뒤 `centerUnit(_firstUnit(camp))`를 호출한다. 포트는 AI 진입과 bootstrap에만 이 연결이 있었다.
+- `BattleTurnController`의 일반 PLAYER_INPUT 직전에 카메라 보정 callback을 연결한다. 사망/종료/idle-skip 이후이며 기존 `focusFirstCampCameraUnit(PLAYER)`와 ensureVisible을 재사용한다. 강제 중앙정렬이나 clamp 계산 변경이 아니다. 호출 순서/정상1회/AI중복 없음/idle-skip 없음 관련 controller 테스트15개가 통과했고 Astra의 원본 순서 검토도 통과했다.
+- 최종 정상180초 `verification/build/verification/yingchuan-round3-camera-fixed-20260920/` 성공:10,805프레임,11장. 3턴 PLAYER_INPUT camera가 원본과 같은[96,-176]이며 표시20개 부대의 x/y/HP/MP/방향/visible 차이가 없다. 자동 확인·필살 대사 실제 close·첫 공격 정산도 다시 통과했다. `final-comparison.json`에 기계 비교를 보존한다.
+- 이번 `followup-first-ai-critical-clip-21`은 대사 close frame7782 다음 실제 필살 frame7783을 캡처했다. 초기 clip을 잘못 잡았던 이전 이미지와 구분하며, 원본 필살 PNG의 유비 무기를 든 자세와 대조했다. 이후 진행 대상은 3턴 실제 플레이어 조작이다. 전체 영천전투 완료나 모든 후속 연출의 완전 일치를 선언하지 않는다.

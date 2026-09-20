@@ -81,6 +81,8 @@ class BattleTurnController(
     initialPhase: BattleTurnPhase = BattleTurnPhase.PLAYER_INPUT,
     /** Action callbacks must finish before a player request can start another camp. */
     private val playerPresentationReady: () -> Boolean = { true },
+    /** Source `centerUnit(firstUnit(MINE))` callback at each ordinary player-camp entry. */
+    private val focusPlayerCamp: () -> Unit = {},
 ) {
     /**
      * `state` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -190,6 +192,7 @@ class BattleTurnController(
         val camp = battle.activeFaction
         if (camp == Faction.PLAYER) {
             if (skipPlayerOperationIfIdle()) return
+            focusPlayerCamp()
             state.phase = BattleTurnPhase.PLAYER_INPUT
             return
         }

@@ -3543,6 +3543,7 @@ void main() {
                 scriptRuntime.state == PlaybackState.COMPLETE &&
                     !combatPresentationBusy() && !outcomeCallbacksPending()
             },
+            focusPlayerCamp = { focusFirstCampCameraUnit(Faction.PLAYER) },
             presentCampState = { settlement -> presentTurnSettlement(settlement) },
             presentDeaths = { checkpoint -> deathTimeline.begin(checkpoint.toDeathTimelineCheckpoint()) },
             presentCampRestore = { settlement -> presentTurnSettlement(settlement) },

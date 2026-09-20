@@ -141,6 +141,7 @@ class BattleTurnControllerTest {
             showCamp = { calls += "card:${it.turn.activeFaction}:${it.showsRoundNumber}" },
             runCampScript = { camp -> calls += "script:$camp"; true },
             runAi = { camp -> calls += "ai:$camp"; AiTurnResult(0, 0, 1) },
+            focusPlayerCamp = { calls += "focus:PLAYER" },
         )
 
         assertTrue(controller.endPlayerTurn())
@@ -163,7 +164,34 @@ class BattleTurnControllerTest {
         assertEquals(BattleTurnPhase.PLAYER_INPUT, controller.snapshot.phase)
         assertEquals(Faction.PLAYER, state.activeFaction)
         assertEquals(2, state.round)
-        assertEquals("script:PLAYER", calls.last())
+        assertEquals(listOf("script:PLAYER", "focus:PLAYER"), calls.takeLast(2))
+        assertEquals(1, calls.count { it == "focus:PLAYER" }, "AI camps must not duplicate the player focus callback")
+    }
+
+    @Test
+    fun `player camp without an operable unit skips camera focus`() {
+        val state = battle(withFriend = false)
+        state.units.getValue("mine").visible = false
+        var playerFocusCount = 0
+        val controller = BattleTurnController(
+            state,
+            showCamp = {},
+            runCampScript = { true },
+            runAi = { AiTurnResult(0, 0, 1) },
+            runRoundScript = { true },
+            deferSynchronousRoundScriptCompletion = true,
+            focusPlayerCamp = { playerFocusCount++ },
+        )
+
+        controller.endPlayerTurn()
+        controller.completeCampCard()
+        assertEquals(BattleTurnPhase.ROUND_SCRIPT, controller.snapshot.phase)
+        controller.completeRoundScript()
+        controller.completeCampCard()
+
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
+        assertEquals(Faction.ENEMY, state.activeFaction)
+        assertEquals(0, playerFocusCount)
     }
 
     @Test
