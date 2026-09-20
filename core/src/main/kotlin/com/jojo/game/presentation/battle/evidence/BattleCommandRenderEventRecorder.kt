@@ -104,39 +104,37 @@ internal object BattleCommandRenderEventRecorder {
         draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 10f / 255f, color = DIM_BLACK)
         draw("CommandLayer", "Canvas/Layer/bg", "tiled-sprite", 736f, 96f, 397.2f, 322.5f, "Logo_9-1", 200f / 255f)
         draw("CommandLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 397.2f, 322.5f, "box3")
-        val rects = listOf(
-            floatArrayOf(743.6f, 291.175f), floatArrayOf(871.6f, 291.175f), floatArrayOf(1000.6f, 291.175f),
-            floatArrayOf(743.6f, 165.42f), floatArrayOf(871.6f, 165.42f), floatArrayOf(1000.6f, 165.42f),
-        )
-        val labels = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기")
-        val icons = listOf("command1", "command2", "command3", "command5", "command6", "command4")
-        val firstIcons = listOf(
-            floatArrayOf(749.6f, 373.175f, 32f, 32f), floatArrayOf(875.6f, 375.175f, 32f, 32f), floatArrayOf(1004.6f, 377.175f, 30f, 30f),
-            floatArrayOf(747.6f, 253.42f, 32f, 28f), floatArrayOf(875.6f, 249.42f, 32f, 32f), floatArrayOf(1004.6f, 249.42f, 32f, 32f),
-        )
-        val secondIcons = listOf(
-            floatArrayOf(825.6f, 297.175f, 32f, 32f), floatArrayOf(953.6f, 297.175f, 32f, 32f), floatArrayOf(1084.6f, 297.175f, 30f, 30f),
-            floatArrayOf(825.6f, 171.42f, 32f, 28f), floatArrayOf(953.6f, 171.42f, 32f, 32f), floatArrayOf(1082.6f, 171.42f, 32f, 32f),
-        )
-        rects.forEachIndexed { index, rect ->
+        // 좌표·문구는 그리기 쪽 `drawBattleCommandLayer`가 읽는 것과 **같은 계약**에서 꺼낸다.
+        // 앞서는 같은 숫자 마흔두 개를 여기에 손으로 옮겨 적어 두었고, 그리기만 틀려도 두 값이
+        // 각자 맞아 게이트가 초록일 수 있었다. 취소(index 6)는 아이콘이 없어 아래에서 따로 적는다.
+        BattleCommandRenderModel.visuals.dropLast(1).forEachIndexed { index, visual ->
             val button = "Canvas/Layer/bg/button$index/Background"
-            draw("CommandLayer", button, "sliced-sprite", rect[0], rect[1], 120f, 120f, "box3")
+            draw("CommandLayer", button, "sliced-sprite", visual.x, visual.y, visual.width, visual.height, "box3")
             // 원본 CommandLayer.js:60은 비활성 버튼에서만 Label 노드 색을 cc.color(10526880)
             // = (160,160,160)으로 바꾼다. 아이콘은 노드 색을 그대로 둔 채 회색조 material만
             // 갈아끼우므로(같은 줄 62) 하네스가 읽는 node.color는 흰색으로 남는다.
             val labelColor = if (buttons[index].interactable) LABEL_BLACK else DISABLED_LABEL
             draw(
-                "CommandLayer", "$button/Label", "label", rect[0] + 10f, rect[1] + 43f, 100f, 40f,
-                text = labels[index], color = labelColor,
+                "CommandLayer", "$button/Label", "label", visual.labelX, visual.labelY, 100f, 40f,
+                text = BattleCommandRenderModel.labels[index], color = labelColor,
             )
-            firstIcons[index].let { draw("CommandLayer", "$button/img0", "sprite", it[0], it[1], it[2], it[3], icons[index]) }
-            secondIcons[index].let { draw("CommandLayer", "$button/img1", "sprite", it[0], it[1], it[2], it[3], icons[index]) }
+            visual.icons.forEachIndexed { slot, icon ->
+                draw(
+                    "CommandLayer", "$button/img$slot", "sprite",
+                    icon.x, icon.y, icon.width, icon.height, icon.asset,
+                )
+            }
         }
-        draw("CommandLayer", "Canvas/Layer/bg/button6/Background", "sliced-sprite", 842.65f, 106.491f, 181.9f, 50f, "box3")
+        val cancel = BattleCommandRenderModel.visuals.last()
+        draw(
+            "CommandLayer", "Canvas/Layer/bg/button6/Background", "sliced-sprite",
+            cancel.x, cancel.y, cancel.width, cancel.height, "box3",
+        )
         // 취소(tag 6)는 원본 루프가 `a < 5`로 건너뛰므로 언제나 활성, 곧 검은 문구다.
         draw(
-            "CommandLayer", "Canvas/Layer/bg/button6/Background/Label", "label", 883.6f, 114.491f, 100f, 40f,
-            text = "취소", color = LABEL_BLACK,
+            "CommandLayer", "Canvas/Layer/bg/button6/Background/Label", "label",
+            cancel.labelX, cancel.labelY, 100f, 40f,
+            text = BattleCommandRenderModel.labels.last(), color = LABEL_BLACK,
         )
     }
 

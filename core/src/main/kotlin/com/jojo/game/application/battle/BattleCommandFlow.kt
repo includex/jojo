@@ -560,4 +560,13 @@ object BattleCommandRenderModel {
         ),
         ButtonVisual(842.65f, 106.491f, 181.9f, 50f, 883.6f, 114.491f, emptyList()),
     )
+
+    /**
+     * `labels`: 명령 버튼 일곱 개의 문구이며 `visuals`와 같은 순서다.
+     *
+     * 그리기 쪽 `drawBattleCommandLayer`와 증거 쪽 `BattleCommandRenderEventRecorder`가 같은
+     * 목록을 읽는다. 앞서는 두 곳이 문구와 좌표를 각자 적어 두어, 한쪽만 틀려도 게이트가
+     * 초록일 수 있었다.
+     */
+    val labels: List<String> = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기", "취소")
 }

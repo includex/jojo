@@ -12570,7 +12570,8 @@ private const val BATTLE_BODY_SCALE_Y = .98f
  * 실제로 `공격`을 뺀 여섯 개가 통째로 보이지 않았다. 문구와 글꼴 글자 집합이 갈라지지
  * 않도록 한 곳에서 정의하고 글꼴 생성에도 같은 값을 넘긴다.
  */
-private val BATTLE_COMMAND_LABELS = listOf("공격", "마법", "아이템", "교환", "포위 공격", "대기", "취소")
+/** 명령 버튼 문구는 증거 기록기와 같은 목록을 읽는다. */
+private val BATTLE_COMMAND_LABELS = BattleCommandRenderModel.labels
 
 private const val BATTLE_UI_GLYPHS =
     "다시 플레이하시겠습니까?게임 저장하시겠습니까?예아니오턴 수짐이 알겠다.0123456789/ "
