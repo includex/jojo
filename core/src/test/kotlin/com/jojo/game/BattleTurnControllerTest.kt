@@ -477,4 +477,40 @@ class BattleTurnControllerTest {
         assertEquals(Faction.PLAYER, state.activeFaction)
         assertEquals("card:r2:PLAYER", calls.last())
     }
+
+    @Test
+    fun `unchanged round weather never opens the switch layer`() {
+        // 테스트 근거: 원본 ctrl_mine은 `if (d == A) return [3, 30]`으로 _switchWeather를 건너뛴다.
+        val state = Battle(
+            units = listOf(
+                BattleUnit("mine", "아군", Faction.PLAYER, 0, 0),
+                BattleUnit("enemy", "적군", Faction.ENEMY, 4, 0),
+            ),
+            events = emptyList(),
+            initialWeather = BattleWeather.CLEAR,
+            weatherSchedule = listOf(BattleWeather.CLEAR, BattleWeather.CLEAR, BattleWeather.CLEAR),
+        )
+        val transitions = mutableListOf<WeatherTransition>()
+        val controller = BattleTurnController(
+            state,
+            showCamp = {},
+            runCampScript = { true },
+            runAi = { AiTurnResult(0, 0, 1) },
+            runRoundScript = { true },
+            presentWeather = { transition ->
+                transitions += transition
+                // 화면 표시가 필요 없으면 원본처럼 그 자리에서 순회를 이어간다.
+                if (transition.changed) false else true
+            },
+        )
+
+        controller.endPlayerTurn()
+        controller.completeCampCard()
+
+        assertEquals(1, transitions.size)
+        assertFalse(transitions.single().changed)
+        assertEquals(BattleTurnPhase.CAMP_CARD, controller.snapshot.phase)
+        assertEquals(Faction.PLAYER, state.activeFaction)
+        assertEquals(2, state.round)
+    }
 }

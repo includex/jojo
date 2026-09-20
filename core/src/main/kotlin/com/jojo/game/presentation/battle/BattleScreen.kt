@@ -3519,6 +3519,19 @@ void main() {
     private var activeRoundLayerElapsed = 0f
 
     /**
+     * `activeWeatherLayer` (WeatherTransitionLayer?): 라운드 전환 날씨 안내가 열려 있는 동안만 값을 가진다.
+     * 원본 `BattleLayer._switchWeather`가 띄우는 `MenuLayer`에 해당한다.
+     */
+
+    private var activeWeatherLayer: WeatherTransitionLayer? = null
+
+    /**
+     * `activeWeatherLayerElapsed` (상태 값): 날씨 안내가 열린 뒤 흐른 시간을 보관한다.
+     */
+
+    private var activeWeatherLayerElapsed = 0f
+
+    /**
      * `turnController` (BattleTurnController by lazy): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -3553,8 +3566,15 @@ void main() {
             },
             deferSynchronousRoundScriptCompletion = true,
             presentWeather = { transition ->
-                if (transition.changed) eventMessage = "날씨: ${transition.current.label()}"
-                true
+                // 원본 ctrl_mine(BattleLayer.js:10917~10923)은 새 라운드의 날씨가 달라졌을 때만
+                // _switchWeather를 부르고, MenuLayer 콜백이 올 때까지 다음 진영으로 넘어가지 않는다.
+                if (transition.changed) {
+                    eventMessage = "날씨: ${transition.current.label()}"
+                    showWeatherTransition(transition)
+                    false
+                } else {
+                    true
+                }
             },
             onCampEvents = { turn -> showTurnResult(turn, "") },
             initialPhase = if (bootstrapPhase == BattleBootstrapPhase.COMPLETE) {
@@ -4520,6 +4540,8 @@ void main() {
                 val mapTouchPending = pointerIntent.pressedCapture == BattleInputCapture.MAP
                 val mapTouchMoved = pointerIntent.moved
                 if (activeRoundLayer != null) return true
+                // 원본 MenuLayer는 switch_weather 안내 동안 모든 단추를 interactable=false로 둔다.
+                if (activeWeatherLayer != null) return true
                 if (battleInfoPanelPressed) {
                     battleInfoPanelPressed = false
                     if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
@@ -4935,6 +4957,10 @@ void main() {
         activeRoundLayer?.let { layer ->
             activeRoundLayerElapsed += delta
             layer.elapsed(activeRoundLayerElapsed)
+        }
+        activeWeatherLayer?.let { layer ->
+            activeWeatherLayerElapsed += delta
+            if (layer.elapsed(activeWeatherLayerElapsed)) playWeatherTransitionSound()
         }
         driveBattleBootstrap()
         if (!scriptedMovementCampTransitionFrameBarrier.yieldBeforeCampTransition()) {
@@ -10439,6 +10465,39 @@ void main() {
             remove = { activeRoundLayer = null },
             complete = complete,
         ).apply { onCreate(round, max) }
+    }
+
+    /**
+     * `showWeatherTransition`: 라운드 전환 날씨 안내를 열고 순회를 멈춘다.
+     *
+     * 원본 `BattleLayer._switchWeather`(BattleLayer.js:5485)는 MenuLayer에
+     * round/max_round/weather/switch_weather/fn을 넘기고, `MenuLayer.onCreate`
+     * (ui/MenuLayer.js:74~116)가 3초 시퀀스를 마친 뒤 `fn`을 부른다.
+     */
+    private fun showWeatherTransition(transition: WeatherTransition) {
+        activeWeatherLayerElapsed = 0f
+        activeWeatherLayer = WeatherTransitionLayer(
+            remove = { activeWeatherLayer = null },
+            complete = { turnController.completeWeatherPresentation() },
+        ).apply {
+            onCreate(transition.previous, transition.current, battle.round, battle.maxRounds)
+        }
+    }
+
+    /**
+     * `playWeatherTransitionSound`: 원본 시퀀스가 `cc.delayTime(1)` 뒤에 한 번 내는 날씨 소리다.
+     * 소리 번호는 `ui/MenuLayer.js:86~106`의 SOUND_INDEX 대응을 그대로 옮긴 것이다.
+     */
+    private fun playWeatherTransitionSound() {
+        val current = activeWeatherLayer?.view?.current ?: return
+        val soundId = when (current) {
+            BattleWeather.CLEAR -> 111
+            BattleWeather.CLOUDY -> 109
+            BattleWeather.WINDY -> 110
+            BattleWeather.HEAVY_RAIN -> 135
+            BattleWeather.SNOW -> 136
+        }
+        audio.playBattleEffect(soundId)
     }
 
     /**

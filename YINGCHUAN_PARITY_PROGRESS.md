@@ -313,3 +313,16 @@
 - 행동확정→완료자세39의 0.09초는 원본이 `OtherUnitInfoLayer` prefab을 인스턴스화하는 한 프레임의 비용이다(`BattleLayer.js:4091`, 원본 f11572가 중앙값0.0167 대비 dt=0.1667 보고). 산식 1.50초에 이 정체 프레임 하나를 더하면 약1.65초로 Σdt 1.6833과 맞는다. 스케줄된 규칙이 아니므로 포트가 재현하지 않는다.
 - 완료 자세와 대상 퇴각이 포트에서 같은 순간인 것은 순서 차이다. 원본 `BattleLayer.js:7118-7130`의 `unitDeath` case0은 `getDyingUnits()`/`unitHide` 전에 `run_script`(`:3011-3016`)를 기다리고 `unitHide`(`:7033`)는 `:7048 centerUnit` 뒤 `:7070`에서 퇴각을 시작한다. 포트는 그 script 패스를 `AiPresentationCoordinator.kt:417-421`과 `BattleScreen.kt:5126-5137`에서 정산 **앞**에 돌린다.
 - **이번에는 순서를 바꾸지 않는다.** 그 패스는 현재 약0.033초이고 측정 창 안에 있어 옮기면 행동확정→완료자세가 1.5665에서 1.5335로 오히려 멀어진다. `BattleScreen.kt:5133-5135`는 원본 순서를 알고도 앞에 둔 의도적 결정이며 `battleEndedByScript()`가 여기에 걸려 있다. 근거 없는 재배치로 방금 검증한 결과를 되돌리지 않는다. 위치와 근거를 남기고 후보로 보존한다.
+
+## 라운드 전환 날씨 안내 복원
+
+- 라운드 롤오버에서 원본이 3.720초(3턴)/3.600초(4턴)를 쓰는데 포트는 0.02초에 지나갔다. 그 동안 원본 trace에는 카메라·대사·스크립트·맵객체·유닛 변화가 하나도 없고 camp3에 속한 유닛도 없다. 진영 카드가 아니라 별개의 연출이었다.
+- 원인은 **날씨 전환**이다. 원본 `BattleLayer.js:10898-10901`이 `addRound()` 뒤 `:10914-10920`에서 `weather()`와 `_countCurrentWeather()`를 비교해 다르면 `_switchWeather`(`:5485`)로 루프를 막고, 이것이 `MenuLayer`에 `{round, max_round, weather, switch_weather, fn}`을 넘긴다. `ui/MenuLayer.js:74-116`의 시퀀스는 `delayTime(1) → 소리 → delayTime(2)` 뒤 제거·콜백이며 크로스페이드는 `fadeOut(2)/fadeIn(2)`다. 결정적 구간은 **3.000초**다.
+- S_00은 `S_00.py:21 setGlobalData(20,-2,-1,0,1,1)`로 weatherType 1이라 `[맑음,맑음,맑음,흐림,바람,폭우]`에 offset1, index `(round+1)%6`이다. 2턴 흐림, 3턴 바람, 4턴 폭우로 **모든 롤오버에서 날씨가 바뀐다.** 그래서 매 롤오버가 지연된다.
+- 독립 증거: 원본 `screens.json`의 `menu` 플래그가 113.41→116.44초로 3.03초 동안 참이며 camp0 진입(trace 116.33)에 정확히 끝난다.
+- 포트 `BattleTurnController`에는 이미 `WEATHER` 단계와 async `presentWeather`/`completeWeatherPresentation`이 있었다. 단락은 표현 쪽이었고 `BattleScreen.kt:3703`이 `eventMessage`만 세우고 같은 프레임에 `true`를 반환했다.
+- `WeatherTransitionLayer`를 추가해 원본 시퀀스를 그대로 옮겼다. `SOUND_DELAY_SECONDS=1f`, `HOLD_SECONDS=1f+2f`, `FADE_SECONDS=2f`, `progress=min(round,max)/max`는 모두 `MenuLayer.js`에서 전사했고 소리 인덱스 111/109/110/135/136은 `Config.js:244-248`이다. 조정한 상수는 없다. 안내 중 입력 차단은 원본의 `interactable=false`에 대응한다.
+- `WeatherTransitionLayerTest` 3개, `BattleTurnControllerTest` 16개(날씨 미변화 시 미개방 포함), `RoundLayerTest` 2개가 `--rerun-tasks`에서 통과했다.
+- 수정 후 정상300초 `verification/build/verification/yingchuan-round3-210-weather-20260920/` 성공. 멈춤 없이 완주했고 `WEATHER` 단계가 3턴 2.99초·4턴 3.02초 돈다. 롤오버 전체는 원본3.720 대비 포트3.01초로 **오차가 3.70초에서 0.71초로 줄었다.** 남은 0.7초는 원본의 비동기 prefab·날씨 텍스처 로딩이며 상수로 메우지 않았다.
+- 기존 두 구간 대조가 그대로 통과한다. `round3-210` 14개 검사와 210 사망 구간 14개 검사 모두 양쪽 통과, 불일치0이다. `PLAYER_INPUT` 절대 시각은 롤오버마다 약3초씩 뒤로 밀렸으나 이 프로젝트는 절대 시간이 아니라 실제 행동 경계로 대조하므로 영향이 없고, 방향은 원본 쪽이다.
+- **남은 시각 차이:** 그 3초 동안 원본은 MenuLayer 패널(라운드 진행 막대, 전투 이름, 날씨 스프라이트 크로스페이드)을 보여주지만 포트는 아무것도 그리지 않고 지도와 기존 toast만 유지한다. 타이밍은 맞고 그림은 비어 있다. 다음 작업 단위로 처리한다.
