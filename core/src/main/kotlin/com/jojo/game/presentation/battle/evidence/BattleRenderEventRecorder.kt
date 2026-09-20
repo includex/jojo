@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.evidence
 
+import com.jojo.game.presentation.battle.render.WinConditionRenderContract
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** 전투 화면 공통 외형을 기록하기 위한 값 전용 모델입니다. */
@@ -171,9 +172,18 @@ private object BattleWinConditionRenderEvents {
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/scrollview/box3", "sliced-sprite", 406.686f, 170.5f, 803f, 543f, "box2")
         // 이 줄의 y는 원본 ScrollView가 배치를 마친 뒤의 값(522.206)이다. 붙자마자 재면
         // 한 프레임 이른 520.887이 잡혀, 예전에는 그 값에 맞춰져 있었다.
-        draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/scrollview/view/content/item", "label", 409.359f, 522.206f, 803f, 191.36f, text = text, blend = labels)
+        draw(
+            log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/scrollview/view/content/item", "label",
+            409.359f, 522.206f, 803f, 191.36f, text = text, blend = labels,
+            // 그리기 쪽 `drawWinConditionBox`가 글꼴에 넣는 것과 같은 계약이다.
+            color = WinConditionRenderContract.BODY_HEX,
+        )
         draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/button/Background", "sliced-sprite", 957.134f, 88.204f, 256.7f, 60f, "box3")
-        draw(log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/button/Background/Label", "label", 985.869f, 93.461f, 199.23f, 54.4f, text = "짐이 알겠다.", blend = labels)
+        draw(
+            log, phase, "WinConBoxLayer", "Canvas/Layer/bg0/button/Background/Label", "label",
+            985.869f, 93.461f, 199.23f, 54.4f, text = "짐이 알겠다.", blend = labels,
+            color = WinConditionRenderContract.BUTTON_HEX,
+        )
     }
 
     /**
@@ -344,7 +354,7 @@ private val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
  * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
  */
 
-private fun draw(log: RenderEventLog, phase: String, layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, opacity: Float = 1f, text: String = "", blend: Any = sprites) {
+private fun draw(log: RenderEventLog, phase: String, layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, opacity: Float = 1f, text: String = "", blend: Any = sprites, color: String? = null) {
     if (opacity <= 0f || x + w <= 0f || x >= 1488.3721f || y + h <= 0f || y >= 800f) return
-    log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
+    log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text, color)
 }

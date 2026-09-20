@@ -11407,14 +11407,14 @@ void main() {
         ScissorStack.calculateScissors(viewport.camera, batch.transformMatrix, scroll, scissors)
         batch.flush()
         if (ScissorStack.pushScissors(scissors)) {
-            dialogueFont.color = Color(0f, 0.25f, 1f, 1f)
+            dialogueFont.color = WinConditionRenderContract.body
             dialogueFont.data.setScale(32f / 36f) // prefab RichText: 32px / 36px line height
             dialogueFont.draw(batch, text, 421f, 692f, 773f, Align.left, true)
             dialogueFont.data.setScale(1f)
             batch.flush()
             ScissorStack.popScissors()
         }
-        dialogueFont.color = Color(0f, 0.82f, 0f, 1f)
+        dialogueFont.color = WinConditionRenderContract.button
         overlayAssets.winConditionBoxPatch?.draw(batch, 957.134f, 88.204f, 256.7f, 60f)
         dialogueFont.draw(batch, "짐이 알겠다.", 982f, 107f)
         dialogueFont.color = Color.WHITE
