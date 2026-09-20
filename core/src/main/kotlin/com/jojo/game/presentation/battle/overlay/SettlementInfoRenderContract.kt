@@ -185,6 +185,16 @@ object SettlementInfoRenderContract {
      */
     private const val PROGRESS_BG_CAP_INSET = 3
 
+    /**
+     * `ICON_HEIGHTS` (상태 값): 상태 아이콘 세 개가 화면에 차지하는 높이다.
+     *
+     * 원본 노드는 자산을 2배로 놓으므로 높이는 그림 높이의 두 배다. mark7은 24x20,
+     * mark8은 24x24, mark9는 24x23이라 40 / 48 / **46**이 된다. 가로는 셋 다 24라 48이다.
+     * 앞서는 "HP만 40이고 나머지는 48"이라는 손으로 적은 분기를 썼고, 그 때문에 경험치
+     * 아이콘을 2px 크게 그렸다. 원본 하네스도 이 노드를 48x46으로 낸다.
+     */
+    private val ICON_HEIGHTS = mapOf(HP_ICON to 40f, MP_ICON to 48f, EXP_ICON to 46f)
+
 
     /**
      * `sprites`: 타입의 핵심 동작을 수행한다.
@@ -229,10 +239,7 @@ object SettlementInfoRenderContract {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val iconHeight = when (icon) {
-            HP_ICON -> 40f
-            else -> 48f
-        }
+        val iconHeight = ICON_HEIGHTS.getValue(icon)
         add(Sprite(icon, iconX, iconY, 48f, iconHeight))
         add(Sprite(PROGRESS_BG, backgroundX, backgroundY, 374f, 24f, PROGRESS_BG_CAP_INSET))
         add(Sprite(bar, backgroundX + 2f, backgroundY + 2f, 370f, 20f))
