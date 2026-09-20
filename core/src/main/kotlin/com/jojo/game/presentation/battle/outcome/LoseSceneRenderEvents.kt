@@ -10,6 +10,8 @@ object LoseSceneRenderEvents {
      */
 
     const val PHASE = "battle-lose-restart-prompt"
+    const val NO_LABEL = "비"
+    const val YES_LABEL = "예"
 
 
     /**
@@ -44,8 +46,8 @@ object LoseSceneRenderEvents {
         draw("Lose", "Canvas/Layer/bg0/Logo_3-1", "sprite", 453.005f, 373.951f, 106f, 124f, "Logo_3-1")
         draw("Lose", "Canvas/Layer/bg0/label", "label", 573.686f, 335f, 463f, 190f, text = LoseSceneFlow.PROMPT_TEXT)
         listOf(
-            Triple(1, 554.186f, "비"),
-            Triple(0, 754.186f, "예"),
+            Triple(1, 554.186f, NO_LABEL),
+            Triple(0, 754.186f, YES_LABEL),
         ).forEach { (tag, x, text) ->
             draw("Lose", "Canvas/Layer/bg0/btns/button$tag/Background", "sliced-sprite", x, 271.285f, 180f, 50f, "box3")
             val labelX = if (tag == 1) 557.336f else 757.586f

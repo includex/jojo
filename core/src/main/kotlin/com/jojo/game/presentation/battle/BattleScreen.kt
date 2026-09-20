@@ -11564,9 +11564,9 @@ void main() {
         dialogueFont.color = Color.WHITE
         dialogueFont.draw(batch, LoseSceneFlow.PROMPT_TEXT, 573.686f, 500f, 463f, Align.center, true)
         boxPatch.draw(batch, 554.186f, 271.285f, 180f, 50f)
-        dialogueFont.draw(batch, "아니오", 557.336f, 312f, 168.1f, Align.center, false)
+        dialogueFont.draw(batch, LoseSceneRenderEvents.NO_LABEL, 557.336f, 312f, 168.1f, Align.center, false)
         boxPatch.draw(batch, 754.186f, 271.285f, 180f, 50f)
-        dialogueFont.draw(batch, "예", 757.586f, 312f, 169.4f, Align.center, false)
+        dialogueFont.draw(batch, LoseSceneRenderEvents.YES_LABEL, 757.586f, 312f, 169.4f, Align.center, false)
         batch.end()
     }
 
