@@ -79,8 +79,17 @@ class MenuLayerTest {
             .filter { it.contains("\"drawType\":\"label\"") }.toList()
         assertEquals(3, labels.size)
         assertTrue(labels.all { it.contains("\"color\":\"${WeatherTransitionLayout.LABEL_COLOR}\"") })
-        // 판때기는 색을 적지 않으므로 비교기가 한쪽만 있는 색을 건너뛴다.
+        // 판때기도 색을 적는다. `BattleScreen.drawBattleMenu`가 `batch.color = Color.WHITE`를
+        // 세우고 `batch.end()`까지 바꾸지 않으므로 흰 색조는 포트가 실제로 아는 값이다.
+        // 비워 두면 비교기가 그 행을 건너뛰어 색조가 들어가도 아무 게이트가 떨어지지 않는다.
         assertTrue(BattleMenuRenderEvents.jsonl(view).lineSequence()
-            .filter { it.contains("sliced-sprite") }.all { it.contains("\"color\":null") })
+            .filter { it.contains("sliced-sprite") }.all { it.contains("\"color\":\"#ffffff\"") })
+        // 흐림막만은 검정이다. 포트가 `Color(0f, 0f, 0f, SCRIM_ALPHA)`로 채우며 투명도는
+        // 별도 `opacity` 항목의 몫이라 색에는 섞이지 않는다.
+        assertTrue(BattleMenuRenderEvents.jsonl(view).lineSequence()
+            .filter { it.contains("Panel_cancel") }.all { it.contains("\"color\":\"#000000\"") })
+        // 색이 비어 비교에서 빠지는 행은 하나도 남지 않았다.
+        assertFalse(BattleMenuRenderEvents.jsonl(view).lineSequence()
+            .filter { it.isNotBlank() }.any { it.contains("\"color\":null") })
     }
 }
