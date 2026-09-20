@@ -355,3 +355,25 @@
 
 - `BattleHudAssets`의 기존 `menuButtonPatch = NinePatch(it, 9, 7, 9, 11)`은 Cocos 배열 `box3 [9,7,9,11]`을 LibGDX의 다른 인자 순서에 그대로 넘긴다. `9, 9, 7, 11`이어야 한다. 공용 메뉴 경로라 이번에 건드리지 않고 기록만 한다.
 - `battle-menu` 렌더 패리티 게이트는 선언·배선·재실행이 모두 살아 있으면서도 보증하는 것이 없다. `BattleScreen.kt:9056`이 `drawBattleMenu()`를 부르지 않는 손으로 적은 리터럴 표를 반환하고, `compare_render_logs.py`의 `SEMANTIC_FIELDS`에 색이 없어 검정 대 흰색을 볼 수 없다. `tools/verify_battle_menu_render.py`와 `verify_battle_menu_assets.py`는 저장소 어디에서도 참조되지 않으며, 선언된 freshness manifest는 존재하지 않아 오늘 돌리면 `BLOCKED`가 난다. 메뉴 경로의 검정 라벨 수정은 이 증거 경로를 함께 고치는 별도 작업 단위다.
+
+## 첫 일반 교전 구간 재검증 — 색 정확한 원본과 교차 타이밍
+
+- 기존 초반 검증은 색 프로파일이 빠진 캡처와 한쪽씩의 검사로 이뤄졌다. 두 결함 모두 이번에 찾았으므로 앞 구간부터 다시 확인한다.
+- 색 왜곡의 크기를 측정했다. 같은 `first-normal-combat` 원본을 플래그 전후로 떠서 비교하면 네 장 모두 평균 채널차 12.5~14.2다. 특히 `enemy476-reaction`은 최대 50에 평균 12.46으로 구조 차이 없이 **순수 색 편차만 12.46**이다. 기존 픽셀 게이트의 허용치 14.0/12.0과 같은 크기이며, 그 허용치가 이 왜곡을 감싸도록 잡혀 있었다는 기록과 맞는다.
+- 새 `build/reports/yingchuan-first-combat-comparison-20260920/compare.py`는 14개 검사와 **6개 교차 타이밍**을 함께 본다. 원본 대 원본 자기검사를 통과한다.
+- 원본 `build/reports/yingchuan-source-first-combat-srgb-20260920/`(2,941프레임), 포트 `verification/build/verification/yingchuan-first-combat-labelfix-20260920/`(12장). 순서는 210 (10,17)→(10,16) 이동→공격25→476 피격32 HP97→70→476 반격25→210 피격32 HP119→104→행동확정·경험치0→9→완료자세39다.
+- **14개 검사가 양쪽 모두 통과하고 불일치는 0이며 6개 교차 타이밍이 모두 0.031초 이내다.** 이동→공격 +0.025, 공격→타격 -0.015, 타격→반격 -0.030, 반격→반격타격 -0.018, 반격타격→행동확정 +0.001, 행동확정→완료자세 **-0.009**다. 이 구간이 교차 타이밍 판정을 받은 것은 처음이며 초반 작업이 튼튼했음을 뒷받침한다.
+- 원본 자체 편차도 다시 확인됐다. 같은 구간의 행동확정→완료자세가 기록의 1.429초와 이번 1.453초로 0.024 다르다. 단일 실행 값을 정답으로 고정하지 않는다.
+
+## 정산 패널 값 라벨의 세로 위치
+
+- 실제 프레임 측정에서 값 숫자가 자기 막대 중심 대비 원본 -17.5, 포트 -26.5로 어긋났다. 글자 높이는 48 대 49로 같아 크기가 아니라 위치 문제였다. 패널이 서로 다른 유닛에 붙어 화면 위치가 달라도 각자의 막대 대비 상대값이라 판정이 성립한다.
+- 원본 prefab을 해독했다. `config.a497b.json`의 `paths[206] Battle/scene/OtherUnitInfoLayer`, `paths[330] MineUnitInfoLayer`를 거쳐 `assets/resources/import/60/60e799d9-….json`, `import/dd/dd2699f7-….json`을 읽었다. 값 라벨은 막대 노드의 자식이며 `_trs y=12`, `_contentSize` 67.77×**54.4**, `cc.Label` vAlign CENTER에 `cc.LabelOutline _width=2`다. `_fontSize`/`_lineHeight`는 직렬화돼 있지 않아 `cc.Label` 기본값 40/40이며, 이 값이 저장된 노드 높이 54.4와 50.4를 정확히 재현한다.
+- 원인은 `BattleScreen.kt:8372-8404`와 `:8447`이 라벨 y를 `nodeBottom + 42f`로 둔 것이다. **42는 Cocos `_calculateFillTextStartPosition`이 canvas 상단 기준으로 내는 값**인데 포트는 이를 노드 하단 기준으로 썼다. 올바른 값은 `54.4 - 42 = 12.4`이고 그마저 baseline이라 LibGDX `BitmapFont.draw`의 cap line 기준으로 `capHeight`를 더해야 한다. 외곽선이 없는 무기·방어구 행은 노드 높이 50.4라 10.4다.
+- `CocosLabelBaseline`이 `ttf.js`의 `_calculateSize`/`_calculateFillTextStartPosition`을 옮긴다. 노드 하단 값들(245.8/191.8/140.8/97.8/294.5/174.55/116.55/226.85)은 원래 맞았으므로 건드리지 않았다. 이름 행과 MP 행도 같은 크기의 같은 결함이며 같은 수정으로 함께 고쳐진다.
+- `SettlementInfoLabelBaselineTest` 7개와 기존 `SettlementInfoPlacementTest` 3개가 통과했다. `SettlementInfoRenderContract`는 한 글자도 바뀌지 않아 대상 유닛 기준 패널 배치는 회귀하지 않는다.
+- 수정 후 실제 프레임: HP 숫자 오프셋이 -26.5에서 **-20.5**(원본 -18.0), MP가 -23.0에서 **-20.0**(원본 -16.5)이 됐다. 패널 위치는 양쪽 `x=1270, y=884`로 동일하다.
+- **남은 약1.5~2 논리px는 글꼴 대체다.** 두 prefab 모두 `_N$fontFamily`를 직렬화하지 않아 원본은 Chromium 기본 Arial로 숫자를 그리고(잉크 0…0.716em) 포트는 Apple SD Gothic Neo를 쓴다(0.030…0.724em). 상수로 메우지 않았고 글꼴 차이는 계속 후순위다. 포트 막대가 원본보다 2px 낮은 것도 함께 남긴다.
+- 미커밋 작업 중인 `BattleUnitInfoPopup.kt`의 `LABEL_TEXT_TOP = 42f - 27.2f`에도 같은 결함이 있다. 범위 밖이라 건드리지 않고 기록만 한다.
+
+- 이번 커밋에는 `CocosLabelBaseline`과 그 단위 테스트만 담는다. `BattleScreen`의 baseline 배선은 진행 중인 정산 렌더링 재작업(글꼴 배율, 이름 굵게, 무기·방어구 행 처리)과 같은 hunk에 얽혀 있어 분리하면 남의 미완성 변경을 함께 커밋하게 된다. HEAD의 해당 상수는 `+ 34f`이고 미커밋 작업이 이를 `+ 42f`로 바꿔 둔 상태였으므로, 위 측정 -26.5는 그 작업 트리 기준이다. 배선은 작업 트리에 남기고 재개 시 정산 재작업과 함께 커밋한다.
