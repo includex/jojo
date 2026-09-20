@@ -160,18 +160,30 @@ internal class BattleSettlementOperationCoordinator {
                     if (unit.infoDeltas.any { it.kind == SettlementInfoKind.HP }) add(TurnSettlementOp.Default(unitId))
                 }
             } else {
-                mergedGrants[unitId]?.let { grants ->
-                    add(
-                        TurnSettlementOp.UnitInfo(
-                            SettlementUnitPlan(
-                                unitId,
-                                port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
-                                Faction.PLAYER, Faction.PLAYER,
-                                SettlementInfoPanel.MINE, emptyList(), emptyList(),
+                // 원본 `_jiesuan`: 경험치만 있는 상태창은 MINE(`showMineunitInfo`)에만 있고,
+                // 다른 진영은 HP·MP 변화가 있어야 한다.
+                val mine = port.presentationUnit(unitId)?.faction == Faction.PLAYER
+                val grants = mergedGrants[unitId] ?: growthByUnit[unitId].orEmpty()
+                    .filterIsInstance<SettlementGrowthStep.InfoValues>().flatMap { it.grants }
+                if (mine) {
+                    mergedGrants[unitId]?.let { merged ->
+                        add(
+                            TurnSettlementOp.UnitInfo(
+                                SettlementUnitPlan(
+                                    unitId,
+                                    port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
+                                    Faction.PLAYER, Faction.PLAYER,
+                                    SettlementInfoPanel.MINE, emptyList(), emptyList(),
+                                ),
+                                merged,
                             ),
-                            grants,
-                        ),
-                    )
+                        )
+                    }
+                } else if (grants.isNotEmpty()) {
+                    // 원본 `_jiesuan` `:6733-6739`: `O`가 비어 있지 않으면 진영과 무관하게
+                    // `centerUnit(m)` 뒤 0.1초를 쉬고 넘어간다. 경험치만 들어 있는 다른 진영
+                    // 유닛은 상태창이 없을 뿐 이 0.1초 대기는 그대로 돈다.
+                    add(TurnSettlementOp.Focus(unitId, .1f, forceCenter = true))
                 }
             }
             addGrowth(unitId, growthByUnit[unitId].orEmpty(), mergedGrants, port)
@@ -194,10 +206,19 @@ internal class BattleSettlementOperationCoordinator {
         mergedGrants: Map<String, List<SettlementGrowthGrant>>,
         port: BattleSettlementOperationPort,
     ) {
+        // 원본 `_jiesuan` `:6798`: `if (!(R && et > 0)) return [3, 33]`.
+        // 성장 흐름 안의 `defaultAction`(`:6804` case 14, `:6872` case 26)은 MINE 유닛이
+        // 실제로 능력·승격·장비 상승 연출을 재생한 뒤에만 돈다. 그 밖의 유닛은 경험치만
+        // 올라도 자세를 그대로 두고, 루프 끝(`:7009-7010` case 49)의 일괄 `defaultAction`을
+        // 기다린다. 그 자리가 포트에서는 정산 종료 시점이다.
+        val growthDefaultAction = port.presentationUnit(unitId)?.faction == Faction.PLAYER &&
+            steps.any { it !is SettlementGrowthStep.InfoValues && it !is SettlementGrowthStep.DefaultAction }
         steps.forEach { step ->
             when (step) {
                 is SettlementGrowthStep.InfoValues ->
-                    if (unitId !in mergedGrants) add(TurnSettlementOp.GrowthInfo(unitId, step.grants))
+                    if (unitId !in mergedGrants && port.presentationUnit(unitId)?.faction == Faction.PLAYER) {
+                        add(TurnSettlementOp.GrowthInfo(unitId, step.grants))
+                    }
                 is SettlementGrowthStep.AbilityLevelUp -> add(TurnSettlementOp.Info2("${step.attribute.name} 상승"))
                 SettlementGrowthStep.UnitLevelUpActionFinished -> add(TurnSettlementOp.Actions(unitId, listOf(11)))
                 SettlementGrowthStep.UnitLevelUpInfo -> {
@@ -219,7 +240,7 @@ internal class BattleSettlementOperationCoordinator {
                     ),
                 )
                 is SettlementGrowthStep.ItemUpgradeCallback -> add(TurnSettlementOp.ItemUpgrade(unitId, step.result))
-                SettlementGrowthStep.DefaultAction -> add(TurnSettlementOp.Default(unitId))
+                SettlementGrowthStep.DefaultAction -> if (growthDefaultAction) add(TurnSettlementOp.Default(unitId))
             }
         }
     }
