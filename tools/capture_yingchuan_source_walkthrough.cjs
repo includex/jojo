@@ -71,6 +71,25 @@ async function poll(fn, label, expires) {
   throw new Error(`${label} timed out${last ? `: ${last.message}` : ''}`);
 }
 
+// Page.captureScreenshot with the default PNG settings costs ~690 ms per frame on
+// the 2560x1376 source surface, and every one of those milliseconds is a sampling
+// blackout for the semantic loop. optimizeForSpeed only lowers the deflate level:
+// PNG is lossless, so the pixels and the colour profile are unchanged, while the
+// blackout becomes short enough that a ~290 ms semantic state can still be seen
+// between two captures. Older Chromium builds reject the parameter, so fall back
+// once and keep the original request shape from then on.
+let screenshotOptimizeForSpeed = true;
+async function capturePng(client) {
+  if (screenshotOptimizeForSpeed) {
+    try {
+      return await client.send('Page.captureScreenshot', { format: 'png', fromSurface: true, optimizeForSpeed: true });
+    } catch {
+      screenshotOptimizeForSpeed = false;
+    }
+  }
+  return client.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+}
+
 async function cdpClick(client, point) {
   if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new Error(`invalid CDP click point ${JSON.stringify(point)}`);
   await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: point.x, y: point.y, button: 'left', clickCount: 1 });
@@ -190,7 +209,11 @@ const stateExpression = `(() => {
     }
     if (semanticMode === 'enemy-first-combat') {
       const wanted=['enemy474-move-start','enemy474-last-leg','enemy474-arrival-idle-dir1','enemy474-post-attack','ally234-defeated-visible','ally234-hidden'],seen=new Set(),transitions=[];let prior='';
-      async function captureSemantic(name,state){const image=await client.send('Page.captureScreenshot',{format:'png',fromSurface:true}),file=`source-${name}.png`;fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({wallSeconds:(Date.now()-started)/1000,file,semantic:name,...state});seen.add(name);}
+      // The pre-attack arrival idle (9,17 / dir 1 / action 0 / anime0_1 with 234 alive)
+      // is only 17 source frames -- about 293 ms -- long, so it is sampled the way the
+      // enemy-arrival-only mode samples it: a 4 ms poll and a capture that does not
+      // monopolise the loop for longer than the state itself lasts.
+      async function captureSemantic(name,state){const image=await capturePng(client),file=`source-${name}.png`;fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({wallSeconds:(Date.now()-started)/1000,file,semantic:name,...state});seen.add(name);}
       while(Date.now()-started<Math.min(maxWallMs-1000,59000)&&seen.size<wanted.length){const evaluated=await client.send('Runtime.evaluate',{expression:stateExpression,returnByValue:true});if(evaluated.exceptionDetails)throw Error(JSON.stringify(evaluated.exceptionDetails));const state=evaluated.result.value,u=id=>state.units.find(x=>x.id===id),enemy=u(474),ally=u(234),key=JSON.stringify([enemy&&[enemy.x,enemy.y,enemy.direction,enemy.animation,enemy.spriteRect,enemy.visible,enemy.exists],ally&&[ally.direction,ally.animation,ally.spriteRect,ally.visible,ally.exists],state.layers]);if(key!==prior){transitions.push({wallSeconds:(Date.now()-started)/1000,frame:state.frame,enemy474:enemy,ally234:ally,layers:state.layers});prior=key;}
         if(!seen.has(wanted[0])&&enemy?.animation==='anime20_2')await captureSemantic(wanted[0],state);
         else if(seen.has(wanted[0])&&!seen.has(wanted[1])&&enemy?.animation==='anime20_1')await captureSemantic(wanted[1],state);
@@ -198,11 +221,16 @@ const stateExpression = `(() => {
         else if(seen.has(wanted[2])&&!seen.has(wanted[3])&&enemy?.action===1)await captureSemantic(wanted[3],state);
         else if(seen.has(wanted[3])&&!seen.has(wanted[4])&&ally?.exists===false&&ally?.visible===true)await captureSemantic(wanted[4],state);
         else if(seen.has(wanted[4])&&!seen.has(wanted[5])&&ally?.visible===false)await captureSemantic(wanted[5],state);
-        await delay(8);}
+        await delay(4);}
       const missingCaptures=wanted.filter(name=>!seen.has(name));
       fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-enemy-first-combat-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:missingCaptures.length===0,missingCaptures,transitions,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
-      if(missingCaptures.length)throw Error(`enemy combat semantic states incomplete: ${JSON.stringify({wanted,seen:[...seen],missingCaptures,transitions})}`);
-      await childExit;if(!fs.existsSync(trace))throw Error('source enemy-combat trace was not flushed');console.log(`SOURCE_YINGCHUAN_ENEMY_COMBAT_OK ${captures.length}`);return;
+      // A failed run is the run whose trace is worth the most, so the bounded source
+      // driver is always allowed to reach its own max-wall terminal and flush the
+      // authoritative frame trace before this mode reports. No further input is sent
+      // on the failure path; only the reporting happens afterwards.
+      await childExit;const tracePreserved=fs.existsSync(trace);
+      if(missingCaptures.length)throw Error(`enemy combat semantic states incomplete: ${JSON.stringify({wanted,seen:[...seen],missingCaptures,tracePreserved,transitions})}`);
+      if(!tracePreserved)throw Error('source enemy-combat trace was not flushed');console.log(`SOURCE_YINGCHUAN_ENEMY_COMBAT_OK ${captures.length}`);return;
     }
     if(semanticMode==='enemy-arrival-only'){
       let observed=null;
@@ -226,8 +254,9 @@ const stateExpression = `(() => {
       }
       const complete=captures.length===2;
       fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-477-settlement-order-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete,observations,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
-      if(!complete)throw Error(`477 settlement panels incomplete: ${captures.length}/2`);
-      await childExit;if(!fs.existsSync(trace))throw Error('source 477 settlement trace was not flushed');console.log('SOURCE_YINGCHUAN_477_SETTLEMENT_OK 2');return;
+      await childExit;const tracePreserved=fs.existsSync(trace);
+      if(!complete)throw Error(`477 settlement panels incomplete: ${captures.length}/2 tracePreserved=${tracePreserved}`);
+      if(!tracePreserved)throw Error('source 477 settlement trace was not flushed');console.log('SOURCE_YINGCHUAN_477_SETTLEMENT_OK 2');return;
     }
     if(semanticMode==='first-round-end'){
       const wanted=['enemy484-action','enemy485-action','enemy475-action','enemy476-action','camp3-transition','round2-start','round2-dialogue'];
