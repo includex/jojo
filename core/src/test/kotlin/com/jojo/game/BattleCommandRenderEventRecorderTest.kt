@@ -1,6 +1,7 @@
 // Test
 package com.jojo.game
 
+import com.jojo.game.application.battle.BattleCommandFlow
 import com.jojo.game.application.runtime.RuntimeBattleRoute
 import com.jojo.game.presentation.battle.evidence.BattleCommandRenderEventRecorder
 import kotlin.test.Test
@@ -49,9 +50,75 @@ class BattleCommandRenderEventRecorderTest {
         assertTrue(rows.all { it.contains("\"phase\":\"battle-command-initial\"") })
     }
 
+    /**
+     * 색 기록 유지: 모든 경로의 모든 행이 색을 적고, 원본 근거가 있는 세 값만 쓴다.
+     *
+     * 하네스는 행마다 색을 내보내므로 `null`을 남기는 행은 비교에서 조용히 빠진다.
+     * 반대로 근거 없는 네 번째 색이 생기면 그것도 여기서 걸린다.
+     */
+    @Test
+    fun `every recorded row carries one of the three authored colours`() {
+        RuntimeBattleRoute.entries
+            .filter { it.name.startsWith("COMMAND_") }
+            .forEach { route ->
+                val colours = rows(route).map(::colourOf)
+                assertTrue(colours.isNotEmpty(), "$route recorded no rows")
+                assertTrue(
+                    colours.none { it == "null" },
+                    "$route left a row without colour; the comparison would skip it",
+                )
+                assertEquals(
+                    emptySet(), colours.toSet() - setOf("#ffffff", "#000000", "#a0a0a0"),
+                    "$route invented a colour with no source node behind it",
+                )
+            }
+    }
+
+    /**
+     * 비활성 명령: 문구만 원본 `cc.color(10526880)` 회색이고 아이콘 노드 색은 흰색으로 남는다.
+     *
+     * 원본은 아이콘에 회색조 material만 갈아끼우고 노드 색은 건드리지 않는다. 포트가
+     * 계산한 회색을 적으면 하네스의 흰색과 맞부딪혀 거짓 불일치가 된다.
+     */
+    @Test
+    fun `disabled command greys only the label and leaves icon nodes white`() {
+        val rows = rows(RuntimeBattleRoute.COMMAND_DISABLED, buttons(disabled = setOf(2)))
+
+        assertEquals("#a0a0a0", colourOf(rows.single { it.contains("button2/Background/Label") }))
+        assertEquals("#000000", colourOf(rows.single { it.contains("button0/Background/Label") }))
+        rows.filter { it.contains("button2/Background/img") }.also { icons ->
+            assertEquals(2, icons.size)
+            icons.forEach { assertEquals("#ffffff", colourOf(it)) }
+        }
+        assertEquals("#ffffff", colourOf(rows.single { it.contains("button2/Background\",") }))
+    }
+
+    /** 흐림막: 원본 Panel_cancel 노드는 검정이고 투명도만 다르다. 색에 투명도를 섞지 않는다. */
+    @Test
+    fun `dismiss panel records black without folding opacity into colour`() {
+        val row = rows(RuntimeBattleRoute.COMMAND_INITIAL).single { it.contains("Panel_cancel") }
+
+        assertEquals("#000000", colourOf(row))
+        assertTrue(row.contains("\"opacity\":0.039"), row)
+    }
+
+    /** 색 추출: 한 행의 `color` 값을 문자열로 돌려준다. */
+    private fun colourOf(row: String): String =
+        Regex("\"color\":(\"[^\"]*\"|null)").find(row)?.groupValues?.get(1)?.trim('"')
+            ?: error("row has no color field: $row")
+
+    /** 버튼 상태: 지정한 tag만 비활성인 일곱 버튼 목록을 만든다. */
+    private fun buttons(disabled: Set<Int> = emptySet()): List<BattleCommandFlow.Button> =
+        BattleCommandFlow.Command.entries.map { command ->
+            BattleCommandFlow.Button(command, command.tag !in disabled, grayscale = command.tag in disabled)
+        }
+
     /** 행 분해: JSONL의 빈 줄을 제외한 렌더 이벤트 목록을 반환한다. */
-    private fun rows(route: RuntimeBattleRoute): List<String> =
-        BattleCommandRenderEventRecorder.jsonl(route).lineSequence().filter(String::isNotBlank).toList()
+    private fun rows(
+        route: RuntimeBattleRoute,
+        buttons: List<BattleCommandFlow.Button> = buttons(),
+    ): List<String> =
+        BattleCommandRenderEventRecorder.jsonl(route, buttons).lineSequence().filter(String::isNotBlank).toList()
 
     /** 순서 검증: 지정 단편이 이전 단편 뒤에 나타나는지 확인한다. */
     private fun assertOrdered(json: String, vararg fragments: String) {

@@ -617,3 +617,18 @@
 - `mine-unit-info`와 `other-unit-info` 두 루트가 모두 `RENDER_PARITY_ROUTE_OK`다. 통과가 비교한 결과인지 건너뛴 결과인지 행 단위로 확인했다.
 - `mine-unit-info`는 포트 30행 중 15행에 색이 실리고 그 **15행 전부가 원본에도 색이 있어 실제로 비교되어** 통과한다. `Canvas/Layer/bg/p0/label0,label1,label`, `p1/*`, `p2/*` 등 값 라벨들이 포트 `#ffffffff`, 원본 `#ffffff`로 정규화 후 일치한다. 나머지 15행은 스프라이트라 포트가 색을 싣지 않아 한쪽뿐이고 건너뛴다.
 - 색 비교가 무장된 화면은 이제 `battle-menu`(3행), `mine-unit-info`(15행), `other-unit-info`(10행)다. 이 라벨들의 색을 누가 바꾸면 캡처 없이 게이트가 실패한다.
+
+## 명령창 색 기록과 포위 공격 결함
+
+- `BattleCommandRenderEventRecorder`에 색을 실었다. 스프라이트·타일·슬라이스 행은 `#ffffff`(그리기의 `batch.color = Color.WHITE`, 원본 세 prefab이 해당 노드에 `_color`를 두지 않아 엔진 기본 흰색), 라벨과 `Panel_cancel`은 `#000000`(그리기의 `Color.BLACK`, 원본 prefab의 `_color` 패킹값 4278190080), 비활성 명령 라벨은 `#a0a0a0`(`BattleCommandRenderModel.DISABLED_COMPONENT = 160f/255f`, 원본 `CommandLayer.js:60`의 `cc.color(10526880)`)다.
+- **회색조는 이 필드로 검사할 수 없고, 그게 맞다.** 원본 `CommandLayer.js:62`는 `setMaterial(0, this.huise)`로 **머티리얼만 바꾸고** `node.color`는 건드리지 않는다. harness의 `colorHex`는 `node.color`의 RGB만 내므로 회색 아이콘에 대해 `#ffffff`를 보고한다. 포트가 `0.2126/0.7152/0.0722` 휘도를 계산해 적으면 픽셀은 같은데 모든 비활성 아이콘에서 거짓 불일치가 난다. 포트도 같은 자리에서 셰이더로 처리하므로 아이콘은 양쪽 `#ffffff`로 둔다. **대신 라벨은 원본이 노드 색을 바꾸므로 비교 가능해진다** — 명령창 수정 중 검사 가능한 절반이 그쪽이다.
+- 불투명도는 색에 접지 않는다. harness는 알파를 내지 않고 비교기가 6자리를 `…ff`로 채우므로 `c8`(200/255)을 실으면 모든 행이 어긋난다. 행에 `opacity`가 따로 있다.
+- 다섯 루트(`battle-command-initial/-disabled/-cancel/-magick/-property`)가 모두 통과한다. `battle-command-disabled`는 포트 30행 전부에 색이 실리고 **30행 전부가 양쪽 비교되어 불일치 0**이다.
+
+### 포위 공격이 포트에서 항상 비활성이다
+
+- `BattleScreen.battleCommandMask`는 `ATTACK_BIT`, `MAGICK_BIT`, `PROPERTY_BIT`, `SWAP_BIT`만 세우고 **`SIEGE_BIT`를 세우는 곳이 없다.** `SIEGE`는 선택 뒤 안내 문구(`BattleScreen.kt:7926`)에만 나온다. 원본은 `BattleLayer.js:2117`이 `checkCanSiege`(`:3769`, `canSiegle()`와 인접 대상 검사)로 비트를 켠다.
+- **게이트는 통과한다.** 이 fixture의 유닛이 포위 조건을 만족하지 않아 원본에서도 비활성이고 양쪽 다 `#a0a0a0`이기 때문이다. 색 비교가 이 결함을 드러내려면 포위 가능한 유닛이 잡힌 fixture가 필요하다.
+- **영천전투 구간 대조로도 잡히지 않는다.** 우리가 검증한 시나리오들은 이동·공격·대기만 쓰고 포위를 시도한 적이 없다. 일어나지 않은 일은 아무리 정밀하게 대조해도 드러나지 않는다.
+- 수정은 별도 단위다. `canSiegle()`과 인접 대상 판정을 옮겨야 하며 이번 범위 밖이다.
+- 남은 한계도 적는다. 이 recorder는 여전히 `drawBattleCommandLayer`의 출력이 아니라 손으로 적은 표다. 색을 정직하게 만들었을 뿐이므로 **색이 통과해도 이 패널의 기하를 보증하지 않는다.**

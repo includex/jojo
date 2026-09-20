@@ -1,13 +1,21 @@
 // Battle
 package com.jojo.game.presentation.battle.evidence
 
+import com.jojo.game.application.battle.BattleCommandFlow
+import com.jojo.game.application.battle.BattleCommandRenderModel
 import com.jojo.game.application.runtime.RuntimeBattleRoute
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import kotlin.math.roundToInt
 
 /** 전투 명령 증거 기록기: 명령·마법·아이템 경로의 고정 렌더 이벤트를 원본 순서 JSONL로 구성한다. */
 internal object BattleCommandRenderEventRecorder {
-    /** 기록: 자동 검증 경로에 맞는 명령 화면 렌더 이벤트 JSONL을 반환한다. */
-    fun jsonl(route: RuntimeBattleRoute): String {
+    /**
+     * 기록: 자동 검증 경로에 맞는 명령 화면 렌더 이벤트 JSONL을 반환한다.
+     *
+     * `buttons`는 `drawBattleCommandLayer`가 색을 고르는 데 쓰는 바로 그 목록이다.
+     * 비활성 명령의 문구 색을 그리기 코드와 같은 근거에서 얻기 위해 받는다.
+     */
+    fun jsonl(route: RuntimeBattleRoute, buttons: List<BattleCommandFlow.Button>): String {
         val log = RenderEventLog()
         val phase = route.evidencePhase()
         val draw = BattleCommandEventAppender(log, phase)
@@ -26,7 +34,7 @@ internal object BattleCommandRenderEventRecorder {
             RuntimeBattleRoute.COMMAND_CANCEL -> Unit
             RuntimeBattleRoute.COMMAND_MAGICK -> appendMagick(draw)
             RuntimeBattleRoute.COMMAND_PROPERTY -> appendProperty(draw)
-            else -> appendCommand(draw)
+            else -> appendCommand(draw, buttons)
         }
         return log.jsonl()
     }
@@ -43,7 +51,7 @@ internal object BattleCommandRenderEventRecorder {
 
     /** 마법 목록: 마법 선택 창의 배경·마력·첫 항목·취소 버튼을 기록한다. */
     private fun appendMagick(draw: BattleCommandEventAppender) {
-        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 40f / 255f)
+        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 40f / 255f, color = DIM_BLACK)
         draw("MagickListLayer", "Canvas/Layer/bg0", "tiled-sprite", 474.186f, 90.5f, 540f, 619f, "Logo_9-1")
         draw("MagickListLayer", "Canvas/Layer/bg0/bg", "tiled-sprite", 474.186f, 90.5f, 540f, 619f, "box3")
         draw("MagickListLayer", "Canvas/Layer/bg0/label0", "label", 495.586f, 652.8f, 173f, 50.4f, text = "책사 ")
@@ -67,7 +75,7 @@ internal object BattleCommandRenderEventRecorder {
 
     /** 아이템 목록: 사용 가능 아이템 두 개와 취소 버튼을 원본 좌표로 기록한다. */
     private fun appendProperty(draw: BattleCommandEventAppender) {
-        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 40f / 255f)
+        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 40f / 255f, color = DIM_BLACK)
         draw("UsePropertyLayer", "Canvas/Layer/bg", "tiled-sprite", 736f, 96f, 491f, 410f, "Logo_9-1")
         draw("UsePropertyLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 491f, 410f, "box1")
         draw("UsePropertyLayer", "Canvas/Layer/bg/box2", "sliced-sprite", 740f, 154f, 483f, 348f, "box2")
@@ -88,8 +96,12 @@ internal object BattleCommandRenderEventRecorder {
     }
 
     /** 명령 패널: 기본 명령 여섯 개와 취소 버튼의 배경·문구·이중 아이콘을 기록한다. */
-    private fun appendCommand(draw: BattleCommandEventAppender) {
-        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 10f / 255f)
+    private fun appendCommand(draw: BattleCommandEventAppender, buttons: List<BattleCommandFlow.Button>) {
+        // 색을 지어내지 않기 위한 전제: 그리기 코드가 도는 목록과 같은 길이여야 한다.
+        check(buttons.size == BattleCommandRenderModel.visuals.size) {
+            "명령 색 기록에는 ${BattleCommandRenderModel.visuals.size}개 버튼 상태가 필요하다: ${buttons.size}"
+        }
+        draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 10f / 255f, color = DIM_BLACK)
         draw("CommandLayer", "Canvas/Layer/bg", "tiled-sprite", 736f, 96f, 397.2f, 322.5f, "Logo_9-1", 200f / 255f)
         draw("CommandLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 397.2f, 322.5f, "box3")
         val rects = listOf(
@@ -109,14 +121,38 @@ internal object BattleCommandRenderEventRecorder {
         rects.forEachIndexed { index, rect ->
             val button = "Canvas/Layer/bg/button$index/Background"
             draw("CommandLayer", button, "sliced-sprite", rect[0], rect[1], 120f, 120f, "box3")
-            draw("CommandLayer", "$button/Label", "label", rect[0] + 10f, rect[1] + 43f, 100f, 40f, text = labels[index])
+            // 원본 CommandLayer.js:60은 비활성 버튼에서만 Label 노드 색을 cc.color(10526880)
+            // = (160,160,160)으로 바꾼다. 아이콘은 노드 색을 그대로 둔 채 회색조 material만
+            // 갈아끼우므로(같은 줄 62) 하네스가 읽는 node.color는 흰색으로 남는다.
+            val labelColor = if (buttons[index].interactable) LABEL_BLACK else DISABLED_LABEL
+            draw(
+                "CommandLayer", "$button/Label", "label", rect[0] + 10f, rect[1] + 43f, 100f, 40f,
+                text = labels[index], color = labelColor,
+            )
             firstIcons[index].let { draw("CommandLayer", "$button/img0", "sprite", it[0], it[1], it[2], it[3], icons[index]) }
             secondIcons[index].let { draw("CommandLayer", "$button/img1", "sprite", it[0], it[1], it[2], it[3], icons[index]) }
         }
         draw("CommandLayer", "Canvas/Layer/bg/button6/Background", "sliced-sprite", 842.65f, 106.491f, 181.9f, 50f, "box3")
-        draw("CommandLayer", "Canvas/Layer/bg/button6/Background/Label", "label", 883.6f, 114.491f, 100f, 40f, text = "취소")
+        // 취소(tag 6)는 원본 루프가 `a < 5`로 건너뛰므로 언제나 활성, 곧 검은 문구다.
+        draw(
+            "CommandLayer", "Canvas/Layer/bg/button6/Background/Label", "label", 883.6f, 114.491f, 100f, 40f,
+            text = "취소", color = LABEL_BLACK,
+        )
     }
 
+    /** 전장 흐림막: 원본 Panel_cancel 노드 색은 검정이고 투명도만 10/40으로 달라진다. */
+    private const val DIM_BLACK = "#000000"
+
+    /** 기본 문구 색: 세 prefab의 Label 노드가 모두 `_color` 0xFF000000, 곧 검정이다. */
+    internal const val LABEL_BLACK = "#000000"
+
+    /** 비활성 문구 색: 그리기 코드와 같은 `DISABLED_COMPONENT`에서 뽑아 두 값이 갈라지지 않게 한다. */
+    internal val DISABLED_LABEL: String =
+        "#" + ((BattleCommandRenderModel.DISABLED_COMPONENT * 255f).roundToInt()
+            .coerceIn(0, 255).toString(16).padStart(2, '0')).repeat(3)
+
+    /** 기본 노드 색: 나머지 노드는 prefab이 `_color`를 주지 않아 엔진 기본 흰색이다. */
+    internal const val NODE_WHITE = "#ffffff"
 }
 
 /** 명령 증거 추가기: 공통 phase와 원본 알파 혼합 규칙으로 이벤트 한 건을 기록한다. */
@@ -133,6 +169,10 @@ private class BattleCommandEventAppender(private val log: RenderEventLog, privat
         asset: String? = null,
         opacity: Float = 1f,
         text: String = "",
+        // 색은 노드 색만 적는다. 원본 하네스(electron/main.cjs:717 `colorHex(node.color)`)가
+        // RGB 세 채널만 내보내므로 투명도를 섞으면 무조건 어긋난다. 투명도는 `opacity`가 따로 나른다.
+        color: String = if (type == "label") BattleCommandRenderEventRecorder.LABEL_BLACK
+        else BattleCommandRenderEventRecorder.NODE_WHITE,
     ) = log.draw(
         phase,
         layer,
@@ -146,6 +186,7 @@ private class BattleCommandEventAppender(private val log: RenderEventLog, privat
         opacity,
         if (type == "label") labelBlend else spriteBlend,
         text = text,
+        color = color,
     )
 }
 

@@ -10544,7 +10544,10 @@ void main() {
 
     /** 명령 화면 증거: 현재 자동 실행 경로를 전용 기록기에 전달한다. */
     private fun battleCommandRenderEventLog(): String =
-        BattleCommandRenderEventRecorder.jsonl(requireNotNull(battleCommandRouteState))
+        BattleCommandRenderEventRecorder.jsonl(
+            requireNotNull(battleCommandRouteState),
+            battleCommandFlow.view(),
+        )
 
     /**
      * `showRoundCard`: 화면 표시 상태를 렌더링한다.
