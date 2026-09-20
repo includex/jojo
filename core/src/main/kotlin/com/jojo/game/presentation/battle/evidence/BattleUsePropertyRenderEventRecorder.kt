@@ -2,6 +2,7 @@
 package com.jojo.game.presentation.battle.evidence
 
 import com.jojo.game.application.runtime.RuntimeBattleRoute
+import com.jojo.game.presentation.battle.render.UsePropertyDetailRenderContract
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** 아이템 사용 증거 입력: 아이템 목록과 상세 화면을 JSONL 렌더 이벤트로 옮길 불변 표시 값이다. */
@@ -19,8 +20,13 @@ internal data class BattleUsePropertyRowView(val name: String, val typeName: Str
 /** 아이템 상세: 선택한 아이템의 목록 표시 정보이다. */
 internal data class BattleUsePropertyDetailView(val name: String, val typeName: String, val icon: Int)
 
-/** 아이템 설명: 상세 창에서 가격과 설명을 함께 표시하는 장비 정보이다. */
-internal data class BattleUsePropertyProfileView(val purchasePrice: Int, val intro: String)
+/**
+ * 아이템 설명: 상세 창에서 가격과 설명을 함께 표시하는 장비 정보이다.
+ *
+ * [category]는 원본 `ITEM_TYPE`과 같은 번호로, "장착 가능한 부대" 표의 글자색을 가른다
+ * (`UsePropertyDetailRenderContract.postsCanEquip`).
+ */
+internal data class BattleUsePropertyProfileView(val purchasePrice: Int, val intro: String, val category: Int)
 
 /** 아이템 사용 증거 기록기: 목록·상세 경로의 고정 렌더 이벤트를 원본 순서 JSONL로 구성한다. */
 internal object BattleUsePropertyRenderEventRecorder {
@@ -84,40 +90,60 @@ internal object BattleUsePropertyRenderEventRecorder {
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg0/label", "label", 432.137f, 503.543f, 80.31f, text = "가격:")
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg0/label1", "label", 522.525f, 503.543f, 66.74f, text = profile.purchasePrice.toString())
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg1", "sliced-sprite", 261.686f, 92.5f, 501f, 377f, "box1")
-        append("UsePropertyLayer", "Canvas/Layer/bg1/bg1/bg1", "sprite", 470.286f, 447.7f, 83.8f, 40f, "bg1")
+        appendHeadband(append, UsePropertyDetailRenderContract.EFFECT_HEADBAND)
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg1/bg1/label", "label", 477.586f, 442.5f, 69.2f, text = "효과")
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg1/scrollview/view/content/label", "label", 265.686f, 389.966f, 493f, 55.44f, text = detail.typeName)
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg2", "sliced-sprite", 770.186f, 157.5f, 448f, 247f, "box2")
-        append("UsePropertyLayer", "Canvas/Layer/bg1/bg2/bg1", "sprite", 943.336f, 369.55f, 89.7f, 40.9f, "bg1")
+        appendHeadband(append, UsePropertyDetailRenderContract.INTRO_HEADBAND)
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg2/bg1/label", "label", 953.586f, 378.8f, 69.2f, text = "설명")
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg2/scrollview/view/content/label", "label", 774.186f, 191.26f, 440f, 187.44f, text = profile.intro)
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg3", "sliced-sprite", 770.186f, 427f, 448f, 260f, "box1")
-        append("UsePropertyLayer", "Canvas/Layer/bg1/bg3/bg1", "sprite", 871.686f, 664.273f, 245f, 45f, "bg1")
+        appendHeadband(append, UsePropertyDetailRenderContract.POSTS_HEADBAND)
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg3/bg1/label", "label", 804.516f, 661.573f, 379.34f, text = "장착 가능한 부대입니다.")
-        repeat(13) { row ->
-            val y = 609.55f - row * 52f
-            val path = "Canvas/Layer/bg1/bg3/scrollview/view/content/item"
-            append("UsePropertyLayer", path, "sliced-sprite", 772.186f, y, 444f, 50f, if (row % 2 == 0) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2")
-            repeat(3) { col ->
-                val value = postNames.getOrElse(row * 3 + col) { "" }
-                val width = measuredWidth(value)
-                val center = when (col) { 0 -> 851.186f; 1 -> 994.186f; else -> 1138.186f }
-                append("UsePropertyLayer", "$path/label$col", "label", center - width / 2f, y + 4.84f, width, 40.32f, text = value)
-            }
-        }
+        appendPostsTable(append, postNames, profile.category)
         append("UsePropertyLayer", "Canvas/Layer/bg1/button1/Background", "sliced-sprite", 1065.827f, 97.824f, 150f, 50f, "box3")
         append("UsePropertyLayer", "Canvas/Layer/bg1/button1/Background/Label", "label", 1090.827f, 104.824f, 100f, 40f, text = "확인")
     }
 
-    /** 글자 폭: 공백과 한 글자의 원본 폭 규칙으로 직위명을 가운데 정렬한다. */
-    private fun measuredWidth(value: String): Float = value.count { it != ' ' } * 27.68f + value.count { it == ' ' } * 8.89f
+    /** 머리띠: 문구 뒤 `bg1` 스프라이트 한 장을 계약이 가진 사각형 그대로 기록한다. */
+    private fun appendHeadband(append: BattleUsePropertyEventAppender, headband: UsePropertyDetailRenderContract.Headband) =
+        append(
+            "UsePropertyLayer", headband.nodePath, "sprite", headband.x, headband.y, headband.width, headband.height,
+            UsePropertyDetailRenderContract.HEADBAND_ASSET
+        )
+
+    /**
+     * 장착 가능한 부대 표: 행 배경과 직위명 칸을 계약의 기하로 기록한다.
+     *
+     * 행 수는 `posts` 표 길이에서 온다(13×3=39). 글자색은 원본과 같이 두 가지뿐이며
+     * `UsePropertyDetailRenderContract.postsCanEquip`이 가른다.
+     */
+    private fun appendPostsTable(append: BattleUsePropertyEventAppender, postNames: List<String>, category: Int) {
+        val contract = UsePropertyDetailRenderContract
+        repeat(contract.rowCount(postNames.size)) { row ->
+            val y = contract.rowY(row)
+            append(
+                "UsePropertyLayer", contract.ROW_NODE_PATH, "sliced-sprite", contract.ROW_X, y,
+                contract.ROW_WIDTH, contract.ROW_HEIGHT, contract.rowAsset(row)
+            )
+            repeat(contract.COLUMNS) { column ->
+                val index = contract.postsIndex(row, column)
+                val value = postNames.getOrElse(index) { "" }
+                append(
+                    "UsePropertyLayer", "${contract.ROW_NODE_PATH}/label$column", "label",
+                    contract.labelX(column, value), contract.labelY(row), contract.measuredWidth(value),
+                    contract.LABEL_HEIGHT, text = value, color = contract.labelColor(category, index)
+                )
+            }
+        }
+    }
 }
 
 /** 아이템 사용 증거 추가기: 종류에 따라 원본 스프라이트·라벨 혼합 규칙을 적용한다. */
 private class BattleUsePropertyEventAppender(private val log: RenderEventLog, private val phase: String) {
     /** 추가: 좌표·자산·문구를 가진 렌더 이벤트 한 건을 기록한다. */
-    operator fun invoke(layer: String, path: String, type: String, x: Float, y: Float, width: Float, height: Float = 50.4f, asset: String? = null, opacity: Float = 1f, text: String = "") =
-        log.draw(phase, layer, path, type, x, y, width, height, asset, opacity, if (type == "label") labels else sprites, true, text)
+    operator fun invoke(layer: String, path: String, type: String, x: Float, y: Float, width: Float, height: Float = 50.4f, asset: String? = null, opacity: Float = 1f, text: String = "", color: String? = null) =
+        log.draw(phase, layer, path, type, x, y, width, height, asset, opacity, if (type == "label") labels else sprites, true, text, color)
 }
 
 /** 스프라이트 혼합: 원본 숫자 기반 알파 혼합 규칙을 보존한다. */

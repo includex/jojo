@@ -7,8 +7,11 @@ import com.jojo.game.presentation.battle.evidence.BattleUsePropertyProfileView
 import com.jojo.game.presentation.battle.evidence.BattleUsePropertyRenderEventRecorder
 import com.jojo.game.presentation.battle.evidence.BattleUsePropertyRenderEventView
 import com.jojo.game.presentation.battle.evidence.BattleUsePropertyRowView
+import com.jojo.game.presentation.battle.render.UsePropertyDetailRenderContract
+import com.jojo.game.presentation.battle.render.UsePropertyDetailRenderContract.CATEGORY_PROPERTY
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /** 아이템 사용 증거 기록기 검증: 경로별 목록·상세 JSONL의 출력 조건과 그리기 순서를 확인한다. */
@@ -46,13 +49,57 @@ class BattleUsePropertyRenderEventRecorderTest {
         val rows = events(view(
             route = RuntimeBattleRoute.USE_PROPERTY_DETAIL,
             detail = BattleUsePropertyDetailView("회복용 콩", "HP 회복", 88),
-            profile = BattleUsePropertyProfileView(120, "체력을 회복한다."),
+            profile = BattleUsePropertyProfileView(120, "체력을 회복한다.", CATEGORY_PROPERTY),
         ))
         val json = rows.joinToString("\n")
 
         assertEquals(99, rows.size)
         assertOrdered(json, "button/Background/Label", "Canvas/Layer/bg1", "\"text\":\"회복용 콩\"", "체력을 회복한다.", "장착 가능한 부대입니다.", "button1/Background/Label")
         assertTrue(rows.all { it.contains("\"phase\":\"battle-use-property-detail\"") })
+    }
+
+    /**
+     * 장착 가능한 부대 표: 소지품(PROPERTY)은 원본 `Item.js:282-305`의 `switch`에 case가 없어
+     * 언제나 장착 불가이므로, 39칸이 모두 `#505050`으로 기록된다.
+     */
+    @Test
+    fun `property item paints every posts cell grey`() {
+        val rows = events(view(
+            route = RuntimeBattleRoute.USE_PROPERTY_DETAIL,
+            detail = BattleUsePropertyDetailView("회복용 콩", "HP 회복", 88),
+            profile = BattleUsePropertyProfileView(120, "체력을 회복한다.", CATEGORY_PROPERTY),
+        )).filter { it.contains("bg3/scrollview/view/content/item/label") }
+
+        assertEquals(39, rows.size)
+        assertTrue(rows.all { it.contains("\"color\":\"#505050\"") }, "소지품은 어느 직위도 장착할 수 없다")
+    }
+
+    /**
+     * 장착 판정 기본 가지: 원본 `Item.js:282-305`에서 어느 case에도 걸리지 않는 타입은
+     * 초기값 그대로 false다. WEAPONS/ARMOR/AUXILIARY 갈래는 필요한 표 열이 포트에 아직
+     * 없어 옮기지 못했고, 값을 지어내는 대신 같은 기본 가지로 떨어진다.
+     */
+    @Test
+    fun `posts equip check falls through to the original default branch`() {
+        val contract = UsePropertyDetailRenderContract
+        val categories = listOf(
+            contract.CATEGORY_WEAPONS, contract.CATEGORY_ARMOR,
+            contract.CATEGORY_AUXILIARY, contract.CATEGORY_PROPERTY,
+        )
+
+        categories.forEach { category ->
+            (0 until 39).forEach { posts ->
+                assertFalse(contract.postsCanEquip(category, posts), "종류 $category · 직위 $posts")
+                assertEquals(contract.BLOCKED_COLOR, contract.labelColor(category, posts))
+            }
+        }
+    }
+
+    /** 표 길이: 39는 상수가 아니라 13행 × 3열에서 나온다. */
+    @Test
+    fun `row count comes from the posts table length`() {
+        assertEquals(13, UsePropertyDetailRenderContract.rowCount(39))
+        assertEquals(1, UsePropertyDetailRenderContract.rowCount(1))
     }
 
     /** 입력 구성: 목록과 직위명을 가진 재현 가능한 증거 입력을 만든다. */

@@ -9009,10 +9009,14 @@ void main() {
                 detail = usePropertyDetail?.let { BattleUsePropertyDetailView(it.name, it.typeName, it.icon) },
                 profile = usePropertyDetail?.let { selected ->
                     gameDataCatalog.equipmentProfile(selected.id)?.let { profile ->
-                        BattleUsePropertyProfileView(gameDataCatalog.purchasePrice(profile), profile.intro)
+                        BattleUsePropertyProfileView(
+                            gameDataCatalog.purchasePrice(profile), profile.intro,
+                            gameDataCatalog.equipmentCategory(profile)
+                        )
                     }
                 },
-                postNames = (0 until 39).map(gameDataCatalog::postsName),
+                // 직위명은 `posts` 표 전체를 순서대로 쓴다(`ItemLayer.js:124-130`). 39는 표 길이의 결과이지 상수가 아니다.
+                postNames = gameDataCatalog.postsNames(),
             )
 
             /**
@@ -11062,6 +11066,8 @@ void main() {
         NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 770.186f, 157.5f, 448f, 247f)
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 770.186f, 427f, 448f, 260f)
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 1065.827f, 97.824f, 150f, 50f)
+        drawUsePropertyDetailHeadbands()
+        drawUsePropertyDetailPostsRows()
         font.data.setScale(40f / 26f); font.color = Color.BLACK
         listOf(
             item.name to (420.186f to 701f),
@@ -11076,7 +11082,56 @@ void main() {
             "장착 가능한 부대입니다." to (804.516f to 704f),
             "확인" to (1090.827f to 147f)
         ).forEach { (text, pos) -> font.draw(batch, text, pos.first, pos.second) }
+        drawUsePropertyDetailPostsNames(gameDataCatalog.equipmentCategory(profile))
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+    }
+
+    /**
+     * `drawUsePropertyDetailHeadbands`: 상세 창의 세 머리띠를 그린다.
+     *
+     * "효과"·"설명"·"장착 가능한 부대입니다." 문구 뒤에 깔리는 `bg1` 스프라이트다.
+     * 증거 기록기만 이 세 장을 적고 화면에는 없었으므로, 이제 같은 계약을 읽어 실제로 그린다.
+     */
+    private fun drawUsePropertyDetailHeadbands() {
+        listOf(
+            UsePropertyDetailRenderContract.EFFECT_HEADBAND,
+            UsePropertyDetailRenderContract.INTRO_HEADBAND,
+            UsePropertyDetailRenderContract.POSTS_HEADBAND,
+        ).forEach { batch.draw(unitInfoAssets.unitInfoBg, it.x, it.y, it.width, it.height) }
+    }
+
+    /**
+     * `drawUsePropertyDetailPostsRows`: "장착 가능한 부대" 표의 행 배경을 그린다.
+     *
+     * 짝수 행과 홀수 행이 번갈아 나오는 것도 원본 그대로다.
+     */
+    private fun drawUsePropertyDetailPostsRows() {
+        val contract = UsePropertyDetailRenderContract
+        repeat(contract.rowCount(gameDataCatalog.postsNames().size)) { row ->
+            val patch = if (row % 2 == 0) overlayAssets.terrainLayerRowEvenPatch else overlayAssets.terrainLayerRowOddPatch
+            patch?.draw(batch, contract.ROW_X, contract.rowY(row), contract.ROW_WIDTH, contract.ROW_HEIGHT)
+        }
+    }
+
+    /**
+     * `drawUsePropertyDetailPostsNames`: "장착 가능한 부대" 표의 직위명 칸을 그린다.
+     *
+     * 이름은 `posts` 표 전체를 행·열 순서대로 쓰고(13×3=39), 색은 장착 가능이면 검정,
+     * 아니면 회색 두 가지뿐이다(`recovered-js/modules/ui/ItemLayer.js:122-131`).
+     */
+    private fun drawUsePropertyDetailPostsNames(category: Int) {
+        val contract = UsePropertyDetailRenderContract
+        val names = gameDataCatalog.postsNames()
+        font.data.setScale(contract.LABEL_FONT_SCALE)
+        repeat(contract.rowCount(names.size)) { row ->
+            repeat(contract.COLUMNS) { column ->
+                val index = contract.postsIndex(row, column)
+                val value = names.getOrElse(index) { "" }
+                if (value.isEmpty()) return@repeat
+                font.color = Color.valueOf(contract.labelColor(category, index))
+                font.draw(batch, value, contract.labelX(column, value), contract.labelDrawY(row))
+            }
+        }
     }
 
     /**
