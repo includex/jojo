@@ -9126,7 +9126,9 @@ void main() {
         BattleRenderEventProjectionWinRoute.NONE -> null
         else -> requireNotNull(scriptWinConditions).view().let {
             BattleRenderEventProjectionWinConditionsInput(
-                it.first, it.second, listOf("승리 조건", "장보와 장량을", "격퇴하십시오.", "제한 턴 수 " + scenarioMaxRound())
+                // 앞서는 영천 전투의 문구 네 개를 박아 두어, 다른 전투에서 이 화면을 찍어도
+                // 영천의 문구를 적었을 것이다. 그리기 쪽과 같은 함수에서 꺼낸다.
+                it.first, it.second, requireNotNull(scriptWinConditions).childLabels()
             )
         }
     }
@@ -11409,7 +11411,8 @@ void main() {
      */
 
     private fun drawScriptWinConditions(layer: WinConditionsLayer) {
-        val lines = layer.view().second.replace("<br/>", "\n").replace(Regex("<[^>]+>"), "").lines()
+        // 문구는 증거 기록기와 같은 함수에서 나온다.
+        val lines = layer.childLabels()
         shapes.projectionMatrix = viewport.camera.combined
         beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 80f / 255f)
@@ -11418,12 +11421,15 @@ void main() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         font.data.setScale(98.3f / 26f)
+        // 색은 서식 문자열의 `<color=..>` 태그에서 나온다. 증거 기록기도 같은 함수를 읽는다.
+        val shadowColors = WinConditionsLayer.childColors(layer.view().first)
         lines.forEachIndexed { index, text ->
-            font.color = if (index == 0) Color.RED else Color(0.467f, 0.467f, 0.467f, 1f)
+            font.color = Color.valueOf("${shadowColors.getOrElse(index) { "#ffffff" }}ff")
             font.draw(batch, text, 39.467f, 771.28f - index * 120f)
         }
+        val topColors = WinConditionsLayer.childColors(layer.view().second)
         lines.forEachIndexed { index, text ->
-            font.color = Color.WHITE
+            font.color = Color.valueOf("${topColors.getOrElse(index) { "#ffffff" }}ff")
             font.draw(batch, text, 27.323f, 779.113f - index * 120f)
         }
         font.data.setScale(1f)

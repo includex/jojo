@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.evidence
 
+import com.jojo.game.presentation.battle.overlay.WinConditionsLayer
 import com.jojo.game.presentation.battle.render.WinConditionRenderContract
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
@@ -195,6 +196,8 @@ private object BattleWinConditionRenderEvents {
         val texts = conditions.childLabels
         val widths = listOf(367.43f, 537.49f, 537.49f, 531.39f)
         draw(log, phase, "HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 80f / 255f)
+        // 색은 서식 문자열 안에 들어 있다. 그림자 막과 위 막이 서로 다른 태그를 쓰므로
+        // 막마다 자기 문자열에서 뽑는다 — 어느 쪽도 따로 적어 둘 값이 아니다.
         rich(log, phase, "richtext1", 39.467f, 260.08f, conditions.first, texts, widths, 620.08f)
         rich(log, phase, "richtext2", 27.323f, 267.913f, conditions.second, texts, widths, 627.913f)
     }
@@ -205,9 +208,23 @@ private object BattleWinConditionRenderEvents {
      */
 
     private fun rich(log: RenderEventLog, phase: String, name: String, x: Float, y: Float, content: String, texts: List<String>, widths: List<Float>, labelY: Float) {
-        draw(log, phase, "HallLayer", "Canvas/Layer/$name", "rich-text", x, y, 537.49f, 511.2f, text = content, blend = labels)
-        texts.forEachIndexed { index, text -> draw(log, phase, "HallLayer", "Canvas/Layer/$name/RICHTEXT_CHILD", "label", x, labelY - index * 120f, widths[index], 151.2f, text = text, blend = labels) }
+        // `cc.RichText` 노드 자체에는 색이 없어 엔진 기본 흰색이다.
+        draw(
+            log, phase, "HallLayer", "Canvas/Layer/$name", "rich-text", x, y, 537.49f, 511.2f,
+            text = content, blend = labels, color = RICH_TEXT_WHITE,
+        )
+        val colors = WinConditionsLayer.childColors(content)
+        texts.forEachIndexed { index, text ->
+            draw(
+                log, phase, "HallLayer", "Canvas/Layer/$name/RICHTEXT_CHILD", "label",
+                x, labelY - index * 120f, widths[index], 151.2f, text = text, blend = labels,
+                color = colors.getOrElse(index) { RICH_TEXT_WHITE },
+            )
+        }
     }
+
+    /** `cc.RichText` 노드 색: 프리팹이 값을 두지 않아 엔진 기본 흰색이다. */
+    private const val RICH_TEXT_WHITE = "#ffffff"
 }
 /**
  * `BattleChromeRenderEvents`: 관련 상태와 동작을 묶는 object다.
