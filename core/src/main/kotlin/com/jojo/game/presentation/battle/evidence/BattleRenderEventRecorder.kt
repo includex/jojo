@@ -359,6 +359,12 @@ private object BattleRewardRenderEvents {
  */
 
 private val sprites = listOf(770, 771)
+
+/** 흐림막 색: 원본 `Panel_cancel` 노드 색은 검정이고 투명도만 다르다. */
+private const val SCRIM_BLACK = "#000000"
+
+/** 스프라이트 색조: 전장 노드에는 `_color`가 없어 엔진 기본 흰색이고 포트도 흰색으로 그린다. */
+private const val SPRITE_WHITE = "#ffffff"
 /**
  * `labels` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
  * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -373,5 +379,14 @@ private val labels = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
 
 private fun draw(log: RenderEventLog, phase: String, layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, opacity: Float = 1f, text: String = "", blend: Any = sprites, color: String? = null) {
     if (opacity <= 0f || x + w <= 0f || x >= 1488.3721f || y + h <= 0f || y >= 800f) return
-    log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text, color)
+    // 스프라이트 색조: 전장 지도와 유닛을 그리는 `BattleMapRenderer`·`BattleMapObjectRenderer`·
+    // `BattleGridMapSurfaceRenderer`는 모두 `batch.color`를 흰색으로 두고 그린다(투명도만 다른
+    // 자리는 `opacity` 항목이 따로 나른다). 흐림막만 `shapes.color`로 검정을 깐다. 글자색은
+    // 화면마다 달라 호출자가 넘길 때만 적는다.
+    val resolved = color ?: when {
+        type == "label" -> null
+        path == "Canvas/Layer/Panel_cancel" -> SCRIM_BLACK
+        else -> SPRITE_WHITE
+    }
+    log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text, resolved)
 }

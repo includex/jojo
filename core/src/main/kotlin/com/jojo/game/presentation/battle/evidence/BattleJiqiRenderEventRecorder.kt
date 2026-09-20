@@ -27,7 +27,13 @@ internal object BattleJiqiRenderEventRecorder {
             asset: String? = null, text: String = "", opacity: Float = 1f, owner: String = "JiQiLayer"
         ) = log.draw(
             "battle-jiqi-stable", owner, path, type, x, y, w, h, asset, opacity,
-            if (type == "label") labels else sprites, true, text
+            if (type == "label") labels else sprites, true, text,
+            // 색조: 그리기 쪽 `drawJiqiLayer`는 `batch.begin()` 직후
+            // `batch.color = Color.WHITE`와 `font.color = Color.BLACK`을 세우고 끝까지 바꾸지
+            // 않는다. 흐림막만 `shapes.color`로 검정을 깐다.
+            if (path == "Canvas/Layer/Panel_cancel") "#000000"
+            else if (type == "label") "#000000"
+            else "#ffffff",
         )
 
         draw(

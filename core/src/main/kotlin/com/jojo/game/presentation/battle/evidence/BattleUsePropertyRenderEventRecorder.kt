@@ -143,8 +143,27 @@ internal object BattleUsePropertyRenderEventRecorder {
 private class BattleUsePropertyEventAppender(private val log: RenderEventLog, private val phase: String) {
     /** 추가: 좌표·자산·문구를 가진 렌더 이벤트 한 건을 기록한다. */
     operator fun invoke(layer: String, path: String, type: String, x: Float, y: Float, width: Float, height: Float = 50.4f, asset: String? = null, opacity: Float = 1f, text: String = "", color: String? = null) =
-        log.draw(phase, layer, path, type, x, y, width, height, asset, opacity, if (type == "label") labels else sprites, true, text, color)
+        // 색조: 그리기 쪽 `drawUsePropertyLayer`·`drawUsePropertyDetail`은 `batch.begin()` 직후
+        // `batch.color = Color.WHITE`와 `font.color = Color.BLACK`을 세우고 끝까지 바꾸지 않는다
+        // (직위명 39칸만 호출자가 색을 직접 넘긴다). 흐림막만 `shapes.color`로 검정을 깐다.
+        log.draw(
+            phase, layer, path, type, x, y, width, height, asset, opacity,
+            if (type == "label") labels else sprites, true, text,
+            color
+                ?: if (path == "Canvas/Layer/Panel_cancel") SCRIM_BLACK
+                else if (type == "label") LABEL_BLACK
+                else SPRITE_WHITE,
+        )
 }
+
+/** 흐림막 색: 원본 `Panel_cancel` 노드 색은 검정이고 투명도만 다르다. */
+private const val SCRIM_BLACK = "#000000"
+
+/** 기본 글자색: 그리기 함수가 `font.color = Color.BLACK`을 세운다. */
+private const val LABEL_BLACK = "#000000"
+
+/** 스프라이트 색조: 이 창의 스프라이트 노드에는 `_color`가 없어 엔진 기본 흰색이다. */
+private const val SPRITE_WHITE = "#ffffff"
 
 /** 스프라이트 혼합: 원본 숫자 기반 알파 혼합 규칙을 보존한다. */
 private val sprites = listOf(770, 771)
