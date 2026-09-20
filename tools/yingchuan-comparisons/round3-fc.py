@@ -48,6 +48,7 @@ def summarize(path):
  }
  spans={'move_to_attack_s':(mv,atk),'attack_to_hit_s':(atk,hit),'hit_to_acted_s':(hit,act),
         'acted_to_pose39_s':(act,done),'retreat_to_hidden_s':(ret,hid)}
+ timing={k:round(t(b)-t(a),4) for k,(a,b) in spans.items()}
  # 창 안의 정체를 함께 잰다. STALL_SENSITIVE로 표시한, 타이머가 구동하는 창만 이 폭을
  # 허용치에 더한다(위 주석 참고). 클립이 구동하는 창까지 더하면 판정력이 사라진다.
  def stall(a,b):

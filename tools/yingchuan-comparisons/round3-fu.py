@@ -12,7 +12,7 @@ STALL=0.05
 DRIVER_SPANNED=set()                  # 이 구간의 이동·공격은 AI가 구동한다
 QUANTIZED={'acted_to_pose39_s'}       # 정산 패널: 타이머 개수 차이로 구조적 격차
 WALL_ONLY={'retreat_to_hidden_s'}     # 애니메이션 길이는 클립 시계로 본다
-STALL_SENSITIVE={'acted_to_pose39_s'} # 정체는 타이머 구동 구간만 부풀린다
+STALL_SENSITIVE={'move_to_attack_s','acted_to_pose39_s'} # 이동 완료 뒤 AI 시작·정산은 갱신 프레임 경계에서 관측한다
 def summarize(path):
  d=json.loads(Path(path).read_text());fs=[f for f in d['frames'] if f.get('round')==3 and f.get('camp')==1]
  mv  =next(i for i,f in enumerate(fs) if u(f,32) and u(f,32)[3:5]==[9,8])
@@ -42,6 +42,7 @@ def summarize(path):
  }
  spans={'move_to_attack_s':(mv,atk),'attack_to_hit_s':(atk,hit),'hit_to_acted_s':(hit,act),
         'acted_to_pose39_s':(act,done),'retreat_to_hidden_s':(ret,hid)}
+ timing={k:round(t(b)-t(a),4) for k,(a,b) in spans.items()}
  # 창 안의 정체를 함께 잰다. STALL_SENSITIVE로 표시한, 타이머가 구동하는 창만 이 폭을
  # 허용치에 더한다. 클립이 구동하는 창까지 더하면 판정력이 사라진다.
  def stall(a,b):
