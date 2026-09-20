@@ -275,7 +275,7 @@ const stateExpression = `(() => {
       const missingCaptures=wanted.filter(name=>!seen.has(name));
       fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-first-round-end-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:missingCaptures.length===0,missingCaptures,transitions,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
       await childExit;if(!fs.existsSync(trace))throw Error('source first-round-end trace was not flushed');
-      if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);return;}
+      if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);process.exitCode=1;return;}
       console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_OK ${captures.length}`);return;
     }
     if(['single-player-action','round2-followup','round2-first-combat','round3-player-action','round3-first-combat','round3-followup','round3-counterattack','round3-210'].includes(semanticMode)){
@@ -458,7 +458,7 @@ const stateExpression = `(() => {
       const missingCaptures=wanted.filter(name=>!seen.has(name));
       fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-round2-handoff-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:missingCaptures.length===0,missingCaptures,transitions,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
       await childExit;if(!fs.existsSync(trace))throw Error('source round2-handoff trace was not flushed');
-      if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_ROUND2_HANDOFF_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);return;}
+      if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_ROUND2_HANDOFF_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);process.exitCode=1;return;}
       console.log(`SOURCE_YINGCHUAN_ROUND2_HANDOFF_OK ${captures.length}`);return;
     }
     const sampleIntervalMs = maxWallMs > 30000 ? 10000 : 5000;
