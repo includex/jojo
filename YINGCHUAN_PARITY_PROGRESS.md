@@ -575,3 +575,18 @@
 - **아직 절반이다.** 한쪽만 색을 실으면 비교를 건너뛰도록 해 기존 생산자가 깨지지 않게 했는데, Cocos harness가 노드 색을 기록하지 않아 원본 쪽이 비어 있다. 나머지 절반은 harness 수정이며 그때 이런 수정이 캡처 없이도 게이트에 걸린다.
 - `BattleMenuRenderEvents`는 여전히 `drawBattleMenu`의 출력이 아니라 표다. 다만 이제 두 그리기 경로와 로그가 같은 상수와 같은 색 심볼을 읽어 기하·색이 어긋날 수 없다. 완전한 해소는 그 메서드의 draw 호출에 sink를 꿰는 별도 작업이다.
 - 고아 스크립트 권고를 남긴다. `verify_battle_menu_assets.py`는 결정적이고 `verifyTerrainLayerAssets`라는 선례가 있어 배선할 가치가 있으나 MenuLayer 노드 스냅샷 입력을 만드는 곳이 저장소에 없다. `verify_battle_menu_render.py`는 파이프라인이 만들지 않는 2배 픽셀 캡처를 요구하고 아이콘 사각형만 비교해 앞의 것이 포괄하므로 삭제를 권한다.
+
+## 색 비교의 나머지 절반 — Cocos harness가 노드 색을 기록한다
+
+- 포트 쪽에 `color`를 넣었어도 원본 쪽이 비어 있으면 비교가 건너뛰어진다. `electron/main.cjs`의 `append`가 draw 행을 만드는 지점에 노드 색을 실어 비교를 완성했다.
+- 무엇이 그려지는 색을 정하는지 먼저 확인했다. 이 Cocos 2.4 빌드에서 `cc.Sprite`/`cc.Label`은 자체 색을 갖지 않고 **노드 색**이 tint를 정한다. harness 저자도 이미 `main.cjs:471`에서 `node.color`를 색의 기준으로 다루고 `colorInt(node.color)`를 쓰고 있었다. prefab이 `_color`를 지정하지 않으면 엔진 기본 흰색이다.
+- **알파는 넣지 않는다.** 행에 이미 `opacity`(`node.opacity/255`)가 따로 있고 Cocos 2.4는 `node.color.a`를 255로 둔다. `#rrggbb`를 내면 `compare_render_logs.py`의 `_color()`가 `#rrggbbff`로 정규화해 포트의 `#ffffffff`와 같은 값이 된다. 알파를 양쪽에 중복 세지 않는다.
+- 이 파일은 **git 밖**이라 수정을 여기 기록한다. 백업은 `electron/main.cjs.before-color-20260920-173440`이다. 추가된 것은 `colorHex` 도우미와 `append`의 기록 리터럴에 `color: colorHex(node.color),` 한 줄이며 14줄 추가, 기존 필드·게이트·트리거·타이밍은 건드리지 않았다. `node --check`는 출력 없이 종료 코드 0이다.
+
+### `battle-menu` 루트로 메뉴 라벨 수정을 검증했다
+
+- `node tools/verify_render_parity_routes.mjs battle-menu`을 `JOJO_VERIFICATION_CLASSPATH`를 주고 실행해 **`RENDER_PARITY_ROUTE_OK battle-menu`**를 받았다.
+- 통과가 "비교했는데 같다"인지 "여전히 건너뛴다"인지 구분해 확인했다. 세 라벨이 경로·본문·색까지 대응하고 **양쪽 모두 실제로 비교되어** 통과한다. `Canvas/Layer/bg/bg0/label`(영천의 전투), `bg/progressBar/label`(턴 수), `bg/progressBar/label0`(1 / 20)이 원본 `#ffffff`, 포트 `#ffffffff`다.
+- 원본의 검정 행 하나는 `Canvas/Layer/Panel_cancel`(불투명도30 스크림)이고 포트도 색을 싣지 않아 한쪽뿐이라 건너뛴다.
+- **따라서 메뉴 라벨 수정은 캡처가 아니라 게이트로 검증됐다.** 수정 전이었다면 이 게이트가 검정 대 흰색으로 실패했을 것이다.
+- **한계를 분명히 한다.** 포트는 지금 `BattleMenuRenderEvents`의 세 라벨에만 색을 싣는다. 다른 모든 행은 한쪽뿐이라 건너뛰어지므로 **색 비교는 이 fixture 하나에만 무장돼 있다.** 다른 상태로 넓히려면 각 recorder가 색을 실어야 한다.
