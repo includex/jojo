@@ -5319,7 +5319,7 @@ void main() {
             if (itemUpgradeRouteState != null) drawRewardSectionOverlay()
         }
         val dedicatedCaptureRoute =
-            rewardRouteState != null || itemUpgradeRouteState != null || jiqiRouteFixture || magickRouteState != null || usePropertyRouteState != null || roundRouteState != null || winConditionRouteState != null || miniMapRouteState != null || autoBattleRouteState != null || battleCommandRouteState != null || otherUnitInfoRoute || mineUnitInfoRoute || (battleDialogueBlendRoute && scriptRuntime.currentDialogue != null && dialogueReveal.isComplete)
+            rewardRouteState != null || itemUpgradeRouteState != null || jiqiRouteFixture || magickRouteState != null || usePropertyRouteState != null || roundRouteState != null || winConditionRouteState != null || miniMapRouteState != null || autoBattleRouteReadyToCapture() || battleCommandRouteState != null || otherUnitInfoRoute || mineUnitInfoRoute || (battleDialogueBlendRoute && scriptRuntime.currentDialogue != null && dialogueReveal.isComplete)
         if (BattleCaptureRouteCoordinator.shouldWriteRenderEventLog(
                 BattleCaptureRouteCoordinator.RenderEventLogInput(elapsed, dedicatedCaptureRoute),
             ) && game.writeRenderEventLogIfRequested()
@@ -10129,6 +10129,25 @@ void main() {
      * `installAutoBattleRouteFixture`: 입력을 규칙에 따라 계산·변환한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /**
+     * 자동 전투 경로 캡처 준비: 경로가 이름한 화면에 **실제로 도달했을 때만** 참이다.
+     *
+     * 캡처는 고정 시각(0.25초)에 찍히는데, 전투 첫 프레임은 아직 여는 각본이 돌고 있어
+     * 위임 확인이 정당하게 무시된다. 앞서는 그 상태를 그대로 찍어 확인창이 남은 화면을
+     * `auto-battle-active`(위임 배너)라고 기록했고, 확인 가드가 들어오기 전까지는 가드가
+     * 없어 우연히 배너가 떠 통과했다. 곧 경로의 초록은 화면이 맞아서가 아니었다.
+     * 이제 도달하지 못하면 찍지 않고, 캡처가 나지 않아 실행이 소리 내어 실패한다.
+     */
+    private fun autoBattleRouteReadyToCapture(): Boolean {
+        val route = autoBattleRouteState ?: return false
+        val overlay = autoBattleFlow.view().overlay
+        return if (route == RuntimeBattleRoute.AUTO_ACTIVE) {
+            overlay == AutoBattleFlow.Overlay.TUOGUAN
+        } else {
+            overlay == AutoBattleFlow.Overlay.PROMPT
+        }
+    }
 
     private fun installAutoBattleRouteFixture() {
         autoBattleRouteFixtureController.install(

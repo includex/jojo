@@ -12,7 +12,6 @@ internal class BattleAutoBattleRouteFixtureController {
     /** 경로 설치: 메뉴의 자동 전투 항목을 누른 뒤 경로에 필요한 토글과 확인 입력만 순서대로 전달한다. */
     fun install(route: RuntimeBattleRoute?, commands: Commands): Boolean {
         if (route !in SUPPORTED_ROUTES || installed) return false
-        installed = true
         commands.openBattleMenu()
         commands.tapAutoBattleMenu()
         check(commands.view().overlay == AutoBattleFlow.Overlay.PROMPT) {
@@ -20,7 +19,19 @@ internal class BattleAutoBattleRouteFixtureController {
         }
         val checked = route != RuntimeBattleRoute.AUTO_PROMPT_OFF
         if (commands.view().checked != checked) commands.togglePrompt()
-        if (route == RuntimeBattleRoute.AUTO_ACTIVE) commands.confirmPrompt()
+        if (route == RuntimeBattleRoute.AUTO_ACTIVE) {
+            commands.confirmPrompt()
+            // 원본은 `_ctrlHelper`가 있을 때 — 아군 조작 구간에서만 확인을 받는다. 포트도
+            // `answerAutoBattle`이 `canEndPlayerTurn()`으로 같은 조건을 본다. 이 픽스처의 전투는
+            // 조작 구간에 들어가지 않으므로(phase=BOOTSTRAP, script=DELAY) 확인이 **정당하게**
+            // 무시된다. 조용히 넘어가면 확인창이 남은 화면을 위임 배너라고 기록하게 되므로
+            // 소리 내어 멈춘다. `947f9aa`가 그 가드를 넣기 전에는 가드가 없어 배너가 떴고,
+            // 그래서 이 경로의 초록은 화면이 맞아서가 아니었다.
+            check(commands.view().overlay == AutoBattleFlow.Overlay.TUOGUAN) {
+                "MsgBox4 confirmation did not start delegation; the fixture battle never entered player control"
+            }
+        }
+        installed = true
         return true
     }
 
@@ -40,6 +51,7 @@ internal class BattleAutoBattleRouteFixtureController {
 
         /** 확인 입력: 위임 진행 경로에서 확인 버튼을 눌러 실제 자동 전투 상태를 시작한다. */
         fun confirmPrompt()
+
     }
 
     private companion object {
