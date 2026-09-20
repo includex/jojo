@@ -60,4 +60,31 @@ class AutoBattleFlowTest {
         flow.openEndRoundPrompt()
         assertTrue(flow.view().checked)
     }
+    @Test fun `automatic all acted confirmation ignores delegation preference and preserves it`() {
+        val flow = AutoBattleFlow(initialStored = true)
+        flow.openEndRoundPrompt(offersDelegation = false)
+        assertFalse(flow.view().offersDelegation)
+        assertFalse(flow.view().checked)
+        flow.toggle()
+        assertFalse(flow.view().checked)
+        assertTrue(flow.answer(0, AutoBattleFlow.TOUCH_END))
+        assertEquals(1, flow.view().endRoundRequests)
+        assertFalse(flow.view().collocation)
+        assertTrue(flow.view().stored)
+        assertEquals(AutoBattleFlow.Overlay.NONE, flow.view().overlay)
+        flow.openEndRoundPrompt()
+        assertTrue(flow.view().offersDelegation)
+        assertTrue(flow.view().checked)
+    }
+
+    @Test fun `automatic confirmation cancel returns without ending turn or changing preference`() {
+        val flow = AutoBattleFlow(initialStored = true)
+        flow.openEndRoundPrompt(offersDelegation = false)
+        assertFalse(flow.answer(1, 1))
+        assertTrue(flow.answer(1, AutoBattleFlow.TOUCH_END))
+        assertEquals(0, flow.view().endRoundRequests)
+        assertTrue(flow.view().stored)
+        assertFalse(flow.view().collocation)
+        assertEquals(AutoBattleFlow.Overlay.NONE, flow.view().overlay)
+    }
 }

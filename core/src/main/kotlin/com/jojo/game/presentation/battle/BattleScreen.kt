@@ -183,6 +183,18 @@ class BattleScreen(
 
     private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
 
+    /** Plain MsgBox uses its own blue body and button colors; MsgBox4 above remains the manual-menu style. */
+    private val plainMsgBoxMessageFont = KoreanFont.create(
+        40, "모든 부대의 명령을 종료하시겠습니까?", borderWidth = 2f,
+        borderColor = Color(91f / 255f, 222f / 255f, 1f, 1f), fillColor = Color(0f, 4f / 255f, 196f / 255f, 1f),
+    )
+    private val plainMsgBoxNoFont = KoreanFont.create(
+        40, "비", borderWidth = 2f, borderColor = Color(1f, 171f / 255f, 171f / 255f, 1f), fillColor = Color.RED,
+    )
+    private val plainMsgBoxYesFont = KoreanFont.create(
+        40, "예", borderWidth = 2f, borderColor = Color(121f / 255f, 214f / 255f, 78f / 255f, 1f), fillColor = Color(10f / 255f, 105f / 255f, 0f, 1f),
+    )
+
     /**
      * `sectionTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -1482,6 +1494,9 @@ void main() {
         BattleAutoOverlayRenderer(
             batch = batch,
             labelFont = itemUpgradeFont,
+            plainPromptFonts = BattleAutoOverlayRenderer.PlainPromptFonts(
+                message = plainMsgBoxMessageFont, no = plainMsgBoxNoFont, yes = plainMsgBoxYesFont,
+            ),
             assets = BattleAutoOverlayAssets(
                 unitInfoLogo = unitInfoAssets.unitInfoLogo,
                 unitInfoBox = unitInfoAssets.unitInfoBox3,
@@ -1489,6 +1504,9 @@ void main() {
                 checkmark = hudAssets.autoBattleCheckmark,
                 banner = hudAssets.autoBattleBanner,
                 plate = hudAssets.autoBattlePlate,
+                plainBackground = overlayAssets.winConditionBackgroundTexture,
+                plainBox = overlayAssets.winConditionBoxPatch,
+                plainLogo = overlayAssets.winConditionLogoTexture,
             ),
         )
     }
@@ -4438,7 +4456,8 @@ void main() {
                     AutoBattleFlow.Overlay.PROMPT -> {
                         autoBattlePressedTag = autoBattlePromptButtonAt(world.x, world.y)
                         autoBattleTogglePressed = autoBattleToggleAt(world.x, world.y)
-                        autoBattlePanelPressed = autoBattlePressedTag == null && !autoBattleTogglePressed
+                        autoBattlePanelPressed = autoBattlePressedTag == null && !autoBattleTogglePressed &&
+                            autoBattlePanelCancelAt(world.x, world.y)
                         return true
                     }
 
@@ -4674,9 +4693,8 @@ void main() {
                                 autoBattlePressedTag!!
                             ).also { audio.playUiSound(UiSound.CLICK) }
 
-                            autoBattlePanelPressed && released == null && !autoBattleToggleAt(
-                                world.x, world.y
-                            ) -> answerAutoBattle(1)
+                            autoBattlePanelPressed && released == null && !autoBattleToggleAt(world.x, world.y) &&
+                                autoBattlePanelCancelAt(world.x, world.y) -> answerAutoBattle(1)
                         }
                         autoBattlePressedTag = null; autoBattleTogglePressed = false; autoBattlePanelPressed = false
                         return true
@@ -5548,6 +5566,7 @@ void main() {
          */
 
         val autoView = autoBattleFlow.view()
+        val autoBattleConfirmCenter = BattleAutoPromptGeometry.confirmCenter(autoView.offersDelegation)
         val commandOffset = currentBattleCommandPlacementOffset()
         val attackCommandCenter = BattleCommandRenderModel.buttonCenter(0, commandOffset)
         val waitCommandCenter = BattleCommandRenderModel.buttonCenter(5, commandOffset)
@@ -5577,7 +5596,7 @@ void main() {
                 projectWorldPointAt(15.13372f + 8f * 88f + 44f, 160.29f),
                 projectWorldPointAt(1383.9535f, 38f),
                 projectWorldPointAt(579.4365f, 295.197f),
-                projectWorldPointAt(919.536f, 295.197f),
+                projectWorldPointAt(autoBattleConfirmCenter.first, autoBattleConfirmCenter.second),
                 // 승리 조건 안내를 닫는 버튼의 중심이다. 터치 판정 영역과 같은 값을 쓴다.
                 projectWorldPointAt(1085.484f, 118.204f),
                 autoView.overlay.name,
@@ -5682,18 +5701,12 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    /**
-     * `requestEndRound`: 원본 `END_ROUND` 이벤트와 같은 자리에서 턴 종료 확인창을 연다.
-     *
-     * 원본 `BattleLayer`는 `END_ROUND`를 받으면 예외 없이 MsgBox4
-     * "모든 부대의 명령을 종료하시겠습니까?"를 띄우고, 그 응답으로만 진영을 넘긴다.
-     * 위임을 고른 응답은 `COLLOCATION` 플래그를 세운 뒤 같은 경로로 진행한다.
-     */
-    private fun requestEndRound() {
+    /** Opens the automatic plain MsgBox or the manual-menu MsgBox4 through their shared answer flow. */
+    private fun requestEndRound(offersDelegation: Boolean = true) {
         if (!turnController.canEndPlayerTurn()) return
         if (autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return
         endRoundPromptOffered = true
-        autoBattleFlow.openEndRoundPrompt()
+        autoBattleFlow.openEndRoundPrompt(offersDelegation)
     }
 
     private fun endTurn() {
@@ -9933,7 +9946,9 @@ void main() {
             AutoBattleFlow.Overlay.PROMPT -> BattleAutoOverlayKind.PROMPT
             AutoBattleFlow.Overlay.TUOGUAN -> BattleAutoOverlayKind.TUOGUAN
         }
-        return BattleAutoOverlayView(overlay = overlay, checked = state.checked)
+        return BattleAutoOverlayView(
+            overlay = overlay, checked = state.checked, offersDelegation = state.offersDelegation,
+        )
     }
 
     /**
@@ -9941,18 +9956,20 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun autoBattlePromptButtonAt(x: Float, y: Float): Int? = when {
-        x in 844.536f..994.536f && y in 270.197f..320.197f -> 0
-        x in 674.536f..824.536f && y in 270.197f..320.197f -> 1
-        else -> null
-    }
+    private fun autoBattlePromptButtonAt(x: Float, y: Float): Int? =
+        BattleAutoPromptGeometry.buttonAt(x, y, autoBattleFlow.view().offersDelegation)
 
     /**
      * `autoBattleToggleAt`: 입력을 규칙에 따라 계산·변환한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun autoBattleToggleAt(x: Float, y: Float): Boolean = x in 518.416f..640.457f && y in 267.997f..322.397f
+    private fun autoBattleToggleAt(x: Float, y: Float): Boolean =
+        BattleAutoPromptGeometry.toggleAt(x, y, autoBattleFlow.view().offersDelegation)
+
+    /** Plain MsgBox bg0 blocks touches before its behind-panel fullscreen cancel listener. */
+    private fun autoBattlePanelCancelAt(x: Float, y: Float): Boolean =
+        BattleAutoPromptGeometry.panelCancelAt(x, y, autoBattleFlow.view().offersDelegation)
 
     /**
      * `answerAutoBattle`: 입력을 규칙에 따라 계산·변환한다.
@@ -11233,14 +11250,13 @@ void main() {
         if (scriptRuntime.state != PlaybackState.COMPLETE || aiPresentation.hasActiveCamp) return
         if (combatPresentationBusy() || outcomeCallbacksPending()) return
         if (turnController.playerCampHasOperableUnit()) return
-        requestEndRound()
+        requestEndRound(offersDelegation = false)
     }
 
     private fun focusNextNoActionUnit() {
         val candidates = battle.units.values.filter { it.type() == Faction.PLAYER && it.visible && !it.hasActed }
         if (candidates.isEmpty()) {
-            // 원본 `NOACTION_INDEX` 처리기는 남은 유닛이 없으면 `END_ROUND`를 발행하고,
-            // 그 이벤트는 언제나 MsgBox4 확인창을 연다.
+            // Manual NOACTION_INDEX delegates to END_ROUND/MsgBox4; only the automatic loop uses plain MsgBox.
             if (battle.outcome() == null) requestEndRound()
             return
         }
@@ -12196,6 +12212,9 @@ void main() {
         font.dispose()
         dialogueFont.dispose()
         rewardTitleFont.dispose()
+        plainMsgBoxMessageFont.dispose()
+        plainMsgBoxNoFont.dispose()
+        plainMsgBoxYesFont.dispose()
         if (sectionTitleFontDelegate.isInitialized()) sectionTitleFont.dispose()
         mapTexture?.dispose()
         overlayAssets.dispose()

@@ -43,6 +43,7 @@ class AutoBattleFlow(initialStored: Boolean = false) {
          */
 
         val endRoundRequests: Int,
+        val offersDelegation: Boolean = true,
     )
 
     /**
@@ -51,6 +52,7 @@ class AutoBattleFlow(initialStored: Boolean = false) {
      */
 
     private var overlay = Overlay.NONE
+    private var offersDelegation = true
     /**
      * `checked` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -82,8 +84,9 @@ class AutoBattleFlow(initialStored: Boolean = false) {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun openEndRoundPrompt() {
-        checked = stored
+    fun openEndRoundPrompt(offersDelegation: Boolean = true) {
+        this.offersDelegation = offersDelegation
+        checked = offersDelegation && stored
         overlay = Overlay.PROMPT
     }
 
@@ -94,7 +97,7 @@ class AutoBattleFlow(initialStored: Boolean = false) {
      */
 
     fun toggle() {
-        if (overlay == Overlay.PROMPT) checked = !checked
+        if (overlay == Overlay.PROMPT && offersDelegation) checked = !checked
     }
     /**
      * `answer`: 타입의 핵심 동작을 수행한다.
@@ -104,8 +107,8 @@ class AutoBattleFlow(initialStored: Boolean = false) {
     fun answer(tag: Int, event: Int): Boolean {
         if (overlay != Overlay.PROMPT || event != TOUCH_END) return false
         require(tag == 0 || tag == 1) { "MsgBox4 tag must be OK(0) or CANCEL(1)" }
-        stored = checked
-        val result = tag or if (checked) 2 else 0
+        if (offersDelegation) stored = checked
+        val result = tag or if (offersDelegation && checked) 2 else 0
         overlay = Overlay.NONE
         if (result and 1 != 0) return true
         if (result and 2 != 0) {
@@ -149,7 +152,7 @@ class AutoBattleFlow(initialStored: Boolean = false) {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun view() = View(overlay, checked, stored, collocation, endRoundRequests)
+    fun view() = View(overlay, checked, stored, collocation, endRoundRequests, offersDelegation)
 
     companion object {
         /**
