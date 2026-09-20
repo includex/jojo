@@ -31,6 +31,7 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
         blend: Any = listOf(770, 771),
         visible: Boolean = true,
         text: String = "",
+        color: String? = null,
     ) {
         /**
          * `sequence` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -51,7 +52,11 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
                             text
                         )
                     }\""
-                }}"
+                }," +
+                // 색은 스키마의 정식 항목이다. 값을 적지 않은 호출은 null로 남고, 비교기는
+                // 한쪽이 null이면 이 항목을 건너뛴다. 두 로그가 모두 색을 적을 때에만
+                // 검정 대 흰색 같은 차이가 게이트를 떨어뜨린다.
+                "\"color\":${color?.let { "\"${escape(it)}\"" } ?: "null"}}"
     }
 
 

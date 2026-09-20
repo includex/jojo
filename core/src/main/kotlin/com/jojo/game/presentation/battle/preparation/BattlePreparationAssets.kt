@@ -141,11 +141,16 @@ internal class BattlePreparationAssets(backgroundId: Int, unitGlyphs: String) {
 
     val unitInfoBoxPatch = texture("maps/ui/unit-info/box1.png")?.let { NinePatch(it, 3, 3, 3, 3) }
     /**
-     * `unitInfoButtonPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     * `unitInfoButtonPatch` (NinePatch?): 단추가 쓰는 `box3`의 9분할이다.
+     * `unit-info/box3.png`는 `tools/export_map_assets.py`가 원본 네이티브 자원
+     * `0b/0b4d9ae9-c2e6-4212-a159-ad03f2bcd131.98199.png`에서 뽑은 것으로,
+     * 이 텍스처를 가리키는 SpriteFrame `box3`
+     * (resources/import/ee/ee381589-5374-4719-9fda-fd162a2fd65b.0fe56.json)의
+     * `capInsets`는 Cocos 순서 (left, top, right, bottom)로 [9, 7, 9, 11]이다.
+     * 같은 프레임을 쓰는 `outerPatch`와 마찬가지로 LibGDX 순서 9, 9, 7, 11로 옮긴다.
      */
 
-    val unitInfoButtonPatch = texture("maps/ui/unit-info/box3.png")?.let { NinePatch(it, 3, 3, 3, 3) }
+    val unitInfoButtonPatch = texture("maps/ui/unit-info/box3.png")?.let { NinePatch(it, 9, 9, 7, 11) }
 
     /**
      * `glyphs` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.

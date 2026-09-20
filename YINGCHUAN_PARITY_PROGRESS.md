@@ -555,3 +555,23 @@
 - 캡처는 **같은 의미 지점**에서 찍히므로 오염이 **결정적**이다. 매 실행 같은 창을 같은 크기로 부풀린다. 따라서 "원본을 두 번 돌려 편차를 재라"는 규칙만으로는 부족하다.
 - 대신 **같은 실행 안의 동종 측정과 비교**한다. 같은 종류의 대사·패널·클립이 그 실행에 여럿 있으면, 하나만 튀는지 보면 된다. 이번에는 글자당 시간이 3배로 튀었고 최대 dt도 그 창만 25배였다.
 - 그리고 "클립이 dt만큼 진행하니 면역"은 **창의 끝이 그 클립의 완료일 때만** 참이다. 끝이 타이머나 대사 닫힘이면 정체의 dt가 그대로 더해진다.
+
+## 메뉴 바 라벨과 NinePatch 인자 순서
+
+- 전투 화면 하단 메뉴 바는 날씨 전환과 **같은 prefab**(`Battle/scene/MenuLayer`)의 같은 라벨 노드를 쓴다. 그 prefab이 `_color`를 지정하지 않아 엔진 기본 흰색이고 `_styleFlags 1`로 굵으며, 실제 원본 프레임에서 흰색 굵은 글씨를 확인했다. 그런데 `drawBattleMenu`는 세 라벨을 **검정 36px**로 그리고 위치도 prefab 앵커가 아닌 고정 좌표를 썼다.
+- 두 그리기 경로가 다시 어긋나지 않도록 `drawMenuBarLabels`로 묶고 `drawBattleMenu`와 `drawWeatherLayer`가 함께 쓰도록 했다. 기하 상수도 `WeatherTransitionLayout` 하나에서 읽는다.
+- **같은 전치 오류를 세 곳에서 찾았다.** Cocos `capInsets`는 (left, top, right, bottom)인데 LibGDX `NinePatch`는 (left, right, top, bottom)이다. `box3`의 `[9,7,9,11]`은 `9, 9, 7, 11`이어야 한다. `menuButtonPatch`와 `winConditionBoxPatch`가 `9,7,9,11`을 그대로 넘기고 있었고, `unitInfoButtonPatch`는 같은 box3 PNG에 `3,3,3,3`을 쓰고 있었다.
+- 원본의 모든 `capInsets`를 훑고 포트의 `NinePatch` 호출 57개를 전수 확인했다. 대칭값(3,3,3,3 등)은 순서와 무관하다. `box4 [7,7,8,7]`→`7,8,7,7`과 `vline [0,2,0,1]`→`0,0,2,1`은 이미 올바랐다. Title 화면의 `loadVlinePatch(0,6,37,2)`와 `settingSliderPatch(10,10,7,4)`는 원본에서 대응하는 `capInsets`를 찾지 못해 전치 여부를 판단할 수 없어 **건드리지 않고 표시만 한다**.
+
+### 검증된 것과 되지 않은 것
+
+- **날씨 패널은 픽셀 단위로 불변이다.** 수정 전후 하단 바 영역 차이가 `mean=0.000, max=0`이고 원본 대비 값도 9.688로 동일하다. 공용 헬퍼 리팩터가 이미 검증된 화면을 건드리지 않았다.
+- **회귀 없음.** `round2-handoff` 재실행에서 화염 27좌표 일치와 10개 검사 통과를 유지한다.
+- **다음은 캡처로 행사되지 않았다.** 메뉴 바의 흰색 라벨(메뉴를 여는 캡처 구간이 없다), `menuButtonPatch`, `winConditionBoxPatch`(이 구간의 승리조건 화면은 box3 판이 없는 텍스트 표시다), `unitInfoButtonPatch`(전투 준비 화면은 영천전투 구간 밖이다). 근거는 prefab과 자산에서 나온 사실이지만 "고쳤으니 화면이 맞다"까지는 아직 아니다.
+
+### 렌더 이벤트 스키마에 색을 넣었다
+
+- `battle-menu` 게이트가 검정 대 흰색을 보지 못한 이유는 스키마에 색이 없었기 때문이다. `RenderEventLog`에 `color`를 넣고 `tools/compare_render_logs.py`의 `SEMANTIC_FIELDS`에 추가했으며 `#rgb`/`#rrggbb`/`#rrggbbaa`/`{r,g,b,a}`/배열을 정규화한다.
+- **아직 절반이다.** 한쪽만 색을 실으면 비교를 건너뛰도록 해 기존 생산자가 깨지지 않게 했는데, Cocos harness가 노드 색을 기록하지 않아 원본 쪽이 비어 있다. 나머지 절반은 harness 수정이며 그때 이런 수정이 캡처 없이도 게이트에 걸린다.
+- `BattleMenuRenderEvents`는 여전히 `drawBattleMenu`의 출력이 아니라 표다. 다만 이제 두 그리기 경로와 로그가 같은 상수와 같은 색 심볼을 읽어 기하·색이 어긋날 수 없다. 완전한 해소는 그 메서드의 draw 호출에 sink를 꿰는 별도 작업이다.
+- 고아 스크립트 권고를 남긴다. `verify_battle_menu_assets.py`는 결정적이고 `verifyTerrainLayerAssets`라는 선례가 있어 배선할 가치가 있으나 MenuLayer 노드 스냅샷 입력을 만드는 곳이 저장소에 없다. `verify_battle_menu_render.py`는 파이프라인이 만들지 않는 2배 픽셀 캡처를 요구하고 아이콘 사각형만 비교해 앞의 것이 포괄하므로 삭제를 권한다.

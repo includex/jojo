@@ -32,7 +32,12 @@ TIMING_KEYS = frozenset({
 # draw state. The Cocos owner can legitimately be HallLayer while the game
 # delegates the identical draw to DialogueLayer. Compare the emitted output,
 # not implementation ownership.
-SEMANTIC_FIELDS = ("draw_type", "rect", "asset", "opacity", "blend", "visible", "text")
+# `color` is part of the schema so that a black-vs-white label can fail a gate
+# at all. It is compared one-sidedly: when either log omits the colour the
+# field is skipped (see `differences`), so a producer that does not yet record
+# colour keeps working, while two logs that both record it must agree.
+SEMANTIC_FIELDS = ("draw_type", "rect", "asset", "opacity", "blend", "visible", "text", "color")
+COLOR_FIELD = "color"
 
 
 @dataclass(frozen=True)
@@ -48,6 +53,7 @@ class Draw:
     blend: Any = None
     visible: Any = None
     text: Any = None
+    color: Any = None
 
     @property
     def key(self) -> str:
@@ -84,6 +90,40 @@ def _rect(rect: Any, viewport: tuple[float, float]) -> tuple[float, ...] | None:
     return tuple(float(value) / divisor for value, divisor in zip(rect, divisors))
 
 
+def _color(value: Any) -> str | None:
+    """Normalize a colour to lowercase `#rrggbbaa`.
+
+    Accepts `#rgb`, `#rrggbb`, `#rrggbbaa` (with or without `#`) and the Cocos
+    `{r,g,b,a}` object, so the two runtimes' spellings of the same colour
+    compare equal. An unrecognized value is returned unchanged rather than
+    silently dropped.
+    """
+    if value is None:
+        return None
+    if isinstance(value, dict):
+        try:
+            channels = [int(value.get(key, 255)) for key in ("r", "g", "b", "a")]
+        except (TypeError, ValueError):
+            return value
+        return "#" + "".join(f"{channel & 0xFF:02x}" for channel in channels)
+    if isinstance(value, (list, tuple)) and 3 <= len(value) <= 4:
+        channels = list(value) + [255] * (4 - len(value))
+        try:
+            return "#" + "".join(f"{int(channel) & 0xFF:02x}" for channel in channels)
+        except (TypeError, ValueError):
+            return value
+    if not isinstance(value, str):
+        return value
+    text = value.strip().lstrip("#").lower()
+    if len(text) == 3 and all(char in "0123456789abcdef" for char in text):
+        text = "".join(char * 2 for char in text)
+    if len(text) == 6 and all(char in "0123456789abcdef" for char in text):
+        text += "ff"
+    if len(text) == 8 and all(char in "0123456789abcdef" for char in text):
+        return f"#{text}"
+    return value
+
+
 def _append(draws: list[Draw], counts: dict[str, int], path: str, **fields: Any) -> None:
     occurrence = counts.get(path, 0)
     counts[path] = occurrence + 1
@@ -107,7 +147,8 @@ def _canonical(data: dict[str, Any]) -> list[Draw]:
                 opacity=_without_timing(raw.get("opacity")),
                 blend=_without_timing(raw.get("blend")),
                 visible=_without_timing(raw.get("visible")),
-                text=_without_timing(raw.get("text")))
+                text=_without_timing(raw.get("text")),
+                color=_color(raw.get("color")))
     return draws
 
 
@@ -149,7 +190,8 @@ def _cocos(data: dict[str, Any]) -> list[Draw]:
         _append(draws, counts, str(node.get("path") or node.get("name") or "node"),
                 draw_type="sprite" if sprite else ("rich-text" if rich else "label"),
                 rect=rect, asset=_without_timing(asset), opacity=node.get("opacity"),
-                blend=_without_timing(blend), visible=node.get("visible", True), text=text)
+                blend=_without_timing(blend), visible=node.get("visible", True), text=text,
+                color=_color(node.get("color")))
     return draws
 
 
@@ -276,6 +318,7 @@ def load_input(path: Path) -> Any:
                 "blend": event.get("blend"),
                 "visible": event.get("visible"),
                 "text": event.get("text"),
+                "color": event.get("color"),
             }
             for event in events
             # A node the harness recorded as not visible submitted no draw: it
@@ -375,6 +418,10 @@ def compare(
             if f"{left.path}.{field}" in animated_fields:
                 continue
             expected_value, actual_value = getattr(left, field), getattr(right, field)
+            # A log that does not record colour must not be reported as a
+            # colour difference; only two logs that both record it are compared.
+            if field == COLOR_FIELD and (expected_value is None or actual_value is None):
+                continue
             if not _equal(expected_value, actual_value, tolerance):
                 diffs.append({"kind": "field", "path": key, "field": field,
                               "expected": expected_value, "actual": actual_value})

@@ -106,6 +106,20 @@ object WeatherTransitionLayout {
      */
     const val ROUND_LABEL_RIGHT_X = 723.131f
 
+    /**
+     * `LABEL_BASELINE_Y`: 세 라벨이 공유하는 글자 기준선이다. 세 `cc.Label` 노드는 모두
+     * `bg0`/`progressBar`(아래 36, 높이 44)의 세로 중앙에 앵커 y=0.5로 놓이고
+     * `_lineHeight`가 30이다.
+     */
+    const val LABEL_BASELINE_Y = 69f
+
+    /**
+     * `LABEL_COLOR`: 세 라벨의 색이다. 프리팹의 `bg/bg0/label`·`bg/progressBar/label`·
+     * `label0` 어느 노드에도 `_color`가 없어 `cc.Label`의 기본값인 흰색이 그대로 쓰인다.
+     * 렌더 증거 로그와 실제 그리기가 같은 값을 쓰도록 여기에 한 번만 적는다.
+     */
+    const val LABEL_COLOR = "#ffffffff"
+
     /** `BUTTON_Y`: `bg/contain/button*`(88×88)의 아래쪽 모서리다. */
     const val BUTTON_Y = 116.29f
 

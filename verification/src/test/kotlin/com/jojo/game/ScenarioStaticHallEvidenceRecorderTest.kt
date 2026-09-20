@@ -10,6 +10,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+/**
+ * 아래 SHA-256 값은 `RenderEventLog` 한 행의 모든 바이트를 묶어 둔다. 스키마에
+ * `color` 항목이 더해지면서(색을 적지 않는 호출은 `"color":null`) 세 값이 한 번 바뀌었다.
+ * 그리는 내용이 달라진 것이 아니라 기록 항목이 늘어난 것이다.
+ */
 class ScenarioStaticHallEvidenceRecorderTest {
     @Test fun `forces and helper source JSONL keep their authored byte ordering`() {
         val recorder = ScenarioStaticHallInfoEvidenceRecorder()
@@ -38,7 +43,7 @@ class ScenarioStaticHallEvidenceRecorderTest {
         }.jsonl()
 
         assertEquals(54, json.lineSequence().count { it.isNotBlank() })
-        assertEquals("0f5e01a557b3aba6481e55be8f989b8bc4de08d9ed78b909736732a130ce891e", sha256(json))
+        assertEquals("fc313fd854cfc0705c583d54928ed2ef528a50a344fd4c7ecf1cf589d3198cba", sha256(json))
         assertTrue(json.lineSequence().first().contains("\"nodePath\":\"Canvas/Layer/bg\""))
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"text\":\"확인\""))
     }
@@ -49,7 +54,7 @@ class ScenarioStaticHallEvidenceRecorderTest {
         }.jsonl()
 
         assertEquals(613, json.lineSequence().count { it.isNotBlank() })
-        assertEquals("68a7dfca0c5ae9f6393acd51bddacc3f69b6c1fc214b9d79e530c324264fd3be", sha256(json))
+        assertEquals("a5b95677c302d4520a5d5247ad7acd80a295ace1950f60e02a7b7832b045f2d9", sha256(json))
         assertTrue(json.lineSequence().first().contains("\"assetId\":\"Logo_9-1\""))
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"text\":\"확인\""))
     }
@@ -60,7 +65,7 @@ class ScenarioStaticHallEvidenceRecorderTest {
         }.jsonl()
 
         assertEquals(258, json.lineSequence().count { it.isNotBlank() })
-        assertEquals("da88cec39ba925e54c942a5db43904fcf3a44c7c8dfddbec16f252b65afa2bc6", sha256(json))
+        assertEquals("14a4a41dc65bf543bdf7eafc697999273d81c84c747f2693ecae6d073d39c74c", sha256(json))
         assertTrue(json.lineSequence().first().contains("\"nodePath\":\"Canvas/Layer/bg1\""))
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"visible\":false"))
     }

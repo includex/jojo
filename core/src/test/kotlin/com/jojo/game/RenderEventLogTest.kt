@@ -24,4 +24,18 @@ class RenderEventLogTest {
         assertTrue(rows[1].contains("\"sequence\":1"))
         assertTrue(rows[1].contains("\"visible\":false"))
     }
+
+    @Test
+    fun `color is part of the schema and is null when a draw does not record it`() {
+        // 색이 스키마에 없으면 검정 라벨과 흰 라벨이 같은 행으로 기록된다.
+        // 그래서 비교기가 볼 수 있도록 색을 정식 항목으로 남긴다.
+        val log = RenderEventLog()
+        log.draw("content", "MenuLayer", "Canvas/label", "label", 0f, 0f, 1f, 1f,
+            text = "턴 수", color = "#ffffffff")
+        log.draw("content", "MenuLayer", "Canvas/plate", "sliced-sprite", 0f, 0f, 1f, 1f)
+
+        val rows = log.jsonl().lines().filter(String::isNotEmpty)
+        assertTrue(rows[0].contains("\"color\":\"#ffffffff\""))
+        assertTrue(rows[1].contains("\"color\":null"))
+    }
 }

@@ -3,6 +3,7 @@ package com.jojo.game
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.battle.render.*
+import com.jojo.game.presentation.battle.overlay.WeatherTransitionLayout
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -66,5 +67,20 @@ class MenuLayerTest {
         assertTrue(events.any { it.contains("\"w\":15") && it.contains("progressBar/bar") })
         assertFalse(events.any { it.contains("contain/button12/") })
         assertTrue(events.last().contains("contain/button13/Background/edit"))
+    }
+
+    @Test fun `bar labels are recorded as the prefab default white`() {
+        // 프리팹 `bg/bg0/label`·`progressBar/label`·`label0`에는 `_color`가 없어
+        // `cc.Label` 기본값인 흰색이다. 그리기 쪽 `drawMenuBarLabels`와 이 증거 로그는
+        // 같은 상수 `WeatherTransitionLayout.LABEL_COLOR`를 읽으므로 갈라질 수 없다.
+        assertEquals("#ffffffff", WeatherTransitionLayout.LABEL_COLOR)
+        val view = MenuLayer().onCreate(MenuLayer.CreateData(MenuLayer.Weather.QING, 1, 20, "영천의 전투"))
+        val labels = BattleMenuRenderEvents.jsonl(view).lineSequence()
+            .filter { it.contains("\"drawType\":\"label\"") }.toList()
+        assertEquals(3, labels.size)
+        assertTrue(labels.all { it.contains("\"color\":\"${WeatherTransitionLayout.LABEL_COLOR}\"") })
+        // 판때기는 색을 적지 않으므로 비교기가 한쪽만 있는 색을 건너뛴다.
+        assertTrue(BattleMenuRenderEvents.jsonl(view).lineSequence()
+            .filter { it.contains("sliced-sprite") }.all { it.contains("\"color\":null") })
     }
 }

@@ -182,11 +182,13 @@ internal class BattleHudAssets : Disposable {
 
     val menuBoxPatch = menuBoxTexture?.let { NinePatch(it, 3, 3, 3, 3) }
     /**
-     * `menuButtonPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     * `menuButtonPatch` (NinePatch?): `bg/contain`의 단추 `Background`가 쓰는 `box3`의 9분할이다.
+     * SpriteFrame(resources/import/ee/ee381589-5374-4719-9fda-fd162a2fd65b.0fe56.json)의
+     * `capInsets`는 [9, 7, 9, 11]인데 Cocos 순서는 (left, top, right, bottom)이고
+     * LibGDX `NinePatch`의 순서는 (left, right, top, bottom)이라 9, 9, 7, 11로 옮긴다.
      */
 
-    val menuButtonPatch = menuButtonTexture?.let { NinePatch(it, 9, 7, 9, 11) }
+    val menuButtonPatch = menuButtonTexture?.let { NinePatch(it, 9, 9, 7, 11) }
     /**
      * `menuWeatherTextures` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

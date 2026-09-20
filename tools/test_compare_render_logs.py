@@ -98,6 +98,33 @@ class RenderLogComparatorTest(unittest.TestCase):
         self.assertEqual([], MODULE.compare(left, right, 0))
         self.assertTrue(any(diff.get("field") == "asset" for diff in MODULE.compare(first, second, 0)))
 
+    def test_label_colour_is_a_comparable_semantic_field(self):
+        """Black vs white must be able to fail a gate.
+
+        The MenuLayer bar labels are engine-default white in the source
+        prefab. Before `color` joined SEMANTIC_FIELDS a renderer could draw
+        them black and every field still matched.
+        """
+        def label(color):
+            return self.canonical([{"path": "Canvas/Layer/bg/bg0/label", "type": "label",
+                                    "rect": [41, 36, 304, 44], "text": "영천의 전투", "color": color}])
+        white = MODULE.adapt(label("#ffffffff"))[1]
+        black = MODULE.adapt(label("#000000ff"))[1]
+        self.assertIn("color", MODULE.SEMANTIC_FIELDS)
+        self.assertTrue(any(diff.get("field") == "color" for diff in MODULE.compare(white, black, 0)))
+        # The same colour spelled differently by the two runtimes still matches.
+        self.assertEqual([], MODULE.compare(white, MODULE.adapt(label("FFFFFF"))[1], 0))
+        self.assertEqual([], MODULE.compare(white, MODULE.adapt(label({"r": 255, "g": 255, "b": 255, "a": 255}))[1], 0))
+
+    def test_a_log_without_colour_is_not_reported_as_a_colour_difference(self):
+        """One-sided colour is skipped so existing producers keep passing."""
+        with_color = MODULE.adapt(self.canonical([
+            {"path": "p", "type": "label", "rect": [0, 0, 1, 1], "text": "t", "color": "#ffffffff"}]))[1]
+        without = MODULE.adapt(self.canonical([
+            {"path": "p", "type": "label", "rect": [0, 0, 1, 1], "text": "t"}]))[1]
+        self.assertIsNone(without[0].color)
+        self.assertEqual([], MODULE.compare(with_color, without, 0))
+
 
 if __name__ == "__main__":
     unittest.main()

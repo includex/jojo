@@ -103,11 +103,14 @@ internal class BattleOverlayAssets : Disposable {
 
     val winConditionLogoTexture = winConditionTexture("logo3")
     /**
-     * `winConditionBoxPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     * `winConditionBoxPatch` (NinePatch?): 승리 조건 상자가 쓰는 `box3`의 9분할이다.
+     * `box3`는 원본 전체에서 하나뿐인 SpriteFrame이고
+     * (resources/import/ee/ee381589-5374-4719-9fda-fd162a2fd65b.0fe56.json)
+     * `capInsets`는 Cocos 순서 (left, top, right, bottom)로 [9, 7, 9, 11]이다.
+     * LibGDX `NinePatch`는 (left, right, top, bottom) 순서라 9, 9, 7, 11로 옮긴다.
      */
 
-    val winConditionBoxPatch = winConditionBoxTexture?.let { NinePatch(it, 9, 7, 9, 11) }
+    val winConditionBoxPatch = winConditionBoxTexture?.let { NinePatch(it, 9, 9, 7, 11) }
     /**
      * `winConditionScrollPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

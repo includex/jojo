@@ -220,6 +220,14 @@ class BattleScreen(
     private val menuBarLabelFont: BitmapFont by menuBarLabelFontDelegate
 
     /**
+     * `menuBarLabelColor` (Color): 위 세 라벨의 색이다. 값은 `WeatherTransitionLayout.LABEL_COLOR`
+     * 하나에서만 오고, 렌더 증거 로그(`BattleMenuRenderEvents`)도 같은 상수를 적는다.
+     * 그래서 그리는 색과 기록하는 색이 서로 어긋날 수 없다.
+     */
+
+    private val menuBarLabelColor: Color = Color.valueOf(WeatherTransitionLayout.LABEL_COLOR)
+
+    /**
      * `overlayAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -9776,43 +9784,107 @@ void main() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.color = Color.WHITE
-        hudAssets.menuBackgroundPatch?.draw(batch, 0f, 0f, 1488.3721f, 212f)
-        hudAssets.menuFramePatch?.draw(batch, 0f, 0f, 1488.3721f, 212f)
+        hudAssets.menuBackgroundPatch?.draw(
+            batch, 0f, 0f, WeatherTransitionLayout.PANEL_WIDTH, WeatherTransitionLayout.PANEL_HEIGHT
+        )
+        hudAssets.menuFramePatch?.draw(
+            batch, 0f, 0f, WeatherTransitionLayout.PANEL_WIDTH, WeatherTransitionLayout.PANEL_HEIGHT
+        )
         // bg0와 progressBar는 원본 y=58에 있는 두 개의 304×44 프레임이다.
-        hudAssets.menuBoxPatch?.draw(batch, 41f, 36f, 304f, 44f)
-        hudAssets.menuBoxPatch?.draw(batch, 425f, 36f, 304f, 44f)
-        hudAssets.menuTitleBarTexture?.let { batch.draw(it, 43f, 38f, 300f, 40f) }
+        hudAssets.menuBoxPatch?.draw(
+            batch, WeatherTransitionLayout.NAME_BOX_X, WeatherTransitionLayout.BOX_Y,
+            WeatherTransitionLayout.BOX_WIDTH, WeatherTransitionLayout.BOX_HEIGHT
+        )
+        hudAssets.menuBoxPatch?.draw(
+            batch, WeatherTransitionLayout.PROGRESS_BOX_X, WeatherTransitionLayout.BOX_Y,
+            WeatherTransitionLayout.BOX_WIDTH, WeatherTransitionLayout.BOX_HEIGHT
+        )
+        hudAssets.menuTitleBarTexture?.let {
+            batch.draw(
+                it, WeatherTransitionLayout.NAME_BAR_X, WeatherTransitionLayout.BAR_Y,
+                WeatherTransitionLayout.BAR_WIDTH, WeatherTransitionLayout.BAR_HEIGHT
+            )
+        }
         val menu = battleMenuLayer?.view()
-        hudAssets.menuProgressBarTexture?.let { batch.draw(it, 427f, 38f, 300f * (menu?.progress ?: 0f), 40f) }
+        hudAssets.menuProgressBarTexture?.let {
+            batch.draw(
+                it, WeatherTransitionLayout.PROGRESS_BAR_X, WeatherTransitionLayout.BAR_Y,
+                WeatherTransitionLayout.barWidth(menu?.progress ?: 0f), WeatherTransitionLayout.BAR_HEIGHT
+            )
+        }
         menu?.let { view ->
             val sheet = MenuLayer.weatherSheet(view.weather)
             val frame = MenuLayer.weatherFrameAt(elapsed - battleMenuOpenedAt)
             hudAssets.menuWeatherTextures[sheet]?.getOrNull(frame)?.let { weather ->
-                batch.draw(weather, 832.232f, 8f, 432f, 100f)
+                batch.draw(
+                    weather, WeatherTransitionLayout.WEATHER_X, WeatherTransitionLayout.WEATHER_Y,
+                    WeatherTransitionLayout.WEATHER_WIDTH, WeatherTransitionLayout.WEATHER_HEIGHT
+                )
             }
         }
-        dialogueFont.color = Color.BLACK
-        dialogueFont.data.setScale(30f / 36f)
-        dialogueFont.draw(
-            batch, menu?.battleName ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex), 124f, 69f
+        drawMenuBarLabels(
+            menu?.battleName ?: gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
+            menu?.round ?: battle.round,
+            menu?.maxRound ?: scenarioMaxRound(),
         )
-        dialogueFont.draw(batch, "턴 수", 430f, 69f)
-        dialogueFont.draw(batch, "${menu?.round ?: battle.round} / ${menu?.maxRound ?: scenarioMaxRound()}", 692f, 69f)
-        dialogueFont.data.setScale(30f / 36f)
         // MenuLayer/bg/contain에는 중앙 정렬된 88×88 작성 버튼 13개가 있다.
-        val sourceIndexes = listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-        sourceIndexes.forEach { index ->
-            val x = 15.13372f + index * 88f
-            hudAssets.menuButtonPatch?.draw(batch, x, 116.29f, 88f, 88f)
+        (0 until WeatherTransitionLayout.VISIBLE_BUTTON_COUNT).forEach { index ->
+            val x = WeatherTransitionLayout.buttonX(index)
+            hudAssets.menuButtonPatch?.draw(
+                batch, x, WeatherTransitionLayout.BUTTON_Y,
+                WeatherTransitionLayout.BUTTON_SIZE, WeatherTransitionLayout.BUTTON_SIZE
+            )
             // MenuLayer의 tool1 노드는 48×48에 scale=(1.5,1.5)이며 88×88 버튼 중앙에 있다.
             // 원본 노드 변환을 유지한다.
-            hudAssets.menuToolTextures[index]?.let { batch.draw(it, x + 8f, 124.572f, 72f, 72f) }
+            hudAssets.menuToolTextures[index]?.let {
+                batch.draw(
+                    it, x + 8f, WeatherTransitionLayout.TOOL_Y,
+                    WeatherTransitionLayout.TOOL_SIZE, WeatherTransitionLayout.TOOL_SIZE
+                )
+            }
         }
-        hudAssets.menuButtonPatch?.draw(batch, 1071.1337f, 116.29f, 88f, 88f)
-        hudAssets.menuHelpTexture?.let { batch.draw(it, 1079.1337f, 124.29f, 72f, 72f) }
-        dialogueFont.data.setScale(1f)
-        dialogueFont.color = Color.WHITE
+        hudAssets.menuButtonPatch?.draw(
+            batch, WeatherTransitionLayout.HELP_BUTTON_X, WeatherTransitionLayout.BUTTON_Y,
+            WeatherTransitionLayout.BUTTON_SIZE, WeatherTransitionLayout.BUTTON_SIZE
+        )
+        hudAssets.menuHelpTexture?.let {
+            batch.draw(
+                it, WeatherTransitionLayout.HELP_X, WeatherTransitionLayout.HELP_Y,
+                WeatherTransitionLayout.TOOL_SIZE, WeatherTransitionLayout.TOOL_SIZE
+            )
+        }
         batch.end()
+    }
+
+    /**
+     * `drawMenuBarLabels`: `MenuLayer` 아래 띠의 라벨 세 개를 프리팹대로 그린다.
+     *
+     * 평소 메뉴(`drawBattleMenu`)와 날씨 전환(`drawWeatherLayer`)은 같은 프리팹
+     * `Battle/scene/MenuLayer`의 같은 노드를 그리므로 글꼴·색·정렬이 갈라질 수 없도록
+     * 한 곳에서만 그린다. 세 라벨 모두 `_color`가 없어 기본 흰색이고 `_styleFlags 1`로 굵다.
+     * 정렬도 프리팹 앵커 그대로다. `bg0/label`은 앵커 0.5로 x=193 중앙,
+     * `progressBar/label`은 앵커 x=0이라 왼쪽 431.853, `label0`은 앵커 x=1이라
+     * 오른쪽 끝이 723.131에 고정된다.
+     */
+
+    private fun drawMenuBarLabels(battleName: String, round: Int, maxRound: Int) {
+        menuBarLabelFont.color = menuBarLabelColor
+        menuBarLabelFont.draw(
+            batch, battleName,
+            WeatherTransitionLayout.NAME_LABEL_CENTER_X - WeatherTransitionLayout.BAR_WIDTH / 2f,
+            WeatherTransitionLayout.LABEL_BASELINE_Y,
+            WeatherTransitionLayout.BAR_WIDTH, Align.center, false
+        )
+        menuBarLabelFont.draw(
+            batch, "턴 수",
+            WeatherTransitionLayout.TURN_LABEL_LEFT_X, WeatherTransitionLayout.LABEL_BASELINE_Y
+        )
+        menuBarLabelFont.draw(
+            batch, "$round / $maxRound",
+            WeatherTransitionLayout.ROUND_LABEL_RIGHT_X - WeatherTransitionLayout.BAR_WIDTH,
+            WeatherTransitionLayout.LABEL_BASELINE_Y,
+            WeatherTransitionLayout.BAR_WIDTH, Align.right, false
+        )
     }
 
     /**
@@ -10694,21 +10766,10 @@ void main() {
         drawWeatherSheet(view.previous, frame, WeatherTransitionLayout.previousAlpha(view.fade))
         drawWeatherSheet(view.current, frame, WeatherTransitionLayout.currentAlpha(view.fade))
         batch.color = Color.WHITE
-        // 세 라벨 모두 프리팹에 `_color`가 없어 기본 흰색이고, `_styleFlags 1`로 굵게다.
         // 원본은 막대 위에 라벨을 겹쳐 그리므로 진행 막대 뒤가 아니라 앞에 온다.
-        // 정렬도 프리팹 그대로다. `bg0/label`은 앵커 0.5로 x=193 중앙, `progressBar/label`은
-        // 앵커 x=0으로 왼쪽 431.853, `label0`은 앵커 x=1이라 오른쪽 끝이 723.131에 고정된다.
-        menuBarLabelFont.color = Color.WHITE
-        menuBarLabelFont.draw(
-            batch, gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
-            WeatherTransitionLayout.NAME_LABEL_CENTER_X - WeatherTransitionLayout.BAR_WIDTH / 2f, 69f,
-            WeatherTransitionLayout.BAR_WIDTH, Align.center, false
-        )
-        menuBarLabelFont.draw(batch, "턴 수", WeatherTransitionLayout.TURN_LABEL_LEFT_X, 69f)
-        menuBarLabelFont.draw(
-            batch, "${view.round} / ${view.maxRound}",
-            WeatherTransitionLayout.ROUND_LABEL_RIGHT_X - WeatherTransitionLayout.BAR_WIDTH, 69f,
-            WeatherTransitionLayout.BAR_WIDTH, Align.right, false
+        // 글꼴·색·정렬은 평소 메뉴와 같은 노드이므로 `drawMenuBarLabels` 한 곳에서 그린다.
+        drawMenuBarLabels(
+            gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex), view.round, view.maxRound
         )
         (0 until WeatherTransitionLayout.VISIBLE_BUTTON_COUNT).forEach { index ->
             val x = WeatherTransitionLayout.buttonX(index)
