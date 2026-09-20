@@ -224,3 +224,12 @@
 - 최종 정상210초 `verification/build/verification/yingchuan-round3-ui-fixed-20260920/` 성공:12,606프레임·10장. PNG03의 교환 아이콘/라벨이 원본처럼 비활성 회색으로 표시된다. PNG09는6/100 숫자와 약6% 막대이며, 같은 행의 분홍 픽셀 길이가 수정 전128에서39로 줄었다(원본46). 작은 캡/테두리 렌더링 차이까지 픽셀 일치한 것으로 확대하지 않는다.
 - `boundaries-ui-final.json` 6개 공격·피해·행동확정 검사 모두 통과했고 `comparison-ui-final.json` 최종 부대 차이는 기존 숨김157만 남았다. 마지막 캡처의 autoBattleOverlay는 PROMPT다. driver completionKind는 update 중 prompt가 열리기 전 경계를 읽어 free-player-input으로 남지만 실제 캡처는 자동 확인창이다. 다음 구간의 확인 입력은 반드시 실제 PROMPT와 안정된 버튼 geometry를 기준으로 보낸다.
 - 다음 진행 단위는 3턴 자동 확인창의 예를 한 번 누른 뒤 FRIEND의 첫 실제 행동·정산·퇴각 완료 또는 새 대사까지다. actor/target과 새 대사 본문은 원본에서 관측한 뒤 확정하고 예상하지 않은 대사는 닫지 않는다.
+
+## 3턴 종료 후 유비 행동 검증
+
+- 앞선 goal turn은 공격 시점·정산 순서·교환 조건·경험치 막대 수정 및3회 push로 진행됐다. 이번 `round3-followup`은 기존 조조 공격 완료 뒤 실제 자동 확인창 예를1회 누르고 새 대사에는 입력하지 않는다. 원본 AI 시작 기록의 확인 직전 offset과 포트 정산/사망 callback 뒤 완료 counter를 사용한다. 관측 종점과 실제 행동 완료를 구분하며210초 timeout 자체는 성공이 아니다.
+- 원본 정상210초 `build/reports/yingchuan-source-round3-followup-20260920/` 성공:13,713프레임·11장·실제입력12회. 새 AI 기록 offset19 이후32→259가 관측됐다.32가(9,5)→(9,8) 이동해480(8,8)을 필살21_3으로 공격, HP97→0/피격32_1→낮은HP기본9→Other480 정산→퇴각23→숨김이다. 유비는 HP149/MP44 유지, 경험치8→16. FRIEND 성장 전용 Mine창은 없다.
+- 포트 정상210초 `verification/build/verification/yingchuan-round3-followup-20260920/` 성공:12,606프레임·7장. 확인 입력1회 뒤 friend-0의 실제 행동 완료가 기록됐다. `build/reports/yingchuan-round3-followup-comparison-20260920/comparison.json`의8개 이동·타격·경험치/행동확정·퇴각 검사가 모두 통과했다. 공격 PNG의 유비 자세와 Other480 정산창 종류/위치도 대조했다. target480 숨김 경계 부대 상태 차이는 기존 숨김157 능력치만 남는다.
+- source의 다음actor 시작과 port의 이전actor 완료는 정확히 같은 프레임이 아니므로 종점 framebuffer 전체 일치로 확대하지 않는다. 이동 캡처의 source battleTargets에는 이전0→483이 남아 있어 대상을 뜻하지 않으며 공격 캡처의 갱신된32→480을 근거로 사용한다.
+- 전체 trace의 이후 자연 진행도 양쪽 모두 speaker146 장보의 `후우후……!`에서 기다린다. 카메라[96,16]와 표시 부대 상태도 일치한다.258 공격→146 방어26/HP105유지→258 중독 기본36 뒤의 반격 후보 대사이며 사망 대사가 아니다. 해당 이후 UI/애니메이션 전체를 검수한 것은 아니고 다음 별도 입력 구간으로 남긴다.
+- 우선 수정할 새 UI 차이: source10 정산 화면에서 쓰러진480의 지도상 HP막대는 없지만 port06에서는 가득 찬 주황색 막대가 남는다. 정산 패널의 이전값97/97 보간과 지도상 체력 표시를 구분해 원인을 확인한다. 글자 모양은 계속 후순위다.

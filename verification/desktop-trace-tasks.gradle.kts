@@ -561,6 +561,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                     "first-round-end", "round2-handoff", "single-player-action", "round2-followup", "round2-first-combat",
                     "round3-player-action",
                     "round3-first-combat",
+                    "round3-followup",
                 )) {
                     "unknown captureMode: $it"
                 }
@@ -582,7 +583,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                 "${captureMode.get()} requires maxSimSeconds=180 and timeScale=1"
             }
         }
-        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat")) {
+        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat", "round3-followup")) {
             require(maxSimulationSeconds.get() == 210 && timeScale.get() == 1) {
                 "${captureMode.get()} requires maxSimSeconds=210 and timeScale=1"
             }
@@ -612,25 +613,38 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                 "single player action did not complete; inspect preserved walkthrough manifest"
             }
         }
-        if (captureMode.get() in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat")) {
+        if (captureMode.get() in setOf("round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup")) {
             val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
             check(Regex(""""round2FollowupComplete"\s*:\s*true""").containsMatchIn(manifest)) {
                 "round2 follow-up did not reach its observed terminal; inspect preserved walkthrough manifest"
             }
-            if (captureMode.get() in setOf("round2-first-combat", "round3-player-action", "round3-first-combat")) {
+            if (captureMode.get() in setOf("round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup")) {
                 check(Regex(""""round2FirstCombatCriticalDialogueCloseSent"\s*:\s*true""").containsMatchIn(manifest)) {
                     "round2 first-combat did not send the required critical-dialogue close input"
                 }
             }
         }
-        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat")) {
+        if (captureMode.get() in setOf("round3-player-action", "round3-first-combat", "round3-followup")) {
             val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
             check(Regex(""""round3PlayerActionComplete"\s*:\s*true""").containsMatchIn(manifest)) {
                 "round3 player action did not reach its post-settlement prompt or free-input boundary"
             }
-            if (captureMode.get() == "round3-first-combat") {
+            if (captureMode.get() in setOf("round3-first-combat", "round3-followup")) {
                 check(Regex(""""round3CriticalDialogueCloseSent"\s*:\s*true""").containsMatchIn(manifest)) {
                     "round3 first-combat did not send the required critical-dialogue close input"
+                }
+            }
+            if (captureMode.get() == "round3-followup") {
+                check(Regex(""""round3FollowupConfirmSent"\s*:\s*true""").containsMatchIn(manifest)) {
+                    "round3 follow-up did not send the required automatic-prompt confirmation"
+                }
+                val actionCompleted = Regex(""""round3FollowupActionCompleted"\s*:\s*true""").containsMatchIn(manifest)
+                val terminalReached = Regex(""""round3FollowupTerminalReached"\s*:\s*true""").containsMatchIn(manifest)
+                check(actionCompleted || terminalReached) {
+                    "round3 follow-up reached neither a completed FRIEND action nor a naturally completed blocking dialogue"
+                }
+                check(!(actionCompleted && terminalReached)) {
+                    "round3 follow-up cannot report both action completion and a blocking-dialogue terminal"
                 }
             }
         }
