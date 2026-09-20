@@ -10345,6 +10345,7 @@ void main() {
         )
         shapes.end()
         val previousTransform = batch.transformMatrix.cpy()
+        val previousShader = batch.shader
         val commandOffset = currentBattleCommandPlacementOffset()
         batch.transformMatrix = previousTransform.cpy().translate(commandOffset.first, commandOffset.second, 0f)
         try {
@@ -10361,7 +10362,7 @@ void main() {
                     height,
                 )
             }
-            batch.color = Color.WHITE; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
+            batch.setColor(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY); NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
                 batch,
                 BattleCommandRenderModel.PANEL_LEFT,
                 BattleCommandRenderModel.PANEL_BOTTOM,
@@ -10376,11 +10377,11 @@ void main() {
                 NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
                     batch, visual.x, visual.y, visual.width, visual.height
                 )
-                itemUpgradeFont.color = if (button.interactable) Color.BLACK else Color(
+                itemUpgradeFont.color = if (button.interactable) Color(0f, 0f, 0f, BattleCommandRenderModel.PANEL_OPACITY) else Color(
                     BattleCommandRenderModel.DISABLED_COMPONENT,
                     BattleCommandRenderModel.DISABLED_COMPONENT,
                     BattleCommandRenderModel.DISABLED_COMPONENT,
-                    1f
+                    BattleCommandRenderModel.PANEL_OPACITY
                 )
                 // `포위 공격`만 두 어절이라 한 줄에 안 들어간다. 원본 버튼도 정사각형이라
                 // 줄바꿈으로 받는다. 한 어절짜리 문구는 줄바꿈 여부와 무관하게 같은 자리다.
@@ -10388,29 +10389,31 @@ void main() {
                     batch, BATTLE_COMMAND_LABELS[index], visual.labelX, visual.labelY + 40f,
                     100f, Align.center, true,
                 )
-                val iconColor = if (button.interactable) Color.WHITE else Color(
-                    BattleCommandRenderModel.DISABLED_COMPONENT,
-                    BattleCommandRenderModel.DISABLED_COMPONENT,
-                    BattleCommandRenderModel.DISABLED_COMPONENT,
-                    1f
-                )
+                // Source CommandLayer replaces disabled icon materials with builtin-2d-gray-sprite.
+                // Its 160/255 label color is independent of the white-tinted icon material.
+                batch.shader = if (button.interactable) previousShader else cocosGraySampler.value
                 visual.icons.forEach { icon ->
                     val iconIndex = icon.asset.removePrefix("command").toInt()
-                    batch.color = iconColor
+                    batch.setColor(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
                     batch.draw(
                         hudAssets.battleCommandIcons.getValue(iconIndex),
                         icon.x, icon.y, icon.width, icon.height,
                     )
                 }
-                batch.color = Color.WHITE
+                batch.shader = previousShader
+                batch.setColor(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
             }
             batch.end()
         } finally {
-            if (batch.isDrawing) batch.end()
-            itemUpgradeFont.data.setScale(1f)
-            itemUpgradeFont.color = Color.WHITE
-            batch.color = Color.WHITE
-            batch.transformMatrix = previousTransform
+            try {
+                if (batch.isDrawing) batch.end()
+            } finally {
+                itemUpgradeFont.data.setScale(1f)
+                itemUpgradeFont.color = Color.WHITE
+                batch.color = Color.WHITE
+                batch.shader = previousShader
+                batch.transformMatrix = previousTransform
+            }
         }
     }
 
