@@ -48,6 +48,7 @@ def summarize(path):
  }
  spans={'move_to_attack_s':(mv,atk),'attack_to_hit_s':(atk,hit),
         'hit_to_acted_s':(hit,act),'acted_to_pose39_s':(act,done)}
+ timing={k:round(t(b)-t(a),4) for k,(a,b) in spans.items()}
  # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
  def stall(a,b):
   return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
