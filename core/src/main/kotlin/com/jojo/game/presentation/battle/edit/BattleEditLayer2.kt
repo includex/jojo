@@ -245,6 +245,13 @@ enum class BattleEditLayer2Route(val key: String) {
  */
 
 object BattleEditLayer2RenderEvents {
+    /** 편집창 제목 띠는 원본 EditLayer2의 bg1 노드와 같은 자원을 쓴다. */
+    object Header {
+        const val X = 453.686f
+        const val Y = 546.55f
+        const val WIDTH = 581f
+        const val HEIGHT = 58.5f
+    }
     /**
      * `alphaBlend` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -327,7 +334,7 @@ object BattleEditLayer2RenderEvents {
         ) =
             log.draw(phase, layer, path, type, x, y, w, h, asset, blend = blend, text = text)
         d("Canvas/Layer/bg", "tiled-sprite", 453.686f, 195f, 581f, 410f, "Logo_9-1")
-        d("Canvas/Layer/bg/bg1", "sprite", 453.686f, 546.55f, 581f, 58.5f, "bg1")
+        d("Canvas/Layer/bg/bg1", "sprite", Header.X, Header.Y, Header.WIDTH, Header.HEIGHT, "bg1")
         d("Canvas/Layer/bg/bg1/label", "label", 669.431f, 550.6f, 149.51f, 50.4f, text = "전장 편집", blend = alphaBlend)
         d("Canvas/Layer/bg/label", "label", 675.735f, 488.8f, 91.43f, 50.4f, text = "날씨: ", blend = alphaBlend)
         d("Canvas/Layer/bg/bg2", "sliced-sprite", 767.301f, 487.229f, 169.8f, 50f, "box1")

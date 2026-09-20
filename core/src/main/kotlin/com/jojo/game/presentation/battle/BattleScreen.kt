@@ -8659,6 +8659,13 @@ void main() {
                 Color.BLACK; font.draw(batch, text, x + 8f, y + 43f)
         }
         tiled(453.686f, 195f, 581f, 410f)
+        batch.draw(
+            unitInfoAssets.unitInfoBg,
+            BattleEditLayer2RenderEvents.Header.X,
+            BattleEditLayer2RenderEvents.Header.Y,
+            BattleEditLayer2RenderEvents.Header.WIDTH,
+            BattleEditLayer2RenderEvents.Header.HEIGHT,
+        )
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.301f, 487.229f, 169.8f, 50f)
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 768.224f, 430.411f, 160f, 50f)
         font.color = Color.BLACK
