@@ -146,6 +146,23 @@ internal class BattleHudAssets : Disposable {
      */
 
     val menuProgressBarTexture = menuTexture("progress-bar")
+
+    /**
+     * `menuTitleBarPatch` (NinePatch?): `bg/progressBar/bg`가 쓰는 `Mark_64-1`의 9분할이다.
+     * 원본 SpriteFrame(resources/import/55/55729fa6-6e2c-4eff-814f-e2db829b33ba.5e52c.json)의
+     * `capInsets`는 Cocos 순서 [왼1, 위3, 오른1, 아래3]이라 LibGDX 순서로는 (1, 1, 3, 3)이다.
+     * 같은 프레임을 쓰는 `bg/bg0/Mark_64-1`은 `_type`이 SIMPLE이므로 이 조각을 쓰지 않는다.
+     */
+
+    val menuTitleBarPatch = menuTitleBarTexture?.let { NinePatch(it, 1, 1, 3, 3) }
+
+    /**
+     * `menuProgressBarPatch` (NinePatch?): `bg/progressBar/bar`가 쓰는 `Mark_65-1`의 9분할이다.
+     * SpriteFrame(resources/import/48/489c4bf4-5a08-4b26-b755-5579ad9b84d0.2616a.json)의
+     * `capInsets`도 [1, 3, 1, 3]이다.
+     */
+
+    val menuProgressBarPatch = menuProgressBarTexture?.let { NinePatch(it, 1, 1, 3, 3) }
     /**
      * `menuBackgroundPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

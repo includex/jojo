@@ -207,6 +207,19 @@ class BattleScreen(
     private val sectionTitleFont: BitmapFont by sectionTitleFontDelegate
 
     /**
+     * `menuBarLabelFont` (BitmapFont): MenuLayer 아래 띠의 라벨 세 개가 쓰는 글꼴이다.
+     * 원본 프리팹의 `bg/bg0/label`·`bg/progressBar/label`·`label0`은 모두
+     * `cc.Label { _fontSize 30, _lineHeight 30, _styleFlags 1 }`이며 노드에 `_color`가 없다.
+     * `_styleFlags 1`은 굵게이고, `_color`가 없으므로 기본값 흰색이다.
+     * 글리프 집합은 실제 전투 이름에서 얻는다(`Model.battleName()` 대응).
+     */
+
+    private val menuBarLabelFontDelegate = lazy {
+        KoreanFont.create(30, "턴 수 /0123456789" + battleSectionTitle(), faceIndex = KoreanFont.BOLD_FACE)
+    }
+    private val menuBarLabelFont: BitmapFont by menuBarLabelFontDelegate
+
+    /**
      * `overlayAssets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
@@ -5271,6 +5284,7 @@ void main() {
             if (usePropertyDetail != null) drawUsePropertyDetail()
             if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) drawBattleCommandLayer()
             activeRoundLayer?.let(::drawRoundLayer)
+            activeWeatherLayer?.let(::drawWeatherLayer)
             drawSettlementOverlays()
             if (verification.usesTutorialBattle) drawHud()
             if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(
@@ -10617,6 +10631,123 @@ void main() {
     }
 
     /**
+     * `drawWeatherLayer`: 라운드 전환 날씨 안내를 그린다.
+     *
+     * 원본은 평소 메뉴와 같은 `MenuLayer` 프리팹을 `switch_weather` 인자로 띄우므로
+     * 패널 구성은 `drawBattleMenu`와 같고, 다른 점은 두 가지뿐이다.
+     * 첫째 `bg/box2`에 이전·이후 날씨 노드가 함께 붙어 `cc.fadeOut(2)`/`cc.fadeIn(2)`로
+     * 교차한다(MenuLayer.js:92~97). 둘째 모든 단추가 `interactable=false`가 되는데
+     * 프리팹의 `cc.Button`은 `_N$transition`이 없어(=NONE) 그림 자체는 바뀌지 않는다.
+     */
+
+    private fun drawWeatherLayer(layer: WeatherTransitionLayer) {
+        val view = layer.view ?: return
+        // 프리팹 `Canvas/Layer/Panel_cancel`: 검정 `_opacity` 30으로 화면 전체를 덮는다.
+        shapes.projectionMatrix = viewport.camera.combined
+        beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, WeatherTransitionLayout.SCRIM_ALPHA)
+        shapes.rect(0f, 0f, WeatherTransitionLayout.SCREEN_WIDTH, WeatherTransitionLayout.SCREEN_HEIGHT)
+        shapes.end()
+        batch.projectionMatrix = viewport.camera.combined
+        batch.begin()
+        batch.color = Color.WHITE
+        hudAssets.menuBackgroundPatch?.draw(
+            batch, 0f, 0f, WeatherTransitionLayout.PANEL_WIDTH, WeatherTransitionLayout.PANEL_HEIGHT
+        )
+        hudAssets.menuFramePatch?.draw(
+            batch, 0f, 0f, WeatherTransitionLayout.PANEL_WIDTH, WeatherTransitionLayout.PANEL_HEIGHT
+        )
+        hudAssets.menuBoxPatch?.draw(
+            batch, WeatherTransitionLayout.NAME_BOX_X, WeatherTransitionLayout.BOX_Y,
+            WeatherTransitionLayout.BOX_WIDTH, WeatherTransitionLayout.BOX_HEIGHT
+        )
+        hudAssets.menuBoxPatch?.draw(
+            batch, WeatherTransitionLayout.PROGRESS_BOX_X, WeatherTransitionLayout.BOX_Y,
+            WeatherTransitionLayout.BOX_WIDTH, WeatherTransitionLayout.BOX_HEIGHT
+        )
+        hudAssets.menuBoxPatch?.draw(
+            batch, WeatherTransitionLayout.WEATHER_BOX_X, WeatherTransitionLayout.WEATHER_BOX_Y,
+            WeatherTransitionLayout.WEATHER_BOX_WIDTH, WeatherTransitionLayout.WEATHER_BOX_HEIGHT
+        )
+        hudAssets.menuTitleBarTexture?.let {
+            batch.draw(
+                it, WeatherTransitionLayout.NAME_BAR_X, WeatherTransitionLayout.BAR_Y,
+                WeatherTransitionLayout.BAR_WIDTH, WeatherTransitionLayout.BAR_HEIGHT
+            )
+        }
+        // `bg/progressBar`의 바탕과 막대는 `_type` SLICED다(`bg/bg0/Mark_64-1`만 SIMPLE).
+        hudAssets.menuTitleBarPatch?.draw(
+            batch, WeatherTransitionLayout.PROGRESS_BAR_X, WeatherTransitionLayout.BAR_Y,
+            WeatherTransitionLayout.BAR_WIDTH, WeatherTransitionLayout.BAR_HEIGHT
+        )
+        hudAssets.menuProgressBarPatch?.draw(
+            batch, WeatherTransitionLayout.PROGRESS_BAR_X, WeatherTransitionLayout.BAR_Y,
+            WeatherTransitionLayout.barWidth(view.progress), WeatherTransitionLayout.BAR_HEIGHT
+        )
+        // 이전 날씨가 아래, 새 날씨가 위다(원본은 `_create_weather` 호출 순서대로 붙인다).
+        val frame = WeatherTransitionLayout.frameAt(activeWeatherLayerElapsed)
+        drawWeatherSheet(view.previous, frame, WeatherTransitionLayout.previousAlpha(view.fade))
+        drawWeatherSheet(view.current, frame, WeatherTransitionLayout.currentAlpha(view.fade))
+        batch.color = Color.WHITE
+        // 세 라벨 모두 프리팹에 `_color`가 없어 기본 흰색이고, `_styleFlags 1`로 굵게다.
+        // 원본은 막대 위에 라벨을 겹쳐 그리므로 진행 막대 뒤가 아니라 앞에 온다.
+        // 정렬도 프리팹 그대로다. `bg0/label`은 앵커 0.5로 x=193 중앙, `progressBar/label`은
+        // 앵커 x=0으로 왼쪽 431.853, `label0`은 앵커 x=1이라 오른쪽 끝이 723.131에 고정된다.
+        menuBarLabelFont.color = Color.WHITE
+        menuBarLabelFont.draw(
+            batch, gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
+            WeatherTransitionLayout.NAME_LABEL_CENTER_X - WeatherTransitionLayout.BAR_WIDTH / 2f, 69f,
+            WeatherTransitionLayout.BAR_WIDTH, Align.center, false
+        )
+        menuBarLabelFont.draw(batch, "턴 수", WeatherTransitionLayout.TURN_LABEL_LEFT_X, 69f)
+        menuBarLabelFont.draw(
+            batch, "${view.round} / ${view.maxRound}",
+            WeatherTransitionLayout.ROUND_LABEL_RIGHT_X - WeatherTransitionLayout.BAR_WIDTH, 69f,
+            WeatherTransitionLayout.BAR_WIDTH, Align.right, false
+        )
+        (0 until WeatherTransitionLayout.VISIBLE_BUTTON_COUNT).forEach { index ->
+            val x = WeatherTransitionLayout.buttonX(index)
+            hudAssets.menuButtonPatch?.draw(
+                batch, x, WeatherTransitionLayout.BUTTON_Y,
+                WeatherTransitionLayout.BUTTON_SIZE, WeatherTransitionLayout.BUTTON_SIZE
+            )
+            hudAssets.menuToolTextures[index]?.let {
+                batch.draw(
+                    it, x + 8f, WeatherTransitionLayout.TOOL_Y,
+                    WeatherTransitionLayout.TOOL_SIZE, WeatherTransitionLayout.TOOL_SIZE
+                )
+            }
+        }
+        hudAssets.menuButtonPatch?.draw(
+            batch, WeatherTransitionLayout.HELP_BUTTON_X, WeatherTransitionLayout.BUTTON_Y,
+            WeatherTransitionLayout.BUTTON_SIZE, WeatherTransitionLayout.BUTTON_SIZE
+        )
+        hudAssets.menuHelpTexture?.let {
+            batch.draw(
+                it, WeatherTransitionLayout.HELP_X, WeatherTransitionLayout.HELP_Y,
+                WeatherTransitionLayout.TOOL_SIZE, WeatherTransitionLayout.TOOL_SIZE
+            )
+        }
+        batch.end()
+    }
+
+    /**
+     * `drawWeatherSheet`: `bg/box2`의 날씨 노드 한 장을 주어진 불투명도로 그린다.
+     * 원본 `_create_weather`가 만든 216×50 스프라이트에 scale 2를 적용한 크기다.
+     */
+
+    private fun drawWeatherSheet(weather: BattleWeather, frame: Int, alpha: Float) {
+        if (alpha <= 0f) return
+        val sheet = WeatherTransitionLayout.sheet(weather)
+        val texture = hudAssets.menuWeatherTextures[sheet]?.getOrNull(frame) ?: return
+        batch.setColor(1f, 1f, 1f, alpha)
+        batch.draw(
+            texture, WeatherTransitionLayout.WEATHER_X, WeatherTransitionLayout.WEATHER_Y,
+            WeatherTransitionLayout.WEATHER_WIDTH, WeatherTransitionLayout.WEATHER_HEIGHT
+        )
+        batch.setColor(1f, 1f, 1f, 1f)
+    }
+
+    /**
      * `propertyEffectName`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
@@ -12285,6 +12416,7 @@ void main() {
         plainMsgBoxNoFont.dispose()
         plainMsgBoxYesFont.dispose()
         if (sectionTitleFontDelegate.isInitialized()) sectionTitleFont.dispose()
+        if (menuBarLabelFontDelegate.isInitialized()) menuBarLabelFont.dispose()
         mapTexture?.dispose()
         overlayAssets.dispose()
         unitInfoAssets.dispose()

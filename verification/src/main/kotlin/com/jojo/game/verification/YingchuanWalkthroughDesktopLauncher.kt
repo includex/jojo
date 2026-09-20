@@ -203,6 +203,11 @@ private class WalkthroughRecorder(
                 captureRound3PlayerAction(probe)
             }
             "round3-followup", "round3-counterattack", "round3-210" -> {
+                // 라운드 전환 날씨 안내는 3턴 플레이어 행동보다 앞서 열린다. 원본 참조 PNG가
+                // 페이드 시작 직후를 담으므로 포트도 WEATHER 진입 첫 프레임에 한 번만 찍는다.
+                if (captureMode == "round3-210" && probe.turnPhase == "WEATHER") {
+                    captureOnce("round3-210-weather", probe)
+                }
                 captureRound2Followup(probe)
                 captureRound3PlayerAction(probe)
                 captureRound3Followup(probe)

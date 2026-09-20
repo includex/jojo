@@ -13,12 +13,16 @@ import java.io.File
 /** KoreanFont: 실행 환경에 맞는 한국어 비트맵 글꼴을 생성한다. */
 object KoreanFont {
     /** 크기·외곽선·색상 설정으로 글꼴을 생성한다. */
+    /** Apple SD Gothic Neo 모음의 Bold(700) 얼굴 색인. 원본 Cocos `enableBold`/`_styleFlags=1`에 대응한다. */
+    const val BOLD_FACE = 6
+
     fun create(
         size: Int,
         extraCharacters: String,
         borderWidth: Float = 0f,
         borderColor: Color = Color.CLEAR,
         fillColor: Color = Color.WHITE,
+        faceIndex: Int = 0,
     ): BitmapFont {
         /**
          * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -46,7 +50,8 @@ object KoreanFont {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val generator = FreeTypeFontGenerator(FileHandle(File(fontPath)))
+        // 굵은 얼굴은 macOS Apple SD Gothic Neo 모음(.ttc)에서만 고를 수 있다. 단일 글꼴 파일은 얼굴 0만 가진다.
+        val generator = FreeTypeFontGenerator(FileHandle(File(fontPath)), if (fontPath.endsWith(".ttc")) faceIndex else 0)
         return try {
             generator.generateFont(
                 FreeTypeFontGenerator.FreeTypeFontParameter().apply {
