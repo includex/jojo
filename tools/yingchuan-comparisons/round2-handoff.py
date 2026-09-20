@@ -31,6 +31,7 @@ def summarize(path):
   'r259_moves_to_10_6_later':any(u(f,259) and u(f,259)[3:5]==[10,6] for f in fs[arr259:]),
  }
  spans={'r258_to_r259_arrival_s':(arr258,arr259)}
+ timing={k:round(t(b)-t(a),4) for k,(a,b) in spans.items()}
  # 창 안의 정체를 함께 잰다. 판정은 아래에서 양쪽 불확실 구간을 더해 허용치로 쓴다.
  def stall(a,b):
   return round(sum(fs[i]['t']-fs[i-1]['t']-FRAME
