@@ -2091,6 +2091,9 @@ void main() {
 
     private var battleElapsed = 0f
 
+    /** 물리 공격의 피격 종료가 화면에 반영된 패스와 시각. */
+    private val renderedPhysicalPassHandoffs = mutableSetOf<Pair<Int, Float>>()
+
     /**
      * `positionedDialogueRevision` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -4919,6 +4922,18 @@ void main() {
 
     override fun render(rawDelta: Float) {
         updateBattleFrame(rawDelta)?.let(::renderBattleRoutes)
+        markRenderedPhysicalPassHandoff()
+    }
+
+    private fun markRenderedPhysicalPassHandoff() {
+        val queue = queuedPhysicalPresentation ?: return
+        if (queue.nextPassIndex !in 1 until queue.passes.size) return
+        val previous = queue.passes[queue.nextPassIndex - 1]
+        val now = animationClock()
+        if (now >= queue.startsAt && previous.targets.all { target ->
+                hitReactionAnimations[target.targetId]?.let { now >= it.endsAt } ?: true
+            }
+        ) renderedPhysicalPassHandoffs += queue.nextPassIndex to queue.startsAt
     }
 
     /** 전투 프레임 갱신: 경로 검증 설정 설치, 시간 누적, 스크립트·애니메이션·전술 대기열을 한 프레임만 진행한다. */
@@ -6290,6 +6305,9 @@ void main() {
         if (settlementPresentation.isActive()) return
         if (scriptRuntime.state != PlaybackState.COMPLETE) return
         if (animationClock() < queue.startsAt) return
+        if (queue.nextPassIndex in 1 until queue.passes.size &&
+            !renderedPhysicalPassHandoffs.remove(queue.nextPassIndex to queue.startsAt)
+        ) return
         val pass = queue.passes.getOrNull(queue.nextPassIndex)
         if (pass == null) {
             val counterSpeech = queue.counterMagic?.criticalSpeeches?.firstOrNull()
@@ -6332,7 +6350,7 @@ void main() {
         }
         val direction = battleDirection(attacker.id, primaryTargetId)
         val sourceAction = BattleAttackSequence.selectAttackAction(pass.critical, attacker.attackDelay)
-        val animation = sourceActionAnimation(attacker.id, sourceAction, direction, queue.startsAt)
+        val animation = sourceActionAnimation(attacker.id, sourceAction, direction, animationClock())
         actionAnimation = animation
         val hitAt = animation.startedAt + requireNotNull(battleSprites.hitTime(sourceAction, direction)) {
             "원본 BRAnime anime$sourceAction 방향 ${direction}에 hit 이벤트가 없습니다"
