@@ -50,4 +50,26 @@ class ScriptPresentationTimelineTest {
         assertFalse(completed.acceptsNewRequest)
         assertFalse(timeline.isActive())
     }
+
+    @Test
+    fun `scripted rectangle status settlement defaults every resolved unit before resume`() {
+        val timeline = ScriptPresentationTimeline()
+        timeline.startTimed(
+            ScenarioScriptPresentationRequest.UnitStatusSettlement(
+                listOf(mapOf("camp" to 0, "x1" to 0, "y1" to 0, "x2" to 20, "y2" to 20, "status" to 9)),
+            ),
+            now = 4f,
+            duration = .6f,
+            settlementUnitIds = listOf("146", "484"),
+        )
+
+        assertTrue(timeline.advance(4.59f, modalActive = false).effects.isEmpty())
+        assertEquals(
+            listOf(
+                ScriptPresentationTimeline.Effect.FinishUnitStatusSettlement(listOf("146", "484")),
+                ScriptPresentationTimeline.Effect.ResumeScript,
+            ),
+            timeline.advance(4.6f, modalActive = false).effects,
+        )
+    }
 }

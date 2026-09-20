@@ -90,12 +90,13 @@ internal object BattleScreenHitReactionDirectionScheduler {
         isCurrentReaction: () -> Boolean,
         setDirection: (Int) -> Unit,
         restorePreviousDirection: Boolean = sourceAction != 26,
+        onFinished: () -> Unit = {},
     ) {
         schedule(startsAt) { setDirection(reactionDirection) }
-        if (restorePreviousDirection && previousDirection != null) {
-            schedule(endsAt) {
-                if (isCurrentReaction()) setDirection(previousDirection)
-            }
+        schedule(endsAt) {
+            if (!isCurrentReaction()) return@schedule
+            if (restorePreviousDirection && previousDirection != null) setDirection(previousDirection)
+            onFinished()
         }
     }
 }

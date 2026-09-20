@@ -3022,6 +3022,11 @@ void main() {
                     ?.let(::scriptBattleUnit)?.let {
                         ScriptedPresentationCoordinator.Target(it.id, it.direction)
                     }
+
+            override fun statusTargets(values: List<Map<String, Any?>>): List<ScriptedPresentationCoordinator.Target> =
+                values.flatMap(::resolveScriptedStatusTargets).distinctBy(BattleUnit::id).map {
+                    ScriptedPresentationCoordinator.Target(it.id, it.direction)
+                }
         },
     )
 
@@ -7194,14 +7199,14 @@ void main() {
                     battle.presentation.presentationUnit(id)
                         ?.let { unit ->
                             unitPresentationStore.refresh(unit).applyActedAppearance()
-                            unitSpriteFrameResolver.defaultAction(unit)
+                            applyDefaultUnitPresentation(unit)
                         }
                 }
 
                 is BattleSettlementPresentationController.Effect.Default -> battle.presentation.presentationUnit(effect.unitId)
                     ?.let { unit ->
                         unitPresentationStore.stateFor(unit).applyActedAppearance()
-                        unitSpriteFrameResolver.defaultAction(unit)
+                        applyDefaultUnitPresentation(unit)
                     }
 
                 is BattleSettlementPresentationController.Effect.Finished -> {
@@ -7230,11 +7235,18 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    /** Applies a source semantic `defaultAction`, replacing a held scripted final frame. */
+    private fun applyDefaultUnitPresentation(unit: BattleUnit) {
+        scriptedUnitPresentation.applyDefaultAction(unit.id) {
+            unitSpriteFrameResolver.defaultAction(unit)
+        }
+    }
+
     private fun refreshSettlementUnits(plan: BattleSettlementPlan) {
         plan.units.forEach { unitPlan ->
             battle.presentation.presentationUnit(unitPlan.unitId)?.let { unit ->
                 unitPresentationStore.refresh(unit).applyActedAppearance()
-                unitSpriteFrameResolver.defaultAction(unit)
+                applyDefaultUnitPresentation(unit)
             }
         }
     }
@@ -11856,6 +11868,7 @@ void main() {
             scheduleHitReaction(
                 target.id, reactionDirection, hitAt, reactionEndsAt, targetAction,
                 restorePreviousDirection = targetAction == 26,
+                applyDefaultAtEnd = false,
             )
             val reaction = hitReactionAnimations[target.id]
             if (targetAction == 32) {
@@ -11893,20 +11906,7 @@ void main() {
             val y1 = (change["y1"] as? Number)?.toInt()
             val x2 = (change["x2"] as? Number)?.toInt()
             val y2 = (change["y2"] as? Number)?.toInt()
-            val targets = unitReference?.let { ref ->
-                listOfNotNull(liveScriptBattleUnit(ref.id))
-            } ?: run {
-                if (camp == null || x1 == null || y1 == null || x2 == null || y2 == null) emptyList() else {
-                    battle.units.values.filter {
-                        val matchesCamp = when (camp) {
-                            4 -> it.isPlayerSide()
-                            5 -> it.type().isEnemySide()
-                            else -> it.type().scriptCamp() == camp
-                        }
-                        matchesCamp && it.tileX in x1..x2 && it.tileY in y1..y2
-                    }.sortedWith(compareBy<BattleUnit> { it.tileX }.thenBy { it.tileY })
-                }
-            }
+            val targets = resolveScriptedStatusTargets(change)
             // BattleScreen.setUnitStatus는 ±255를 상태 변경 없음 값으로 처리한다.
             val hpChange = (change["hp"] as? Number)?.toInt()?.takeUnless { kotlin.math.abs(it) == 255 } ?: 0
             val mpChange = (change["mp"] as? Number)?.toInt()?.takeUnless { kotlin.math.abs(it) == 255 } ?: 0
@@ -11951,6 +11951,24 @@ void main() {
                 )
             }
         }
+    }
+
+    /** Resolves explicit and rectangle `setUnitStatus` targets with the source camp rules. */
+    private fun resolveScriptedStatusTargets(change: Map<String, Any?>): List<BattleUnit> {
+        (change["unit"] as? ScenarioUnitReference)?.let { return listOfNotNull(liveScriptBattleUnit(it.id)) }
+        val camp = (change["camp"] as? Number)?.toInt() ?: return emptyList()
+        val x1 = (change["x1"] as? Number)?.toInt() ?: return emptyList()
+        val y1 = (change["y1"] as? Number)?.toInt() ?: return emptyList()
+        val x2 = (change["x2"] as? Number)?.toInt() ?: return emptyList()
+        val y2 = (change["y2"] as? Number)?.toInt() ?: return emptyList()
+        return battle.units.values.filter {
+            val matchesCamp = when (camp) {
+                4 -> it.isPlayerSide()
+                5 -> it.type().isEnemySide()
+                else -> it.type().scriptCamp() == camp
+            }
+            matchesCamp && it.tileX in x1..x2 && it.tileY in y1..y2
+        }.sortedWith(compareBy<BattleUnit> { it.tileX }.thenBy { it.tileY })
     }
 
     /**
@@ -12097,6 +12115,7 @@ void main() {
     private fun scheduleHitReaction(
         unitId: String, direction: Int, startsAt: Float, endsAt: Float, sourceAction: Int,
         restorePreviousDirection: Boolean = sourceAction != 26,
+        applyDefaultAtEnd: Boolean = true,
     ) {
         val previousDirection = battle.presentation.presentationUnit(unitId)?.direction
         hitReactionAnimations[unitId] = UnitActionAnimation(
@@ -12115,6 +12134,9 @@ void main() {
             },
             setDirection = { facing -> battle.presentation.presentationUnit(unitId)?.direction = facing },
             restorePreviousDirection = restorePreviousDirection,
+            onFinished = {
+                if (applyDefaultAtEnd) battle.presentation.presentationUnit(unitId)?.let(::applyDefaultUnitPresentation)
+            },
         )
     }
 

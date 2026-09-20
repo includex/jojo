@@ -91,6 +91,44 @@ class BattleAiPresentationStepTest {
     }
 
     @Test
+    fun `ordinary hit defaults only when its current reaction finishes`() {
+        var defaultCalls = 0
+        var current = true
+        val scheduler = BattleScreenMutationTestScheduler()
+        BattleScreenHitReactionDirectionScheduler.schedule(
+            sourceAction = 32,
+            reactionDirection = 3,
+            previousDirection = 0,
+            startsAt = 1f,
+            endsAt = 2f,
+            schedule = scheduler::schedule,
+            isCurrentReaction = { current },
+            setDirection = {},
+            onFinished = { defaultCalls++ },
+        )
+
+        scheduler.advanceTo(1f)
+        current = false
+        scheduler.advanceTo(2f)
+        assertEquals(0, defaultCalls)
+
+        current = true
+        BattleScreenHitReactionDirectionScheduler.schedule(
+            sourceAction = 32,
+            reactionDirection = 3,
+            previousDirection = 0,
+            startsAt = 3f,
+            endsAt = 4f,
+            schedule = scheduler::schedule,
+            isCurrentReaction = { current },
+            setDirection = {},
+            onFinished = { defaultCalls++ },
+        )
+        scheduler.advanceTo(4f)
+        assertEquals(1, defaultCalls)
+    }
+
+    @Test
     fun `TPGJ exposes each backMove callback without leaking eager final tile`() {
         val battle = Battle(
             units = listOf(

@@ -379,7 +379,7 @@ private class WalkthroughRecorder(
             "COMMAND_READY" -> "single-action-command-open"
             "ATTACK_COMMAND_SENT" -> "single-action-attack-targeting-open"
             "TARGET_SENT" -> "single-action-target-484-input-sent"
-            "COMPLETE" -> "single-action-settlement-complete-input-ready"
+            "COMPLETE" -> "single-action-settlement-complete-terminal"
             "FAILED" -> "single-action-failed"
             else -> return
         }

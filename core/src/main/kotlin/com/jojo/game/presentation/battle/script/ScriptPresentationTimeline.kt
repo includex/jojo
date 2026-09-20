@@ -40,6 +40,8 @@ internal class ScriptPresentationTimeline {
          */
 
         val battleUnitId: String?,
+        /** Units whose scripted status settlement ends with source `_jiesuan` defaultAction. */
+        val settlementUnitIds: List<String> = emptyList(),
     )
 
     /** Effect: 전투 화면의 입력 또는 처리 결과를 전달하는 메시지이다. */
@@ -74,6 +76,8 @@ internal class ScriptPresentationTimeline {
          */
 
         data object ResumeScript : Effect
+
+        data class FinishUnitStatusSettlement(val battleUnitIds: List<String>) : Effect
     }
     /**
      * `Advance`: 관련 상태와 동작을 묶는 class다.
@@ -101,9 +105,10 @@ internal class ScriptPresentationTimeline {
         now: Float,
         duration: Float,
         battleUnitId: String? = null,
+        settlementUnitIds: List<String> = emptyList(),
     ) {
         check(active == null) { "A scripted presentation is already active" }
-        active = Snapshot(request, Phase.TIMED, now, now + duration, battleUnitId)
+        active = Snapshot(request, Phase.TIMED, now, now + duration, battleUnitId, settlementUnitIds)
     }
 
     /** 아이템 획득 표시 흐름을 시작합니다. */
@@ -154,6 +159,9 @@ internal class ScriptPresentationTimeline {
                 Advance(
                     buildList {
                         if (current.request is ScenarioScriptPresentationRequest.UnitHighlight) add(Effect.DismissUnitInfo)
+                        if (current.request is ScenarioScriptPresentationRequest.UnitStatusSettlement &&
+                            current.settlementUnitIds.isNotEmpty()
+                        ) add(Effect.FinishUnitStatusSettlement(current.settlementUnitIds))
                         add(Effect.ResumeScript)
                     },
                     acceptsNewRequest = false,

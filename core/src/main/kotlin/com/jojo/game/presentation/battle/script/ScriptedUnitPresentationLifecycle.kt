@@ -225,6 +225,12 @@ internal class ScriptedUnitPresentationLifecycle {
         visualStates.remove(unitId)
     }
 
+    /** Source `defaultAction` is a semantic command that replaces any held scripted pose. */
+    fun applyDefaultAction(unitId: String, apply: () -> Unit) {
+        clearVisual(unitId)
+        apply()
+    }
+
     /** Install a hit pose at its authored hit event unless another command supersedes it. */
     fun scheduleVisual(
         unitId: String,

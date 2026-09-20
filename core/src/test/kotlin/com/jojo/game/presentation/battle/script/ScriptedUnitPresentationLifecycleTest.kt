@@ -104,4 +104,19 @@ class ScriptedUnitPresentationLifecycleTest {
         assertNull(lifecycle.activeShow)
         assertNull(lifecycle.activeAction)
     }
+    @Test
+    fun `semantic default action clears a held script pose and invalidates delayed reactions`() {
+        val lifecycle = ScriptedUnitPresentationLifecycle()
+        val callbacks = mutableListOf<() -> Unit>()
+        lifecycle.setVisual("u", ScriptedUnitVisual(8, 0f))
+        lifecycle.scheduleVisual("u", ScriptedUnitVisual(32, 1f), { _, callback -> callbacks += callback }, { true })
+        var visualSeenByDefault: ScriptedUnitVisual? = ScriptedUnitVisual(-1, -1f)
+
+        lifecycle.applyDefaultAction("u") { visualSeenByDefault = lifecycle.visual("u") }
+        callbacks.single().invoke()
+
+        assertNull(visualSeenByDefault)
+        assertNull(lifecycle.visual("u"))
+    }
+
 }

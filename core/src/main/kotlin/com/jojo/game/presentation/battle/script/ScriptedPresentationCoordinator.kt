@@ -127,6 +127,7 @@ internal class ScriptedPresentationCoordinator(
          */
 
         fun statusTarget(values: List<Map<String, Any?>>): Target?
+        fun statusTargets(values: List<Map<String, Any?>>): List<Target>
     }
 
     /** 현재 시각에 맞춰 효과를 처리하고 새 요청을 수락합니다. */
@@ -142,6 +143,10 @@ internal class ScriptedPresentationCoordinator(
                 is ScriptPresentationTimeline.Effect.PresentItemMessage -> port.presentItemMessage(effect.message)
                 ScriptPresentationTimeline.Effect.DismissUnitInfo -> port.dismissUnitInfo()
                 ScriptPresentationTimeline.Effect.ResumeScript -> port.resumeScript()
+                is ScriptPresentationTimeline.Effect.FinishUnitStatusSettlement -> effect.battleUnitIds.forEach { unitId ->
+                    port.clearVisual(unitId)
+                    port.defaultAction(unitId)
+                }
             }
         }
         if (!advance.acceptsNewRequest) return
@@ -171,15 +176,18 @@ internal class ScriptedPresentationCoordinator(
                 timeline.startItem(request, now, port.sourceActionDuration(request.action, target.direction), target.id)
             }
             is ScenarioScriptPresentationRequest.UnitStatusSettlement -> {
-                val target = port.statusTarget(request.values)
-                target?.let { port.focusUnit(it.id) }
+                val targets = port.statusTargets(request.values)
+                port.statusTarget(request.values)?.let { port.focusUnit(it.id) }
                 val duration = request.values.maxOfOrNull { change ->
                     val hp = kotlin.math.abs((change["hp"] as? Number)?.toInt() ?: 0)
                     val mp = kotlin.math.abs((change["mp"] as? Number)?.toInt() ?: 0)
                     minOf(maxOf(hp, mp), 5) * .2f +
                         if (change.containsKey("status") || change.containsKey("hStatus")) .6f else 0f
                 }?.coerceAtLeast(request.minimumDurationSeconds) ?: request.minimumDurationSeconds
-                timeline.startTimed(request, now, duration, target?.id)
+                timeline.startTimed(
+                    request, now, duration, targets.firstOrNull()?.id,
+                    settlementUnitIds = targets.map { it.id },
+                )
             }
         }
     }
