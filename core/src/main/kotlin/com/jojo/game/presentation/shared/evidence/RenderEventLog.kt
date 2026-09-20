@@ -32,6 +32,7 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
         visible: Boolean = true,
         text: String = "",
         color: String? = null,
+        outline: String? = null,
     ) {
         /**
          * `sequence` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -56,7 +57,12 @@ class RenderEventLog(private val frame: Int = 0, private val sequenceOffset: Int
                 // 색은 스키마의 정식 항목이다. 값을 적지 않은 호출은 null로 남고, 비교기는
                 // 한쪽이 null이면 이 항목을 건너뛴다. 두 로그가 모두 색을 적을 때에만
                 // 검정 대 흰색 같은 차이가 게이트를 떨어뜨린다.
-                "\"color\":${color?.let { "\"${escape(it)}\"" } ?: "null"}}"
+                "\"color\":${color?.let { "\"${escape(it)}\"" } ?: "null"}," +
+                // 테두리 색은 노드 색과 다른 별도 부품(`cc.LabelOutline`)이 가진 값이다.
+                // 노드 색만으로는 테두리가 틀려도 어떤 게이트도 떨어지지 않으므로 따로 적는다.
+                // `color`와 같은 규율: RGB 세 채널만 적고 투명도는 섞지 않으며,
+                // 포트가 실제로 아는 라벨에만 값을 남긴다(나머지는 null로 비교에서 빠진다).
+                "\"outline\":${outline?.let { "\"${escape(it)}\"" } ?: "null"}}"
     }
 
 

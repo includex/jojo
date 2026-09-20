@@ -36,8 +36,13 @@ TIMING_KEYS = frozenset({
 # at all. It is compared one-sidedly: when either log omits the colour the
 # field is skipped (see `differences`), so a producer that does not yet record
 # colour keeps working, while two logs that both record it must agree.
-SEMANTIC_FIELDS = ("draw_type", "rect", "asset", "opacity", "blend", "visible", "text", "color")
+# `outline` is the `cc.LabelOutline` colour, which is a separate component from
+# the node colour and therefore invisible to `color`. It follows the same
+# one-sided rule, so a producer that records only `color` stays green.
+SEMANTIC_FIELDS = ("draw_type", "rect", "asset", "opacity", "blend", "visible", "text", "color", "outline")
 COLOR_FIELD = "color"
+OUTLINE_FIELD = "outline"
+ONE_SIDED_FIELDS = (COLOR_FIELD, OUTLINE_FIELD)
 
 
 @dataclass(frozen=True)
@@ -54,6 +59,7 @@ class Draw:
     visible: Any = None
     text: Any = None
     color: Any = None
+    outline: Any = None
 
     @property
     def key(self) -> str:
@@ -124,6 +130,23 @@ def _color(value: Any) -> str | None:
     return value
 
 
+def _snapshot_outline(node: Any) -> Any:
+    """Read the first `cc.LabelOutline` colour out of a Cocos snapshot node.
+
+    `rendererSnapshot` records it per label component as
+    `labelComponents[i].outline = {color: [r, g, b, a], width}`. Only the
+    colour is compared; the width is not something the port records.
+    """
+    for component in node.get("labelComponents") or []:
+        if not isinstance(component, dict):
+            continue
+        outline = component.get("outline")
+        if isinstance(outline, dict) and outline.get("color") is not None:
+            colour = outline["color"]
+            return colour[:3] if isinstance(colour, (list, tuple)) else colour
+    return None
+
+
 def _append(draws: list[Draw], counts: dict[str, int], path: str, **fields: Any) -> None:
     occurrence = counts.get(path, 0)
     counts[path] = occurrence + 1
@@ -148,7 +171,8 @@ def _canonical(data: dict[str, Any]) -> list[Draw]:
                 blend=_without_timing(raw.get("blend")),
                 visible=_without_timing(raw.get("visible")),
                 text=_without_timing(raw.get("text")),
-                color=_color(raw.get("color")))
+                color=_color(raw.get("color")),
+                outline=_color(raw.get("outline")))
     return draws
 
 
@@ -191,7 +215,8 @@ def _cocos(data: dict[str, Any]) -> list[Draw]:
                 draw_type="sprite" if sprite else ("rich-text" if rich else "label"),
                 rect=rect, asset=_without_timing(asset), opacity=node.get("opacity"),
                 blend=_without_timing(blend), visible=node.get("visible", True), text=text,
-                color=_color(node.get("color")))
+                color=_color(node.get("color")),
+                outline=_color(_snapshot_outline(node)))
     return draws
 
 
@@ -319,6 +344,7 @@ def load_input(path: Path) -> Any:
                 "visible": event.get("visible"),
                 "text": event.get("text"),
                 "color": event.get("color"),
+                "outline": event.get("outline"),
             }
             for event in events
             # A node the harness recorded as not visible submitted no draw: it
@@ -420,7 +446,7 @@ def compare(
             expected_value, actual_value = getattr(left, field), getattr(right, field)
             # A log that does not record colour must not be reported as a
             # colour difference; only two logs that both record it are compared.
-            if field == COLOR_FIELD and (expected_value is None or actual_value is None):
+            if field in ONE_SIDED_FIELDS and (expected_value is None or actual_value is None):
                 continue
             if not _equal(expected_value, actual_value, tolerance):
                 diffs.append({"kind": "field", "path": key, "field": field,

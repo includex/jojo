@@ -96,6 +96,29 @@ class BattleAutoRenderEventRecorderTest {
             .forEach { assertEquals("#ffffff", colourOf(it), it) }
     }
 
+    /**
+     * 테두리 색: 네 라벨만 프리팹 `cc.LabelOutline` `_color`를 적고 스프라이트는 비워 둔다.
+     *
+     * 테두리는 노드와 다른 부품이라 `color`로는 잡히지 않는다. 본문(255,226,110)과
+     * 「예」(124,243,153)는 포트가 각각 (255,250,110)·(124,255,153)로 그리던 자리다.
+     */
+    @Test
+    fun `prompt labels carry their prefab outline colours and sprites record none`() {
+        val rows = rows(RuntimeBattleRoute.AUTO_PROMPT_ON, AutoBattleFlow.Overlay.PROMPT, checked = true)
+
+        assertEquals("#ffe26e", outlineOf(rows.single { it.contains("bg0/label\"") }))
+        assertEquals("#73eeff", outlineOf(rows.single { it.contains("tuoguan/label") }))
+        assertEquals("#ffd4d4", outlineOf(rows.single { it.contains("button1/Background/Label") }))
+        assertEquals("#7cf399", outlineOf(rows.single { it.contains("button0/Background/Label") }))
+        rows.filterNot { it.contains("\"drawType\":\"label\"") }
+            .forEach { assertEquals("null", outlineOf(it), it) }
+    }
+
+    /** 테두리 추출: 한 행의 `outline` 값을 문자열로 돌려준다. */
+    private fun outlineOf(row: String): String =
+        Regex("\"outline\":(\"[^\"]*\"|null)").find(row)?.groupValues?.get(1)?.trim('"')
+            ?: error("row has no outline field: $row")
+
     /** 색 추출: 한 행의 `color` 값을 문자열로 돌려준다. */
     private fun colourOf(row: String): String =
         Regex("\"color\":(\"[^\"]*\"|null)").find(row)?.groupValues?.get(1)?.trim('"')

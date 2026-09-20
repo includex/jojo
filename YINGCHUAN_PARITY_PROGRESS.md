@@ -663,3 +663,27 @@
 - **라운드 배너**: `Panel_cancel` 검정 불투명도 80, 단계 그림자 빨강, 본 라벨 흰색, 턴 수 그림자 회색(위 수정).
 - **비교 대상이 아닌 차이도 기록한다.** MsgBox4의 외곽선 색이 포트 (255,250,110)/(124,255,153) 대 프리팹 (255,226,110)/(124,243,153)로 다르다. 외곽선은 `cc.LabelOutline` 컴포넌트라 `node.color` 기반 비교가 볼 수 없지만 픽셀은 다르다. 별도 수정 단위다.
 - 남은 한계. `drawRoundLayer`와 MsgBox4 글꼴 블록이 진행 중인 작업 hunk 안에 있어 recorder의 색 상수를 그리기 코드와 공유하지 못하고 각자 두되 출처 줄을 KDoc에 적었다. 두 곳이 갈라질 위험이 남는다.
+
+## 라벨 외곽선 색을 비교 가능하게 만들고 MsgBox4를 고친다
+
+- 외곽선은 `cc.LabelOutline`이라는 **별도 컴포넌트**다. 지금까지 실은 `color`는 `node.color`이므로 외곽선이 틀려도 어떤 게이트도 볼 수 없었다. 그 구멍이 이 결함을 숨겼다.
+- MsgBox4 프리팹(`assets/resources/import/9b/9bdd4d86-…e1ded.json`)의 라벨 네 개는 모두 `_width` 2의 외곽선을 갖는다. 값을 전수 확인했다.
+
+| 라벨 | 프리팹 packed | RGB | 포트(수정 전) | 일치 |
+| --- | --- | --- | --- | --- |
+| `bg0/label` 본문 | 4285457151 | (255,226,110) | (255,250,110) | **아니오** |
+| `btns/tuoguan/label` 위임 | 4294962803 | (115,238,255) | 같음 | 예 |
+| `button1/…/Label` 비 | 4292138239 | (255,212,212) | 같음 | 예 |
+| `button2/…/Label` 무시 | 4292138239 | (255,212,212) | 같음(노드 비활성) | 예 |
+| `button0/…/Label` 예 | 4288279420 | (124,243,153) | (124,255,153) | **아니오** |
+
+- 스키마를 넓힌 근거. harness는 이미 `rendererSnapshot`에서 `labelComponents[i].outline`을 잡아 `append`에 `extras.outline`으로 넘기고 있었다. 즉 한 줄로 내보낼 수 있고 없는 값을 지어내지 않는다. `RenderEventLog`에 `outline`을 넣고 `compare_render_logs.py`의 `SEMANTIC_FIELDS`와 `ONE_SIDED_FIELDS`에 더해 한쪽만 있는 행은 건너뛰게 했다. `color`와 같은 규율을 지킨다 — RGB만, 불투명도 접지 않기, 포트가 모르는 값은 싣지 않기.
+- harness 수정은 무버전이므로 여기 기록한다. `electron/main.cjs`의 `append`에 `outline: colorHex(extras?.outline?.color)` 한 줄을 더했다. 백업은 `electron/main.cjs.bak-outline-20260920`이다.
+- **포트의 외곽선 색 수정은 커밋하지 않는다.** MsgBox4 글꼴 블록이 진행 중인 작업 hunk(`@@ -182,6 +182,21 @@`) 안이라 분리하면 남의 미완성 변경을 담게 된다. 상수 네 개와 그 적용은 작업 트리에 남긴다. 이번 커밋에는 스키마·비교기·recorder·테스트만 담는다.
+- `_width` 2는 스키마가 싣지 않는다. 포트에 대응 필드가 없어 색만 비교한다.
+
+### 내가 깨뜨린 golden 테스트 두 개
+
+- 앞서 `RenderEventLog`에 `color`를 넣으면서 `ScenarioStoryEvidenceRecorderTest`와 `ScenarioEquipConfirmationEvidenceRecorderTest`의 SHA-256 기대값을 갱신하지 않아 **HEAD가 빨간 상태였다.** 집중 테스트만 돌리고 커밋해서 놓쳤다.
+- `RenderEventLog`처럼 **여러 recorder가 공유하는 직렬화 계약**을 바꾸면 그 계약의 golden을 가진 모든 테스트가 영향을 받는다. 관련 범위를 스스로 좁게 판단하지 말고 최소한 해당 모듈의 테스트를 돌려야 한다.
+- 이번 커밋에서 세 golden을 모두 갱신해 초록으로 되돌렸다. 바이트가 바뀐 이유는 스키마에 `color`와 `outline`이 더해진 것뿐이며 각 테스트 파일에 그 사실을 주석으로 남겼다.

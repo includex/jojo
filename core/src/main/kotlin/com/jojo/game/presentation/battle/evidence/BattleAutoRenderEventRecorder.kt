@@ -44,7 +44,7 @@ internal object BattleAutoRenderEventRecorder {
         draw("MsgBox4", "Canvas/Layer/bg0/Logo_3-1", "sprite", 453.005f, 373.951f, 106f, 124f, "Logo_3-1")
         draw(
             "MsgBox4", "Canvas/Layer/bg0/label", "label", 573.686f, 335f, 463f, 190f,
-            text = "모든 부대의 명령을 종료하시겠습니까?", color = MESSAGE_BROWN,
+            text = "모든 부대의 명령을 종료하시겠습니까?", color = MESSAGE_BROWN, outline = MESSAGE_OUTLINE_GOLD,
         )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/Background", "sprite", 518.416f, 281.197f, 28f, 28f, "default_toggle_normal")
         if (checked) {
@@ -55,17 +55,17 @@ internal object BattleAutoRenderEventRecorder {
         }
         draw(
             "MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/label", "label", 567.257f, 267.997f, 73.2f, 54.4f,
-            text = "위임", color = TOGGLE_BLUE,
+            text = "위임", color = TOGGLE_BLUE, outline = TOGGLE_OUTLINE_SKY,
         )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/button1/Background", "sliced-sprite", 674.536f, 270.197f, 150f, 50f, "box3")
         draw(
             "MsgBox4", "Canvas/Layer/bg0/btns/button1/Background/Label", "label", 699.536f, 278.042f, 100f, 40f,
-            text = "비", color = NO_RED,
+            text = "비", color = NO_RED, outline = NO_OUTLINE_PINK,
         )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/button0/Background", "sliced-sprite", 844.536f, 270.197f, 150f, 50f, "box3")
         draw(
             "MsgBox4", "Canvas/Layer/bg0/btns/button0/Background/Label", "label", 869.536f, 278.042f, 100f, 40f,
-            text = "예", color = YES_GREEN,
+            text = "예", color = YES_GREEN, outline = YES_OUTLINE_MINT,
         )
     }
 
@@ -84,6 +84,22 @@ internal object BattleAutoRenderEventRecorder {
 
     /** 「예」 문구 색: 같은 프리팹 `btns/button0/Background/Label` `_color` 4278218242 = (2,110,0). */
     internal const val YES_GREEN = "#026e00"
+
+    /**
+     * 테두리 색은 노드 색이 아니라 라벨마다 붙은 `cc.LabelOutline` 부품의 `_color`다(모두 `_width` 2).
+     * 같은 프리팹에서 읽었고, 포트는 같은 값을 `BattleScreen.kt`의 `msgBox*Font` `borderColor`에 굽는다.
+     * `Layer/bg0/label` LabelOutline `_color` 4285457151 = (255,226,110).
+     */
+    internal const val MESSAGE_OUTLINE_GOLD = "#ffe26e"
+
+    /** 위임 문구 테두리: `btns/tuoguan/label` LabelOutline `_color` 4294962803 = (115,238,255). */
+    internal const val TOGGLE_OUTLINE_SKY = "#73eeff"
+
+    /** 「비」 문구 테두리: `btns/button1/Background/Label` LabelOutline `_color` 4292138239 = (255,212,212). */
+    internal const val NO_OUTLINE_PINK = "#ffd4d4"
+
+    /** 「예」 문구 테두리: `btns/button0/Background/Label` LabelOutline `_color` 4288279420 = (124,243,153). */
+    internal const val YES_OUTLINE_MINT = "#7cf399"
 
     /**
      * 기본 노드 색: 위 프리팹과 `TuoGuanLayer`(4d576540-8ba3-4316-81bd-31f59cefc477)의
@@ -122,6 +138,9 @@ private class BattleAutoEventAppender(private val log: RenderEventLog, private v
         // 색은 노드 색만 적는다. 원본 하네스는 `node.color`의 RGB 세 채널만 내보내므로
         // 투명도를 섞으면 무조건 어긋난다. 투명도는 `opacity`가 따로 나른다.
         color: String = BattleAutoRenderEventRecorder.NODE_WHITE,
+        // 테두리 색은 `cc.LabelOutline`이 있는 라벨에만 적는다. 없는 그리기는 null로 남고
+        // 비교기가 한쪽만 적힌 항목을 건너뛰므로 스프라이트에 가짜 값이 생기지 않는다.
+        outline: String? = null,
     ) = log.draw(
         phase,
         layer,
@@ -135,5 +154,6 @@ private class BattleAutoEventAppender(private val log: RenderEventLog, private v
         blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
         text = text,
         color = color,
+        outline = outline,
     )
 }

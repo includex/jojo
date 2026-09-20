@@ -38,4 +38,18 @@ class RenderEventLogTest {
         assertTrue(rows[0].contains("\"color\":\"#ffffffff\""))
         assertTrue(rows[1].contains("\"color\":null"))
     }
+
+    @Test
+    fun `outline is its own schema field so a wrong LabelOutline can fail a gate`() {
+        // `cc.LabelOutline`은 노드와 별개 부품이라 노드 색만 적으면 테두리가 틀려도 통과한다.
+        val log = RenderEventLog()
+        log.draw("content", "MsgBox4", "Canvas/Layer/bg0/label", "label", 0f, 0f, 1f, 1f,
+            text = "모든 부대의 명령을 종료하시겠습니까?", color = "#936100", outline = "#ffe26e")
+        log.draw("content", "MsgBox4", "Canvas/Layer/bg0", "tiled-sprite", 0f, 0f, 1f, 1f, color = "#ffffff")
+
+        val rows = log.jsonl().lines().filter(String::isNotEmpty)
+        assertTrue(rows[0].contains("\"outline\":\"#ffe26e\""))
+        // 테두리가 없는 그리기는 null로 남아 비교에서 한쪽만 적힌 항목으로 빠진다.
+        assertTrue(rows[1].contains("\"outline\":null"))
+    }
 }

@@ -12,7 +12,8 @@ import kotlin.test.assertTrue
 
 /**
  * 아래 SHA-256 값은 `RenderEventLog` 한 행의 모든 바이트를 묶어 둔다. 스키마에
- * `color` 항목이 더해지면서(색을 적지 않는 호출은 `"color":null`) 세 값이 한 번 바뀌었다.
+ * `color` 항목이 더해지면서(색을 적지 않는 호출은 `"color":null`) 세 값이 한 번 바뀌었고,
+ * `cc.LabelOutline` 색을 나르는 `outline` 항목이 더해지면서(`"outline":null`) 한 번 더 바뀌었다.
  * 그리는 내용이 달라진 것이 아니라 기록 항목이 늘어난 것이다.
  */
 class ScenarioStaticHallEvidenceRecorderTest {
@@ -43,7 +44,7 @@ class ScenarioStaticHallEvidenceRecorderTest {
         }.jsonl()
 
         assertEquals(54, json.lineSequence().count { it.isNotBlank() })
-        assertEquals("fc313fd854cfc0705c583d54928ed2ef528a50a344fd4c7ecf1cf589d3198cba", sha256(json))
+        assertEquals("ce203b7c34c309e79ca64d4eaa2207fd6f285b0c890b436aacb5e507e26590bf", sha256(json))
         assertTrue(json.lineSequence().first().contains("\"nodePath\":\"Canvas/Layer/bg\""))
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"text\":\"확인\""))
     }
@@ -54,7 +55,7 @@ class ScenarioStaticHallEvidenceRecorderTest {
         }.jsonl()
 
         assertEquals(613, json.lineSequence().count { it.isNotBlank() })
-        assertEquals("a5b95677c302d4520a5d5247ad7acd80a295ace1950f60e02a7b7832b045f2d9", sha256(json))
+        assertEquals("65558df77ade312e59cf8ee2319cd073cb57b9e5b3b54263825ef3f123c2e10c", sha256(json))
         assertTrue(json.lineSequence().first().contains("\"assetId\":\"Logo_9-1\""))
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"text\":\"확인\""))
     }
@@ -65,7 +66,7 @@ class ScenarioStaticHallEvidenceRecorderTest {
         }.jsonl()
 
         assertEquals(258, json.lineSequence().count { it.isNotBlank() })
-        assertEquals("14a4a41dc65bf543bdf7eafc697999273d81c84c747f2693ecae6d073d39c74c", sha256(json))
+        assertEquals("9d02ccd9d6498a55d5e2b13d9be95d2ac116233c5c42e292f82482a7532cdf83", sha256(json))
         assertTrue(json.lineSequence().first().contains("\"nodePath\":\"Canvas/Layer/bg1\""))
         assertTrue(json.lineSequence().filter(String::isNotBlank).last().contains("\"visible\":false"))
     }

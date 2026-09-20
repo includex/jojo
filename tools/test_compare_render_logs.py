@@ -125,6 +125,44 @@ class RenderLogComparatorTest(unittest.TestCase):
         self.assertIsNone(without[0].color)
         self.assertEqual([], MODULE.compare(with_color, without, 0))
 
+    def test_label_outline_is_a_comparable_semantic_field(self):
+        """A wrong `cc.LabelOutline` colour must be able to fail a gate.
+
+        The outline is a component of its own, so the node `color` of the
+        MsgBox4 labels is identical whether the outline is the prefab's
+        (255,226,110) or the port's old (255,250,110).
+        """
+        def label(outline):
+            return self.canonical([{"path": "Canvas/Layer/bg0/label", "type": "label",
+                                    "rect": [41, 36, 304, 44], "text": "모든 부대의 명령을 종료하시겠습니까?",
+                                    "color": "#936100", "outline": outline}])
+        authored = MODULE.adapt(label("#ffe26e"))[1]
+        ported = MODULE.adapt(label("#fffa6e"))[1]
+        self.assertIn("outline", MODULE.SEMANTIC_FIELDS)
+        self.assertEqual([], MODULE.compare(authored, MODULE.adapt(label("FFE26E"))[1], 0))
+        diffs = MODULE.compare(authored, ported, 0)
+        self.assertTrue(any(diff.get("field") == "outline" for diff in diffs))
+        self.assertFalse(any(diff.get("field") == "color" for diff in diffs))
+
+    def test_a_log_without_outline_is_not_reported_as_an_outline_difference(self):
+        """One-sided outline is skipped so existing producers keep passing."""
+        with_outline = MODULE.adapt(self.canonical([
+            {"path": "p", "type": "label", "rect": [0, 0, 1, 1], "text": "t", "outline": "#ffe26e"}]))[1]
+        without = MODULE.adapt(self.canonical([
+            {"path": "p", "type": "label", "rect": [0, 0, 1, 1], "text": "t"}]))[1]
+        self.assertIsNone(without[0].outline)
+        self.assertEqual([], MODULE.compare(with_outline, without, 0))
+
+    def test_cocos_snapshot_outline_comes_from_the_label_component(self):
+        """`rendererSnapshot` records the outline per label component."""
+        snapshot = {"snapshot": {"viewport": [1488, 800], "nodes": [{
+            "path": "Canvas/Layer/bg0/label", "labels": ["예"],
+            "labelComponents": [{"string": "예", "outline": {"color": [124, 243, 153, 255], "width": 2}}],
+            "screen": [10, 10], "size": [100, 40], "anchor": [0.5, 0.5], "scale": [1, 1],
+        }]}}
+        draws = MODULE.adapt(snapshot)[1]
+        self.assertEqual("#7cf399ff", draws[0].outline)
+
 
 if __name__ == "__main__":
     unittest.main()
