@@ -632,3 +632,18 @@
 - **영천전투 구간 대조로도 잡히지 않는다.** 우리가 검증한 시나리오들은 이동·공격·대기만 쓰고 포위를 시도한 적이 없다. 일어나지 않은 일은 아무리 정밀하게 대조해도 드러나지 않는다.
 - 수정은 별도 단위다. `canSiegle()`과 인접 대상 판정을 옮겨야 하며 이번 범위 밖이다.
 - 남은 한계도 적는다. 이 recorder는 여전히 `drawBattleCommandLayer`의 출력이 아니라 손으로 적은 표다. 색을 정직하게 만들었을 뿐이므로 **색이 통과해도 이 패널의 기하를 보증하지 않는다.**
+
+## 포위 공격은 결함이 아니었다 — 원본에서도 죽은 분기다
+
+- 앞 절에서 `battleCommandMask`가 `SIEGE_BIT`를 세우지 않는 것을 결함으로 기록했다. **틀렸다. 고쳤다면 포트가 원본에서 멀어졌을 것이다.**
+- 원본 규칙은 `BattleLayer.js:2117`이 `checkCanSiege`(`:3769`)로 비트를 켜는 것이고, 그 함수는 `:3774`에서 `t.unit().canSiegle()`부터 본다. `canSiegle`(`game-data/Unit.js:327`)은 `armAttr2(arm(), ARM_ATTR_NAME2.SIEGE)`이며 arms 테이블의 exdata **컬럼 11**(`core/Config.js:427`)에서 온다. 컬럼이 없으면 기본값 0이다(`Model.js:709-711`).
+- **출하된 arms 테이블에 컬럼 11이 없다.** 저장소의 `EncryptedGameDataCodec` 규칙(키 `ccz65Sha08GeZ1Fu`)을 그대로 옮겨 `core/build/generated/map-assets/data/arms.bin`을 직접 복호했다. MD5 검증 통과, 40행, 컬럼 키는 `0`~`10`뿐이고 `11`을 가진 행은 0개다. 원본 자산 `assets/Game/native/28/285d793d-….1e55f.bin`도 같다. 런타임에서 `setArmAttr2`를 쓰는 곳은 `ui/StageLayer.js:816`뿐이고 지형 슬롯만 건드린다.
+- 따라서 **원본도 모든 arm에 대해 `canSiegle()`이 0**이라 `checkCanSiege`가 항상 `:3774`에서 빠져나가고 button4를 켜지 않는다. 포트의 현재 동작이 이미 원본과 같다.
+- **캡처된 프레임도 바뀌지 않는다.** `single-player-action`과 `round3-first-combat`을 포함해 모든 영천전투 캡처에서 button4는 양쪽 다 비활성 `#a0a0a0`이다. `battle-command-disabled` fixture도 약한 표본이 아니었다 — 모든 유닛이 포위 불가 유닛이다.
+- **가드 테스트를 넣었다.** `SourceArmProfileContractTest`의 `arms table has no siege column so canSiegle is always false`가 프로덕션 로더(`GameDataRepository(...).load().arms`)로 읽어 어떤 행에도 `"11"`이 없음을 확인한다. 이 결론은 전적으로 데이터에 의존하므로, 테이블이 다시 패치되면 조용히 틀려지는 대신 이 테스트가 걸린다. 실패 메시지가 배선 경로(`ArmProfile.siege` → `GameDataCatalogUnitDomain.armProfile` → `BattleUnit` → `battleCommandMask`)를 알려 준다.
+- 미확인으로 남긴다. 이 결론은 데스크톱 자산 번들 기준이다. Android `com.hgkj.sgccz.xapk` 페이로드는 해독하지 않았다.
+
+### 교훈 — 규칙이 있다는 것과 실행된다는 것은 다르다
+
+- 앞선 다섯 번의 정정은 "측정이 잘못됐다"였는데 이번은 **"포트가 이미 맞는데 내가 원본을 잘못 읽었다"**이다. 코드에 `checkCanSiege`가 있으니 그 분기가 살아 있다고 가정했지만 데이터가 죽여 놓았다.
+- 이번 goal turn에 같은 형태를 여러 번 봤다. `FullBattleTraceEvidence.mapSnapshot`은 올바른 구현이 호출자 없이 잠들어 있었고, `BattleMenuRenderEvents`는 표가 렌더러 대신 로그를 냈으며, `verify_battle_menu_render.py`와 `verify_battle_menu_assets.py`는 저장소 어디에서도 참조되지 않는다. **존재하는 코드가 도달 가능한지 먼저 확인한다.**
