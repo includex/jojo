@@ -7,10 +7,13 @@ import com.jojo.game.domain.battle.settlement.BattleSettlementPlan
 import com.jojo.game.domain.battle.settlement.CampSettlementStage
 import com.jojo.game.domain.battle.settlement.SettlementAuthoredSubflowPlan
 import com.jojo.game.domain.battle.settlement.SettlementGrowthStep
+import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
+import com.jojo.game.domain.battle.settlement.SettlementGrowthKind
 import com.jojo.game.domain.battle.settlement.SettlementInfoDelta
 import com.jojo.game.domain.battle.settlement.SettlementInfoKind
 import com.jojo.game.domain.battle.settlement.SettlementInfoPanel
 import com.jojo.game.domain.battle.settlement.SettlementUnitPlan
+import com.jojo.game.domain.campaign.CampaignExperienceResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -59,11 +62,41 @@ class BattleSettlementOperationCoordinatorTest {
         )
     }
 
+    /** source g_charinfo.index interleaves a growth-only actor before a damaged target. */
+    @Test
+    fun `source unit order keeps growth only actor before damaged target`() {
+        val target = SettlementUnitPlan(
+            "target", Faction.ENEMY, Faction.ENEMY, Faction.PLAYER,
+            SettlementInfoPanel.OTHER, listOf(SettlementInfoDelta(SettlementInfoKind.HP, 19, 0)), emptyList(),
+        )
+        val grant = SettlementGrowthGrant(
+            SettlementGrowthKind.UNIT_EXP, 24, CampaignExperienceResult(24, 3, 30, false),
+        )
+        val plan = BattleSettlementPlan(
+            CampSettlementStage.START_STATE, Faction.PLAYER, listOf(target), emptyList(),
+            authoredSubflows = listOf(
+                SettlementAuthoredSubflowPlan.Growth(
+                    "caster", listOf(grant), listOf(SettlementGrowthStep.InfoValues(listOf(grant))),
+                ),
+            ),
+        )
+
+        val operations = BattleSettlementOperationCoordinator().operations(
+            plan, testPort, mergeGrowthFor = setOf("caster"), sourceUnitOrder = listOf("caster", "target"),
+        )
+
+        assertEquals(
+            listOf("caster", "target"),
+            operations.filterIsInstance<TurnSettlementOp.UnitInfo>().map { it.plan.unitId },
+        )
+    }
+
     /** 정산 포트: duration 계산에 필요한 최소 유닛·효과·환경 정보를 고정한다. */
     private val testPort = object : BattleSettlementOperationPort {
         private val caster = BattleUnit("caster", "시전자", Faction.PLAYER, 0, 0, direction = 2)
-        override fun unitsById() = mapOf(caster.id to caster)
-        override fun presentationUnit(unitId: String) = caster.takeIf { it.id == unitId }
+        private val target = BattleUnit("target", "대상", Faction.ENEMY, 1, 0, direction = 0)
+        override fun unitsById() = mapOf(caster.id to caster, target.id to target)
+        override fun presentationUnit(unitId: String) = unitsById()[unitId]
         override fun statusMeff(sourceStatusIndex: Int, meffSlot: Int): Int? = null
         override fun skillName(skillId: Int) = ""
         override fun magicName(magicId: Int): String? = null

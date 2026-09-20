@@ -4968,7 +4968,13 @@ void main() {
             ) && actionAnimation?.let { animationClock() < it.endsAt } != true && movementAnimation?.let { animationClock() < it.endsAt } != true && hitReactionAnimations.values.none { animationClock() < it.endsAt } && deathAnimations.values.none { animationClock() < it.endsAt } && !deathTimeline.isBusy() && !scriptedUnitCallbacks.hideBusy && !scriptedUnitCallbacks.showBusy && !combatPresentationBusy() && !outcomeCallbacksPending()
         ) outcomePresentation.enterLoseScene()
         if (pendingBattleScriptPassesAfterAction > 0 && scriptRuntime.state == PlaybackState.COMPLETE) {
-            if (!pendingBattleActionCommitted) {
+            if (ManualBattleActionCommitPolicy.shouldCommit(
+                    pendingScriptPasses = pendingBattleScriptPassesAfterAction,
+                    actionCommitted = pendingBattleActionCommitted,
+                    scriptComplete = true,
+                    combatPresentationBusy = combatPresentationBusy(),
+                )
+            ) {
                 commitDeferredBattleAction(pendingBattleSettlementActorId)
                 pendingBattleActionCommitted = true
             }
@@ -7072,7 +7078,7 @@ void main() {
         // 행동 도중의 `_jiesuan`은 진영 정산이 아니라 콜백 지역 정산이다. 진영 정산으로
         // 열면 끝날 때 `BattleTurnController`의 진영 단계 완료를 호출해 턴 흐름이 깨진다.
         val operationPlan = settlementOperationCoordinator.turnSettlement(
-            settlement, settlementOperationPort, mergeGrowthFor = growth.keys,
+            settlement, settlementOperationPort, mergeGrowthFor = growth.keys, sourceUnitOrder = orderedIds,
         )
         if (operationPlan.operations.isEmpty()) {
             refreshSettlementUnits(operationPlan.settlementPlan)

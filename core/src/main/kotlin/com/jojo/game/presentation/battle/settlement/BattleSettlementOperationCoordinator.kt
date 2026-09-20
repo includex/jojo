@@ -53,6 +53,7 @@ internal class BattleSettlementOperationCoordinator {
         settlement: CampSettlement,
         port: BattleSettlementOperationPort,
         mergeGrowthFor: Set<String> = emptySet(),
+        sourceUnitOrder: List<String>? = null,
     ): BattleSettlementOperationPlan {
         val plan = BattleSettlementPlanningAdapter.plan(settlement, port.unitsById()) { state ->
             port.statusMeff(state.sourceStatusIndex, state.meffSlot)
@@ -63,7 +64,7 @@ internal class BattleSettlementOperationCoordinator {
             }
             error("Incomplete authored settlement payload: $missing")
         }
-        return BattleSettlementOperationPlan(plan, operations(plan, port, mergeGrowthFor))
+        return BattleSettlementOperationPlan(plan, operations(plan, port, mergeGrowthFor, sourceUnitOrder))
     }
 
     /** 마법 local 정산 계획: 시전자 진영과 현재 유닛 정보를 결합해 화면 operation과 함께 반환한다. */
@@ -106,6 +107,7 @@ internal class BattleSettlementOperationCoordinator {
         plan: BattleSettlementPlan,
         port: BattleSettlementOperationPort,
         mergeGrowthFor: Set<String> = emptySet(),
+        sourceUnitOrder: List<String>? = null,
     ): List<TurnSettlementOp> = buildList {
         val mergedGrants = linkedMapOf<String, List<SettlementGrowthGrant>>()
         if (mergeGrowthFor.isNotEmpty()) {
@@ -143,36 +145,36 @@ internal class BattleSettlementOperationCoordinator {
         val growthByUnit = plan.authoredSubflows.filterIsInstance<SettlementAuthoredSubflowPlan.Growth>()
             .groupBy({ it.unitId }, { it.steps })
             .mapValues { (_, steps) -> steps.flatten() }
-        val settledUnits = mutableSetOf<String>()
-        plan.units.forEach { unit ->
-            settledUnits += unit.unitId
-            add(TurnSettlementOp.Focus(unit.unitId, 0f, forceCenter = false))
-            if (unit.hasStatesPayload) add(TurnSettlementOp.HideState(listOf(unit.unitId)))
-            val grants = mergedGrants[unit.unitId].orEmpty()
-            if (unit.infoDeltas.isNotEmpty() || grants.isNotEmpty()) {
-                add(TurnSettlementOp.UnitInfo(unit, grants))
-                if (unit.infoDeltas.any { it.kind == SettlementInfoKind.HP }) add(TurnSettlementOp.Default(unit.unitId))
-            }
-            addGrowth(unit.unitId, growthByUnit[unit.unitId].orEmpty(), mergedGrants, port)
-        }
-        // 체력·기력 변화 없이 경험치만 받은 유닛도 원본은 상태창을 한 번 띄운다.
-        growthByUnit.forEach { (unitId, steps) ->
-            if (unitId in settledUnits) return@forEach
+        val unitsById = plan.units.associateBy { it.unitId }
+        val orderedUnitIds = ((sourceUnitOrder ?: emptyList()) + plan.units.map { it.unitId } + growthByUnit.keys)
+            .distinct()
+            .filter { it in unitsById || it in growthByUnit }
+        orderedUnitIds.forEach { unitId ->
+            val unit = unitsById[unitId]
             add(TurnSettlementOp.Focus(unitId, 0f, forceCenter = false))
-            mergedGrants[unitId]?.let { grants ->
-                add(
-                    TurnSettlementOp.UnitInfo(
-                        SettlementUnitPlan(
-                            unitId,
-                            port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
-                            Faction.PLAYER, Faction.PLAYER,
-                            SettlementInfoPanel.MINE, emptyList(), emptyList(),
+            if (unit != null) {
+                if (unit.hasStatesPayload) add(TurnSettlementOp.HideState(listOf(unitId)))
+                val grants = mergedGrants[unitId].orEmpty()
+                if (unit.infoDeltas.isNotEmpty() || grants.isNotEmpty()) {
+                    add(TurnSettlementOp.UnitInfo(unit, grants))
+                    if (unit.infoDeltas.any { it.kind == SettlementInfoKind.HP }) add(TurnSettlementOp.Default(unitId))
+                }
+            } else {
+                mergedGrants[unitId]?.let { grants ->
+                    add(
+                        TurnSettlementOp.UnitInfo(
+                            SettlementUnitPlan(
+                                unitId,
+                                port.presentationUnit(unitId)?.faction ?: Faction.PLAYER,
+                                Faction.PLAYER, Faction.PLAYER,
+                                SettlementInfoPanel.MINE, emptyList(), emptyList(),
+                            ),
+                            grants,
                         ),
-                        grants,
-                    ),
-                )
+                    )
+                }
             }
-            addGrowth(unitId, steps, mergedGrants, port)
+            addGrowth(unitId, growthByUnit[unitId].orEmpty(), mergedGrants, port)
         }
         plan.meffBuckets.forEach { bucket ->
             bucket.key.actualMeffId?.let { effectId -> add(TurnSettlementOp.Meff(effectId, bucket.targets.map { it.unitId })) }
