@@ -3,7 +3,13 @@ package com.jojo.game.presentation.shared.overlay
 import com.jojo.game.presentation.shared.overlay.*
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
-/** TerrainLayerRenderEvents: 지형 메뉴 경로에서 결정적으로 생성되는 그리기 항목이다. */
+/**
+ * TerrainLayerRenderEvents: 지형 메뉴 경로에서 결정적으로 생성되는 그리기 항목이다.
+ *
+ * 좌표는 하나도 직접 적지 않는다. 모든 상자는 `TerrainLayerChromeRenderContract`에서 읽으며,
+ * 같은 계약을 화면 그리기 `BattleTerrainOverlayRenderer`도 읽는다. 그래서 계약의 숫자를 고치면
+ * 증거와 그림이 같이 움직이고, 둘이 따로 어긋날 자리가 남지 않는다.
+ */
 object TerrainLayerRenderEvents {
     /**
      * `phase` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -29,6 +35,12 @@ object TerrainLayerRenderEvents {
      */
 
     private val alphaBlend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+    /**
+     * `chrome` (상태 값): 이 경로의 모든 상자를 들고 있는 단일 출처다.
+     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
+     */
+
+    private val chrome = TerrainLayerChromeRenderContract
 
 
     /**
@@ -53,6 +65,15 @@ object TerrainLayerRenderEvents {
                 path, type, x, y, w, h, asset, opacity, blend, true, text
             )
 
+        /**
+         * `drawBox`: 계약이 들고 있는 상자를 그대로 그리기 항목으로 옮긴다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
+
+        fun drawBox(
+            path: String, type: String, box: TerrainLayerChromeRenderContract.Box,
+            asset: String? = null, opacity: Float = 1f
+        ) = draw(path, type, box.x, box.y, box.width, box.height, asset, opacity = opacity)
 
         /**
          * `label`: 타입의 핵심 동작을 수행한다.
@@ -62,117 +83,62 @@ object TerrainLayerRenderEvents {
         fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) =
             draw(path, "label", x, y, w, h, text = text, blend = alphaBlend)
 
-        draw("Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", opacity = .392f)
-        draw(root, "tiled-sprite", 274.236f, 100f, 1021.1f, 600f, "Logo_9-1")
-        draw("$root/box1", "sliced-sprite", 274.236f, 100f, 1021.1f, 600f, "box1")
-        draw("$root/bg1", "sprite", 274.236f, 650f, 1021.1f, 50f, "bg1")
-        label("$root/bg1/label", 282.086f, 649.8f, 229.83f, 50.4f, "지형 정보 일람")
-        draw("$root/panel", "sliced-sprite", 285.538f, 183.098f, 1001.1f, 459.3f, "box4")
+        /**
+         * `labelBox`: 계약이 들고 있는 문구 상자를 그대로 그리기 항목으로 옮긴다.
+         * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+         */
 
-        panel.rows.take(9).forEachIndexed { rowIndex, row ->
+        fun labelBox(path: String, box: TerrainLayerChromeRenderContract.Box, text: String) =
+            label(path, box.x, box.y, box.width, box.height, text)
+
+        drawBox(
+            "Canvas/Layer/Panel_cancel", "sprite", chrome.dimmer,
+            "default_sprite_splash", opacity = chrome.DIMMER_OPACITY
+        )
+        drawBox(root, "tiled-sprite", chrome.outerBox.toBox(), "Logo_9-1")
+        drawBox("$root/box1", "sliced-sprite", chrome.outerBox.toBox(), "box1")
+        drawBox("$root/bg1", "sprite", chrome.titleStrip.toBox(), "bg1")
+        labelBox("$root/bg1/label", chrome.titleLabel, chrome.TITLE_TEXT)
+        drawBox("$root/panel", "sliced-sprite", chrome.panelBox, "box4")
+
+        panel.rows.take(chrome.ROW_COUNT).forEachIndexed { rowIndex, row ->
             val even = rowIndex % 2 == 0
             val item = if (even) "item0" else "item1"
             val base = "$root/panel/scrollview0/view/content/$item"
-            val rowY = 527.398f - rowIndex * 75f
-            draw(
-                base, "sliced-sprite", 289.538f, rowY, 993.1f, 75f,
+            drawBox(
+                base, "sliced-sprite", chrome.rowBox(rowIndex),
                 if (even) "885a69b4-08ed-4c78-8896-ffb04eb2bd20" else "bg2"
             )
             // 아홉 번째 항목은 뷰포트에 잘려 배경과 일부 겹치는 지형 이름만 그린다.
-            if (rowIndex < 8) {
-                draw(
-                    "$base/icon",
-                    "sprite",
-                    if (even) 292.488f else 292.919f,
-                    rowY + 3.9f,
-                    67.2f,
-                    67.2f,
-                    row.iconIndex.toString()
-                )
+            if (rowIndex < chrome.ROW_ICON_COUNT) {
+                drawBox("$base/icon", "sprite", chrome.rowIconBox(rowIndex), row.iconIndex.toString())
             }
-            val nameWidth = 31.14f * row.terrainName.length
-            label(
-                "$base/label", if (even) 376.088f else 375.651f,
-                rowY + if (even) 34.82f else 34.598f, nameWidth, 45.36f, row.terrainName
-            )
-            if (rowIndex >= 8) return@forEachIndexed
+            labelBox("$base/label", chrome.rowNameBox(rowIndex, row.terrainName.length), row.terrainName)
+            if (rowIndex >= chrome.ROW_ICON_COUNT) return@forEachIndexed
             row.enabledSkills.forEachIndexed { index, _ ->
-                draw(
-                    "$base/skill/skill_$index",
-                    "sprite",
-                    369.088f + index * 33f,
-                    rowY + 6.5f,
-                    30f,
-                    30f,
-                    "${index + 1}-1"
-                )
+                drawBox("$base/skill/skill_$index", "sprite", chrome.skillBox(rowIndex, index), "${index + 1}-1")
             }
             row.values.forEachIndexed { index, value ->
-                val narrow = value.text == "○"
-                val width = if (narrow) 30.2f else 43.25f
-                // 원본 6..12열은 단순한 60픽셀 간격보다 1픽셀 왼쪽에서 시작한다.
-                val columnCorrection = if (index >= 6) -1f else 0f
-                val glyphCorrection = if (narrow) 6.525f else 0f
-                val x = 516.463f + index * 60f + columnCorrection + glyphCorrection
-                val height = if (!even && (index % 3 != 0 || index == 12)) 63.001f else 63f
-                label("$base/label$index", x, rowY + 6f, width, height, value.text)
+                labelBox("$base/label$index", chrome.valueBox(rowIndex, index, value.text), value.text)
             }
         }
 
-        val lineXs = listOf(
-            505.588f, 564.788f, 624.288f, 684.788f, 745.288f, 804.788f,
-            865.488f, 924.888f, 984.388f, 1044.488f, 1103.888f, 1103.888f, 1164.588f, 1223.588f
-        )
-        lineXs.forEach { draw("$root/panel/vline", "sprite", it, 189.448f, 6f, 448.6f, "vline") }
-
-        val headers = listOf(
-            Triple("button", 285.588f, "이름"), Triple("button0", 508.088f, "마왕"),
-            Triple("button1", 568.397f, "보병"), Triple("button2", 628.116f, "기병"),
-            Triple("button3", 688.268f, "궁기"), Triple("button4", 748.137f, "포차"),
-            Triple("button5", 808.101f, "무술"), Triple("button11", 1167.145f, "무술"),
-            Triple("button10", 1107.125f, "포차"), Triple("button9", 1047.297f, "궁기"),
-            Triple("button8", 987.145f, "기병"), Triple("button7", 927.426f, "보병"),
-            Triple("button6", 867.443f, "군주"), Triple("button12", 1227.088f, "무술"),
-        )
-        headers.forEachIndexed { index, (name, x, text) ->
-            val y = if (index in setOf(0, 1, 7, 13)) 602.358f else 602.183f
-            val width = if (name == "button") 223f else 60f
-            draw("$root/panel/$name/Background", "sliced-sprite", x, y, width, 40f, "box4")
-            label(
-                "$root/panel/$name/Background/Label",
-                if (name == "button") x + 61.5f else x - 20f,
-                y,
-                100f,
-                40f,
-                text
-            )
+        chrome.verticalLineXs.forEach {
+            drawBox("$root/panel/vline", "sprite", chrome.verticalLineBox(it), "vline")
         }
-        val footer = listOf(
-            listOf("button0", "지형 효과", 285.436f, 110.1f, 196.7f, 61.8f, 301.386f, 121f, 164.8f, 40f),
-            listOf("button1", "기동력 소모", 491.436f, 109.4f, 222.7f, 63.2f, 498.186f, 116.2f, 209.2f, 49.6f),
-            listOf("button2", "확인", 1164.786f, 111f, 120f, 60f, 1174.786f, 121f, 100f, 40f),
-        )
-        footer.forEach { values ->
-            val name = values[0] as String
-            val text = values[1] as String
-            draw(
-                "$root/$name/Background",
-                "sliced-sprite",
-                values[2] as Float,
-                values[3] as Float,
-                values[4] as Float,
-                values[5] as Float,
-                "box3"
-            )
-            label(
-                "$root/$name/Background/Label",
-                values[6] as Float,
-                values[7] as Float,
-                values[8] as Float,
-                values[9] as Float,
-                text
-            )
+
+        chrome.headers.forEach { header ->
+            drawBox("$root/panel/${header.node}/Background", "sliced-sprite", header.box, "box4")
+            labelBox("$root/panel/${header.node}/Background/Label", header.labelBox, header.text)
+        }
+        chrome.footerButtons.forEach { button ->
+            drawBox("$root/${button.node}/Background", "sliced-sprite", button.box, "box3")
+            labelBox("$root/${button.node}/Background/Label", button.labelBox, button.text)
         }
         return log.jsonl()
     }
+
+    /** 장식 조각을 상자로 본다: 9-패치도 기록에는 좌표와 크기만 남는다. */
+    private fun TerrainLayerChromeRenderContract.Patch.toBox() =
+        TerrainLayerChromeRenderContract.Box(x, y, width, height)
 }

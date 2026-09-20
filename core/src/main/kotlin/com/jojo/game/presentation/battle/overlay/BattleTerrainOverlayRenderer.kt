@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.jojo.game.presentation.shared.overlay.TerrainLayerChromeRenderContract
 
 /** 전투 지형 병과 값 표시 정보: 병과별 수치 문자열과 등급 색상 인덱스를 정의한다. */
 data class BattleTerrainValueView(val text: String, val grade: Int?)
@@ -35,7 +36,13 @@ data class BattleTerrainOverlayAssets(
     val verticalLine: NinePatch?,
 )
 
-/** 전투 지형 목록 렌더러: 지형별 기술 가능 여부와 병과 효과를 등급 색상으로 출력한다. */
+/**
+ * 전투 지형 목록 렌더러: 지형별 기술 가능 여부와 병과 효과를 등급 색상으로 출력한다.
+ *
+ * 좌표는 하나도 직접 적지 않는다. 모든 상자는 `TerrainLayerChromeRenderContract`에서 읽으며,
+ * 같은 계약을 증거 기록기 `TerrainLayerRenderEvents`도 읽는다. 예전에는 이 파일이 자기
+ * `PANEL_X` 무리를 따로 들고 있어서 증거가 원본과 맞는 동안에도 화면만 몇 픽셀씩 어긋나 있었다.
+ */
 class BattleTerrainOverlayRenderer(
     /** `batch` (SpriteBatch): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val batch: SpriteBatch,
@@ -53,29 +60,23 @@ class BattleTerrainOverlayRenderer(
         batch.begin()
         batch.color = Color.WHITE
         drawTiledBackground()
-        assets.panel?.draw(batch, PANEL_X + 14f, PANEL_Y + 84f, PANEL_WIDTH - 28f, 460f)
-        assets.panel?.draw(batch, 285f, 111f, 197f, 60f)
-        assets.panel?.draw(batch, 491f, 111f, 223f, 60f)
-        assets.panel?.draw(batch, 1165f, 111f, 120f, 60f)
+        drawPatch(assets.panel, chrome.panelBox)
+        chrome.footerButtons.forEach { drawPatch(assets.panel, it.box) }
 
         font.color = Color.BLACK
-        font.data.setScale(40f / 26f)
-        font.draw(batch, "지형 정보 일람", PANEL_X + 10f, PANEL_Y + 586f)
-        font.data.setScale(1.4f)
-        font.draw(batch, "지형 효과", 304f, 147f)
-        font.draw(batch, "기동력 소모", 516f, 147f)
-        font.draw(batch, "확인", 1207f, 147f)
-        font.data.setScale(1f)
-        font.draw(batch, "이름", PANEL_X + 90f, PANEL_Y + 529f)
+        setFontSize(chrome.TITLE_FONT_SIZE)
+        drawText(chrome.TITLE_TEXT, chrome.titleLabel)
+        setFontSize(chrome.FOOTER_FONT_SIZE)
+        chrome.footerButtons.forEach { drawText(it.text, it.labelBox) }
+        setFontSize(chrome.HEADER_FONT_SIZE)
+        drawText(chrome.nameHeader.text, chrome.nameHeader.labelBox)
         view.armNames.forEachIndexed { index, name ->
-            font.draw(batch, name, PANEL_X + 252f + index * COLUMN_WIDTH, PANEL_Y + 529f)
+            chrome.armHeaders.getOrNull(index)?.let { drawText(name, it.labelBox) }
         }
 
         view.rows.forEachIndexed { rowIndex, row -> drawRow(rowIndex, row) }
-        (0..13).forEach { index ->
-            assets.verticalLine?.draw(batch, PANEL_X + 244f + index * COLUMN_WIDTH, PANEL_Y + 96f, 6f, 414f)
-        }
-        font.data.setScale(1f)
+        chrome.verticalLineXs.forEach { drawPatch(assets.verticalLine, chrome.verticalLineBox(it)) }
+        setFontSize(chrome.BASE_FONT_SIZE)
         font.color = Color.WHITE
         batch.color = Color.WHITE
         batch.end()
@@ -87,21 +88,20 @@ class BattleTerrainOverlayRenderer(
      */
 
     private fun drawRow(index: Int, row: BattleTerrainRowView) {
-        val y = PANEL_Y + 488f - index * 75f
-        (if (index % 2 == 0) assets.rowEven else assets.rowOdd)?.draw(
-            batch, PANEL_X + 18f, y - 59f, PANEL_WIDTH - 36f, 75f
-        )
+        val even = index % 2 == 0
+        drawPatch(if (even) assets.rowEven else assets.rowOdd, chrome.rowBox(index))
         row.icon?.let {
             batch.color = Color.WHITE
-            batch.draw(it, PANEL_X + 17f, y - 57f, 67f, 67f)
+            val box = chrome.rowIconBox(index)
+            batch.draw(it, box.x, box.y, box.width, box.height)
         }
-        font.data.setScale(36f / 26f)
-        font.color = if (index % 2 == 0) Color(1f, 0.94f, 0.78f, 1f) else Color(0.86f, 0.86f, 0.86f, 1f)
-        font.draw(batch, row.terrainName, PANEL_X + 104f, y + 12f)
-        font.data.setScale(50f / 26f)
+        setFontSize(chrome.ROW_NAME_FONT_SIZE)
+        font.color = if (even) Color(1f, 0.94f, 0.78f, 1f) else Color(0.86f, 0.86f, 0.86f, 1f)
+        drawText(row.terrainName, chrome.rowNameBox(index, row.terrainName.length))
+        setFontSize(chrome.VALUE_FONT_SIZE)
         row.enabledSkills.forEachIndexed { bit, enabled ->
             font.color = if (enabled) Color(1f, 0.82f, 0.20f, 1f) else Color(0.35f, 0.35f, 0.35f, 1f)
-            font.draw(batch, if (enabled) "●" else "○", PANEL_X + 172f + bit * 20f, y)
+            drawText(if (enabled) "●" else "○", chrome.skillBox(index, bit))
         }
         row.values.forEachIndexed { armIndex, value ->
             font.color = when (value.grade) {
@@ -112,7 +112,7 @@ class BattleTerrainOverlayRenderer(
                 4 -> Color(0.44f, 0.25f, 0.5f, 1f)
                 else -> Color(0.78f, 0.78f, 0.78f, 1f)
             }
-            font.draw(batch, value.text, PANEL_X + 252f + armIndex * COLUMN_WIDTH, y)
+            drawText(value.text, chrome.valueBox(index, armIndex, value.text))
         }
     }
 
@@ -123,54 +123,56 @@ class BattleTerrainOverlayRenderer(
 
     private fun drawTiledBackground() {
         assets.background?.let { texture ->
-            var y = PANEL_Y
-            while (y < PANEL_Y + PANEL_HEIGHT) {
-                var x = PANEL_X
-                while (x < PANEL_X + PANEL_WIDTH) {
-                    batch.draw(texture, x, y, minOf(TILE, PANEL_X + PANEL_WIDTH - x), minOf(TILE, PANEL_Y + PANEL_HEIGHT - y))
-                    x += TILE
+            // 원본은 `bg`를 타일 스프라이트로 깔므로 한 칸은 무늬 자체의 크기다.
+            val tileWidth = texture.width.toFloat()
+            val tileHeight = texture.height.toFloat()
+            val right = chrome.PANEL_X + chrome.PANEL_WIDTH
+            val top = chrome.PANEL_Y + chrome.PANEL_HEIGHT
+            var y = chrome.PANEL_Y
+            while (y < top) {
+                var x = chrome.PANEL_X
+                while (x < right) {
+                    batch.draw(texture, x, y, minOf(tileWidth, right - x), minOf(tileHeight, top - y))
+                    x += tileWidth
                 }
-                y += TILE
+                y += tileHeight
             }
         }
     }
 
+    /**
+     * `drawPatch`: 계약이 들고 있는 상자에 9-패치를 그린다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    private fun drawPatch(patch: NinePatch?, box: TerrainLayerChromeRenderContract.Box) {
+        patch?.draw(batch, box.x, box.y, box.width, box.height)
+    }
+
+    /**
+     * `drawText`: 계약이 들고 있는 문구 상자에 글자를 그린다.
+     * 원본 라벨 노드의 윗변이 비트맵 글꼴의 기준선과 같은 자리라 상자의 top을 쓴다.
+     */
+
+    private fun drawText(text: String, box: TerrainLayerChromeRenderContract.Box) {
+        font.draw(batch, text, box.x, box.top)
+    }
+
+    /**
+     * `setFontSize`: 계약이 적어 둔 원본 글자 크기를 이식본 글꼴 배율로 바꾼다.
+     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
+     */
+
+    private fun setFontSize(size: Float) {
+        font.data.setScale(size / chrome.BASE_FONT_SIZE)
+    }
+
     private companion object {
         /**
-         * `PANEL_X` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
+         * `chrome` (상태 값): 이 화면 기하의 단일 출처이며 증거 기록기도 같은 계약을 읽는다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val PANEL_X = 274f
-        /**
-         * `PANEL_Y` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        const val PANEL_Y = 100f
-        /**
-         * `PANEL_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        const val PANEL_WIDTH = 1021f
-        /**
-         * `PANEL_HEIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        const val PANEL_HEIGHT = 600f
-        /**
-         * `TILE` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        const val TILE = 96f
-        /**
-         * `COLUMN_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        const val COLUMN_WIDTH = 53f
+        val chrome = TerrainLayerChromeRenderContract
     }
 }
