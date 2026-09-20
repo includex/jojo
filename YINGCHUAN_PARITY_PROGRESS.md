@@ -928,6 +928,22 @@ END_ROUND를 받는다. 포트도 `answerAutoBattle`이 `canEndPlayerTurn()`으�
 **다른 구간에서도 같은 방향이다.** `next-normal-actions`의 `a211_hit_to_counter_s`는
 -0.0412로 허용치 안이지만 부호와 크기가 같다. 한 구간의 변동이 아니라 계통적이다.
 
-고치지 않고 기록만 남긴다 — 전투 클립 전이는 `FightSpriteTimeline`·`FightActionTimeline`에
-걸쳐 있어 별도 작업이 필요하고, 이 세션에서 손대면 확인 없이 끝날 위험이 크다.
-남은 여덟 구간을 마저 돌려 같은 형태가 몇 군데 더 있는지 먼저 보는 편이 낫다.
+### 기전까지 짚었다
+
+포트는 `BattleScreen`이 반격 시작을 `reactionEndsAt = hitAt + requireSourceActionDuration(32, dir)`
+로 잡는다. `BattleSpriteTimeline.duration`은 `틱 합 / 24`이므로 anime32는 정확히 0.5833초
+(14틱)이고, 반격은 그 **정확한 시각**에 시작한다.
+
+원본은 다르다. `battle/BattleUnit.js:1921-1927`이 클립을 `cc.Animation`으로 재생하고
+`cc.Animation.EventType.FINISHED`에 콜백을 건다. Cocos는 이 이벤트를 클립의 마지막 프레임을
+**지난 다음 update에서** 쏘므로, 콜백이 도는 시각은 클립 길이보다 한 업데이트 이상 뒤다.
+그 콜백이 다음 상태를 세우기 때문에 그 사이 한 프레임이 기본 자세(`anime0`)로 남는다.
+관측값이 그대로 이 모양이다 — 피격 0.0000, 대기 0.6165, 반격 0.6295.
+
+이 저장소에 이미 기록된 "원본이 씬 그래프에서 거저 얻는 동작" 부류다. 고치려면 클립 종료를
+정확한 시각이 아니라 **클립이 끝난 뒤 첫 업데이트**로 잡고, 그 한 프레임 동안 기본 자세를
+보여 줘야 한다.
+
+고치지 않고 기록만 남긴다 — 이 전이는 `scheduleHitReaction` 호출부 여덟 군데가 모두
+`reactionEndsAt`을 공유하므로 한 곳만 바꿀 수 없고, 바꾸면 여덟 구간을 다시 돌려 회귀를
+봐야 한다. 확인 없이 끝날 위험이 커서 다음 작업으로 넘긴다.
