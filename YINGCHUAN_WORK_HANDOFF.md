@@ -1,89 +1,244 @@
-# 영천전투 작업 정리 및 중지 기록
+# 영천전투 작업 중지 및 재개 안내
 
-기록일: 2026-09-20
+기록일: 2026-09-20 (갱신)
 
-상태: **사용자 요청으로 중지. 재개 요청 전 추가 작업하지 않음.**
+상태: **사용자 요청으로 중지. 모든 커밋은 `origin/main`에 push 완료.**
 
-## 목표와 우선순위
+이 문서는 **다음 세션이 바로 이어받도록** 쓴 것이다. 세 문서의 역할은 이렇다.
 
-원본 Cocos 게임과 Kotlin/LibGDX 포트의 동작·표현을 맞추는 작업이다. 전체 목표는 미완료다.
-
-1. 전투 진행을 막는 문제
-2. 캐릭터 이동·공격·피격·퇴각과 카메라
-3. UI 동작과 표현
-4. 사소한 글자 모양·줄바꿈 차이
-
-원본과 포트를 동시에 실행하지 않고, 정상 속도로 구간을 나눠 확인했다. 포트 실행 중 Gradle 빌드/테스트를 병행하지 않는다. 앞서 실행 중 core.jar가 다시 작성되어 자산 읽기가 실패한 이력이 있다.
-
-## 완료한 작업
-
-- 진영 시작 시 첫 플레이어 유닛으로 카메라 보정.
-- 명령창 위치, 비활성 아이콘 회색조와 부모 투명도 반영.
-- 자동 턴 종료 확인창을 위임 설정이 있는 수동 창과 분리.
-- 수동 필살 공격의 피해는 실제 타격 때, 경험치·행동 완료는 공격 동작 종료 뒤 반영.
-- 조조 경험치창 → 적 체력창 순서로 정산 표시.
-- 교환 버튼은 같은 무기 종류가 아니라 같은 유효 진영과 원본 인접 범위로 판정.
-- 경험치 막대의 분모를 획득 후 경험치가 아닌 레벨별 경험치 한도로 수정.
-- **마지막 수정:** 정산창의 이전 체력값이 지도 HP막대를 되돌리지 않도록 분리. 정산창은 이전값에서 보간하고 지도는 실제 HP를 유지한다.
-
-이번 중지 정리 전 push한 주요 커밋:
-
-| 커밋 | 내용 |
+| 문서 | 내용 |
 | --- | --- |
-| `24e879f` | 플레이어 진영 진입 카메라 |
-| `f74f99a` | 3턴 실제 조작·필살 검증 도구 |
-| `27c237b` | 수동 공격 확정 시점·정산 순서 |
-| `e204fe0` | 교환 조건·경험치 막대 |
-| `0fc78d0` | 3턴 종료 뒤 유비 행동 검증 |
+| `YINGCHUAN_WORK_HANDOFF.md` (이 문서) | 지금 상태, 재개 절차, 명령, 노하우 |
+| `YINGCHUAN_SESSION_SUMMARY_20260920.md` | 이번 작업의 한 장 요약 |
+| `YINGCHUAN_PARITY_PROGRESS.md` | 전체 경위(가장 자세함) |
 
-마지막 지도 HP 수정, 장보 반격 검증 도구와 이 기록은 중지 정리 커밋에 포함한다.
+---
 
-## 실제 검증한 전투 구간
+## 1. 지금 상태
 
-- 2턴 조조: (10,5)→(11,5),484 공격, HP49→7, 자동 종료 확인.
-- 유비의 첫 필살 대사를 한 번 닫은 뒤484 처치·퇴각 및3턴 진입.
-- 3턴 조조: (11,5)→(10,5),483 필살 공격, HP19→0, 조조 경험치6→30, 정산·퇴각·자동 확인.
-- 3턴 종료 확인을 한 번 누른 뒤 유비32: (9,5)→(9,8),480 필살 공격, HP97→0, 경험치8→16, 정산·퇴각.
-- 이후258 공격을146 장보가 방어. 장보 대사 `후우후……!`를 한 번 닫은 뒤 물리 필살 반격,258 HP55→24, 정산 완료 후210 차례 진입.
+### 저장소
 
-최근 두 구간의 위치·타격·피해·행동확정·최종 성장 검사 각각8개가 통과했다. 최종240초 실행의 지도 HP 수정은 죽은480과 살아 있는258 양쪽 화면에서 확인했다. 관련 단위 테스트와 verification 컴파일도 통과했다.
+- `main`이 `origin/main`과 같다. **미push 커밋 없음.**
+- **작업 트리에 미완 작업 19개 파일이 커밋되지 않은 채 남아 있다.** 건드리지 말 것.
+  - `core/.../battle/BattleScreen.kt` (+417/−56)가 그 중심이고, 다른 파일들이 그 변경과
+    맞물려 있어 **따로 떼어 커밋하면 컴파일되지 않는다**(실제로 확인했다).
+  - 이번 세션은 이 미완 작업을 피해 `git apply --cached`로 **자기 hunk만 골라** 커밋했다.
+    같은 방법은 아래 §4에 적었다.
 
-**마지막 자연 진행 상태:** 양쪽 모두3턴 FRIEND 진영, 화자210의 `하아……!` 대사에서 대기. 카메라 `[96,368]`. 이 대사는 닫지 않았다. 실행 프로세스는 제한 종료되어 현재 살아 있는 게임 세션은 없다.
+### 검증 상태
 
-## 검증 자료
-
-모든 경로는 저장소 기준이며 build 아래 산출물은 로컬 자료다.
-
-| 자료 | 경로 |
+| 항목 | 상태 |
 | --- | --- |
-| 상세 누적 기록 | `YINGCHUAN_PARITY_PROGRESS.md` |
-| 유비 행동 원본 | `build/reports/yingchuan-source-round3-followup-20260920/` |
-| 유비 행동 포트 | `verification/build/verification/yingchuan-round3-followup-20260920/` |
-| 유비 행동 비교 | `build/reports/yingchuan-round3-followup-comparison-20260920/` |
-| 장보 반격 원본 | `build/reports/yingchuan-source-round3-counterattack-20260920/` |
-| 장보 반격·HP수정 포트 | `verification/build/verification/yingchuan-round3-counterattack-20260920/` |
-| 반격 비교 | `build/reports/yingchuan-round3-counterattack-comparison-20260920/` |
-| 지도 HP 수정 분리 패치 | `build/reports/yingchuan-settlement-map-health-20260920/` |
+| 영천 전투 렌더 경로 27개 | **전부 통과** |
+| 색 비교 | **909행 전부** (시작 시 28행) |
+| 구간 타이밍 대조 13구간 | **6구간 실행** — 5건 통과, `first-round-end`에서 결함 발견 |
+| `:core:test` / `:verification:test` | 둘 다 초록 |
 
-마지막 원본:240초,15,591프레임,8장. 포트:240초,14,405프레임,6장.
+### 실행하지 않은 구간 7개
 
-## 남은 문제와 검증 한계
+`round2-handoff`(150) · `single-player-action`(180) · `round2-followup`(180) ·
+`round2-first-combat`(180) · `round3-first-combat`(210) · `round3-followup`(210) ·
+`round3-counterattack`(240). 괄호는 필요한 초 수다. 스크립트는 모두 새 판정 규칙으로
+고쳐 두었으니 **캡처해서 돌리기만** 하면 된다(§3).
 
-- **반격자146 경험치 반영 시점:** 원본은258 정산창 종료 후4→8, 포트는258 행동 확정과 함께4→8. 최종 수치는 같지만 중간 시점은 다르다. 레벨업/표시 영향은 별도 검증이 필요하다.
-- 숨겨진157의 능력치 두 항목이 원본보다 각각60 높다. 현재 표시 유닛 결과와 구분해서 추적한다.
-- 경험치 막대의 작은 캡/테두리, 글자 크기·모양·줄바꿈 등은 남아 있다.
-- 이후210 대사·행동, 남은 영천전투, 승리/보상·다음 장면, 전체 캠페인은 완료 검증하지 않았다.
-- 직접 S_00 진입과 기존 미커밋 변경이 포함된 작업 트리 실행이다. clean HEAD 전체 게임 통과로 해석하면 안 된다.
-- 원본의 다음 actor 시작과 포트의 이전 actor 완료는 같은 시각이 아니다. 프레임 번호나 절대 시간 대신 실제 행동 경계로 비교한다.
-- 원본 screenshot observer에서146/147 allowlist 누락을 마지막 실행 후 수정했다. node 검사만 통과했고 새 probe의 런타임 캡처는 아직 없다. 이번 반격 actor/피격의 근거는 전체 trace다.
-- 원본 `_srcTarget/_dscTarget`은 반격 때 이전 공격값을 유지한다. 현재 반격 actor/target의 권위 근거로 쓰면 안 된다.
+---
 
-## 남겨 둔 기존 작업 트리 변경
+## 2. 가장 먼저 할 일: 미수정 결함 하나
 
-이전부터 수정 중이던 unit/projector/AI, 읽기 전용 probe, BattleScreen의 다른 UI·폰트·팝업, HUD/renderer, settlement coordinator의 적 성장창 필터, 자산 export, manual verification driver 등은 유지했다. 이번 변경과 함께 임의로 커밋하거나 되돌리지 않았다. 재개 시 `git status`와 diff를 확인하고 필요한 수정만 분리해 다룬다.
+**피격 뒤 반격이 한 프레임 이르다.** 증거와 기전이 모두 확보돼 있다.
 
-## 재개할 때
+```
+원본: +0.0000 anime32(피격)  +0.6165 anime0(대기)  +0.6295 anime25(반격)
+포트: +0.0000 anime32(피격)  +0.5833 anime25(반격)          ← 대기가 없다
+```
 
-사용자의 재개 요청 후 이 문서와 상세 기록을 먼저 읽는다. 우선 남은 경험치 확정 시점 차이의 화면 영향을 확인하고, 같은 실제 입력 경로로210의 자연 완료 대사까지 도달해 다음 행동 구간을 이어 간다. 확인되지 않은 새 대사는 자동으로 넘기지 않는다. 전체 배틀 저장/복원은 검증되지 않았으므로 현재 세이브를 정확한 전투 checkpoint로 가정하지 않는다.
+- 포트는 반격 시작을 `reactionEndsAt = hitAt + requireSourceActionDuration(32, dir)`,
+  곧 클립 길이(14틱/24 = 0.5833초)가 끝나는 **정확한 시각**으로 잡는다.
+- 원본 `battle/BattleUnit.js:1921-1927`은 `cc.Animation.EventType.FINISHED` 콜백으로 다음
+  상태를 세운다. Cocos는 그 이벤트를 마지막 프레임을 **지난 다음 update에서** 쏘므로 한
+  프레임이 기본 자세로 남는다.
+- `first-round-end`에서 -0.0666(원본 자체 편차 0.0168), `next-normal-actions`에서 -0.0412로
+  부호·크기가 같아 **계통적**이다.
 
-현재 실행/빌드/하위 에이전트 작업은 모두 종료 상태다. 목표는 완료가 아니라 일시 중지 상태로 남긴다.
+**고칠 때 주의**: `scheduleHitReaction` 호출부가 `BattleScreen.kt`에 여덟 군데이고 모두
+`reactionEndsAt`을 공유한다. 한 곳만 바꿀 수 없다. 바꾼 뒤에는 최소 `first-round-end`,
+`next-normal-actions`, `first-normal-combat` 세 구간을 다시 돌려 회귀를 봐야 한다.
+
+**하지 말 것**: "2 프레임 더하기" 같은 상수를 박는 것. 이 저장소가 되풀이해 당한 형태다
+(하드코딩 대역). 클립 종료를 **클립이 끝난 뒤 첫 업데이트**로 잡는 구조로 바꿔야 한다.
+
+---
+
+## 3. 재개 절차 (그대로 따라 하면 된다)
+
+### 3.1 검증 classpath 만들기 (렌더 경로용)
+
+```bash
+cd /Users/ain/workspace/jojo
+cat > /tmp/cp.init.gradle.kts <<'EOF'
+gradle.projectsEvaluated {
+    rootProject.project(":verification").tasks.register("printVerificationCp") {
+        doLast {
+            val ss = project.extensions.getByType(org.gradle.api.tasks.SourceSetContainer::class.java)
+            println("CLASSPATH=" + ss.named("main").get().runtimeClasspath.asPath)
+        }
+    }
+}
+EOF
+./gradlew -I /tmp/cp.init.gradle.kts :verification:printVerificationCp :verification:classes -q \
+  | grep '^CLASSPATH=' | sed 's/^CLASSPATH=//' > /tmp/cp.txt
+export JOJO_VERIFICATION_CLASSPATH="$(cat /tmp/cp.txt)"
+```
+
+### 3.2 렌더 경로 돌리기
+
+```bash
+node tools/verify_render_parity_routes.mjs battle-menu magic-list use-property-detail
+# 경로 이름은 tools/render_parity_routes.json 에 있다. 전투 관련은 앞 28개.
+```
+
+경로를 고친 뒤에는 **반드시** `./gradlew :verification:classes` 를 먼저 돌려야 한다.
+그러지 않으면 낡은 클래스로 돌아 초록이 나온다(실제로 한 번 속았다).
+
+### 3.3 구간 타이밍 대조 (한 구간 = 캡처 2번 + 비교 1번)
+
+```bash
+# 포트 쪽 (--rerun-tasks 없으면 UP-TO-DATE로 건너뛴다)
+./gradlew :verification:captureYingchuanWalkthrough --rerun-tasks \
+  -Pjojo.yingchuanWalkthrough.captureMode=round2-handoff \
+  -Pjojo.yingchuanWalkthrough.maxSimSeconds=150
+# 결과: verification/build/verification/yingchuan-walkthrough/yingchuan-manual-trace.json
+
+# 원본 쪽 (인자 순서: sourceRoot outputDir maxWallMs mode)
+node tools/capture_yingchuan_source_walkthrough.cjs \
+  ../jojo_mobile/sgccz-desktop /tmp/src-r2-handoff 150000 round2-handoff
+# 결과: /tmp/src-r2-handoff/source-full-trace.json
+
+# 비교
+python3 tools/yingchuan-comparisons/round2-handoff.py \
+  /tmp/src-r2-handoff/source-full-trace.json \
+  verification/build/verification/yingchuan-walkthrough/yingchuan-manual-trace.json
+```
+
+구간별 모드 이름·초 수·스크립트 대응은 `tools/yingchuan-comparisons/README.md` 표에 있다.
+**포트의 기본 시뮬레이션 시간은 30초라 대부분의 구간을 잘라 먹는다.** 표의 값을 꼭 줄 것.
+
+---
+
+## 4. 미완 작업을 건드리지 않고 커밋하는 법
+
+`BattleScreen.kt` 같은 파일에 내 변경과 남의 미완 변경이 섞여 있을 때 쓴다.
+
+```bash
+git diff -U3 <파일> > /tmp/full.patch
+# /tmp/full.patch 를 @@ 단위로 쪼개서 내 변경이 들어 있는 hunk만 고른 뒤
+git apply --cached --check /tmp/mine.patch && git apply --cached /tmp/mine.patch
+git diff --cached --numstat   # 담긴 양을 눈으로 확인한다
+```
+
+**반드시 `git diff --cached`로 무엇이 담겼는지 확인할 것.** 이번 세션에서 hunk 선택이
+남의 변경을 끌어온 적이 있고, 그 확인으로 걸렀다.
+
+테스트는 미완 작업이 섞인 상태로 돌릴 수밖에 없다(떼어내면 컴파일 실패). 그 한계를
+알고 돌린다.
+
+---
+
+## 5. 작업 노하우 (이번 세션에서 값을 치르고 배운 것)
+
+### 5.1 초록을 믿지 않는다 — 음성 대조
+
+게이트가 통과했다고 검증됐다는 뜻이 아니다. **값을 하나 바꿔 실제로 떨어지는지 확인하고
+되돌린다.** 떨어지지 않으면 배선이 겉도는 것이다. 이번에 이 절차로 여러 번 걸렀다.
+
+```bash
+sed -i.bak 's/const val X = 52f/const val X = 53f/' <계약파일>
+./gradlew :verification:classes -q && node tools/verify_render_parity_routes.mjs <경로>
+mv <계약파일>.bak <계약파일>    # 반드시 되돌린다
+```
+
+### 5.2 같은 값을 두 곳에 적지 않는다
+
+이번에 고친 결함 **대부분**이 같은 이유로 숨어 있었다.
+
+> 같은 화면의 값이 **그리기와 증거 두세 곳에 따로** 적혀 있으면, 각자 자기 값과 일관될 때
+> 게이트가 정직하게 돌면서도 아무것도 검증하지 못한다.
+
+고치는 방법은 화면마다 계약 object 하나를 단일 출처로 두고 그리기와 증거가 **둘 다 읽게**
+하는 것이다. 값은 언제나 **원본과 일치하는 쪽**을 정본으로 삼는다.
+
+전투 렌더 기록기 16개 중 아직 7개가 손으로 적은 표를 들고 있다(미니맵 `bg/box`, 편집
+레이어 머리띠, 패배 프롬프트 `"비"` vs `"아니오"` 등). 배선하면 곧바로 빨갛게 떨어질 것들이
+섞여 있다.
+
+### 5.3 비교기는 한쪽이 null인 항목을 건너뛴다
+
+`compare_render_logs.py`는 `color`/`outline` 중 한쪽이 null이면 **그 항목을 통째로 건너뛴다.**
+증거가 색을 적지 않으면 포트가 눈에 띄게 다른 색을 그려도 게이트가 초록이다. 영천 전투
+경로는 지금 909행 전부가 색을 비교받는다. **이 상태가 깨지면 회귀다.**
+
+채울 때 규율: **포트가 실제로 아는 색만 적는다.** 원본 하네스가 `#ffffff`를 낸다는 이유만으로
+흰색을 적으면 우연히 맞는 거짓말이다. 그리기 코드에서 `batch.color`/`font.color`가 어디서
+세워지고 어디서 바뀌는지 먼저 읽는다.
+
+### 5.4 타이밍 차이를 만나면 순서를 지킨다
+
+1. **원본을 두 번 돌려 자체 편차부터 잰다.** 어떤 지표는 원본이 스스로 0.278초 흔들린다.
+2. **편차가 좁아도 안심하지 않는다.** 캡처는 같은 의미 지점에서 찍히므로 오염이 **결정적**
+   이다. 매 실행 같은 창을 같은 크기로 부풀린다.
+3. **창 안의 정체 프레임(dt > 0.05)을 본다.** 정체는 창의 참값을 바꾸지 않지만 경계 프레임을
+   놓치게 해 창을 길게 **보이게** 한다. 지금은 대조 스크립트가 이를 자동으로 허용치에
+   반영한다(고정 폭 + 양쪽 정체 폭).
+4. **클립 시계(trace 유닛 tuple 인덱스 15 = `cc.AnimationState.time`)로 다시 잰다.**
+   애니메이션 길이는 벽시계가 아니라 클립 시계로 본다.
+5. **같은 실행 안의 동종 측정과 비교한다.** 한 구간의 대사 셋 중 둘이 글자당 0.055초인데
+   하나만 0.173초면 그 하나가 이상값이다.
+
+이 순서를 건너뛰어 존재하지 않는 포트 결함을 보고할 뻔한 적이 여러 번 있다.
+
+### 5.5 경계를 못 찾으면 통과가 아니라 실패다
+
+대조 스크립트가 `StopIteration`으로 멈추게 둔다. 관측하지 못한 것을 조용히 건너뛰면
+없는 합격이 만들어진다.
+
+### 5.6 "중복으로 보이는 코드"를 확인 없이 지우지 않는다
+
+`tools/yingchuan-comparisons/round3-210.py`는 `summarize`가 세 번 정의된다. "앞의 둘은
+버려진다"고 보고 지웠다가 `NameError`로 깨뜨렸다 — **마지막 판정부가 첫 블록의 `WALL_ONLY`를
+읽는다.** 되돌렸고 파일 머리에 경고를 적어 두었다. 정리하려면 합치기 전후 출력이 같은
+trace 쌍에서 **바이트 단위로 같은지** 먼저 확인해야 한다.
+
+### 5.7 공유 직렬화를 바꾸면 모듈 전체 테스트를 돌린다
+
+`RenderEventLog`에 필드 하나를 더했다가 golden 테스트 둘을 깨뜨렸고, 집중 테스트만 돌려
+눈치채지 못했다. 공유 계약을 건드렸으면 `:core:test :verification:test`를 통째로 돌린다.
+
+---
+
+## 6. 환경 주의
+
+- **원본과 포트를 동시에 돌리지 않는다.** 포트 실행 중 Gradle 빌드를 돌리면 `core.jar`가
+  다시 쓰여 자산 읽기가 실패한 이력이 있다.
+- **디스크**: 한 구간 trace가 150~390MB다. 볼륨이 98%(9.6GB 여유)다. `build/`가 47GB,
+  `verification/build/verification/`이 캡처 디렉터리를 쌓는다. 이번에 사용자 승인을 받아
+  오래된 캡처 80개를 지워 9.9GB를 확보했고 최신 6개만 남겼다. **구간을 이어 돌리려면
+  공간을 계속 살펴야 한다.**
+- **`npm`이 PATH에 있어야 한다.** 원본 캡처 도구가 `npm exec -- electron`을 spawn한다.
+- 원본 캡처 도구 인자는 **위치 인자**다: `sourceRoot outputDir maxWallMs mode`.
+  `--mode=` 같은 플래그를 주면 sourceRoot로 해석돼 엉뚱한 곳에서 spawn한다.
+- 이번 세션의 trace 파일은 세션 scratchpad에 있어 **세션이 닫히면 사라진다.** 다시 캡처해야
+  한다(§3.3).
+
+---
+
+## 7. 남은 일 (우선순위 순)
+
+1. **반격 타이밍 결함 수정** (§2). 증거와 기전이 다 있다.
+2. **구간 대조 7개 실행** (§1). 스크립트는 준비됐다.
+3. **전투 기록기 7개의 손으로 적은 표를 계약에 배선** (§5.2). 배선하면 곧바로 떨어질
+   것들이 섞여 있다 — 그게 결함을 드러낸다.
+4. `postsCanEquip`의 WEAPONS·ARMOR·AUXILIARY 갈래. posts 표의 EQUIP 비트와 아이템의
+   UPGRADE_ARM 목록이 포트 데이터 접근자에 없다. **값을 지어내지 않고** 함수 주석에 원본
+   줄번호와 함께 남겨 두었다(`UsePropertyDetailRenderContract.postsCanEquip`).
+5. `battle-view` 색 비교 0/16 — 전당 화면이라 영천 범위 밖.
+6. 글꼴 치환 ~2px 오차 — 원본은 Chromium Arial, 포트는 Apple SD Gothic Neo. 가장 낮음.
