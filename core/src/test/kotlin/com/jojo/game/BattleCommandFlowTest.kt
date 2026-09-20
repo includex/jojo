@@ -1,6 +1,10 @@
 // Test
 package com.jojo.game
 
+import com.jojo.game.domain.battle.BattleUnit
+import com.jojo.game.domain.battle.BattleStatus
+import com.jojo.game.domain.battle.Faction
+
 import com.jojo.game.presentation.scenario.overlay.*
 
 import com.jojo.game.application.battle.*
@@ -17,6 +21,21 @@ import kotlin.test.assertTrue
 /** BattleCommandFlowTest: BattleCommandFlow의 핵심 동작과 입력 경계 조건을 자동화로 검증하는 테스트 묶음이다. */
 
 class BattleCommandFlowTest {
+    @Test
+    fun `exchange requires same effective camp rather than same weapon or allied side`() {
+        val actor = BattleUnit("cao", "조조", Faction.PLAYER, 10, 5, armId = 0)
+        val friend = BattleUnit("liu", "유비", Faction.FRIEND, 9, 5, armId = 0)
+        val mine = BattleUnit("mine", "아군", Faction.PLAYER, 11, 5, armId = 21)
+        val offsets = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1)
+        assertFalse(BattleCommandFlow.canSwap(actor, listOf(actor, friend), offsets))
+        assertTrue(BattleCommandFlow.canSwap(actor, listOf(actor, mine), offsets))
+        mine.statuses[BattleStatus.LOST] = 1
+        assertFalse(BattleCommandFlow.canSwap(actor, listOf(mine), offsets))
+        mine.statuses.clear()
+        mine.hitPoints = 0
+        assertFalse(BattleCommandFlow.canSwap(actor, listOf(mine), offsets))
+    }
+
     private val before = BattleCommandFlow.UnitPose(3, 4, 2)
     private val after = BattleCommandFlow.UnitPose(5, 4, 1)
 

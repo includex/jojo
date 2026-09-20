@@ -14,6 +14,13 @@ import com.jojo.game.domain.scenario.*
 
 class BattleCommandFlow {
     companion object {
+        /** Source checkCanSwap compares effective camps, not weapon classes or allied sides. */
+        fun canSwap(unit: BattleUnit, units: Collection<BattleUnit>, infantryOffsets: Set<Pair<Int, Int>>): Boolean =
+            unit.isPlayerSide() && units.any { other ->
+                other.id != unit.id && other.visible && other.hitPoints > 0 && other.type() == unit.type() &&
+                    (other.tileX - unit.tileX to other.tileY - unit.tileY) in infantryOffsets
+            }
+
         /**
          * `TOUCH_END` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
          */

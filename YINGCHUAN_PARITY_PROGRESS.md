@@ -216,3 +216,11 @@
 - 수정 후 정상210초 `verification/build/verification/yingchuan-round3-commit-order-fixed-20260920/` 성공:12,605프레임·10장. `build/reports/yingchuan-round3-comparison-20260920/boundaries-after.json` 6개 경계 검사 모두 통과(수정 전4개 실패). 공격21 frame10299→HP0/피격32 frame10355→기본자세 및 경험치30/행동확정 frame10390→퇴각23 frame10586→숨김 frame10662→자동 확인창이다. 실제 PNG09는 조조 경험치6/100 창이며 원본의 첫 패널과 같다. 전체 패널 시퀀스는 coordinator 회귀 테스트로 확인했고 런타임 PNG는 첫 패널만 캡처했다.
 - 최종 카메라[96,-176] 및 표시 부대 상태가 원본과 같다. 숨김157의 기존 능력치 차이는 그대로 남아 있다. 원본/포트 공격 시작부터 피격까지 관측 간격은0.939/0.933초이며 wall timestamp만으로 모든 animation 길이를 단정하지 않는다. 이번에도 작업 트리 실행이며 전체 영천전투 완료 검증이 아니다.
 - 다음 UI 후보: 3턴 명령창 교환 버튼이 원본에서는 비활성, 포트에서는 활성이다. 원본 checkCanSwap은 인접 유닛의 effective camp가 같은지 확인하지만 포트는 아군 및 같은 armId를 검사한다. 경험치창 첫 프레임도 숫자6/100에 비해 포트 bar가 약20%로 보이는 차이가 있어 보간/표시값 동기화를 확인한다. 사소한 글꼴 차이는 계속 후순위다.
+
+## 3턴 명령창 교환·경험치 막대 UI
+
+- 원본 `checkCanSwap`은 `isMine()`과 인접 BU_BING 영역 내 살아있는 동일 effective camp(`type()`)를 요구한다. 무기 종류는 조건이 아니다. 포트의 아군 전체+동일armId 조건을 제거하고 원본 영역1 프로파일과 effective camp를 사용한다. PLAYER 조조와 FRIEND 유비가 같은 무기를 써도 교환은 비활성이다. 같은 PLAYER의 다른 무기, 이탈 상태, 사망한 대상 조건의 회귀 테스트가 통과했다.
+- 경험치 표시 숫자는6/100인데 막대가 약20%였던 원인은 max에 경험치 한도 대신 oldExperience+gained=30을 넣은 것이다. 원본 MineUnitInfoLayer의 현재 `expLimit()`처럼 결과 level의 경험치 한도100으로 고쳤다. 이전값/증가량 보간은 유지한다. 일반 증가 및 level 변경 시 scale 테스트2개가 통과했고 Astra의 원본 코드 대조도 통과했다.
+- 최종 정상210초 `verification/build/verification/yingchuan-round3-ui-fixed-20260920/` 성공:12,606프레임·10장. PNG03의 교환 아이콘/라벨이 원본처럼 비활성 회색으로 표시된다. PNG09는6/100 숫자와 약6% 막대이며, 같은 행의 분홍 픽셀 길이가 수정 전128에서39로 줄었다(원본46). 작은 캡/테두리 렌더링 차이까지 픽셀 일치한 것으로 확대하지 않는다.
+- `boundaries-ui-final.json` 6개 공격·피해·행동확정 검사 모두 통과했고 `comparison-ui-final.json` 최종 부대 차이는 기존 숨김157만 남았다. 마지막 캡처의 autoBattleOverlay는 PROMPT다. driver completionKind는 update 중 prompt가 열리기 전 경계를 읽어 free-player-input으로 남지만 실제 캡처는 자동 확인창이다. 다음 구간의 확인 입력은 반드시 실제 PROMPT와 안정된 버튼 geometry를 기준으로 보낸다.
+- 다음 진행 단위는 3턴 자동 확인창의 예를 한 번 누른 뒤 FRIEND의 첫 실제 행동·정산·퇴각 완료 또는 새 대사까지다. actor/target과 새 대사 본문은 원본에서 관측한 뒤 확정하고 예상하지 않은 대사는 닫지 않는다.

@@ -7562,12 +7562,9 @@ void main() {
         if (unit.magic.isNotEmpty() && BattleStatus.SILENCE !in unit.statuses) mask =
             mask or BattleCommandFlow.MAGICK_BIT
         if (usableProperties().isNotEmpty()) mask = mask or BattleCommandFlow.PROPERTY_BIT
-        if (battle.units.values.any { other ->
-                other !== unit && other.visible && unitsAreAllied(
-                    unit,
-                    other
-                ) && other.armId == unit.armId && kotlin.math.abs(other.tileX - unit.tileX) + kotlin.math.abs(other.tileY - unit.tileY) == 1
-            }) mask = mask or BattleCommandFlow.SWAP_BIT
+        if (BattleCommandFlow.canSwap(
+                unit, battle.units.values, gameDataCatalog.hitAreaProfile(1)?.offsets.orEmpty(),
+            )) mask = mask or BattleCommandFlow.SWAP_BIT
         return mask
     }
 
@@ -8075,11 +8072,9 @@ void main() {
                 when (grant.kind) {
                     SettlementGrowthKind.UNIT_EXP -> grant.unitResult?.let { result ->
                         add(
-                            InfoBaseValueAnimation.Value(
-                                2,
-                                result.oldExperience,
-                                result.oldExperience + result.gained,
-                                (result.oldExperience + result.gained).coerceAtLeast(1)
+                            SettlementExperienceAnimation.value(
+                                result,
+                                gameDataCatalog::unitExperienceLimit,
                             )
                         )
                     }
