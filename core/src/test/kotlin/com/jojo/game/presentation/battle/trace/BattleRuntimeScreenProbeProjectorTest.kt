@@ -27,15 +27,18 @@ class BattleRuntimeScreenProbeProjectorTest {
                 autoBattleToggle = 9 to 10, autoBattleConfirm = 11 to 12,
                 winConditionButton = 13 to 14, autoBattleOverlay = "PROMPT",
                 autoBattleChecked = true, collocation = false, committedPlayerMove = "unit-1",
-                selectedChoice = 2, selectedUnitId = "unit-2",
+                selectedChoice = 2, selectedUnitId = "unit-2", playerPresentationReady = true,
+                commandAttack = 15 to 16,
             ),
             emptyBattleProbe,
         )
 
         assertEquals("S_00", probe.scenario)
         assertEquals(3 to 4, probe.commandWaitScreenX to probe.commandWaitScreenY)
+        assertEquals(15 to 16, probe.commandAttackScreenX to probe.commandAttackScreenY)
         assertEquals("unit-1", probe.committedPlayerMove)
         assertEquals("unit-2", probe.selectedUnitId)
+        assertTrue(probe.playerPresentationReady)
         assertTrue(probe.battleMenuOpen)
     }
 

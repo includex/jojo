@@ -5539,6 +5539,7 @@ void main() {
          */
 
         val autoView = autoBattleFlow.view()
+        val attackCommandVisual = BattleCommandRenderModel.visuals.first()
         return BattleRuntimeProbeCoordinator.create(
             BattleRuntimeScreenProbeInput(
                 sourceScenario,
@@ -5574,6 +5575,12 @@ void main() {
                 committedPlayerMove,
                 scriptRuntime.selectedChoice,
                 selectedUnitId,
+                playerPresentationReady = scriptRuntime.state == PlaybackState.COMPLETE &&
+                    !combatPresentationBusy() && !outcomeCallbacksPending(),
+                commandAttack = projectWorldPointAt(
+                    attackCommandVisual.x + attackCommandVisual.width / 2f,
+                    attackCommandVisual.y + attackCommandVisual.height / 2f,
+                ),
             ),
             object : BattleRuntimeProbePort {
                 /**

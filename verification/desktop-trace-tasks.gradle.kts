@@ -558,7 +558,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
             value.also {
                 require(it in setOf(
                     "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
-                    "first-round-end", "round2-handoff",
+                    "first-round-end", "round2-handoff", "single-player-action",
                 )) {
                     "unknown captureMode: $it"
                 }
@@ -575,6 +575,11 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
     val destination = layout.buildDirectory.dir("verification/yingchuan-walkthrough")
     doFirst {
+        if (captureMode.get() == "single-player-action") {
+            require(maxSimulationSeconds.get() == 180 && timeScale.get() == 1) {
+                "single-player-action requires maxSimSeconds=180 and timeScale=1"
+            }
+        }
         delete(destination)
         setArgs(
             listOf(
@@ -594,5 +599,11 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
             "expected 1..12 walkthrough screenshots, found ${screenshots.size}"
         }
         check(screenshots.all { it.length() > 0L }) { "walkthrough contains an empty screenshot" }
+        if (captureMode.get() == "single-player-action") {
+            val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
+            check(Regex(""""singlePlayerActionComplete"\s*:\s*true""").containsMatchIn(manifest)) {
+                "single player action did not complete; inspect preserved walkthrough manifest"
+            }
+        }
     }
 }

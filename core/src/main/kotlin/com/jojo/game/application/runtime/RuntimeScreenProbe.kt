@@ -164,6 +164,11 @@ data class BattleRuntimeScreenProbe(
     val committedPlayerMove: String?,
     val selectedChoice: Int,
     val selectedUnitId: String?,
+    /** 플레이어 입력 재개가 안전한 실제 전투 프레젠테이션 경계다. */
+    val playerPresentationReady: Boolean = false,
+    /** 현재 CommandLayer의 실제 ATTACK 버튼 중심 화면 좌표다. */
+    val commandAttackScreenX: Int = 0,
+    val commandAttackScreenY: Int = 0,
     val battle: BattleRuntimeProbe,
 ) : RuntimeScreenProbe {
     /**

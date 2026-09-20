@@ -37,12 +37,15 @@ object YingchuanWalkthroughDesktopLauncher {
         val captureMode = args.getOrNull(3) ?: "semantic-walkthrough"
         require(captureMode in setOf(
             "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
-            "first-round-end", "round2-handoff",
+            "first-round-end", "round2-handoff", "single-player-action",
         )) {
             "unknown walkthrough capture mode: $captureMode"
         }
         require(captureMode == "semantic-walkthrough" || timeScale == 1f) {
             "$captureMode requires normal speed"
+        }
+        require(captureMode != "single-player-action" || maxSimulationSeconds == 180f) {
+            "single-player-action requires exactly 180 simulated seconds"
         }
         outputDirectory.mkdirs()
         val trace = File(outputDirectory, "yingchuan-manual-trace.json")
@@ -58,7 +61,7 @@ object YingchuanWalkthroughDesktopLauncher {
             ),
         )
         val baseConfiguration = options.toGameConfiguration()
-        val driver = YingchuanWalkthroughDriver()
+        val driver = YingchuanWalkthroughDriver(captureMode)
         val recorder = WalkthroughRecorder(outputDirectory, driver, maxSimulationSeconds, timeScale, captureMode)
         val configuration = baseConfiguration.copy(runtimeBattleDriver = driver, runtimeScreenObserver = recorder)
         val game = JojoGame(configuration)
@@ -141,6 +144,7 @@ private class WalkthroughRecorder(
     private var round2Unit3PostDialogueOffset = 0
     private var round2NewUnitsVisible = false
     private var round2NewUnitPositionChanged = false
+    private var previousSingleActionPhase: String? = null
 
     override fun update(delta: Float, screen: RuntimeScreenProbe) {
         elapsedSeconds += delta.toDouble()
@@ -174,6 +178,7 @@ private class WalkthroughRecorder(
             "enemy-settlement" -> captureEnemySettlement(probe)
             "first-round-end" -> captureFirstRoundEnd(probe)
             "round2-handoff" -> captureRound2Handoff(probe)
+            "single-player-action" -> captureSinglePlayerAction(probe)
             else -> {
                 semanticKeys(probe).firstOrNull { it !in capturedKeys }?.let { key ->
                     if (captures.size < MAX_CAPTURES) capture(key, probe)
@@ -361,6 +366,26 @@ private class WalkthroughRecorder(
         round2PreviousPlayback = probe.playback
     }
 
+
+    /** Captures each post-render boundary of the dedicated round-two player action. */
+    private fun captureSinglePlayerAction(probe: BattleRuntimeScreenProbe) {
+        val phase = driver.singlePlayerActionPhase
+        if (phase == previousSingleActionPhase) return
+        previousSingleActionPhase = phase
+        val key = when (phase) {
+            "READY" -> "single-action-round2-input-ready"
+            "SELECT_SENT" -> "single-action-unit-0-selected"
+            "MOVE_SENT" -> "single-action-move-to-11-5-sent"
+            "COMMAND_READY" -> "single-action-command-open"
+            "ATTACK_COMMAND_SENT" -> "single-action-attack-targeting-open"
+            "TARGET_SENT" -> "single-action-target-484-input-sent"
+            "COMPLETE" -> "single-action-settlement-complete-input-ready"
+            "FAILED" -> "single-action-failed"
+            else -> return
+        }
+        captureOnce(key, probe)
+    }
+
     private fun semanticKeys(probe: BattleRuntimeScreenProbe): List<String> = buildList {
         if (probe.playback == PlaybackState.DIALOGUE) add("first-dialogue")
         if (probe.bootstrapComplete && probe.playback != PlaybackState.DIALOGUE) add("map-ready")
@@ -402,6 +427,8 @@ private class WalkthroughRecorder(
             addChild("activeFaction", JsonValue(probe.activeFaction.name))
             addChild("turnPhase", JsonValue(probe.turnPhase))
             addChild("selectedUnitId", probe.selectedUnitId?.let(::JsonValue) ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("playerPresentationReady", JsonValue(probe.playerPresentationReady))
+            addChild("singlePlayerActionPhase", JsonValue(driver.singlePlayerActionPhase))
             addChild("playerMoveCommitted", JsonValue(probe.playerMoveCommitted))
             addChild("committedPlayerMove", probe.committedPlayerMove?.let(::JsonValue) ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("battleCommandOpen", JsonValue(probe.battleCommandOpen))
@@ -449,6 +476,18 @@ private class WalkthroughRecorder(
             addChild("scenario", JsonValue("S_00"))
             addChild("driverClassName", JsonValue(driver.javaClass.name))
             addChild("driverInputs", driver.inputJournal())
+            addChild("singlePlayerActionPhase", JsonValue(driver.singlePlayerActionPhase))
+            addChild("singlePlayerActionComplete", JsonValue(driver.singlePlayerActionComplete))
+            addChild("singlePlayerActionFailure", driver.singlePlayerActionFailure?.let(::JsonValue)
+                ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("singlePlayerActionRequestedAction", driver.singlePlayerActionRequestedActionJson())
+            addChild("singlePlayerActionReachableTiles", driver.singlePlayerActionReachableTilesJson())
+            addChild("singlePlayerActionTargetHitPointsBefore", driver.singlePlayerActionTargetHitPointsBefore?.let {
+                JsonValue(it.toLong())
+            } ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("singlePlayerActionTargetHitPointsAfter", driver.singlePlayerActionTargetHitPointsAfter?.let {
+                JsonValue(it.toLong())
+            } ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("timeScale", JsonValue(timeScale.toDouble()))
             addChild("captureMode", JsonValue(captureMode))
             addChild("maxSimulationSeconds", JsonValue(maxSimulationSeconds.toDouble()))
@@ -496,13 +535,33 @@ private class WalkthroughRecorder(
 }
 
 /** Uses only the stable runtime probe and production InputProcessor to play the walkthrough. */
-private class YingchuanWalkthroughDriver : RuntimeBattleDriver {
+private class YingchuanWalkthroughDriver(
+    private val captureMode: String,
+) : RuntimeBattleDriver {
+    private enum class SinglePlayerActionPhase {
+        WAIT_ROUND2, READY, SELECT_SENT, MOVE_SENT, COMMAND_READY, ATTACK_COMMAND_SENT, TARGET_SENT, COMPLETE, FAILED,
+    }
+
+    private class SinglePlayerActionFailure(message: String) : RuntimeException(message)
+
     private var nextTapAt = Float.NEGATIVE_INFINITY
     private var seenRound = -1
     private val movedThisTurn = mutableSetOf<String>()
     private val journal = JsonValue(JsonValue.ValueType.array)
     var lastAction: String? = null
         private set
+    private var singleActionPhase = SinglePlayerActionPhase.WAIT_ROUND2
+    private var singleActorId: String? = null
+    private var singleTargetId: String? = null
+    var singlePlayerActionTargetHitPointsBefore: Int? = null
+        private set
+    var singlePlayerActionTargetHitPointsAfter: Int? = null
+        private set
+    var singlePlayerActionFailure: String? = null
+        private set
+    private var singlePlayerActionReachableTiles: List<RuntimeGridPoint> = emptyList()
+    val singlePlayerActionPhase: String get() = singleActionPhase.name
+    val singlePlayerActionComplete: Boolean get() = singleActionPhase == SinglePlayerActionPhase.COMPLETE
 
     override fun commands(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe): List<RuntimeBattleCommand> {
         if (probe.outcome != null || frame.elapsed < nextTapAt) return emptyList()
@@ -517,6 +576,16 @@ private class YingchuanWalkthroughDriver : RuntimeBattleDriver {
             return emptyList()
         }
         if (!probe.bootstrapComplete || probe.collocation) return emptyList()
+        if (captureMode == "single-player-action" &&
+            (probe.round >= 2 || singleActionPhase != SinglePlayerActionPhase.WAIT_ROUND2)
+        ) {
+            try {
+                driveSinglePlayerAction(frame, probe)
+            } catch (_: SinglePlayerActionFailure) {
+                // Expected fail-closed validation remains observable until the natural trace timeout.
+            }
+            return emptyList()
+        }
         if (probe.round != seenRound) {
             seenRound = probe.round
             movedThisTurn.clear()
@@ -586,6 +655,129 @@ private class YingchuanWalkthroughDriver : RuntimeBattleDriver {
         return emptyList()
     }
 
+    private fun driveSinglePlayerAction(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe) {
+        if (singleActionPhase == SinglePlayerActionPhase.COMPLETE || singleActionPhase == SinglePlayerActionPhase.FAILED) return
+        if (probe.round > 2) failSingleAction("round advanced past 2 before the fixed player action completed")
+        if (frame.elapsed < nextTapAt) return
+
+        val units = probe.battle.snapshot.units
+        val actor = units.firstOrNull { it.visible && it.hitPoints > 0 && it.characterId == 0 }
+        val destination = SINGLE_PLAYER_ACTION_DESTINATION
+
+        when (singleActionPhase) {
+            SinglePlayerActionPhase.WAIT_ROUND2 -> {
+                if (probe.round != 2 || probe.turnPhase != "PLAYER_INPUT" || !probe.playerPresentationReady ||
+                    probe.playback != PlaybackState.COMPLETE || probe.winConditionsOpen
+                ) return
+                val readyActor = actor ?: failSingleAction("visible living character 0 was not found at player input")
+                singlePlayerActionReachableTiles = probe.battle.reachableTiles(readyActor.id)
+                    .sortedWith(compareBy(RuntimeGridPoint::x, RuntimeGridPoint::y))
+                if (destination !in singlePlayerActionReachableTiles) {
+                    failSingleAction("character 0 cannot reach required destination (11,5)")
+                }
+                singleActorId = readyActor.id
+                singleActionPhase = SinglePlayerActionPhase.READY
+            }
+
+            SinglePlayerActionPhase.READY -> {
+                val readyActor = actor ?: failSingleAction("character 0 disappeared before selection")
+                if (readyActor.id != singleActorId) failSingleAction("character 0 runtime id changed before selection")
+                tapRequired(frame, "single-select-character-0", probe.battle.screenPoint(RuntimeGridPoint(readyActor.x, readyActor.y)))
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                singleActionPhase = SinglePlayerActionPhase.SELECT_SENT
+            }
+
+            SinglePlayerActionPhase.SELECT_SENT -> {
+                val selectedActor = actor ?: failSingleAction("character 0 disappeared after selection input")
+                if (probe.selectedUnitId != selectedActor.id) return
+                if (destination !in probe.battle.reachableTiles(selectedActor.id)) {
+                    failSingleAction("required destination (11,5) stopped being reachable after selection")
+                }
+                tapRequired(frame, "single-move-character-0-to-11-5", probe.battle.screenPoint(destination))
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                singleActionPhase = SinglePlayerActionPhase.MOVE_SENT
+            }
+
+            SinglePlayerActionPhase.MOVE_SENT -> {
+                if (!probe.battleCommandOpen) return
+                val movedActor = actor ?: failSingleAction("character 0 disappeared during movement")
+                if (movedActor.x != destination.x || movedActor.y != destination.y) {
+                    failSingleAction("CommandLayer opened before character 0 reached (11,5): (${movedActor.x},${movedActor.y})")
+                }
+                nextTapAt = frame.elapsed + COMMAND_OBSERVATION_SECONDS
+                singleActionPhase = SinglePlayerActionPhase.COMMAND_READY
+            }
+
+            SinglePlayerActionPhase.COMMAND_READY -> {
+                if (!probe.battleCommandOpen) failSingleAction("CommandLayer closed before ATTACK input")
+                tapRequired(
+                    frame,
+                    "single-open-attack-command",
+                    RuntimeGridPoint(probe.commandAttackScreenX, probe.commandAttackScreenY),
+                )
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+                singleActionPhase = SinglePlayerActionPhase.ATTACK_COMMAND_SENT
+            }
+
+            SinglePlayerActionPhase.ATTACK_COMMAND_SENT -> {
+                if (!probe.battleTargetSelectionOpen) return
+                val attackTarget = units.firstOrNull { it.visible && it.hitPoints > 0 && it.characterId == 484 }
+                    ?: failSingleAction("visible living target character 484 was not found")
+                if (attackTarget.x != 10 || attackTarget.y != 6) {
+                    failSingleAction("target character 484 is not at required tile (10,6): (${attackTarget.x},${attackTarget.y})")
+                }
+                singleTargetId = attackTarget.id
+                singlePlayerActionTargetHitPointsBefore = attackTarget.hitPoints
+                tapRequired(frame, "single-attack-character-484", probe.battle.screenPoint(RuntimeGridPoint(10, 6)))
+                nextTapAt = frame.elapsed + ACTION_INTERVAL
+                singleActionPhase = SinglePlayerActionPhase.TARGET_SENT
+            }
+
+            SinglePlayerActionPhase.TARGET_SENT -> {
+                val currentActor = units.firstOrNull { it.id == singleActorId }
+                    ?: failSingleAction("character 0 disappeared during attack settlement")
+                val currentTarget = units.firstOrNull { it.id == singleTargetId }
+                singlePlayerActionTargetHitPointsAfter = currentTarget?.hitPoints ?: 0
+                if (!currentActor.hasActed || probe.turnPhase != "PLAYER_INPUT" ||
+                    !probe.playerPresentationReady || probe.selectedUnitId != null ||
+                    probe.battleCommandOpen || probe.battleTargetSelectionOpen
+                ) return
+                singleActionPhase = SinglePlayerActionPhase.COMPLETE
+            }
+
+            SinglePlayerActionPhase.COMPLETE, SinglePlayerActionPhase.FAILED -> Unit
+        }
+    }
+
+    private fun tapRequired(frame: RuntimeBattleFrame, label: String, point: RuntimeGridPoint) {
+        if (!tap(frame, label, point.x, point.y)) failSingleAction("no InputProcessor was available for $label")
+    }
+
+    private fun failSingleAction(message: String): Nothing {
+        singlePlayerActionFailure = message
+        singleActionPhase = SinglePlayerActionPhase.FAILED
+        throw SinglePlayerActionFailure(message)
+    }
+
+    fun singlePlayerActionRequestedActionJson(): JsonValue = JsonValue(JsonValue.ValueType.`object`).apply {
+        addChild("actorCharacterId", JsonValue(0L))
+        addChild("destinationX", JsonValue(SINGLE_PLAYER_ACTION_DESTINATION.x.toLong()))
+        addChild("destinationY", JsonValue(SINGLE_PLAYER_ACTION_DESTINATION.y.toLong()))
+        addChild("command", JsonValue("ATTACK"))
+        addChild("targetCharacterId", JsonValue(484L))
+        addChild("targetX", JsonValue(10L))
+        addChild("targetY", JsonValue(6L))
+    }
+
+    fun singlePlayerActionReachableTilesJson(): JsonValue = JsonValue(JsonValue.ValueType.array).also { rows ->
+        singlePlayerActionReachableTiles.forEach { tile ->
+            rows.addChild(JsonValue(JsonValue.ValueType.`object`).apply {
+                addChild("x", JsonValue(tile.x.toLong()))
+                addChild("y", JsonValue(tile.y.toLong()))
+            })
+        }
+    }
+
     fun inputJournal(): JsonValue = journal
 
     private fun tapTile(
@@ -599,8 +791,8 @@ private class YingchuanWalkthroughDriver : RuntimeBattleDriver {
         tap(frame, label, point.x, point.y)
     }
 
-    private fun tap(frame: RuntimeBattleFrame, label: String, x: Int, y: Int) {
-        val processor = Gdx.input.inputProcessor ?: return
+    private fun tap(frame: RuntimeBattleFrame, label: String, x: Int, y: Int): Boolean {
+        val processor = Gdx.input.inputProcessor ?: return false
         lastAction = label
         if (journal.size < MAX_JOURNAL_ROWS) {
             journal.addChild(JsonValue(JsonValue.ValueType.`object`).apply {
@@ -612,6 +804,7 @@ private class YingchuanWalkthroughDriver : RuntimeBattleDriver {
         }
         processor.touchDown(x, y, 0, Input.Buttons.LEFT)
         processor.touchUp(x, y, 0, Input.Buttons.LEFT)
+        return true
     }
 
     private fun adjacentEnemy(
@@ -626,6 +819,8 @@ private class YingchuanWalkthroughDriver : RuntimeBattleDriver {
             (other == Faction.ENEMY || other == Faction.REINFORCEMENTS)
 
     private companion object {
+        val SINGLE_PLAYER_ACTION_DESTINATION = RuntimeGridPoint(11, 5)
+        const val COMMAND_OBSERVATION_SECONDS = .2f
         const val TAP_INTERVAL = .4f
         const val ACTION_INTERVAL = 1.5f
         const val MAX_JOURNAL_ROWS = 256

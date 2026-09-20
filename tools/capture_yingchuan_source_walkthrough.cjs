@@ -10,9 +10,9 @@ const sourceRoot = path.resolve(process.argv[2] || '../jojo_mobile/sgccz-desktop
 const outputRoot = path.resolve(process.argv[3] || 'build/reports/yingchuan-source-screens');
 const semanticMode = process.argv[5] || '';
 const maxWallMs = Number(process.argv[4] || 30000);
-const maxAllowedWallMs = semanticMode === 'round2-handoff' ? 150000 : semanticMode === 'first-round-end' ? 90000 : 60000;
+const maxAllowedWallMs = semanticMode === 'single-player-action' ? 180000 : semanticMode === 'round2-handoff' ? 150000 : semanticMode === 'first-round-end' ? 90000 : 60000;
 if (!Number.isInteger(maxWallMs) || maxWallMs < 10000 || maxWallMs > maxAllowedWallMs) throw new Error(`duration must be an integer from 10000 through ${maxAllowedWallMs} ms`);
-if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order', 'first-round-end', 'round2-handoff'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
+if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order', 'first-round-end', 'round2-handoff', 'single-player-action'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
 const port = 9400 + (process.pid % 200);
 const deadlineMs = maxWallMs + 15000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -69,6 +69,12 @@ async function poll(fn, label, expires) {
     await delay(100);
   }
   throw new Error(`${label} timed out${last ? `: ${last.message}` : ''}`);
+}
+
+async function cdpClick(client, point) {
+  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new Error(`invalid CDP click point ${JSON.stringify(point)}`);
+  await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: point.x, y: point.y, button: 'left', clickCount: 1 });
+  await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: point.x, y: point.y, button: 'left', clickCount: 1 });
 }
 
 const stateExpression = `(() => {
@@ -237,6 +243,48 @@ const stateExpression = `(() => {
       await childExit;if(!fs.existsSync(trace))throw Error('source first-round-end trace was not flushed');
       if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);return;}
       console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_OK ${captures.length}`);return;
+    }
+    if(semanticMode==='single-player-action'){
+      const observations=[], inputs=[], wanted=['driver-disabled','unit0-selected','destination-reachable','unit0-moved','attack-command','enemy484-selected','attack-resolved','post-action-terminal'];
+      const seen=new Set(); let failure=null;
+      async function evaluate(expression){const result=await client.send('Runtime.evaluate',{expression,returnByValue:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;}
+      async function snapshot(label){const state=(await evaluate(stateExpression));const image=await client.send('Page.captureScreenshot',{format:'png',fromSurface:true});const file=`source-${String(captures.length+1).padStart(2,'0')}-${label}.png`;fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({label,file,wallSeconds:(Date.now()-started)/1000,...state});return state;}
+      const manualState=`(() => {
+        const scene=cc.director.getScene();let battle=null,command=null,say=null,win=null,fight=null,menu=null,msgBox=null;const settlementLayers=[];
+        (function visit(n){if(!n)return;for(const c of n._components||[]){const k=cc.js.getClassName(c);if(k==='BattleLayer')battle=c;else if(k==='CommandLayer'&&n.activeInHierarchy)command=c;else if(k==='SayLayer'&&n.activeInHierarchy)say=c;else if((k==='WinConditionsLayer'||k==='WinConBoxLayer')&&n.activeInHierarchy)win=c;else if(k==='FightLayer'&&n.activeInHierarchy)fight=c;else if(k==='MenuLayer'&&n.activeInHierarchy)menu=c;else if(k==='MsgBox'&&n.activeInHierarchy)msgBox=c;else if((k==='MineUnitInfoLayer'||k==='OtherUnitInfoLayer')&&n.activeInHierarchy)settlementLayers.push(k);}n.children.forEach(visit)})(scene);
+        if(!battle)return {ready:false}; const unit=id=>Object.values(battle._unitSet||{}).find(u=>u&&u.unit&&u.unit().id()===id),u0=unit(0),u484=unit(484);
+        const canvas=cc.game.canvas,rect=canvas.getBoundingClientRect(),vp=cc.view._viewportRect||{x:0,y:0},toCss=w=>({x:rect.left+(vp.x+w.x*cc.view._scaleX)*rect.width/canvas.width,y:rect.top+(canvas.height-(vp.y+w.y*cc.view._scaleY))*rect.height/canvas.height});
+        const nodeGeometry=n=>{if(!n)return null;const center=n.convertToWorldSpaceAR(cc.v2((.5-n.anchorX)*n.width,(.5-n.anchorY)*n.height)),bl=n.convertToWorldSpaceAR(cc.v2(-n.anchorX*n.width,-n.anchorY*n.height)),tr=n.convertToWorldSpaceAR(cc.v2((1-n.anchorX)*n.width,(1-n.anchorY)*n.height));return {name:n.name,size:[n.width,n.height],anchor:[n.anchorX,n.anchorY],center:[center.x,center.y],bottomLeft:[bl.x,bl.y],topRight:[tr.x,tr.y],cssCenter:toCss(center)};};
+        const unitPoint=u=>u&&u.node?nodeGeometry(u.node).cssCenter:null;
+        const tp=battle.turnPos(11,5),tileWorld=battle.map.node.convertToWorldSpaceAR(tp),reachable=!!(battle.g_data&&battle.g_data.psHash&&Object.prototype.hasOwnProperty.call(battle.g_data.psHash,(11<<8)|5));
+        let commandButton=null;if(command&&command.seekCompByName){const b=command.seekCompByName(cc.Button,'bg/button0');if(b&&b.node&&b.node.activeInHierarchy&&b.interactable!==false)commandButton=b.node;}
+        const commandBg=command&&command.seekNodeByName&&command.seekNodeByName('bg');
+        const buttonPoint=commandButton?toCss(commandButton.convertToWorldSpaceAR(cc.v2(0,0))):null;
+        let msgText=null,msgCancel=null;if(msgBox&&msgBox.seekNodeByName){const label=msgBox.seekCompByName&&msgBox.seekCompByName(cc.Label,'bg0/label'),button=msgBox.seekCompByName&&msgBox.seekCompByName(cc.Button,'bg0/btns/button1');msgText=label&&label.string;if(button&&button.node&&button.node.activeInHierarchy&&button.interactable!==false)msgCancel=nodeGeometry(button.node);}
+        return {ready:true,frame:cc.director.getTotalFrames(),round:battle.round(),camp:battle.curCamp(),driverDisabled:!!globalThis.__jojoManualPlayerAction,driverSuppressed:globalThis.__jojoManualDriverSuppressed||0,ctrlWaiting:!!battle._ctrlHelper,menuPending:!!globalThis.__jojoManualMenuEmitWrapped,menu:!!menu,dialogue:!!say,dialogueText:say&&say._curLab&&say._curLab.string,win:!!win,fight:!!fight,settlementLayers,msgBox:!!msgBox,msgBoxText:msgText,msgBoxCancel:msgCancel,command:!!command,commandAttackInteractable:!!commandButton,commandGeometry:{root:command&&nodeGeometry(command.node),background:nodeGeometry(commandBg),attackButton:nodeGeometry(commandButton)},runtimeViewport:{inner:[innerWidth,innerHeight],devicePixelRatio,canvasPixels:[canvas.width,canvas.height],canvasRect:[rect.left,rect.top,rect.width,rect.height],visible:[cc.view.getVisibleSize().width,cc.view.getVisibleSize().height],viewport:[vp.x,vp.y,vp.width,vp.height],scale:[cc.view._scaleX,cc.view._scaleY]},reachable,reachableKeys:battle.g_data&&battle.g_data.psHash?Object.keys(battle.g_data.psHash).map(Number):[],selectedUnit:battle.g_data&&battle.g_data.unit&&battle.g_data.unit.unit?battle.g_data.unit.unit().id():null,unit0:u0&&{x:u0.x(),y:u0.y(),hp:u0.hp_cur(),action:u0.unit().action(),geometry:nodeGeometry(u0.node),point:unitPoint(u0)},enemy484:u484&&{x:u484.x(),y:u484.y(),hp:u484.hp_cur(),exists:u484.isExist(),visible:u484.visible(),geometry:nodeGeometry(u484.node),point:unitPoint(u484)},destination:{x:11,y:5,local:[tp.x,tp.y],world:[tileWorld.x,tileWorld.y],point:toCss(tileWorld)},commandPoint:buttonPoint,inputEvents:(globalThis.__jojoManualInputEvents||[]).slice()};
+      })()`;
+      async function current(){return evaluate(manualState);}
+      async function waitState(label,predicate,limit=12000){return poll(async()=>{const s=await current();observations.push({label,wallSeconds:(Date.now()-started)/1000,...s});return predicate(s)?s:null;},label,Date.now()+limit);}
+      async function click(label,point,before){inputs.push({label,requestedFrame:before.frame,wallSeconds:(Date.now()-started)/1000,point,before});await cdpClick(client,point);}
+      try{
+        await waitState('round2-script-before-player-handoff',s=>s.round===2&&s.camp===3&&s.unit0?.x===10&&s.unit0?.y===5&&s.enemy484?.x===10&&s.enemy484?.y===6,145000);
+        const installed=await evaluate(`(() => {let battle=null;(function v(n){if(!n)return;for(const c of n._components||[])if(cc.js.getClassName(c)==='BattleLayer')battle=c;n.children.forEach(v)})(cc.director.getScene());if(!battle||!battle._menu_button||!battle._menu_button.node)return {ok:false};globalThis.__jojoManualPlayerAction=true;globalThis.__jojoManualInputEvents=[];const node=battle._menu_button.node;if(!node.__jojoManualOriginalEmit){node.__jojoManualOriginalEmit=node.emit;node.emit=function(type,event,...rest){if(globalThis.__jojoManualPlayerAction&&type===cc.Node.EventType.TOUCH_END&&(!event||typeof event.getLocation!=='function')){globalThis.__jojoManualDriverSuppressed=(globalThis.__jojoManualDriverSuppressed||0)+1;return;}return node.__jojoManualOriginalEmit.call(this,type,event,...rest);};}globalThis.__jojoManualMenuEmitWrapped=true;if(!battle.__jojoManualDispatch){const original=battle.dispatchEvent;battle.dispatchEvent=function(name,data){if(name==='SELECT_UNIT_POINT')globalThis.__jojoManualInputEvents.push({frame:cc.director.getTotalFrames(),name,unitId:data&&data.unit&&data.unit.unit?data.unit.unit().id():null,pos:data&&data.pos?[data.pos.x,data.pos.y]:null});return original.apply(this,arguments);};battle.__jojoManualDispatch=true;}return {ok:true,frame:cc.director.getTotalFrames()};})()`);
+        if(!installed.ok)throw Error('could not install harness-only automatic-menu suppression');seen.add('driver-disabled');
+        let s=await waitState('manual-player-input-ready',x=>x.round===2&&x.camp===0&&x.ctrlWaiting&&!x.win&&!x.dialogue&&!x.menu&&x.unit0?.x===10&&x.unit0?.y===5&&x.enemy484?.x===10&&x.enemy484?.y===6,20000);await snapshot('manual-input-ready');
+        await click('select-unit-0',s.unit0.point,s);s=await waitState('unit0-selected',x=>x.selectedUnit===0&&x.ctrlWaiting,5000);seen.add('unit0-selected');
+        if(!s.reachable)throw Error(`declared destination 11,5 is not reachable: ${JSON.stringify(s.reachableKeys)}`);seen.add('destination-reachable');await snapshot('unit0-selected-reachable');
+        await click('select-destination-11-5',s.destination.point,s);s=await waitState('unit0-moved-command-open',x=>x.unit0?.x===11&&x.unit0?.y===5&&x.command&&x.commandAttackInteractable,12000);seen.add('unit0-moved');seen.add('attack-command');await snapshot('unit0-moved-command');
+        await click('select-attack-command',s.commandPoint,s);s=await waitState('attack-target-ready',x=>!x.command&&x.ctrlWaiting&&x.enemy484?.exists,5000);
+        await click('select-enemy-484',s.enemy484.point,s);seen.add('enemy484-selected');await snapshot('enemy484-selected');
+        s=await waitState('attack-damage-observed',x=>!x.enemy484?.exists||x.enemy484.hp<49,20000);
+        s=await waitState('attack-settlement-complete',x=>!x.fight&&x.settlementLayers.length===0&&(x.ctrlWaiting||x.msgBox),20000);seen.add('attack-resolved');
+        if(s.msgBox&&(s.msgBoxText!=='모든 부대의 명령을 종료하시겠습니까?'||!s.msgBoxCancel))throw Error(`unexpected post-action MsgBox: ${JSON.stringify({text:s.msgBoxText,cancel:s.msgBoxCancel})}`);
+        seen.add('post-action-terminal');await snapshot(s.msgBox?'end-round-confirm-terminal':'player-input-terminal');
+      }catch(error){failure=error.message;}
+      const missingCaptures=wanted.filter(name=>!seen.has(name));const finalState=await current().catch(()=>null);
+      fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-single-player-action-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap-with-cdp-pointer-input',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:!failure&&missingCaptures.length===0,failure,missingCaptures,requestedAction:{unitId:0,from:[10,5],destination:[11,5],command:'attack',targetId:484,target:[10,6]},automaticDriverHandoff:{mechanism:'harness-only rejection of full-trace synthetic menu_button node.emit; CDP touch events remain routed through Cocos input',installed:seen.has('driver-disabled'),suppressedCalls:finalState&&finalState.driverSuppressed},inputs,observations,finalState,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
+      await childExit;if(!fs.existsSync(trace))throw Error('source single-player-action trace was not flushed');
+      console.log(`${failure||missingCaptures.length?'SOURCE_YINGCHUAN_SINGLE_PLAYER_ACTION_PARTIAL':'SOURCE_YINGCHUAN_SINGLE_PLAYER_ACTION_OK'} ${captures.length}${failure?` failure=${failure}`:''}`);return;
     }
     if(semanticMode==='round2-handoff'){
       const wanted=['first-fire-13-5','second-fire-cluster','speaker157-dialogue','firestorm','enemy484-panic','reinforcements-shown','reinforcements-positioned','win-condition','post-win-condition-camp0'];
