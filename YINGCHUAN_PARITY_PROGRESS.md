@@ -611,3 +611,9 @@
 - 한계를 하드코딩 100에서 실제 값으로 바꾼 것이 막대 길이를 바꿀 위험이 있었다. `SettlementRow.max`는 라벨 텍스트에만 쓰이고 막대 비율은 `maxHitPoints`/`maxMagicPoints`와 성장 grant에서 오며, diff의 `progress`는 주석 한 줄뿐이다. WQ/HJ 행은 max를 출력하지 않는다.
 - 실제 재실행에서 OTHER 패널의 차이는 HP 숫자가 애니메이션 중 다른 시점에 잡힌 `119/119` 대 `116/119`뿐이고 막대 길이는 같다. OTHER 패널에는 label3/label4가 없어 애초에 영향 밖이다.
 - **`BattleScreen`의 그리기 변경은 커밋하지 않는다.** 진행 중인 정산 재작업과 같은 hunk에서 세 번 충돌해 분리하면 남의 미완성 변경을 함께 담게 된다. 이번 커밋에는 `SettlementInfoRenderContract`의 상수·도우미와 두 recorder, 그리고 테스트만 담는다.
+
+### 정산 패널 루트에서 색 비교가 실제로 켜졌다
+
+- `mine-unit-info`와 `other-unit-info` 두 루트가 모두 `RENDER_PARITY_ROUTE_OK`다. 통과가 비교한 결과인지 건너뛴 결과인지 행 단위로 확인했다.
+- `mine-unit-info`는 포트 30행 중 15행에 색이 실리고 그 **15행 전부가 원본에도 색이 있어 실제로 비교되어** 통과한다. `Canvas/Layer/bg/p0/label0,label1,label`, `p1/*`, `p2/*` 등 값 라벨들이 포트 `#ffffffff`, 원본 `#ffffff`로 정규화 후 일치한다. 나머지 15행은 스프라이트라 포트가 색을 싣지 않아 한쪽뿐이고 건너뛴다.
+- 색 비교가 무장된 화면은 이제 `battle-menu`(3행), `mine-unit-info`(15행), `other-unit-info`(10행)다. 이 라벨들의 색을 누가 바꾸면 캡처 없이 게이트가 실패한다.
