@@ -155,7 +155,16 @@ const stateExpression = `(() => {
         }
         await delay(8);
       }
-      throw new Error(`semantic state not observed: sawHit=${sawHit}; transitions=${JSON.stringify(transitions)}`);
+      // Only the failure path reaches here: the success path returns from inside the
+      // loop the moment it captures, and its timing is untouched. On failure the
+      // observation record is written, then the bounded driver is allowed to reach
+      // its own max-wall terminal and flush the frame trace, and only then is the
+      // incompleteness reported. No further input is sent.
+      const missingCaptures = ['unit235-anime32_3-final-frame-hold-before-action4'];
+      fs.writeFileSync(path.join(outputRoot, 'screens.json'), JSON.stringify({ contract: 'source-yingchuan-normal-clock-semantic-screen-v1', evidenceKind: 'actual-source-renderer-direct-battle-bootstrap', sourceRoot, scenario: 'S_00', timeScale: 1, maxWallMs, semanticMode, complete: false, missingCaptures, sawHit, transitions, bootstrap: { route: 'HallLayer.jumpScene(0)', seededBattleUnits: [0], normalDialogueInput: 'SayLayer Panel_cancel TOUCH_END', fixture: false, fullCampaignEntry: false }, captures }, null, 2) + '\n');
+      await childExit;
+      const tracePreserved = fs.existsSync(trace);
+      throw new Error(`semantic state not observed: ${JSON.stringify({sawHit,missingCaptures,tracePreserved,transitions})}`);
     }
     if (semanticMode === 'first-normal-combat') {
       const transitions = [], wanted = ['ally210-attack', 'enemy476-reaction', 'enemy476-counter-ally210-reaction', 'settlement'];
@@ -177,12 +186,16 @@ const stateExpression = `(() => {
         else if (seen.has(wanted[2]) && !seen.has(wanted[3]) && state.layers.some(x => /^(Mine|Other)UnitInfoLayer$/.test(x)) && !ally?.animation?.startsWith('anime32') && !enemy?.animation?.startsWith('anime25')) await captureSemantic(wanted[3], state);
         await delay(8);
       }
-      if (seen.size !== wanted.length) throw new Error(`combat semantic states incomplete: ${JSON.stringify({seen:[...seen],transitions})}`);
-      fs.writeFileSync(path.join(outputRoot, 'screens.json'), JSON.stringify({ contract: 'source-yingchuan-normal-clock-combat-screens-v1', evidenceKind: 'actual-source-renderer-direct-battle-bootstrap', sourceRoot, scenario: 'S_00', timeScale: 1, maxWallMs, semanticMode, transitions, bootstrap: { route: 'HallLayer.jumpScene(0)', seededBattleUnits: [0], normalDialogueInput: 'SayLayer Panel_cancel TOUCH_END', fixture: false, fullCampaignEntry: false }, captures }, null, 2) + '\n');
+      const missingCaptures = wanted.filter(name => !seen.has(name));
+      fs.writeFileSync(path.join(outputRoot, 'screens.json'), JSON.stringify({ contract: 'source-yingchuan-normal-clock-combat-screens-v1', evidenceKind: 'actual-source-renderer-direct-battle-bootstrap', sourceRoot, scenario: 'S_00', timeScale: 1, maxWallMs, semanticMode, complete: missingCaptures.length === 0, missingCaptures, transitions, bootstrap: { route: 'HallLayer.jumpScene(0)', seededBattleUnits: [0], normalDialogueInput: 'SayLayer Panel_cancel TOUCH_END', fixture: false, fullCampaignEntry: false }, captures }, null, 2) + '\n');
       // Let the bounded source driver reach its own max-wall terminal so it
-      // flushes the authoritative frame trace beside the semantic screens.
+      // flushes the authoritative frame trace beside the semantic screens. A failed
+      // run is the run whose trace is worth the most, so this happens before any
+      // incompleteness is reported; no further input is sent on the failure path.
       await childExit;
-      if (!fs.existsSync(trace)) throw new Error('source combat trace was not flushed');
+      const tracePreserved = fs.existsSync(trace);
+      if (missingCaptures.length) throw new Error(`combat semantic states incomplete: ${JSON.stringify({wanted,seen:[...seen],missingCaptures,tracePreserved,transitions})}`);
+      if (!tracePreserved) throw new Error('source combat trace was not flushed');
       console.log(`SOURCE_YINGCHUAN_COMBAT_SCREENS_OK ${captures.length}`); return;
     }
     if (semanticMode === 'next-normal-actions') {
@@ -203,9 +216,13 @@ const stateExpression = `(() => {
         else if(seen.has(wanted[6])&&!seen.has(wanted[7])&&a234?.animation==='anime9')await captureSemantic(wanted[7],state);
         await delay(8);
       }
-      if(seen.size!==wanted.length)throw Error(`next combat semantic states incomplete: ${JSON.stringify({seen:[...seen],transitions})}`);
-      fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-next-actions-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,transitions,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
-      await childExit;if(!fs.existsSync(trace))throw Error('source next-actions trace was not flushed');console.log(`SOURCE_YINGCHUAN_NEXT_ACTIONS_OK ${captures.length}`);return;
+      const missingCaptures=wanted.filter(name=>!seen.has(name));
+      fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-next-actions-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:missingCaptures.length===0,missingCaptures,transitions,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
+      // Failure path preserves evidence: the bounded driver reaches its own max-wall
+      // terminal and flushes the frame trace before any incompleteness is reported.
+      await childExit;const tracePreserved=fs.existsSync(trace);
+      if(missingCaptures.length)throw Error(`next combat semantic states incomplete: ${JSON.stringify({wanted,seen:[...seen],missingCaptures,tracePreserved,transitions})}`);
+      if(!tracePreserved)throw Error('source next-actions trace was not flushed');console.log(`SOURCE_YINGCHUAN_NEXT_ACTIONS_OK ${captures.length}`);return;
     }
     if (semanticMode === 'enemy-first-combat') {
       const wanted=['enemy474-move-start','enemy474-last-leg','enemy474-arrival-idle-dir1','enemy474-post-attack','ally234-defeated-visible','ally234-hidden'],seen=new Set(),transitions=[];let prior='';
@@ -235,7 +252,13 @@ const stateExpression = `(() => {
     if(semanticMode==='enemy-arrival-only'){
       let observed=null;
       while(Date.now()-started<Math.min(maxWallMs-1000,59000)){const evaluated=await client.send('Runtime.evaluate',{expression:stateExpression,returnByValue:true});if(evaluated.exceptionDetails)throw Error(JSON.stringify(evaluated.exceptionDetails));const state=evaluated.result.value,enemy=state.units.find(x=>x.id===474),ally=state.units.find(x=>x.id===234);if(enemy?.x===9&&enemy?.y===17&&enemy?.direction===1&&enemy?.action===0&&enemy?.animation==='anime0_1'&&ally?.exists===true){observed={wallSeconds:(Date.now()-started)/1000,...state};const image=await client.send('Page.captureScreenshot',{format:'png',fromSurface:true}),file='source-enemy474-arrival-idle-dir1.png';fs.writeFileSync(path.join(outputRoot,file),Buffer.from(image.data,'base64'));captures.push({...observed,file,semantic:'enemy474-arrival-idle-dir1-before-attack'});break;}await delay(4);}
-      if(!observed)throw Error('enemy474 pre-attack arrival was not observed');fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-enemy-arrival-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');await childExit;if(!fs.existsSync(trace))throw Error('source enemy-arrival trace was not flushed');console.log('SOURCE_YINGCHUAN_ENEMY_ARRIVAL_OK');return;
+      const missingCaptures=observed?[]:['enemy474-arrival-idle-dir1-before-attack'];
+      fs.writeFileSync(path.join(outputRoot,'screens.json'),JSON.stringify({contract:'source-yingchuan-normal-clock-enemy-arrival-v1',evidenceKind:'actual-source-renderer-direct-battle-bootstrap',sourceRoot,scenario:'S_00',timeScale:1,maxWallMs,semanticMode,complete:missingCaptures.length===0,missingCaptures,bootstrap:{route:'HallLayer.jumpScene(0)',seededBattleUnits:[0],normalDialogueInput:'SayLayer Panel_cancel TOUCH_END',fixture:false,fullCampaignEntry:false},captures},null,2)+'\n');
+      // Failure path preserves evidence: the observation record is written and the
+      // bounded driver reaches its own max-wall terminal before this mode reports.
+      await childExit;const tracePreserved=fs.existsSync(trace);
+      if(missingCaptures.length)throw Error(`enemy474 pre-attack arrival was not observed: ${JSON.stringify({missingCaptures,tracePreserved})}`);
+      if(!tracePreserved)throw Error('source enemy-arrival trace was not flushed');console.log('SOURCE_YINGCHUAN_ENEMY_ARRIVAL_OK');return;
     }
     if(semanticMode==='477-settlement-order'){
       const observedIdentities=new Set(),observations=[];let priorObservation='';
