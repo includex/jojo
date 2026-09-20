@@ -312,6 +312,11 @@ class FightPresentationStateTest {
                 assertEquals(PlaybackState.DELAY, runtime.state)
                 assertEquals("Attack2", trace.last { it.startsWith("resume:") }.substringAfterLast(':'))
                 authoredDelayTrace += "delay20:start"
+                // 테스트 근거: 원본 stage.delay(20)은 cc.Scheduler의 CallbackTimer이므로
+                // 등록 다음 update가 _elapsed -1 -> 0 prime 프레임이고 그 delta는 누적되지 않는다.
+                runtime.update(1f / 60f, autoCloseUi = false)
+                assertEquals(PlaybackState.DELAY, runtime.state)
+                authoredDelayTrace += "delay20:prime"
                 runtime.update(1.999f, autoCloseUi = false)
                 assertEquals(PlaybackState.DELAY, runtime.state)
                 assertTrue(runtime.stage.consumeFightCommands().isEmpty())
@@ -353,7 +358,7 @@ class FightPresentationStateTest {
         assertEquals(expected, begun)
         assertEquals(expected, completed)
         assertEquals(expected.dropLast(1), resumed)
-        assertEquals(listOf("delay20:start", "delay20:complete"), authoredDelayTrace)
+        assertEquals(listOf("delay20:start", "delay20:prime", "delay20:complete"), authoredDelayTrace)
         assertTrue(postEndAstObservedBeforeEndAck)
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
         assertEquals(Dialogue("135", "아, 화웅 장군이 패배했다!"), runtime.currentDialogue)

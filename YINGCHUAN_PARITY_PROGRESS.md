@@ -687,3 +687,18 @@
 - 앞서 `RenderEventLog`에 `color`를 넣으면서 `ScenarioStoryEvidenceRecorderTest`와 `ScenarioEquipConfirmationEvidenceRecorderTest`의 SHA-256 기대값을 갱신하지 않아 **HEAD가 빨간 상태였다.** 집중 테스트만 돌리고 커밋해서 놓쳤다.
 - `RenderEventLog`처럼 **여러 recorder가 공유하는 직렬화 계약**을 바꾸면 그 계약의 golden을 가진 모든 테스트가 영향을 받는다. 관련 범위를 스스로 좁게 판단하지 말고 최소한 해당 모듈의 테스트를 돌려야 한다.
 - 이번 커밋에서 세 golden을 모두 갱신해 초록으로 되돌렸다. 바이트가 바뀐 이유는 스키마에 `color`와 `outline`이 더해진 것뿐이며 각 테스트 파일에 그 사실을 주석으로 남겼다.
+
+## 선행 실패 하나를 찾아 고친다 — `FightPresentationStateTest`
+
+- 공유 직렬화 계약을 바꾸고 golden을 놓친 일을 계기로 `:core:test` 전체를 돌렸다. 1,148개 중 1개가 실패했다. `S01 actual AST duel stays FIFO through delay20 and continues past End automatically`가 `java.util.NoSuchElementException: ArrayDeque is empty`로 죽는다.
+- **이번 turn의 작업과 무관한 선행 실패다.** 현재 작업 트리, `HEAD`(작업 트리 stash 후), 그리고 이 세션이 시작한 `ece0d34`에서 모두 같은 실패가 난다.
+- **테스트가 틀렸고 프로덕션이 맞았다.** 깨뜨린 커밋은 `2a9156e` "fix: match source stage delay precision and timer priming"(이번 세션 시작 직전)이다. 그 커밋이 `stage.delay`를 단순 Float 카운트다운에서 Double 누적과 **prime frame**으로 바꿨는데, 옛 테스트가 이전 모델을 그대로 박아 두고 2.0초를 `1.999 + 0.002`로 소진하려 한다.
+- 원본 근거가 있다. `recovered-js/modules/ui/StageLayer.js:291`의 `delay(t)`는 `scheduleOnce(resume, .1 * t)`이므로 `delay(20)`은 2.0초이고, `cc.Scheduler`의 `CallbackTimer._elapsed`는 `-1`로 시작해 첫 `update`에 `0`이 되어 **그 프레임의 delta를 버린다.** 포트의 prime frame이 충실한 이식이며 `2a9156e`가 실제 원본 타이머를 감싼 fixture(`core/src/test/resources/parity/stage-delay-source.json`)로 도출했다.
+- 실패 지점은 테스트 자신의 `pending` 큐다. 대기 중 `consumeFightCommands()`가 비어 있는데 `removeFirst()`를 불러 터진다. 수정은 1/60초 prime frame 한 번을 넣고 그 사이 런타임이 `DELAY`로 남아 있음을 함께 단언하는 6줄이며, 그 결과 prime 의미 자체가 이 duel 경로에서도 고정된다.
+- `FightPresentationStateTest` 14개, `ScenarioRuntimeTest` 158개, `StageDelaySourceFixtureTest` 1개가 통과한다. 테스트 파일 하나만 바뀌어 진행 중인 작업과 얽히지 않는다.
+
+### 새 유형 — "빨간데 아무도 안 봄"
+
+- 이 저장소에서 반복해 나온 형태가 지금까지 셋이었다. 존재하는데 호출되지 않는 구현(`mapSnapshot`, 고아 스크립트 둘), 돌지만 아무것도 보지 않는 게이트(색을 표현 못 하던 `battle-menu`, 손으로 적은 표), 데이터가 죽여 놓은 분기(원본 `checkCanSiege`).
+- 이번 것은 네 번째다. **실패하는데 아무도 보지 않는 테스트**가 세션 시작 전부터 빨간 채로 있었다. 앞의 셋이 "통과하는데 의미 없음"이라면 이건 "실패하는데 안 보임"이고, **집중 테스트만 돌리는 습관이 양쪽을 다 만든다.**
+- 나 자신도 같은 습관으로 `RenderEventLog`에 `color`를 넣으며 golden 둘을 깨뜨리고 모른 채 커밋했다. 공유 계약을 바꿀 때는 해당 모듈 전체를 돌린다.
