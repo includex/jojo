@@ -12,6 +12,11 @@ internal class BattleAutoBattleRouteFixtureController {
     /** 경로 설치: 메뉴의 자동 전투 항목을 누른 뒤 경로에 필요한 토글과 확인 입력만 순서대로 전달한다. */
     fun install(route: RuntimeBattleRoute?, commands: Commands): Boolean {
         if (route !in SUPPORTED_ROUTES || installed) return false
+        // 원본 하네스도 확인 뒤 `TuoGuanLayer`가 뜰 때까지 최대 3초를 기다린다. 확인 자체는
+        // `_ctrlHelper`가 있을 때 — 아군 조작 구간에서만 받아들여지므로, 위임 경로는 전투가
+        // 그 구간에 들어갈 때까지 기다렸다 누른다. 확인창만 띄우는 두 경로는 원본이
+        // END_ROUND를 조건 없이 받으므로 기다리지 않는다.
+        if (route == RuntimeBattleRoute.AUTO_ACTIVE && !commands.readyForEndRound()) return false
         commands.openBattleMenu()
         commands.tapAutoBattleMenu()
         check(commands.view().overlay == AutoBattleFlow.Overlay.PROMPT) {
@@ -51,6 +56,9 @@ internal class BattleAutoBattleRouteFixtureController {
 
         /** 확인 입력: 위임 진행 경로에서 확인 버튼을 눌러 실제 자동 전투 상태를 시작한다. */
         fun confirmPrompt()
+
+        /** 조작 구간 여부: 전투가 지금 턴 종료 요청을 받아들이는지 본다. */
+        fun readyForEndRound(): Boolean
 
     }
 

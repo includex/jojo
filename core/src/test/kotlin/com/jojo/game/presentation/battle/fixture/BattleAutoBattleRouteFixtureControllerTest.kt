@@ -86,5 +86,11 @@ class BattleAutoBattleRouteFixtureControllerTest {
             calls += "confirm"
             flow.answer(0, AutoBattleFlow.TOUCH_END)
         }
+
+        /**
+         * 조작 구간 여부: 실제 화면에서는 `turnController.canEndPlayerTurn()`이다.
+         * 시험에서는 늘 받아들이는 전투를 가정한다 — 이 시험의 관심은 입력 순서다.
+         */
+        override fun readyForEndRound(): Boolean = true
     }
 }

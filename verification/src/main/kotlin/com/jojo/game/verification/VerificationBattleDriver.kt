@@ -1,7 +1,10 @@
 // Verification
 package com.jojo.game.verification
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.jojo.game.application.runtime.BattleRuntimeScreenProbe
+import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.application.runtime.RuntimeBattleDriver
 import com.jojo.game.application.runtime.RuntimeBattleCommand
 import com.jojo.game.application.runtime.RuntimeBattleFrame
@@ -14,13 +17,52 @@ internal class VerificationBattleDriver(private val state: String?) : RuntimeBat
     /** endTurnIssued: 검증 대상의 현재 상태 값을 담는다. */
     private var endTurnIssued = false
 
+    /** 다음 대사 넘김 탭을 넣을 수 있는 가장 이른 시각이다. 한 프레임에 여러 번 누르지 않게 막는다. */
+    private var nextTapAt = Float.NEGATIVE_INFINITY
+
     /** commands: 검증 입력을 처리하고 관련 상태를 갱신한다. */
     override fun commands(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe): List<RuntimeBattleCommand> {
+        if (state in PLAYER_CONTROL_STATES) advanceOpeningDialogue(frame, probe)
         if (state == "enemy-turn" && !endTurnIssued && probe.turnPhase == "PLAYER_INPUT" && probe.outcome == null) {
             endTurnIssued = true
             return listOf(RuntimeBattleCommand.EndTurn)
         }
         return emptyList()
+    }
+
+    /**
+     * 여는 대사 넘기기: 전투 각본의 대사는 플레이어가 눌러야 넘어간다. 아무도 넘기지 않으면
+     * 대본이 대사 하나에서 멈춰 전투가 아군 조작 구간에 **영원히 들어가지 않는다**.
+     *
+     * 위임 진행 화면은 원본에서도 `_ctrlHelper`가 있을 때 — 곧 조작 구간에서만 확인을 받는다.
+     * 원본 하네스도 확인 뒤 `TuoGuanLayer`가 뜰 때까지 최대 3초를 기다린다. 포트 쪽은
+     * 대사를 넘겨 줄 주체가 없어 그 지점에 닿지 못했고, 그래서 이 픽스처는 확인창이 남은
+     * 화면을 위임 배너라고 적고 있었다. `FullBattleTraceDriver`가 쓰는 것과 같은 방식이다.
+     */
+    private fun advanceOpeningDialogue(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe) {
+        if (probe.outcome != null || frame.elapsed < nextTapAt) return
+        if (probe.playback != PlaybackState.DIALOGUE && !probe.winConditionsOpen) return
+        val (x, y) = if (probe.playback == PlaybackState.DIALOGUE) {
+            probe.battleMenuButtonScreenX to probe.battleMenuButtonScreenY + DIALOGUE_TAP_OFFSET_Y
+        } else {
+            probe.winConditionButtonScreenX to probe.winConditionButtonScreenY
+        }
+        Gdx.input.inputProcessor?.let {
+            it.touchDown(x, y, 0, Input.Buttons.LEFT)
+            it.touchUp(x, y, 0, Input.Buttons.LEFT)
+        }
+        nextTapAt = frame.elapsed + DIALOGUE_INTERVAL_SECONDS
+    }
+
+    private companion object {
+        /** 아군 조작 구간에 실제로 들어가야 찍을 수 있는 캡처 상태들이다. */
+        val PLAYER_CONTROL_STATES = setOf("battle-auto-battle-active-fixture")
+
+        /** 대사 넘김 간격이다. `FullBattleTraceDriver`와 같은 값을 쓴다. */
+        const val DIALOGUE_INTERVAL_SECONDS = .35f
+
+        /** 대사 넘김 탭이 전투 메뉴 버튼과 겹치지 않도록 아래로 내리는 화면 오프셋이다. */
+        const val DIALOGUE_TAP_OFFSET_Y = 200
     }
 }
 

@@ -10203,6 +10203,13 @@ void main() {
                 override fun confirmPrompt() {
                     this@BattleScreen.answerAutoBattle(0)
                 }
+
+                /**
+                 * `readyForEndRound`: 전투가 지금 턴 종료 요청을 받아들이는지 본다.
+                 * `answerAutoBattle`이 확인을 떨어뜨리는 것과 같은 조건이다.
+                 */
+
+                override fun readyForEndRound(): Boolean = turnController.canEndPlayerTurn()
             },
         )
     }
