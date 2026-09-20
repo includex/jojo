@@ -104,6 +104,14 @@ internal class AiPresentationState {
 
     val hasActiveCamp: Boolean get() = activeCamp != null
 
+    /** Number of actor presentations that reached the post-settlement completion boundary. */
+    var completedActionCount: Long = 0L
+        private set
+
+    /** Actor completed at [completedActionCount], or null before the first completed action. */
+    var lastCompletedActorId: String? = null
+        private set
+
     /** 진영의 AI 턴을 초기화합니다. */
     fun beginCamp(camp: Faction) {
         activeCamp = camp
@@ -146,6 +154,12 @@ internal class AiPresentationState {
         actionCommitted = false
         playerMoveScriptStarted = false
         stage = AiPresentationStage.COMPLETE
+    }
+
+    /** Records one actor after its per-actor state and post-action callbacks have been cleared. */
+    fun recordCompletedActor(actorId: String) {
+        completedActionCount += 1L
+        lastCompletedActorId = actorId
     }
 
     /** 진영 AI 턴을 종료하고 잔여 상태를 비웁니다. */

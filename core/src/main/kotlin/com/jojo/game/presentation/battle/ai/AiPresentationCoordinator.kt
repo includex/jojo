@@ -64,6 +64,12 @@ internal class AiPresentationCoordinator(
 
     internal val playerMoveScriptStarted: Boolean get() = state.playerMoveScriptStarted
 
+    /** Monotonic count of actor actions whose settlement/death/script presentation fully completed. */
+    internal val completedActionCount: Long get() = state.completedActionCount
+
+    /** Actor id associated with [completedActionCount]. */
+    internal val lastCompletedActorId: String? get() = state.lastCompletedActorId
+
     /** Port: 전투 표현 계층이 외부 기능과 연결할 때 사용하는 계약이다. */
     internal interface Port {
         /**
@@ -432,8 +438,10 @@ internal class AiPresentationCoordinator(
                         state.unitDeathScriptPass = 2
                         if (port.runScript() != PlaybackState.COMPLETE) return
                     }
+                    val completedActorId = resolution.actorId
                     state.clearActor()
                     port.finishDeathCallbacks()
+                    state.recordCompletedActor(completedActorId)
                     if (noResult) port.markNoResultCompleted()
                 }
             }

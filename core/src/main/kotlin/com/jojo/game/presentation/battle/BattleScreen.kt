@@ -5608,6 +5608,14 @@ void main() {
                 playerPresentationReady = scriptRuntime.state == PlaybackState.COMPLETE &&
                     !combatPresentationBusy() && !outcomeCallbacksPending(),
                 commandAttack = projectWorldPointAt(attackCommandCenter.first, attackCommandCenter.second),
+                aiCompletedActionCount = aiPresentation.completedActionCount,
+                aiLastCompletedActorId = aiPresentation.lastCompletedActorId,
+                dialogueSpeakerId = scriptRuntime.currentDialogue?.speakerId,
+                dialogueText = scriptRuntime.currentDialogue?.text,
+                dialogueVisibleText = dialogueReveal.visibleText,
+                dialogueTextComplete = dialogueReveal.isComplete,
+                activeActionActorId = actionAnimation?.takeIf { animationClock() < it.endsAt }?.unitId,
+                activeActionSourceAction = actionAnimation?.takeIf { animationClock() < it.endsAt }?.sourceAction,
             ),
             object : BattleRuntimeProbePort {
                 /**

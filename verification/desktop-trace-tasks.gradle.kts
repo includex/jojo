@@ -558,7 +558,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
             value.also {
                 require(it in setOf(
                     "semantic-walkthrough", "first-normal-combat", "next-normal-actions", "enemy-first-combat", "enemy-settlement",
-                    "first-round-end", "round2-handoff", "single-player-action",
+                    "first-round-end", "round2-handoff", "single-player-action", "round2-followup", "round2-first-combat",
                 )) {
                     "unknown captureMode: $it"
                 }
@@ -575,9 +575,9 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
     val destination = layout.buildDirectory.dir("verification/yingchuan-walkthrough")
     doFirst {
-        if (captureMode.get() == "single-player-action") {
+        if (captureMode.get() in setOf("single-player-action", "round2-followup", "round2-first-combat")) {
             require(maxSimulationSeconds.get() == 180 && timeScale.get() == 1) {
-                "single-player-action requires maxSimSeconds=180 and timeScale=1"
+                "${captureMode.get()} requires maxSimSeconds=180 and timeScale=1"
             }
         }
         delete(destination)
@@ -603,6 +603,17 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
             val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
             check(Regex(""""singlePlayerActionComplete"\s*:\s*true""").containsMatchIn(manifest)) {
                 "single player action did not complete; inspect preserved walkthrough manifest"
+            }
+        }
+        if (captureMode.get() in setOf("round2-followup", "round2-first-combat")) {
+            val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
+            check(Regex(""""round2FollowupComplete"\s*:\s*true""").containsMatchIn(manifest)) {
+                "round2 follow-up did not reach its observed terminal; inspect preserved walkthrough manifest"
+            }
+            if (captureMode.get() == "round2-first-combat") {
+                check(Regex(""""round2FirstCombatCriticalDialogueCloseSent"\s*:\s*true""").containsMatchIn(manifest)) {
+                    "round2 first-combat did not send the required critical-dialogue close input"
+                }
             }
         }
     }

@@ -42,6 +42,14 @@ internal data class BattleRuntimeScreenProbeInput(
     val selectedUnitId: String?,
     val playerPresentationReady: Boolean = false,
     val commandAttack: Pair<Int, Int> = 0 to 0,
+    val aiCompletedActionCount: Long = 0L,
+    val aiLastCompletedActorId: String? = null,
+    val dialogueSpeakerId: String? = null,
+    val dialogueText: String? = null,
+    val dialogueVisibleText: String = "",
+    val dialogueTextComplete: Boolean = false,
+    val activeActionActorId: String? = null,
+    val activeActionSourceAction: Int? = null,
 )
 
 /** 전투 화면 probe 투영기: 화면 전용 상태를 자동 전투 검증기의 불변 조회 계약으로 변환한다. */
@@ -90,6 +98,14 @@ internal object BattleRuntimeScreenProbeProjector {
         playerPresentationReady = input.playerPresentationReady,
         commandAttackScreenX = input.commandAttack.first,
         commandAttackScreenY = input.commandAttack.second,
+        aiCompletedActionCount = input.aiCompletedActionCount,
+        aiLastCompletedActorId = input.aiLastCompletedActorId,
+        dialogueSpeakerId = input.dialogueSpeakerId,
+        dialogueText = input.dialogueText,
+        dialogueVisibleText = input.dialogueVisibleText,
+        dialogueTextComplete = input.dialogueTextComplete,
+        activeActionActorId = input.activeActionActorId,
+        activeActionSourceAction = input.activeActionSourceAction,
         battle = battle,
     )
 }

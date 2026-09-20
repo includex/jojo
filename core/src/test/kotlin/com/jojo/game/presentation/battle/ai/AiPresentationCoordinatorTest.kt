@@ -40,6 +40,8 @@ class AiPresentationCoordinatorTest {
         coordinator.drive()
 
         assertEquals(listOf("commit", "run-script", "death", "summary", "complete"), events.takeLast(5))
+        assertEquals(1L, coordinator.completedActionCount)
+        assertEquals("enemy", coordinator.lastCompletedActorId)
         assertEquals(false, coordinator.hasActiveCamp)
     }
 

@@ -169,6 +169,18 @@ data class BattleRuntimeScreenProbe(
     /** 현재 CommandLayer의 실제 ATTACK 버튼 중심 화면 좌표다. */
     val commandAttackScreenX: Int = 0,
     val commandAttackScreenY: Int = 0,
+    /** Monotonic AI-presentation action completion counter. */
+    val aiCompletedActionCount: Long = 0L,
+    /** Actor id associated with [aiCompletedActionCount]. */
+    val aiLastCompletedActorId: String? = null,
+    /** Active battle dialogue identity and source/reveal state. */
+    val dialogueSpeakerId: String? = null,
+    val dialogueText: String? = null,
+    val dialogueVisibleText: String = "",
+    val dialogueTextComplete: Boolean = false,
+    /** Currently active BattleUnit action clip, if any. */
+    val activeActionActorId: String? = null,
+    val activeActionSourceAction: Int? = null,
     val battle: BattleRuntimeProbe,
 ) : RuntimeScreenProbe {
     /**
