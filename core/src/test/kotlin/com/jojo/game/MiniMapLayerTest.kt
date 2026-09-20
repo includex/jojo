@@ -59,4 +59,33 @@ class MiniMapLayerTest {
         assertTrue(shown[21].contains("\"opacity\":0.498"))
         assertTrue(hidden.all { "Canvas/Layer/bg/btn/Background" in it })
     }
+
+    /**
+     * 색 기록 유지: 미니맵의 모든 행이 색을 적고, 그 값은 흰색뿐이다.
+     *
+     * 원본 `MiniMapLayer` 프리팹의 어느 노드에도 `_color`가 없고 포트도
+     * `BattleGridMapSurfaceRenderer.drawMiniMap`에서 알파만 낮출 뿐 RGB는 흰색으로 둔다.
+     * `null`을 남기면 비교가 그 행을 조용히 건너뛰고, 다른 색이 생기면 근거 없는 값이다.
+     */
+    @Test
+    fun `mini map rows all record untinted white`() {
+        listOf(true, false).forEach { shown ->
+            val rows = MiniMapRenderEvents.jsonl(shown).lineSequence().filter(String::isNotBlank).toList()
+            assertTrue(rows.isNotEmpty(), "shown=$shown recorded no rows")
+            rows.forEach { row ->
+                val colour = Regex("\"color\":(\"[^\"]*\"|null)").find(row)?.groupValues?.get(1)?.trim('"')
+                    ?: error("row has no color field: $row")
+                assertEquals("#ffffff", colour, row)
+            }
+        }
+    }
+
+    /** 투명도 분리: 168/255·127/255로 낮춘 두 행도 색에는 알파를 섞지 않는다. */
+    @Test
+    fun `dimmed mini map rows keep opacity out of the colour string`() {
+        val shown = MiniMapRenderEvents.jsonl(shown = true).lineSequence().filter(String::isNotBlank).toList()
+
+        assertTrue(shown[1].contains("\"opacity\":0.659") && shown[1].contains("\"color\":\"#ffffff\""), shown[1])
+        assertTrue(shown[21].contains("\"opacity\":0.498") && shown[21].contains("\"color\":\"#ffffff\""), shown[21])
+    }
 }

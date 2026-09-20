@@ -254,6 +254,18 @@ class MiniMapLayer(private val setting: Int, private val callback: () -> Unit = 
 
 object MiniMapRenderEvents {
     /**
+     * 미니맵 노드 색: 원본 `MiniMapLayer` 프리팹
+     * (`assets/resources/import/1e/1e1e9ef6-9835-40c9-8076-26af80ae38a6.6c573.json`)의
+     * `bg`·`bg/map`·`bg/map/tiled`·`bg/weather`·`bg/box`·`bg/btn/Background`·`.../tool11`
+     * 어느 노드에도 `_color`가 없어 모두 엔진 기본 흰색이다. `bg/map` `_opacity` 168,
+     * `bg/weather` `_opacity` 127만 다르고 이는 `opacity` 항목이 따로 나른다.
+     * `bg/btn`의 `cc.Button`은 `_N$normalColor` (214,214,214)를 갖지만 `_N$transition`이 없어
+     * (=NONE) 노드 색에 반영되지 않는다. 포트도 `BattleGridMapSurfaceRenderer.drawMiniMap`에서
+     * RGB는 흰색으로 두고 알파만 168/255·127/255로 낮춰 그린다.
+     */
+    private const val NODE_WHITE = "#ffffff"
+
+    /**
      * `MarkerDraw`: 관련 상태와 동작을 묶는 class다.
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
      */
@@ -295,7 +307,7 @@ object MiniMapRenderEvents {
             path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String, opacity: Float = 1f
         ) =
-            log.draw(phase, "MiniMapLayer", path, type, x, y, w, h, asset, opacity)
+            log.draw(phase, "MiniMapLayer", path, type, x, y, w, h, asset, opacity, color = NODE_WHITE)
         if (shown) {
             draw("Canvas/Layer/bg", "sliced-sprite", 1244.372f, 556f, 244f, 244f, "box5")
             draw("Canvas/Layer/bg/map", "sprite", 1246.372f, 558f, 240f, 240f, "Smlmap_1-1", 168f / 255f)

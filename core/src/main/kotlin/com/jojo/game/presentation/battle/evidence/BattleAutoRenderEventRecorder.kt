@@ -42,7 +42,10 @@ internal object BattleAutoRenderEventRecorder {
         draw("MsgBox4", "Canvas/Layer/bg0", "tiled-sprite", 426.686f, 252f, 635f, 296f, "Logo_9-1")
         draw("MsgBox4", "Canvas/Layer/bg0/box3", "sliced-sprite", 426.686f, 252f, 635f, 296f, "box3")
         draw("MsgBox4", "Canvas/Layer/bg0/Logo_3-1", "sprite", 453.005f, 373.951f, 106f, 124f, "Logo_3-1")
-        draw("MsgBox4", "Canvas/Layer/bg0/label", "label", 573.686f, 335f, 463f, 190f, text = "모든 부대의 명령을 종료하시겠습니까?")
+        draw(
+            "MsgBox4", "Canvas/Layer/bg0/label", "label", 573.686f, 335f, 463f, 190f,
+            text = "모든 부대의 명령을 종료하시겠습니까?", color = MESSAGE_BROWN,
+        )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/Background", "sprite", 518.416f, 281.197f, 28f, 28f, "default_toggle_normal")
         if (checked) {
             draw(
@@ -50,12 +53,44 @@ internal object BattleAutoRenderEventRecorder {
                 "assets/resources/native/73/73a0903d-d80e-4e3c-aa67-f999543c08f5.7661e.png#default_toggle_checkmark",
             )
         }
-        draw("MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/label", "label", 567.257f, 267.997f, 73.2f, 54.4f, text = "위임")
+        draw(
+            "MsgBox4", "Canvas/Layer/bg0/btns/tuoguan/label", "label", 567.257f, 267.997f, 73.2f, 54.4f,
+            text = "위임", color = TOGGLE_BLUE,
+        )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/button1/Background", "sliced-sprite", 674.536f, 270.197f, 150f, 50f, "box3")
-        draw("MsgBox4", "Canvas/Layer/bg0/btns/button1/Background/Label", "label", 699.536f, 278.042f, 100f, 40f, text = "비")
+        draw(
+            "MsgBox4", "Canvas/Layer/bg0/btns/button1/Background/Label", "label", 699.536f, 278.042f, 100f, 40f,
+            text = "비", color = NO_RED,
+        )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/button0/Background", "sliced-sprite", 844.536f, 270.197f, 150f, 50f, "box3")
-        draw("MsgBox4", "Canvas/Layer/bg0/btns/button0/Background/Label", "label", 869.536f, 278.042f, 100f, 40f, text = "예")
+        draw(
+            "MsgBox4", "Canvas/Layer/bg0/btns/button0/Background/Label", "label", 869.536f, 278.042f, 100f, 40f,
+            text = "예", color = YES_GREEN,
+        )
     }
+
+    /**
+     * 본문 문구 색: 원본 `MsgBox4` 프리팹 `Layer/bg0/label` 노드의 `_color` 4278215059 = (147,97,0).
+     * 포트는 같은 값을 `BattleScreen.kt`의 `msgBoxMessageFont` `fillColor`에 구워 넣는다.
+     * (프리팹 `assets/resources/import/9b/9bdd4d86-fa7e-40b4-9b40-889f799473d3.e1ded.json`)
+     */
+    internal const val MESSAGE_BROWN = "#936100"
+
+    /** 위임 문구 색: 같은 프리팹 `btns/tuoguan/label` `_color` 4294903040 = (0,5,255). */
+    internal const val TOGGLE_BLUE = "#0005ff"
+
+    /** 「비」 문구 색: 같은 프리팹 `btns/button1/Background/Label` `_color` 4278190332 = (252,0,0). */
+    internal const val NO_RED = "#fc0000"
+
+    /** 「예」 문구 색: 같은 프리팹 `btns/button0/Background/Label` `_color` 4278218242 = (2,110,0). */
+    internal const val YES_GREEN = "#026e00"
+
+    /**
+     * 기본 노드 색: 위 프리팹과 `TuoGuanLayer`(4d576540-8ba3-4316-81bd-31f59cefc477)의
+     * 스프라이트 노드에는 `_color`가 없어 엔진 기본 흰색이고, 포트도 `batch.color = Color.WHITE`로
+     * 그대로 그린다(`BattleAutoOverlayRenderer.draw`). 투명도만 다른 노드는 `opacity`가 따로 나른다.
+     */
+    internal const val NODE_WHITE = "#ffffff"
 
     /** 위임 배너: 자동 진행 중인 전장의 배경과 상단 상태 배너를 기록한다. */
     private fun appendTuoGuan(draw: BattleAutoEventAppender) {
@@ -84,6 +119,9 @@ private class BattleAutoEventAppender(private val log: RenderEventLog, private v
         height: Float,
         asset: String? = null,
         text: String = "",
+        // 색은 노드 색만 적는다. 원본 하네스는 `node.color`의 RGB 세 채널만 내보내므로
+        // 투명도를 섞으면 무조건 어긋난다. 투명도는 `opacity`가 따로 나른다.
+        color: String = BattleAutoRenderEventRecorder.NODE_WHITE,
     ) = log.draw(
         phase,
         layer,
@@ -96,5 +134,6 @@ private class BattleAutoEventAppender(private val log: RenderEventLog, private v
         asset,
         blend = if (type == "label") listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA") else listOf(770, 771),
         text = text,
+        color = color,
     )
 }

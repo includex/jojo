@@ -52,6 +52,72 @@ class BattleRoundRenderEventRecorderTest {
         )
     }
 
+    /**
+     * 색 기록 유지: 세 경로의 모든 행이 색을 적고, 근거가 있는 네 값만 쓴다.
+     *
+     * 하네스는 행마다 `node.color`를 내보내므로 `null`을 남기는 행은 비교에서 조용히 빠진다.
+     */
+    @Test
+    fun `every recorded row carries one of the authored round colours`() {
+        val authored = setOf("#ffffff", "#000000", "#ff0000", "#837f7f")
+        listOf(
+            RuntimeBattleRoute.ROUND_NORMAL to RoundLayer.View(true, false, "제3턴"),
+            RuntimeBattleRoute.ROUND_FINAL to RoundLayer.View(true, false, "최종 턴"),
+            RuntimeBattleRoute.ROUND_ENEMY to RoundLayer.View(false, true, ""),
+        ).forEach { (route, view) ->
+            val colours = rows(BattleRoundRenderEventInput(route, view)).map(::colourOf)
+            assertTrue(colours.isNotEmpty(), "$route recorded no rows")
+            assertTrue(
+                colours.none { it == "null" },
+                "$route left a row without colour; the comparison would skip it",
+            )
+            assertEquals(
+                emptySet(), colours.toSet() - authored,
+                "$route invented a colour with no RoundLayer node behind it",
+            )
+        }
+    }
+
+    /**
+     * 그림자 라벨: `label02`/`label22`만 빨강이고 앞 글자는 흰색이다. 턴 수 그림자 `label12`는
+     * 포트가 실제로 그리는 (255,128,128)을 적는다. 원본 프리팹 값은 (131,127,127)이라
+     * 이 행은 색 비교에서 어긋나며, 그것이 기록해 두려는 결함이다.
+     */
+    @Test
+    fun `round banner records the shadow colours the port actually draws`() {
+        val rows = rows(
+            BattleRoundRenderEventInput(
+                RuntimeBattleRoute.ROUND_NORMAL,
+                RoundLayer.View(roundLabelsVisible = true, campLabelsVisible = false, roundText = "제3턴"),
+            ),
+        )
+
+        assertEquals("#ff0000", colourOf(rows.single { it.contains("label02") }))
+        assertEquals("#ffffff", colourOf(rows.single { it.contains("label01") }))
+        // 원본 프리팹 `label12`의 `_color` 4286545795 = (131,127,127). 단계 그림자만 빨강이다.
+        assertEquals("#837f7f", colourOf(rows.single { it.contains("label12") }))
+        assertEquals("#ffffff", colourOf(rows.single { it.contains("label11") }))
+    }
+
+    /** 흐림막: 원본 Panel_cancel 노드는 검정이고 투명도만 다르다. 색에 투명도를 섞지 않는다. */
+    @Test
+    fun `dismiss panel records black without folding opacity into colour`() {
+        val row = rows(
+            BattleRoundRenderEventInput(
+                RuntimeBattleRoute.ROUND_ENEMY,
+                RoundLayer.View(roundLabelsVisible = false, campLabelsVisible = true, roundText = ""),
+            ),
+        ).single { it.contains("Panel_cancel") }
+
+        assertEquals("#000000", colourOf(row))
+        assertTrue(row.contains("\"opacity\":0.314"), row)
+    }
+
+    /** 색 추출: 한 행의 `color` 값을 문자열로 돌려준다. */
+    private fun colourOf(row: String): String =
+        Regex("\"color\":(\"[^\"]*\"|null)").find(row)?.groupValues?.get(1)?.trim('"')
+            ?: error("row has no color field: $row")
+
     /** 행 분해: JSONL의 빈 줄을 제외한 렌더 이벤트 목록을 반환한다. */
     private fun rows(input: BattleRoundRenderEventInput): List<String> =
         BattleRoundRenderEventRecorder.jsonl(input).lineSequence().filter(String::isNotBlank).toList()

@@ -195,6 +195,9 @@ class BattleScreen(
         40, "예", borderWidth = 2f, borderColor = Color(121f / 255f, 214f / 255f, 78f / 255f, 1f), fillColor = Color(10f / 255f, 105f / 255f, 0f, 1f),
     )
 
+    /** 원본 RoundLayer 프리팹의 `label12` 턴 수 그림자 색 4286545795 = (131,127,127). */
+    private val ROUND_TURN_SHADOW = com.badlogic.gdx.graphics.Color.valueOf("#837f7fff")
+
     /**
      * `sectionTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -10702,7 +10705,10 @@ void main() {
              */
 
             val x = if (layer.view.roundText == "최종 턴") 578.613f else 613.813f
-            text(layer.view.roundText, x, 247.7f, width, Color(1f, .5f, .5f, 1f))
+            // 원본 프리팹 `Battle/scene/RoundLayer`(import/5d/5ddb08c6-…44132.json)의 `label12`
+            // `_color`는 4286545795 = (131,127,127)이다. 단계 그림자(`label02`/`label22`)만
+            // 빨강이고 턴 수 그림자는 따뜻한 회색이다. 포트는 (255,128,128)을 쓰고 있었다.
+            text(layer.view.roundText, x, 247.7f, width, ROUND_TURN_SHADOW)
             text(layer.view.roundText, x - 6.797f, 252.7f, width, Color.WHITE)
         } else {
             text("적군 단계", 526.713f, 319.4f, 448.54f, Color.RED)

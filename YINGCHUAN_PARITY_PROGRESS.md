@@ -647,3 +647,19 @@
 
 - 앞선 다섯 번의 정정은 "측정이 잘못됐다"였는데 이번은 **"포트가 이미 맞는데 내가 원본을 잘못 읽었다"**이다. 코드에 `checkCanSiege`가 있으니 그 분기가 살아 있다고 가정했지만 데이터가 죽여 놓았다.
 - 이번 goal turn에 같은 형태를 여러 번 봤다. `FullBattleTraceEvidence.mapSnapshot`은 올바른 구현이 호출자 없이 잠들어 있었고, `BattleMenuRenderEvents`는 표가 렌더러 대신 로그를 냈으며, `verify_battle_menu_render.py`와 `verify_battle_menu_assets.py`는 저장소 어디에서도 참조되지 않는다. **존재하는 코드가 도달 가능한지 먼저 확인한다.**
+
+## 라운드 배너 턴 수 그림자 색 — 게이트가 잡아낸 첫 결함
+
+- 색 비교를 자동전투 프롬프트·미니맵·라운드 배너로 넓히는 과정에서 불일치가 하나 드러났다.
+- 원본 프리팹 `Battle/scene/RoundLayer`(`assets/resources/import/5d/5ddb08c6-…44132.json`)의 `label12`(턴 수 그림자) `_color`는 **4286545795 = (131,127,127), 따뜻한 회색**이다. 포트는 `Color(1f, .5f, .5f, 1f)` = **(255,128,128)**로 그리고 있었다.
+- **이 저장소의 기록과 세션 메모리가 둘 다 틀렸다.** 양쪽 다 "RoundLayer는 흰 글자 뒤에 빨간 그림자"로 적어 두었으나, 빨강은 단계 라벨 `label02`/`label22`(`_color` 4278190335 = (255,0,0))뿐이고 턴 수 그림자는 회색이다. 메모리 파일을 정정했다.
+- **게이트가 정확히 한 행을 이름과 값으로 지목했다.** `field Canvas/Layer/label12#0.color: expected='#837f7fff' actual='#ff8080ff'`. 색을 표현할 수 없던 게이트가 실제 색 결함을 잡은 첫 사례다.
+- 포트를 `ROUND_TURN_SHADOW = #837f7fff`로 고치고 recorder 상수와 테스트 기대값을 함께 맞췄다. 수정 후 `round-normal`, `round-final`, `round-enemy`, `mini-map-shown`, `mini-map-hidden`, `auto-battle-prompt-on` 여섯 루트가 모두 통과한다.
+
+### 세 화면의 색 기록
+
+- **자동전투 프롬프트**(MsgBox4, `import/9b/9bdd4d86-…e1ded.json`): 본문 `#936100`, 위임 토글 `#0005ff`, 비 버튼 `#fc0000`, 예 버튼 `#026e00`이 모두 프리팹 `_color`와 포트 글꼴 색에서 일치한다. 스프라이트와 위임 배너 3행은 `#ffffff`다.
+- **미니맵**(`import/1e/1e1e9ef6-…6c573.json`): 어떤 노드에도 `_color`가 없어 전부 `#ffffff`다. `bg/map` 불투명도 168과 `bg/weather` 127은 색이 아니라 `opacity` 필드가 이미 싣는다. `bg/btn`의 `_N$normalColor`는 `_N$transition`이 없어 무효다.
+- **라운드 배너**: `Panel_cancel` 검정 불투명도 80, 단계 그림자 빨강, 본 라벨 흰색, 턴 수 그림자 회색(위 수정).
+- **비교 대상이 아닌 차이도 기록한다.** MsgBox4의 외곽선 색이 포트 (255,250,110)/(124,255,153) 대 프리팹 (255,226,110)/(124,243,153)로 다르다. 외곽선은 `cc.LabelOutline` 컴포넌트라 `node.color` 기반 비교가 볼 수 없지만 픽셀은 다르다. 별도 수정 단위다.
+- 남은 한계. `drawRoundLayer`와 MsgBox4 글꼴 블록이 진행 중인 작업 hunk 안에 있어 recorder의 색 상수를 그리기 코드와 공유하지 못하고 각자 두되 출처 줄을 KDoc에 적었다. 두 곳이 갈라질 위험이 남는다.
