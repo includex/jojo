@@ -7185,14 +7185,10 @@ void main() {
                 is BattleSettlementPresentationController.Effect.UnitInfo -> {
                     battle.presentation.presentationUnit(effect.plan.unitId)?.let { unit ->
                         settlementPresentation.setInfoTitle(unit.name)
-                        var cursor = now + effect.plan.preInfoDelaySeconds
-                        effect.plan.infoDeltas.forEach { delta ->
-                            cursor += delta.tickSeconds
-                            if (delta.kind == SettlementInfoKind.HP) healthTimeline.schedule(
-                                unit.id, delta.before, delta.after, cursor
-                            )
-                        }
-                        healthTimelineHoldUntil[unit.id] = now + effect.plan.infoBarrierSeconds
+                        // 원본 InfoBaseLayer는 이전값에서 새값으로 움직이는 자체 bar를 갖고 있지만,
+                        // 전장 유닛의 bar는 이미 적용된 live hp_cur/hp를 계속 표시한다.
+                        healthTimeline.clear(unit.id)
+                        healthTimelineHoldUntil.remove(unit.id)
                     }
                 }
 

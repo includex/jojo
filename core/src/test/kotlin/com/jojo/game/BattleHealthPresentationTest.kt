@@ -21,4 +21,20 @@ class BattleHealthPresentationTest {
         assertEquals(70, presentation.shownHp("target", 1.9f, fallbackHp = 40))
         assertEquals(40, presentation.shownHp("target", 2f, fallbackHp = 40))
     }
+
+    @Test
+    fun `settlement info can release living and defeated map transitions to live hp`() {
+        val presentation = BattleHealthPresentation()
+        presentation.schedule("target", fromHp = 49, toHp = 7, revealAt = 10f)
+        presentation.schedule("defeated", fromHp = 97, toHp = 0, revealAt = 10f)
+
+        assertEquals(49, presentation.shownHp("target", 5f, fallbackHp = 7))
+        assertEquals(97, presentation.shownHp("defeated", 5f, fallbackHp = 0))
+
+        presentation.clear("target")
+        presentation.clear("defeated")
+
+        assertEquals(7, presentation.shownHp("target", 5f, fallbackHp = 7))
+        assertEquals(0, presentation.shownHp("defeated", 5f, fallbackHp = 0))
+    }
 }
