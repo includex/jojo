@@ -2,6 +2,7 @@
 package com.jojo.game.presentation.battle.evidence
 
 import com.jojo.game.application.runtime.RuntimeBattleRoute
+import com.jojo.game.presentation.battle.render.BattleDialogRenderContract
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** 마법 화면 증거 입력: 경로와 목록·상세 패널을 JSONL로 기록하기 위한 불변 표시 정보이다. */
@@ -72,9 +73,18 @@ internal object BattleMagickRenderEventRecorder {
             append("MagickListLayer", "$root/label0", "label", x + 92f, y + 86.8f, rowWidths[index], text = magic.name)
             append("MagickListLayer", "$root/label", "label", x + 92f, y + 45.8f, 94.6f, text = "MP：")
             append("MagickListLayer", "$root/label2", "label", x + 175.879f, y + 45.8f, if (magic.cost < 10) 22.25f else 44.49f, text = magic.cost.toString())
-            if (index < 8) {
-                append("MagickListLayer", "$root/label", "label", x + 2.097f, y + 4.8f, 171.74f, text = "피해 계수: ")
-                append("MagickListLayer", "$root/label1", "label", x + 179.637f, y + 4.8f, 77.85f, text = magic.power?.let { (it / 100f).toString() } ?: "없음")
+            // 피해 계수 두 줄은 카드 아래쪽에 있어 마지막 줄(y = -62.5)에서는 화면 아래로
+            // 완전히 벗어난다. 원본 하네스는 화면에 걸치지 않는 노드를 기록하지 않으므로
+            // 여기서도 같은 조건으로 뺀다. 앞서는 `index < 8`이라는 손으로 적은 수를 썼고,
+            // 그것은 이 픽스처의 배치에서만 우연히 맞는 값이었다.
+            val labelY = y + 4.8f
+            if (labelY + LABEL_HEIGHT > 0f) {
+                append("MagickListLayer", "$root/label", "label", x + 2.097f, labelY, 171.74f, text = "피해 계수: ")
+                append(
+                    "MagickListLayer", "$root/label1", "label", x + 179.637f, labelY, 77.85f,
+                    // 그리기 쪽 `drawMagickListLayer`가 쓰는 것과 같은 계약이다.
+                    text = BattleDialogRenderContract.damageCoefficientText(magic.power),
+                )
             }
         }
     }
@@ -109,6 +119,12 @@ internal object BattleMagickRenderEventRecorder {
      * `rowWidths` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
+
+    /**
+     * 라벨 노드 높이: `MagickListLayer` 프리팹의 카드 라벨은 fontSize 40에 `LabelOutline`이
+     * 없어 노드가 54.4가 아니라 40이다. 화면에 걸치는지 판정할 때만 쓴다.
+     */
+    private const val LABEL_HEIGHT = 40f
 
     private val rowWidths = listOf(218.71f, 138.4f, 103.8f, 69.2f, 69.2f, 149.51f, 69.2f, 103.8f, 69.2f, 149.51f)
     /**

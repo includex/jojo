@@ -11181,7 +11181,8 @@ void main() {
             font.color = if (layer.enabled(index)) Color.BLACK else Color(.5f, .5f, .5f, 1f)
             font.draw(batch, magic.name, x + 92f, y + 129f); font.draw(batch, "MP：", x + 92f, y + 88f)
             font.draw(batch, magic.cost.toString(), x + 176f, y + 88f); font.draw(batch, "피해 계수: ", x + 2f, y + 47f)
-            font.draw(batch, (magic.power ?: 0).div(100f).toString(), x + 180f, y + 47f)
+            // 원본 `MagickListLayer.js:147-148`의 문구 규칙은 증거와 같은 계약이 든다.
+            font.draw(batch, BattleDialogRenderContract.damageCoefficientText(magic.power), x + 180f, y + 47f)
         }
         font.color = Color.BLACK; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
             batch, 775.892f, 97.683f, 180f, 50f

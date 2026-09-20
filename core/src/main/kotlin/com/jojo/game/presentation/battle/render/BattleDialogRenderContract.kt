@@ -13,6 +13,26 @@ object BattleDialogRenderContract {
     fun magicListIcon(magic: MagicUiList.Magic, x: Float, y: Float) =
         Sprite(BattleUiAssets.magicIcon(magic.icon), x + 5.073f, y + 57.383f, 76.8f, 76.8f)
 
+    /**
+     * 피해 계수 문구: 원본 `battle/MagickListLayer.js:147-148`의
+     * `var i = t.power(); null != i ? i /= 100 : i = "없음";`을 옮긴 것이다.
+     *
+     * 원본은 JS 숫자를 그대로 문자열로 만들므로 **정수는 소수점이 붙지 않는다**. 위력 100은
+     * `"1"`, 0은 `"0"`이며 28만 `"0.28"`이다. 포트는 `(power / 100f).toString()`을 써서 각각
+     * `"1.0"`·`"0.0"`을 그렸다. 부동소수 반올림이 문자열에 새지 않도록 10진수로 나눈다.
+     *
+     * `power`가 null인 경우(`magicAttr2`가 undefined를 돌려주는 마법)는 원본이 `"없음"`을
+     * 쓴다. 포트의 `GameDataCatalog.MagicProfile.power`는 비-널 `Int`라 지금은 이 가지에
+     * 닿지 않는다 — 표가 위력 없음을 어떻게 적는지는 아직 확인하지 못했다.
+     */
+    fun damageCoefficientText(power: Int?): String {
+        val value = power ?: return "없음"
+        return java.math.BigDecimal(value)
+            .divide(java.math.BigDecimal(100))
+            .stripTrailingZeros()
+            .toPlainString()
+    }
+
     /** 상세 스프라이트: 선택한 마법의 아이콘·대상 범위·효과 범위를 원본 레이아웃 순서로 반환한다. */
     fun magicDetailSprites(magic: MagicUiList.Magic) = listOf(
         Sprite(BattleUiAssets.magicIcon(magic.icon), 478.186f, 562f, 80f, 80f),

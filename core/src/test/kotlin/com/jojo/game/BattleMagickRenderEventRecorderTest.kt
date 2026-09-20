@@ -7,12 +7,33 @@ import com.jojo.game.presentation.battle.evidence.BattleMagickListView
 import com.jojo.game.presentation.battle.evidence.BattleMagickRenderEventRecorder
 import com.jojo.game.presentation.battle.evidence.BattleMagickRenderEventView
 import com.jojo.game.presentation.battle.evidence.BattleMagickRowView
+import com.jojo.game.presentation.battle.render.BattleDialogRenderContract
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /** 마법 증거 기록기 검증: 목록·상세 화면의 JSONL 행 수와 원본 그리기 순서를 확인한다. */
 class BattleMagickRenderEventRecorderTest {
+    /**
+     * 피해 계수 문구: 원본 `battle/MagickListLayer.js:147-148`은
+     * `null != i ? i /= 100 : i = "없음"`이며 JS 숫자를 그대로 문자열로 만든다.
+     * 따라서 **정수에는 소수점이 붙지 않는다**. 포트는 `(power / 100f).toString()`을 써서
+     * 위력 100을 `"1.0"`, 0을 `"0.0"`으로 그렸다.
+     *
+     * 이 픽스처의 마법 열 개는 보이는 여덟 개가 모두 위력 28이라 경로 비교로는 이 차이가
+     * 드러나지 않는다. 규칙 자체를 여기서 못 박는다.
+     */
+    @Test
+    fun `damage coefficient follows the original JS number formatting`() {
+        assertEquals("0.28", BattleDialogRenderContract.damageCoefficientText(28))
+        assertEquals("1", BattleDialogRenderContract.damageCoefficientText(100))
+        assertEquals("2", BattleDialogRenderContract.damageCoefficientText(200))
+        assertEquals("1.5", BattleDialogRenderContract.damageCoefficientText(150))
+        assertEquals("0.05", BattleDialogRenderContract.damageCoefficientText(5))
+        assertEquals("0", BattleDialogRenderContract.damageCoefficientText(0))
+        assertEquals("없음", BattleDialogRenderContract.damageCoefficientText(null))
+    }
+
     /** 목록 없음: 마법 레이어가 없으면 캡처할 이벤트도 만들지 않는다. */
     @Test
     fun `missing magick list produces empty evidence`() {
