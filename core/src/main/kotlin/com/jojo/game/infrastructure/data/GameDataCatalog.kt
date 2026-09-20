@@ -715,6 +715,10 @@ class GameDataCatalog private constructor(
      */
 
     fun equipmentCategory(item: EquipmentProfile) = equipment.equipmentCategory(item)
+    /** 직위가 허용하는 장비 종류: 원본 posts 표의 EQUIPS(10) 열이다. */
+    fun postsEquipmentTypes(postsId: Int): Set<Int> = equipment.postsEquipmentTypes(postsId)
+    /** 보조 장비가 허용하는 병종: 원본 item 표의 ARMS(7)/UPGRADE_ARM(8) 열이다. */
+    fun itemUpgradeArms(itemId: Int): List<Int> = equipment.itemUpgradeArms(itemId)
     /**
      * `purchasePrice`: 조건과 입력 상태를 검증한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.

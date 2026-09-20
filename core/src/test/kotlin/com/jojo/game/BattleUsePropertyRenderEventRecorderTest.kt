@@ -2,6 +2,7 @@
 package com.jojo.game
 
 import com.jojo.game.application.runtime.RuntimeBattleRoute
+import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.presentation.battle.evidence.BattleUsePropertyDetailView
 import com.jojo.game.presentation.battle.evidence.BattleUsePropertyProfileView
 import com.jojo.game.presentation.battle.evidence.BattleUsePropertyRenderEventRecorder
@@ -105,6 +106,20 @@ class BattleUsePropertyRenderEventRecorderTest {
         assertFalse(contract.postsCanEquip(contract.CATEGORY_AUXILIARY, 60, 26, emptySet(), listOf(21, 255, 20)))
         assertTrue(contract.postsCanEquip(contract.CATEGORY_AUXILIARY, 38, 26, emptySet(), listOf(255)))
         assertFalse(contract.postsCanEquip(contract.CATEGORY_PROPERTY, 3, 4, setOf(4), listOf(255)))
+    }
+
+    @Test
+    fun `equipment eligibility reads decoded source tables`() {
+        val catalog = GameDataCatalog.load()
+        val weapon = catalog.allEquipmentProfiles().first { catalog.equipmentCategory(it) == UsePropertyDetailRenderContract.CATEGORY_WEAPONS }
+        val allowedPosts = catalog.postsNames().indices.filter { weapon.itemType in catalog.postsEquipmentTypes(it) }
+        assertTrue(allowedPosts.isNotEmpty())
+        allowedPosts.forEach { posts ->
+            assertTrue(UsePropertyDetailRenderContract.postsCanEquip(
+                UsePropertyDetailRenderContract.CATEGORY_WEAPONS, posts, weapon.itemType,
+                catalog.postsEquipmentTypes(posts), catalog.itemUpgradeArms(weapon.id),
+            ))
+        }
     }
 
     /** 표 길이: 39는 상수가 아니라 13행 × 3열에서 나온다. */

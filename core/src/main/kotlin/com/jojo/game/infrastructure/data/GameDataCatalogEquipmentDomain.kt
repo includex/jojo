@@ -51,6 +51,17 @@ internal class GameDataCatalogEquipmentDomain(tables: GameDataTableBundle) : Gam
         item.id in 150 until 200 -> 3; item.itemType <= 19 -> 0; item.itemType <= 25 -> 1; else -> 2
     }
 
+    /** 원본 `Model._initPostsAttr/_initItemAttr`가 읽는 EQUIPS·ARMS 원자료. */
+    fun postsEquipmentTypes(postsId: Int): Set<Int> =
+        generateSequence(posts.getOrNull(postsId)?.get("10")?.child) { it.next }
+            .map { it.asInt() }.toSet()
+
+    fun itemUpgradeArms(itemId: Int): List<Int> {
+        val item = items.getOrNull(itemId) ?: return emptyList()
+        val arms = generateSequence(item.get("7")?.child) { it.next }.map { it.asInt() }.toList()
+        return arms.ifEmpty { listOf(item.int("8", 255)) }
+    }
+
     /**
      * `purchasePrice`: 조건과 입력 상태를 검증한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
