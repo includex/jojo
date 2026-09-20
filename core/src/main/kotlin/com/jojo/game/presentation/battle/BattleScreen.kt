@@ -1666,6 +1666,8 @@ void main() {
                 rowEven = overlayAssets.terrainLayerRowEvenPatch,
                 rowOdd = overlayAssets.terrainLayerRowOddPatch,
                 verticalLine = overlayAssets.terrainLayerVlinePatch,
+                skillIcons = overlayAssets.terrainLayerSkillTextures,
+                skillDisabledIcons = overlayAssets.terrainLayerSkillDisabledTextures,
             ),
         )
     }

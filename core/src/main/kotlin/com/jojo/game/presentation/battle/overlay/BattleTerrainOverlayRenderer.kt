@@ -34,6 +34,9 @@ data class BattleTerrainOverlayAssets(
     val rowEven: NinePatch?,
     val rowOdd: NinePatch?,
     val verticalLine: NinePatch?,
+    /** 특기 아이콘 네 개와 그 회색판이다. 원본은 같은 스프라이트에 material만 갈아끼운다. */
+    val skillIcons: List<Texture?> = emptyList(),
+    val skillDisabledIcons: List<Texture?> = emptyList(),
 )
 
 /**
@@ -100,9 +103,15 @@ class BattleTerrainOverlayRenderer(
         font.color = Color.valueOf("${chrome.ROW_NAME_COLOR}ff")
         drawText(row.terrainName, chrome.rowNameBox(index, row.terrainName.length))
         setFontSize(chrome.VALUE_FONT_SIZE)
+        // 원본 `TerrainLayer.js:109`는 `skill/skill_0..3` 스프라이트에 회색 material을 씌운다.
+        // 글자가 아니라 30×30 아이콘이며 노드 색은 늘 흰색이다.
+        batch.color = Color.WHITE
         row.enabledSkills.forEachIndexed { bit, enabled ->
-            font.color = if (enabled) Color(1f, 0.82f, 0.20f, 1f) else Color(0.35f, 0.35f, 0.35f, 1f)
-            drawText(if (enabled) "●" else "○", chrome.skillBox(index, bit))
+            val icons = if (enabled) assets.skillIcons else assets.skillDisabledIcons
+            icons.getOrNull(bit)?.let {
+                val box = chrome.skillBox(index, bit)
+                batch.draw(it, box.x, box.y, box.width, box.height)
+            }
         }
         row.values.forEachIndexed { armIndex, value ->
             // 등급별 색은 원본 `TerrainLayer.js:110`의 목록을 그대로 든 계약에서 읽는다.

@@ -58,6 +58,19 @@ internal class BattleOverlayAssets : Disposable {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    /**
+     * `terrainLayerSkillTextures`: 지형 행의 특기 아이콘 네 개다.
+     *
+     * 원본 `battle/TerrainLayer.js:109`는 `skill/skill_0..3` **스프라이트**에 회색 material을
+     * 씌워 비활성을 표현한다(`0 == (1 << _ & l) ? grayLight : defMater`). 포트는 그 자리에
+     * `●`/`○` **글자**를 그리고 있었다. 회색판은 이미 자산으로 뽑혀 있어 전당 쪽
+     * `HallTerrainRenderPlan`이 같은 규칙으로 쓴다.
+     */
+    val terrainLayerSkillTextures = (1..4).map { terrainTexture("skill$it") }
+
+    /** 비활성 특기 아이콘: 원본의 `grayLight` material에 해당하는 회색판이다. */
+    val terrainLayerSkillDisabledTextures = (1..4).map { terrainTexture("skill$it-disabled") }
+
     val terrainLayerPanelPatch = terrainLayerPanelTexture?.let { NinePatch(it, 7, 8, 7, 7) }
     /**
      * `terrainLayerRowEvenPatch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
