@@ -105,13 +105,17 @@ internal class ScriptedUnitActionCoordinator(
                 return@forEach
             }
             action.direction.takeIf { it in 0..3 }?.let { port.applyDirection(unit, it) }
+            val startedAt = port.now()
             when {
                 action.action == 0 -> port.clearVisual(unit.id)
                 action.action in setOf(6, 25, 48) -> {
                     port.clearVisual(unit.id)
+                    // The transient source-action channel owns hit events while it runs. Keep the
+                    // same clip underneath so clearing that channel exposes its authored last frame.
+                    port.setVisual(unit.id, action.action, startedAt)
                     port.startSourceAction(unit, action.action)
                 }
-                else -> port.setVisual(unit.id, action.action, port.now())
+                else -> port.setVisual(unit.id, action.action, startedAt)
             }
             if (!action.awaitsFinishedCallback) return@forEach
             val duration = port.actionDuration(action.action, unit.direction)
@@ -129,8 +133,9 @@ internal class ScriptedUnitActionCoordinator(
         val active = lifecycle.activeAction ?: return
         if (port.now() < active.endsAt) return
         port.clearSourceAction(active.battleUnitId)
-        lifecycle.clearVisual(active.battleUnitId)
-        port.defaultAction(active.battleUnitId)
+        // Source BattleUnit.setAction2 resumes its callback at FINISHED without calling
+        // defaultAction. The non-looping clip therefore remains on its authored last frame until
+        // a later setAction(0), setDir, or another explicit action replaces it.
         lifecycle.finishAction()
         port.resumeScript()
     }

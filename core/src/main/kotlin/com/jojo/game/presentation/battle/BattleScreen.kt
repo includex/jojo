@@ -11724,7 +11724,16 @@ void main() {
         scriptRuntime.stage.consumeScriptedUnitDirections().forEach { (characterId, direction) ->
             (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {
                 it.id == scriptRuntime.stage.battleUnitForCharacterId(characterId)?.battleId
-            }?.direction = direction
+            }?.let { unit ->
+                // Source BattleUnit.setDir delegates to defaultAction(dir), replacing any
+                // non-looping setAction clip that was holding its authored final frame.
+                // Direction 7 is the source control-flag operation, not a pose replacement.
+                if (direction != 7) {
+                    if (actionAnimation?.unitId == unit.id) actionAnimation = null
+                    scriptedUnitPresentation.clearVisual(unit.id)
+                }
+                unit.direction = direction
+            }
         }
         scriptRuntime.stage.units.values.forEach { scripted ->
             (battle.units.values + battle.presentation.pendingPresentationUnits()).firstOrNull {

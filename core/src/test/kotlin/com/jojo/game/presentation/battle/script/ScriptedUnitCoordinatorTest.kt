@@ -10,6 +10,7 @@ import com.jojo.game.domain.scenario.ScenarioUnitHideRequest
 import com.jojo.game.domain.scenario.ScenarioUnitShowRequest
 import com.jojo.game.domain.scenario.ScenarioUnitPostsRequest
 import com.jojo.game.domain.scenario.ScriptedUnitAction
+import com.jojo.game.presentation.battle.unit.ScriptedUnitVisual
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -61,7 +62,7 @@ class ScriptedUnitCoordinatorTest {
     }
 
     @Test
-    fun `action callback restores pose before synchronous resume`() {
+    fun `action callback retains its authored last pose before synchronous resume`() {
         val lifecycle = ScriptedUnitPresentationLifecycle()
         val action = ScriptedUnitAction(1, action = 46)
         val unit = BattleUnit("u", "unit", Faction.PLAYER, 1, 1)
@@ -73,7 +74,10 @@ class ScriptedUnitCoordinatorTest {
             override fun unit(action: ScriptedUnitAction) = unit
             override fun applyDirection(unit: BattleUnit, direction: Int) = Unit
             override fun clearVisual(unitId: String) { events += "clear" }
-            override fun setVisual(unitId: String, action: Int, startedAt: Float) { events += "set" }
+            override fun setVisual(unitId: String, action: Int, startedAt: Float) {
+                lifecycle.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
+                events += "set"
+            }
             override fun startSourceAction(unit: BattleUnit, action: Int) { events += "source" }
             override fun actionDuration(action: Int, direction: Int) = 1f
             override fun focus(unit: BattleUnit) { events += "focus" }
@@ -82,6 +86,7 @@ class ScriptedUnitCoordinatorTest {
             override fun resumeScript() {
                 events += "resume"
                 assertNull(lifecycle.activeAction)
+                assertEquals(46, lifecycle.visual("u")?.action)
             }
         }
         val coordinator = ScriptedUnitActionCoordinator(lifecycle, port)
@@ -90,6 +95,45 @@ class ScriptedUnitCoordinatorTest {
         now = 1f
         coordinator.driveCallback()
 
-        assertEquals(listOf("set", "focus", "source-clear", "default", "resume"), events)
+        assertEquals(listOf("set", "focus", "source-clear", "resume"), events)
+    }
+
+    @Test
+    fun `source action keeps its last pose until an explicit stand action clears it`() {
+        val lifecycle = ScriptedUnitPresentationLifecycle()
+        val unit = BattleUnit("u", "unit", Faction.PLAYER, 1, 1)
+        val pending = ArrayDeque(listOf(ScriptedUnitAction(1, action = 6)))
+        var now = 0f
+        val events = mutableListOf<String>()
+        val port = object : ScriptedUnitActionCoordinator.Port {
+            override fun now() = now
+            override fun consumeActions() = pending.toList().also { pending.clear() }
+            override fun unit(action: ScriptedUnitAction) = unit
+            override fun applyDirection(unit: BattleUnit, direction: Int) = Unit
+            override fun clearVisual(unitId: String) { lifecycle.clearVisual(unitId); events += "clear" }
+            override fun setVisual(unitId: String, action: Int, startedAt: Float) {
+                lifecycle.setVisual(unitId, ScriptedUnitVisual(action, startedAt))
+                events += "set-$action"
+            }
+            override fun startSourceAction(unit: BattleUnit, action: Int) { events += "source-$action" }
+            override fun actionDuration(action: Int, direction: Int) = 1f
+            override fun focus(unit: BattleUnit) { events += "focus" }
+            override fun clearSourceAction(unitId: String) { events += "source-clear" }
+            override fun defaultAction(unitId: String) { events += "default" }
+            override fun resumeScript() { events += "resume" }
+        }
+        val coordinator = ScriptedUnitActionCoordinator(lifecycle, port)
+
+        coordinator.consumeStarts()
+        assertEquals(6, lifecycle.visual("u")?.action)
+        now = 1f
+        coordinator.driveCallback()
+
+        assertEquals(6, lifecycle.visual("u")?.action, "FINISHED resumes without returning to idle")
+        assertEquals(listOf("clear", "set-6", "source-6", "focus", "source-clear", "resume"), events)
+
+        pending += ScriptedUnitAction(1, action = 0)
+        coordinator.consumeStarts()
+        assertNull(lifecycle.visual("u"), "an explicit stand action clears the held source pose")
     }
 }
