@@ -1,5 +1,18 @@
 # 영천전투 작업 중지 및 재개 안내
 
+## 2026-09-21 추가 진행
+
+- `postsCanEquip`의 WEAPONS·ARMOR·AUXILIARY 갈래를 원본 `Item.js:282-305`에 맞춰
+  구현했다. `posts` EQUIPS(10), `item` ARMS(7)·UPGRADE_ARM(8) 원자료 접근자를 추가하고
+  실제 카탈로그를 화면 그리기와 렌더 기록기에 연결했다 (`3776a93`, `ead21ff`, `f0dd532`).
+  소모품 기본 갈래는 그대로 유지된다.
+- 장착 가능·불가 직위 색의 기록기 테스트, `use-property-detail` 원본 대조,
+  `:core:test :verification:test`가 통과했다. 세 단위를 모두 `origin/main`에 push했다.
+- 이전의 미완 작업 파일은 스테이징하지 않았다. `BattleScreen.kt`는 새 수정 네 hunk만
+  따로 스테이징했다. 다음 우선순위는 남은 전투 렌더 기록기와 전당 `battle-view` 색 비교다.
+
+---
+
 ## 2026-09-21 재개 결과
 
 이 아래의 2026-09-20 상태·"남은 일"은 당시 기록이다. 이번 재개 작업으로 다음을 완료해
