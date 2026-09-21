@@ -15,6 +15,7 @@ interface RuntimeBattlePreparationDriver {
 data class BattlePreparationPresentation(
     val detailsVisible: Boolean = false,
     val mapVisible: Boolean = false,
+    val battleViewSelectedMarkerIndex: Int? = null,
     val sortMenu: SortMenuState = SortMenuState.CLOSED,
 ) {
     /**

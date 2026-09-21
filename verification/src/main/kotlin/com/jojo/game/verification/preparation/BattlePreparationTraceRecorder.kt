@@ -3,6 +3,7 @@ package com.jojo.game.verification.preparation
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 import com.jojo.game.presentation.battle.preparation.BattlePreparationViewState
+import com.jojo.game.presentation.battle.render.BattleViewRenderContract
 import java.util.*
 
 /** BattlePreparationTraceRecorder: 준비·정렬·전투 화면 픽스처의 검증 출력 경계이다. */
@@ -10,7 +11,7 @@ internal class BattlePreparationTraceRecorder {
 
     /** renderEvents: 전투 준비 상태를 렌더 이벤트 JSONL로 변환한다. */
     fun renderEvents(state: BattlePreparationViewState, route: String?): String = when {
-        route == "battle-view-fixture" -> battleViewEvents()
+        route == "battle-view-fixture" -> battleViewEvents(state)
         route?.removeSuffix("-fixture")?.startsWith("start-battle-sort-") == true ->
             battleSortEvents(route.removeSuffix("-fixture"))
         else -> RenderEventLog().also {
@@ -106,19 +107,19 @@ internal class BattlePreparationTraceRecorder {
     }
 
     /** battleViewEvents: 전투 보기 화면의 렌더 이벤트를 반환한다. */
-    private fun battleViewEvents(): String {
+    private fun battleViewEvents(state: BattlePreparationViewState): String {
         val log = RenderEventLog()
         val phase = "hall-battle-view-stable"
         /** draw: 검증 렌더 이벤트를 구성하고 반환한다. */
         fun draw(
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, opacity: Float = 1f, text: String = "",
-            blend: Any = listOf(770, 771), visible: Boolean = true
+            blend: Any = listOf(770, 771), visible: Boolean = true, color: String? = null,
         ) =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, visible, text)
+            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, visible, text, color)
         draw(
             "HallLayer", "Canvas/Layer/map", "sprite", 0f, 0f, 1488.372f, 800f,
-            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>"
+            "assets/Game/native/c6/c6b7d3e4-8590-4fb6-85a5-7967e64abc3e.8e84f.jpg#<unnamed-frame>", color = BattleViewRenderContract.WHITE_HEX
         )
         draw(
             "BattleViewLayer",
@@ -129,17 +130,18 @@ internal class BattlePreparationTraceRecorder {
             480f,
             480f,
             "default_sprite_splash",
-            .667f
+            .667f, color = BattleViewRenderContract.BLACK_HEX
         )
         draw(
             "BattleViewLayer", "Canvas/Layer/bg/map/view/content/map1", "sprite", 1008.372f, 320f, 480f, 480f,
-            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#HM_1-1"
+            "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#HM_1-1", color = BattleViewRenderContract.WHITE_HEX
         )
         repeat(4) { index ->
             val x = 1104.372f + index * 24f
             draw(
                 "BattleViewLayer", "Canvas/Layer/bg/map/view/content/map1/box6", "sliced-sprite", x, 680f, 24f, 24f,
-                "Mark_47-1", if (index == 1) 1f else .502f
+                "Mark_47-1", if (index == state.battleViewSelectedMarkerIndex) BattleViewRenderContract.SELECTED_OPACITY else BattleViewRenderContract.UNSELECTED_OPACITY,
+                color = if (index == state.battleViewSelectedMarkerIndex) BattleViewRenderContract.SELECTED_HEX else BattleViewRenderContract.WHITE_HEX
             )
             draw(
                 "BattleViewLayer",
@@ -149,14 +151,14 @@ internal class BattlePreparationTraceRecorder {
                 680f,
                 24f,
                 24f,
-                "box3"
+                "box3", color = BattleViewRenderContract.WHITE_HEX
             )
             draw(
                 "BattleViewLayer", "Canvas/Layer/bg/map/view/content/map1/box6/label", "label", x + 6.272f, 681.13f,
-                10.01f, 22.68f, text = (index + 1).toString(), blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA")
+                10.01f, 22.68f, text = (index + 1).toString(), blend = listOf("SRC_ALPHA", "ONE_MINUS_SRC_ALPHA"), color = BattleViewRenderContract.BLACK_HEX
             )
         }
-        draw("BattleViewLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 1008.372f, 320f, 480f, 480f, "box5")
+        draw("BattleViewLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 1008.372f, 320f, 480f, 480f, "box5", color = BattleViewRenderContract.WHITE_HEX)
         return log.jsonl()
     }
 

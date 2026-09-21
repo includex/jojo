@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.jojo.game.presentation.battle.render.BattleViewRenderContract
 
 /** BattlePreparationRenderer: 전투 준비 렌더러이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
 internal class BattlePreparationRenderer(private val assets: BattlePreparationAssets) {
@@ -50,7 +51,7 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         batch.color = Color(1f, 1f, 1f, 30f / 255f)
         batch.draw(assets.dim, 0f, 0f, 1280f, 688f)
         if (state.mapVisible) {
-            drawBattleView(state.battleViewMarkerCount)
+            drawBattleView(state.battleViewMarkerCount, state.battleViewSelectedMarkerIndex)
             batch.end()
             return
         }
@@ -208,14 +209,17 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun drawBattleView(markerCount: Int) {
+    private fun drawBattleView(markerCount: Int, selectedMarkerIndex: Int?) {
         batch.color = Color(1f, 1f, 1f, .667f)
         batch.draw(assets.dim, 1008.372f * SCALE, 320f * SCALE, 480f * SCALE, 480f * SCALE)
         batch.color = Color.WHITE
         assets.battleViewMap?.let { batch.draw(it, 1008.372f * SCALE, 320f * SCALE, 480f * SCALE, 480f * SCALE) }
         repeat(markerCount) { index ->
+            batch.color = if (index == selectedMarkerIndex) BattleViewRenderContract.selected else BattleViewRenderContract.white
+            batch.color.a = if (index == selectedMarkerIndex) BattleViewRenderContract.SELECTED_OPACITY else BattleViewRenderContract.UNSELECTED_OPACITY
             assets.outerPatch?.draw(batch, (1104.372f + index * 24f) * SCALE, 680f * SCALE, 24f * SCALE, 24f * SCALE)
-            assets.font.color = Color.BLACK
+            batch.color = BattleViewRenderContract.white
+            assets.font.color = BattleViewRenderContract.black
             assets.font.data.setScale(.55f)
             assets.font.draw(batch, (index + 1).toString(), (1110.644f + index * 24f) * SCALE, 699f * SCALE)
             assets.font.data.setScale(1f)

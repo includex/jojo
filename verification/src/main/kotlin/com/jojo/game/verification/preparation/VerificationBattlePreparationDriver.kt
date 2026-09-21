@@ -12,7 +12,7 @@ internal class VerificationBattlePreparationDriver(
     /** presentation: 표현 상태를 검증 출력으로 변환한다. */
     override fun presentation(): BattlePreparationPresentation = when (route) {
         "start-battle-unit-info-fixture" -> BattlePreparationPresentation(detailsVisible = true)
-        "battle-view-fixture" -> BattlePreparationPresentation(mapVisible = true)
+        "battle-view-fixture" -> BattlePreparationPresentation(mapVisible = true, battleViewSelectedMarkerIndex = 1)
         "start-battle-sort-open-fixture" -> BattlePreparationPresentation(
             sortMenu = BattlePreparationPresentation.SortMenuState.OPEN,
         )

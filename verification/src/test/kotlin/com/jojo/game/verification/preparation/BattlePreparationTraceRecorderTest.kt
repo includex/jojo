@@ -39,7 +39,11 @@ class BattlePreparationTraceRecorderTest {
 
         assertEquals(16, lines.size)
         assertTrue(lines[3].contains("box6"))
+        assertTrue(lines[3].contains("\"color\":\"#ffffff\""))
+        assertTrue(lines[6].contains("\"color\":\"#ff0000\""))
+        assertTrue(lines[6].contains("\"opacity\":1"))
         assertTrue(lines[14].contains("\"text\":\"4\""))
+        assertTrue(lines[14].contains("\"color\":\"#000000\""))
         assertTrue(lines.last().contains("Canvas/Layer/bg/box3"))
     }
 
@@ -63,5 +67,6 @@ class BattlePreparationTraceRecorderTest {
             cursorId = 7,
             canStart = true,
             battleViewMarkerCount = 4,
+            battleViewSelectedMarkerIndex = 1,
         )
 }

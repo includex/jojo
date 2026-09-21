@@ -21,6 +21,7 @@ data class BattlePreparationViewState(
     val mapVisible: Boolean = false,
     val sortOpen: Boolean = false,
     val battleViewMarkerCount: Int = 0,
+    val battleViewSelectedMarkerIndex: Int? = null,
 )
 
 /** BattlePreparationUnitView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */

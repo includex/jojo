@@ -246,6 +246,7 @@ class BattlePreparationScreen(
         mapVisible = presentation.mapVisible,
         sortOpen = battleSort.open,
         battleViewMarkerCount = battleView.markers().size,
+        battleViewSelectedMarkerIndex = presentation.battleViewSelectedMarkerIndex,
     )
 
     /** 읽기 전용 준비 상태를 런타임 검증 모델로 반환합니다. */
