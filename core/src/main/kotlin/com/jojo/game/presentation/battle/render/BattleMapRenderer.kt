@@ -71,15 +71,13 @@ class BattleMapRenderer(
     private val font: BitmapFont,
     /** `assets` (BattleMapRendererAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleMapRendererAssets,
+    /** 원본 `BattleUnit.showHarmNum`: fontSize 24 굵게 + LabelOutline 1px `0x8C8C8C`. 월드 단위는 설계 픽셀의 2배다. */
+    private val harmFont: BitmapFont = font,
+    /** 원본 `BattleLayer._showMoveArea`의 node2 라벨: fontSize 12, 타일 왼쪽 아래 기준. */
+    private val impactFont: BitmapFont = font,
 ) {
     /** 네 개 그리기 단계에서 사용하는 고정 명령 순서입니다. */
     companion object {
-        /**
-         * `TERRAIN_COLOR` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-         * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-         */
-
-        private val TERRAIN_COLOR = Color(0.94f, 0.97f, 1f, 0.9f)
         /**
          * `MP_COLOR` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -156,18 +154,15 @@ class BattleMapRenderer(
 
     fun drawTerrainImpacts(view: BattleMapView) {
         if (view.terrainImpacts.isEmpty()) return
-        font.data.setScale(24f / 26f)
-        font.color = TERRAIN_COLOR
+        impactFont.color = Color.WHITE
         view.terrainImpacts.forEach { impact ->
-            font.draw(
+            impactFont.draw(
                 batch,
                 impact.value.toString(),
                 view.boardLeft + impact.x * view.tileSize + 3f,
                 tileBottom(view, impact.y) + 23f,
             )
         }
-        font.data.setScale(1f)
-        font.color = Color.WHITE
     }
 
     /**
@@ -177,18 +172,19 @@ class BattleMapRenderer(
 
     fun drawHarmNumbers(view: BattleMapView) {
         if (view.harmNumbers.isEmpty()) return
-        font.data.setScale(0.5f)
+        // 원본은 유닛 중심 기준 (+24, +24)에 48×24 노드를 두고 왼쪽 위 정렬로 그린다.
+        // HP 숫자의 왼쪽 끝은 타일 중심, MP 숫자는 한 타일 왼쪽이며 글자 위는 타일 위 12px(월드 24) 위다.
         view.harmNumbers.forEach { harm ->
-            font.color = if (harm.isHp) Color.WHITE else MP_COLOR
-            font.draw(
+            harmFont.color = if (harm.isHp) Color.WHITE else MP_COLOR
+            val left = view.boardLeft + harm.x * view.tileSize + if (harm.isHp) view.tileSize / 2f else -view.tileSize / 2f
+            harmFont.draw(
                 batch,
                 kotlin.math.abs(harm.amount).toString(),
-                view.boardLeft + harm.x * view.tileSize,
+                left,
                 tileBottom(view, harm.y) + view.tileSize + 24f,
             )
         }
-        font.data.setScale(1f)
-        font.color = Color.WHITE
+        harmFont.color = Color.WHITE
     }
 
     /**

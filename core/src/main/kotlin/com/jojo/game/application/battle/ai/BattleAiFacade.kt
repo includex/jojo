@@ -40,6 +40,10 @@ class BattleAiFacade internal constructor(private val battle: Battle) {
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
+    /** 공격 예고 라벨용 기본 피해·명중률. 원본 `showAttackRange`의 `showHarmBar` 값이다. */
+    fun previewAttackHarm(attackerId: String, targetId: String): AiAttackPreview? =
+        BattleAiCoordinator.previewAttackHarm(attackerId, targetId, environment)
+
     fun previewAttackValue(attackerId: String, targetId: String): Int =
         BattleAiCoordinator.previewAiAttackValue(attackerId, targetId, environment)
 }

@@ -51,6 +51,7 @@ internal data class BattleRuntimeScreenProbeInput(
     val activeActionActorId: String? = null,
     val activeActionSourceAction: Int? = null,
     val settlementInfoVisible: Boolean = false,
+    val tileScreenPoint: (Int, Int) -> Pair<Int, Int> = { _, _ -> 0 to 0 },
 )
 
 /** 전투 화면 probe 투영기: 화면 전용 상태를 자동 전투 검증기의 불변 조회 계약으로 변환한다. */
@@ -109,5 +110,6 @@ internal object BattleRuntimeScreenProbeProjector {
         activeActionSourceAction = input.activeActionSourceAction,
         settlementInfoVisible = input.settlementInfoVisible,
         battle = battle,
+        tileScreenPoint = input.tileScreenPoint,
     )
 }

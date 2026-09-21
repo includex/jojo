@@ -107,7 +107,8 @@ internal class BattleUnitProjector(
 
         return BattleUnit(
             id = unit.battleId,
-            name = campaign?.unitNames?.get(unit.characterId) ?: profile?.name ?: "유닛 ${unit.characterId}",
+            // 원본 `Unit.name()`: 사용자 이름 `_name`이 비어 있으면(falsy) 설정 이름으로 돌아간다.
+            name = campaign?.unitNames?.get(unit.characterId)?.takeIf { it.isNotBlank() } ?: profile?.name ?: "유닛 ${unit.characterId}",
             faction = factionFor(unit),
             tileX = unit.x,
             tileY = unit.y,

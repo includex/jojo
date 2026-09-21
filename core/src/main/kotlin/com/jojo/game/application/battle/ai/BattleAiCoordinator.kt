@@ -23,6 +23,8 @@ import com.jojo.game.domain.battle.BattleRateGauge
  * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
  */
 
+data class AiAttackPreview(val harm: Int, val hitRate: Int)
+
 internal data class BattleAiCoordinatorEnvironment(
     val units: () -> Map<String, BattleUnit>,
     val unitAt: (Int, Int) -> BattleUnit?,
@@ -127,6 +129,18 @@ internal object BattleAiCoordinator {
      * `previewAiAttackValue`: 상태나 데이터를 조회한다.
      * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
+
+    /**
+     * 원본 `showAttackRange`가 대상마다 `showHarmBar({HP_ADD: -countBaseHarm(target, 1), HIT_RATE: count_hitRate(target)})`로
+     * 보여 주는 값. 난수 없는 기본 피해와 명중률이다.
+     */
+    fun previewAttackHarm(attackerId: String, targetId: String, env: BattleAiCoordinatorEnvironment): AiAttackPreview? {
+        val attacker = env.units()[attackerId] ?: return null
+        val target = env.units()[targetId] ?: return null
+        val harm = PhysicalDamageCalculator.basePhysicalDamage(attacker, target, env.basePhysicalDamageContext(attacker, target, false))
+        val hitRate = if (BattleStatus.CONFUSION in target.statuses) 100 else env.probabilityResolver.physicalHitRate(attacker, target)
+        return AiAttackPreview(harm, hitRate)
+    }
 
     fun previewAiAttackValue(
         attackerId: String,

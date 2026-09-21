@@ -6,6 +6,7 @@ import com.jojo.game.*
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
@@ -56,6 +57,8 @@ data class BattleAutoOverlayAssets(
     val checkmark: Texture,
     val banner: Texture,
     val plate: Texture,
+    /** 원본 MsgBox4 `bg0/Logo_3-1`(53×62, 2배). 없으면 바탕 무늬로 대신 그린다. */
+    val logo: Texture? = null,
     /** Plain MsgBox background and sliced frame; separate from the manual MsgBox4 assets. */
     val plainBackground: Texture? = null,
     val plainBox: NinePatch? = null,
@@ -70,9 +73,17 @@ class BattleAutoOverlayRenderer(
     private val labelFont: BitmapFont,
     /** `assets` (BattleAutoOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleAutoOverlayAssets,
+    /** 원본 MsgBox4 프리팹 라벨 글꼴. 없으면 `labelFont`로 그린다. */
+    private val promptFonts: PromptFonts? = null,
     private val plainPromptFonts: PlainPromptFonts? = null,
 ) {
+    /**
+     * 원본 MsgBox4 프리팹: 모든 라벨 fontSize 40, LabelOutline 2px.
+     * 본문 (147,97,0)/(255,250,110), 위임 (0,5,255)/(115,238,255), 비 (252,0,0)/(255,212,212), 예 (2,110,0)/(124,255,153).
+     */
+    class PromptFonts(val message: BitmapFont, val toggle: BitmapFont, val no: BitmapFont, val yes: BitmapFont)
     class PlainPromptFonts(val message: BitmapFont, val no: BitmapFont, val yes: BitmapFont)
+
     /** 현재 오버레이 상태를 화면에 그립니다. */
     fun draw(view: BattleAutoOverlayView) {
         if (view.overlay == BattleAutoOverlayKind.NONE) return
@@ -101,15 +112,25 @@ class BattleAutoOverlayRenderer(
             }
         }
         batch.draw(assets.unitInfoBox, 426.686f, 252f, 635f, 296f)
-        batch.draw(assets.unitInfoLogo, 453.005f, 373.951f, 106f, 124f)
-        labelFont.color = Color.WHITE
-        labelFont.draw(batch, "모든 부대의 명령을 종료하시겠습니까?", 573.686f, 490f, 463f, Align.center, true)
+        batch.draw(assets.logo ?: assets.unitInfoLogo, 453.005f, 373.951f, 106f, 124f)
+        val fonts = promptFonts
+        if (fonts == null) {
+            labelFont.color = Color.WHITE
+            labelFont.draw(batch, "모든 부대의 명령을 종료하시겠습니까?", 573.686f, 490f, 463f, Align.center, true)
+        } else {
+            // label 노드 (573.686, 335) 463×190, lineHeight 42, 세로 가운데 정렬.
+            val message = "모든 부대의 명령을 종료하시겠습니까?"
+            val layout = GlyphLayout(fonts.message, message, fonts.message.color, 463f, Align.center, true)
+            fonts.message.draw(batch, message, 573.686f, 335f + 95f + layout.height / 2f, 463f, Align.center, true)
+        }
         batch.draw(assets.toggle, 518.416f, 281.197f, 28f, 28f)
         if (checked) batch.draw(assets.checkmark, 518.416f, 281.197f, 28f, 28f)
-        labelFont.draw(batch, "위임", 567.257f, 313f, 73.2f, Align.center, false)
-        listOf(674.536f to "비", 844.536f to "예").forEach { (x, label) ->
+        // tuoguan/label 노드 (567.257, 267.997) 73.2×54.4; 단추 Label 노드 (699.536/869.536, 278.042) 100×40.
+        val toggleFont = fonts?.toggle ?: labelFont
+        toggleFont.draw(batch, "위임", 567.257f, 267.997f + 27.2f + toggleFont.capHeight / 2f, 73.2f, Align.center, false)
+        listOf(Triple(674.536f, "비", fonts?.no ?: labelFont), Triple(844.536f, "예", fonts?.yes ?: labelFont)).forEach { (x, label, font) ->
             batch.draw(assets.unitInfoBox, x, 270.197f, 150f, 50f)
-            labelFont.draw(batch, label, x + 25f, 310f, 100f, Align.center, false)
+            font.draw(batch, label, x + 25f, 278.042f + 20f + font.capHeight / 2f, 100f, Align.center, false)
         }
     }
 

@@ -132,6 +132,10 @@ internal class AiPresentationState {
         resolution = next
         actionStarted = false
         actionCommitted = false
+        // 원본 `_ai2`는 유닛 행동마다 `_shifudu → _jiesuan → unitDeath`를 다시 돈다. 진영 단위로만 초기화하면
+        // 두 번째 유닛부터 정산 상태창과 사망 연출이 빠진다.
+        actionSettlementPresented = false
+        unitDeathScriptPass = 0
         playerMoveScriptStarted = false
         stage = if (next == null || (next.path.size < 2 && next.result == null)) {
             AiPresentationStage.COMPLETE
@@ -152,6 +156,8 @@ internal class AiPresentationState {
         resolution = null
         actionStarted = false
         actionCommitted = false
+        actionSettlementPresented = false
+        unitDeathScriptPass = 0
         playerMoveScriptStarted = false
         stage = AiPresentationStage.COMPLETE
     }

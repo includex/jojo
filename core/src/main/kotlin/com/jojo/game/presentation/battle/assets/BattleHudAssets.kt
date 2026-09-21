@@ -250,6 +250,12 @@ internal class BattleHudAssets : Disposable {
      */
 
     val mineHpBarTexture = linearOptional("maps/marks/5.png")
+
+    /** 원본 `info/bar0`(hpbars[3], Mark_1): 공격 예고에서 현재 체력 폭으로 깔려 잃을 만큼이 드러난다. */
+    val previewLostHpBarTexture = linearOptional("maps/marks/1.png")
+
+    /** 원본 `info/bar1`(hpbars[5], Mark_6): 회복 예고에서 얻을 체력 폭으로 덮인다. */
+    val previewGainHpBarTexture = linearOptional("maps/marks/6.png")
     /**
      * `terrainMask19` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

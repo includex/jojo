@@ -184,6 +184,8 @@ data class BattleRuntimeScreenProbe(
     /** A source `_jiesuan` info or info2 view is currently drawable. */
     val settlementInfoVisible: Boolean = false,
     val battle: BattleRuntimeProbe,
+    /** 전장 칸 중심의 화면 좌표. 수동 조작 구동기가 유닛·칸을 누를 때 쓴다. */
+    val tileScreenPoint: (Int, Int) -> Pair<Int, Int> = { _, _ -> 0 to 0 },
 ) : RuntimeScreenProbe {
     /**
      * `screenName` (String): 현재 객체가 유지하는 구성·진행 상태를 보관한다.

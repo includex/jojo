@@ -28,6 +28,9 @@ internal class BattleActorEffectViewComposer(
          * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
          */
 
+        /** 공격 예고(원본 `showAttackRange`) 동안 이 유닛이 대상이면 명중률·피해·체력 비율을 준다. */
+        fun attackPreview(unit: BattleUnit, now: Float): BattleAttackPreviewRender? = null
+
         fun boardLeft(): Float
         /**
          * `boardBottom`: 입력을 규칙에 따라 계산·변환한다.
@@ -280,6 +283,7 @@ internal class BattleActorEffectViewComposer(
             ),
             state = stateCommand,
             stateTexture = stateCommand?.let { port.stateTexture(it.textureIndex) },
+            attackPreview = port.attackPreview(unit, now),
         )
     }
 

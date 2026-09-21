@@ -56,6 +56,8 @@ internal data class VerificationDesktopLaunchOptions(
     val fullBattleTrace: BattleTraceRuntimeConfig?,
     /** fullBattleTraceOutputPath: 검증 산출물을 저장할 경로를 담는다. */
     val fullBattleTraceOutputPath: String?,
+    /** manualBattle: 전체 전투 추적을 위임이 아닌 수동 조작 구동기로 진행한다. */
+    val manualBattle: Boolean = false,
     /** yingchuanEntryFlowTracePath: 검증 산출물을 저장할 경로를 담는다. */
     val yingchuanEntryFlowTracePath: String?,
 ) {
@@ -79,7 +81,8 @@ internal data class VerificationDesktopLaunchOptions(
             // 전체 전투 추적은 위임 전투를 운영 입력으로 켜야 진행된다. 이름 붙은 픽스처 실행은
             // 기존 결정적 구동기를 그대로 쓴다.
             runtimeBattleDriver = if (fullBattleTrace != null && capture.state == null) {
-                FullBattleTraceDriver()
+                // --full-battle-manual: 위임 대신 플레이어 조작(선택→이동/공격→턴 종료)을 흉내 낸다.
+                if (manualBattle) ManualBattleDriver() else FullBattleTraceDriver()
             } else {
                 VerificationBattleDriver(capture.state)
             },
@@ -224,6 +227,7 @@ internal data class VerificationDesktopLaunchOptions(
                     state = value("--capture-state="),
                 ),
                 fullBattleTrace = fullBattleTrace,
+                manualBattle = args.contains("--full-battle-manual"),
                 fullBattleTraceOutputPath = tracePath,
                 yingchuanEntryFlowTracePath = value("--yingchuan-entry-flow-trace="),
             )

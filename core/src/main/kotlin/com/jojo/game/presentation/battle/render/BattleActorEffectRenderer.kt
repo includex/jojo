@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.jojo.game.presentation.battle.assets.BattleHudAssets
@@ -22,6 +24,17 @@ internal data class BattleActorEffectRenderView(
 )
 
 /** 전투 배우 표시 정보: 스프라이트, 체력 바, 상태 아이콘을 그리는 데 필요한 불변 값을 정의한다. */
+/**
+ * 원본 `BattleUnit.showHarmBar`: 공격 예고 동안 대상 유닛의 `info` 노드에 명중률(label0, 12px 흰색·검정 테두리, 오른쪽 위),
+ * 피해(label1, 14px 빨강·연노랑 테두리, 오른쪽 아래), 잃을 체력을 드러내는 bar0(현재 비율) 위에 bar2(공격 뒤 비율)를 겹친다.
+ */
+internal data class BattleAttackPreviewRender(
+    val hitRate: Int,
+    val harm: Int,
+    val currentRatio: Float,
+    val afterRatio: Float,
+)
+
 internal data class BattleActorRenderUnit(
     val id: String,
     val tileX: Float,
@@ -48,6 +61,7 @@ internal data class BattleActorRenderUnit(
     val attributeStatuses: List<BattleUnitAttributeStatusRender.Command>,
     val state: BattleUnitStateRender.Command?,
     val stateTexture: Texture?,
+    val attackPreview: BattleAttackPreviewRender? = null,
 )
 
 /** 전투 효과 표시 정보: 현재 프레임의 텍스처 영역과 투명도를 정의한다. */
@@ -75,6 +89,10 @@ internal class BattleActorEffectRenderer(
     private val hudAssets: BattleHudAssets,
     /** `highlightShader` ((() -> ShaderProgram)?): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val highlightShader: (() -> ShaderProgram)?,
+    /** 원본 info/label0 "100%": fontSize 12(월드 24), LabelOutline 2px 검정. */
+    private val previewRateFont: BitmapFont? = null,
+    /** 원본 info/label1 "45": fontSize 14(월드 28), 글자 (255,0,0), LabelOutline 2px (255,255,201). */
+    private val previewHarmFont: BitmapFont? = null,
 ) {
     /** 배우 그리기: 상태 아이콘, 본체, 체력 바, 상태 효과 순서로 출력한다. */
     fun drawActors(view: BattleActorEffectRenderView) {
@@ -121,7 +139,33 @@ internal class BattleActorEffectRenderer(
                 val x = view.boardLeft + actor.tileX * view.tileSize + (view.tileSize - width) / 2f
                 val y = view.boardBottom - actor.tileY * view.tileSize - 1f
                 batch.color = Color.WHITE
-                batch.draw(texture, x, y, width * actor.hpRatio, 6f)
+                val preview = actor.attackPreview
+                if (preview == null) {
+                    batch.draw(texture, x, y, width * actor.hpRatio, 6f)
+                } else {
+                    // 원본 showHarmBar(피해): bar0.progress = 현재/최대, 그 위에 bar2.progress = (현재-피해)/최대.
+                    hudAssets.previewLostHpBarTexture?.let { batch.draw(it, x, y, width * preview.currentRatio, 6f) }
+                    batch.draw(texture, x, y, width * preview.afterRatio, 6f)
+                }
+            }
+            actor.attackPreview?.let { preview ->
+                val tileLeft = view.boardLeft + actor.tileX * view.tileSize
+                val tileBottom = view.boardBottom - actor.tileY * view.tileSize
+                val right = tileLeft + view.tileSize
+                previewRateFont?.let { font ->
+                    // label0: anchor (1, 1)이 유닛 (24, 24)에 있어 오른쪽 위 모서리에 붙는다.
+                    val text = "${preview.hitRate}%"
+                    val layout = GlyphLayout(font, text)
+                    font.color = Color.WHITE
+                    font.draw(batch, text, right - layout.width, tileBottom + view.tileSize)
+                }
+                previewHarmFont?.let { font ->
+                    // label1: anchor (1, 0)이 유닛 (24, -24)에 있어 오른쪽 아래 모서리에 붙는다. 노드 높이 19.12(월드 38.24).
+                    val text = preview.harm.toString()
+                    val layout = GlyphLayout(font, text)
+                    font.draw(batch, text, right - layout.width, tileBottom + 38.24f)
+                }
+                batch.color = Color.WHITE
             }
             actor.state?.let { command -> actor.stateTexture?.let { texture ->
                 batch.color = Color.WHITE

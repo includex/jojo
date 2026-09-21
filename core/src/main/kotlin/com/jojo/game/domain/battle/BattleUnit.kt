@@ -96,6 +96,9 @@ data class BattleUnit(
     /** battleSlot: 편성 화면에서 유닛을 식별하는 전투 배치 슬롯 번호이다. */
     val battleSlot: Int? = null,
 ) {
+    /** 원본 `Unit.unitName(id, true)`: 표시 이름은 첫 숫자부터 잘라낸다("보병1" → "보병", "황건군 3" → "황건군 "). */
+    val displayName: String get() = name.takeWhile { !it.isDigit() }
+
     /** actionStatusRound: 행동 상태가 기록된 라운드 번호로, 턴별 초기화 판단에 사용한다. */
     var actionStatusRound: Int = if (hasActed) 1 else 0
 

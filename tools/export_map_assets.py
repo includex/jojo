@@ -862,6 +862,10 @@ def main() -> None:
         "68": assets / "resources" / "native" / "ea" / "ea63f073-ef41-4a54-ad8a-a99419819c97.f87d1.png",
         "3": assets / "resources" / "native" / "4a" / "4a83fc94-8f1c-49f6-85dd-cbd77d6b602f.4a668.png",
         "5": assets / "resources" / "native" / "a0" / "a0dcb0ef-46a4-41f4-b3d8-b5723d8a0cb5.766ff.png",
+        # BattleUnit.createInfoNode: bar0 = hpbars[3] (Mark_1, 공격 예고에서 잃을 체력),
+        # bar1 = hpbars[5] (Mark_6, 회복 예고에서 얻을 체력).
+        "1": assets / "resources" / "native" / "5a" / "5ac523ab-4dcb-480d-8232-f013adf9fa07.80735.png",
+        "6": assets / "resources" / "native" / "3d" / "3dc1b80c-a2b0-4aef-afd2-612f86de0de1.29b87.png",
     }
     for mark_id, source in mark_sources.items():
         if source.exists():

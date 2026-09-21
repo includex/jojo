@@ -182,8 +182,39 @@ class BattleScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val rewardTitleFont: BitmapFont = KoreanFont.create(100, "전투 종료보상금전리품★☆")
+    /** 원본 RewardLayer 프리팹: fontSize 120, `_styleFlags=1` 굵게. */
+    private val rewardTitleFont: BitmapFont = KoreanFont.create(120, "전투 종료보상금전리품★☆", faceIndex = KoreanFont.BOLD_FACE)
 
+    /**
+     * 원본 MsgBox4 프리팹 라벨의 `cc.LabelOutline` 색(모두 `_width` 2).
+     * (프리팹 `assets/resources/import/9b/9bdd4d86-fa7e-40b4-9b40-889f799473d3.e1ded.json`)
+     * `Layer/bg0/label` 4285457151 = (255,226,110).
+     */
+    private val MSGBOX4_MESSAGE_OUTLINE = Color.valueOf("#ffe26eff")
+
+    /** 같은 프리팹 `btns/tuoguan/label` LabelOutline `_color` 4294962803 = (115,238,255). */
+    private val MSGBOX4_TOGGLE_OUTLINE = Color.valueOf("#73eeffff")
+
+    /** 같은 프리팹 `btns/button1|button2/Background/Label` LabelOutline `_color` 4292138239 = (255,212,212). */
+    private val MSGBOX4_NO_OUTLINE = Color.valueOf("#ffd4d4ff")
+
+    /** 같은 프리팹 `btns/button0/Background/Label` LabelOutline `_color` 4288279420 = (124,243,153). */
+    private val MSGBOX4_YES_OUTLINE = Color.valueOf("#7cf399ff")
+
+    /** 원본 MsgBox4 프리팹 라벨(턴 종료 확인창): fontSize 40, 2px 테두리. 색은 프리팹의 노드/LabelOutline 값이다. */
+    private val msgBoxMessageFont: BitmapFont = KoreanFont.create(
+        40, "모든 부대의 명령을 종료하시겠습니까?", borderWidth = 2f,
+        borderColor = MSGBOX4_MESSAGE_OUTLINE, fillColor = Color(147f / 255f, 97f / 255f, 0f, 1f),
+    )
+    private val msgBoxToggleFont: BitmapFont = KoreanFont.create(
+        40, "위임", borderWidth = 2f, borderColor = MSGBOX4_TOGGLE_OUTLINE, fillColor = Color(0f, 5f / 255f, 1f, 1f),
+    )
+    private val msgBoxNoFont: BitmapFont = KoreanFont.create(
+        40, "비무시", borderWidth = 2f, borderColor = MSGBOX4_NO_OUTLINE, fillColor = Color(252f / 255f, 0f, 0f, 1f),
+    )
+    private val msgBoxYesFont: BitmapFont = KoreanFont.create(
+        40, "예", borderWidth = 2f, borderColor = MSGBOX4_YES_OUTLINE, fillColor = Color(2f / 255f, 110f / 255f, 0f, 1f),
+    )
     /** Plain MsgBox uses its own blue body and button colors; MsgBox4 above remains the manual-menu style. */
     private val plainMsgBoxMessageFont = KoreanFont.create(
         40, "모든 부대의 명령을 종료하시겠습니까?", borderWidth = 2f,
@@ -199,6 +230,9 @@ class BattleScreen(
     /** 원본 RoundLayer 프리팹의 `label12` 턴 수 그림자 색 4286545795 = (131,127,127). */
     private val ROUND_TURN_SHADOW = com.badlogic.gdx.graphics.Color.valueOf("#837f7fff")
 
+    /** 원본 RoundLayer 프리팹: fontSize 120 굵게, 흰 글자 뒤에 빨간 그림자 라벨. */
+    private val roundLayerFont: BitmapFont = KoreanFont.create(120, "아군 단계 적군 최종 턴 제", faceIndex = KoreanFont.BOLD_FACE)
+
     /**
      * `sectionTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -206,7 +240,8 @@ class BattleScreen(
 
     private val sectionTitleFontDelegate = lazy {
         // 진입 화면과 보상 화면이 같은 제목을 쓴다. 글리프 집합은 실제 전투 이름에서 얻는다.
-        KoreanFont.create(120, "영천의 전투 ▪ 훈련" + battleSectionTitle())
+        // 원본 BattleInitLayer 프리팹: fontSize 140 굵게, label0(검정, +10/-10) 위에 label1(흰색).
+        KoreanFont.create(140, "영천의 전투 ▪ 훈련" + battleSectionTitle(), faceIndex = KoreanFont.BOLD_FACE)
     }
     private val sectionTitleFont: BitmapFont by sectionTitleFontDelegate
 
@@ -1084,6 +1119,8 @@ void main() {
                 selectionTextures = hudAssets.selectAreaTextures,
                 cursorTexture = hudAssets.battleCursorTexture,
             ),
+            harmFont = harmNumberFont,
+            impactFont = terrainImpactFont,
         )
     }
 
@@ -1107,7 +1144,10 @@ void main() {
      */
 
     private val battleActorEffectRenderer by lazy {
-        BattleActorEffectRenderer(batch, hudAssets) { cocosHighlightSampler.value }
+        BattleActorEffectRenderer(
+            batch, hudAssets, { cocosHighlightSampler.value },
+            previewRateFont = attackPreviewRateFont, previewHarmFont = attackPreviewHarmFont,
+        )
     }
 
     /** Actor/effect renderer 입력은 live 상태를 이 Port로만 노출해 composer가 조립한다. */
@@ -1254,6 +1294,35 @@ void main() {
              * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
              */
 
+            override fun attackPreview(unit: BattleUnit, now: Float): BattleAttackPreviewRender? {
+                // 원본 showAttackRange: 플레이어가 공격 대상을 고르는 동안, 그리고 AI `case 8`의 0.3초(포트의 ACTION_DELAY) 동안
+                // 공격 칸 위의 적마다 showHarmBar를 보인다.
+                val attacker: BattleUnit
+                val area: Collection<Pair<Int, Int>>
+                val resolution = aiPresentation.resolution
+                if (attackTargetSelectionActive() && selectedUnitId != null) {
+                    attacker = battle.units[selectedUnitId!!] ?: return null
+                    area = attackTargetTiles(attacker).map { it.x to it.y }
+                } else if (resolution != null && aiPresentation.stage == AiPresentationStage.ACTION_DELAY &&
+                    resolution.result is TacticalActionResult.Attack
+                ) {
+                    attacker = battle.units[resolution.actorId] ?: return null
+                    area = resolution.actionArea
+                } else return null
+                if (!unit.visible || unit.id == attacker.id || unitsAreAllied(attacker, unit)) return null
+                if ((unit.tileX to unit.tileY) !in area) return null
+                val preview = battle.ai.previewAttackHarm(attacker.id, unit.id) ?: return null
+                val current = unit.hitPoints
+                val harm = minOf(preview.harm, current)
+                val max = unit.maxHitPoints.coerceAtLeast(1)
+                return BattleAttackPreviewRender(
+                    hitRate = preview.hitRate,
+                    harm = harm,
+                    currentRatio = (current.toFloat() / max).coerceIn(0f, 1f),
+                    afterRatio = ((current - harm).toFloat() / max).coerceIn(0f, 1f),
+                )
+            }
+
             override fun hpRatio(unit: BattleUnit, now: Float): Float =
                 (healthTimeline.shownHp(unit.id, now, unit.hitPoints)
                     .toFloat() / unit.maxHitPoints.coerceAtLeast(1)).coerceIn(0f, 1f)
@@ -1396,7 +1465,7 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val font: BitmapFont = KoreanFont.create(26, buildString {
+    private val battleFontCharacters: String = buildString {
         append("전술 전투 원본 맵 라운드 아군 적군 단계 턴 최종 종료 증원군 도착 조조 병사 황건적 시나리오로 돌아가기 일대일 대결 대화 아이템 ${scriptRuntime.stage.stageName}")
         append(gameDataCatalog.allBattleNames().joinToString())
         // 대화 화자에는 공병처럼 데이터 카탈로그의 일반 병종명도 포함된다.
@@ -1414,12 +1483,107 @@ void main() {
         append("진행 상황 유지 어떤 진행 상황을 저장할지 선택해 주세요 따뜻한 알림 오래된 저장 파일일수록 앞에 표시됩니다 취소 진행도 불러오기 읽을 최신 저장 파일이 가장 위에 있습니다")
         append("보물 도감 발견되지 않음 지금까지 발견한 보물 종료 부대 정보 일람 무장명 부대 속성 레벨 체력 공격 방어 정신 폭발 사기 폐쇄 창고 일람 이름 속성 경험치 소지자 무기 방어구 보조")
         append("모든 부대의 명령을 종료하시겠습니까? 자동 전투 위임 예 아니오 취소")
-    })
+    }
+
+    private val font: BitmapFont = KoreanFont.create(26, battleFontCharacters)
+
+    /**
+     * 정산 상태창 라벨의 글자색이다. 값은 `SettlementInfoRenderContract.LABEL_COLOR`
+     * 하나뿐이라 증거 로그(`Mine/OtherUnitInfoRenderEvents`)와 갈라질 수 없다.
+     */
+    private val settlementLabelColor: Color = Color.valueOf(SettlementInfoRenderContract.LABEL_COLOR)
+
+    /** 원본 Mine/OtherUnitInfoLayer 프리팹 라벨: fontSize 40, 2px 검정 테두리(`LabelOutline`). */
+    private val settlementFontDelegate = lazy {
+        KoreanFont.create(40, settlementFontCharacters(), borderWidth = 2f, borderColor = Color.BLACK)
+    }
+    private val settlementFont: BitmapFont by settlementFontDelegate
+
+    /** 병종 라벨(label2): `_styleFlags=1` 굵게 + 2px 검정 테두리. */
+    private val settlementBoldFontDelegate = lazy {
+        KoreanFont.create(40, settlementFontCharacters(), borderWidth = 2f, borderColor = Color.BLACK, faceIndex = KoreanFont.BOLD_FACE)
+    }
+    private val settlementBoldFont: BitmapFont by settlementBoldFontDelegate
+
+    /** 이름 라벨(label0): 굵게 + 2px `0xFF005040`(r192,g80,b0) 주황 테두리. */
+    private val settlementNameFontDelegate = lazy {
+        KoreanFont.create(
+            40, settlementFontCharacters(), borderWidth = 2f, borderColor = Color(192f / 255f, 80f / 255f, 0f, 1f),
+            faceIndex = KoreanFont.BOLD_FACE,
+        )
+    }
+    private val settlementNameFont: BitmapFont by settlementNameFontDelegate
+
+    /** 원본 `BattleUnit.heightLight()`가 띄운 소형 정보창과 그 시작 시각. 2.4초 뒤 스크립트가 재개되며 닫힌다. */
+    private var unitInfoPopup: BattleUnitInfoPopupView? = null
+    private var unitInfoPopupUnitId: String? = null
+    private var unitInfoPopupStartedAt = 0f
+
+    /** 프리팹 라벨별 (굵게, 글자색, 테두리색, 추가 글리프). 색은 원본 `BattleUnitInfoLayer.onCreate`의 N 표와 프리팹 값이다. */
+    private data class PopupFontSpec(val bold: Boolean, val fill: Color, val outline: Color, val extra: String)
+
+    private val unitInfoPopupFontSpecs = listOf(
+        PopupFontSpec(false, Color.WHITE, Color.BLACK, "Lv/MAXExp"),
+        PopupFontSpec(true, Color.WHITE, Color.BLACK, ""),
+        PopupFontSpec(true, Color.WHITE, Color(0f, 0f, 192f / 255f, 1f), ""),
+        PopupFontSpec(true, Color.WHITE, Color(112f / 255f, 16f / 255f, 0f, 1f), ""),
+        PopupFontSpec(true, Color.WHITE, Color(7f / 255f, 85f / 255f, 193f / 255f, 1f), ""),
+        PopupFontSpec(true, Color(240f / 255f, 208f / 255f, 0f, 1f), Color(184f / 255f, 117f / 255f, 7f / 255f, 1f), "우군"),
+        PopupFontSpec(true, Color(32f / 255f, 140f / 255f, 240f / 255f, 1f), Color(16f / 255f, 88f / 255f, 128f / 255f, 1f), "적군"),
+        PopupFontSpec(true, Color(128f / 255f, 212f / 255f, 128f / 255f, 1f), Color(104f / 255f, 144f / 255f, 64f / 255f, 1f), ""),
+        PopupFontSpec(false, Color.WHITE, Color(160f / 255f, 156f / 255f, 120f / 255f, 1f), "%"),
+    )
+
+    private val unitInfoPopupFonts = mutableListOf<BitmapFont>()
+
+    private val unitInfoPopupRenderer by lazy {
+        val names = settlementFontCharacters()
+        val terrainNames = gameDataCatalog.terrainRows().joinToString { it.name }
+        fun font(index: Int, characters: String): BitmapFont {
+            val (bold, fill, outline, extra) = unitInfoPopupFontSpecs[index]
+            return KoreanFont.create(
+                40, characters + extra, borderWidth = 2f, borderColor = outline, fillColor = fill,
+                faceIndex = if (bold) KoreanFont.BOLD_FACE else 0,
+            ).also(unitInfoPopupFonts::add)
+        }
+        BattleUnitInfoPopupRenderer(
+            batch, settlementInfoAssets,
+            BattleUnitInfoPopupRenderer.Fonts(
+                regular = font(0, ""),
+                bold = font(1, names),
+                nameByCamp = listOf(font(2, names), font(3, names), font(4, names)),
+                campByIndex = mapOf(1 to font(5, ""), 2 to font(6, "")),
+                terrain = font(7, terrainNames),
+                terrainRate = font(8, ""),
+            ),
+        )
+    }
+
+    /** 상태창 글리프: 전 유닛 이름(사용자 지정 이름 포함)과 관직명. `allBattleNames()`는 상점 이름이라 여기 쓰지 않는다. */
+    private fun settlementFontCharacters(): String =
+        gameDataCatalog.allUnitNames().joinToString() + campaign.unitNames.values.joinToString() +
+            gameDataCatalog.postsNames().joinToString() + "Lv/"
 
     /**
      * `dialogueFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
+
+    /** 원본 `BattleUnit.showHarmNum`: 24px 굵은 숫자 + 1px `0x8C8C8C` 테두리. 월드 단위는 설계 픽셀의 2배다. */
+    private val harmNumberFont: BitmapFont = KoreanFont.create(
+        48, "", borderWidth = 2f, borderColor = Color(0x8C / 255f, 0x8C / 255f, 0x8C / 255f, 1f),
+    )
+
+    /** 원본 `BattleLayer._showMoveArea`의 지형효과 라벨: 12px. */
+    private val terrainImpactFont: BitmapFont = KoreanFont.create(24, "")
+
+    /** 원본 BattleUnit 프리팹 info/label0: fontSize 12(월드 24), 2px 검정 테두리(월드 4). */
+    private val attackPreviewRateFont: BitmapFont = KoreanFont.create(24, "%", borderWidth = 4f, borderColor = Color.BLACK)
+
+    /** 원본 BattleUnit 프리팹 info/label1: fontSize 14(월드 28), 글자 (255,0,0), 2px (255,255,201) 테두리. */
+    private val attackPreviewHarmFont: BitmapFont = KoreanFont.create(
+        28, "", borderWidth = 4f, borderColor = Color(1f, 1f, 201f / 255f, 1f), fillColor = Color.RED,
+    )
 
     private val dialogueFont: BitmapFont = KoreanFont.create(36, buildString {
         append(gameDataCatalog.allUnitNames().joinToString())
@@ -1519,6 +1683,9 @@ void main() {
         BattleAutoOverlayRenderer(
             batch = batch,
             labelFont = itemUpgradeFont,
+            promptFonts = BattleAutoOverlayRenderer.PromptFonts(
+                message = msgBoxMessageFont, toggle = msgBoxToggleFont, no = msgBoxNoFont, yes = msgBoxYesFont,
+            ),
             plainPromptFonts = BattleAutoOverlayRenderer.PlainPromptFonts(
                 message = plainMsgBoxMessageFont, no = plainMsgBoxNoFont, yes = plainMsgBoxYesFont,
             ),
@@ -1529,6 +1696,7 @@ void main() {
                 checkmark = hudAssets.autoBattleCheckmark,
                 banner = hudAssets.autoBattleBanner,
                 plate = hudAssets.autoBattlePlate,
+                logo = overlayAssets.winConditionLogoTexture,
                 plainBackground = overlayAssets.winConditionBackgroundTexture,
                 plainBox = overlayAssets.winConditionBoxPatch,
                 plainLogo = overlayAssets.winConditionLogoTexture,
@@ -1551,6 +1719,8 @@ void main() {
                 rowEven = overlayAssets.terrainLayerRowEvenPatch,
                 rowOdd = overlayAssets.terrainLayerRowOddPatch,
                 verticalLine = overlayAssets.terrainLayerVlinePatch,
+                skillIcons = overlayAssets.terrainLayerSkillTextures,
+                skillDisabledIcons = overlayAssets.terrainLayerSkillDisabledTextures,
             ),
         )
     }
@@ -1667,8 +1837,6 @@ void main() {
                 rowEven = overlayAssets.terrainLayerRowEvenPatch,
                 rowOdd = overlayAssets.terrainLayerRowOddPatch,
                 verticalLine = overlayAssets.terrainLayerVlinePatch,
-                skillIcons = overlayAssets.terrainLayerSkillTextures,
-                skillDisabledIcons = overlayAssets.terrainLayerSkillDisabledTextures,
             ),
         )
     }
@@ -2975,6 +3143,8 @@ void main() {
              */
 
             override fun dismissUnitInfo() {
+                unitInfoPopup = null
+                unitInfoPopupUnitId = null
                 unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
             }
 
@@ -3021,7 +3191,7 @@ void main() {
              */
 
             override fun openUnitInfo(unitId: Int) {
-                openUnitInfoLayer(unitId)
+                openUnitInfoPopup(unitId)
             }
 
             /**
@@ -5314,7 +5484,6 @@ void main() {
             if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) drawBattleCommandLayer()
             activeRoundLayer?.let(::drawRoundLayer)
             activeWeatherLayer?.let(::drawWeatherLayer)
-            drawSettlementOverlays()
             if (verification.usesTutorialBattle) drawHud()
             if (!selectionOverlayCapture && !actionCaptureMode && miniMapRouteState == null && !battleMenuOpen && saveLoadOverlay.view(
                     BattleSaveLoadOverlayController.Mode.SAVE
@@ -5326,6 +5495,9 @@ void main() {
             }
             batch.projectionMatrix = viewport.camera.combined
             battleAutoOverlayRenderer.draw(battleAutoOverlayView())
+            // 원본은 Mine/OtherUnitInfoLayer·BattleUnitInfoLayer를 TuoGuanLayer 뒤에 addLayer하므로 위임 띠 위에 그린다.
+            drawSettlementOverlays()
+            drawUnitInfoPopup()
             if (winConditionOpen) drawWinConditionBox()
             if (outcomePresentation.winPromptActive) drawSavePrompt()
             scriptWinConditions?.let { drawScriptWinConditions(it) }
@@ -5699,6 +5871,7 @@ void main() {
                 activeActionActorId = actionAnimation?.takeIf { animationClock() < it.endsAt }?.unitId,
                 activeActionSourceAction = actionAnimation?.takeIf { animationClock() < it.endsAt }?.sourceAction,
                 settlementInfoVisible = settlementPresentation.infoView() != null || settlementPresentation.info2View() != null,
+                tileScreenPoint = ::screenPoint,
             ),
             object : BattleRuntimeProbePort {
                 /**
@@ -7262,7 +7435,7 @@ void main() {
 
                 is BattleSettlementPresentationController.Effect.UnitInfo -> {
                     battle.presentation.presentationUnit(effect.plan.unitId)?.let { unit ->
-                        settlementPresentation.setInfoTitle(unit.name)
+                        settlementPresentation.setInfoTitle(unit.displayName)
                         // 원본 InfoBaseLayer는 이전값에서 새값으로 움직이는 자체 bar를 갖고 있지만,
                         // 전장 유닛의 bar는 이미 적용된 live hp_cur/hp를 계속 표시한다.
                         healthTimeline.clear(unit.id)
@@ -7272,7 +7445,7 @@ void main() {
 
                 is BattleSettlementPresentationController.Effect.GrowthInfo -> battle.presentation.presentationUnit(
                     effect.unitId
-                )?.let { settlementPresentation.setInfoTitle(it.name) }
+                )?.let { settlementPresentation.setInfoTitle(it.displayName) }
 
                 is BattleSettlementPresentationController.Effect.Meff -> {
                     val animation = magicEffects.effect(effect.effectId)
@@ -8228,6 +8401,34 @@ void main() {
      */
     private data class SettlementRow(val index: Int, val label: String, val value: Int, val max: Int)
 
+    /**
+     * 정산 상태창 라벨의 baseline이다. 라벨 노드 아래 모서리에서 위로 잰 값이며,
+     * 프리팹이 적어 둔 노드 높이(외곽선 2짜리 라벨 54.4, 외곽선 없는 라벨 50.4)를
+     * `CocosLabelBaseline`의 원본 규칙에 넣어 얻는다. 글꼴 크기·줄 높이는 `cc.Label`
+     * 기본값 40이며, 두 프리팹 모두 `_fontSize`/`_lineHeight`를 따로 저장하지 않는다.
+     */
+    private val settlementLabelBaseline =
+        CocosLabelBaseline.baselineFromBottom(fontSize = 40f, lineHeight = 40f, outlineWidth = 2f)
+
+    /** 무기·방어구 경험치 라벨(label3/label4)은 `cc.LabelOutline`이 없어 노드가 50.4다. */
+    private val settlementPlainLabelBaseline =
+        CocosLabelBaseline.baselineFromBottom(fontSize = 40f, lineHeight = 40f, outlineWidth = 0f)
+
+    /**
+     * `drawSettlementLabel`: 원본 baseline 좌표에 글자를 놓는다.
+     *
+     * libGDX `BitmapFont.draw`의 y는 baseline이 아니라 대문자 윗선이므로 글꼴의
+     * `capHeight`만큼 올려 준다. 굵은 얼굴은 capHeight가 달라 글꼴마다 따로 더한다.
+     */
+    private fun drawSettlementLabel(font: BitmapFont, text: String, x: Float, baselineY: Float) {
+        font.draw(batch, text, x, baselineY + font.capHeight)
+    }
+
+    private fun drawSettlementRightAligned(text: String, rightX: Float, baselineY: Float) {
+        val layout = GlyphLayout(settlementFont, text)
+        drawSettlementLabel(settlementFont, text, rightX - layout.width, baselineY)
+    }
+
     private data class SettlementBarSlot(
         val barAsset: String,
         val barX: Float,
@@ -8252,38 +8453,59 @@ void main() {
         val mine = panel == SettlementInfoRenderContract.Panel.MINE
         return when (label) {
             "HP" -> if (mine) {
-                SettlementBarSlot(SETTLEMENT_HP_BAR, 807.5f, 251f, 901.73f, 984.945f, 1015.5f, 245.8f + 34f)
+                SettlementBarSlot(SETTLEMENT_HP_BAR, 807.5f, 251f, 901.73f, 984.945f, 1015.5f, 245.8f + settlementLabelBaseline)
             } else {
-                SettlementBarSlot(SETTLEMENT_HP_BAR, 810.5f, 179.75f, 906.73f, 987.945f, 1016.5f, 174.55f + 34f)
+                SettlementBarSlot(SETTLEMENT_HP_BAR, 810.5f, 179.75f, 906.73f, 987.945f, 1016.5f, 174.55f + settlementLabelBaseline)
             }
 
             "MP" -> if (mine) {
-                SettlementBarSlot(SETTLEMENT_MP_BAR, 807.5f, 200f, 923.98f, 984.945f, 1015.5f, 191.8f + 34f)
+                SettlementBarSlot(SETTLEMENT_MP_BAR, 807.5f, 200f, 923.98f, 984.945f, 1015.5f, 191.8f + settlementLabelBaseline)
             } else {
-                SettlementBarSlot(SETTLEMENT_MP_BAR, 810.5f, 121.75f, 928.98f, 987.945f, 1016.5f, 116.55f + 34f)
+                SettlementBarSlot(SETTLEMENT_MP_BAR, 810.5f, 121.75f, 928.98f, 987.945f, 1016.5f, 116.55f + settlementLabelBaseline)
             }
 
             "EXP" -> if (mine) {
-                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, 149f, 943.25f, 984.945f, 1015.5f, 140.8f + 34f)
+                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, 149f, 943.25f, 984.945f, 1015.5f, 140.8f + settlementLabelBaseline)
             } else {
                 null
             }
 
             // 무기·방어구 경험치는 원본에서도 막대 없이 아이콘 옆 숫자로만 보여 준다.
             "WQ" -> if (mine) {
-                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, -1000f, 810.5f, -1000f, -1000f, 97.8f + 34f)
+                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, -1000f, 810.5f, -1000f, -1000f, 97.8f + settlementPlainLabelBaseline)
             } else {
                 null
             }
 
             "HJ" -> if (mine) {
-                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, -1000f, 958.5f, -1000f, -1000f, 97.8f + 34f)
+                SettlementBarSlot(SETTLEMENT_EXP_BAR, 807.5f, -1000f, 958.5f, -1000f, -1000f, 97.8f + settlementPlainLabelBaseline)
             } else {
                 null
             }
 
             else -> null
         }.also { if (index < 0) return null }
+    }
+
+    /**
+     * `equipmentExperienceLimit`: 정산 창 무기·방어구 경험치 줄의 상한이다.
+     *
+     * 원본 `MineUnitInfoLayer.js:77-86`은 `unit().equip(ITEM_TYPE.WEAPONS/ARMOR)`가 있으면
+     * 그 장비의 `expLimit()`을, 없으면 초기값 100을 쓴다. 장착 부위는 `equippedItems()`가
+     * 돌려주는 아이템의 `itemType`으로 가른다(`CampaignInventoryEquipmentManager.slotFor`와 같은 경계).
+     */
+    private fun equipmentExperienceLimit(characterId: Int?, slot: CampaignEquipmentSlot): Int {
+        val unitId = characterId ?: return SETTLEMENT_EQUIP_EXP_FALLBACK_LIMIT
+        val item = campaign.inventory.equippedItems().firstOrNull {
+            it.unitId == unitId && gameDataCatalog.equipmentProfile(it.itemId)?.itemType?.let { type ->
+                when (slot) {
+                    CampaignEquipmentSlot.WEAPON -> type <= 19
+                    CampaignEquipmentSlot.ARMOR -> type in 20..25
+                    CampaignEquipmentSlot.AUXILIARY -> type > 25
+                }
+            } == true
+        } ?: return SETTLEMENT_EQUIP_EXP_FALLBACK_LIMIT
+        return gameDataCatalog.equipmentExperienceLimit(item.itemId, item.level)
     }
 
     /**
@@ -8298,7 +8520,6 @@ void main() {
             val frame = settlementAnimationFrame(overlay)
             val mine = overlay.panel == SettlementInfoPanel.MINE
             val panel = if (mine) SettlementInfoRenderContract.Panel.MINE else SettlementInfoRenderContract.Panel.OTHER
-            val h = if (mine) 258f else 193.5f
             val placementKey = overlay.unitId to overlay.startedAt
             if (settlementPlacementKey != placementKey) {
                 val (visualX, visualY) = visualTile(unit)
@@ -8326,48 +8547,89 @@ void main() {
                         batch, sprite.path, sprite.x, sprite.y, sprite.width, sprite.height, sprite.capInset,
                     )
                 }
-                font.data.setScale(32f / 26f)
-                font.color = Color.WHITE
-                val titleY = if (mine) 294.5f + 40f else 226.85f + 40f
-                font.draw(batch, overlay.title, 744.4f, titleY)
-                font.draw(batch, "Lv ${unit.level}", if (mine) 911.105f else 912.256f, titleY)
-                font.draw(batch, gameDataCatalog.postsName(unit.posts), if (mine) 1045.55f else 1049.3f, titleY)
+                // 원본 프리팹: 라벨은 모두 fontSize 40에 2px 테두리, 이름(label0)·병종(label2)은 굵게.
+                // 레벨(label1)은 anchor (1, 0.5)로 오른쪽 정렬이다.
+                val titleY = if (mine) 294.5f + settlementLabelBaseline else 226.85f + settlementLabelBaseline
+                settlementNameFont.color = settlementLabelColor
+                run {
+                    // label0은 anchor (0, 0.5)로 왼쪽에 붙지만 가로 정렬은 CENTER(1)라 노드(146.2/148.3 너비) 안에서 가운데다.
+                    val nameLeft = if (mine) 744.4f else 744.9f
+                    val nameWidth = if (mine) 146.2f else 148.3f
+                    val layout = GlyphLayout(settlementNameFont, overlay.title)
+                    drawSettlementLabel(settlementNameFont, overlay.title, nameLeft + (nameWidth - layout.width) / 2f, titleY)
+                }
+                settlementFont.color = settlementLabelColor
+                drawSettlementLabel(settlementFont, "Lv", if (mine) 911.105f else 912.256f, titleY)
+                drawSettlementRightAligned(unit.level.toString(), 1030.87f, titleY)
+                settlementBoldFont.color = settlementLabelColor
+                run {
+                    val posts = gameDataCatalog.postsName(unit.posts)
+                    val layout = GlyphLayout(settlementBoldFont, posts)
+                    drawSettlementLabel(
+                        settlementBoldFont, posts,
+                        971.5f + (if (mine) 150.8f else 151.6f) - layout.width / 2f, titleY,
+                    )
+                }
+                // 원본 Mine/OtherUnitInfoLayer.onCreate는 변화가 없어도 HP·MP(아군은 EXP·무기·방어구 경험치까지)를
+                // 항상 채우고, 변화가 있는 항목만 `_kvs`로 애니메이션한다.
+                val hpDelta = overlay.deltas.firstOrNull { it.kind == SettlementInfoKind.HP }
+                val mpDelta = overlay.deltas.firstOrNull { it.kind != SettlementInfoKind.HP }
                 val rows = buildList {
-                    overlay.deltas.forEach { delta ->
-                        val index = if (delta.kind == SettlementInfoKind.HP) 0 else 1
-                        val max = if (index == 0) unit.maxHitPoints else unit.maxMagicPoints
-                        add(SettlementRow(index, delta.kind.name, frame.numbers[index] ?: delta.before, max))
-                    }
-                    overlay.grants.forEach { grant ->
-                        val growth = when (grant.kind) {
-                            SettlementGrowthKind.UNIT_EXP ->
-                                grant.unitResult?.let { Triple(2, it.oldExperience, it.gained) }
-
-                            SettlementGrowthKind.WEAPON_EXP ->
-                                grant.equipmentResult?.let { Triple(3, it.oldExperience, it.gained) }
-
-                            SettlementGrowthKind.ARMOR_EXP ->
-                                grant.equipmentResult?.let { Triple(4, it.oldExperience, it.gained) }
-                        } ?: return@forEach
-                        val (index, old, gained) = growth
-                        val label = when (index) { 2 -> "EXP"; 3 -> "WQ"; else -> "HJ" }
-                        add(SettlementRow(index, label, frame.numbers[index] ?: old, (old + gained).coerceAtLeast(1)))
+                    add(SettlementRow(0, "HP", frame.numbers[0] ?: hpDelta?.before ?: unit.hitPoints, unit.maxHitPoints))
+                    add(SettlementRow(1, "MP", frame.numbers[1] ?: mpDelta?.before ?: unit.magicPoints, unit.maxMagicPoints))
+                    if (mine) {
+                        val expGrant = overlay.grants.firstOrNull { it.kind == SettlementGrowthKind.UNIT_EXP }?.unitResult
+                        add(
+                            SettlementRow(
+                                2, "EXP", frame.numbers[2] ?: expGrant?.oldExperience ?: unit.experience,
+                                gameDataCatalog.unitExperienceLimit(unit.level).coerceAtLeast(1),
+                            )
+                        )
+                        val equipment = unit.characterId?.let { campaign.inventory.equipmentFor(it) }
+                        val weaponGrant = overlay.grants.firstOrNull { it.kind == SettlementGrowthKind.WEAPON_EXP }?.equipmentResult
+                        val armorGrant = overlay.grants.firstOrNull { it.kind == SettlementGrowthKind.ARMOR_EXP }?.equipmentResult
+                        add(
+                            SettlementRow(
+                                3, "WQ", frame.numbers[3] ?: weaponGrant?.oldExperience ?: equipment?.weaponExperience ?: 0,
+                                equipmentExperienceLimit(unit.characterId, CampaignEquipmentSlot.WEAPON),
+                            )
+                        )
+                        add(
+                            SettlementRow(
+                                4, "HJ", frame.numbers[4] ?: armorGrant?.oldExperience ?: equipment?.armorExperience ?: 0,
+                                equipmentExperienceLimit(unit.characterId, CampaignEquipmentSlot.ARMOR),
+                            )
+                        )
                     }
                 }
                 // 값 막대는 원본 `ProgressBar`처럼 바탕 위에서 progress 비율만큼만 채운다.
                 // 길이는 숫자와 달리 1초짜리 트윈이 정한다.
-                rows.forEachIndexed { row, entry ->
-                    val slot = settlementBarSlot(panel, entry.label, row) ?: return@forEachIndexed
+                rows.forEach { entry ->
+                    val slot = settlementBarSlot(panel, entry.label, entry.index) ?: return@forEach
                     val ratio = frame.ratios[entry.index]
                         ?: (entry.value.toFloat() / entry.max.coerceAtLeast(1)).coerceIn(0f, 1f)
                     settlementInfoAssets.texture(slot.barAsset)?.let {
                         batch.draw(it, slot.barX, slot.barY, 370f * ratio, 20f)
                     }
-                    font.draw(batch, entry.value.toString(), slot.valueX, slot.labelY)
-                    font.draw(batch, "/", slot.slashX, slot.labelY)
-                    font.draw(batch, entry.max.toString(), slot.maxX, slot.labelY)
+                    settlementFont.color = settlementLabelColor
+                    if (entry.label == "WQ" || entry.label == "HJ") {
+                        // 원본 `MineUnitInfoLayer.js:173-176`: 무기·방어구 경험치(label3/label4)는 상한에
+                        // 닿으면 숫자 대신 "MAX"를 cc.color(17,17,251)로 쓰고, 그 외에는 현재 값만 보여 준다.
+                        settlementFont.color =
+                            Color.valueOf(SettlementInfoRenderContract.equipmentExperienceColor(entry.value, entry.max))
+                        drawSettlementLabel(
+                            settlementFont,
+                            SettlementInfoRenderContract.equipmentExperienceText(entry.value, entry.max),
+                            slot.valueX, slot.labelY,
+                        )
+                    } else {
+                        // label0은 anchor (1, 0.5)로 막대 중심-21에 오른쪽 정렬, label1은 중심+21에서 왼쪽 정렬이다.
+                        // 막대 중심은 "/" 라벨(15.11 너비)의 중심과 같다.
+                        drawSettlementRightAligned(entry.value.toString(), slot.slashX + 15.11f / 2f - 21f, slot.labelY)
+                        drawSettlementLabel(settlementFont, "/", slot.slashX, slot.labelY)
+                        drawSettlementLabel(settlementFont, entry.max.toString(), slot.maxX, slot.labelY)
+                    }
                 }
-                font.data.setScale(1f)
                 batch.end()
             } finally {
                 batch.transformMatrix = previousTransform
@@ -8668,6 +8930,7 @@ void main() {
             BattleEditLayer2RenderEvents.Header.WIDTH,
             BattleEditLayer2RenderEvents.Header.HEIGHT,
         )
+        batch.color = Color.WHITE
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.301f, 487.229f, 169.8f, 50f)
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 768.224f, 430.411f, 160f, 50f)
         font.color = Color.BLACK
@@ -9639,11 +9902,35 @@ void main() {
     private fun tileBottom(sourceY: Float): Float = boardBottom - sourceY * boardTile
 
     /** 선택 가능 타일 계산: AI 연출·마법·아이템·일반 명령 상태에 맞는 선택 테두리 목록을 만든다. */
+    /** 명령창에서 `공격`을 고른 뒤 대상을 기다리는 상태. 원본은 이때 `showAttackRange`로 공격 칸과 대상 예고만 보인다. */
+    private fun attackTargetSelectionActive(): Boolean =
+        battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION && battleCommandFlow.childCommand == BattleCommandFlow.Command.ATTACK
+
+    /** 원본 `_showHitArea(pos, hitareaIdx, false, false)`: 현재 위치 기준 공격 칸을 빨간 채움으로 그린다. */
+    private fun attackTargetTiles(selected: BattleUnit): List<SelectAreaTile> =
+        if (selected.attackAllScreen) {
+            (0..boardMaxX).flatMap { x -> (0..boardMaxY).map { y -> SelectAreaTile(x, y, SelectAreaFrame.RED) } }
+        } else selected.attackOffsets.mapNotNull { (dx, dy) ->
+            val x = selected.tileX + dx
+            val y = selected.tileY + dy
+            SelectAreaTile(x, y, SelectAreaFrame.RED).takeIf { x in 0..boardMaxX && y in 0..boardMaxY }
+        }
+
     private fun selectableAreaTiles(): List<SelectAreaTile> {
         aiPresentation.resolution?.let { resolution ->
             when (aiPresentation.stage) {
-                AiPresentationStage.FOCUS_DELAY -> return resolution.moveArea.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
-                    .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.GREEN) }
+                AiPresentationStage.FOCUS_DELAY -> {
+                    val moveTiles = resolution.moveArea.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
+                        .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.GREEN) }
+                    // 원본 `_process`는 이동 범위 뒤에 `_ref_hit_area`로 현재 위치 기준 공격 칸을 빨간 테두리로 덧그린다.
+                    val actor = battle.units[resolution.actorId]
+                    val attackBoxes = if (actor == null || actor.attackAllScreen) emptyList() else actor.attackOffsets.mapNotNull { (dx, dy) ->
+                        val x = resolution.fromX + dx
+                        val y = resolution.fromY + dy
+                        SelectAreaTile(x, y, SelectAreaFrame.RED_BOX).takeIf { x in 0..boardMaxX && y in 0..boardMaxY }
+                    }
+                    return moveTiles + attackBoxes
+                }
 
                 AiPresentationStage.ACTION_DELAY -> return resolution.actionArea.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                     .map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }
@@ -9651,8 +9938,15 @@ void main() {
                 else -> Unit
             }
         }
+        unitInfoPopupUnitId?.let(battle.units::get)?.let { unit ->
+            val phase = ((animationClock() - unitInfoPopupStartedAt) / .3f).toInt()
+            if (phase % 2 == 0) return listOf(SelectAreaTile(unit.tileX, unit.tileY, SelectAreaFrame.RED))
+            return emptyList()
+        }
         val selected = selectedUnitId?.let(battle.units::get) ?: return emptyList()
         return when {
+            attackTargetSelectionActive() -> attackTargetTiles(selected)
+
             magicMode -> selected.magic.getOrNull(selectedMagicIndex)?.hitArea?.offsets?.map { (dx, dy) -> selected.tileX + dx to selected.tileY + dy }
                 ?.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }
                 ?.map { (x, y) -> SelectAreaTile(x, y, SelectAreaFrame.RED) }.orEmpty()
@@ -9715,7 +10009,14 @@ void main() {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val terrainImpacts = if (magicMode || propertyMode || selected == null) {
+        val aiFocus = aiPresentation.resolution?.takeIf { aiPresentation.stage == AiPresentationStage.FOCUS_DELAY }
+        val aiActor = aiFocus?.let { battle.units[it.actorId] }
+        val terrainImpacts = if (aiFocus != null && aiActor != null) {
+            // 원본 `_showMoveArea`는 진영과 무관하게 이동 가능한 모든 칸에 지형효과를 적는다.
+            aiFocus.moveArea.filter { (x, y) -> x in 0..boardMaxX && y in 0..boardMaxY }.map { (x, y) ->
+                BattleMapTerrainImpact(x, y, aiActor.terrainImpacts[terrainGrid.terrainAt(x, y)] ?: 100)
+            }
+        } else if (magicMode || propertyMode || selected == null || attackTargetSelectionActive()) {
             emptyList()
         } else {
             battle.movement.reachableTiles(selected.id).keys.map { (x, y) ->
@@ -10376,6 +10677,48 @@ void main() {
     }
 
     /** 유닛 정보 창 열기: 선택 유닛과 같은 진영의 표시 행을 만들고 정보 오버레이를 활성화한다. */
+    /**
+     * 원본 `BattleUnit.heightLight()`: `centerUnit` 뒤 `BattleUnitInfoLayer`(flag 0)를 붙이고, 유닛 자리에 빨간 범위 칸을
+     * 0.3초 간격으로 네 번 깜박인 뒤 창을 닫고 스크립트를 재개한다. 창 내용은 `BattleUnitInfoLayer.onCreate`다.
+     */
+    private fun openUnitInfoPopup(characterId: Int) {
+        val unit = battle.units.values.firstOrNull { it.characterId == characterId && it.visible } ?: return
+        val (visualX, visualY) = visualTile(unit)
+        val screenX = boardLeft + (visualX + .5f) * boardTile
+        val screenY = tileBottom(visualY) + boardTile / 2f
+        // 원본 Layer(1280×800) 중심 기준으로 자리를 정한 뒤 다시 월드 좌표로 되돌린다.
+        val layerCenterX = viewport.worldWidth / 2f
+        val (px, py) = BattleUnitInfoPopupLayout.place(screenX - layerCenterX, screenY - 400f)
+        val terrain = terrainGrid.terrainAt(unit.tileX, unit.tileY)
+        val camp = minOf(2, unit.type().ordinal)
+        unitInfoPopup = BattleUnitInfoPopupView(
+            name = unit.displayName,
+            postsName = gameDataCatalog.postsName(unit.posts),
+            level = unit.level,
+            camp = camp,
+            terrainName = gameDataCatalog.terrainRows().getOrNull(terrain)?.name ?: "알 수 없음",
+            terrainImpact = unit.terrainImpacts[terrain] ?: 100,
+            hitPoints = unit.hitPoints,
+            maxHitPoints = unit.maxHitPoints,
+            magicPoints = unit.magicPoints,
+            maxMagicPoints = unit.maxMagicPoints,
+            experience = unit.experience,
+            experienceLimit = gameDataCatalog.unitExperienceLimit(unit.level),
+            centerX = px + layerCenterX,
+            centerY = py + 400f,
+        )
+        unitInfoPopupUnitId = unit.id
+        unitInfoPopupStartedAt = animationClock()
+    }
+
+    private fun drawUnitInfoPopup() {
+        val view = unitInfoPopup ?: return
+        batch.projectionMatrix = viewport.camera.combined
+        batch.begin()
+        unitInfoPopupRenderer.draw(view)
+        batch.end()
+    }
+
     private fun openUnitInfoLayer(selectedCharacterId: Int) {
         val source = battle.units.values.filter { it.visible }
 
@@ -10748,7 +11091,6 @@ void main() {
             0f, 0f, 1488.372f, 800f
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
-        font.data.setScale(120f / 26f)
 
         /**
          * `text`: 타입의 핵심 동작을 수행한다.
@@ -10756,7 +11098,7 @@ void main() {
          */
 
         fun text(value: String, x: Float, y: Float, width: Float, color: Color) {
-            font.color = color; font.draw(batch, value, x, y + 125f, width, Align.center, false)
+            roundLayerFont.color = color; roundLayerFont.draw(batch, value, x, y + 125f, width, Align.center, false)
         }
         if (layer.view.roundLabelsVisible) {
             text("아군 단계", 526.713f, 380.09f, 448.54f, Color.RED)
@@ -10783,7 +11125,7 @@ void main() {
             text("적군 단계", 526.713f, 319.4f, 448.54f, Color.RED)
             text("적군 단계", 519.916f, 324.4f, 448.54f, Color.WHITE)
         }
-        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+        roundLayerFont.color = Color.WHITE; batch.end()
     }
 
     /**
@@ -12627,8 +12969,21 @@ void main() {
         unitPresentationStore.clear()
         audio.dispose()
         font.dispose()
+        settlementFontDelegate.takeIf { it.isInitialized() }?.let { settlementFont.dispose() }
+        settlementBoldFontDelegate.takeIf { it.isInitialized() }?.let { settlementBoldFont.dispose() }
+        settlementNameFontDelegate.takeIf { it.isInitialized() }?.let { settlementNameFont.dispose() }
+        unitInfoPopupFonts.forEach(BitmapFont::dispose)
+        harmNumberFont.dispose()
+        terrainImpactFont.dispose()
+        attackPreviewRateFont.dispose()
+        attackPreviewHarmFont.dispose()
         dialogueFont.dispose()
         rewardTitleFont.dispose()
+        roundLayerFont.dispose()
+        msgBoxMessageFont.dispose()
+        msgBoxToggleFont.dispose()
+        msgBoxNoFont.dispose()
+        msgBoxYesFont.dispose()
         plainMsgBoxMessageFont.dispose()
         plainMsgBoxNoFont.dispose()
         plainMsgBoxYesFont.dispose()
@@ -12708,6 +13063,13 @@ private const val SETTLEMENT_EXP_BAR = "maps/ui/settlement-info/mark6.png"
 
 /** 계약이 돌려주는 목록 중 값에 따라 길이가 변하는 막대들이다. */
 private val SETTLEMENT_VALUE_BARS = setOf(SETTLEMENT_HP_BAR, SETTLEMENT_MP_BAR, SETTLEMENT_EXP_BAR)
+
+/**
+ * 장비를 끼지 않은 유닛의 무기·방어구 경험치 상한이다.
+ * 원본 `recovered-js/modules/ui/MineUnitInfoLayer.js:77,83`이 `var E = 0, I = 100` /
+ * `var N = 0, L = 100`으로 두고 장비가 있을 때만 `expLimit()`으로 덮어쓴다.
+ */
+private const val SETTLEMENT_EQUIP_EXP_FALLBACK_LIMIT = 100
 
 
 /**
