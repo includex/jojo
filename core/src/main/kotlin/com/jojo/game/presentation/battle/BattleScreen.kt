@@ -1920,6 +1920,11 @@ void main() {
 
     private var autoBattlePanelPressed = false
 
+    /** MenuLayer.JSYX가 여는 원본 MsgBox의 표시 및 눌림 상태다. */
+    private var returnToTitlePromptOpen = false
+    private var returnToTitlePromptPressedTag: Int? = null
+    private var returnToTitlePromptPanelPressed = false
+
     /**
      * `saveLoadOverlay` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -4673,6 +4678,12 @@ void main() {
                     winConditionButtonPressed = world.x in 957.134f..1213.834f && world.y in 88.204f..148.204f
                     return true
                 }
+                if (returnToTitlePromptOpen) {
+                    returnToTitlePromptPressedTag = BattleAutoPromptGeometry.buttonAt(world.x, world.y, false)
+                    returnToTitlePromptPanelPressed = returnToTitlePromptPressedTag == null &&
+                        BattleAutoPromptGeometry.panelCancelAt(world.x, world.y, false)
+                    return true
+                }
                 when (autoBattleFlow.view().overlay) {
                     AutoBattleFlow.Overlay.PROMPT -> {
                         autoBattlePressedTag = autoBattlePromptButtonAt(world.x, world.y)
@@ -4901,6 +4912,24 @@ void main() {
                         if (closing && helperOverlay.view() == null) audio.playUiSound(UiSound.CLICK)
                         return true
                     }
+                }
+                if (returnToTitlePromptOpen) {
+                    val released = BattleAutoPromptGeometry.buttonAt(world.x, world.y, false)
+                    val pressed = returnToTitlePromptPressedTag
+                    when {
+                        pressed != null && pressed == released -> {
+                            audio.playUiSound(UiSound.CLICK)
+                            returnToTitlePromptOpen = false
+                            if (pressed == 0) game.showTitleScreen()
+                        }
+                        returnToTitlePromptPanelPressed &&
+                            BattleAutoPromptGeometry.panelCancelAt(world.x, world.y, false) -> {
+                            returnToTitlePromptOpen = false
+                        }
+                    }
+                    returnToTitlePromptPressedTag = null
+                    returnToTitlePromptPanelPressed = false
+                    return true
                 }
                 when (autoBattleFlow.view().overlay) {
                     AutoBattleFlow.Overlay.PROMPT -> {
@@ -5495,6 +5524,15 @@ void main() {
             }
             batch.projectionMatrix = viewport.camera.combined
             battleAutoOverlayRenderer.draw(battleAutoOverlayView())
+            if (returnToTitlePromptOpen) {
+                battleAutoOverlayRenderer.draw(
+                    BattleAutoOverlayView(
+                        overlay = BattleAutoOverlayKind.PROMPT,
+                        offersDelegation = false,
+                        message = "시작 화면으로 돌아가시겠습니까?",
+                    )
+                )
+            }
             // 원본은 Mine/OtherUnitInfoLayer·BattleUnitInfoLayer를 TuoGuanLayer 뒤에 addLayer하므로 위임 띠 위에 그린다.
             drawSettlementOverlays()
             drawUnitInfoPopup()
@@ -10360,7 +10398,7 @@ void main() {
         battleMenuOpen = false
         battleMenuLayer = null
         when (index) {
-            0 -> game.showTitleScreen() // JSYX: 원본 분기에서 타이틀 화면으로 복귀한다.
+            0 -> returnToTitlePromptOpen = true // JSYX: MsgBox 확인 응답 0에서만 Login으로 복귀한다.
             1 -> { // CD: SaveLayer; SAVE_GAME is dispatched only after MsgBox OK.
                 saveLoadOverlay.openSave(savedPage = 0)
             }

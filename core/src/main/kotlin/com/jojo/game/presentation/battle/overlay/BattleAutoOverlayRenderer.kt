@@ -19,6 +19,7 @@ data class BattleAutoOverlayView(
     val overlay: BattleAutoOverlayKind,
     val checked: Boolean = false,
     val offersDelegation: Boolean = true,
+    val message: String = "모든 부대의 명령을 종료하시겠습니까?",
 )
 
 /** Shared authored geometry for rendering and hit-testing MsgBox/MsgBox4 prompts. */
@@ -90,7 +91,7 @@ class BattleAutoOverlayRenderer(
         batch.begin()
         batch.color = Color.WHITE
         when (view.overlay) {
-            BattleAutoOverlayKind.PROMPT -> if (view.offersDelegation) drawPrompt(view.checked) else drawPlainPrompt()
+            BattleAutoOverlayKind.PROMPT -> if (view.offersDelegation) drawPrompt(view.checked, view.message) else drawPlainPrompt(view.message)
             BattleAutoOverlayKind.TUOGUAN -> drawTuoGuan()
             BattleAutoOverlayKind.NONE -> Unit
         }
@@ -103,7 +104,7 @@ class BattleAutoOverlayRenderer(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun drawPrompt(checked: Boolean) {
+    private fun drawPrompt(checked: Boolean, message: String) {
         for (ty in 0..3) for (tx in 0..6) {
             val width = minOf(96f, 635f - tx * 96f)
             val height = minOf(96f, 296f - ty * 96f)
@@ -116,10 +117,9 @@ class BattleAutoOverlayRenderer(
         val fonts = promptFonts
         if (fonts == null) {
             labelFont.color = Color.WHITE
-            labelFont.draw(batch, "모든 부대의 명령을 종료하시겠습니까?", 573.686f, 490f, 463f, Align.center, true)
+            labelFont.draw(batch, message, 573.686f, 490f, 463f, Align.center, true)
         } else {
             // label 노드 (573.686, 335) 463×190, lineHeight 42, 세로 가운데 정렬.
-            val message = "모든 부대의 명령을 종료하시겠습니까?"
             val layout = GlyphLayout(fonts.message, message, fonts.message.color, 463f, Align.center, true)
             fonts.message.draw(batch, message, 573.686f, 335f + 95f + layout.height / 2f, 463f, Align.center, true)
         }
@@ -135,7 +135,7 @@ class BattleAutoOverlayRenderer(
     }
 
     /** Source automatic all-units-acted prompt uses plain MsgBox, with no delegation toggle. */
-    private fun drawPlainPrompt() {
+    private fun drawPlainPrompt(message: String) {
         assets.plainBackground?.let { background ->
             for (ty in 0..3) for (tx in 0..6) {
                 val width = minOf(96f, 635f - tx * 96f)
@@ -148,7 +148,6 @@ class BattleAutoOverlayRenderer(
         assets.plainBox?.draw(batch, 426.686f, 252f, 635f, 296f)
         assets.plainLogo?.let { batch.draw(it, 453.005f, 373.951f, 106f, 124f) }
         val fonts = plainPromptFonts ?: return
-        val message = "모든 부대의 명령을 종료하시겠습니까?"
         val layout = com.badlogic.gdx.graphics.g2d.GlyphLayout(
             fonts.message, message, fonts.message.color, 463f, Align.left, true,
         )
