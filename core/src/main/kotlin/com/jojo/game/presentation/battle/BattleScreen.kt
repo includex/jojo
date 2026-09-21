@@ -9038,7 +9038,10 @@ void main() {
                     gameDataCatalog.equipmentProfile(selected.id)?.let { profile ->
                         BattleUsePropertyProfileView(
                             gameDataCatalog.purchasePrice(profile), profile.intro,
-                            gameDataCatalog.equipmentCategory(profile)
+                            gameDataCatalog.equipmentCategory(profile),
+                            gameDataCatalog.postsNames().indices.filterTo(mutableSetOf()) { posts ->
+                                UsePropertyDetailRenderContract.postsCanEquip(gameDataCatalog, profile, posts)
+                            },
                         )
                     }
                 },
@@ -11121,7 +11124,7 @@ void main() {
             "장착 가능한 부대입니다." to (804.516f to 704f),
             "확인" to (1090.827f to 147f)
         ).forEach { (text, pos) -> font.draw(batch, text, pos.first, pos.second) }
-        drawUsePropertyDetailPostsNames(gameDataCatalog.equipmentCategory(profile))
+        drawUsePropertyDetailPostsNames(profile)
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
@@ -11158,7 +11161,7 @@ void main() {
      * 이름은 `posts` 표 전체를 행·열 순서대로 쓰고(13×3=39), 색은 장착 가능이면 검정,
      * 아니면 회색 두 가지뿐이다(`recovered-js/modules/ui/ItemLayer.js:122-131`).
      */
-    private fun drawUsePropertyDetailPostsNames(category: Int) {
+    private fun drawUsePropertyDetailPostsNames(profile: GameDataCatalog.EquipmentProfile) {
         val contract = UsePropertyDetailRenderContract
         val names = gameDataCatalog.postsNames()
         font.data.setScale(contract.LABEL_FONT_SCALE)
@@ -11167,7 +11170,7 @@ void main() {
                 val index = contract.postsIndex(row, column)
                 val value = names.getOrElse(index) { "" }
                 if (value.isEmpty()) return@repeat
-                font.color = Color.valueOf(contract.labelColor(category, index))
+                font.color = Color.valueOf(contract.labelColor(gameDataCatalog, profile, index))
                 font.draw(batch, value, contract.labelX(column, value), contract.labelDrawY(row))
             }
         }

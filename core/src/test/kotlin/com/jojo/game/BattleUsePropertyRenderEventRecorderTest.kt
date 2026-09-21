@@ -75,24 +75,28 @@ class BattleUsePropertyRenderEventRecorderTest {
         assertTrue(rows.all { it.contains("\"color\":\"#505050\"") }, "소지품은 어느 직위도 장착할 수 없다")
     }
 
+    @Test
+    fun `equipment detail records allowed and blocked posts colors`() {
+        val rows = events(view(
+            route = RuntimeBattleRoute.USE_PROPERTY_DETAIL,
+            detail = BattleUsePropertyDetailView("장비", "공격", 1),
+            profile = BattleUsePropertyProfileView(100, "장비 설명", UsePropertyDetailRenderContract.CATEGORY_WEAPONS, setOf(0, 2)),
+        )).filter { it.contains("bg3/scrollview/view/content/item/label") }
+        assertEquals(39, rows.size)
+        assertEquals(2, rows.count { it.contains("\"color\":\"#000000\"") })
+        assertEquals(37, rows.count { it.contains("\"color\":\"#505050\"") })
+    }
+
     /**
      * 장착 판정 기본 가지: 원본 `Item.js:282-305`에서 어느 case에도 걸리지 않는 타입은
-     * 초기값 그대로 false다. WEAPONS/ARMOR/AUXILIARY 갈래는 필요한 표 열이 포트에 아직
-     * 없어 옮기지 못했고, 값을 지어내는 대신 같은 기본 가지로 떨어진다.
+     * 초기값 그대로 false다. 카탈로그가 필요한 장비 갈래는 별도 오버로드에서 검사한다.
      */
     @Test
-    fun `posts equip check falls through to the original default branch`() {
+    fun `property items fall through to the original default branch`() {
         val contract = UsePropertyDetailRenderContract
-        val categories = listOf(
-            contract.CATEGORY_WEAPONS, contract.CATEGORY_ARMOR,
-            contract.CATEGORY_AUXILIARY, contract.CATEGORY_PROPERTY,
-        )
-
-        categories.forEach { category ->
-            (0 until 39).forEach { posts ->
-                assertFalse(contract.postsCanEquip(category, posts), "종류 $category · 직위 $posts")
-                assertEquals(contract.BLOCKED_COLOR, contract.labelColor(category, posts))
-            }
+        (0 until 39).forEach { posts ->
+            assertFalse(contract.postsCanEquip(contract.CATEGORY_PROPERTY, posts))
+            assertEquals(contract.BLOCKED_COLOR, contract.labelColor(contract.CATEGORY_PROPERTY, posts))
         }
     }
 

@@ -26,7 +26,12 @@ internal data class BattleUsePropertyDetailView(val name: String, val typeName: 
  * [category]는 원본 `ITEM_TYPE`과 같은 번호로, "장착 가능한 부대" 표의 글자색을 가른다
  * (`UsePropertyDetailRenderContract.postsCanEquip`).
  */
-internal data class BattleUsePropertyProfileView(val purchasePrice: Int, val intro: String, val category: Int)
+internal data class BattleUsePropertyProfileView(
+    val purchasePrice: Int,
+    val intro: String,
+    val category: Int,
+    val equippablePosts: Set<Int> = emptySet(),
+)
 
 /** 아이템 사용 증거 기록기: 목록·상세 경로의 고정 렌더 이벤트를 원본 순서 JSONL로 구성한다. */
 internal object BattleUsePropertyRenderEventRecorder {
@@ -100,7 +105,7 @@ internal object BattleUsePropertyRenderEventRecorder {
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg3", "sliced-sprite", 770.186f, 427f, 448f, 260f, "box1")
         appendHeadband(append, UsePropertyDetailRenderContract.POSTS_HEADBAND)
         append("UsePropertyLayer", "Canvas/Layer/bg1/bg3/bg1/label", "label", 804.516f, 661.573f, 379.34f, text = "장착 가능한 부대입니다.")
-        appendPostsTable(append, postNames, profile.category)
+        appendPostsTable(append, postNames, profile)
         append("UsePropertyLayer", "Canvas/Layer/bg1/button1/Background", "sliced-sprite", 1065.827f, 97.824f, 150f, 50f, "box3")
         append("UsePropertyLayer", "Canvas/Layer/bg1/button1/Background/Label", "label", 1090.827f, 104.824f, 100f, 40f, text = "확인")
     }
@@ -118,7 +123,7 @@ internal object BattleUsePropertyRenderEventRecorder {
      * 행 수는 `posts` 표 길이에서 온다(13×3=39). 글자색은 원본과 같이 두 가지뿐이며
      * `UsePropertyDetailRenderContract.postsCanEquip`이 가른다.
      */
-    private fun appendPostsTable(append: BattleUsePropertyEventAppender, postNames: List<String>, category: Int) {
+    private fun appendPostsTable(append: BattleUsePropertyEventAppender, postNames: List<String>, profile: BattleUsePropertyProfileView) {
         val contract = UsePropertyDetailRenderContract
         repeat(contract.rowCount(postNames.size)) { row ->
             val y = contract.rowY(row)
@@ -132,7 +137,8 @@ internal object BattleUsePropertyRenderEventRecorder {
                 append(
                     "UsePropertyLayer", "${contract.ROW_NODE_PATH}/label$column", "label",
                     contract.labelX(column, value), contract.labelY(row), contract.measuredWidth(value),
-                    contract.LABEL_HEIGHT, text = value, color = contract.labelColor(category, index)
+                    contract.LABEL_HEIGHT, text = value,
+                    color = if (index in profile.equippablePosts) contract.EQUIPPABLE_COLOR else contract.BLOCKED_COLOR,
                 )
             }
         }

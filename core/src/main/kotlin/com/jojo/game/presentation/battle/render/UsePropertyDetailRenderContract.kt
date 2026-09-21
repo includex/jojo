@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle.render
 
+import com.jojo.game.infrastructure.data.GameDataCatalog
+
 /**
  * `UsePropertyDetailRenderContract`: 전투 중 아이템 상세(`use-property-detail`) 화면의
  * "장착 가능한 부대" 표와 세 머리띠를 그리기와 증거가 **같은 숫자**로 읽는 계약이다.
@@ -142,20 +144,13 @@ internal object UsePropertyDetailRenderContract {
      * [itemCategory]는 포트의 `GameDataCatalog.equipmentCategory`가 주는 값으로,
      * 원본 `ITEM_TYPE`과 같은 번호다(0=WEAPONS, 1=ARMOR, 2=AUXILIARY, 3=PROPERTY).
      *
-     * **아직 옮기지 못한 갈래**(값을 지어내지 않고 기본 갈래로 떨어뜨린다):
-     * - WEAPONS(0)·ARMOR(1): `Item.js:285-288`의 `postsAttr2(posts, EQUIP1 + itemType) != 0`.
-     *   포트의 `posts` 표 접근자에 `POSTS_ATTR_NAME2.EQUIP1` 계열 열이 아직 없다.
-     * - AUXILIARY(2): `Item.js:290-302`의 `postsToArm(posts)`가 아이템의
-     *   `ITEM_ATTR_NAME2.UPGRADE_ARM..MAX` 목록에 있는지(첫 값 255면 전부 허용) 판정.
-     *   포트의 `GameDataCatalog.EquipmentProfile`에 그 `UPGRADE_ARM` 목록 열이 아직 없다.
-     *
-     * 두 갈래가 옮겨지기 전까지 이 함수가 돌려주는 false는 "장착 불가"가 아니라
-     * "아직 모른다"이다. 전투 중 아이템 상세는 PROPERTY만 열리므로 이 화면의 답은 정확하다.
+     * 이 인자 두 개짜리 호환 함수에는 아이템 ID와 원본 표가 없으므로 PROPERTY에만
+     * 정확하다. 장비는 아래의 카탈로그 입력을 받는 오버로드를 사용한다.
      */
     fun postsCanEquip(itemCategory: Int, postsId: Int): Boolean {
         require(postsId >= 0) { "직위 번호는 0 이상이어야 한다: $postsId" }
         return when (itemCategory) {
-            // 필요한 표 열이 없어 아직 옮기지 못한 갈래다. 값을 지어내지 않고 기본 갈래로 떨어뜨린다.
+            // 이 오버로드에는 해당 아이템과 직위의 장비 표가 없다.
             CATEGORY_WEAPONS, CATEGORY_ARMOR, CATEGORY_AUXILIARY -> false
             // 원본 `switch`에 case가 없는 타입(PROPERTY 등)은 초기값 `!1` 그대로 돌아간다.
             else -> false
@@ -184,4 +179,14 @@ internal object UsePropertyDetailRenderContract {
             else -> false
         }
     }
+
+    /** 실제 복호화 테이블을 사용해 아이템과 직위의 장착 가능 여부를 구한다. */
+    fun postsCanEquip(catalog: GameDataCatalog, item: GameDataCatalog.EquipmentProfile, postsId: Int): Boolean =
+        postsCanEquip(
+            catalog.equipmentCategory(item), postsId, item.itemType,
+            catalog.postsEquipmentTypes(postsId), catalog.itemUpgradeArms(item.id),
+        )
+
+    fun labelColor(catalog: GameDataCatalog, item: GameDataCatalog.EquipmentProfile, postsId: Int): String =
+        if (postsCanEquip(catalog, item, postsId)) EQUIPPABLE_COLOR else BLOCKED_COLOR
 }
