@@ -3,6 +3,7 @@ package com.jojo.game.presentation.battle.evidence
 
 import com.jojo.game.presentation.battle.overlay.WinConditionsLayer
 import com.jojo.game.presentation.battle.render.WinConditionRenderContract
+import com.jojo.game.presentation.battle.render.ItemUpgradeRenderContract
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** 전투 화면 공통 외형을 기록하기 위한 값 전용 모델입니다. */
@@ -295,7 +296,13 @@ private object BattleItemUpgradeRenderEvents {
          */
 
         fun event(path: String, type: String, x: Float, y: Float, w: Float, h: Float, asset: String? = null, text: String = "") =
-            draw(log, phase, "ItemUpgradeLayer", path, type, x, y, w, h, asset, text = text, blend = if (type == "label") labels else sprites)
+            draw(log, phase, "ItemUpgradeLayer", path, type, x, y, w, h, asset, text = text,
+                blend = if (type == "label") labels else sprites,
+                color = when {
+                    path == "Canvas/Layer/bg/label2" -> ItemUpgradeRenderContract.OWNER_HEX
+                    type == "label" -> ItemUpgradeRenderContract.LABEL_HEX
+                    else -> null
+                })
         event("Canvas/Layer/bg", "tiled-sprite", 544.186f, 270.5f, 400f, 259f, "Logo_9-1")
         event("Canvas/Layer/bg/box3", "sliced-sprite", 544.186f, 270.5f, 400f, 259f, "box3")
         event("Canvas/Layer/bg/box2", "sliced-sprite", 551.222f, 451.34f, 70f, 70f, "box2")

@@ -8817,11 +8817,13 @@ void main() {
             batch.draw(it, 554.222f, 454.34f, 64f, 64f)
         }
         batch.draw(unitInfoAssets.unitInfoBox2, 553.136f, 281.5f, 379.5f, 130.4f)
-        itemUpgradeFont.color = Color.BLACK
+        itemUpgradeFont.color = ItemUpgradeRenderContract.labelColor
         itemUpgradeFont.draw(batch, flow.itemName, 628.186f, 513f)
         itemUpgradeFont.draw(batch, "Lv", 861.186f, 513f)
         itemUpgradeFont.draw(batch, flow.request.newLevel.toString(), 908.186f, 513f)
+        itemUpgradeFont.color = ItemUpgradeRenderContract.ownerColor
         itemUpgradeFont.draw(batch, flow.ownerName, 624.386f, 458f)
+        itemUpgradeFont.color = ItemUpgradeRenderContract.labelColor
         itemUpgradeFont.draw(batch, "장비", 815.347f, 458f)
         itemUpgradeFont.draw(
             batch, "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}", 554.836f, 403.7f
