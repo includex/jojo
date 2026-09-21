@@ -11575,12 +11575,15 @@ void main() {
         val boxPatch = NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11)
         boxPatch.draw(batch, 426.686f, 252f, 635f, 296f)
         overlayAssets.winConditionLogoTexture?.let { batch.draw(it, 453.005f, 373.951f, 106f, 124f) }
-        dialogueFont.color = Color.WHITE
+        dialogueFont.color = LoseSceneRenderEvents.promptColor
         dialogueFont.draw(batch, LoseSceneFlow.PROMPT_TEXT, 573.686f, 500f, 463f, Align.center, true)
         boxPatch.draw(batch, 554.186f, 271.285f, 180f, 50f)
+        dialogueFont.color = LoseSceneRenderEvents.noColor
         dialogueFont.draw(batch, LoseSceneRenderEvents.NO_LABEL, 557.336f, 312f, 168.1f, Align.center, false)
         boxPatch.draw(batch, 754.186f, 271.285f, 180f, 50f)
+        dialogueFont.color = LoseSceneRenderEvents.yesColor
         dialogueFont.draw(batch, LoseSceneRenderEvents.YES_LABEL, 757.586f, 312f, 169.4f, Align.center, false)
+        dialogueFont.color = Color.WHITE
         batch.end()
     }
 

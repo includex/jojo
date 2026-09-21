@@ -1,5 +1,6 @@
 // Game
 package com.jojo.game.presentation.battle.outcome
+import com.badlogic.gdx.graphics.Color
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** LoseSceneRenderEvents: 패배 화면과 기록 경로가 함께 사용하는 표시 요청이다. */
@@ -12,6 +13,13 @@ object LoseSceneRenderEvents {
     const val PHASE = "battle-lose-restart-prompt"
     const val NO_LABEL = "비"
     const val YES_LABEL = "예"
+    const val WHITE_HEX = "#ffffff"
+    const val PROMPT_HEX = "#0004c4"
+    const val NO_HEX = "#ff0000"
+    const val YES_HEX = "#0a6900"
+    val promptColor: Color = Color.valueOf("0004c4ff")
+    val noColor: Color = Color.RED
+    val yesColor: Color = Color.valueOf("0a6900ff")
 
 
     /**
@@ -33,7 +41,13 @@ object LoseSceneRenderEvents {
         ) =
             log.draw(
                 phase, layer, path, type, x, y, w, h, asset, 1f,
-                if (type == "label") labels else sprites, true, text
+                if (type == "label") labels else sprites, true, text,
+                when (path) {
+                    "Canvas/Layer/bg0/label" -> PROMPT_HEX
+                    "Canvas/Layer/bg0/btns/button1/Background/Label" -> NO_HEX
+                    "Canvas/Layer/bg0/btns/button0/Background/Label" -> YES_HEX
+                    else -> WHITE_HEX
+                },
             )
 
         draw(
