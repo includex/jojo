@@ -4,6 +4,7 @@ package com.jojo.game.presentation.battle.evidence
 import com.jojo.game.presentation.battle.overlay.WinConditionsLayer
 import com.jojo.game.presentation.battle.render.WinConditionRenderContract
 import com.jojo.game.presentation.battle.render.ItemUpgradeRenderContract
+import com.jojo.game.presentation.battle.render.BattleRewardRenderContract
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 /** 전투 화면 공통 외형을 기록하기 위한 값 전용 모델입니다. */
@@ -335,27 +336,27 @@ private object BattleRewardRenderEvents {
              * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
              */
 
-            fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String) = draw(log, phase, "BattleScreen", path, "label", x, y, w, h, text = text, blend = labels)
-            label("Canvas/Layer/bg0/label", 527.747f, 464.417f, 448.54f, 151.2f, "전투 종료")
-            label("Canvas/Layer/bg0/label", 519.916f, 476.394f, 448.54f, 151.2f, "전투 종료")
-            label("Canvas/Layer/bg0/label", 282.777f, 248.492f, 311.4f, 151.2f, "보상금")
-            label("Canvas/Layer/bg0/label", 274.533f, 254.4f, 311.4f, 151.2f, "보상금")
+            fun label(path: String, x: Float, y: Float, w: Float, h: Float, text: String, color: String) = draw(log, phase, "BattleScreen", path, "label", x, y, w, h, text = text, blend = labels, color = color)
+            label("Canvas/Layer/bg0/label", 527.747f, 464.417f, 448.54f, 151.2f, "전투 종료", BattleRewardRenderContract.END_SHADOW_HEX)
+            label("Canvas/Layer/bg0/label", 519.916f, 476.394f, 448.54f, 151.2f, "전투 종료", BattleRewardRenderContract.WHITE_HEX)
+            label("Canvas/Layer/bg0/label", 282.777f, 248.492f, 311.4f, 151.2f, "보상금", BattleRewardRenderContract.MONEY_SHADOW_HEX)
+            label("Canvas/Layer/bg0/label", 274.533f, 254.4f, 311.4f, 151.2f, "보상금", BattleRewardRenderContract.MONEY_TEXT_HEX)
             val money = value.money.toString()
-            label("Canvas/Layer/bg0/label02", 967.617f, 247.807f, 200.21f, 151.2f, money)
-            label("Canvas/Layer/bg0/label01", 958.035f, 254.4f, 200.21f, 151.2f, money)
+            label("Canvas/Layer/bg0/label02", 967.617f, 247.807f, 200.21f, 151.2f, money, BattleRewardRenderContract.MONEY_SHADOW_HEX)
+            label("Canvas/Layer/bg0/label01", 958.035f, 254.4f, 200.21f, 151.2f, money, BattleRewardRenderContract.MONEY_TEXT_HEX)
             val stars = (0 until 3).joinToString("  ") { if (value.flag and (1 shl it) != 0) "★" else "☆" }
-            label("Canvas/Layer/bg0/label12", 531.389f, 52.817f, 444.76f, 151.2f, stars)
-            label("Canvas/Layer/bg0/label11", 521.806f, 56.113f, 444.76f, 151.2f, stars)
+            label("Canvas/Layer/bg0/label12", 531.389f, 52.817f, 444.76f, 151.2f, stars, BattleRewardRenderContract.MONEY_SHADOW_HEX)
+            label("Canvas/Layer/bg0/label11", 521.806f, 56.113f, 444.76f, 151.2f, stars, BattleRewardRenderContract.MONEY_TEXT_HEX)
         }
         BattleRenderEventRewardPhase.ITEMS -> {
-            draw(log, phase, "BattleScreen", "Canvas/Layer/bg1/label", "label", 596.73f, 574.944f, 311.4f, 151.2f, text = "전리품", blend = labels)
-            draw(log, phase, "BattleScreen", "Canvas/Layer/bg1/label", "label", 588.486f, 587.942f, 311.4f, 151.2f, text = "전리품", blend = labels)
+            draw(log, phase, "BattleScreen", "Canvas/Layer/bg1/label", "label", 596.73f, 574.944f, 311.4f, 151.2f, text = "전리품", blend = labels, color = BattleRewardRenderContract.LOOT_SHADOW_HEX)
+            draw(log, phase, "BattleScreen", "Canvas/Layer/bg1/label", "label", 588.486f, 587.942f, 311.4f, 151.2f, text = "전리품", blend = labels, color = BattleRewardRenderContract.WHITE_HEX)
             requireNotNull(reward).items.take(3).forEachIndexed { index, item ->
                 val y = 433.5f - index * 157f; val root = "Canvas/Layer/bg1/item$index"
                 draw(log, phase, "BattleScreen", root, "tiled-sprite", 499.686f, y, 489f, 101f, "Mark_47-1")
                 draw(log, phase, "BattleScreen", "$root/box3", "sliced-sprite", 499.686f, y, 489f, 101f, "box3")
                 draw(log, phase, "BattleScreen", "$root/icon", "sprite", 534.974f, y + 18.5f, 64f, 64f, item.iconAsset)
-                draw(log, phase, "BattleScreen", "$root/label", "label", 648.999f, y + 22.78f, 164.46f, 55.44f, text = item.name, blend = labels)
+                draw(log, phase, "BattleScreen", "$root/label", "label", 648.999f, y + 22.78f, 164.46f, 55.44f, text = item.name, blend = labels, color = BattleRewardRenderContract.ITEM_NAME_HEX)
             }
         }
         BattleRenderEventRewardPhase.NONE -> Unit

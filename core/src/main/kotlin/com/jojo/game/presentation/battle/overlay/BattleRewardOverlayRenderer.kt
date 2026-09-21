@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.jojo.game.presentation.battle.render.BattleRewardRenderContract
 
 /** BattleRewardOverlayPhase: 보상 모달이 금전·아이템·종료·완료 중 어디를 표시하는지 구분한다. */
 enum class BattleRewardOverlayPhase { MONEY, ITEMS, END, COMPLETE }
@@ -89,10 +90,10 @@ class BattleRewardOverlayRenderer(
      */
 
     private fun drawMoney(view: BattleRewardOverlayView) {
-        labelPair("전투 종료", 527.747f, 615.617f, 519.916f, 627.594f)
-        labelPair("보상금", 282.777f, 399.692f, 274.533f, 405.6f)
-        labelPair(view.money.toString(), 967.617f, 399.007f, 958.035f, 405.6f)
-        labelPair(view.stars, 531.389f, 204.017f, 521.806f, 207.313f)
+        labelPair("전투 종료", 527.747f, 615.617f, 519.916f, 627.594f, BattleRewardRenderContract.endShadow, BattleRewardRenderContract.white)
+        labelPair("보상금", 282.777f, 399.692f, 274.533f, 405.6f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
+        labelPair(view.money.toString(), 967.617f, 399.007f, 958.035f, 405.6f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
+        labelPair(view.stars, 531.389f, 204.017f, 521.806f, 207.313f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
     }
 
     /**
@@ -101,13 +102,13 @@ class BattleRewardOverlayRenderer(
      */
 
     private fun drawItems(view: BattleRewardOverlayView) {
-        labelPair("전리품", 596.73f, 726.144f, 588.486f, 739.142f)
+        labelPair("전리품", 596.73f, 726.144f, 588.486f, 739.142f, BattleRewardRenderContract.lootShadow, BattleRewardRenderContract.white)
         view.items.forEachIndexed { index, item ->
             val y = 433.5f - index * 157f
             assets.rewardItemTexture?.let { batch.draw(it, 499.686f, y, 489f, 101f) }
             assets.winConditionBoxPatch?.draw(batch, 499.686f, y, 489f, 101f)
             item.icon?.let { batch.draw(it, 534.974f, y + 18.5f, 64f, 64f) }
-            bodyFont.color = Color.WHITE
+            bodyFont.color = BattleRewardRenderContract.itemName
             bodyFont.draw(batch, item.name, 648.999f, y + 78.22f)
         }
         bodyFont.color = Color.WHITE
@@ -119,8 +120,8 @@ class BattleRewardOverlayRenderer(
      */
 
     private fun drawEnd(view: BattleRewardOverlayView) {
-        labelPair("전투 종료", 527.747f, 488.023f, 519.916f, 500f)
-        labelPair(view.money.toString(), 658f, 322f, 650f, 330f)
+        labelPair("전투 종료", 527.747f, 488.023f, 519.916f, 500f, BattleRewardRenderContract.endShadow, BattleRewardRenderContract.white)
+        labelPair(view.money.toString(), 658f, 322f, 650f, 330f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
     }
 
     /**
@@ -143,10 +144,10 @@ class BattleRewardOverlayRenderer(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun labelPair(text: String, shadowX: Float, shadowBaseline: Float, x: Float, baseline: Float) {
-        titleFont.color = Color(.3f, .3f, .3f, 1f)
+    private fun labelPair(text: String, shadowX: Float, shadowBaseline: Float, x: Float, baseline: Float, shadowColor: Color, textColor: Color) {
+        titleFont.color = shadowColor
         titleFont.draw(batch, text, shadowX, shadowBaseline)
-        titleFont.color = Color.WHITE
+        titleFont.color = textColor
         titleFont.draw(batch, text, x, baseline)
     }
 }
