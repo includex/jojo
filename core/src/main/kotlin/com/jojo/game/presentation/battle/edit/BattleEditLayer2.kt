@@ -277,7 +277,7 @@ object BattleEditLayer2RenderEvents {
             layer: String, path: String, type: String, x: Float, y: Float, w: Float, h: Float,
             asset: String? = null, text: String = "", opacity: Float = 1f, blend: Any = listOf(770, 771)
         ) =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
+            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text, BattleEditRenderContract.color(path, type))
         draw(
             "HallLayer", "Canvas/Layer/ScrollView/view/content/map", "sprite", -320f, -96f, 1920f, 1920f,
             "assets/Game/native/4a/4afa0804-1ac2-4d59-97e4-1549a9425953.6295a.jpg#<unnamed-frame>"
@@ -332,7 +332,7 @@ object BattleEditLayer2RenderEvents {
             text: String = "",
             blend: Any = listOf(770, 771)
         ) =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, blend = blend, text = text)
+            log.draw(phase, layer, path, type, x, y, w, h, asset, blend = blend, text = text, color = BattleEditRenderContract.color(path, type))
         d("Canvas/Layer/bg", "tiled-sprite", 453.686f, 195f, 581f, 410f, "Logo_9-1")
         d("Canvas/Layer/bg/bg1", "sprite", Header.X, Header.Y, Header.WIDTH, Header.HEIGHT, "bg1")
         d("Canvas/Layer/bg/bg1/label", "label", 669.431f, 550.6f, 149.51f, 50.4f, text = "전장 편집", blend = alphaBlend)

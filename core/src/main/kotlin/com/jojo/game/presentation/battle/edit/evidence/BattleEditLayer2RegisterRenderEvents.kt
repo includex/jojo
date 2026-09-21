@@ -2,6 +2,7 @@
     package com.jojo.game.presentation.battle.edit.evidence
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import com.jojo.game.presentation.battle.edit.BattleEditRenderContract
     /**
      * `BattleEditLayer2RegisterRenderEvents`: 관련 상태와 동작을 묶는 object다.
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -38,7 +39,7 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
             text: String = "",
             blend: Any = listOf(770, 771)
         ) =
-            log.draw(phase, "RegisterLayer", path, type, x, y, w, h, asset, blend = blend, text = text)
+            log.draw(phase, "RegisterLayer", path, type, x, y, w, h, asset, blend = blend, text = text, color = BattleEditRenderContract.color(path, type))
         d("Canvas/Layer/bg0", "tiled-sprite", 344.186f, 163.5f, 800f, 473f, "Logo_12-1")
         d("Canvas/Layer/bg0/bg1", "sprite", 344.186f, 586.5f, 800f, 50f, "bg1")
         d(

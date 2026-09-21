@@ -2,6 +2,7 @@
     package com.jojo.game.presentation.battle.edit.evidence
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import com.jojo.game.presentation.battle.edit.BattleEditRenderContract
     /**
      * `BattleEditLayer2ChildRenderEvents`: 관련 상태와 동작을 묶는 object다.
      * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -39,7 +40,7 @@ import com.jojo.game.presentation.shared.evidence.RenderEventLog
             opacity: Float = 1f,
             blend: Any = listOf(770, 771)
         ) =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
+            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text, BattleEditRenderContract.color(path, type))
         d("Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", opacity = .314f)
         d("Canvas/Layer/bg", "tiled-sprite", 444.186f, 195f, 600f, 410f, "Logo_9-1")
         d("Canvas/Layer/bg/bg1", "sprite", 444.186f, 555f, 600f, 50f, "bg1")

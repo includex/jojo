@@ -55,6 +55,7 @@ import com.jojo.game.presentation.battle.combat.*
 import com.jojo.game.presentation.battle.dialogue.BattleDialogueSessionAdapter
 import com.jojo.game.presentation.battle.dialogue.BattleDialoguePlacementPolicy
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2
+import com.jojo.game.presentation.battle.edit.BattleEditRenderContract
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2RenderEvents
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2Route
 import com.jojo.game.presentation.battle.edit.BattleRegisterRoute
@@ -8659,6 +8660,7 @@ void main() {
                 Color.BLACK; font.draw(batch, text, x + 8f, y + 43f)
         }
         tiled(453.686f, 195f, 581f, 410f)
+        batch.color = BattleEditRenderContract.header
         batch.draw(
             unitInfoAssets.unitInfoBg,
             BattleEditLayer2RenderEvents.Header.X,

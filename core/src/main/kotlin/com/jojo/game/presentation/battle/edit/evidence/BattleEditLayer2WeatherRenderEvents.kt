@@ -2,6 +2,7 @@
     package com.jojo.game.presentation.battle.edit.evidence
 
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
+import com.jojo.game.presentation.battle.edit.BattleEditRenderContract
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2
     /**
      * `BattleEditLayer2WeatherRenderEvents`: 관련 상태와 동작을 묶는 object다.
@@ -41,7 +42,7 @@ import com.jojo.game.presentation.battle.edit.BattleEditLayer2
             opacity: Float = 1f,
             blend: Any = listOf(770, 771)
         ) =
-            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text)
+            log.draw(phase, layer, path, type, x, y, w, h, asset, opacity, blend, true, text, BattleEditRenderContract.color(path, type))
         d(
             "HallLayer",
             "Canvas/Layer/panel0/bg",
