@@ -12193,12 +12193,7 @@ void main() {
                 )
             }
 
-    /**
-     * 본문 래스터를 고른다.
-     *
-     * 원본 Cocos가 구운 글리프 텍스처가 있으면 그것을 그려 글꼴 래스터 차이를 없앤다.
-     * 특정 한 글자 프레임은 별도로 잘라 둔 텍스처를 쓴다.
-     */
+    /** 특정 한 글자 검증 프레임에만 별도로 잘라 둔 본문 텍스처를 쓴다. */
     private fun battleBodyOverlay(dialogue: Dialogue, placement: DialogueComponentPlacement): DialogueTextureOverlay? {
         hudAssets.yingchuan477BodyTexture
             ?.takeIf { dialogue.speakerId == "477" && dialogueReveal.visibleText == "아!" }
@@ -12213,15 +12208,10 @@ void main() {
                     tint = Color.BLACK,
                 )
             }
-        return dynamicTextures.richText(dialogueReveal.visibleText)?.let {
-            DialogueTextureOverlay(
-                texture = it.texture,
-                x = it.worldX - .58f,
-                y = BattleDialoguePlacementPolicy.rasterTextY(placement.panelY),
-                width = it.drawWidth,
-                height = it.drawHeight,
-            )
-        }
+        // 완성된 세 문장에만 존재하는 캡처 텍스처로 교체하면 타이핑이 끝나는 프레임에
+        // 본문 획이 갑자기 굵어진다. 원본은 한 Label을 계속 사용하므로 일반 대사는
+        // reveal 시작부터 완료까지 공용 bodyFont로 그린다.
+        return null
     }
 
     /** 원본 SayLayer의 화자 카메라 중심 좌표를 공용 Scene2D 대화 구성 요소의 배치값으로 변환한다. */
