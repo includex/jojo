@@ -132,9 +132,10 @@ class BattleRewardOverlayRenderer(
     private fun drawSection(title: String) {
         batch.color = Color.WHITE
         assets.sectionBackgroundTexture?.let { batch.draw(it, 0f, 0f, 1488.3721f, 800f) }
-        sectionTitleFont.color = Color(0.28f, 0.28f, 0.28f, 1f)
+        // 원본 BattleInitLayer의 label0은 검정이며 (+10, -10)만큼 어긋나 그림자가 된다.
+        sectionTitleFont.color = BattleRewardRenderContract.sectionShadow
         sectionTitleFont.draw(batch, title, 431.986f, 478.2f)
-        sectionTitleFont.color = Color.WHITE
+        sectionTitleFont.color = BattleRewardRenderContract.white
         sectionTitleFont.draw(batch, title, 421.986f, 488.2f)
         batch.color = Color.WHITE
     }

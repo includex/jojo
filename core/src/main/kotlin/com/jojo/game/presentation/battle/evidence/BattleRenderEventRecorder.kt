@@ -267,8 +267,8 @@ private object BattleTitleRenderEvents {
 
     fun append(log: RenderEventLog, phase: String, layer: String) {
         draw(log, phase, layer, "Canvas/Layer/bg", "sprite", 0f, 0f, 1488.3721f, 800f, asset)
-        draw(log, phase, layer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
-        draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels)
+        draw(log, phase, layer, "Canvas/Layer/bg/label0", "label", 431.986f, 301.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels, color = BattleRewardRenderContract.SECTION_SHADOW_HEX)
+        draw(log, phase, layer, "Canvas/Layer/bg/label1", "label", 421.986f, 311.8f, 644.4f, 176.4f, text = "영천의 전투", blend = labels, color = BattleRewardRenderContract.WHITE_HEX)
     }
     /**
      * `appendOverlay`: 타입의 핵심 동작을 수행한다.

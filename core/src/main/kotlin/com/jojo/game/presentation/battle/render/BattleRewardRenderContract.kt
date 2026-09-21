@@ -9,6 +9,7 @@ object BattleRewardRenderContract {
     const val MONEY_TEXT_HEX = "#f0f050"
     const val LOOT_SHADOW_HEX = "#0d10ca"
     const val WHITE_HEX = "#ffffff"
+    const val SECTION_SHADOW_HEX = "#000000"
     const val ITEM_NAME_HEX = "#001070"
 
     val endShadow = Color.valueOf("686868ff")
@@ -16,5 +17,6 @@ object BattleRewardRenderContract {
     val moneyText = Color.valueOf("f0f050ff")
     val lootShadow = Color.valueOf("0d10caff")
     val white = Color.WHITE
+    val sectionShadow = Color.BLACK
     val itemName = Color.valueOf("001070ff")
 }
