@@ -284,11 +284,19 @@ def main() -> None:
         with Image.open(choice_atlas) as atlas:
             ui_dir = output / "ui"
             ui_dir.mkdir(parents=True, exist_ok=True)
-            # The live ChooseLayer fixture resolves U_select_10-1 at
-            # [589,2,344,84].  783 was from an older atlas packing and cut
-            # through the following portrait, which made the game stretch a
-            # fragment of the face across the choice panel.
-            crop_cocos_frame(atlas, x=589, y=2, width=344, height=84).save(ui_dir / "choice-panel.png")
+            # The captured atlas stores U_select_10-1 at [48,2,344,84].
+            # x=589 cuts through a portrait and the next speech bubble, which
+            # stretches a face across the whole choice panel at runtime.
+            choice_panel = crop_cocos_frame(atlas, x=48, y=2, width=344, height=84)
+            # U_select_10-1 is a grayscale white bubble. Detect an atlas packing
+            # drift before a portrait crop reaches the runtime again.
+            colored_pixels = sum(
+                1 for red, green, blue, alpha in choice_panel.convert("RGBA").getdata()
+                if alpha and max(red, green, blue) - min(red, green, blue) > 8
+            )
+            if colored_pixels:
+                raise RuntimeError(f"choice-panel atlas crop contains {colored_pixels} colored portrait pixels")
+            choice_panel.save(ui_dir / "choice-panel.png")
             crop_cocos_frame(atlas, x=1323, y=2, width=20, height=20).save(ui_dir / "choice-row.png")
             # The harness flips WebGL rows while constructing the canvas, so
             # the DynamicAtlas frame is top-origin at this point.
