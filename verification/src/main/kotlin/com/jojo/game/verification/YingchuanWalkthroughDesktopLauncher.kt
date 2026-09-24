@@ -41,6 +41,7 @@ object YingchuanWalkthroughDesktopLauncher {
             "round3-player-action",
             "round3-first-combat",
             "round3-followup", "round3-counterattack", "round3-210",
+            "menu-first-control",
         )) {
             "unknown walkthrough capture mode: $captureMode"
         }
@@ -48,6 +49,7 @@ object YingchuanWalkthroughDesktopLauncher {
             "$captureMode requires normal speed"
         }
         val requiredSimulationSeconds = when (captureMode) {
+            "menu-first-control" -> 150f
             "single-player-action", "round2-followup", "round2-first-combat" -> 180f
             "round3-player-action", "round3-first-combat", "round3-followup" -> 210f
             "round3-counterattack" -> 240f
@@ -185,6 +187,15 @@ private class WalkthroughRecorder(
         }
 
         when (captureMode) {
+            "menu-first-control" -> {
+                when (driver.menuFirstControlPhase) {
+                    "MENU_OPEN" -> captureOnce("menu-first-control-open", probe)
+                    "TERRAIN_OPEN" -> captureOnce("menu-first-control-terrain", probe)
+                    "COMPLETE" -> {
+                        captureOnce("menu-first-control-returned", probe)
+                    }
+                }
+            }
             "first-normal-combat" -> captureFirstNormalCombat(probe)
             "next-normal-actions" -> captureNextNormalActions(probe)
             "enemy-first-combat" -> captureEnemyFirstCombat(probe)
@@ -648,6 +659,8 @@ private class WalkthroughRecorder(
             addChild("battleCommandOpen", JsonValue(probe.battleCommandOpen))
             addChild("battleTargetSelectionOpen", JsonValue(probe.battleTargetSelectionOpen))
             addChild("battleMenuOpen", JsonValue(probe.battleMenuOpen))
+            addChild("terrainOpen", JsonValue(probe.terrainOpen))
+            addChild("menuFirstControlPhase", JsonValue(driver.menuFirstControlPhase))
             addChild("autoBattleOverlay", JsonValue(probe.autoBattleOverlay))
             addChild("winConditionsOpen", JsonValue(probe.winConditionsOpen))
             addChild("outcome", probe.outcome?.toString()?.let(::JsonValue) ?: JsonValue(JsonValue.ValueType.nullValue))
@@ -752,6 +765,10 @@ private class WalkthroughRecorder(
                 ?: JsonValue(JsonValue.ValueType.nullValue))
             addChild("timeScale", JsonValue(timeScale.toDouble()))
             addChild("captureMode", JsonValue(captureMode))
+            addChild("menuFirstControlPhase", JsonValue(driver.menuFirstControlPhase))
+            addChild("menuFirstControlFailure", driver.menuFirstControlFailure?.let(::JsonValue)
+                ?: JsonValue(JsonValue.ValueType.nullValue))
+            addChild("menuFirstControlComplete", JsonValue(driver.menuFirstControlComplete))
             addChild("maxSimulationSeconds", JsonValue(maxSimulationSeconds.toDouble()))
             addChild("frameCount", JsonValue(frame))
             addChild("elapsedSeconds", JsonValue(elapsedSeconds))
@@ -800,6 +817,7 @@ private class WalkthroughRecorder(
 private class YingchuanWalkthroughDriver(
     private val captureMode: String,
 ) : RuntimeBattleDriver {
+    private enum class MenuFirstControlPhase { WAIT_ROUND2, OPEN_SENT, MENU_OPEN, TERRAIN_SENT, TERRAIN_OPEN, CLOSE_SENT, COMPLETE, FAILED }
     private enum class SinglePlayerActionPhase {
         WAIT_ROUND2, READY, SELECT_SENT, MOVE_SENT, COMMAND_READY, ATTACK_COMMAND_SENT, TARGET_SENT, COMPLETE, FAILED,
     }
@@ -824,6 +842,11 @@ private class YingchuanWalkthroughDriver(
     private class SinglePlayerActionFailure(message: String) : RuntimeException(message)
 
     private var nextTapAt = Float.NEGATIVE_INFINITY
+    private var menuPhase = MenuFirstControlPhase.WAIT_ROUND2
+    var menuFirstControlFailure: String? = null
+        private set
+    val menuFirstControlPhase: String get() = menuPhase.name
+    val menuFirstControlComplete: Boolean get() = menuPhase == MenuFirstControlPhase.COMPLETE
     private var seenRound = -1
     private val movedThisTurn = mutableSetOf<String>()
     private val journal = JsonValue(JsonValue.ValueType.array)
@@ -959,6 +982,10 @@ private class YingchuanWalkthroughDriver(
             return emptyList()
         }
         if (!probe.bootstrapComplete || probe.collocation) return emptyList()
+        if (captureMode == "menu-first-control") {
+            driveMenuFirstControl(frame, probe)
+            return emptyList()
+        }
         if (captureMode in setOf("single-player-action", "round2-followup", "round2-first-combat", "round3-player-action", "round3-first-combat", "round3-followup", "round3-counterattack", "round3-210") &&
             (probe.round >= 2 || singleActionPhase != SinglePlayerActionPhase.WAIT_ROUND2)
         ) {
@@ -1044,6 +1071,49 @@ private class YingchuanWalkthroughDriver(
         tapTile(frame, "move-${actor.id}-${destination.x}-${destination.y}", probe, destination.x, destination.y)
         nextTapAt = frame.elapsed + ACTION_INTERVAL
         return emptyList()
+    }
+
+    /** 2턴 최초 실제 조작에서 메뉴→지형→닫기를 모두 운영 InputProcessor로 통과시킨다. */
+    private fun driveMenuFirstControl(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe) {
+        fun fail(message: String) {
+            menuFirstControlFailure = message
+            menuPhase = MenuFirstControlPhase.FAILED
+        }
+        when (menuPhase) {
+            MenuFirstControlPhase.WAIT_ROUND2 -> {
+                if (probe.round < 2 || probe.turnPhase != "PLAYER_INPUT" || probe.playback != PlaybackState.COMPLETE) return
+                if (probe.battleMenuOpen || probe.terrainOpen) return fail("unexpected overlay before opening menu")
+                tap(frame, "menu-first-control-open", probe.battleMenuButtonScreenX, probe.battleMenuButtonScreenY)
+                menuPhase = MenuFirstControlPhase.OPEN_SENT
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+            }
+            MenuFirstControlPhase.OPEN_SENT -> {
+                if (!probe.battleMenuOpen) return fail("menu did not open after pointer input")
+                menuPhase = MenuFirstControlPhase.MENU_OPEN
+                nextTapAt = frame.elapsed + COMMAND_OBSERVATION_SECONDS
+            }
+            MenuFirstControlPhase.MENU_OPEN -> {
+                tap(frame, "menu-first-control-terrain", probe.menuTerrainScreenX, probe.menuTerrainScreenY)
+                menuPhase = MenuFirstControlPhase.TERRAIN_SENT
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+            }
+            MenuFirstControlPhase.TERRAIN_SENT -> {
+                if (probe.battleMenuOpen || !probe.terrainOpen) return fail("terrain command did not replace MenuLayer")
+                menuPhase = MenuFirstControlPhase.TERRAIN_OPEN
+                nextTapAt = frame.elapsed + COMMAND_OBSERVATION_SECONDS
+            }
+            MenuFirstControlPhase.TERRAIN_OPEN -> {
+                tap(frame, "menu-first-control-close-terrain", probe.terrainCloseScreenX, probe.terrainCloseScreenY)
+                menuPhase = MenuFirstControlPhase.CLOSE_SENT
+                nextTapAt = frame.elapsed + TAP_INTERVAL
+            }
+            MenuFirstControlPhase.CLOSE_SENT -> {
+                if (probe.terrainOpen || probe.battleMenuOpen) return fail("terrain close did not return to battlefield")
+                if (probe.turnPhase != "PLAYER_INPUT") return fail("terrain close did not restore PLAYER_INPUT")
+                menuPhase = MenuFirstControlPhase.COMPLETE
+            }
+            MenuFirstControlPhase.COMPLETE, MenuFirstControlPhase.FAILED -> Unit
+        }
     }
 
     private fun driveSinglePlayerAction(frame: RuntimeBattleFrame, probe: BattleRuntimeScreenProbe) {

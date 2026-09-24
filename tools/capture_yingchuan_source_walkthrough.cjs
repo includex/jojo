@@ -10,9 +10,9 @@ const sourceRoot = path.resolve(process.argv[2] || '../jojo_mobile/sgccz-desktop
 const outputRoot = path.resolve(process.argv[3] || 'build/reports/yingchuan-source-screens');
 const semanticMode = process.argv[5] || '';
 const maxWallMs = Number(process.argv[4] || 30000);
-const maxAllowedWallMs = semanticMode === 'round3-210' ? 300000 : semanticMode === 'round3-counterattack' ? 240000 : ['round3-player-action', 'round3-first-combat', 'round3-followup'].includes(semanticMode) ? 210000 : ['single-player-action', 'round2-followup', 'round2-first-combat'].includes(semanticMode) ? 180000 : semanticMode === 'round2-handoff' ? 150000 : semanticMode === 'first-round-end' ? 90000 : 60000;
+const maxAllowedWallMs = semanticMode === 'round3-210' ? 300000 : semanticMode === 'round3-counterattack' ? 240000 : ['round3-player-action', 'round3-first-combat', 'round3-followup'].includes(semanticMode) ? 210000 : ['single-player-action', 'round2-followup', 'round2-first-combat'].includes(semanticMode) ? 180000 : ['round2-handoff', 'menu-first-control'].includes(semanticMode) ? 150000 : semanticMode === 'first-round-end' ? 90000 : 60000;
 if (!Number.isInteger(maxWallMs) || maxWallMs < 10000 || maxWallMs > maxAllowedWallMs) throw new Error(`duration must be an integer from 10000 through ${maxAllowedWallMs} ms`);
-if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order', 'first-round-end', 'round2-handoff', 'single-player-action', 'round2-followup', 'round2-first-combat', 'round3-player-action', 'round3-first-combat', 'round3-followup', 'round3-counterattack', 'round3-210'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
+if (semanticMode && !['235-hit-hold', 'first-normal-combat', 'next-normal-actions', 'enemy-first-combat', 'enemy-arrival-only', '477-settlement-order', 'first-round-end', 'round2-handoff', 'menu-first-control', 'single-player-action', 'round2-followup', 'round2-first-combat', 'round3-player-action', 'round3-first-combat', 'round3-followup', 'round3-counterattack', 'round3-210'].includes(semanticMode)) throw new Error(`unknown semantic mode ${semanticMode}`);
 const port = 9400 + (process.pid % 200);
 const deadlineMs = maxWallMs + 15000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -300,6 +300,66 @@ const stateExpression = `(() => {
       await childExit;if(!fs.existsSync(trace))throw Error('source first-round-end trace was not flushed');
       if(missingCaptures.length){console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_PARTIAL ${captures.length} missing=${missingCaptures.join(',')}`);process.exitCode=1;return;}
       console.log(`SOURCE_YINGCHUAN_FIRST_ROUND_END_OK ${captures.length}`);return;
+    }
+    if (semanticMode === 'menu-first-control') {
+      const wanted = ['driver-disabled', 'player-input-ready', 'menu-open', 'terrain-open', 'terrain-closed'];
+      const seen = new Set(), observations = [], inputs = [];
+      let failure = null;
+      async function evaluate(expression) {
+        const result = await client.send('Runtime.evaluate', { expression, returnByValue: true });
+        if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
+        return result.result.value;
+      }
+      const menuState = `(() => {
+        const scene=cc.director.getScene();let battle=null,menu=null,terrain=null,say=null,win=null;
+        (function visit(n){if(!n)return;for(const c of n._components||[]){const k=cc.js.getClassName(c);if(k==='BattleLayer')battle=c;else if(k==='MenuLayer'&&n.activeInHierarchy)menu=c;else if(k==='TerrainLayer'&&n.activeInHierarchy)terrain=c;else if(k==='SayLayer'&&n.activeInHierarchy)say=c;else if((k==='WinConditionsLayer'||k==='WinConBoxLayer')&&n.activeInHierarchy)win=c;}n.children.forEach(visit)})(scene);
+        if(!battle)return {ready:false};
+        const canvas=cc.game.canvas,rect=canvas.getBoundingClientRect(),vp=cc.view._viewportRect||{x:0,y:0};
+        const toCss=w=>({x:rect.left+(vp.x+w.x*cc.view._scaleX)*rect.width/canvas.width,y:rect.top+(canvas.height-(vp.y+w.y*cc.view._scaleY))*rect.height/canvas.height});
+        const geometry=n=>{if(!n||!n.activeInHierarchy)return null;const center=n.convertToWorldSpaceAR(cc.v2((.5-n.anchorX)*n.width,(.5-n.anchorY)*n.height));return {name:n.name,size:[n.width,n.height],center:[center.x,center.y],cssCenter:toCss(center),active:n.activeInHierarchy};};
+        const button=(layer,name)=>{const b=layer&&layer.seekCompByName&&layer.seekCompByName(cc.Button,name);return b&&b.node?{...geometry(b.node),interactable:b.interactable!==false}:null;};
+        const weatherBox=menu&&menu.seekNodeByName&&menu.seekNodeByName('bg/box2');
+        const weatherReady=!!(weatherBox&&weatherBox.children&&weatherBox.children.some(n=>/^node\\d+$/.test(n.name)));
+        const unit0=Object.values(battle._unitSet||{}).find(u=>u&&u.unit&&u.unit().id()===0);
+        return {ready:true,frame:cc.director.getTotalFrames(),round:battle.round(),camp:battle.curCamp(),ctrlWaiting:!!battle._ctrlHelper,driverDisabled:!!globalThis.__jojoManualPlayerAction,driverSuppressed:globalThis.__jojoManualDriverSuppressed||0,menu:!!menu,terrain:!!terrain,dialogue:!!say,win:!!win,selectedUnit:battle.g_data&&battle.g_data.unit&&battle.g_data.unit.unit?battle.g_data.unit.unit().id():null,unit0:unit0&&{x:unit0.x(),y:unit0.y(),acted:unit0.isAction()},weatherReady,menuButton:button(battle,'menu_button'),terrainButton:button(menu,'bg/contain/button6'),menuCancel:button(menu,'Panel_cancel'),terrainClose:button(terrain,'bg/button2'),runtimeViewport:{inner:[innerWidth,innerHeight],canvasPixels:[canvas.width,canvas.height],canvasRect:[rect.left,rect.top,rect.width,rect.height],visible:[cc.view.getVisibleSize().width,cc.view.getVisibleSize().height],viewport:[vp.x,vp.y,vp.width,vp.height],scale:[cc.view._scaleX,cc.view._scaleY]}};
+      })()`;
+      async function current(label) { const state = await evaluate(menuState); observations.push({ label, wallSeconds: (Date.now() - started) / 1000, ...state }); return state; }
+      async function waitState(label, predicate, limit) { return poll(async () => { const state = await current(label); return predicate(state) ? state : null; }, label, Date.now() + limit); }
+      async function stableButton(label, field, predicate, limit = 5000) {
+        let prior = null;
+        return poll(async () => { const state = await current(label); if (!predicate(state)) return null; const button = state[field]; if (!button || !button.active || !button.interactable || !button.cssCenter) return null; const signature = JSON.stringify(button); const ready = prior && prior.frame !== state.frame && prior.signature === signature; prior = { frame: state.frame, signature }; return ready ? state : null; }, `${label} stable button`, Date.now() + limit);
+      }
+      async function snapshot(label) { const state = await current(`capture-${label}`); const image = await capturePng(client); const file = `source-${String(captures.length + 1).padStart(2, '0')}-${label}.png`; fs.writeFileSync(path.join(outputRoot, file), Buffer.from(image.data, 'base64')); captures.push({ label, file, wallSeconds: (Date.now() - started) / 1000, ...state }); return state; }
+      async function click(label, point, before) { inputs.push({ label, requestedFrame: before.frame, wallSeconds: (Date.now() - started) / 1000, point, before }); await cdpClick(client, point); }
+      try {
+        await waitState('round2-script-before-player-handoff', s => s.round === 2 && s.camp === 3 && s.unit0?.x === 10 && s.unit0?.y === 5, 145000);
+        const installed = await evaluate(`(() => {let battle=null;(function v(n){if(!n)return;for(const c of n._components||[])if(cc.js.getClassName(c)==='BattleLayer')battle=c;n.children.forEach(v)})(cc.director.getScene());if(!battle||!battle._menu_button||!battle._menu_button.node)return {ok:false};globalThis.__jojoManualPlayerAction=true;const suppress=(type,event)=>globalThis.__jojoManualPlayerAction&&battle.round()===2&&battle.curCamp()===0&&type===cc.Node.EventType.TOUCH_END&&(!event||typeof event.getLocation!=='function');const node=battle._menu_button.node;if(!node.__jojoManualOriginalEmit){node.__jojoManualOriginalEmit=node.emit;node.emit=function(type,event,...rest){if(suppress(type,event)){globalThis.__jojoManualDriverSuppressed=(globalThis.__jojoManualDriverSuppressed||0)+1;return;}return node.__jojoManualOriginalEmit.call(this,type,event,...rest);};}if(!globalThis.__jojoManualAllSyntheticTouchSuppressed){const original=cc.Node.prototype.emit;cc.Node.prototype.emit=function(type,event,...rest){if(suppress(type,event)){globalThis.__jojoManualDriverSuppressed=(globalThis.__jojoManualDriverSuppressed||0)+1;return;}return original.call(this,type,event,...rest);};globalThis.__jojoManualAllSyntheticTouchSuppressed=true;}return {ok:true,frame:cc.director.getTotalFrames()};})()`);
+        if (!installed.ok) throw new Error('could not install harness-only automatic-menu suppression');
+        seen.add('driver-disabled');
+        let state = await waitState('player-input-ready', s => s.round === 2 && s.camp === 0 && s.ctrlWaiting && !s.win && !s.dialogue && !s.menu && !s.terrain && s.unit0?.x === 10 && s.unit0?.y === 5 && !s.unit0.acted, 20000);
+        seen.add('player-input-ready'); await snapshot('player-input-ready');
+        state = await stableButton('menu-button-layout', 'menuButton', s => s.round === 2 && s.camp === 0 && s.ctrlWaiting && !s.menu && !s.terrain);
+        await click('open-battle-menu', state.menuButton.cssCenter, state);
+        state = await waitState('menu-open', s => s.menu && !s.terrain && s.weatherReady && s.terrainButton?.interactable && s.terrainButton.active, 5000);
+        seen.add('menu-open'); await snapshot('menu-open');
+        state = await stableButton('terrain-button-layout', 'terrainButton', s => s.menu && s.weatherReady && !s.terrain);
+        await click('open-terrain', state.terrainButton.cssCenter, state);
+        state = await waitState('terrain-open', s => s.terrain && !s.menu && s.terrainClose?.interactable && s.terrainClose.active, 5000);
+        seen.add('terrain-open'); await snapshot('terrain-open');
+        state = await stableButton('terrain-close-layout', 'terrainClose', s => s.terrain && !s.menu);
+        await click('close-terrain', state.terrainClose.cssCenter, state);
+        state = await waitState('terrain-closed', s => !s.terrain && !s.menu && s.round === 2 && s.camp === 0 && s.ctrlWaiting && !s.dialogue && !s.win && s.selectedUnit == null && s.unit0?.x === 10 && s.unit0?.y === 5 && !s.unit0.acted, 5000);
+        seen.add('terrain-closed'); await snapshot('terrain-closed');
+      } catch (error) { failure = error.message; }
+      const missingCaptures = wanted.filter(label => !seen.has(label));
+      const finalState = await current('final-state').catch(() => null);
+      fs.writeFileSync(path.join(outputRoot, 'screens.json'), JSON.stringify({ contract: 'source-yingchuan-normal-clock-menu-first-control-v1', evidenceKind: 'actual-source-renderer-direct-battle-bootstrap-with-cdp-pointer-input', sourceRoot, scenario: 'S_00', timeScale: 1, maxWallMs, semanticMode, complete: !failure && missingCaptures.length === 0, failure, missingCaptures, requestedAction: { round: 2, camp: 0, sequence: ['open-battle-menu', 'open-terrain', 'close-terrain'] }, automaticDriverHandoff: { mechanism: 'harness-only rejection of synthetic TOUCH_END during round-two player input; CDP touch events remain routed through Cocos input', installed: seen.has('driver-disabled'), suppressedCalls: finalState?.driverSuppressed }, inputs, observations, finalState, bootstrap: { route: 'HallLayer.jumpScene(0)', seededBattleUnits: [0], normalDialogueInput: 'SayLayer Panel_cancel TOUCH_END', fixture: false, fullCampaignEntry: false }, captures }, null, 2) + '\n');
+      await childExit;
+      if (!fs.existsSync(trace)) throw new Error('source menu-first-control trace was not flushed');
+      const complete = !failure && missingCaptures.length === 0;
+      console.log(`SOURCE_YINGCHUAN_MENU_FIRST_CONTROL_${complete ? 'OK' : 'PARTIAL'} ${captures.length}${failure ? ` failure=${failure}` : ''}`);
+      if (!complete) process.exitCode = 1;
+      return;
     }
     if(['single-player-action','round2-followup','round2-first-combat','round3-player-action','round3-first-combat','round3-followup','round3-counterattack','round3-210'].includes(semanticMode)){
       const followup=semanticMode!=='single-player-action',round3Mode=['round3-player-action','round3-first-combat','round3-followup','round3-counterattack','round3-210'].includes(semanticMode),round3Speaker210=semanticMode==='round3-210',round3Counterattack=semanticMode==='round3-counterattack'||round3Speaker210,round3Followup=semanticMode==='round3-followup'||round3Counterattack,round3FirstCombat=semanticMode==='round3-first-combat'||round3Followup,continueFirstDialogue=semanticMode==='round2-first-combat'||round3Mode;

@@ -183,6 +183,12 @@ data class BattleRuntimeScreenProbe(
     val activeActionSourceAction: Int? = null,
     /** A source `_jiesuan` info or info2 view is currently drawable. */
     val settlementInfoVisible: Boolean = false,
+    /** 실제 전투 메뉴 입력 검증용 자식 지형창 상태와 버튼 좌표다. */
+    val terrainOpen: Boolean = false,
+    val menuTerrainScreenX: Int = 0,
+    val menuTerrainScreenY: Int = 0,
+    val terrainCloseScreenX: Int = 0,
+    val terrainCloseScreenY: Int = 0,
     val battle: BattleRuntimeProbe,
     /** 전장 칸 중심의 화면 좌표. 수동 조작 구동기가 유닛·칸을 누를 때 쓴다. */
     val tileScreenPoint: (Int, Int) -> Pair<Int, Int> = { _, _ -> 0 to 0 },

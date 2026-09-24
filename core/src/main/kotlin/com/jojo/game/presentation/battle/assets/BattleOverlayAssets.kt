@@ -29,6 +29,12 @@ internal class BattleOverlayAssets : Disposable {
      */
 
     val terrainLayerBackgroundTexture = terrainTexture("background")
+    private val terrainLayerOuterBoxTexture = terrainTexture("outer-box")
+    private val terrainLayerTitleStripTexture = terrainTexture("title-strip")
+    private val terrainLayerFooterTexture = linearOptionalTexture("maps/ui/unit-info/box3.png")
+    val terrainLayerOuterBoxPatch = terrainLayerOuterBoxTexture?.let { NinePatch(it, 3, 3, 3, 3) }
+    val terrainLayerTitleStripPatch = terrainLayerTitleStripTexture?.let { NinePatch(it, 5, 5, 5, 5) }
+    val terrainLayerFooterPatch = terrainLayerFooterTexture?.let { NinePatch(it, 8, 8, 8, 8) }
     /**
      * `terrainLayerPanelTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -181,6 +187,9 @@ internal class BattleOverlayAssets : Disposable {
             sectionBackgroundTexture,
             rewardItemTexture,
             terrainLayerBackgroundTexture,
+            terrainLayerOuterBoxTexture,
+            terrainLayerTitleStripTexture,
+            terrainLayerFooterTexture,
             terrainLayerPanelTexture,
             terrainLayerRowEvenTexture,
             terrainLayerRowOddTexture,

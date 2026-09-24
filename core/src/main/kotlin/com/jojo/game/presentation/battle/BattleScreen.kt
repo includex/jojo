@@ -83,6 +83,7 @@ import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
 import com.jojo.game.presentation.scenario.overlay.SourceTextReveal
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.KoreanFont
+import com.jojo.game.presentation.shared.overlay.TerrainLayerChromeRenderContract
 import com.jojo.game.presentation.shared.dialogue.DialogueComponentPlacement
 import com.jojo.game.presentation.shared.dialogue.DialogueOverlayModel
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout
@@ -1735,7 +1736,10 @@ void main() {
             font = font,
             assets = BattleTerrainOverlayAssets(
                 background = overlayAssets.terrainLayerBackgroundTexture,
+                outerBox = overlayAssets.terrainLayerOuterBoxPatch,
+                titleStrip = overlayAssets.terrainLayerTitleStripPatch,
                 panel = overlayAssets.terrainLayerPanelPatch,
+                footer = overlayAssets.terrainLayerFooterPatch,
                 rowEven = overlayAssets.terrainLayerRowEvenPatch,
                 rowOdd = overlayAssets.terrainLayerRowOddPatch,
                 verticalLine = overlayAssets.terrainLayerVlinePatch,
@@ -5929,6 +5933,14 @@ void main() {
                 activeActionActorId = actionAnimation?.takeIf { animationClock() < it.endsAt }?.unitId,
                 activeActionSourceAction = actionAnimation?.takeIf { animationClock() < it.endsAt }?.sourceAction,
                 settlementInfoVisible = settlementPresentation.infoView() != null || settlementPresentation.info2View() != null,
+                terrainOpen = informationOverlay.terrainView() != null,
+                menuTerrain = projectWorldPointAt(
+                    WeatherTransitionLayout.buttonX(6) + WeatherTransitionLayout.BUTTON_SIZE / 2f,
+                    WeatherTransitionLayout.BUTTON_Y + WeatherTransitionLayout.BUTTON_SIZE / 2f,
+                ),
+                terrainClose = TerrainLayerChromeRenderContract.footerButtons.last().box.let {
+                    projectWorldPointAt(it.x + it.width / 2f, it.y + it.height / 2f)
+                },
                 tileScreenPoint = ::screenPoint,
             ),
             object : BattleRuntimeProbePort {

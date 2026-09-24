@@ -51,6 +51,9 @@ internal data class BattleRuntimeScreenProbeInput(
     val activeActionActorId: String? = null,
     val activeActionSourceAction: Int? = null,
     val settlementInfoVisible: Boolean = false,
+    val terrainOpen: Boolean = false,
+    val menuTerrain: Pair<Int, Int> = 0 to 0,
+    val terrainClose: Pair<Int, Int> = 0 to 0,
     val tileScreenPoint: (Int, Int) -> Pair<Int, Int> = { _, _ -> 0 to 0 },
 )
 
@@ -109,6 +112,11 @@ internal object BattleRuntimeScreenProbeProjector {
         activeActionActorId = input.activeActionActorId,
         activeActionSourceAction = input.activeActionSourceAction,
         settlementInfoVisible = input.settlementInfoVisible,
+        terrainOpen = input.terrainOpen,
+        menuTerrainScreenX = input.menuTerrain.first,
+        menuTerrainScreenY = input.menuTerrain.second,
+        terrainCloseScreenX = input.terrainClose.first,
+        terrainCloseScreenY = input.terrainClose.second,
         battle = battle,
         tileScreenPoint = input.tileScreenPoint,
     )

@@ -562,6 +562,7 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
                     "round3-player-action",
                     "round3-first-combat",
                     "round3-followup", "round3-counterattack", "round3-210",
+                    "menu-first-control",
                 )) {
                     "unknown captureMode: $it"
                 }
@@ -578,6 +579,11 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
     val destination = layout.buildDirectory.dir("verification/yingchuan-walkthrough")
     doFirst {
+        if (captureMode.get() == "menu-first-control") {
+            require(maxSimulationSeconds.get() == 150 && timeScale.get() == 1) {
+                "menu-first-control requires maxSimSeconds=150 and timeScale=1"
+            }
+        }
         if (captureMode.get() in setOf("single-player-action", "round2-followup", "round2-first-combat")) {
             require(maxSimulationSeconds.get() == 180 && timeScale.get() == 1) {
                 "${captureMode.get()} requires maxSimSeconds=180 and timeScale=1"
@@ -612,6 +618,15 @@ tasks.register<JavaExec>("captureYingchuanWalkthrough") {
             "expected 1..12 walkthrough screenshots, found ${screenshots.size}"
         }
         check(screenshots.all { it.length() > 0L }) { "walkthrough contains an empty screenshot" }
+        if (captureMode.get() == "menu-first-control") {
+            val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
+            check(Regex("\"menuFirstControlComplete\"\\s*:\\s*true").containsMatchIn(manifest)) {
+                "menu-first-control did not complete; inspect preserved walkthrough manifest"
+            }
+            check(Regex("\"menuFirstControlFailure\"\\s*:\\s*null").containsMatchIn(manifest)) {
+                "menu-first-control recorded a failure; inspect preserved walkthrough manifest"
+            }
+        }
         if (captureMode.get() == "single-player-action") {
             val manifest = directory.resolve("yingchuan-walkthrough.json").readText()
             check(Regex(""""singlePlayerActionComplete"\s*:\s*true""").containsMatchIn(manifest)) {

@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.shared.overlay.TerrainLayerChromeRenderContract
 
 /** 전투 지형 병과 값 표시 정보: 병과별 수치 문자열과 등급 색상 인덱스를 정의한다. */
@@ -30,7 +31,10 @@ data class BattleTerrainOverlayView(
 /** 전투 지형 목록 자산: 바탕, 패널, 행, 열 구분선을 그릴 그래픽을 보관한다. */
 data class BattleTerrainOverlayAssets(
     val background: Texture?,
+    val outerBox: NinePatch?,
+    val titleStrip: NinePatch?,
     val panel: NinePatch?,
+    val footer: NinePatch?,
     val rowEven: NinePatch?,
     val rowOdd: NinePatch?,
     val verticalLine: NinePatch?,
@@ -62,23 +66,31 @@ class BattleTerrainOverlayRenderer(
     fun draw(view: BattleTerrainOverlayView) {
         batch.begin()
         batch.color = Color.WHITE
+        assets.background?.let {
+            batch.color = Color(0f, 0f, 0f, chrome.DIMMER_OPACITY)
+            batch.draw(it, chrome.dimmer.x, chrome.dimmer.y, chrome.dimmer.width, chrome.dimmer.height)
+            batch.color = Color.WHITE
+        }
         drawTiledBackground()
+        drawPatch(assets.outerBox, chrome.outerBox.toBox())
+        drawPatch(assets.titleStrip, chrome.titleStrip.toBox())
         drawPatch(assets.panel, chrome.panelBox)
-        chrome.footerButtons.forEach { drawPatch(assets.panel, it.box) }
+
+        view.rows.forEachIndexed { rowIndex, row -> drawRow(rowIndex, row) }
+        chrome.verticalLineXs.forEach { drawPatch(assets.verticalLine, chrome.verticalLineBox(it)) }
+        chrome.headers.forEach { drawPatch(assets.panel, it.box) }
+        chrome.footerButtons.forEach { drawPatch(assets.footer, it.box) }
 
         font.color = Color.BLACK
         setFontSize(chrome.TITLE_FONT_SIZE)
         drawText(chrome.TITLE_TEXT, chrome.titleLabel)
         setFontSize(chrome.FOOTER_FONT_SIZE)
-        chrome.footerButtons.forEach { drawText(it.text, it.labelBox) }
+        chrome.footerButtons.forEach { drawText(it.text, it.labelBox, centered = true) }
         setFontSize(chrome.HEADER_FONT_SIZE)
-        drawText(chrome.nameHeader.text, chrome.nameHeader.labelBox)
+        drawText(chrome.nameHeader.text, chrome.nameHeader.labelBox, centered = true)
         view.armNames.forEachIndexed { index, name ->
-            chrome.armHeaders.getOrNull(index)?.let { drawText(name, it.labelBox) }
+            chrome.armHeaders.getOrNull(index)?.let { drawText(name, it.labelBox, centered = true) }
         }
-
-        view.rows.forEachIndexed { rowIndex, row -> drawRow(rowIndex, row) }
-        chrome.verticalLineXs.forEach { drawPatch(assets.verticalLine, chrome.verticalLineBox(it)) }
         setFontSize(chrome.BASE_FONT_SIZE)
         font.color = Color.WHITE
         batch.color = Color.WHITE
@@ -153,13 +165,20 @@ class BattleTerrainOverlayRenderer(
         patch?.draw(batch, box.x, box.y, box.width, box.height)
     }
 
+    private fun TerrainLayerChromeRenderContract.Patch.toBox() =
+        TerrainLayerChromeRenderContract.Box(x, y, width, height)
+
     /**
      * `drawText`: 계약이 들고 있는 문구 상자에 글자를 그린다.
-     * 원본 라벨 노드의 윗변이 비트맵 글꼴의 기준선과 같은 자리라 상자의 top을 쓴다.
+     * 원본 라벨 노드의 윗변에서 포트 글꼴의 ascent 차이를 빼고 그린다.
      */
 
-    private fun drawText(text: String, box: TerrainLayerChromeRenderContract.Box) {
-        font.draw(batch, text, box.x, box.top)
+    private fun drawText(text: String, box: TerrainLayerChromeRenderContract.Box, centered: Boolean = false) {
+        // BitmapFont's glyph ascent places ink above the source label's measured top.
+        // Align the visible ink with the captured Cocos labels before applying button centering.
+        val baseline = box.top - BITMAP_FONT_BASELINE_OFFSET
+        if (centered) font.draw(batch, text, box.x, baseline, box.width, Align.center, false)
+        else font.draw(batch, text, box.x, baseline)
     }
 
     /**
@@ -172,6 +191,8 @@ class BattleTerrainOverlayRenderer(
     }
 
     private companion object {
+        /** 원본과 포트의 2560×1376 실화면 캡처에서 관측한 글자 기준선 차이(월드 좌표). */
+        const val BITMAP_FONT_BASELINE_OFFSET = 15f
         /**
          * `chrome` (상태 값): 이 화면 기하의 단일 출처이며 증거 기록기도 같은 계약을 읽는다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

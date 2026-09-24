@@ -19,6 +19,7 @@
 | `477.py` | `477-settlement-order` 60000 | **`enemy-settlement`** / 60 |
 | `first-round-end.py` | `first-round-end` 90000 | 같음 / 90 |
 | `round2-handoff.py` | `round2-handoff` 150000 | 같음 / 150 |
+| `menu-first-control.py` | `menu-first-control` 150000 | 같음 / 150 |
 | `single-action.py` | `single-player-action` 180000 | 같음 / 180 |
 | `round2-followup.py` | `round2-followup` 180000 | 같음 / 180 |
 | `round2-fc.py` | `round2-first-combat` 180000 | 같음 / 180 |
@@ -29,6 +30,11 @@
 
 포트 trace는 출력 디렉터리의 `yingchuan-manual-trace.json`, 원본은 `source-full-trace.json`이다.
 **포트의 기본 시뮬레이션 시간은 30초라 대부분의 구간을 잘라 먹는다.** 위 표의 값을 반드시 준다.
+
+`menu-first-control.py`는 타이밍 trace 대신 원본의 `screens.json`과 포트의
+`yingchuan-walkthrough.json`을 받는다. 2턴 첫 수동 조작에서 실제 포인터로 메뉴를 열고
+지형 정보를 확인한 뒤 닫았는지, 양쪽의 메뉴·지형·유닛 상태와 캡처 파일을 검사한다.
+화면 픽셀 일치 여부는 판정하지 않는다.
 
 ## 판정 규칙과 그 근거
 
