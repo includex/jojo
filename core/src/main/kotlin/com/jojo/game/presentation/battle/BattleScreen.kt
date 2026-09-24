@@ -8,11 +8,13 @@ import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Rectangle
@@ -74,6 +76,7 @@ import com.jojo.game.presentation.battle.settlement.*
 import com.jojo.game.presentation.battle.timeline.*
 import com.jojo.game.presentation.battle.trace.*
 import com.jojo.game.presentation.battle.unit.*
+import com.jojo.game.presentation.shared.SourceSlicedPatch
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationCoordinator
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationInput
 import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
@@ -217,7 +220,7 @@ class BattleScreen(
     )
     /** Plain MsgBox uses its own blue body and button colors; MsgBox4 above remains the manual-menu style. */
     private val plainMsgBoxMessageFont = KoreanFont.create(
-        40, "모든 부대의 명령을 종료하시겠습니까?", borderWidth = 2f,
+        40, "모든 부대의 명령을 종료하시겠습니까?게임 저장", borderWidth = 2f,
         borderColor = Color(91f / 255f, 222f / 255f, 1f, 1f), fillColor = Color(0f, 4f / 255f, 196f / 255f, 1f),
     )
     private val plainMsgBoxNoFont = KoreanFont.create(
@@ -226,6 +229,21 @@ class BattleScreen(
     private val plainMsgBoxYesFont = KoreanFont.create(
         40, "예", borderWidth = 2f, borderColor = Color(121f / 255f, 214f / 255f, 78f / 255f, 1f), fillColor = Color(10f / 255f, 105f / 255f, 0f, 1f),
     )
+    private val scriptInfoPanelTextureDelegate = lazy {
+        val bytes = Gdx.files.internal("reference/source-hall-infolayer-bg-frame.rgba").readBytes()
+        check(bytes.size == 19 * 17 * 4) { "Invalid InfoLayer bg SpriteFrame" }
+        val pixmap = Pixmap(19, 17, Pixmap.Format.RGBA8888)
+        pixmap.pixels.put(bytes).rewind()
+        try {
+            Texture(pixmap).also { it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear) }
+        } finally {
+            pixmap.dispose()
+        }
+    }
+    private val scriptInfoPanelTexture by scriptInfoPanelTextureDelegate
+    private val scriptInfoPanelPatch by lazy {
+        SourceSlicedPatch(TextureRegion(scriptInfoPanelTexture), 7, 6, 6, 6)
+    }
 
     /** 원본 RoundLayer 프리팹의 `label12` 턴 수 그림자 색 4286545795 = (131,127,127). */
     private val ROUND_TURN_SHADOW = com.badlogic.gdx.graphics.Color.valueOf("#837f7fff")
@@ -1470,6 +1488,7 @@ void main() {
         append(gameDataCatalog.allBattleNames().joinToString())
         // 대화 화자에는 공병처럼 데이터 카탈로그의 일반 병종명도 포함된다.
         append(gameDataCatalog.allUnitNames().joinToString())
+        append(gameDataCatalog.allMagicProfiles().joinToString { it.name })
         append(gameDataCatalog.allRetreatTexts().joinToString())
         append(gameDataCatalog.allBattleNames().joinToString())
         append(terrainLayerView().select(TerrainLayer.Tab.RISE).rows.joinToString { it.terrainName })
@@ -1483,6 +1502,7 @@ void main() {
         append("진행 상황 유지 어떤 진행 상황을 저장할지 선택해 주세요 따뜻한 알림 오래된 저장 파일일수록 앞에 표시됩니다 취소 진행도 불러오기 읽을 최신 저장 파일이 가장 위에 있습니다")
         append("보물 도감 발견되지 않음 지금까지 발견한 보물 종료 부대 정보 일람 무장명 부대 속성 레벨 체력 공격 방어 정신 폭발 사기 폐쇄 창고 일람 이름 속성 경험치 소지자 무기 방어구 보조")
         append("모든 부대의 명령을 종료하시겠습니까? 자동 전투 위임 예 아니오 취소")
+        append("승격하여레벨 상승 법술 「」！")
     }
 
     private val font: BitmapFont = KoreanFont.create(26, battleFontCharacters)
@@ -8321,11 +8341,7 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun victorySaveAnswerAt(x: Float, y: Float): Int? = when {
-        x in 460f..620f && y in 285f..365f -> 0 // 예
-        x in 690f..850f && y in 285f..365f -> 1 // 비
-        else -> null
-    }
+    private fun victorySaveAnswerAt(x: Float, y: Float): Int? = BattleAutoPromptGeometry.buttonAt(x, y, offersDelegation = false)
 
     /**
      * `SettlementAnimationFrame`: 정산 상태창 한 프레임의 숫자와 막대 길이다.
@@ -8676,17 +8692,7 @@ void main() {
         settlementPresentation.info2View()?.let { overlay ->
             val elapsed = (animationClock() - overlay.startedAt).coerceAtLeast(0f)
             val visibleChars = (elapsed / .04f).toInt().coerceIn(0, overlay.text.length)
-            val text = overlay.text.take(visibleChars)
-            val width = (text.length * 40f + 40f).coerceAtLeast(90f)
-            batch.projectionMatrix = viewport.camera.combined
-            batch.begin()
-            batch.color = Color.WHITE
-            batch.draw(unitInfoAssets.unitInfoBox1, (1488.372f - width) / 2f, 365f, width, 83f)
-            font.data.setScale(40f / 26f)
-            font.color = Color.WHITE
-            font.draw(batch, text, (1488.372f - width) / 2f + 20f, 425f)
-            font.data.setScale(1f)
-            batch.end()
+            drawInfoLayerText(overlay.text.take(visibleChars))
         }
     }
 
@@ -12002,14 +12008,11 @@ void main() {
 
     private fun drawSavePrompt() {
         batch.projectionMatrix = viewport.camera.combined
-        batch.begin(); batch.color = Color(0f, 0f, 0f, .65f)
-        batch.draw(overlayAssets.winConditionBackgroundTexture, 220f, 250f, 840f, 300f)
-        batch.color = Color.WHITE
-        overlayAssets.winConditionBoxPatch?.draw(batch, 300f, 280f, 680f, 230f)
-        dialogueFont.color = Color.WHITE
-        dialogueFont.draw(batch, "게임 저장하시겠습니까?", 520f, 430f)
-        dialogueFont.draw(batch, "예", 510f, 330f); dialogueFont.draw(batch, "아니오", 740f, 330f)
-        batch.end()
+        battleAutoOverlayRenderer.draw(BattleAutoOverlayView(
+            overlay = BattleAutoOverlayKind.PROMPT,
+            offersDelegation = false,
+            message = "게임 저장하시겠습니까?",
+        ))
     }
 
     /**
@@ -12362,31 +12365,37 @@ void main() {
 
     private fun drawScriptInfoLayer() {
         if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) return
-        val text = scriptRuntime.currentModalVisibleText
+        drawInfoLayerText(scriptRuntime.currentModalVisibleText)
+    }
+
+    /** Both scripted and settlement notices use the same source InfoLayer prefab. */
+    private fun drawInfoLayerText(text: String) {
         val sourceCanvasWidth = 1488.3721f
         val centreX = sourceCanvasWidth / 2f
         val centreY = 400f
+        val previousScaleX = font.data.scaleX
+        val previousScaleY = font.data.scaleY
         font.data.setScale(40f / 26f)
+        val previousFontColor = Color(font.color)
         val layout = GlyphLayout(font, text)
-        // 원본 InfoLayer의 bg는 Layout 패딩 L/R 20, T/B 10을 가진 40x83 노드다.
-        // 본문 크기에 패딩을 더한 값이 상자 크기이며, 기존 가로 패딩 5.4는 원본과 맞지 않았다.
+        // 원본 InfoLayer Layout은 본문 좌우에 20씩 패딩을 둔다.
         val panelWidth = (layout.width + 40f).coerceAtLeast(40f)
-        val panelHeight = (layout.height + 20f).coerceAtLeast(83f)
+        val panelHeight = 83f
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.color = Color.WHITE
-        // 원본 bg는 앵커 (0,.5)로 레이어 세로 중앙(로컬 y 0.5)에 놓인다. 상자 중심이 화면
-        // 세로 중앙에 오도록 둔다.
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(
+        // 원본 bg 앵커 (0.5, 0.28), 위치는 전장 캔버스 중앙이다.
+        scriptInfoPanelPatch.draw(
             batch,
             centreX - panelWidth / 2f,
-            centreY + .5f - panelHeight / 2f,
+            centreY - panelHeight * .28f,
             panelWidth,
             panelHeight,
         )
-        font.color = Color.WHITE
+        font.color = Color.BLACK
         font.draw(batch, text, centreX - layout.width / 2f, centreY + 18.5f)
-        font.data.setScale(1f)
+        font.color = previousFontColor
+        font.data.setScale(previousScaleX, previousScaleY)
         batch.end()
     }
 
@@ -13015,6 +13024,7 @@ void main() {
         plainMsgBoxMessageFont.dispose()
         plainMsgBoxNoFont.dispose()
         plainMsgBoxYesFont.dispose()
+        if (scriptInfoPanelTextureDelegate.isInitialized()) scriptInfoPanelTexture.dispose()
         if (sectionTitleFontDelegate.isInitialized()) sectionTitleFont.dispose()
         if (menuBarLabelFontDelegate.isInitialized()) menuBarLabelFont.dispose()
         mapTexture?.dispose()
