@@ -2,6 +2,7 @@
 package com.jojo.game.application.scenario
 
 import com.jojo.game.*
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.domain.campaign.*
@@ -302,7 +303,12 @@ internal class ScenarioCallCoordinator(
         if (stageCall != null) return stageCall.value
         when (path) {
             "stage.say" -> {
-                val sourceText = args.firstOrNull().asText()
+                val encodedText = args.firstOrNull().asText()
+                val sourceText = if (encodedText.startsWith(ScenarioDialogueTextCatalog.REFERENCE_PREFIX)) {
+                    ScenarioDialogueTextCatalog.text(encodedText.removePrefix(ScenarioDialogueTextCatalog.REFERENCE_PREFIX))
+                } else {
+                    encodedText
+                }
                 if (!sourceText.startsWith("&")) {
                     dialogueCoordinator.reset()
                     modalController.suspendForInfo(sourceText, ScenarioModalKind.INFO)

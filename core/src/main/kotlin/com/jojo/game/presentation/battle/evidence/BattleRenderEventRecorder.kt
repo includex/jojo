@@ -154,8 +154,8 @@ private object BattleDialogueBlendRenderEvents {
         val dialogue = requireNotNull(view.dialogue)
         dialogue.headAsset?.let { draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/face", "sprite", 1064.618f, 330f, 192f, 240f, it) }
         draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/bg2", "sprite", 245.65f, 332f, 796f, 212f, "U_select_11-1")
-        draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/bg2/richtext", "rich-text", 272.705f, 431.814f, 728f, 52.92f, text = dialogue.text, blend = labels)
-        draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/bg2/richtext/RICHTEXT_CHILD", "label", 272.705f, 431.814f, 72.28f, 52.92f, text = dialogue.text, blend = labels)
+        draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/bg2/richtext", "rich-text", 272.705f, 431.814f, 728f, 52.92f, text = dialogue.text, blend = labels, color = "#000000")
+        draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/bg2/richtext/RICHTEXT_CHILD", "label", 272.705f, 431.814f, 72.28f, 52.92f, text = dialogue.text, blend = labels, color = "#000000")
         draw(log, view.phase, "SayLayer", "Canvas/Layer/bg0/label", "label", 304.804f, 485.639f, 97.42f, 49.36f, text = dialogue.speakerName, blend = labels)
     }
 }

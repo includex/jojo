@@ -141,6 +141,7 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
     inputs.property("maxRenderedPages", maxRenderedPages)
     environment("JOJO_BODY_LABEL_MAX_PAGES", maxRenderedPages.get())
     inputs.file(rootProject.file("tools/street_body_label_pages.cjs"))
+    inputs.file(rootProject.file("core/src/main/resources/scenarios/dialogue-text.json"))
     dependsOn(exportScenarioAst)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))
@@ -175,6 +176,7 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
 }
 val exportInfoLabels = tasks.register<Exec>("exportInfoLabels") {
     inputs.file(rootProject.file("tools/street_body_label_pages.cjs"))
+    inputs.file(rootProject.file("core/src/main/resources/scenarios/dialogue-text.json"))
     dependsOn(exportScenarioAst)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))

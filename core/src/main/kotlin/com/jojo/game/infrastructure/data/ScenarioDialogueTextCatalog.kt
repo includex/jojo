@@ -5,6 +5,8 @@ import com.badlogic.gdx.utils.JsonValue
 
 /** In-memory catalog for all authored scenario dialogue strings. */
 object ScenarioDialogueTextCatalog {
+    const val REFERENCE_PREFIX = "@dialogue:"
+
     private data class Catalog(
         val entries: Map<String, String>,
         val aliases: Map<String, String>,

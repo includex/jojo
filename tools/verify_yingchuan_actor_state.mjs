@@ -68,7 +68,7 @@ for (const fixture of expected) {
   const sourceState = resolve(sourceRoot, `build/python-source-battle-verification-dialogue${fixture.step}.json`);
   for (const stale of [sourceImage, sourceState]) try { unlinkSync(stale); } catch { /* absent is fresh */ }
   run("./node_modules/.bin/electron", [
-    ".", SRGB_CAPTURE, "--verify-python-battle", `--capture-python-battle-dialogue-step=${fixture.step}`,
+    SRGB_CAPTURE, ".", "--verify-python-battle", `--capture-python-battle-dialogue-step=${fixture.step}`,
     "--capture-python-battle-dialogue-wait-ms=3200",
   ], sourceRoot);
   const sourceSnapshot = JSON.parse(readFileSync(

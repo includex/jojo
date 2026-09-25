@@ -321,7 +321,11 @@ def main() -> None:
     # The panel band contains the dialogue text, whose glyph rasterization is
     # out of parity scope and whose revealed length varies between captures,
     # so it keeps more headroom than the portrait's pure image comparison.
-    panel_delta = mean_delta(source, game, (423, source_panel[1] + 35, 1700, source_panel[3] - 25))
+    # Compare a text-free right-hand band.  The source capture can be on a
+    # typewriter boundary while the game exposes the full authored line, so
+    # averaging the text-bearing left side turns expected glyph differences
+    # into a false panel-blend failure.
+    panel_delta = mean_delta(source, game, (1200, source_panel[1] + 35, 1700, source_panel[3] - 25))
     if any(value > 8.0 for value in panel_delta):
         raise AssertionError(f"dialogue panel opacity/blend mean delta={panel_delta}")
     portrait_delta = mean_delta(source, game, (1800, 230, 2150, 650))

@@ -58,6 +58,8 @@ c.sort(); print(json.dumps([v for _,v in c[:1]],ensure_ascii=False))`;
 }
 function astJsonInput(value) {
   const calls=[];
+  const dialogueEntries = labelStyle === 'info' ? null : JSON.parse(fs.readFileSync(
+    path.resolve(__dirname, '../core/src/main/resources/scenarios/dialogue-text.json'), 'utf8')).entries;
   function walk(node, inScene1=false) {
     if (Array.isArray(node)) return node.forEach(x=>walk(x,inScene1));
     if (!node || typeof node !== 'object') return;
@@ -66,7 +68,13 @@ function astJsonInput(value) {
     const wanted=labelStyle==='info'?'setEventName':'say';
     if (scene && node.type==='Call' && ((fields.func?.type==='Attribute' && fields.func.fields?.attr===wanted) || (fields.func?.type==='Name' && fields.func.fields?.id===wanted))) {
       const arg=fields.args?.[0];
-      calls.push([node.location?.line||0, arg?.type==='Constant' && typeof arg.fields?.value==='string' ? arg.fields.value : null]);
+      let text = arg?.type==='Constant' && typeof arg.fields?.value==='string' ? arg.fields.value : null;
+      if (text?.startsWith('@dialogue:')) {
+        const key = text.slice('@dialogue:'.length);
+        if (!Object.prototype.hasOwnProperty.call(dialogueEntries, key)) throw Error(`dialogue catalog has no ${key}`);
+        text = dialogueEntries[key];
+      }
+      calls.push([node.location?.line||0, text]);
     }
     for (const child of Object.values(fields)) walk(child,scene);
   }

@@ -9,8 +9,6 @@ import com.jojo.game.*
 import com.jojo.game.domain.scenario.ScenarioScript
 import com.jojo.game.domain.scenario.ScriptStep
 
-private const val DIALOGUE_REFERENCE_PREFIX = "@dialogue:"
-
 /** AST 리소스를 실행 가능한 시나리오 스크립트로 변환한다. */
 object ScenarioProgramLoader {
     /** 지정한 모듈과 함수의 AST를 읽어 시나리오 단계로 컴파일한다. */
@@ -129,8 +127,8 @@ object ScenarioProgramLoader {
 
             "stage.say" -> {
                 val encodedText = args.stringAt(0)
-                val dialogueText = if (encodedText.startsWith(DIALOGUE_REFERENCE_PREFIX)) {
-                    ScenarioDialogueTextCatalog.text(encodedText.removePrefix(DIALOGUE_REFERENCE_PREFIX))
+                val dialogueText = if (encodedText.startsWith(ScenarioDialogueTextCatalog.REFERENCE_PREFIX)) {
+                    ScenarioDialogueTextCatalog.text(encodedText.removePrefix(ScenarioDialogueTextCatalog.REFERENCE_PREFIX))
                 } else {
                     encodedText
                 }

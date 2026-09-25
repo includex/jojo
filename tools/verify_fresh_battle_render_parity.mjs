@@ -73,7 +73,7 @@ for (const route of routes) {
   const gamePng = resolve(frameDir, `game-${phase}.png`);
   const pixelReport = resolve(frameDir, `${phase}.json`);
   clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), gameLog, report, sourcePng, gamePng, pixelReport);
-  run(electron, [".", SRGB_CAPTURE, `--render-battle-character-route=${route}`, `--render-event-log=${sourceLog}`,
+  run(electron, [SRGB_CAPTURE, ".", `--render-battle-character-route=${route}`, `--render-event-log=${sourceLog}`,
     `--render-frame-png=${sourcePng}`, `--verification-run-id=${runId}-${route}`], sourceRoot);
   game(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--render-event-log=${gameLog}`]);
   game(["--battle", "--scenario=S_00", `--capture-state=${phase}-fixture`, `--capture=${gamePng}`]);
@@ -90,7 +90,7 @@ for (const route of routes) {
   const gamePng = resolve(frameDir, `game-${phase}.png`);
   const pixelReport = resolve(frameDir, `${phase}.json`);
   clean(sourceLog, sourceLog.replace(/\.jsonl$/, ".state.json"), gameLog, report, sourcePng, gamePng, pixelReport);
-  run(electron, [".", SRGB_CAPTURE, "--render-battle-dialogue-blending", `--render-event-log=${sourceLog}`,
+  run(electron, [SRGB_CAPTURE, ".", "--render-battle-dialogue-blending", `--render-event-log=${sourceLog}`,
     `--render-frame-png=${sourcePng}`, `--verification-run-id=${runId}-dialogue-blending`], sourceRoot);
   game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--render-event-log=${gameLog}`]);
   game(["--battle", "--scenario=S_00", "--capture-state=battle-dialogue-blending-fixture", `--capture=${gamePng}`]);
