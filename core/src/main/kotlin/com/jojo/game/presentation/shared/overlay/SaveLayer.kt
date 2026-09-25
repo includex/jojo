@@ -1,6 +1,8 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.*
 
 
@@ -163,7 +165,7 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
     fun onRowTouch(index: Int, eventType: Int): Boolean {
         if (eventType != TOUCH_END || view()?.rows?.any { it.index == index } != true) return false
         pendingIndex = index
-        pendingPrompt = "진행도 No.${index + 1}:${view().rows.first { it.index == index }.name}저장할 수 있나요?"
+        pendingPrompt = GameText.format(GameText.Key.SAVE_CONFIRM, index + 1, view().rows.first { it.index == index }.name)
         lifecycle += "msgbox:confirm:${index + 1}"
         return true
     }
@@ -276,7 +278,7 @@ class SaveLayer(private val repository: Repository, private val pageTogglesEnabl
         val root = text?.takeIf { it.startsWith('{') }?.let { runCatching { JsonReader().parse(it) }.getOrNull() }
         // SaveLayer는 0이 아닌 페이지가 `20 * page + 2`에서 시작해도 실제 저장 슬롯 번호(`c + 1`)를 표시한다.
         val number = "No.${(index + 1).toString().padStart(3, ' ')}"
-        if (root == null) return Row(index, 0, number, "---", "진행 상황 저장 안 함", false)
+        if (root == null) return Row(index, 0, number, "---", GameText.S_2BF319F7E7, false)
         val model = root.get("model")?.get("game") ?: root.get("model")
         // Config.MODEL_PROPERTY_INDEX.STAGE_N의 인덱스는 정확히 1이다.
         val stage = model?.get("property2")?.get(1)?.asInt() ?: model?.getInt("stage", 0) ?: 0

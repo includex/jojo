@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.render
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.overlay.*
 
 // `MenuLayer` 프리팹의 배치 상수는 이 한 곳에만 있다. 그리기 쪽 `drawBattleMenu`/
@@ -77,7 +79,7 @@ object BattleMenuRenderEvents {
             "Canvas/Layer/bg/progressBar/bar", "sliced-sprite", Layout.PROGRESS_BAR_X, Layout.BAR_Y,
             Layout.barWidth(view.progress), Layout.BAR_HEIGHT, "Mark_65-1"
         )
-        label("Canvas/Layer/bg/progressBar/label", Layout.TURN_LABEL_LEFT_X, 39.1f, 60.23f, 37.8f, "턴 수")
+        label("Canvas/Layer/bg/progressBar/label", Layout.TURN_LABEL_LEFT_X, 39.1f, 60.23f, 37.8f, GameText.S_7A2ACD7CB6)
         label("Canvas/Layer/bg/progressBar/label0", 648.071f, 39.1f, 75.06f, 37.8f, "${view.round} / ${view.maxRound}")
         draw(
             "Canvas/Layer/bg/box2", "sliced-sprite", Layout.WEATHER_BOX_X, Layout.WEATHER_BOX_Y,

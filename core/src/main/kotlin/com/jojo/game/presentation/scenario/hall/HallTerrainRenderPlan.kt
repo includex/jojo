@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.utils.Align
 
 /** HallTerrainRenderPlan: 거점 지형 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
@@ -45,12 +47,12 @@ internal object HallTerrainRenderPlan {
         tiled("maps/ui/start-battle/logo9.png", X, Y, WIDTH, HEIGHT)
         patch("maps/ui/start-battle/box1.png", X, Y, WIDTH, HEIGHT)
         patch("maps/ui/start-battle/title.png", X, Y + HEIGHT - 51.6f, WIDTH, 51.6f, inset = 5)
-        text("지형 정보 일람", X + 8f, Y + HEIGHT - 8f, WIDTH - 16f, font = HallTerrainFont.TITLE, align = Align.left)
+        text(GameText.S_8472C11F5C, X + 8f, Y + HEIGHT - 8f, WIDTH - 16f, font = HallTerrainFont.TITLE, align = Align.left)
 
         val rowX = X + 13.16f
         val leftWidth = 264.02f
         patch("maps/ui/start-battle/box2.png", rowX, Y + HEIGHT - 87f, leftWidth, 42f)
-        text("이름", rowX, Y + HEIGHT - 57f, leftWidth, font = HallTerrainFont.SMALL)
+        text(GameText.S_9AA18E5071, rowX, Y + HEIGHT - 57f, leftWidth, font = HallTerrainFont.SMALL)
         headers.forEachIndexed { index, value ->
             val headerX = X + 201.12f + index * COLUMN_WIDTH
             patch("maps/ui/start-battle/box2.png", headerX, Y + HEIGHT - 87f, COLUMN_WIDTH, 42f)
@@ -76,9 +78,9 @@ internal object HallTerrainRenderPlan {
             }
         }
 
-        button("지형 효과", 245.48f, 95.46f, 169.16f)
-        button("기동력 소모", 422.64f, 95.46f, 191.52f)
-        button("확인", 1001.72f, 95.46f, 103.2f)
+        button(GameText.S_AD01270B3C, 245.48f, 95.46f, 169.16f)
+        button(GameText.S_A8DE9DA622, 422.64f, 95.46f, 191.52f)
+        button(GameText.S_468266D639, 1001.72f, 95.46f, 103.2f)
     }
 
     /**
@@ -150,7 +152,7 @@ internal object HallTerrainRenderPlan {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val headers = listOf("마왕", "보병", "기병", "궁기", "포차", "무술", "군주", "보병", "기병", "궁기", "포차", "무술", "무술")
+    private val headers = listOf(GameText.S_93DF8F92C4, GameText.S_EC935E3110, GameText.S_B93949DF7E, GameText.S_AA5BAA93E1, GameText.S_2258169007, GameText.S_0A8D694790, GameText.S_D358176111, GameText.S_EC935E3110, GameText.S_B93949DF7E, GameText.S_AA5BAA93E1, GameText.S_2258169007, GameText.S_0A8D694790, GameText.S_0A8D694790)
 }
 
 /**

@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.preparation
+
+import com.jojo.game.presentation.i18n.GameText
 /**
  * `HallPreparationFlow`: 관련 상태와 동작을 묶는 class다.
  * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -124,7 +126,7 @@ class BattleInitPresentationState {
      */
 
     fun load(name: String) {
-        repeat(2) { labels[it] = name + if (flag and 1 != 0) " ▪ 훈련" else "" }
+        repeat(2) { labels[it] = name + if (flag and 1 != 0) GameText.S_39747B892D else "" }
     }
 
     /**
@@ -246,7 +248,7 @@ class BattleRosterModel {
      */
 
     private fun ref() {
-        label = "출진 무장 - ${fights.size}/3"; ok = fights.size >= 2; events += fights.size
+        label = GameText.format(GameText.Key.TROOP_COUNT, fights.size, 3); ok = fights.size >= 2; events += fights.size
     }
 }
 /**

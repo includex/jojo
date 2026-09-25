@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.application.battle.combat
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.*
 import com.jojo.game.*
 import com.jojo.game.application.battle.*
@@ -50,33 +52,33 @@ internal object BattleTacticalActionExecutor {
         damage: Int? = null,
         env: BattleTacticalActionEnvironment,
     ): TacticalActionResult {
-        if (env.outcome() != null) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
+        if (env.outcome() != null) return TacticalActionResult.Rejected(GameText.S_14E3B0AF5D)
         /**
          * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected("공격 유닛이 없습니다.")
+        val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected(GameText.S_D26EB7B9F4)
         /**
          * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
-        if (!attacker.visible || !target.visible) return TacticalActionResult.Rejected("아직 등장하지 않은 유닛입니다.")
-        if (attacker.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected("현재 진영의 유닛만 조작할 수 있습니다.")
+        val target = env.units()[targetId] ?: return TacticalActionResult.Rejected(GameText.S_367A0A7181)
+        if (!attacker.visible || !target.visible) return TacticalActionResult.Rejected(GameText.S_A3E8A0BBCD)
+        if (attacker.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected(GameText.S_50AFF62D3A)
         if (BattleStatus.PARALYSIS in attacker.statuses || BattleStatus.CONFUSION in attacker.statuses) return TacticalActionResult.Rejected(
-            "행동할 수 없는 상태입니다."
+            GameText.S_D1327CFCA3
         )
-        if (env.areAllied(attacker, target)) return TacticalActionResult.Rejected("아군을 공격할 수 없습니다.")
-        if (attacker.hasActed) return TacticalActionResult.Rejected("이미 행동한 유닛입니다.")
+        if (env.areAllied(attacker, target)) return TacticalActionResult.Rejected(GameText.S_BDBDED5992)
+        if (attacker.hasActed) return TacticalActionResult.Rejected(GameText.S_D7AE11A0C8)
         /**
          * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val offset = target.tileX - attacker.tileX to target.tileY - attacker.tileY
-        if (!attacker.attackAllScreen && offset !in attacker.attackOffsets) return TacticalActionResult.Rejected("공격 범위를 벗어난 적입니다.")
+        if (!attacker.attackAllScreen && offset !in attacker.attackOffsets) return TacticalActionResult.Rejected(GameText.S_657B5FEB42)
         return PhysicalCombatResolver.executeAttack(attacker, target, damage, env.physicalCombatEnvironment())
     }
 
@@ -95,13 +97,13 @@ internal object BattleTacticalActionExecutor {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected("공격 유닛이 없습니다.")
+        val attacker = env.units()[attackerId] ?: return TacticalActionResult.Rejected(GameText.S_D26EB7B9F4)
         /**
          * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
+        val target = env.units()[targetId] ?: return TacticalActionResult.Rejected(GameText.S_367A0A7181)
         return ForcedPhysicalCombatResolver.executeForcedAttack(attacker, target, env.physicalCombatEnvironment())
     }
 
@@ -116,41 +118,41 @@ internal object BattleTacticalActionExecutor {
         itemId: Int,
         env: BattleTacticalActionEnvironment,
     ): TacticalActionResult {
-        if (env.outcome() != null) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
+        if (env.outcome() != null) return TacticalActionResult.Rejected(GameText.S_14E3B0AF5D)
         /**
          * `user` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val user = env.units()[userId] ?: return TacticalActionResult.Rejected("사용 유닛이 없습니다.")
+        val user = env.units()[userId] ?: return TacticalActionResult.Rejected(GameText.S_B9A3425560)
         /**
          * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val target = env.units()[targetId] ?: return TacticalActionResult.Rejected("대상 유닛이 없습니다.")
+        val target = env.units()[targetId] ?: return TacticalActionResult.Rejected(GameText.S_367A0A7181)
         /**
          * `item` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val item = env.propertyItems[itemId] ?: return TacticalActionResult.Rejected("사용할 수 없는 아이템입니다.")
-        if (user.effectiveFaction() != env.activeFaction() || user.hasActed) return TacticalActionResult.Rejected("현재 행동할 수 없는 유닛입니다.")
-        if (!env.areAllied(user, target)) return TacticalActionResult.Rejected("아군에게만 사용할 수 있습니다.")
+        val item = env.propertyItems[itemId] ?: return TacticalActionResult.Rejected(GameText.S_2D243A64E7)
+        if (user.effectiveFaction() != env.activeFaction() || user.hasActed) return TacticalActionResult.Rejected(GameText.S_AD31679FA5)
+        if (!env.areAllied(user, target)) return TacticalActionResult.Rejected(GameText.S_C5D202B13B)
         /**
          * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val offset = target.tileX - user.tileX to target.tileY - user.tileY
-        if (target != user && offset !in env.movementOffsets) return TacticalActionResult.Rejected("아이템 사용 범위를 벗어났습니다.")
+        if (target != user && offset !in env.movementOffsets) return TacticalActionResult.Rejected(GameText.S_8F3BC8881B)
         /**
          * `applied` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val applied = applyProperty(item, target, { env.consumeSelectedProperty(itemId) }, env.notifyPermanentProperty)
-            ?: return TacticalActionResult.Rejected("아이템을 사용할 수 없습니다.")
+            ?: return TacticalActionResult.Rejected(GameText.S_CEF693F5A0)
         user.markActionComplete()
         return applied
     }

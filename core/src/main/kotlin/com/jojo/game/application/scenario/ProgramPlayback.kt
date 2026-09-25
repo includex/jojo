@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.scenario.*
 
 import java.util.*
@@ -71,7 +73,7 @@ class ProgramPlayback(val program: ScenarioScript) {
 
     /** 현재 대사를 닫고 다음 입력 지점까지 진행한다. */
     fun advanceDialogue() {
-        check(state == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
+        check(state == PlaybackState.DIALOGUE) { GameText.S_C80F942461 }
         currentDialogue = null
         runUntilInput()
     }
@@ -88,7 +90,7 @@ class ProgramPlayback(val program: ScenarioScript) {
 
     /** 현재 선택지를 변수에 기록하고 재생을 이어간다. */
     fun confirmChoice() {
-        check(state == PlaybackState.CHOICE) { "대기 중인 선택지가 없습니다." }
+        check(state == PlaybackState.CHOICE) { GameText.S_B1622411B7 }
         val choice = requireNotNull(currentChoice)
         chosenOption = choice.options[selectedChoice]
         variables[requireNotNull(pendingChoiceVariable)] = selectedChoice + 1 // 원본 스크립트는 선택지를 1부터 센다.

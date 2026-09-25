@@ -1,6 +1,8 @@
 // Game
 package com.jojo.game.presentation.shared
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** LossFlow: 전투 패배와 종료·건너뛰기 화면의 생명주기를 관리한다. */
 class LossFlow(private val sink: Sink) {
 
@@ -55,7 +57,7 @@ class LossFlow(private val sink: Sink) {
      */
 
     fun onCreate() {
-        sink.sound(0); sink.schedule(3) { sink.msgBox("다시 플레이하시겠습니까?") { if (it == 0) sink.login() else sink.endGame() } }; sink.helper(
+        sink.sound(0); sink.schedule(3) { sink.msgBox(GameText.S_B8C06C1007) { if (it == 0) sink.login() else sink.endGame() } }; sink.helper(
             "showInterstitial"
         )
     }
@@ -148,7 +150,7 @@ class StorySkipFlow(private val sink: Sink) {
      */
 
     fun touch(event: Int) {
-        if (event == 2) sink.msgBox("스토리를 건너뛸까요?") {
+        if (event == 2) sink.msgBox(GameText.S_F089BA034E) {
             if (it == 0) {
                 button = false; panel = true; sink.dispatch("SKIP")
             }

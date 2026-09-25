@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
@@ -253,7 +255,7 @@ object MineUnitInfoRenderEvents {
             SettlementInfoRenderContract.equipmentExperienceColor(v.armorExp, v.maxArmorExp),
         )
         // 계약이 든 스프라이트를 하나도 남기지 않고 다 썼는지 확인한다.
-        require(!geometry.hasNext()) { "그리기 계약의 스프라이트가 증거보다 많다" }
+        require(!geometry.hasNext()) { GameText.S_3098F076B7 }
         return l.jsonl()
     }
 }

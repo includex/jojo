@@ -1,6 +1,8 @@
 // Game
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 
 /** CmdLayer: 복구된 ui/CmdLayer.js의 기능 활성화 패널 상태를 관리한다. 미등록 기능 선택과 등록 기능 즉시 전환, ItemStore 및 등록 부수효과를 원본 규칙대로 유지한다. */
 
@@ -36,10 +38,10 @@ class CmdLayer(
      */
 
     val names = listOf(
-        "원클릭으로 모든 보물 획득", "벤치, 장비 업그레이드 활성화", "업그레이드/전직 시 재계산 활성화", "턴 제한 증가",
-        "적군 체력이 남아도 도망가지 않습니다.", "중독되면 죽음; 확장 저장", "편집 기능 활성화", "속도를 10배까지 높일 수 있습니다.",
-        "스토리 건너뛰기 활성화", "과일로 오방위 능력치 상승", "전투 상태 패널 사용 불가", "조조 전 원본 아바타와 이미지 사용",
-        "만렙 시작", "원클릭으로 모든 아이템"
+        GameText.S_2DFF081BB8, GameText.S_57E6F11841, GameText.S_197325F409, GameText.S_58B5B8E6E2,
+        GameText.S_928236D584, GameText.S_A9E737C08B, GameText.S_E6E23C36DB, GameText.S_F0EFEB11FB,
+        GameText.S_0F14132CB0, GameText.S_AB4EAC0279, GameText.S_75676A3A96, GameText.S_371F34313C,
+        GameText.S_4956384FE9, GameText.S_C212B6F4D6
     )
     /**
      * `gold` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -56,20 +58,20 @@ class CmdLayer(
      */
 
     val intros = listOf(
-        "게임에서 클릭하면 받지 못한 다른 보물들을 채울 수 있으며, 같은 보물은 2개까지 지원합니다.",
-        "전투 종료 시 인물 및 장비 레벨을 평균 레벨로 자동 상승",
-        "활성화 시 업그레이드/전직마다 재계산, 출전 시 자동 배치 및 원클릭 장비 세팅",
-        "활성화 시 전투에 진입하면 턴 상한이 4턴 증가합니다",
-        "적군은 무작정 돌진만 합니다.",
-        "유닛이 중독되면 사망합니다. 저장 슬롯을 100개로 확장했습니다.",
-        "게임 테스트용으로만 사용됩니다",
-        "게임 속도 상한 조정",
-        "스토리를 건너뛸 수 있습니다.",
-        "공훈 모드에서 과일을 먹으면 오위가 상승합니다.",
-        "전투 중 체력과 마나, 경험치 변화판이 더 이상 표시되지 않습니다.",
-        "프로필 사진, 스토리, 전투 이미지는 구버전 것을 사용하고, 향수를 느끼고 싶으면 사용하세요.",
-        "게임을 처음부터 다시 시작하며, 캐릭터 레벨은 바로 만렙입니다.",
-        "원클릭으로 모든 아이템을 99개로 채우기",
+        GameText.S_EF7B15F963,
+        GameText.S_38CF88C517,
+        GameText.S_D8412481BB,
+        GameText.S_0EC18AC7A9,
+        GameText.S_E4DDAD5737,
+        GameText.S_8788735EBF,
+        GameText.S_04DE7DBEE2,
+        GameText.S_A455E6907B,
+        GameText.S_01DDCA043B,
+        GameText.S_47973E953D,
+        GameText.S_7518581DDB,
+        GameText.S_4F15973D8F,
+        GameText.S_F12C80F80B,
+        GameText.S_472939E979,
     )
 
     /**
@@ -180,7 +182,7 @@ class CmdLayer(
      */
 
     fun onCreate() {
-        addLayer("MsgBox", 3, "내부 테스트 도구에 대해서는, 도움말 설명을 먼저 확인해 보시는 것을 권장합니다.") { if (it == 0) helper() }
+        addLayer("MsgBox", 3, GameText.S_00132A46FC) { if (it == 0) helper() }
     }
 
     /**
@@ -213,7 +215,7 @@ class CmdLayer(
         if (rFlag and bit != 0) {
             if (activate(bit) != 0) return
             val on = eFlag and bit == 0; eFlag = if (on) eFlag or bit else eFlag and bit.inv()
-            toasts += (if (on) "활성화" else "사용 불가") + " " + names[index]
+            toasts += (if (on) GameText.S_BBF831ADE8 else GameText.S_9C9F1862EA) + " " + names[index]
         } else select(index, !selected[index], 1)
     }
 
@@ -247,7 +249,7 @@ class CmdLayer(
         for (i in names.indices) if (sFlag and (1 shl i) != 0) {
             count++; total += gold[i]
         }
-        label = "선택했습니다${count}항, 총${minOf(total, 50.0).format()}원"; selected[index] = on
+        label = GameText.format(GameText.Key.SELECTION_TOTAL, count, minOf(total, 50.0).format()); selected[index] = on
     }
 
     /**
@@ -260,17 +262,17 @@ class CmdLayer(
     /** 활성화 결과의 첫 비트가 설정 전환 가능 여부를 나타낸다. */
     private fun activate(bit: Int): Int = when (bit) {
         1 -> if (unitCount == 0) {
-            toasts += "게임 시작 후에 사용해 주세요~"; 2
+            toasts += GameText.S_BEF87719AB; 2
         } else {
             for (id in 100..102) if (id == 100 || id == 101) props += listOf(
                 id,
                 99,
                 0
-            ); toasts += "아이템이 가득 찼습니다. 배낭에서 확인해 주세요~"; 1
+            ); toasts += GameText.S_388DB7E1C8; 1
         }
 
         2 -> if (unitCount == 0) {
-            toasts += "게임 시작 후에 사용해 주세요~"; 2
+            toasts += GameText.S_BEF87719AB; 2
         } else {
             val treasures = inventory.filter { it.treasure }; treasures.forEach {
                 if (it.property) props += listOf(
@@ -281,7 +283,7 @@ class CmdLayer(
             }; writes += listOf(
                 "TREASURE",
                 "[${treasures.joinToString(",") { it.id.toString() }}]"
-            ); toasts += "모든 보물을 획득했습니다. 보물 도감에서 확인하세요~"; 1
+            ); toasts += GameText.S_90213F42FB; 1
         }
 
         else -> 0
@@ -302,10 +304,10 @@ class CmdLayer(
                 ); events += "remove"; events += "setGameSpeed"
             }
 
-            1 -> if (deviceId.isEmpty()) toasts += "장치 코드를 얻지 못하여 활성화 코드 생성 실패!" else if (sFlag != 0) addLayer(
+            1 -> if (deviceId.isEmpty()) toasts += GameText.S_F65B22617D else if (sFlag != 0) addLayer(
                 "MsgBox",
                 null,
-                "곧 활성화 코드가 생성됩니다. 계속하시겠습니까?"
+                GameText.S_682E465A4D
             ) { ans ->
                 if (ans == 0) {
                     var count = 0
@@ -316,7 +318,7 @@ class CmdLayer(
                         mapOf("money" to money, "count" to count, "sFlag" to sFlag, "eFlag" to eFlag, "rFlag" to rFlag)
                     ); writes += listOf("CHECK_REGISTER", 1)
                 }
-            } else toasts += "최소한 하나를 선택하여 활성화해야 합니다."
+            } else toasts += GameText.S_6F764343C8
 
             2 -> helper()
             3 -> addLayer("skmLayer", null, null)
@@ -324,10 +326,10 @@ class CmdLayer(
             5 -> addLayer(
                 "MsgBox",
                 null,
-                "활성화에 성공했는지 확신이 서지 않는다면 이 버튼을 눌러 다시 활성화 여부를 확인할 수 있습니다. 계속하시겠습니까?"
+                GameText.S_8BCBE22C40
             ) { ans ->
                 if (ans == 0) {
-                    toasts += "게임을 재시작하여 활성화 여부를 확인하는 중이니 잠시만 기다려 주세요……"; writes += listOf(
+                    toasts += GameText.S_DA1FF45B2C; writes += listOf(
                         "CHECK_REGISTER",
                         1
                     ); restart++

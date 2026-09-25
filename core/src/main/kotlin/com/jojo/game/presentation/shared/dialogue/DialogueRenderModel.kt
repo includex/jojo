@@ -1,6 +1,8 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -149,7 +151,7 @@ enum class DialogueRenderStage {
 /** 선택지 제목·항목·현재 선택 위치를 공용 표시 모델로 전달한다. */
 data class ChoiceRenderModel(
     /** 선택지 창의 제목이다. */
-    val title: String = "전술 선택",
+    val title: String = GameText.S_AB8D20CEA1,
     /** 사용자에게 표시할 선택지 항목이다. */
     val options: List<String>,
     /** 강조할 항목의 인덱스이며, 범위를 벗어나면 강조하지 않는다. */

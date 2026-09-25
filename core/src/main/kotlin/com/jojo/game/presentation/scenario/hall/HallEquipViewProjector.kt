@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
 
@@ -29,18 +31,18 @@ internal class HallEquipViewProjector(
             selectedTab = selectedTab,
             unit = HallEquipUnitView(
                 portraitId = portraitId(unitId),
-                name = campaign.unitNames[unitId] ?: unit?.name ?: "조조",
-                armName = if (unitId == 0) "군웅" else profile?.arm?.name ?: "군웅",
+                name = campaign.unitNames[unitId] ?: unit?.name ?: GameText.S_6B1F41FC4A,
+                armName = if (unitId == 0) GameText.S_BE23B82091 else profile?.arm?.name ?: GameText.S_BE23B82091,
                 level = (profile?.level ?: 1).toString(),
                 stats = listOf(
                     HallEquipStatView("HP", (profile?.maxHitPoints ?: 0).toString()),
                     HallEquipStatView("MP", (profile?.maxMagicPoints ?: 0).toString()),
-                    HallEquipStatView("공격력", ((profile?.attack ?: 0) + bonus.attack).toString()),
-                    HallEquipStatView("정신력", ((profile?.spirit ?: 0) + bonus.spirit).toString()),
-                    HallEquipStatView("방어력", ((profile?.defense ?: 0) + bonus.defense).toString()),
-                    HallEquipStatView("폭발력", (profile?.critical ?: 0).toString()),
-                    HallEquipStatView("사기", (profile?.morale ?: 0).toString()),
-                    HallEquipStatView("이동력", (profile?.movement ?: 0).toString()),
+                    HallEquipStatView(GameText.S_50B8DF8C55, ((profile?.attack ?: 0) + bonus.attack).toString()),
+                    HallEquipStatView(GameText.S_F3F57B591C, ((profile?.spirit ?: 0) + bonus.spirit).toString()),
+                    HallEquipStatView(GameText.S_5C349008C3, ((profile?.defense ?: 0) + bonus.defense).toString()),
+                    HallEquipStatView(GameText.S_9EC6283754, (profile?.critical ?: 0).toString()),
+                    HallEquipStatView(GameText.S_C91E618B9A, (profile?.morale ?: 0).toString()),
+                    HallEquipStatView(GameText.S_B2A0B8369E, (profile?.movement ?: 0).toString()),
                 ),
                 slots = slots(unitId),
             ),
@@ -100,16 +102,16 @@ internal class HallEquipViewProjector(
     private fun slots(unitId: Int): List<HallEquipSlotView> {
         val equipped = campaign.inventory.equippedItems().filter { it.unitId == unitId }
         return listOf(
-            "무기:" to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type < 20 } == true },
-            "보구: " to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type in 20..25 } == true },
-            "보조: " to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type > 25 } == true },
+            GameText.S_2B3DFBC5AD to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type < 20 } == true },
+            GameText.S_1B421182BF to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type in 20..25 } == true },
+            GameText.S_BC8AE9E500 to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type > 25 } == true },
         ).mapIndexedNotNull { index, (label, equippedItem) ->
             if (index == 2 && equippedItem == null) return@mapIndexedNotNull null
             val item = equippedItem?.let { catalog.equipmentProfile(it.itemId) }
             HallEquipSlotView(
                 index = index,
                 label = label,
-                name = item?.name ?: "없음",
+                name = item?.name ?: GameText.S_D58FA73ADC,
                 icon = item?.icon,
                 level = if (index == 0) (equippedItem?.level ?: 1).toString() else null,
                 experience = if (index == 0) "${equippedItem?.experience ?: 0}/100" else null,

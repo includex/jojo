@@ -1,6 +1,8 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 import com.jojo.game.application.campaign.DailySignInFlow
 import com.jojo.game.application.campaign.RaffleFlow
@@ -322,7 +324,7 @@ class SettingLayer(
         val env = featureEnvironment()
         return when (tag) {
             7 -> if (env.achievements.isEmpty()) {
-                FeatureResult.Toast("저장된 게임에서 다시 확인해 주세요./현재 업적이 없습니다.")
+                FeatureResult.Toast(GameText.S_1A7993E57F)
             } else {
                 activeFeature = AchievementsFlow(env.achievements, env.battleName)
                 FeatureResult.Opened("AchievementsLayer")
@@ -331,7 +333,7 @@ class SettingLayer(
             8 -> when {
                 env.supportAdCode < 8 -> FeatureResult.Gated
                 env.sceneName !in setOf("Hall", "Battle") ->
-                    FeatureResult.Toast("전투 준비/전투 중일 때만 뽑기가 가능합니다!")
+                    FeatureResult.Toast(GameText.S_A174F4502E)
 
                 else -> {
                     activeFeature = RaffleFlow(env.raffleVideoCount, env.luckyCoins)

@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
 
@@ -19,10 +21,10 @@ internal object HallEquipOverlayRenderer {
         val height = 139f
         draw.patch("box1")?.draw(batch, x, y, width, height)
         draw.patch("title", 5)?.draw(batch, x, y + height - 43f, width, 43f)
-        draw.text("확인", x, y + height - 11f, width, centered = true)
-        draw.text("모두에게 장비를 해제하도록 확정하시겠습니까?", x + 14f, y + 86f, width - 28f, centered = true)
-        draw.button("예", x + 18f, y + 16f, 184f, 43f, 31f)
-        draw.button("비", x + 236f, y + 16f, 184f, 43f, 31f)
+        draw.text(GameText.S_468266D639, x, y + height - 11f, width, centered = true)
+        draw.text(GameText.S_A9A59D5FE3, x + 14f, y + 86f, width - 28f, centered = true)
+        draw.button(GameText.S_A842629AFD, x + 18f, y + 16f, 184f, 43f, 31f)
+        draw.button(GameText.S_D3B0E1A367, x + 236f, y + 16f, 184f, 43f, 31f)
         draw.resetColor()
     }
 }

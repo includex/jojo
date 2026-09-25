@@ -1,6 +1,8 @@
 // Platform
 package com.jojo.game.application.platform
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** NativeBoundary: 복구된 플랫폼 팩토리의 데스크톱 흐름이다. Android와 JSB 작업은 [NativeBoundary] 호출로 표현하며 실제 동작은 여기서 흉내 내지 않는다. */
 
 interface NativeBoundary {
@@ -155,7 +157,7 @@ class VersionInfoFlow(private val version: String) {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val lines = (if (version.isEmpty()) "버그 수정</br>코드 최적화" else version).split("</br>")
+    val lines = (if (version.isEmpty()) GameText.S_57A9A4502B else version).split("</br>")
     /**
      * `touch`: 입력을 규칙에 따라 계산·변환한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
@@ -306,7 +308,7 @@ class LoginEligibility(private val appId: Int, private val money: Int, private v
      */
 
     fun checkFloor(): Int = if (money < 20 && mineFloor < floor) {
-        toast = "권한이 부족합니다!"; 1
+        toast = GameText.S_9FC8FD5C0F; 1
     } else 0
 }
 
@@ -384,7 +386,7 @@ class VideoRewardFlow(private val loadError: Boolean, private val done: () -> Un
 
     fun onCreate() {
         if (loadError) {
-            toast = "죄송합니다. 비디오 로드에 실패했습니다!"; done(); attached = false
+            toast = GameText.S_3EECA43C83; done(); attached = false
         } else {
             clip = "logo-clip"; plays++
         }

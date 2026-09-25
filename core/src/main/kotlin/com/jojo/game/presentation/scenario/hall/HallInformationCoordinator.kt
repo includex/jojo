@@ -1,5 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
@@ -189,7 +191,7 @@ internal class HallInformationCoordinator(
             val level = campaign.unitAttribute(id, 18, unit.level)
             val battle = catalog.battleProfile(id, (level - 1).coerceAtLeast(0), campaign.unitAttribute(id, 17, unit.posts))
             UnitInfoLayer.Unit(
-                id, campaign.unitNames[id] ?: if (id == 181) "병사 " else unit.name,
+                id, campaign.unitNames[id] ?: if (id == 181) GameText.S_2F7F8DF945 else unit.name,
                 catalog.postsName(campaign.unitAttribute(id, 17, unit.posts)), level,
                 battle?.maxHitPoints ?: unit.maxHitPoints, battle?.maxHitPoints ?: unit.maxHitPoints,
                 battle?.maxMagicPoints ?: unit.maxMagicPoints, battle?.maxMagicPoints ?: unit.maxMagicPoints,

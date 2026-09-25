@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.*
@@ -45,7 +47,7 @@ class BattleHelperOverlayRenderer(
         assets.scroll?.draw(batch, 163.686f, 99f, 1161f, 616f)
         font.color = Color(0.56f, 0f, 0.62f, 1f)
         font.data.setScale(40f / 26f)
-        font.draw(batch, "역사 정보", 160f, 760f)
+        font.draw(batch, GameText.S_625FE3A123, 160f, 760f)
         drawRichText(view.richText, 165.686f, 690f, 1157f)
         batch.end()
 

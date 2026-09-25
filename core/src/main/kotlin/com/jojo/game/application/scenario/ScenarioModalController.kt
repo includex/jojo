@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
@@ -276,9 +278,9 @@ internal class ScenarioModalController(
 
     /** 장 번호와 이름을 순서대로 표시한다. */
     fun suspendForSection(index: Int, name: String) {
-        val digits = listOf("십", "일", "2", "삼", "넷", "다섯", "육", "칠", "팔", "구")
+        val digits = listOf(GameText.S_BDA0208A5C, GameText.S_06CF3E90DE, "2", GameText.S_59463E84FB, GameText.S_CA5EEA5B52, GameText.S_FBBD1D1816, GameText.S_959F80BB16, GameText.S_4259DD769C, GameText.S_C6D6E215B1, GameText.S_E8B701A283)
         var value = index
-        var chapter = if (value > 0) "장막" else "서막"
+        var chapter = if (value > 0) GameText.S_22EF795E23 else GameText.S_9CA0190DEC
         while (value > 0) {
             chapter = digits[value % 10] + chapter
             value /= 10

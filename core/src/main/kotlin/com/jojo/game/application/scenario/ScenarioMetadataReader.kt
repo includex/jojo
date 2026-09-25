@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
@@ -192,7 +194,7 @@ object ScenarioMetadataReader {
      */
 
     private fun JsonValue.unitId(): Int {
-        check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { "stage.unit(id) 호출이 필요합니다." }
+        check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { GameText.S_8828CC1AE7 }
         return field("args").children().first().asIntValue()
     }
 

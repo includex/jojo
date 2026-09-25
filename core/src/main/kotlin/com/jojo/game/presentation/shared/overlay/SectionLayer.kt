@@ -1,6 +1,8 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** SectionLayer: 시나리오 장·막 제목을 두 단계로 표시하고 자동 진행 또는 입력 완료 콜백을 제어한다. */
 class SectionLayer(private val setting: Int) {
     /** 구간 화면을 그리는 데 필요한 상태입니다. */
@@ -89,7 +91,7 @@ class SectionLayer(private val setting: Int) {
     /** 구간 이름과 완료 콜백으로 화면을 초기화합니다. */
     fun onCreate(idx: Int, name: String, callback: () -> Unit): View {
         this.index = idx; this.name = name; fn = callback; label =
-            if (idx == 0) "서막" else chapter(idx); if (setting and AUTO_CLOSE != 0) scheduled += 3; return view()
+            if (idx == 0) GameText.S_9CA0190DEC else chapter(idx); if (setting and AUTO_CLOSE != 0) scheduled += 3; return view()
     }
 
     /**
@@ -98,9 +100,9 @@ class SectionLayer(private val setting: Int) {
      */
 
     private fun chapter(n: Int): String {
-        val r = listOf("십", "일", "2", "삼", "넷", "다섯", "육", "칠", "팔", "구")
+        val r = listOf(GameText.S_BDA0208A5C, GameText.S_06CF3E90DE, "2", GameText.S_59463E84FB, GameText.S_CA5EEA5B52, GameText.S_FBBD1D1816, GameText.S_959F80BB16, GameText.S_4259DD769C, GameText.S_C6D6E215B1, GameText.S_E8B701A283)
         var i = n
-        var v = "장막"; while (i > 0) {
+        var v = GameText.S_22EF795E23; while (i > 0) {
             v = r[i % 10] + v; i /= 10
         }; return "제$v"
     }

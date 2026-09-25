@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.utils.Align
 
 /** HallSellRenderPlan: 거점 Sell 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
@@ -39,8 +41,8 @@ internal object HallSellRenderPlan {
         tiled("maps/ui/start-battle/logo9.png", X, Y, WIDTH, HEIGHT)
         patch("maps/ui/start-battle/box1.png", X, Y, WIDTH, HEIGHT)
         patch("maps/ui/start-battle/title.png", X, Y + HEIGHT - 43f, WIDTH, 43f, inset = 5)
-        text("판매하기", X, Y + HEIGHT - 5f, WIDTH, font = HallSellFont.TITLE)
-        text("창고 목록", X + 25f, Y + HEIGHT - 66f, 240f, align = Align.left)
+        text(GameText.S_F1BC97987B, X, Y + HEIGHT - 5f, WIDTH, font = HallSellFont.TITLE)
+        text(GameText.S_C6D77220D1, X + 25f, Y + HEIGHT - 66f, 240f, align = Align.left)
         patch("maps/ui/start-battle/box1.png", X + 8f, Y + 99f, WIDTH - 16f, HEIGHT - 172f)
         view.rows.forEachIndexed { index, row ->
             val cardX = X + 9f + index % 2 * 360f
@@ -51,13 +53,13 @@ internal object HallSellRenderPlan {
             text(row.name, cardX + 94f, cardY + 128f, 172f, align = Align.left)
             text(row.primaryDetail, cardX + 94f, cardY + 82f, if (row.secondaryDetail == null) 230f else 150f, align = Align.left)
             row.secondaryDetail?.let { text(it, cardX + 220f, cardY + 82f, 130f, align = Align.left) }
-            text("판매가: ${row.salePrice}", cardX + 94f, cardY + 37f, 250f, align = Align.left)
+            text(GameText.format(GameText.Key.SELL_PRICE, row.salePrice), cardX + 94f, cardY + 37f, 250f, align = Align.left)
         }
-        text("현금", X + 20f, Y + 31f, 240f, align = Align.left)
+        text(GameText.S_6102409B7F, X + 20f, Y + 31f, 240f, align = Align.left)
         text(view.money.toString(), X + 112f, Y + 31f, 150f)
-        button("무기점", 522.98f, 75.28f, 172f)
-        button("상점", 694.98f, 75.28f, 172f)
-        button("종료", 870.47f, 75.14f, 129f)
+        button(GameText.S_256C17D85E, 522.98f, 75.28f, 172f)
+        button(GameText.S_9F66DED326, 694.98f, 75.28f, 172f)
+        button(GameText.S_CAFDC61BBF, 870.47f, 75.14f, 129f)
         view.notice?.let { text(it, X + 18f, Y + HEIGHT - 52f, WIDTH - 36f, align = Align.right, color = HallSellTextColor.NOTICE) }
     }
 

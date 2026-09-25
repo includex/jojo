@@ -1,6 +1,8 @@
 // Shared
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** TreasureLayer: ui/TreasureLayer.js를 Kotlin으로 구현한다. 원본 Model.itemIter 순서와 모든 정의에 번호를 먼저 부여하는 규칙을 보존하고, 발견된 보물만 행으로 표시한다. */
 
 class TreasureLayer(items: List<Item>, discovered: Set<Int>) {
@@ -51,7 +53,11 @@ class TreasureLayer(items: List<Item>, discovered: Set<Int>) {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val title = "지금까지 발견한 보물 ${discovered.size.toString().padStart(2, '0')} / ${all.size}"
+    val title = GameText.format(
+        GameText.Key.TREASURE_PROGRESS,
+        discovered.size.toString().padStart(2, '0'),
+        all.size,
+    )
 
 
     /**

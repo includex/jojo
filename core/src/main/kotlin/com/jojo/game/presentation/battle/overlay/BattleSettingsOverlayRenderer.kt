@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.*
@@ -50,14 +52,14 @@ class BattleSettingsOverlayRenderer(
 
         font.color = Color.BLACK
         font.data.setScale(40f / 26f)
-        font.draw(batch, "환경 설정", 201f, 748f)
-        font.draw(batch, "클릭하여 설정해 주세요. 설정 완료 후 [확인]을 선택해 주세요.", 205f, 690f)
+        font.draw(batch, GameText.S_B6D9331463, 201f, 748f)
+        font.draw(batch, GameText.S_8277D3ABFB, 205f, 690f)
         val options = listOf(
-            "배경 음악 듣기" to 0,
-            "효과음 듣기" to 1,
-            "전투시 전장 축소 이미지가 자동으로 표시됩니다" to 2,
-            "대화창 자동 닫음" to 3,
-            "체력 바가 유닛 위에 있습니다" to 4,
+            GameText.S_F209C5D3A3 to 0,
+            GameText.S_8F62514DB8 to 1,
+            GameText.S_CF7DC571E7 to 2,
+            GameText.S_3424D32FC7 to 3,
+            GameText.S_077AE5CBAB to 4,
         )
         options.forEachIndexed { index, (label, bit) ->
             val enabled = view.flags and (1 shl bit) != 0
@@ -66,10 +68,10 @@ class BattleSettingsOverlayRenderer(
             font.color = Color.BLACK
             font.draw(batch, label, 261f, 643f - index * 65f)
         }
-        drawRadios("텍스트 속도", listOf("느림", "중간", "빠름"), view.msgSpeed, 574f)
-        drawRadios("정보 설명", listOf("자세히", "보통", "요약"), view.notifyLevel, 310f)
+        drawRadios(GameText.S_0BF12D107C, listOf(GameText.S_D7A0CB68D6, GameText.S_C7E54FE959, GameText.S_F8FC3619DB), view.msgSpeed, 574f)
+        drawRadios(GameText.S_B80EE3CF4F, listOf(GameText.S_744C6C3F65, GameText.S_2179DA2CFF, GameText.S_3EA27A4D42), view.notifyLevel, 310f)
         font.color = Color.BLACK
-        font.draw(batch, "대화창 색상", 846f, 198f)
+        font.draw(batch, GameText.S_09584A936A, 846f, 198f)
         val swatchColors = listOf(
             Color(1f, 1f, 1f, 1f), Color(.85f, .85f, .85f, 1f),
             Color(.73f, .73f, .78f, 1f), Color(.88f, .84f, .72f, 1f),
@@ -87,7 +89,7 @@ class BattleSettingsOverlayRenderer(
         }
         assets.panel?.draw(batch, 1130f, 47f, 156f, 56f)
         font.color = Color.BLACK
-        font.draw(batch, "확인", 1158f, 75f)
+        font.draw(batch, GameText.S_468266D639, 1158f, 75f)
         font.color = Color.WHITE
         font.data.setScale(1f)
         batch.color = Color.WHITE

@@ -1,6 +1,8 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.presentation.shared.SourceSlicedPatch
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.Gdx
@@ -303,10 +305,10 @@ class DialogueRenderer(
     private fun drawConfirmation(batch: SpriteBatch, assets: DialogueRenderAssets, model: ChoiceRenderModel) {
         assets.choicePanel?.let { batch.draw(it, 464.13f, 276.92f, 351.74f, 134.16f) }
         assets.titleFont.color = Color.BLACK
-        val title = model.title.ifBlank { "확인" }
+        val title = model.title.ifBlank { GameText.S_468266D639 }
         assets.titleFont.draw(batch, title, 498.19f, 411f)
-        val yes = model.options.getOrNull(0) ?: "예"
-        val no = model.options.getOrNull(1) ?: "아니오"
+        val yes = model.options.getOrNull(0) ?: GameText.S_A842629AFD
+        val no = model.options.getOrNull(1) ?: GameText.S_CFEF357D40
         assets.bodyFont.color = Color.BLACK
         assets.bodyFont.draw(batch, yes, 555.51f, 328.39f)
         assets.bodyFont.draw(batch, no, 718.94f, 328.39f)

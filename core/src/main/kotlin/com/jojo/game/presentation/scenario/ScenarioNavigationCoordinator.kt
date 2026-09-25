@@ -1,6 +1,8 @@
 // 시나리오 장면 전환 조정
 package com.jojo.game.presentation.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.JojoGame
 import com.jojo.game.infrastructure.data.ScenarioCatalog
 import com.jojo.game.application.scenario.ScenarioInterpreter
@@ -84,7 +86,7 @@ internal class ScenarioNavigationCoordinator(
         when (playback.state) {
             PlaybackState.DIALOGUE, PlaybackState.MODAL, PlaybackState.COMPLETE -> advance()
             PlaybackState.CHOICE -> {
-                val start = playback.currentChoice?.options?.indexOfFirst { it.contains("게임 시작") } ?: -1
+                val start = playback.currentChoice?.options?.indexOfFirst { it.contains(GameText.S_62D82D76E7) } ?: -1
                 playback.selectChoice(if (start >= 0) start else 0)
                 advance()
             }

@@ -1,6 +1,8 @@
 // Game
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** ItemLayer: 공용 아이템 화면의 동작 상태를 관리한다. */
 class ItemLayer(
     val itemId: Int,
@@ -75,7 +77,7 @@ class ItemLayer(
         discardConfirmationOpen = false
         if (result != 0) return false
         if (!repository.discard(itemId)) return false
-        toast = "$itemName 이미 버렸습니다..."
+        toast = GameText.format(GameText.Key.ITEM_DISCARDED, itemName)
         attached = false
         return true
     }

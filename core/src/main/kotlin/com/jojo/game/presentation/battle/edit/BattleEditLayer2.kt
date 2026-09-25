@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.edit
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
 import com.jojo.game.domain.battle.*
@@ -66,7 +68,7 @@ class BattleEditLayer2(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val weatherNames = listOf("맑음", "어두움", "바람", "비", "설")
+        val weatherNames = listOf(GameText.S_9A7F95E71C, GameText.S_221569E2F4, GameText.S_80440AFFDF, GameText.S_D3B0E1A367, GameText.S_FB5F03E2EE)
         /**
          * `ROUND_DISABLED_TOAST` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -335,8 +337,8 @@ object BattleEditLayer2RenderEvents {
             log.draw(phase, layer, path, type, x, y, w, h, asset, blend = blend, text = text, color = BattleEditRenderContract.color(path, type))
         d("Canvas/Layer/bg", "tiled-sprite", 453.686f, 195f, 581f, 410f, "Logo_9-1")
         d("Canvas/Layer/bg/bg1", "sprite", Header.X, Header.Y, Header.WIDTH, Header.HEIGHT, "bg1")
-        d("Canvas/Layer/bg/bg1/label", "label", 669.431f, 550.6f, 149.51f, 50.4f, text = "전장 편집", blend = alphaBlend)
-        d("Canvas/Layer/bg/label", "label", 675.735f, 488.8f, 91.43f, 50.4f, text = "날씨: ", blend = alphaBlend)
+        d("Canvas/Layer/bg/bg1/label", "label", 669.431f, 550.6f, 149.51f, 50.4f, text = GameText.S_487C122B9A, blend = alphaBlend)
+        d("Canvas/Layer/bg/label", "label", 675.735f, 488.8f, 91.43f, 50.4f, text = GameText.S_21BAD5251F, blend = alphaBlend)
         d("Canvas/Layer/bg/bg2", "sliced-sprite", 767.301f, 487.229f, 169.8f, 50f, "box1")
         val weatherWidth =
             if (model.weatherLabel.length == 1) 34.6f else if (model.weatherLabel.length == 2) 69.2f else 103.8f
@@ -350,7 +352,7 @@ object BattleEditLayer2RenderEvents {
             text = model.weatherLabel,
             blend = alphaBlend
         )
-        d("Canvas/Layer/bg/label", "label", 618.435f, 432.8f, 126.03f, 50.4f, text = "현재 턴:", blend = alphaBlend)
+        d("Canvas/Layer/bg/label", "label", 618.435f, 432.8f, 126.03f, 50.4f, text = GameText.S_80A04709E3, blend = alphaBlend)
         d("Canvas/Layer/bg/editbox0/BACKGROUND_SPRITE", "sliced-sprite", 768.224f, 430.411f, 160f, 50f, "box1")
         d(
             "Canvas/Layer/bg/editbox0/TEXT_LABEL",
@@ -363,12 +365,12 @@ object BattleEditLayer2RenderEvents {
             blend = alphaBlend
         )
         val buttons = listOf(
-            floatArrayOf(495.886f, 207.8f, 580.686f, 210.9f) to "수정",
-            floatArrayOf(772.686f, 207.8f, 857.486f, 210.9f) to "취소",
-            floatArrayOf(495.886f, 354.9f, 580.686f, 358f) to "전역",
-            floatArrayOf(495.886f, 277.1f, 500.371f, 280.2f) to "적군 체력 감소",
-            floatArrayOf(772.686f, 354.9f, 817.331f, 358f) to "적군 전멸",
-            floatArrayOf(772.686f, 277.1f, 817.331f, 280.2f) to "아군 만피"
+            floatArrayOf(495.886f, 207.8f, 580.686f, 210.9f) to GameText.S_E1407B5115,
+            floatArrayOf(772.686f, 207.8f, 857.486f, 210.9f) to GameText.S_19B2D19BC1,
+            floatArrayOf(495.886f, 354.9f, 580.686f, 358f) to GameText.S_F4C1EA1E89,
+            floatArrayOf(495.886f, 277.1f, 500.371f, 280.2f) to GameText.S_C23A1CAF1F,
+            floatArrayOf(772.686f, 354.9f, 817.331f, 358f) to GameText.S_BFCD361E58,
+            floatArrayOf(772.686f, 277.1f, 817.331f, 280.2f) to GameText.S_6EEBC7BA34
         )
         buttons.forEachIndexed { index, (r, text) ->
             d("Canvas/Layer/bg/button$index/Background", "sliced-sprite", r[0], r[1], 238.8f, 56.6f, "box3")

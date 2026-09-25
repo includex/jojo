@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
@@ -60,7 +62,7 @@ class ScenarioPlayback(val timeline: ScenarioTimeline) {
 
     /** 현재 대사를 닫고 다음 입력 지점까지 진행한다. */
     fun advanceDialogue() {
-        check(state == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
+        check(state == PlaybackState.DIALOGUE) { GameText.S_C80F942461 }
         currentDialogue = null
         runUntilInput()
     }
@@ -79,7 +81,7 @@ class ScenarioPlayback(val timeline: ScenarioTimeline) {
 
     /** 현재 선택지를 확정하고 재생을 마친다. */
     fun confirmChoice() {
-        check(state == PlaybackState.CHOICE) { "대기 중인 선택지가 없습니다." }
+        check(state == PlaybackState.CHOICE) { GameText.S_B1622411B7 }
         chosenOption = currentChoice!!.options[selectedChoice]
         currentChoice = null
         state = PlaybackState.COMPLETE

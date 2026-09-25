@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
@@ -171,7 +173,7 @@ internal class ScenarioDelayCoordinator(
     /** 전장 배경이 준비될 때까지 시나리오 실행을 일시 정지한다. */
     fun suspendForBattleBackgroundLoad(mapIndex: Int) {
         clearStageDelay()
-        check(!hasPendingBattleBackgroundLoad) { "동시에 두 개의 loadBg 콜백이 대기 중입니다." }
+        check(!hasPendingBattleBackgroundLoad) { GameText.S_0CC0A4F490 }
         pendingBattleBackgroundLoadIndex = mapIndex
         onSetDelayRemainingSeconds(Float.MAX_VALUE)
         onSetState(PlaybackState.DELAY)
@@ -268,12 +270,12 @@ internal class ScenarioDelayCoordinator(
 
     /** 외부 연출 완료 후 지연 상태에서 실행을 재개한다. */
     fun resumeExternalDelay() {
-        check(getState() == PlaybackState.DELAY) { "재개할 외부 애니메이션 대기가 없습니다." }
+        check(getState() == PlaybackState.DELAY) { GameText.S_38B7597664 }
         check(!hasPendingBattleBackgroundLoad) {
-            "loadBg는 BattleScreen의 맵/아바타 완료 콜백으로만 재개해야 합니다."
+            GameText.S_514FD95472
         }
         check(pendingHallUnitReadiness == null) {
-            "Hall unit readiness는 texture 완료 콜백으로만 재개해야 합니다."
+            GameText.S_DF70B8A5DA
         }
         pendingHallMoveIds = emptySet()
         clearStageDelay()
@@ -284,9 +286,9 @@ internal class ScenarioDelayCoordinator(
     /** 전장 배경 요청을 완료하고 선택한 맵으로 실행을 재개한다. */
     fun completeBattleBackgroundLoad() {
         val mapIndex = requireNotNull(pendingBattleBackgroundLoadIndex) {
-            "완료할 loadBg 콜백이 없습니다."
+            GameText.S_FD44645376
         }
-        check(getState() == PlaybackState.DELAY) { "loadBg 완료 콜백은 Script pause 중에만 가능합니다." }
+        check(getState() == PlaybackState.DELAY) { GameText.S_DBCA581BF5 }
         stage.selectBattleMap(mapIndex)
         pendingBattleBackgroundLoadIndex = null
         onSetDelayRemainingSeconds(0f)

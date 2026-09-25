@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.application.battle.movement
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.*
 import com.jojo.game.*
 import com.jojo.game.application.battle.*
@@ -330,25 +332,25 @@ internal object BattleMovementCoordinator {
         maxDistance: Int? = null,
         env: BattleMovementEnvironment,
     ): TacticalActionResult {
-        if (env.isBattleEnded()) return TacticalActionResult.Rejected("전투가 종료되었습니다.")
+        if (env.isBattleEnded()) return TacticalActionResult.Rejected(GameText.S_14E3B0AF5D)
         /**
          * `unit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val unit = env.units()[id] ?: return TacticalActionResult.Rejected("유닛이 없습니다.")
-        if (!unit.visible) return TacticalActionResult.Rejected("아직 등장하지 않은 유닛입니다.")
+        val unit = env.units()[id] ?: return TacticalActionResult.Rejected(GameText.S_F35D9439E1)
+        if (!unit.visible) return TacticalActionResult.Rejected(GameText.S_A3E8A0BBCD)
         if (BattleStatus.PARALYSIS in unit.statuses || BattleStatus.CONFUSION in unit.statuses) return TacticalActionResult.Rejected(
-            "행동할 수 없는 상태입니다."
+            GameText.S_D1327CFCA3
         )
-        if (unit.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected("현재 진영의 유닛만 조작할 수 있습니다.")
-        if (unit.hasActed) return TacticalActionResult.Rejected("이미 행동한 유닛입니다.")
-        if (unit.hasMoved) return TacticalActionResult.Rejected("이미 이동한 유닛입니다.")
+        if (unit.effectiveFaction() != env.activeFaction()) return TacticalActionResult.Rejected(GameText.S_50AFF62D3A)
+        if (unit.hasActed) return TacticalActionResult.Rejected(GameText.S_D7AE11A0C8)
+        if (unit.hasMoved) return TacticalActionResult.Rejected(GameText.S_AFE1C1AE28)
         if (targetX < 0 || targetY < 0 || env.terrain?.let { targetX >= it.width || targetY >= it.height } == true) {
-            return TacticalActionResult.Rejected("맵 밖으로 이동할 수 없습니다.")
+            return TacticalActionResult.Rejected(GameText.S_C88072A92C)
         }
-        if (targetX to targetY in env.blockedTiles) return TacticalActionResult.Rejected("장애물이 있는 칸입니다.")
-        if (env.unitAt(targetX, targetY) != null) return TacticalActionResult.Rejected("다른 유닛이 있는 칸입니다.")
+        if (targetX to targetY in env.blockedTiles) return TacticalActionResult.Rejected(GameText.S_D9E41E686E)
+        if (env.unitAt(targetX, targetY) != null) return TacticalActionResult.Rejected(GameText.S_F9CCB2F99F)
         /**
          * `route` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -365,7 +367,7 @@ internal object BattleMovementCoordinator {
          */
 
         val destination = targetX to targetY
-        if (destination !in route.points) return TacticalActionResult.Rejected("이동 범위를 벗어났습니다.")
+        if (destination !in route.points) return TacticalActionResult.Rejected(GameText.S_0E403240CA)
         /**
          * `path` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

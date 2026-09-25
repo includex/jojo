@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle.preparation
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.BattleAvatarResolver
@@ -69,13 +71,13 @@ internal class BattlePreparationViewStateFactory(
             maxHitPoints = battle.maxHitPoints,
             maxMagicPoints = battle.maxMagicPoints,
             traits = listOf(
-                "무력" to profile.attack * 2, "민첩성" to profile.critical * 2,
-                "지력" to profile.spirit * 2, "운기" to profile.morale * 2,
-                "지휘" to profile.defense * 2, "" to 0,
-                "공격" to (battle.attack + (equipment?.attack ?: 0)),
-                "방어" to (battle.defense + (equipment?.defense ?: 0)),
-                "정신" to battle.spirit, "폭발" to battle.critical,
-                "사기" to battle.morale, "이동" to battle.movement,
+                GameText.S_D8F7F3C37F to profile.attack * 2, GameText.S_983FFCFEC3 to profile.critical * 2,
+                GameText.S_B08EB69621 to profile.spirit * 2, GameText.S_DFC3916173 to profile.morale * 2,
+                GameText.S_DAFEF2D567 to profile.defense * 2, "" to 0,
+                GameText.S_2A9C189A93 to (battle.attack + (equipment?.attack ?: 0)),
+                GameText.S_2A87C14E4A to (battle.defense + (equipment?.defense ?: 0)),
+                GameText.S_C90D66734C to battle.spirit, GameText.S_AF51A96858 to battle.critical,
+                GameText.S_C91E618B9A to battle.morale, GameText.S_C686D05434 to battle.movement,
             ),
             avatarId = BattleAvatarResolver.resolve(
                 data, id, posts, if (posts < 60) posts / 3 else posts - 40, Faction.PLAYER,

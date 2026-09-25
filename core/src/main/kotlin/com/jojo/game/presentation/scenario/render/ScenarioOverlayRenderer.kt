@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.render
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -99,7 +101,7 @@ internal object ScenarioOverlayRenderer {
         dialogue = if (view.state == ScenarioOverlayState.DIALOGUE) view.dialogue?.toDialogueRenderModel() else null,
         choice = if (view.state == ScenarioOverlayState.CHOICE) view.choice?.let {
             ChoiceRenderModel(
-                title = if (it.isAsk) "확인" else "전술 선택",
+                title = if (it.isAsk) GameText.S_468266D639 else GameText.S_AB8D20CEA1,
                 options = it.options,
                 selectedIndex = it.selectedIndex,
                 portraitId = it.portraitId,

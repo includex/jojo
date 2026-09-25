@@ -1,5 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.infrastructure.data.ScenarioCatalog
 import com.jojo.game.infrastructure.audio.GameAudioPlayer
@@ -902,8 +904,8 @@ class ScenarioScreen(
                         hallUnitListLayer = layer.takeIf { it.attached }
                     }
                     hallEquipConfirmation = when (runtimeOverlay) {
-                        RuntimeScenarioOverlay.EQUIP_CONFIRM -> HallEquipConfirmation(listOf(10, -5, 0, 2, 0, 0, 1, 0), "장비")
-                        RuntimeScenarioOverlay.EQUIP_CONFIRM_UNLOAD -> HallEquipConfirmation(List(8) { 0 }, "해제")
+                        RuntimeScenarioOverlay.EQUIP_CONFIRM -> HallEquipConfirmation(listOf(10, -5, 0, 2, 0, 0, 1, 0), GameText.S_E17B206052)
+                        RuntimeScenarioOverlay.EQUIP_CONFIRM_UNLOAD -> HallEquipConfirmation(List(8) { 0 }, GameText.S_A7ABEA5BBB)
                         else -> null
                     }
                     hallExclusiveLayer = when (runtimeOverlay) {
@@ -913,7 +915,7 @@ class ScenarioScreen(
                     }
                     if (runtimeOverlay == RuntimeScenarioOverlay.MAGIC) {
                         val profile =
-                            requireNotNull(gameDataCatalog.allMagicProfiles().firstOrNull { it.name == "회오리" })
+                            requireNotNull(gameDataCatalog.allMagicProfiles().firstOrNull { it.name == GameText.S_2FAB2DACE0 })
                         val magic = MagicUiList.Magic(
                             profile.id, profile.name, profile.expendMp, profile.power,
                             profile.icon, profile.hitArea.id, profile.effectAreaId, profile.intro,
@@ -921,7 +923,7 @@ class ScenarioScreen(
                         val unitInfo = UnitInfoLayer(
                             listOf(
                                 UnitInfoLayer.Unit(
-                                    id = 0, name = "조조", post = "", level = 3,
+                                    id = 0, name = GameText.S_6B1F41FC4A, post = "", level = 3,
                                     hp = 1, maxHp = 1, mp = 1, maxMp = 1,
                                     attack = 1, defense = 1, spirit = 1, critical = 1, morale = 1,
                                     magic = listOf(magic.name),
@@ -1042,7 +1044,7 @@ class ScenarioScreen(
                     ScenarioStoryRenderer.drawPalaceFixture(
                         sceneAssets,
                         batch,
-                        ScenarioPalaceFixtureView(dialogue.text, dialoguePortraitId(0), "조조"),
+                        ScenarioPalaceFixtureView(dialogue.text, dialoguePortraitId(0), GameText.S_6B1F41FC4A),
                     )
                 }
             } else {
@@ -1468,7 +1470,7 @@ class ScenarioScreen(
     /** propertyEffectName: 속성 아이템 식별자에 대응하는 효과 이름을 반환한다. */
     /** propertyEffectName: 속성 아이템 식별자에 대응하는 효과 이름을 반환한다. */
     private fun propertyEffectName(item: GameDataCatalog.EquipmentProfile): String = when (item.id) {
-        150 -> "HP 회복"
+        150 -> GameText.S_5250AF0F28
         else -> gameDataCatalog.equipmentTypeName(item.itemType)
     }
 
@@ -1482,7 +1484,12 @@ class ScenarioScreen(
         val category = gameDataCatalog.equipmentCategory(item)
         val effect = if (category == 3) propertyEffectName(item) else {
             val value = item.value + ((detail.level.toIntOrNull() ?: 1) - 1) * item.upgradePerLevel
-            "${if (category == 1) "방어력" else "공격력"} +$value\n없음"
+            GameText.format(
+                GameText.Key.STAT_BONUS,
+                if (category == 1) GameText.S_5C349008C3 else GameText.S_50B8DF8C55,
+                value,
+                GameText.S_D58FA73ADC,
+            )
         }
         HallItemRenderer.draw(
             sceneAssets, batch, HallItemView(
@@ -1491,7 +1498,7 @@ class ScenarioScreen(
                 level = detail.level,
                 experience = detail.experience,
                 experienceLimit = detail.experienceLimit,
-                typeName = if (category == 3) "아이템" else gameDataCatalog.equipmentTypeName(item.itemType),
+                typeName = if (category == 3) GameText.S_B62250FE8D else gameDataCatalog.equipmentTypeName(item.itemType),
                 price = gameDataCatalog.purchasePrice(item).let { if (it == 255) "---" else it.toString() },
                 effect = effect,
                 intro = item.intro,
@@ -1832,9 +1839,9 @@ class ScenarioScreen(
 
     private fun drawCompletion() {
         titleFont.color = Color(0.98f, 0.85f, 0.52f, 1f)
-        titleFont.draw(batch, "선택 완료", 95f, 192f)
+        titleFont.draw(batch, GameText.S_4A021545F6, 95f, 192f)
         bodyFont.color = Color.WHITE
-        bodyFont.draw(batch, playback.chosenOption ?: "시나리오 구간 완료", 95f, 145f)
+        bodyFont.draw(batch, playback.chosenOption ?: GameText.S_5C77F2F6FC, 95f, 145f)
     }
 
     /** runtimeSnapshot: 현재 시나리오 재생·오버레이·전장 상태를 불변 화면 스냅샷으로 반환한다. */
@@ -1870,7 +1877,7 @@ class ScenarioScreen(
 
     private fun unitName(id: Int): String =
         gameDataCatalog.unitProfile(id)?.name?.takeIf(String::isNotBlank)
-            ?.let(GameDataCatalog::sayLayerUnitName) ?: "유닛 $id"
+            ?.let(GameDataCatalog::sayLayerUnitName) ?: GameText.format(GameText.Key.UNIT_FALLBACK, id)
     /**
      * `nextModule`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.

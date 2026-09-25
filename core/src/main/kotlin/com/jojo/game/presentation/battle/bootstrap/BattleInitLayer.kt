@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle.bootstrap
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** BattleInitLayer: 전투 시작 전 지도와 안내 문구를 보여 주는 초기화 레이어다. */
 class BattleInitLayer(private val effects: Effects = Effects.NONE) {
     /** 초기화 레이어의 생성·해제 시점에 필요한 사운드 효과 포트다. */
@@ -62,7 +64,7 @@ class BattleInitLayer(private val effects: Effects = Effects.NONE) {
 
     /** 지도 이름을 두 안내 라벨에 반영하고 훈련 전투 표기를 덧붙인다. */
     fun onLoadBgMap(name: String): View {
-        labels = List(2) { name + if (flag and 1 != 0) " ▪ 훈련" else "" }
+        labels = List(2) { name + if (flag and 1 != 0) GameText.S_39747B892D else "" }
         return view()
     }
 

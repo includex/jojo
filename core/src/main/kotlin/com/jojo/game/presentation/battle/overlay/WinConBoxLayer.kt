@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.*
 
 
@@ -78,7 +80,7 @@ class WinConBoxLayer {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val buttonLabel: String = "짐이 알겠다.", val buttonFontSize: Int = 32, val buttonLineHeight: Int = 36,
+        val buttonLabel: String = GameText.S_C04D541DFC, val buttonFontSize: Int = 32, val buttonLineHeight: Int = 36,
         /**
          * `titleNode` (String): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

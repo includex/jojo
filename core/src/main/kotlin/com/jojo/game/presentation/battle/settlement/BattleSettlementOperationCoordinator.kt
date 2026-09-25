@@ -1,6 +1,8 @@
 // Battle Settlement
 package com.jojo.game.presentation.battle.settlement
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.MagicLocalSettlement
@@ -236,7 +238,7 @@ internal class BattleSettlementOperationCoordinator {
                 )
                 is SettlementGrowthStep.EquipmentLevelUpInfo -> add(
                     TurnSettlementOp.Info2(
-                        if (step.result.slot == CampaignEquipmentSlot.WEAPON) "무기레벨 상승!" else "보구레벨 상승!",
+                        if (step.result.slot == CampaignEquipmentSlot.WEAPON) GameText.S_7B01D0F5A8 else GameText.S_54641773A6,
                     ),
                 )
                 is SettlementGrowthStep.ItemUpgradeCallback -> add(TurnSettlementOp.ItemUpgrade(unitId, step.result))

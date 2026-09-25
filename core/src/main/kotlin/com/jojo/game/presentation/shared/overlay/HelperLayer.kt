@@ -1,6 +1,8 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** HelperLayer: 캠페인 안내 정보를 색상 리치 텍스트로 조합해 스크롤 가능한 도움말 화면에 표시한다. */
 
 class HelperLayer(private val model: Model, private val removeFromParent: () -> Unit = {}) {
@@ -96,7 +98,7 @@ class HelperLayer(private val model: Model, private val removeFromParent: () -> 
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val buttonText: String = "확인", val listenerPriority: Int = 1,
+        val buttonText: String = GameText.S_468266D639, val listenerPriority: Int = 1,
     )
 
 

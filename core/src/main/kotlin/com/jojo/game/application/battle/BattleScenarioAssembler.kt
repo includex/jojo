@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.application.battle
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.application.battle.Battle
@@ -26,13 +28,13 @@ internal object BattleScenarioAssembler {
 
     fun tutorialBattle(): Battle = Battle(
         units = listOf(
-            BattleUnit("cao-cao", "조조", Faction.PLAYER, 3, 3),
-            BattleUnit("guard", "병사", Faction.PLAYER, 2, 2),
-            BattleUnit("yellow-turban", "황건적", Faction.ENEMY, 10, 5),
+            BattleUnit("cao-cao", GameText.S_6B1F41FC4A, Faction.PLAYER, 3, 3),
+            BattleUnit("guard", GameText.S_7F1A273C82, Faction.PLAYER, 2, 2),
+            BattleUnit("yellow-turban", GameText.S_DD94B8A1D7, Faction.ENEMY, 10, 5),
         ),
         events = listOf(
             BattleEvent("reinforcement-arrival", TurnTrigger(round = 2, faction = Faction.PLAYER)) { state ->
-                state.addUnit(BattleUnit("reinforcement", "증원군", Faction.PLAYER, 1, 6))
+                state.addUnit(BattleUnit("reinforcement", GameText.S_9C8523BB36, Faction.PLAYER, 1, 6))
             }
         )
     )

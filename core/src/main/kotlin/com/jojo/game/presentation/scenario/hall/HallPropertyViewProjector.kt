@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignEquippedItem
 import com.jojo.game.domain.campaign.CampaignState
@@ -81,7 +83,7 @@ internal class HallPropertyViewProjector(
             typeName = catalog.equipmentTypeName(profile.itemType),
             level = if (hiddenProgress) "---" else (campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1).toString(),
             experience = if (hiddenProgress) "---" else (campaign.inventory.itemExperiences(itemId).firstOrNull() ?: 0).toString(),
-            owner = "창고",
+            owner = GameText.S_194738C8E4,
         )
     }
 

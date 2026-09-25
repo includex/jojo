@@ -1,6 +1,8 @@
 // Presentation
 package com.jojo.game.presentation.title
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -108,9 +110,9 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawTiled(assets.loadLogo9, 239.24f, 83.85f, 801.52f, 520.3f)
         assets.loadOuterPatch.draw(batch, 239.24f, 83.85f, 801.52f, 520.3f)
         assets.loadTitlePatch.draw(batch, 239.24f, 561.15f, 801.52f, 43f)
-        drawLabelSource("진행도 불러오기", 409.841f, 677.5f, 253.31f)
+        drawLabelSource(GameText.S_8FB0968760, 409.841f, 677.5f, 253.31f)
         assets.uiFont.color = Color.BLACK
-        assets.uiFont.draw(batch, "읽을 진행 상황을 선택해 주세요. 최신 저장 파일이 가장 위에 있습니다.", 246.64f, 554.91f)
+        assets.uiFont.draw(batch, GameText.S_B53B4895CF, 246.64f, 554.91f)
         assets.loadBoxPatch.draw(batch, 246.56f, 149.64f, 784.32f, 368.08f)
         state.loadRows.take(8).forEachIndexed { index, row ->
             val cy = 574f - index * 52f
@@ -124,7 +126,7 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         assets.loadVlinePatch.draw(batch, (567.515f - 3f) * SCALE, (388f - 211.9f) * SCALE, 5.16f, 364.47f)
         assets.loadOuterPatch.draw(batch, (1125.186f - 73.8f) * SCALE, (137f - 30f) * SCALE, 126.94f, 51.6f)
         assets.uiFont.color = Color.BLACK
-        drawCenteredLabelSource("취소", 1125.186f, 139.764f)
+        drawCenteredLabelSource(GameText.S_19B2D19BC1, 1125.186f, 139.764f)
     }
 
     /**
@@ -136,15 +138,15 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawTiled(assets.loadLogo9, 366.95f, 216.72f, 546.1f, 254.56f)
         assets.loadOuterPatch.draw(batch, 366.95f, 216.72f, 546.1f, 254.56f)
         drawSourceNode(assets.loadEagle, 506.005f, 435.951f, 106f, 124f)
-        val message = messageText.replace("있나요?", "있\n나요?")
+        val message = messageText.replace(GameText.S_31D5864AE8, GameText.S_42595D2C2A)
         assets.uiFont.color = Color(0f, 4f / 255f, 196f / 255f, 1f)
         assets.uiFont.draw(batch, message, (805.186f - 231.5f) * SCALE, 404f, 463f * SCALE, Align.left, true)
         assets.loadOuterPatch.draw(batch, (644.186f - 90f) * SCALE, (296.285f - 25f) * SCALE, 154.8f, 43f)
         assets.uiFont.color = Color.RED
-        drawCenteredLabelSource("취소", 644.186f, 299.085f)
+        drawCenteredLabelSource(GameText.S_19B2D19BC1, 644.186f, 299.085f)
         assets.loadOuterPatch.draw(batch, (844.186f - 90f) * SCALE, (296.285f - 25f) * SCALE, 154.8f, 43f)
         assets.uiFont.color = Color(10f / 255f, 105f / 255f, 0f, 1f)
-        drawCenteredLabelSource("불러오기", 844.186f, 299.085f)
+        drawCenteredLabelSource(GameText.S_F01A5A5229, 844.186f, 299.085f)
         assets.uiFont.color = Color.BLACK
     }
 
@@ -159,27 +161,27 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
         drawTiled(assets.settingBox1, 195.686f * SCALE, 41f * SCALE, 1097f * SCALE, 718f * SCALE)
         batch.draw(assets.settingTitle, 195.686f * SCALE, 709f * SCALE, 1097f * SCALE, 50f * SCALE)
         assets.uiFont.color = Color.BLACK
-        drawLabelSource("환경 설정", 275.441f, 734f, 149.51f)
+        drawLabelSource(GameText.S_B6D9331463, 275.441f, 734f, 149.51f)
         assets.settingBox2Patch.draw(batch, 203.686f * SCALE, 110f * SCALE, 1081f * SCALE, 596f * SCALE)
-        assets.uiFont.draw(batch, "항목을 클릭하여 설정해 주세요. 설정 완료 후 [확인]을 선택해 주세요.", 65.851f * SCALE, 650.189f * SCALE + 13f)
+        assets.uiFont.draw(batch, GameText.S_AE10B3B6C2, 65.851f * SCALE, 650.189f * SCALE + 13f)
         val toggleCenters =
             listOf(232.29f to 625f, 232.29f to 560f, 232.186f to 496f, 232.186f to 431f, 232.186f to 367f)
-        val labels = listOf("배경 음악 듣기", "효과음 듣기", "전투 시 전장 축소 이미지가 자동으로 표시됩니다.", "대화창 자동 닫힘", "체력 바가 유닛 위에 있습니다")
+        val labels = listOf(GameText.S_F209C5D3A3, GameText.S_8F62514DB8, GameText.S_E3C0F294CB, GameText.S_5BB1778DCA, GameText.S_077AE5CBAB)
         toggleCenters.forEachIndexed { index, (cx, cy) ->
             drawSourceNode(assets.settingToggle, cx, cy, 28f, 28f)
             if (view.flags and (1 shl index) != 0) drawSourceNode(assets.settingCheck, cx, cy, 28f, 28f)
             drawLabelSource(labels[index], if (index < 2) 515.29f else 515.186f, cy, 526f)
         }
-        drawSettingPanel(570.389f, "텍스트 속도", 620.681f, 166f)
-        drawRadios(561.638f, view.messageSpeed, listOf("느림", "중", "빠르게"))
-        drawSettingPanel(438.389f, "게임 속도", 488.681f, 166f)
+        drawSettingPanel(570.389f, GameText.S_0BF12D107C, 620.681f, 166f)
+        drawRadios(561.638f, view.messageSpeed, listOf(GameText.S_D7A0CB68D6, GameText.S_43E88C0B9C, GameText.S_DE1AE880EF))
+        drawSettingPanel(438.389f, GameText.S_FC6E68F342, 488.681f, 166f)
         assets.settingSliderPatch.draw(batch, (1033.186f - 217f) * SCALE, (428.346f - 10f) * SCALE, 373.24f, 17.2f)
         drawSourceNode(assets.settingRadioOff, 816.186f + 434f * view.gameSpeed, 428.346f, 32f, 32f)
-        drawSettingPanel(306.389f, "정보 설명", 356.681f, 166f)
-        drawRadios(297.638f, view.notificationLevel, listOf("자세히", "보통", "요약"))
+        drawSettingPanel(306.389f, GameText.S_B80EE3CF4F, 356.681f, 166f)
+        drawRadios(297.638f, view.notificationLevel, listOf(GameText.S_744C6C3F65, GameText.S_2179DA2CFF, GameText.S_3EA27A4D42))
         assets.settingBox1Patch.draw(batch, (1033.186f - 239.85f) * SCALE, (152.389f - 71f) * SCALE, 412.54f, 122.12f)
         batch.draw(assets.settingTitle, 833.325f * SCALE, 198.167f * SCALE, 210f * SCALE, 50f * SCALE)
-        drawLabelSource("대화창 색상", 938.325f, 223.167f, 184.11f)
+        drawLabelSource(GameText.S_09584A936A, 938.325f, 223.167f, 184.11f)
         listOf(881.12f, 983.12f, 1085.12f, 1187.12f).forEachIndexed { index, cx ->
             assets.settingBox1Patch.draw(batch, (cx - 50f) * SCALE, (142.703f - 50f) * SCALE, 86f, 86f)
             drawSourceNode(assets.settingStyles[index], cx, 142.703f, 96f, 96f)
@@ -190,7 +192,7 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
             }
         }
         assets.settingButtonPatch.draw(batch, (1208.186f - 78f) * SCALE, (75f - 28f) * SCALE, 134.16f, 48.16f)
-        drawCenteredLabelSource("확인", 1208.186f, 77.261f)
+        drawCenteredLabelSource(GameText.S_468266D639, 1208.186f, 77.261f)
     }
 
     /**
@@ -207,7 +209,7 @@ internal class TitleSceneRenderer(private val assets: TitleSceneAssets) {
             titleWidth * SCALE,
             50f * SCALE
         )
-        drawLabelSource(title, 914.428f, titleCy, if (title == "텍스트 속도") 184.11f else 149.51f)
+        drawLabelSource(title, 914.428f, titleCy, if (title == GameText.S_0BF12D107C) 184.11f else 149.51f)
     }
 
     /**

@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Rectangle
@@ -24,7 +26,7 @@ internal object HallEquipRenderer {
         draw.ui("logo9")?.let { draw.tiled(it, 118.84f, 28.81f, 1042.32f, 630.38f) }
         draw.patch("button", 9)?.draw(batch, 118.84f, 28.81f, 1042.32f, 630.38f)
         draw.patch("title", 5)?.draw(batch, 118.84f, 616.19f, 1042.32f, 43f)
-        draw.title("장비", 118.84f, 654.19f, 1042.32f)
+        draw.title(GameText.S_E17B206052, 118.84f, 654.19f, 1042.32f)
         footer(draw)
         tabs(draw, batch, view.selectedTab)
         inventory(draw, batch, view)
@@ -43,11 +45,11 @@ internal object HallEquipRenderer {
      */
 
     private fun footer(draw: HallRenderPrimitives) {
-        draw.button("이전 무장", 842.53f, 37.84f, 152.22f, 43f, 31f)
-        draw.button("다음 무장", 994.75f, 37.84f, 152.22f, 43f, 31f)
-        draw.button("종료", 643.73f, 37.84f, 83.42f, 43f, 31f)
-        draw.button("모두 해제", 493.37f, 37.84f, 148.95f, 43f, 31f)
-        draw.button("정보", 125.35f, 37.84f, 85.74f, 43f, 31f)
+        draw.button(GameText.S_B38CAAEF34, 842.53f, 37.84f, 152.22f, 43f, 31f)
+        draw.button(GameText.S_D4B491F164, 994.75f, 37.84f, 152.22f, 43f, 31f)
+        draw.button(GameText.S_CAFDC61BBF, 643.73f, 37.84f, 83.42f, 43f, 31f)
+        draw.button(GameText.S_E31BDBE56B, 493.37f, 37.84f, 148.95f, 43f, 31f)
+        draw.button(GameText.S_032E3F1F2B, 125.35f, 37.84f, 85.74f, 43f, 31f)
     }
 
     /**
@@ -56,7 +58,7 @@ internal object HallEquipRenderer {
      */
 
     private fun tabs(draw: HallRenderPrimitives, batch: SpriteBatch, selectedTab: Int) {
-        listOf("전부", "무기", "보구", "보조").forEachIndexed { index, value ->
+        listOf(GameText.S_72FF6EAABE, GameText.S_8C4DAC1FCC, GameText.S_BD54114CB4, GameText.S_51378A4614).forEachIndexed { index, value ->
             val x = 124f + index * 129f
             draw.button(value, x, 566.74f, 129f, 43f, 31f)
             if (selectedTab == index) {

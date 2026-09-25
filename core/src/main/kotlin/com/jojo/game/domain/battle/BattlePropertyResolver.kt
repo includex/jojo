@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.domain.battle
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.BattleUnit
@@ -81,7 +83,7 @@ internal object BattlePropertyResolver {
             32 -> {
                 if (target.statuses.isEmpty() || !consume()) return null
                 check(target.cureAllStatuses())
-                "모든 이상 상태 치료"
+                GameText.S_EE52984C60
             }
 
             33, 34, 35, 36, 37 -> {

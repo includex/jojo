@@ -1,5 +1,7 @@
 // Shared
 package com.jojo.game.presentation.shared.overlay
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
 /** PropertyLayer: ui/PropertyLayer.js의 동작을 구현한다. itemType은 네 UI 탭 인덱스가 아닌 ITEM_EQUIP_TYPE 원시 값이며, 원본 Item.type()은 이 값에서 화면 분류를 파생한다. */
@@ -146,7 +148,7 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val owner = item.owner ?: "창고"
+        val owner = item.owner ?: GameText.S_194738C8E4
         // 무기와 방어구에는 lv()를 적용하고 보조 장비만 초기 "---" 값을 유지한다.
         val level = if (item.isAuxiliary()) "---" else item.level.toString()
         /**
@@ -155,7 +157,7 @@ class PropertyLayer(private val items: List<Item>, private val inventory: Map<In
          */
 
         val nameProperty = item.typeName ?: when {
-            item.isAuxiliary() -> "보조"; item.isArmor() -> "방어구"; else -> "무기"
+            item.isAuxiliary() -> GameText.S_51378A4614; item.isArmor() -> GameText.S_44F9A814FE; else -> GameText.S_8C4DAC1FCC
         }
         Row(
             item,

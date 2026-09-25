@@ -1,6 +1,8 @@
 // Game
 package com.jojo.game.presentation.shared
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.Application.ApplicationType
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
@@ -44,7 +46,7 @@ object KoreanFont {
          */
 
         val fontPath = candidates.firstOrNull { File(it).isFile }
-            ?: error("한국어 글꼴을 찾지 못했습니다. JOJO_FONT_PATH를 설정하세요.")
+            ?: error(GameText.S_1217D649AD)
         /**
          * `generator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

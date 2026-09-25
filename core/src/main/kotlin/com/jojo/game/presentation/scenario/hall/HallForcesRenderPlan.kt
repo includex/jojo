@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.badlogic.gdx.utils.Align
 
 /** HallForcesRenderPlan: 거점 부대 렌더링 Plan이며, 해당 화면 영역의 그리기 순서와 항목 배치를 전달한다. */
@@ -40,7 +42,7 @@ internal object HallForcesRenderPlan {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val headers = listOf("무장명", "부대 속성", "레벨", "체력", "체력", "공격", "방어", "정신", "폭발", "사기")
+    private val headers = listOf(GameText.S_CAA3F84FF8, GameText.S_F407A5EA8C, GameText.S_453D0D2DF5, GameText.S_A45EA58EBC, GameText.S_A45EA58EBC, GameText.S_2A9C189A93, GameText.S_2A87C14E4A, GameText.S_C90D66734C, GameText.S_AF51A96858, GameText.S_C91E618B9A)
 
     /**
      * `commands`: 타입의 핵심 동작을 수행한다.
@@ -51,7 +53,7 @@ internal object HallForcesRenderPlan {
         tiled("maps/ui/start-battle/logo9.png", X, Y, WIDTH, HEIGHT)
         patch("maps/ui/start-battle/box1.png", X, Y, WIDTH, HEIGHT)
         patch("maps/ui/start-battle/title.png", X, Y + HEIGHT - 51.6f, WIDTH, 51.6f, inset = 5)
-        title("부대 정보 일람", X, Y + HEIGHT - 8f, WIDTH)
+        title(GameText.S_8767F1CDA5, X, Y + HEIGHT - 8f, WIDTH)
         var x = X + 5f
         headers.forEachIndexed { index, value ->
             cell(x, Y + HEIGHT - 101f, columnWidths[index], 48f)
@@ -68,7 +70,7 @@ internal object HallForcesRenderPlan {
             }
         }
         patch("maps/ui/start-battle/button.png", X + WIDTH - 164f, Y + 5f, 155f, 51.6f, inset = 9)
-        text("폐쇄", X + WIDTH - 164f, Y + 40f, 155f, Align.center)
+        text(GameText.S_438784C35E, X + WIDTH - 164f, Y + 40f, 155f, Align.center)
     }
 
     /**

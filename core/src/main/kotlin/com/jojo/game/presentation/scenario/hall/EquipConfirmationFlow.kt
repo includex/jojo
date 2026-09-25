@@ -1,5 +1,7 @@
 // Game
 package com.jojo.game.presentation.scenario.hall
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.domain.campaign.*
@@ -62,7 +64,7 @@ class EquipConfirmationFlow(
 
     fun requestEquip(unitId: Int, itemId: Int): Request? =
         campaign.inventory.previewEquipInventoryItem(unitId, itemId, data)?.let { preview ->
-            Request(preview.values, "장비", itemId = itemId).also { pending = it }
+            Request(preview.values, GameText.S_E17B206052, itemId = itemId).also { pending = it }
         }
 
 
@@ -73,7 +75,7 @@ class EquipConfirmationFlow(
 
     fun requestUnequip(unitId: Int, slot: CampaignEquipmentSlot): Request? =
         campaign.inventory.previewUnequipInventorySlot(unitId, slot, data)?.let { preview ->
-            Request(preview.values, "해제", unequipSlot = slot).also { pending = it }
+            Request(preview.values, GameText.S_A7ABEA5BBB, unequipSlot = slot).also { pending = it }
         }
 
 

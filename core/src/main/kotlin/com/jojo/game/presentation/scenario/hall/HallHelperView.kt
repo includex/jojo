@@ -1,5 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.overlay.*
 
 /** HallHelperView: 거점 도움말 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
@@ -11,15 +13,15 @@ internal data class HallHelperView(val text: String) {
          */
 
         val default = HallHelperView(
-            "6 [단축키 설명]\n☆ 일부 단축키 기능은 메뉴 — 설정을 통해 직접 설정할 수 있습니다.\n" +
-                "☆ 번호 0-4: 단계 속도 변화. 0가 원래 속도이며, 1-4가 가속.\n" +
-                "☆ 번호 5: 진영에 따라 다른 색상의 체력 바를 표시합니다.\n" +
-                "☆ 번호 6: 문자 BUFF와 DEBUFF를 표시합니다.\n" +
-                "☆ 번호 7: 왼쪽 하단에 캐릭터 능력과 장비를 표시합니다.\n" +
-                "☆ 숫자 8: 더블 히트의 치명타 확률과 카운터 관계를 표시합니다.\n" +
-                "☆ 번호 9: 지형 적응 및 이동 비용을 표시합니다.\n" +
-                "☆ 문자 A: 턴 시작 시 자동으로 저장됩니다.\n" +
-                "☆ 문자 B: 속성 인터페이스는 모든 가능한 전략과 학습 수준을 표시합니다.",
+            GameText.S_DE036B2104 +
+                GameText.S_6C9CBA423C +
+                GameText.S_360FBBD2E1 +
+                GameText.S_F5CE653B43 +
+                GameText.S_79B24282A6 +
+                GameText.S_1DF67FC361 +
+                GameText.S_37E8F20B08 +
+                GameText.S_42FA751364 +
+                GameText.S_51F600E95C,
         )
     }
 }

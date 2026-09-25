@@ -1,6 +1,8 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 /** LoadLayer: 로딩 문구 유무에 따라 회전 애니메이션과 라벨 표시를 구성하는 간단한 모달 모델이다. */
 class LoadLayer {
     /**
@@ -36,7 +38,7 @@ class ModalLoadProductionRoute {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun getSystemTimeStarted() { attached = true; text = "검증 중……" }
+    fun getSystemTimeStarted() { attached = true; text = GameText.S_BE182D9FB6 }
     /**
      * `requestCompleted`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.

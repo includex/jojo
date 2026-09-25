@@ -1,5 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.fight
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.battle.assets.*
 
 import com.jojo.game.*
@@ -86,8 +88,8 @@ internal class BattleFightRenderer(
             if (view.startLabelsActive) {
                 font.data.setScale(200f / 26f)
                 font.color = Color.WHITE
-                font.draw(batch, "승리", centerX - 320.46f, centerY + 90f, 200f, Align.center, false)
-                font.draw(batch, "감소", centerX + 120.5216f, centerY + 90f, 200f, Align.center, false)
+                font.draw(batch, GameText.S_90E5E4D22F, centerX - 320.46f, centerY + 90f, 200f, Align.center, false)
+                font.draw(batch, GameText.S_A32E895914, centerX + 120.5216f, centerY + 90f, 200f, Align.center, false)
             }
         }
         font.data.setScale(1f)

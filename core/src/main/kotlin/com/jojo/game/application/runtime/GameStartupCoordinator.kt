@@ -1,5 +1,7 @@
 // Runtime
 package com.jojo.game.application.runtime
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
 import com.jojo.game.*
@@ -103,7 +105,7 @@ internal class GameStartupCoordinator(
                 PlaybackState.DIALOGUE -> prelude.advanceDialogue()
                 PlaybackState.CHOICE -> {
                     prelude.currentChoice?.options
-                        ?.indexOfFirst { it.contains("게임 시작") }
+                        ?.indexOfFirst { it.contains(GameText.S_62D82D76E7) }
                         ?.takeIf { it >= 0 }
                         ?.let(prelude::selectChoice)
                     prelude.confirmChoice()
@@ -114,8 +116,8 @@ internal class GameStartupCoordinator(
                 PlaybackState.COMPLETE -> Unit
             }
         }
-        check(prelude.state == PlaybackState.COMPLETE) { "영천 캡처용 R_00 도입을 완료하지 못했습니다." }
-        check(campaignState.joinedUnits.isNotEmpty()) { "영천 캡처용 아군 명단이 비어 있습니다." }
+        check(prelude.state == PlaybackState.COMPLETE) { GameText.S_1990A92813 }
+        check(campaignState.joinedUnits.isNotEmpty()) { GameText.S_4DD32031A6 }
         campaignState.roster.seedStartupRoster(
             if (configuration.capture.state?.startsWith("yingchuan-") != true) {
                 campaignState.joinedUnits.take(15)

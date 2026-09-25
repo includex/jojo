@@ -1,6 +1,8 @@
 // Battle Fixture
 package com.jojo.game.presentation.battle.fixture
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.application.runtime.RuntimeBattleRoute
 
 /** 장비 강화 경로 fixture 조정기: 캡처에 필요한 장비 직전 경험치·소유자·대상 유닛을 한 번만 구성한다. */
@@ -81,7 +83,7 @@ internal class BattleItemUpgradeRouteFixtureController {
             fallbackArmor = 72,
             fallbackArmorLevel = 1,
             fallbackAuxiliary = 111,
-            ownerName = "유비",
+            ownerName = GameText.S_C13513CF50,
             gainedExperience = 1,
         )
     }

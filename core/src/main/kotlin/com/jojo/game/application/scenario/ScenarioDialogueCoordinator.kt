@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 
 import com.jojo.game.domain.scenario.*
@@ -151,7 +153,7 @@ class ScenarioDialogueCoordinator(
      */
 
     fun advanceDialogue(deferCloseCallbackFrame: Boolean = false, currentState: PlaybackState) {
-        check(currentState == PlaybackState.DIALOGUE) { "대기 중인 대사가 없습니다." }
+        check(currentState == PlaybackState.DIALOGUE) { GameText.S_C80F942461 }
         if (pendingDialogues.isNotEmpty()) {
             presentDialogue(pendingDialogues.removeFirst())
             return
@@ -181,8 +183,8 @@ class ScenarioDialogueCoordinator(
      */
 
     fun presentExternalBattleDialogue(dialogue: Dialogue, currentState: PlaybackState) {
-        check(currentDialogue == null && currentState != PlaybackState.DIALOGUE) { "이미 대사가 표시 중입니다." }
-        check(externalDialogueReturnState == null) { "외부 전투 대사가 이미 대기 중입니다." }
+        check(currentDialogue == null && currentState != PlaybackState.DIALOGUE) { GameText.S_14244CA6EE }
+        check(externalDialogueReturnState == null) { GameText.S_ECA779BF1F }
         externalDialogueReturnState = currentState
         beginDialogueLifecycle(dialogue.speakerId?.let { "&$it\n${dialogue.text}" } ?: dialogue.text)
         presentDialogue(dialogue)

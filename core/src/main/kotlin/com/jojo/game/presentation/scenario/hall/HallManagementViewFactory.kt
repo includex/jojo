@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.application.runtime.RuntimeScenarioOverlay
@@ -70,7 +72,7 @@ internal class HallManagementViewFactory(
 
             val unit = catalog.unitProfile(id)
             HallUnitRosterRowView(
-                name = campaign.unitNames[id] ?: if (id == 181) "병사 " else unit?.name ?: "무장",
+                name = campaign.unitNames[id] ?: if (id == 181) GameText.S_2F7F8DF945 else unit?.name ?: GameText.S_2E4EDF0E35,
                 postName = catalog.postsName(campaign.unitAttribute(id, 17, unit?.posts ?: 0)),
             )
         },
@@ -140,18 +142,18 @@ internal class HallManagementViewFactory(
             ?: GameDataCatalog.EquipmentBonus()
         return HallBuyUnitSummaryView(
             portraitId = portraitId(unitId),
-            name = campaign.unitNames[unitId] ?: unit?.name ?: "조조",
-            postName = catalog.postsName(campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { "군웅" },
+            name = campaign.unitNames[unitId] ?: unit?.name ?: GameText.S_6B1F41FC4A,
+            postName = catalog.postsName(campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { GameText.S_BE23B82091 },
             level = profile?.level ?: 1,
             hitPoints = profile?.maxHitPoints ?: 0,
             magicPoints = profile?.maxMagicPoints ?: 0,
             stats = listOf(
-                HallBuyUnitSummaryStat("공격력", (profile?.attack ?: 0) + bonus.attack),
-                HallBuyUnitSummaryStat("정신력", (profile?.spirit ?: 0) + bonus.spirit),
-                HallBuyUnitSummaryStat("방어력", (profile?.defense ?: 0) + bonus.defense),
-                HallBuyUnitSummaryStat("폭발력", profile?.critical ?: 0),
-                HallBuyUnitSummaryStat("사기", profile?.morale ?: 0),
-                HallBuyUnitSummaryStat("이동력", profile?.movement ?: 0),
+                HallBuyUnitSummaryStat(GameText.S_50B8DF8C55, (profile?.attack ?: 0) + bonus.attack),
+                HallBuyUnitSummaryStat(GameText.S_F3F57B591C, (profile?.spirit ?: 0) + bonus.spirit),
+                HallBuyUnitSummaryStat(GameText.S_5C349008C3, (profile?.defense ?: 0) + bonus.defense),
+                HallBuyUnitSummaryStat(GameText.S_9EC6283754, profile?.critical ?: 0),
+                HallBuyUnitSummaryStat(GameText.S_C91E618B9A, profile?.morale ?: 0),
+                HallBuyUnitSummaryStat(GameText.S_B2A0B8369E, profile?.movement ?: 0),
             ),
         )
     }
@@ -233,7 +235,7 @@ internal class HallManagementViewFactory(
                 HallSellRowView(
                     name = item.name,
                     icon = item.icon,
-                    primaryDetail = if (equipmentTab) "Lv: ${campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1}" else "인벤토리: $count",
+                    primaryDetail = if (equipmentTab) "Lv: ${campaign.inventory.itemLevels(itemId).firstOrNull() ?: 1}" else GameText.format(GameText.Key.INVENTORY_COUNT, count),
                     secondaryDetail = if (equipmentTab) "Exp: 0" else null,
                     salePrice = if (item.price == 255) "---" else catalog.sellingPrice(item).toString(),
                 )

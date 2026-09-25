@@ -1,5 +1,7 @@
 // Campaign
 package com.jojo.game.application.campaign
+
+import com.jojo.game.presentation.i18n.GameText
 import com.jojo.game.presentation.shared.overlay.*
 
 /** AchievementFixtureState: 저장 기능과 연결된 진행 화면의 프레임워크 독립 상태를 관리한다. */
@@ -126,10 +128,10 @@ class RaffleFlow(var count: Int, var coins: Int) {
         if (count >= 10) {
             layers += "MsgBox"
             if (coins <= 0) {
-                toasts += "행운 코인이 부족하여 교환에 실패했습니다~"; return
+                toasts += GameText.S_1C0421EDD5; return
             }
             if (confirm != 0) {
-                toasts += "행운의 코인으로 광고를 보고 교환하는 것을 취소합니다!"; return
+                toasts += GameText.S_88EFDCC59F; return
             }
             coins--; writes["SIGNIN_N"] = coins
         } else layers += "LoadLayer"

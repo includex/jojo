@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
+import com.jojo.game.presentation.i18n.GameText
+
 import com.jojo.game.*
 
 import com.badlogic.gdx.graphics.Color
@@ -19,7 +21,7 @@ data class BattleAutoOverlayView(
     val overlay: BattleAutoOverlayKind,
     val checked: Boolean = false,
     val offersDelegation: Boolean = true,
-    val message: String = "모든 부대의 명령을 종료하시겠습니까?",
+    val message: String = GameText.S_42D16CB521,
 )
 
 /** Shared authored geometry for rendering and hit-testing MsgBox/MsgBox4 prompts. */
@@ -127,8 +129,8 @@ class BattleAutoOverlayRenderer(
         if (checked) batch.draw(assets.checkmark, 518.416f, 281.197f, 28f, 28f)
         // tuoguan/label 노드 (567.257, 267.997) 73.2×54.4; 단추 Label 노드 (699.536/869.536, 278.042) 100×40.
         val toggleFont = fonts?.toggle ?: labelFont
-        toggleFont.draw(batch, "위임", 567.257f, 267.997f + 27.2f + toggleFont.capHeight / 2f, 73.2f, Align.center, false)
-        listOf(Triple(674.536f, "비", fonts?.no ?: labelFont), Triple(844.536f, "예", fonts?.yes ?: labelFont)).forEach { (x, label, font) ->
+        toggleFont.draw(batch, GameText.S_3DD968413B, 567.257f, 267.997f + 27.2f + toggleFont.capHeight / 2f, 73.2f, Align.center, false)
+        listOf(Triple(674.536f, GameText.S_D3B0E1A367, fonts?.no ?: labelFont), Triple(844.536f, GameText.S_A842629AFD, fonts?.yes ?: labelFont)).forEach { (x, label, font) ->
             batch.draw(assets.unitInfoBox, x, 270.197f, 150f, 50f)
             font.draw(batch, label, x + 25f, 278.042f + 20f + font.capHeight / 2f, 100f, Align.center, false)
         }
@@ -153,8 +155,8 @@ class BattleAutoOverlayRenderer(
         )
         fonts.message.draw(batch, message, 573.686f, 335f + 95f + layout.height / 2f, 463f, Align.left, true)
         listOf(
-            Triple(554.186f, "비", fonts.no),
-            Triple(754.186f, "예", fonts.yes),
+            Triple(554.186f, GameText.S_D3B0E1A367, fonts.no),
+            Triple(754.186f, GameText.S_A842629AFD, fonts.yes),
         ).forEach { (x, label, font) ->
             assets.plainBox?.draw(batch, x, 271.285f, 180f, 50f)
             font.draw(batch, label, x, 271.285f + 25f + font.capHeight / 2f, 180f, Align.center, false)
