@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.badlogic.gdx.graphics.Color
@@ -53,17 +53,17 @@ internal object HallSaveRenderer {
         }
         batch.color=Color.WHITE
         start("logo9")?.let { tiled(it,278.186f,83f,932f,634f) }; patch("button",8)?.draw(batch,278.186f*.86f,83f*.86f,932f*.86f,634f*.86f)
-        start("title")?.let { batch.draw(it,278.186f*.86f,667f*.86f,932f*.86f,43f) }; label(GameText.S_158191141D,288.186f,666.8f,229.83f); label(GameText.S_591250DCC4,286.785f,612.805f,654.88f)
+        start("title")?.let { batch.draw(it,278.186f*.86f,667f*.86f,932f*.86f,43f) }; label(SystemMessage.S_158191141D,288.186f,666.8f,229.83f); label(SystemMessage.S_591250DCC4,286.785f,612.805f,654.88f)
         patch("box2")?.draw(batch,287.186f*.86f,172.534f*.86f,912f*.86f,428f*.86f)
         view.rows.take(8).forEachIndexed { index,row -> val y=HallRenderGeometry.saveRowY(index); assets.choiceRowTexture?.let { batch.draw(it,289.186f*.86f,y*.86f,908f*.86f,43f) }; label(row.number,295.448f,y-.2f,117.85f); label(row.stage,434.615f,y-.2f,124.49f); label(row.name,577.886f,y,616.3f) }
         texture("maps/ui/title/load/vline.png")?.let { line -> listOf(422.057f,566.695f).forEach { x -> batch.draw(line,x*.86f,174.634f*.86f,6f*.86f,423.8f*.86f) } }
-        label(GameText.S_E1864601EE,131.555f,105.399f,850.11f); patch("button",8)?.draw(batch,1045.855f*.86f,100.162f*.86f,147.6f*.86f,56f*.86f); label(GameText.S_19B2D19BC1,1069.655f,108.162f,100f,true)
+        label(SystemMessage.S_E1864601EE,131.555f,105.399f,850.11f); patch("button",8)?.draw(batch,1045.855f*.86f,100.162f*.86f,147.6f*.86f,56f*.86f); label(SystemMessage.S_19B2D19BC1,1069.655f,108.162f,100f,true)
         view.pendingPrompt?.let { prompt ->
             start("logo9")?.let { tiled(it,426.686f,252f,635f,296f) }; patch("button",8)?.draw(batch,426.686f*.86f,252f*.86f,635f*.86f,296f*.86f)
             texture("maps/ui/title/load/eagle.png")?.let { batch.draw(it,453.005f*.86f,373.951f*.86f,106f*.86f,124f*.86f) }; label(prompt,573.686f,335f,463f)
-            listOf(Triple(554.186f,GameText.S_2DD57A2739,557.336f),Triple(754.186f,GameText.S_1F1712ACFF,757.586f)).forEach { (x,value,tx) -> patch("button",8)?.draw(batch,x*.86f,271.285f*.86f,180f*.86f,43f); label(value,tx,279.085f,if(value==GameText.S_2DD57A2739)168.1f else 169.4f,true) }
+            listOf(Triple(554.186f,SystemMessage.S_2DD57A2739,557.336f),Triple(754.186f,SystemMessage.S_1F1712ACFF,757.586f)).forEach { (x,value,tx) -> patch("button",8)?.draw(batch,x*.86f,271.285f*.86f,180f*.86f,43f); label(value,tx,279.085f,if(value==SystemMessage.S_2DD57A2739)168.1f else 169.4f,true) }
         }
-        if(view.completionTipOpen) { start("logo9")?.let { tiled(it,426.686f,252f,635f,296f) }; patch("button",8)?.draw(batch,426.686f*.86f,252f*.86f,635f*.86f,296f*.86f); label(GameText.S_5AB5BF64DD,573.686f,385f,463f,true); patch("button",8)?.draw(batch,654.186f*.86f,271.285f*.86f,180f*.86f,43f); label(GameText.S_468266D639,657.586f,279.085f,169.4f,true) }
+        if(view.completionTipOpen) { start("logo9")?.let { tiled(it,426.686f,252f,635f,296f) }; patch("button",8)?.draw(batch,426.686f*.86f,252f*.86f,635f*.86f,296f*.86f); label(SystemMessage.S_5AB5BF64DD,573.686f,385f,463f,true); patch("button",8)?.draw(batch,654.186f*.86f,271.285f*.86f,180f*.86f,43f); label(SystemMessage.S_468266D639,657.586f,279.085f,169.4f,true) }
         batch.color=Color.WHITE
     }
 }

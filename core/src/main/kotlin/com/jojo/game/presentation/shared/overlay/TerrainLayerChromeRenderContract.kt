@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.shared.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /**
  * TerrainLayerChromeRenderContract: TerrainLayer 표 본문을 둘러싼 원본 프리팹 장식 영역이다.
@@ -302,20 +302,20 @@ object TerrainLayerChromeRenderContract {
 
     /** 제목 칸: 원본이 `button`부터 그린 순서 그대로 보관한다. */
     val headers: List<Button> = listOf(
-        header("button", 285.588f, HEADER_Y_RAISED, GameText.S_9AA18E5071),
-        header("button0", 508.088f, HEADER_Y_RAISED, GameText.S_93DF8F92C4),
-        header("button1", 568.397f, HEADER_Y, GameText.S_EC935E3110),
-        header("button2", 628.116f, HEADER_Y, GameText.S_B93949DF7E),
-        header("button3", 688.268f, HEADER_Y, GameText.S_AA5BAA93E1),
-        header("button4", 748.137f, HEADER_Y, GameText.S_2258169007),
-        header("button5", 808.101f, HEADER_Y, GameText.S_0A8D694790),
-        header("button11", 1167.145f, HEADER_Y_RAISED, GameText.S_0A8D694790),
-        header("button10", 1107.125f, HEADER_Y, GameText.S_2258169007),
-        header("button9", 1047.297f, HEADER_Y, GameText.S_AA5BAA93E1),
-        header("button8", 987.145f, HEADER_Y, GameText.S_B93949DF7E),
-        header("button7", 927.426f, HEADER_Y, GameText.S_EC935E3110),
-        header("button6", 867.443f, HEADER_Y, GameText.S_D358176111),
-        header("button12", 1227.088f, HEADER_Y_RAISED, GameText.S_0A8D694790),
+        header("button", 285.588f, HEADER_Y_RAISED, SystemMessage.S_9AA18E5071),
+        header("button0", 508.088f, HEADER_Y_RAISED, SystemMessage.S_93DF8F92C4),
+        header("button1", 568.397f, HEADER_Y, SystemMessage.S_EC935E3110),
+        header("button2", 628.116f, HEADER_Y, SystemMessage.S_B93949DF7E),
+        header("button3", 688.268f, HEADER_Y, SystemMessage.S_AA5BAA93E1),
+        header("button4", 748.137f, HEADER_Y, SystemMessage.S_2258169007),
+        header("button5", 808.101f, HEADER_Y, SystemMessage.S_0A8D694790),
+        header("button11", 1167.145f, HEADER_Y_RAISED, SystemMessage.S_0A8D694790),
+        header("button10", 1107.125f, HEADER_Y, SystemMessage.S_2258169007),
+        header("button9", 1047.297f, HEADER_Y, SystemMessage.S_AA5BAA93E1),
+        header("button8", 987.145f, HEADER_Y, SystemMessage.S_B93949DF7E),
+        header("button7", 927.426f, HEADER_Y, SystemMessage.S_EC935E3110),
+        header("button6", 867.443f, HEADER_Y, SystemMessage.S_D358176111),
+        header("button12", 1227.088f, HEADER_Y_RAISED, SystemMessage.S_0A8D694790),
     )
 
     /** 이름 칸: 표 맨 왼쪽 지형 이름 열의 제목이다. */
@@ -326,9 +326,9 @@ object TerrainLayerChromeRenderContract {
 
     /** 하단 단추: 원본이 `button0`부터 그린 순서 그대로 보관한다. */
     val footerButtons: List<Button> = listOf(
-        Button("button0", Box(285.436f, 110.1f, 196.7f, 61.8f), Box(301.386f, 121f, 164.8f, 40f), GameText.S_AD01270B3C),
-        Button("button1", Box(491.436f, 109.4f, 222.7f, 63.2f), Box(498.186f, 116.2f, 209.2f, 49.6f), GameText.S_A8DE9DA622),
-        Button("button2", Box(1164.786f, 111f, 120f, 60f), Box(1174.786f, 121f, 100f, 40f), GameText.S_468266D639),
+        Button("button0", Box(285.436f, 110.1f, 196.7f, 61.8f), Box(301.386f, 121f, 164.8f, 40f), SystemMessage.S_AD01270B3C),
+        Button("button1", Box(491.436f, 109.4f, 222.7f, 63.2f), Box(498.186f, 116.2f, 209.2f, 49.6f), SystemMessage.S_A8DE9DA622),
+        Button("button2", Box(1164.786f, 111f, 120f, 60f), Box(1174.786f, 121f, 100f, 40f), SystemMessage.S_468266D639),
     )
 
     /** 이식본 비트맵 글꼴의 원본 크기: 배율 1일 때 그려지는 글자 크기다. */

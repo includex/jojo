@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -121,7 +121,7 @@ class BattleUnitInfoPopupRenderer(
             drawCentered(fonts.regular, if (reachedLimit) "MAX" else view.experience.toString(), cx - 78f, expRowY)
             fonts.regular.color = Color.WHITE
         } else {
-            fonts.campByIndex[view.camp]?.let { drawCentered(it, listOf(GameText.S_3843E8E488, GameText.S_7627935CE4, GameText.S_93A131140A)[view.camp], cx - 172f, bottomRowY) }
+            fonts.campByIndex[view.camp]?.let { drawCentered(it, listOf(SystemMessage.S_3843E8E488, SystemMessage.S_7627935CE4, SystemMessage.S_93A131140A)[view.camp], cx - 172f, bottomRowY) }
         }
         drawCentered(fonts.terrain, view.terrainName, cx + 12f, bottomRowY)
         drawRight(fonts.terrainRate, "${view.terrainImpact}%", cx + 220f, bottomRowY)

@@ -5,9 +5,11 @@ import hashlib
 import json
 import math
 from pathlib import Path
+
+from dialogue_text_catalog import dialogue_text
 from verify_opening_panel_pixels import compare
 
-TEXTS = ['대장님, 서둘러야 해요!', '알아!', '잠시만 기다려 주세요!']
+TEXTS = [dialogue_text(f"opening_scene1_page{page}") for page in range(1, 4)]
 SPEAKERS = ['181', '0', '157']
 
 

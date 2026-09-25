@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from verify_opening_first_move_pixels import STEP, STEP_BITS, f32, require
 from verify_opening_panel_pixels import compare
+from dialogue_text_catalog import dialogue_text
 
 DURATIONS = {0: .04 * 9 + .04 + .04 * 6 + .04, 182: .04 * 9 + .04 + .04 * 6 + .04,
              181: .6 + 1.192092896e-7, 157: .6 + 1.192092896e-7}
@@ -36,7 +37,10 @@ def validate(document, source=False):
     if source:
         require(len(document['inputRequests']) == 2, 'two source pointer requests required')
     for index, (completion, event) in enumerate(zip(completions, inputs)):
-        text, speaker = [('대장님, 서둘러야 해요!', '181'), ('알아!', '0')][index]
+        text, speaker = [
+            (dialogue_text("opening_scene1_page1"), "181"),
+            (dialogue_text("opening_scene1_page2"), "0"),
+        ][index]
         require((completion['page'], str(completion['speakerId']), completion['text'], completion['complete']) ==
                 (index + 1, speaker, text, True), 'completed dialogue identity')
         require(event['afterPage'] == index + 1 and event['textBeforeInput'] == text and

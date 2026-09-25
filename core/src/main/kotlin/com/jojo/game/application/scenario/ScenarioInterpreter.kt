@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 import com.jojo.game.domain.scenario.*
@@ -395,7 +395,7 @@ class ScenarioInterpreter internal constructor(
      */
 
     fun presentExternalBattleInfo(text: String, postTypingDelaySeconds: Float = 1f) {
-        check(state == PlaybackState.DELAY) { GameText.S_7BEEFFF609 }
+        check(state == PlaybackState.DELAY) { SystemMessage.S_7BEEFFF609 }
         modalController.suspendForInfo(text, ScenarioModalKind.INFO, postTypingDelaySeconds)
     }
     /** presentRuntimeScene: 자동 구동기가 만든 배경·유닛·대화·모달 장면을 무대와 재생 상태에 반영한다. */
@@ -494,7 +494,7 @@ class ScenarioInterpreter internal constructor(
     fun completeBattleBackgroundLoad() = delayCoordinator.completeBattleBackgroundLoad()
     /** resumeModal: 모달 표시가 끝났음을 알리고 대기 중인 스크립트 문장 실행을 다시 시작한다. */
     fun resumeModal() {
-        check(state == PlaybackState.MODAL) { GameText.S_F4DE297D31 }
+        check(state == PlaybackState.MODAL) { SystemMessage.S_F4DE297D31 }
         modalController.resumeModal()
     }
     /**

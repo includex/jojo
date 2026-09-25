@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.badlogic.gdx.graphics.Color
@@ -28,11 +28,11 @@ internal object HallHelperRenderer {
         draw.patch("box1")?.draw(batch, x, y, width, height)
         draw.patch("title", 5)?.draw(batch, x, y + height - 62f, width, 62f)
         assets.titleFont.color = Color(0.65f, 0f, 0.68f, 1f)
-        assets.titleFont.draw(batch, GameText.S_625FE3A123, x + 8f, y + height - 12f)
+        assets.titleFont.draw(batch, SystemMessage.S_625FE3A123, x + 8f, y + height - 12f)
         draw.cell(x + 12f, y + 82f, width - 24f, height - 151f)
         assets.bodyFont.color = Color.BLACK
         assets.bodyFont.draw(batch, view.text, x + 18f, y + height - 90f, width - 36f, Align.left, true)
-        draw.button(GameText.S_468266D639, x + width - 145f, y + 7f, 135f)
+        draw.button(SystemMessage.S_468266D639, x + width - 145f, y + 7f, 135f)
         draw.resetColor()
     }
 }

@@ -1,7 +1,7 @@
 // 시나리오 실행 증거 입력 투영
 package com.jojo.game.presentation.scenario
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.presentation.scenario.*
 
@@ -31,13 +31,13 @@ internal object ScenarioRuntimeSnapshotProjector {
     fun renderInput(screen: ScenarioScreen): ScenarioFrameEvidenceInput {
         val dialogue = screen.playback.currentDialogue
         if (screen.hallOverlayVariant == RuntimeScenarioOverlay.SKIP_OPEN) {
-            val skip = requireNotNull(screen.hallSkipLayer) { GameText.S_CEBD2DE9D2 }
+            val skip = requireNotNull(screen.hallSkipLayer) { SystemMessage.S_CEBD2DE9D2 }
             check(skip.button && !skip.panel && skip.zIndex == 999)
         }
         val unitList = screen.hallUnitListLayer?.rows?.take(6)?.map { id ->
             val unit = screen.gameDataCatalog.unitProfile(id)
             ScenarioHallUnitListEvidenceRow(
-                screen.campaign.unitNames[id] ?: if (id == 181) GameText.S_2F7F8DF945 else unit?.name ?: GameText.S_2E4EDF0E35,
+                screen.campaign.unitNames[id] ?: if (id == 181) SystemMessage.S_2F7F8DF945 else unit?.name ?: SystemMessage.S_2E4EDF0E35,
                 screen.gameDataCatalog.postsName(screen.campaign.unitAttribute(id, 17, unit?.posts ?: 0)),
             )
         }
@@ -127,7 +127,7 @@ internal object ScenarioRuntimeSnapshotProjector {
         fun slot(matches: (Int) -> Boolean): ScenarioHallEquipEvidenceSlot {
             val item = equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let(matches) == true }
             val itemProfile = item?.let { catalog.equipmentProfile(it.itemId) }
-            return ScenarioHallEquipEvidenceSlot(itemProfile?.name ?: GameText.S_D58FA73ADC, item?.level ?: 1, item?.experience ?: 0, itemProfile?.icon)
+            return ScenarioHallEquipEvidenceSlot(itemProfile?.name ?: SystemMessage.S_D58FA73ADC, item?.level ?: 1, item?.experience ?: 0, itemProfile?.icon)
         }
         /**
          * `face` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -141,12 +141,12 @@ internal object ScenarioRuntimeSnapshotProjector {
         }
         return ScenarioHallEquipEvidenceInput(
             screen.hallOverlayVariant,
-            screen.campaign.unitNames[unitId] ?: unit?.name ?: GameText.S_6B1F41FC4A,
-            if (unitId == 0) GameText.S_BE23B82091 else catalog.armProfile(profile?.arm?.id ?: posts)?.name ?: GameText.S_BE23B82091,
+            screen.campaign.unitNames[unitId] ?: unit?.name ?: SystemMessage.S_6B1F41FC4A,
+            if (unitId == 0) SystemMessage.S_BE23B82091 else catalog.armProfile(profile?.arm?.id ?: posts)?.name ?: SystemMessage.S_BE23B82091,
             face,
             profile?.level ?: 1,
             listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, (profile?.spirit ?: 0) + bonus.spirit, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0),
-            listOf(slot { it < 20 }, slot { it in 20..25 }, ScenarioHallEquipEvidenceSlot(GameText.S_D58FA73ADC, 1, 0, null)),
+            listOf(slot { it < 20 }, slot { it in 20..25 }, ScenarioHallEquipEvidenceSlot(SystemMessage.S_D58FA73ADC, 1, 0, null)),
         )
     }
 
@@ -184,8 +184,8 @@ internal object ScenarioRuntimeSnapshotProjector {
                 ScenarioHallManagementBuyRow(item.name, catalog.equipmentTypeName(item.itemType), screen.campaign.inventory.items[item.id] ?: 0, catalog.purchasePrice(item))
             },
             ScenarioHallManagementUnitEvidence(
-                unit?.name ?: GameText.S_6B1F41FC4A,
-                catalog.postsName(screen.campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { GameText.S_BE23B82091 },
+                unit?.name ?: SystemMessage.S_6B1F41FC4A,
+                catalog.postsName(screen.campaign.unitAttribute(unitId, 17, unit?.posts ?: 0)).ifEmpty { SystemMessage.S_BE23B82091 },
                 level,
                 listOf(profile?.maxHitPoints ?: 0, profile?.maxMagicPoints ?: 0, (profile?.attack ?: 0) + bonus.attack, profile?.spirit ?: 0, (profile?.defense ?: 0) + bonus.defense, profile?.critical ?: 0, profile?.morale ?: 0, profile?.movement ?: 0),
                 weapon,

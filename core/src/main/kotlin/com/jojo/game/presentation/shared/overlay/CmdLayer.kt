@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.shared.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 
 /** CmdLayer: 복구된 ui/CmdLayer.js의 기능 활성화 패널 상태를 관리한다. 미등록 기능 선택과 등록 기능 즉시 전환, ItemStore 및 등록 부수효과를 원본 규칙대로 유지한다. */
@@ -38,10 +38,10 @@ class CmdLayer(
      */
 
     val names = listOf(
-        GameText.S_2DFF081BB8, GameText.S_57E6F11841, GameText.S_197325F409, GameText.S_58B5B8E6E2,
-        GameText.S_928236D584, GameText.S_A9E737C08B, GameText.S_E6E23C36DB, GameText.S_F0EFEB11FB,
-        GameText.S_0F14132CB0, GameText.S_AB4EAC0279, GameText.S_75676A3A96, GameText.S_371F34313C,
-        GameText.S_4956384FE9, GameText.S_C212B6F4D6
+        SystemMessage.S_2DFF081BB8, SystemMessage.S_57E6F11841, SystemMessage.S_197325F409, SystemMessage.S_58B5B8E6E2,
+        SystemMessage.S_928236D584, SystemMessage.S_A9E737C08B, SystemMessage.S_E6E23C36DB, SystemMessage.S_F0EFEB11FB,
+        SystemMessage.S_0F14132CB0, SystemMessage.S_AB4EAC0279, SystemMessage.S_75676A3A96, SystemMessage.S_371F34313C,
+        SystemMessage.S_4956384FE9, SystemMessage.S_C212B6F4D6
     )
     /**
      * `gold` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -58,20 +58,20 @@ class CmdLayer(
      */
 
     val intros = listOf(
-        GameText.S_EF7B15F963,
-        GameText.S_38CF88C517,
-        GameText.S_D8412481BB,
-        GameText.S_0EC18AC7A9,
-        GameText.S_E4DDAD5737,
-        GameText.S_8788735EBF,
-        GameText.S_04DE7DBEE2,
-        GameText.S_A455E6907B,
-        GameText.S_01DDCA043B,
-        GameText.S_47973E953D,
-        GameText.S_7518581DDB,
-        GameText.S_4F15973D8F,
-        GameText.S_F12C80F80B,
-        GameText.S_472939E979,
+        SystemMessage.S_EF7B15F963,
+        SystemMessage.S_38CF88C517,
+        SystemMessage.S_D8412481BB,
+        SystemMessage.S_0EC18AC7A9,
+        SystemMessage.S_E4DDAD5737,
+        SystemMessage.S_8788735EBF,
+        SystemMessage.S_04DE7DBEE2,
+        SystemMessage.S_A455E6907B,
+        SystemMessage.S_01DDCA043B,
+        SystemMessage.S_47973E953D,
+        SystemMessage.S_7518581DDB,
+        SystemMessage.S_4F15973D8F,
+        SystemMessage.S_F12C80F80B,
+        SystemMessage.S_472939E979,
     )
 
     /**
@@ -182,7 +182,7 @@ class CmdLayer(
      */
 
     fun onCreate() {
-        addLayer("MsgBox", 3, GameText.S_00132A46FC) { if (it == 0) helper() }
+        addLayer("MsgBox", 3, SystemMessage.S_00132A46FC) { if (it == 0) helper() }
     }
 
     /**
@@ -215,7 +215,7 @@ class CmdLayer(
         if (rFlag and bit != 0) {
             if (activate(bit) != 0) return
             val on = eFlag and bit == 0; eFlag = if (on) eFlag or bit else eFlag and bit.inv()
-            toasts += (if (on) GameText.S_BBF831ADE8 else GameText.S_9C9F1862EA) + " " + names[index]
+            toasts += (if (on) SystemMessage.S_BBF831ADE8 else SystemMessage.S_9C9F1862EA) + " " + names[index]
         } else select(index, !selected[index], 1)
     }
 
@@ -249,7 +249,7 @@ class CmdLayer(
         for (i in names.indices) if (sFlag and (1 shl i) != 0) {
             count++; total += gold[i]
         }
-        label = GameText.format(GameText.Key.SELECTION_TOTAL, count, minOf(total, 50.0).format()); selected[index] = on
+        label = SystemMessage.format(SystemMessage.Key.SELECTION_TOTAL, count, minOf(total, 50.0).format()); selected[index] = on
     }
 
     /**
@@ -262,17 +262,17 @@ class CmdLayer(
     /** 활성화 결과의 첫 비트가 설정 전환 가능 여부를 나타낸다. */
     private fun activate(bit: Int): Int = when (bit) {
         1 -> if (unitCount == 0) {
-            toasts += GameText.S_BEF87719AB; 2
+            toasts += SystemMessage.S_BEF87719AB; 2
         } else {
             for (id in 100..102) if (id == 100 || id == 101) props += listOf(
                 id,
                 99,
                 0
-            ); toasts += GameText.S_388DB7E1C8; 1
+            ); toasts += SystemMessage.S_388DB7E1C8; 1
         }
 
         2 -> if (unitCount == 0) {
-            toasts += GameText.S_BEF87719AB; 2
+            toasts += SystemMessage.S_BEF87719AB; 2
         } else {
             val treasures = inventory.filter { it.treasure }; treasures.forEach {
                 if (it.property) props += listOf(
@@ -283,7 +283,7 @@ class CmdLayer(
             }; writes += listOf(
                 "TREASURE",
                 "[${treasures.joinToString(",") { it.id.toString() }}]"
-            ); toasts += GameText.S_90213F42FB; 1
+            ); toasts += SystemMessage.S_90213F42FB; 1
         }
 
         else -> 0
@@ -304,10 +304,10 @@ class CmdLayer(
                 ); events += "remove"; events += "setGameSpeed"
             }
 
-            1 -> if (deviceId.isEmpty()) toasts += GameText.S_F65B22617D else if (sFlag != 0) addLayer(
+            1 -> if (deviceId.isEmpty()) toasts += SystemMessage.S_F65B22617D else if (sFlag != 0) addLayer(
                 "MsgBox",
                 null,
-                GameText.S_682E465A4D
+                SystemMessage.S_682E465A4D
             ) { ans ->
                 if (ans == 0) {
                     var count = 0
@@ -318,7 +318,7 @@ class CmdLayer(
                         mapOf("money" to money, "count" to count, "sFlag" to sFlag, "eFlag" to eFlag, "rFlag" to rFlag)
                     ); writes += listOf("CHECK_REGISTER", 1)
                 }
-            } else toasts += GameText.S_6F764343C8
+            } else toasts += SystemMessage.S_6F764343C8
 
             2 -> helper()
             3 -> addLayer("skmLayer", null, null)
@@ -326,10 +326,10 @@ class CmdLayer(
             5 -> addLayer(
                 "MsgBox",
                 null,
-                GameText.S_8BCBE22C40
+                SystemMessage.S_8BCBE22C40
             ) { ans ->
                 if (ans == 0) {
-                    toasts += GameText.S_DA1FF45B2C; writes += listOf(
+                    toasts += SystemMessage.S_DA1FF45B2C; writes += listOf(
                         "CHECK_REGISTER",
                         1
                     ); restart++

@@ -1,7 +1,7 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 import com.jojo.game.application.campaign.DailySignInFlow
@@ -324,7 +324,7 @@ class SettingLayer(
         val env = featureEnvironment()
         return when (tag) {
             7 -> if (env.achievements.isEmpty()) {
-                FeatureResult.Toast(GameText.S_1A7993E57F)
+                FeatureResult.Toast(SystemMessage.S_1A7993E57F)
             } else {
                 activeFeature = AchievementsFlow(env.achievements, env.battleName)
                 FeatureResult.Opened("AchievementsLayer")
@@ -333,7 +333,7 @@ class SettingLayer(
             8 -> when {
                 env.supportAdCode < 8 -> FeatureResult.Gated
                 env.sceneName !in setOf("Hall", "Battle") ->
-                    FeatureResult.Toast(GameText.S_A174F4502E)
+                    FeatureResult.Toast(SystemMessage.S_A174F4502E)
 
                 else -> {
                     activeFeature = RaffleFlow(env.raffleVideoCount, env.luckyCoins)

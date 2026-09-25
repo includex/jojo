@@ -9,6 +9,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.badlogic.gdx.utils.ScreenUtils
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.GameEntryPoint
 import com.jojo.game.application.runtime.GameLaunchConfiguration
@@ -27,7 +28,7 @@ object OpeningPostDialogueGroupFramesDesktopLauncher {
     private val captureOrdinals = setOf(0, 1, 7, 8, 22, 23, 36, 37, 40, 41, 42)
     private val starts = mapOf(181 to (40 to 45), 0 to (40 to 35), 182 to (40 to 25), 157 to (54 to 65))
     private val ends = mapOf(181 to (40 to 60), 0 to (40 to 50), 182 to (40 to 40), 157 to (54 to 50))
-    private val dialogueTexts = listOf("대장님, 서둘러야 해요!", "알아!")
+    private val dialogueTexts = listOf(ScenarioDialogueTextCatalog.text("opening_scene1_page1"), ScenarioDialogueTextCatalog.text("opening_scene1_page2"))
     private const val fixedDelta = 1f / 60f
 
     private data class Timing(

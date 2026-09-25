@@ -3,8 +3,8 @@ package com.jojo.game.presentation.i18n
 import java.text.MessageFormat
 import java.util.Locale
 
-/** Central catalog for statically authored UI and presentation strings. */
-object GameText {
+/** Central catalog for statically authored system and UI messages. */
+object SystemMessage {
     enum class Language { KOREAN, ENGLISH }
 
     @Volatile

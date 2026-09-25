@@ -1,7 +1,7 @@
 // 시나리오 거점 전용 장비 화면 렌더링
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
@@ -83,7 +83,7 @@ internal object HallExclusiveRenderer {
         texture("logo9")?.let { tiled(it, 136.186f * SCALE, 47f * SCALE, 1216f * SCALE, 706f * SCALE) }
         patch("box1")?.draw(batch, 136.186f * SCALE, 47f * SCALE, 1216f * SCALE, 706f * SCALE)
         texture("title")?.let { batch.draw(it, 136.186f * SCALE, 703f * SCALE, 1216f * SCALE, 50f * SCALE) }
-        label(GameText.S_FF78287D6C, 669.431f, 702.8f, 149.51f)
+        label(SystemMessage.S_FF78287D6C, 669.431f, 702.8f, 149.51f)
         if (view.selectedTab == HallExclusiveView.Tab.SET_LIST) {
             patch("box4")?.draw(batch, 138.186f * SCALE, 117.5f * SCALE, 1212f * SCALE, 585f * SCALE)
             texture("vline")?.let { line ->
@@ -91,10 +91,10 @@ internal object HallExclusiveRenderer {
                     batch.draw(line, x * SCALE, 120.254f * SCALE, 6f * SCALE, 524.8f * SCALE)
                 }
             }
-            header(138.586f, 642.1f, 236f, GameText.S_8C4DAC1FCC)
-            header(374.586f, 642.1f, 233f, GameText.S_BD54114CB4)
-            header(607.636f, 642.1f, 236.5f, GameText.S_51378A4614)
-            header(844.036f, 642.1f, 506.1f, GameText.S_9940B21F7F)
+            header(138.586f, 642.1f, 236f, SystemMessage.S_8C4DAC1FCC)
+            header(374.586f, 642.1f, 233f, SystemMessage.S_BD54114CB4)
+            header(607.636f, 642.1f, 236.5f, SystemMessage.S_51378A4614)
+            header(844.036f, 642.1f, 506.1f, SystemMessage.S_9940B21F7F)
         } else {
             patch("box4")?.draw(batch, 140.186f * SCALE, 117.45f * SCALE, 1208f * SCALE, 585.7f * SCALE)
             texture("vline")?.let { line ->
@@ -102,13 +102,13 @@ internal object HallExclusiveRenderer {
                     batch.draw(line, x * SCALE, y * SCALE, 6f * SCALE, 524.8f * SCALE)
                 }
             }
-            header(140.85f, 643.3f, 185f, GameText.S_E6B2B4DBC0)
-            header(324.236f, 643.3f, 243.9f, GameText.S_9AA18E5071)
-            header(568.186f, 643.3f, 780f, GameText.S_9940B21F7F)
+            header(140.85f, 643.3f, 185f, SystemMessage.S_E6B2B4DBC0)
+            header(324.236f, 643.3f, 243.9f, SystemMessage.S_9AA18E5071)
+            header(568.186f, 643.3f, 780f, SystemMessage.S_9940B21F7F)
         }
-        button(354.241f, GameText.S_7072EC6F49, 167f)
-        button(147.282f, GameText.S_8DD48EC033, 167f)
-        button(1141.864f, GameText.S_468266D639, 100f)
+        button(354.241f, SystemMessage.S_7072EC6F49, 167f)
+        button(147.282f, SystemMessage.S_8DD48EC033, 167f)
+        button(1141.864f, SystemMessage.S_468266D639, 100f)
         batch.color = Color.WHITE
     }
 }

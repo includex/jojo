@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.shared
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.Application.ApplicationType
 import com.badlogic.gdx.Gdx
@@ -46,7 +46,7 @@ object KoreanFont {
          */
 
         val fontPath = candidates.firstOrNull { File(it).isFile }
-            ?: error(GameText.S_1217D649AD)
+            ?: error(SystemMessage.S_1217D649AD)
         /**
          * `generator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -57,8 +57,8 @@ class BattleForcesOverlayRenderer(
         assets.panel?.draw(batch, 170f, 139.5f, 1149f, 527f)
         font.color = Color.BLACK
         font.data.setScale(scale)
-        font.draw(batch, GameText.S_8767F1CDA5, x + 455f, 706f)
-        listOf(GameText.S_CAA3F84FF8, GameText.S_F407A5EA8C, GameText.S_453D0D2DF5, GameText.S_A45EA58EBC, GameText.S_A45EA58EBC, GameText.S_2A9C189A93, GameText.S_2A87C14E4A, GameText.S_C90D66734C, GameText.S_AF51A96858, GameText.S_C91E618B9A)
+        font.draw(batch, SystemMessage.S_8767F1CDA5, x + 455f, 706f)
+        listOf(SystemMessage.S_CAA3F84FF8, SystemMessage.S_F407A5EA8C, SystemMessage.S_453D0D2DF5, SystemMessage.S_A45EA58EBC, SystemMessage.S_A45EA58EBC, SystemMessage.S_2A9C189A93, SystemMessage.S_2A87C14E4A, SystemMessage.S_C90D66734C, SystemMessage.S_AF51A96858, SystemMessage.S_C91E618B9A)
             .forEachIndexed { index, label -> font.draw(batch, label, x + offsets[index], 646f) }
         listOf(130f, 285f, 390f, 540f, 645f, 745f, 840f, 935f, 1030f)
             .forEach { assets.verticalLine?.draw(batch, x + it, 139.5f, 6f, 527f) }
@@ -74,13 +74,13 @@ class BattleForcesOverlayRenderer(
         if (view.tabsVisible) {
             font.data.setScale(.7f)
             font.color = if (view.selectedTab == 0) Color(0.05f, .48f, .94f, 1f) else Color.DARK_GRAY
-            font.draw(batch, if (view.selectedTab == 0) GameText.S_C66E599032 else GameText.S_1FC67EAEB1, x + 72f, y + 28f)
+            font.draw(batch, if (view.selectedTab == 0) SystemMessage.S_C66E599032 else SystemMessage.S_1FC67EAEB1, x + 72f, y + 28f)
             font.color = if (view.selectedTab == 1) Color(0.05f, .48f, .94f, 1f) else Color.DARK_GRAY
-            font.draw(batch, if (view.selectedTab == 1) GameText.S_AC5814F977 else GameText.S_AB9FC6A986, x + 220f, y + 28f)
+            font.draw(batch, if (view.selectedTab == 1) SystemMessage.S_AC5814F977 else SystemMessage.S_AB9FC6A986, x + 220f, y + 28f)
         }
         assets.panel?.draw(batch, x + w - 185f, y + 10f, 170f, 55f)
         font.color = Color.BLACK
-        font.draw(batch, GameText.S_438784C35E, x + w - 130f, y + 30f)
+        font.draw(batch, SystemMessage.S_438784C35E, x + w - 130f, y + 30f)
         font.color = Color.WHITE
         font.data.setScale(1f)
         batch.end()

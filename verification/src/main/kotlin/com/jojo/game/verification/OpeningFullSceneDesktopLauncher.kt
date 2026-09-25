@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.badlogic.gdx.utils.ScreenUtils
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.*
 import com.jojo.game.domain.scenario.PlaybackState
@@ -27,7 +28,7 @@ object OpeningFullSceneDesktopLauncher {
                 check(frame < 900 && probe.elapsedSeconds < 12f)
                 check(probe.module == "R_00" && probe.sceneIndex == 1)
                 if (probe.playback == PlaybackState.DIALOGUE && probe.dialogueTextComplete) {
-                    check(probe.dialogueSpeakerId == "181" && probe.dialogueVisibleText == "대장님, 서둘러야 해요!")
+                    check(probe.dialogueSpeakerId == "181" && probe.dialogueVisibleText == ScenarioDialogueTextCatalog.text("opening_scene1_page1"))
                     check(!probe.naturalStreetTextIsolation)
                     check(probe.actors.size == 4 && probe.actors.all { it.moveDuration == 0f })
                     val width = Gdx.graphics.backBufferWidth

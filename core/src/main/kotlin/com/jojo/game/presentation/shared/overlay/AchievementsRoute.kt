@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.shared.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** SettingAchievementsRoute: SettingLayer 도구 버튼 12(태그 7)의 동작을 구현한다. 도구 패널은 비밀 제목 동작 뒤 표시되며, 이후 업적 화면을 열거나 빈 저장 알림을 전달한다. */
 
@@ -59,7 +59,7 @@ class SettingAchievementsRoute(
         if (!toolsPanelVisible || !touchEnd || tag != 7) return emptyList()
         toolsPanelVisible = false
         return if (rewards.isEmpty()) {
-            listOf(Effect.Toast(GameText.S_1A7993E57F))
+            listOf(Effect.Toast(SystemMessage.S_1A7993E57F))
         } else {
             listOf(Effect.OpenAchievements)
         }

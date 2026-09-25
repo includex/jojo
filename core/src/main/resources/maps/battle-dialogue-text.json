@@ -1,0 +1,17 @@
+{
+  "domain": "battle-dialogue",
+  "entries": [
+    {
+      "textureKey": "091c5bed7344d3a05ff5d096a75d29e4e44c82cfe5fe4219fbd76470649a926f",
+      "text": "젠장, 황번 반역자 수가 계속 늘어났다."
+    },
+    {
+      "textureKey": "6aa4d512b602186fccf2a413efe622100132a117587dc74fe363ae006408574d",
+      "text": "아......."
+    },
+    {
+      "textureKey": "b520fef60655a5d0b8bc5b1a53e02b911e7883dc23f25e6e3d4db347898954ca",
+      "text": "하지만, 얼마나 증오스러운 일인가......."
+    }
+  ]
+}

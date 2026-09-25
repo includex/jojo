@@ -1,7 +1,7 @@
 // Battle Fixture
 package com.jojo.game.presentation.battle.fixture
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.application.runtime.RuntimeBattleRoute
 
@@ -83,7 +83,7 @@ internal class BattleItemUpgradeRouteFixtureController {
             fallbackArmor = 72,
             fallbackArmorLevel = 1,
             fallbackAuxiliary = 111,
-            ownerName = GameText.S_C13513CF50,
+            ownerName = SystemMessage.S_C13513CF50,
             gainedExperience = 1,
         )
     }

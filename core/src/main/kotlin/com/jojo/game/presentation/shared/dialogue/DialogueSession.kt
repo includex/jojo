@@ -1,7 +1,7 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** 대화 한 줄: 화자 식별자, 본문, 초상화·배치에 필요한 화면 힌트를 함께 전달한다. */
 data class DialogueMessage(
@@ -153,7 +153,7 @@ class DialogueSession(
     private val dialogueRevealTiming: DialogueRevealTiming = DialogueRevealTiming.ACCUMULATING,
 ) {
     init {
-        require(characterIntervalSeconds > 0f) { GameText.S_D8BC2DB4DC }
+        require(characterIntervalSeconds > 0f) { SystemMessage.S_D8BC2DB4DC }
     }
 
     /** 현재 화면 모드이다. */
@@ -487,7 +487,7 @@ class DialogueTextReveal(
     private val timing: DialogueRevealTiming = DialogueRevealTiming.ACCUMULATING,
 ) {
     init {
-        require(characterIntervalSeconds > 0f) { GameText.S_D8BC2DB4DC }
+        require(characterIntervalSeconds > 0f) { SystemMessage.S_D8BC2DB4DC }
     }
 
     /** 현재 공개 중인 원문이다. */

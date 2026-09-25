@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.badlogic.gdx.utils.ScreenUtils
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.GameEntryPoint
 import com.jojo.game.application.runtime.GameLaunchConfiguration
@@ -19,7 +20,7 @@ import java.security.MessageDigest
 
 /** Captures every naturally observed prefix of the third Hall dialogue after two normal completed-dialogue inputs with the full scene visible. */
 object OpeningThirdPrefixesDesktopLauncher {
-    private const val fullText = "잠시만 기다려 주세요!"
+    private val fullText = ScenarioDialogueTextCatalog.text("opening_scene1_page3")
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -48,7 +49,7 @@ object OpeningThirdPrefixesDesktopLauncher {
                     portraitObserverInstalled = true
                 }
                 if (probe.playback == PlaybackState.DIALOGUE && dialogueInputs < 2 && probe.dialogueTextComplete) {
-                    val expectedTexts = listOf("대장님, 서둘러야 해요!", "알아!")
+                    val expectedTexts = listOf(ScenarioDialogueTextCatalog.text("opening_scene1_page1"), ScenarioDialogueTextCatalog.text("opening_scene1_page2"))
                     val expectedSpeakers = listOf("181", "0")
                     check(probe.dialogueVisibleText == expectedTexts[dialogueInputs])
                     check(probe.dialogueSpeakerId == expectedSpeakers[dialogueInputs])

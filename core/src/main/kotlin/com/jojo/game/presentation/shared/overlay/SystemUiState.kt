@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.shared.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** DialogState: 복원한 시스템 UI 생성기에서 파생한 프레임워크 독립 상태이다. */
 class DialogState(private val callback: (Int) -> Unit) {
@@ -252,7 +252,7 @@ class ProgressState {
      */
 
     fun set(v: Double) {
-        label = GameText.format(GameText.Key.RESOURCE_LOADING, (100 * v).toInt())
+        label = SystemMessage.format(SystemMessage.Key.RESOURCE_LOADING, (100 * v).toInt())
     }
 }
 

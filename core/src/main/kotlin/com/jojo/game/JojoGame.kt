@@ -18,6 +18,7 @@ import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.application.runtime.GameStartupCoordinator
 import com.jojo.game.application.runtime.RuntimeStartupRouter
 import com.jojo.game.infrastructure.data.CampaignStore
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.presentation.battle.BattleScreen
 
 import com.badlogic.gdx.Game
@@ -260,6 +261,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      */
 
     override fun create() {
+        ScenarioDialogueTextCatalog.load()
         GameStartupCoordinator(
             configuration = configuration,
             campaignState = campaign.state,

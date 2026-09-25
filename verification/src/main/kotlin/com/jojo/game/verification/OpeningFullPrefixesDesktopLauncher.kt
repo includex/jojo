@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.badlogic.gdx.utils.ScreenUtils
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.GameEntryPoint
 import com.jojo.game.application.runtime.GameLaunchConfiguration
@@ -18,7 +19,7 @@ import java.security.MessageDigest
 
 /** Captures every naturally observed prefix of the first Hall dialogue with the full scene visible. */
 object OpeningFullPrefixesDesktopLauncher {
-    private const val fullText = "대장님, 서둘러야 해요!"
+    private val fullText = ScenarioDialogueTextCatalog.text("opening_scene1_page1")
 
     @JvmStatic
     fun main(args: Array<String>) {

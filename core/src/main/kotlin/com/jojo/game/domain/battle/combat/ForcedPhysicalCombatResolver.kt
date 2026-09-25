@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.combat
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
 
@@ -20,7 +20,7 @@ fun executeForcedAttack(
         env: PhysicalCombatEnvironment,
     ): TacticalActionResult {
         if (!attacker.visible || !target.visible || env.areAllied(attacker, target)) {
-            return TacticalActionResult.Rejected(GameText.S_1CB107B8F7)
+            return TacticalActionResult.Rejected(SystemMessage.S_1CB107B8F7)
         }
         /**
          * `hitRate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.

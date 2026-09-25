@@ -7,6 +7,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.badlogic.gdx.utils.ScreenUtils
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.GameEntryPoint
 import com.jojo.game.application.runtime.GameLaunchConfiguration
@@ -22,7 +23,7 @@ object OpeningFullPagesDesktopLauncher {
     fun main(args: Array<String>) {
         val directory = File(args.single()).also { it.mkdirs() }
         directory.listFiles()?.forEach(File::delete)
-        val expectedTexts = listOf("대장님, 서둘러야 해요!", "알아!", "잠시만 기다려 주세요!")
+        val expectedTexts = listOf(ScenarioDialogueTextCatalog.text("opening_scene1_page1"), ScenarioDialogueTextCatalog.text("opening_scene1_page2"), ScenarioDialogueTextCatalog.text("opening_scene1_page3"))
         val expectedSpeakers = listOf("181", "0", "157")
         val captures = JsonValue(JsonValue.ValueType.array)
         val inputs = JsonValue(JsonValue.ValueType.array)

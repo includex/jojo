@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.presentation.shared.overlay.TerrainLayer
 
@@ -16,7 +16,7 @@ internal data class HallTerrainView(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        private val sourceNames = listOf(GameText.S_208485813F, GameText.S_BC9CE179E3, GameText.S_7CC8A7A989, GameText.S_55C0FB1865, GameText.S_F5798CEF9A, GameText.S_273718B1D7)
+        private val sourceNames = listOf(SystemMessage.S_208485813F, SystemMessage.S_BC9CE179E3, SystemMessage.S_7CC8A7A989, SystemMessage.S_55C0FB1865, SystemMessage.S_F5798CEF9A, SystemMessage.S_273718B1D7)
 
         /**
          * `from`: 타입의 핵심 동작을 수행한다.

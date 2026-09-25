@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.BattleUnitMoveTimeline
@@ -234,7 +234,7 @@ internal class BattleAiPresentationPort(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    override fun setSummary(camp: Faction, result: AiTurnResult) { screen.eventMessage = GameText.format(GameText.Key.AI_TURN_SUMMARY, camp.presentationLabel(), result.moves, result.attacks, result.holds) }
+    override fun setSummary(camp: Faction, result: AiTurnResult) { screen.eventMessage = SystemMessage.format(SystemMessage.Key.AI_TURN_SUMMARY, camp.presentationLabel(), result.moves, result.attacks, result.holds) }
     /**
      * `completeCamp`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
@@ -246,7 +246,7 @@ internal class BattleAiPresentationPort(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    override fun setActionMessage(camp: Faction, resolution: AiUnitResolution) { screen.movementAnimation = null; screen.eventMessage = GameText.format(GameText.Key.AI_UNIT_ACTION, camp.presentationLabel(), screen.battle.presentation.presentationUnit(resolution.actorId)?.name ?: resolution.actorId) }
+    override fun setActionMessage(camp: Faction, resolution: AiUnitResolution) { screen.movementAnimation = null; screen.eventMessage = SystemMessage.format(SystemMessage.Key.AI_UNIT_ACTION, camp.presentationLabel(), screen.battle.presentation.presentationUnit(resolution.actorId)?.name ?: resolution.actorId) }
     /**
      * `beginNoResultFrameGate`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
@@ -273,8 +273,8 @@ internal class BattleAiPresentationPort(
  */
 
 private fun Faction.presentationLabel(): String = when (this) {
-    Faction.PLAYER -> GameText.S_3843E8E488
-    Faction.FRIEND -> GameText.S_7627935CE4
-    Faction.ENEMY -> GameText.S_93A131140A
-    Faction.REINFORCEMENTS -> GameText.S_654B500353
+    Faction.PLAYER -> SystemMessage.S_3843E8E488
+    Faction.FRIEND -> SystemMessage.S_7627935CE4
+    Faction.ENEMY -> SystemMessage.S_93A131140A
+    Faction.REINFORCEMENTS -> SystemMessage.S_654B500353
 }

@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.application.battle
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.presentation.scenario.overlay.*
 
@@ -570,5 +570,5 @@ object BattleCommandRenderModel {
      * 목록을 읽는다. 앞서는 두 곳이 문구와 좌표를 각자 적어 두어, 한쪽만 틀려도 게이트가
      * 초록일 수 있었다.
      */
-    val labels: List<String> = listOf(GameText.S_2A9C189A93, GameText.S_9D41799D25, GameText.S_B62250FE8D, GameText.S_D7F1F76848, GameText.S_3961E081B0, GameText.S_DF72A8753D, GameText.S_19B2D19BC1)
+    val labels: List<String> = listOf(SystemMessage.S_2A9C189A93, SystemMessage.S_9D41799D25, SystemMessage.S_B62250FE8D, SystemMessage.S_D7F1F76848, SystemMessage.S_3961E081B0, SystemMessage.S_DF72A8753D, SystemMessage.S_19B2D19BC1)
 }

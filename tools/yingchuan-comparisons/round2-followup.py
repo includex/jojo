@@ -1,7 +1,9 @@
 # 자동 턴 종료 확인 후 다음 진영과 유비32의 첫 대사. 경계에서 표시 부대 전체 상태를 대조한다.
 # 조작기 입력을 낀 간격은 판정하지 않는다(확인창 감지->좌표 확보->클릭은 조작기 반응 시간이다).
-import json,sys,re
+import json, re, sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from dialogue_text_catalog import dialogue_text
 def clip(x):return re.sub(r'_\d+$','',x[14] or '')
 TOL=0.06
 # 한 프레임의 기대 길이. 이보다 긴 프레임은 캡처가 멈춰 선 자리다.
@@ -9,7 +11,7 @@ FRAME=1/60
 # 정체 판정 기준. 한 프레임이 이보다 길면 캡처가 멈춰 선 자리다.
 STALL=0.05
 DRIVER_SPANNED={'camp0_to_camp1_s'}
-TEXT='이것은 만민의 분노입니다!'
+TEXT=dialogue_text("yingchuan_round2_followup_speaker32")
 def summarize(path):
  d=json.loads(Path(path).read_text());fs=d['frames']
  c0 =next(i for i,f in enumerate(fs) if f.get('round')==2 and f.get('camp')==0)

@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.evidence.RenderEventLog
 
@@ -182,7 +182,7 @@ object OtherUnitInfoRenderEvents {
         label("Canvas/Layer/bg/label", 912.256f, 226.815f, 46.25f, "Lv")
         label("Canvas/Layer/bg/label1", 1005.002f, 226.815f, 26.25f, view.level.toString())
         label("Canvas/Layer/bg/label2", 1049.3f, 226.85f, 147.6f, view.post)
-        require(!geometry.hasNext()) { GameText.S_3098F076B7 }
+        require(!geometry.hasNext()) { SystemMessage.S_3098F076B7 }
         return log.jsonl()
     }
 }

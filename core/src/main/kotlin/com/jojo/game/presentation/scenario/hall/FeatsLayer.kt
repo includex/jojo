@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** FeatsLayer: 업적 화면의 입력과 행 표시 상태를 관리한다. */
 class FeatsLayer(rows: List<Row>) {
@@ -166,7 +166,7 @@ class FeatsLayer(rows: List<Row>) {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val TITLES = listOf(GameText.S_D8F7F3C37F, GameText.S_DAFEF2D567, GameText.S_B08EB69621, GameText.S_983FFCFEC3, GameText.S_DFC3916173)
+        val TITLES = listOf(SystemMessage.S_D8F7F3C37F, SystemMessage.S_DAFEF2D567, SystemMessage.S_B08EB69621, SystemMessage.S_983FFCFEC3, SystemMessage.S_DFC3916173)
         /**
          * `HELP_TEXT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

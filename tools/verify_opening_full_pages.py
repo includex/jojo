@@ -7,8 +7,9 @@ import math
 from pathlib import Path
 
 from verify_opening_panel_pixels import compare
+from dialogue_text_catalog import dialogue_text
 
-TEXTS = ['대장님, 서둘러야 해요!', '알아!', '잠시만 기다려 주세요!']
+TEXTS = [dialogue_text(f"opening_scene1_page{page}") for page in range(1, 4)]
 SPEAKERS = ['181', '0', '157']
 INITIAL = {0: (40, 35, 2), 157: (54, 65, 0), 181: (40, 45, 0), 182: (40, 25, 2)}
 AFTER_MOVE = {0: (40, 50, 2), 157: (54, 50, 3), 181: (40, 60, 2), 182: (40, 40, 2)}

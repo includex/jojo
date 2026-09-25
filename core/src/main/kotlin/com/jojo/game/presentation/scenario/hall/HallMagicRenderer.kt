@@ -1,7 +1,7 @@
 // 시나리오 거점 마법 상세 화면 렌더링
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
@@ -76,22 +76,22 @@ internal object HallMagicRenderer {
         label(view.name, 577.509f, 604.008f, 103.8f)
         magicTexture("magic-${view.iconFrame}")?.let { batch.draw(it, 478.186f * SCALE, 562f * SCALE, 80f * SCALE, 80f * SCALE) }
         patch("box1")?.draw(batch, 465.636f * SCALE, 434f * SCALE, 340.3f * SCALE, 100f * SCALE)
-        label(GameText.S_169487DB3A, 476.336f, 479.826f, 80.31f)
+        label(SystemMessage.S_169487DB3A, 476.336f, 479.826f, 80.31f)
         label("${view.power}%", 566.719f, 480.13f, 80.06f)
-        label(GameText.S_5FC06645C6, 470.776f, 436.826f, 151.43f)
+        label(SystemMessage.S_5FC06645C6, 470.776f, 436.826f, 151.43f)
         label(view.cost.toString(), 627.053f, 436.675f, 22.25f)
         patch("box2")?.draw(batch, 465.636f * SCALE, 147f * SCALE, 340.3f * SCALE, 274f * SCALE)
         label(view.intro, 470.786f, 144.76f, 330f, Align.left, wrap = true)
         patch("box1")?.draw(batch, 814.213f * SCALE, 436.061f * SCALE, 200f * SCALE, 200f * SCALE)
         texture("title")?.let { batch.draw(it, 830.713f * SCALE, 614.117f * SCALE, 167f * SCALE, 40f * SCALE) }
-        label(GameText.S_AF99A26F2C, 839.654f, 611.005f, 149.51f)
+        label(SystemMessage.S_AF99A26F2C, 839.654f, 611.005f, 149.51f)
         magicTexture("hitarea-${view.hitAreaFrame}")?.let { batch.draw(it, 834.213f * SCALE, 450.755f * SCALE, 160f * SCALE, 160f * SCALE) }
         patch("box1")?.draw(batch, 814.213f * SCALE, 204.673f * SCALE, 200f * SCALE, 200f * SCALE)
         texture("title")?.let { batch.draw(it, 831.713f * SCALE, 384.673f * SCALE, 165f * SCALE, 40f * SCALE) }
-        label(GameText.S_368A5F6FF8, 839.654f, 381.561f, 149.51f)
+        label(SystemMessage.S_368A5F6FF8, 839.654f, 381.561f, 149.51f)
         magicTexture("effarea-${view.effectAreaFrame}")?.let { batch.draw(it, 834.213f * SCALE, 219.367f * SCALE, 160f * SCALE, 160f * SCALE) }
         patch("box3", 8)?.draw(batch, 874.764f * SCALE, 144.022f * SCALE, 147.6f * SCALE, 50f * SCALE)
-        label(GameText.S_468266D639, 898.564f, 152.022f, 100f)
+        label(SystemMessage.S_468266D639, 898.564f, 152.022f, 100f)
         batch.color = Color.WHITE
     }
 }

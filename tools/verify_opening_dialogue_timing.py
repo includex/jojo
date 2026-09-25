@@ -6,7 +6,9 @@ import math
 from pathlib import Path
 from verify_opening_event_timing import validate_source
 
-TEXT = '대장님, 서둘러야 해요!'
+from dialogue_text_catalog import dialogue_text
+
+TEXT = dialogue_text("opening_scene1_page1")
 
 
 def replay(frames):

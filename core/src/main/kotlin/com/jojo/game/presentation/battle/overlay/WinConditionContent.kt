@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** WinConditionContent: 승리 조건 문자열을 구성하는 순수 로직이다. */
 object WinConditionContent {
@@ -24,7 +24,7 @@ object WinConditionContent {
     ): String = buildString {
         if (text != null) append(text).append('\n')
         if (vs != null) {
-            append(GameText.S_C50A5CA288)
+            append(SystemMessage.S_C50A5CA288)
             vs.chunked(2).filter { it.size == 2 }.forEach { (a, b) ->
                 /**
                  * `left` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -42,7 +42,7 @@ object WinConditionContent {
             }
         }
         if (talk != null) {
-            append(GameText.S_3CFBA6C9EC)
+            append(SystemMessage.S_3CFBA6C9EC)
             talk.chunked(2).filter { it.size == 2 }.forEach { (a, b) ->
                 /**
                  * `left` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -60,7 +60,7 @@ object WinConditionContent {
             }
         }
         if (items != null) {
-            append(GameText.S_C51A025896)
+            append(SystemMessage.S_C51A025896)
             items.forEachIndexed { index, item ->
                 if (variable(item.variable) != 1) {
                     append(item.description).append(',')

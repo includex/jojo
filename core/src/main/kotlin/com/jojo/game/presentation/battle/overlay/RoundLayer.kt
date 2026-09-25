@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** 현재 턴과 최대 턴 입력을 화면 문구로 변환하고 일정 시간이 지나면 제거를 알린다. */
 
@@ -84,7 +84,7 @@ class RoundLayer(
     /** 현재 턴·최대 턴 입력을 일반 턴 또는 최종 턴 문구로 변환한다. */
     fun onCreate(args: CreateArgs) {
         val isFinal = args.maxPresent && args.round > (args.max ?: 0)
-        val text = if (!args.roundPresent) "" else if (isFinal) GameText.S_246D8BEA50 else GameText.format(GameText.Key.CHAPTER_PREFIX, args.round) + "턴"
+        val text = if (!args.roundPresent) "" else if (isFinal) SystemMessage.S_246D8BEA50 else SystemMessage.format(SystemMessage.Key.CHAPTER_PREFIX, args.round) + "턴"
         view = View(
             roundLabelsVisible = args.roundPresent,
             campLabelsVisible = !args.roundPresent,

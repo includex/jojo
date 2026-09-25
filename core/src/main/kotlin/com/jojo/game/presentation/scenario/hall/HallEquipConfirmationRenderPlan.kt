@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.utils.Align
 
@@ -34,7 +34,7 @@ internal object HallEquipConfirmationRenderPlan {
         statLabels.forEach { (label, x, y) -> text(label, x, y + 38f) }
         listOf(
             Triple(549.186f, view.actionLabel, 574.186f),
-            Triple(789.186f, GameText.S_19B2D19BC1, 814.186f),
+            Triple(789.186f, SystemMessage.S_19B2D19BC1, 814.186f),
         ).forEach { (x, label, labelX) ->
             patch("maps/ui/unit-info/box3.png", x, 251.901f, 150f, 50f)
             text(label, labelX, 290.901f, 100f)
@@ -91,9 +91,9 @@ internal object HallEquipConfirmationRenderPlan {
      */
 
     private val statLabels = listOf(
-        Triple(GameText.S_B2A0B8369E, 760.093f, 316.707f), Triple(GameText.S_C91E618B9A, 507.393f, 316.707f),
-        Triple(GameText.S_9EC6283754, 760.093f, 375.707f), Triple(GameText.S_5C349008C3, 510.093f, 375.707f),
-        Triple(GameText.S_F3F57B591C, 760.093f, 435.707f), Triple(GameText.S_50B8DF8C55, 510.093f, 435.707f),
+        Triple(SystemMessage.S_B2A0B8369E, 760.093f, 316.707f), Triple(SystemMessage.S_C91E618B9A, 507.393f, 316.707f),
+        Triple(SystemMessage.S_9EC6283754, 760.093f, 375.707f), Triple(SystemMessage.S_5C349008C3, 510.093f, 375.707f),
+        Triple(SystemMessage.S_F3F57B591C, 760.093f, 435.707f), Triple(SystemMessage.S_50B8DF8C55, 510.093f, 435.707f),
         Triple("MP", 751.993f, 494.707f), Triple("HP", 502.208f, 494.707f),
     )
 }

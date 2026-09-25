@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -202,7 +202,7 @@ internal class ScenarioChoiceCoordinator(
         frame: Frame,
         moduleName: String,
     ) {
-        currentChoice = Choice(listOf(GameText.S_A842629AFD, GameText.S_D3B0E1A367), null)
+        currentChoice = Choice(listOf(SystemMessage.S_A842629AFD, SystemMessage.S_D3B0E1A367), null)
         selectedChoice = 0
         isAskChoice = true
         setChoiceSource(ask, frame, moduleName)
@@ -224,7 +224,7 @@ internal class ScenarioChoiceCoordinator(
         assign: (JsonValue, Any?, Frame) -> Unit,
         onResumeExecution: () -> Unit,
     ) {
-        check(currentState == PlaybackState.CHOICE) { GameText.S_B1622411B7 }
+        check(currentState == PlaybackState.CHOICE) { SystemMessage.S_B1622411B7 }
         /**
          * `choice` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -285,7 +285,7 @@ internal class ScenarioChoiceCoordinator(
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val targetFrame = frames.peekLast() ?: error(GameText.S_8451709DFE)
+            val targetFrame = frames.peekLast() ?: error(SystemMessage.S_8451709DFE)
             assign(target, selectedChoice + 1, targetFrame)
         }
         pendingChoiceTarget = null

@@ -1,5 +1,4 @@
 {
-  "text": "아.......",
   "source": "Cocos cc.Label._ttfTexture gl.readPixels RGBA/UNSIGNED_BYTE",
   "rawOrigin": "bottom-left",
   "width": 101,

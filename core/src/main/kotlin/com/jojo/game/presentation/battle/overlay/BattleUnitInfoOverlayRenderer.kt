@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -121,7 +121,7 @@ class BattleUnitInfoOverlayRenderer(
         // 제목과 인물 요약은 초상화(230.186, 490.956, 192x240) 오른쪽에 둔다. 예전에는 왼쪽
         // 좁은 자리에 겹쳐 찍혀 초상화와 서로 가렸다.
         font.data.setScale(.85f)
-        font.draw(batch, GameText.S_757535E6BD, 230f, 762f)
+        font.draw(batch, SystemMessage.S_757535E6BD, 230f, 762f)
         font.draw(batch, "${u.name}  ${u.post}  Lv${u.level}", 440f, 700f)
         font.draw(batch, "HP ${u.hp}/${u.maxHp}", 440f, 655f)
         font.draw(batch, "MP ${u.mp}/${u.maxMp}", 440f, 610f)
@@ -136,10 +136,10 @@ class BattleUnitInfoOverlayRenderer(
         }
         font.color = Color.WHITE
         view.magicRows.forEachIndexed { i, magic -> font.draw(batch, magic, 790f, 680f - i * 50f) }
-        font.draw(batch, GameText.S_B38CAAEF34, 980f, 75f)
-        font.draw(batch, GameText.S_D4B491F164, 1140f, 75f)
-        font.draw(batch, GameText.S_468266D639, 785f, 75f)
-        if (view.buttons.getOrElse(9) { false }) font.draw(batch, GameText.S_0011209CB1, 707f, 54f)
+        font.draw(batch, SystemMessage.S_B38CAAEF34, 980f, 75f)
+        font.draw(batch, SystemMessage.S_D4B491F164, 1140f, 75f)
+        font.draw(batch, SystemMessage.S_468266D639, 785f, 75f)
+        if (view.buttons.getOrElse(9) { false }) font.draw(batch, SystemMessage.S_0011209CB1, 707f, 54f)
         font.data.setScale(1f)
         batch.end()
         if (view.tab == 0) drawBaseLabels(view.unit)
@@ -167,7 +167,7 @@ class BattleUnitInfoOverlayRenderer(
 
     /** `introBlock`: 소개 본문을 제목 아래 구역에 줄바꿈해 그린다. */
     private fun introBlock(text: String, top: Float) {
-        font.draw(batch, text.ifBlank { GameText.S_D58FA73ADC }, 830.486f, top, 440f, Align.left, true)
+        font.draw(batch, text.ifBlank { SystemMessage.S_D58FA73ADC }, 830.486f, top, 440f, Align.left, true)
     }
 
     /**
@@ -184,19 +184,19 @@ class BattleUnitInfoOverlayRenderer(
          * 어떤 유닛을 열어도 같은 값이 나왔다.
          */
         fun baseLabels(unit: BattleUnitInfoUnitView): List<Pair<String, Pair<Float, Float>>> = buildList {
-            add(GameText.S_2C41F8D606 to (927.791f to 627.345f))
-            add(GameText.S_D8F7F3C37F to (848.106f to 573.7f))
-            add(GameText.S_B08EB69621 to (848.106f to 520.7f))
-            add(GameText.S_DAFEF2D567 to (848.106f to 467.7f))
-            add(GameText.S_983FFCFEC3 to (1059.486f to 573.24f))
-            add(GameText.S_DFC3916173 to (1059.486f to 520.7f))
+            add(SystemMessage.S_2C41F8D606 to (927.791f to 627.345f))
+            add(SystemMessage.S_D8F7F3C37F to (848.106f to 573.7f))
+            add(SystemMessage.S_B08EB69621 to (848.106f to 520.7f))
+            add(SystemMessage.S_DAFEF2D567 to (848.106f to 467.7f))
+            add(SystemMessage.S_983FFCFEC3 to (1059.486f to 573.24f))
+            add(SystemMessage.S_DFC3916173 to (1059.486f to 520.7f))
             add("${unit.attack}" to (945.277f to 573.24f))
             add("${unit.spirit}" to (945.277f to 520.7f))
             add("${unit.defense}" to (945.277f to 467.7f))
             add("${unit.critical}" to (1155.034f to 573.24f))
             add("${unit.morale}" to (1155.034f to 520.7f))
-            add(GameText.S_BBEF509C8D to (1050.486f to 404f))
-            add(GameText.S_B9F40373E5 to (1050.486f to 290.16f))
+            add(SystemMessage.S_BBEF509C8D to (1050.486f to 404f))
+            add(SystemMessage.S_B9F40373E5 to (1050.486f to 290.16f))
             // 원본은 아군 유닛일 때만 이 줄을 켠다(`_ref0`의 `o.node.active = s`). 예전에는
             // 서식 문자열 "출진 횟수 %d / 퇴각 횟수 %d"가 치환 없이 그대로 찍혔다.
             if (unit.mine) {
@@ -212,7 +212,7 @@ class BattleUnitInfoOverlayRenderer(
         ).map { (x, y) -> (640f + x - 65f) to (400f + y - 30f) }
 
         /** 탭 버튼 문구다. 예전에는 상자만 그리고 문구는 왼쪽에 한 줄로 몰아 찍었다. */
-        val TAB_LABELS = listOf(GameText.S_7F1D8C413D, GameText.S_8F2A423094, GameText.S_E17B206052, GameText.S_913A74B987, GameText.S_D3901EE454)
+        val TAB_LABELS = listOf(SystemMessage.S_7F1D8C413D, SystemMessage.S_8F2A423094, SystemMessage.S_E17B206052, SystemMessage.S_913A74B987, SystemMessage.S_D3901EE454)
     }
 
     private fun patch(texture: Texture, x: Float, y: Float, width: Float, height: Float, left: Int = 3, right: Int = 3, top: Int = 3, bottom: Int = 3) {

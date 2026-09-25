@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 /** Faction: 전투 유닛의 소속 진영을 나타내며, 턴 순서와 아군·적군 판정에 사용한다. */
 enum class Faction { PLAYER, FRIEND, ENEMY, REINFORCEMENTS }
@@ -52,11 +52,11 @@ enum class BattleWeather { CLEAR, CLOUDY, WINDY, HEAVY_RAIN, SNOW }
  */
 
 fun BattleStatus.label(): String = when (this) {
-    BattleStatus.PARALYSIS -> GameText.S_38CA304494
-    BattleStatus.SILENCE -> GameText.S_682998EE62
-    BattleStatus.CONFUSION -> GameText.S_738A3F61E4
-    BattleStatus.POISON -> GameText.S_2B0B630E57
-    BattleStatus.LOST -> GameText.S_87F35DB204
+    BattleStatus.PARALYSIS -> SystemMessage.S_38CA304494
+    BattleStatus.SILENCE -> SystemMessage.S_682998EE62
+    BattleStatus.CONFUSION -> SystemMessage.S_738A3F61E4
+    BattleStatus.POISON -> SystemMessage.S_2B0B630E57
+    BattleStatus.LOST -> SystemMessage.S_87F35DB204
 }
 
 /**
@@ -65,10 +65,10 @@ fun BattleStatus.label(): String = when (this) {
  */
 
 fun BattleAttribute.label(): String = when (this) {
-    BattleAttribute.ATTACK -> GameText.S_50B8DF8C55
-    BattleAttribute.DEFENSE -> GameText.S_5C349008C3
-    BattleAttribute.SPIRIT -> GameText.S_F3F57B591C
-    BattleAttribute.CRITICAL -> GameText.S_9EC6283754
-    BattleAttribute.MORALE -> GameText.S_C91E618B9A
-    BattleAttribute.MOVEMENT -> GameText.S_B2A0B8369E
+    BattleAttribute.ATTACK -> SystemMessage.S_50B8DF8C55
+    BattleAttribute.DEFENSE -> SystemMessage.S_5C349008C3
+    BattleAttribute.SPIRIT -> SystemMessage.S_F3F57B591C
+    BattleAttribute.CRITICAL -> SystemMessage.S_9EC6283754
+    BattleAttribute.MORALE -> SystemMessage.S_C91E618B9A
+    BattleAttribute.MOVEMENT -> SystemMessage.S_B2A0B8369E
 }

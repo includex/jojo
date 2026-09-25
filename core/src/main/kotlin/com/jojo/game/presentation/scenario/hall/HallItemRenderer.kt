@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
@@ -101,22 +101,22 @@ internal object HallItemRenderer {
         rect(view.box2Texture, 265.778f, 564.802f, 144f, 144f)
         view.itemIconTexture?.let { batch.draw(it, 273.778f * SCALE, 572.802f * SCALE, 128f * SCALE, 128f * SCALE) }
         rect(view.box1Texture, 420.536f, 498.55f, 343.5f, 100.9f)
-        label(GameText.S_991BD0CC20, 432.137f, 548.543f, 80.31f)
+        label(SystemMessage.S_991BD0CC20, 432.137f, 548.543f, 80.31f)
         label(view.typeName, 522.525f, 548.543f, 180f)
-        label(GameText.S_C61005675A, 432.137f, 503.543f, 80.31f)
+        label(SystemMessage.S_C61005675A, 432.137f, 503.543f, 80.31f)
         label(view.price, 522.525f, 503.543f, 180f)
         rect(view.box1Texture, 261.686f, 92.5f, 501f, 377f)
         view.titleTexture?.let { batch.draw(it, 470.286f * SCALE, 447.7f * SCALE, 83.8f * SCALE, 40f * SCALE) }
-        label(GameText.S_CE49DECB68, 477.586f, 442.5f, 69.2f, true)
+        label(SystemMessage.S_CE49DECB68, 477.586f, 442.5f, 69.2f, true)
         label(view.effect, 265.686f, 345.966f, 493f, true)
         rect(view.box2Texture, 770.186f, 157.5f, 448f, 247f)
         view.titleTexture?.let { batch.draw(it, 943.336f * SCALE, 369.55f * SCALE, 89.7f * SCALE, 40.9f * SCALE) }
-        label(GameText.S_841964364C, 953.586f, 378.8f, 69.2f, true)
+        label(SystemMessage.S_841964364C, 953.586f, 378.8f, 69.2f, true)
         assets.bodyFont.color = Color.BLACK
         assets.bodyFont.draw(batch, view.intro, 774.186f * SCALE, 366f * SCALE, 440f * SCALE, Align.left, true)
         rect(view.box1Texture, 770.186f, 427f, 448f, 260f)
         view.titleTexture?.let { batch.draw(it, 871.686f * SCALE, 664.273f * SCALE, 245f * SCALE, 45f * SCALE) }
-        label(GameText.S_1CC0D0F805, 804.516f, 661.573f, 379.34f, true)
+        label(SystemMessage.S_1CC0D0F805, 804.516f, 661.573f, 379.34f, true)
         view.postNames.take(36).chunked(3).forEachIndexed { row, names ->
             /**
              * `sy` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -128,19 +128,19 @@ internal object HallItemRenderer {
             names.forEachIndexed { col, name -> label(name, 780.186f + col * 143f, sy + 4.84f, 134f, true) }
         }
         rect(view.buttonTexture, 1065.827f, 97.824f, 150f, 50f)
-        label(GameText.S_468266D639, 1090.827f, 104.824f, 100f, true)
+        label(SystemMessage.S_468266D639, 1090.827f, 104.824f, 100f, true)
         if (view.canDrop) {
             rect(view.buttonTexture, 901.312f, 97.824f, 150f, 50f)
-            label(GameText.S_6DB5F96BD1, 926.312f, 104.824f, 100f, true)
+            label(SystemMessage.S_6DB5F96BD1, 926.312f, 104.824f, 100f, true)
         }
         if (view.discardConfirmationOpen) {
             view.logoTexture?.let { batch.draw(it, 426.686f * SCALE, 252f * SCALE, 635f * SCALE, 296f * SCALE) }
             rect(view.buttonTexture, 426.686f, 252f, 635f, 296f)
-            label(GameText.format(GameText.Key.ITEM_DROP_CONFIRM, view.itemName), 573.686f, 335f, 463f)
+            label(SystemMessage.format(SystemMessage.Key.ITEM_DROP_CONFIRM, view.itemName), 573.686f, 335f, 463f)
             rect(view.buttonTexture, 554.186f, 271.285f, 180f, 50f)
-            label(GameText.S_D3B0E1A367, 557.336f, 279.085f, 168.1f, true)
+            label(SystemMessage.S_D3B0E1A367, 557.336f, 279.085f, 168.1f, true)
             rect(view.buttonTexture, 754.186f, 271.285f, 180f, 50f)
-            label(GameText.S_A842629AFD, 757.586f, 279.085f, 169.4f, true)
+            label(SystemMessage.S_A842629AFD, 757.586f, 279.085f, 169.4f, true)
         }
         batch.color = Color.WHITE
     }

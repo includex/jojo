@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -31,7 +31,7 @@ data class BattleRewardOverlayView(
     val items: List<BattleRewardItemView> = emptyList(),
     val sectionVisible: Boolean = false,
     /** 구역 배경 위에 그릴 제목. 전투 진입 화면과 보상 화면이 같은 프리팹을 공유한다. */
-    val sectionTitle: String = GameText.S_901EA3E656,
+    val sectionTitle: String = SystemMessage.S_901EA3E656,
 )
 
 /** BattleRewardOverlayAssets: 보상 모달 배경과 아이콘을 그릴 때 사용하는 텍스처 묶음이다. */
@@ -92,8 +92,8 @@ class BattleRewardOverlayRenderer(
      */
 
     private fun drawMoney(view: BattleRewardOverlayView) {
-        labelPair(GameText.S_5000089835, 527.747f, 615.617f, 519.916f, 627.594f, BattleRewardRenderContract.endShadow, BattleRewardRenderContract.white)
-        labelPair(GameText.S_35FF880D87, 282.777f, 399.692f, 274.533f, 405.6f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
+        labelPair(SystemMessage.S_5000089835, 527.747f, 615.617f, 519.916f, 627.594f, BattleRewardRenderContract.endShadow, BattleRewardRenderContract.white)
+        labelPair(SystemMessage.S_35FF880D87, 282.777f, 399.692f, 274.533f, 405.6f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
         labelPair(view.money.toString(), 967.617f, 399.007f, 958.035f, 405.6f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
         labelPair(view.stars, 531.389f, 204.017f, 521.806f, 207.313f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
     }
@@ -104,7 +104,7 @@ class BattleRewardOverlayRenderer(
      */
 
     private fun drawItems(view: BattleRewardOverlayView) {
-        labelPair(GameText.S_A87004CBE7, 596.73f, 726.144f, 588.486f, 739.142f, BattleRewardRenderContract.lootShadow, BattleRewardRenderContract.white)
+        labelPair(SystemMessage.S_A87004CBE7, 596.73f, 726.144f, 588.486f, 739.142f, BattleRewardRenderContract.lootShadow, BattleRewardRenderContract.white)
         view.items.forEachIndexed { index, item ->
             val y = 433.5f - index * 157f
             assets.rewardItemTexture?.let { batch.draw(it, 499.686f, y, 489f, 101f) }
@@ -122,7 +122,7 @@ class BattleRewardOverlayRenderer(
      */
 
     private fun drawEnd(view: BattleRewardOverlayView) {
-        labelPair(GameText.S_5000089835, 527.747f, 488.023f, 519.916f, 500f, BattleRewardRenderContract.endShadow, BattleRewardRenderContract.white)
+        labelPair(SystemMessage.S_5000089835, 527.747f, 488.023f, 519.916f, 500f, BattleRewardRenderContract.endShadow, BattleRewardRenderContract.white)
         labelPair(view.money.toString(), 658f, 322f, 650f, 330f, BattleRewardRenderContract.moneyShadow, BattleRewardRenderContract.moneyText)
     }
 

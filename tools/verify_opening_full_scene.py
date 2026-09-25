@@ -6,8 +6,9 @@ import json
 from pathlib import Path
 
 from verify_opening_panel_pixels import compare
+from dialogue_text_catalog import dialogue_text
 
-TEXT = "대장님, 서둘러야 해요!"
+TEXT = dialogue_text("opening_scene1_page1")
 EXPECTED = {0: (40, 35, 2), 157: (54, 65, 0), 181: (40, 45, 0), 182: (40, 25, 2)}
 
 

@@ -8,8 +8,9 @@ from pathlib import Path
 
 from verify_opening_panel_pixels import compare
 from verify_opening_full_pages import INITIAL
+from dialogue_text_catalog import dialogue_text
 
-FULL_TEXT = '대장님, 서둘러야 해요!'
+FULL_TEXT = dialogue_text("opening_scene1_page1")
 LENGTHS = list(range(len(FULL_TEXT) + 1))
 ASSET_UUIDS = {
     1: '40aee40e-20ae-4e90-b26c-648cfb672c93',

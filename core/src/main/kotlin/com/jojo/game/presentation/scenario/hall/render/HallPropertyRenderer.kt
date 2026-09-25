@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall.render
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
@@ -25,10 +25,10 @@ internal object HallPropertyRenderer {
         draw.ui("logo9")?.let { draw.tiled(it, x, y, width, height) }
         draw.patch("box1")?.draw(batch, x, y, width, height)
         draw.patch("title", 5)?.draw(batch, x, y + height - 51.6f, width, 51.6f)
-        draw.title(GameText.S_BBCCA2F5AB, x, y + height - 8f, width)
+        draw.title(SystemMessage.S_BBCCA2F5AB, x, y + height - 8f, width)
         table(draw, batch, view, x, y, width, height)
         tabs(draw, batch, view.selectedTab)
-        draw.button(GameText.S_468266D639, x + width - 135f, y + 5f, 125f)
+        draw.button(SystemMessage.S_468266D639, x + width - 135f, y + 5f, 125f)
         draw.resetColor()
     }
 
@@ -39,7 +39,7 @@ internal object HallPropertyRenderer {
 
     private fun table(draw: HallRenderPrimitives, batch: SpriteBatch, view: HallPropertyView, x: Float, y: Float, width: Float, height: Float) {
         val widths = floatArrayOf(323.06f, 168.13f, 91.24f, 87.69f, 176.44f)
-        val headers = listOf(GameText.S_9AA18E5071, GameText.S_85DE958B5F, GameText.S_453D0D2DF5, GameText.S_E134585B3A, GameText.S_E6B2B4DBC0)
+        val headers = listOf(SystemMessage.S_9AA18E5071, SystemMessage.S_85DE958B5F, SystemMessage.S_453D0D2DF5, SystemMessage.S_E134585B3A, SystemMessage.S_E6B2B4DBC0)
         var cellX = x + 5f
         headers.forEachIndexed { index, value ->
             draw.cell(cellX, y + height - 101f, widths[index], 48f)
@@ -67,7 +67,7 @@ internal object HallPropertyRenderer {
      */
 
     private fun tabs(draw: HallRenderPrimitives, batch: SpriteBatch, selectedTab: Int) {
-        listOf(GameText.S_8C4DAC1FCC, GameText.S_44F9A814FE, GameText.S_51378A4614, GameText.S_B62250FE8D).forEachIndexed { index, value ->
+        listOf(SystemMessage.S_8C4DAC1FCC, SystemMessage.S_44F9A814FE, SystemMessage.S_51378A4614, SystemMessage.S_B62250FE8D).forEachIndexed { index, value ->
             val centerX = 244.23f + index * 127.28f
             val state = if (selectedTab == index) "on" else "off"
             draw.asset("maps/ui/title/setting/radio-$state.png")?.let {

@@ -1,6 +1,7 @@
 // Verification
 package com.jojo.game.verification
 
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.presentation.scenario.hall.*
 
 import com.badlogic.gdx.Gdx
@@ -99,7 +100,7 @@ internal class VerificationArtifactObserver(
             if (scenario.playback != com.jojo.game.domain.scenario.PlaybackState.DIALOGUE) return
             if (output.state == "opening-text") {
                 if (!scenario.dialogueTextComplete) return
-                check(scenario.dialogueVisibleText == "대장님, 서둘러야 해요!") {
+                check(scenario.dialogueVisibleText == ScenarioDialogueTextCatalog.text("opening_scene1_page1")) {
                     "opening text capture has not rendered the complete first dialogue"
                 }
             }

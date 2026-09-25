@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -173,7 +173,7 @@ internal class ScenarioDelayCoordinator(
     /** 전장 배경이 준비될 때까지 시나리오 실행을 일시 정지한다. */
     fun suspendForBattleBackgroundLoad(mapIndex: Int) {
         clearStageDelay()
-        check(!hasPendingBattleBackgroundLoad) { GameText.S_0CC0A4F490 }
+        check(!hasPendingBattleBackgroundLoad) { SystemMessage.S_0CC0A4F490 }
         pendingBattleBackgroundLoadIndex = mapIndex
         onSetDelayRemainingSeconds(Float.MAX_VALUE)
         onSetState(PlaybackState.DELAY)
@@ -270,12 +270,12 @@ internal class ScenarioDelayCoordinator(
 
     /** 외부 연출 완료 후 지연 상태에서 실행을 재개한다. */
     fun resumeExternalDelay() {
-        check(getState() == PlaybackState.DELAY) { GameText.S_38B7597664 }
+        check(getState() == PlaybackState.DELAY) { SystemMessage.S_38B7597664 }
         check(!hasPendingBattleBackgroundLoad) {
-            GameText.S_514FD95472
+            SystemMessage.S_514FD95472
         }
         check(pendingHallUnitReadiness == null) {
-            GameText.S_DF70B8A5DA
+            SystemMessage.S_DF70B8A5DA
         }
         pendingHallMoveIds = emptySet()
         clearStageDelay()
@@ -286,9 +286,9 @@ internal class ScenarioDelayCoordinator(
     /** 전장 배경 요청을 완료하고 선택한 맵으로 실행을 재개한다. */
     fun completeBattleBackgroundLoad() {
         val mapIndex = requireNotNull(pendingBattleBackgroundLoadIndex) {
-            GameText.S_FD44645376
+            SystemMessage.S_FD44645376
         }
-        check(getState() == PlaybackState.DELAY) { GameText.S_DBCA581BF5 }
+        check(getState() == PlaybackState.DELAY) { SystemMessage.S_DBCA581BF5 }
         stage.selectBattleMap(mapIndex)
         pendingBattleBackgroundLoadIndex = null
         onSetDelayRemainingSeconds(0f)

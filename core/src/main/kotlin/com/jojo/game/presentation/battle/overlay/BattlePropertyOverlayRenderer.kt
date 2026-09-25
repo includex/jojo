@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -67,8 +67,8 @@ class BattlePropertyOverlayRenderer(
         ).forEach { (headerX, headerY, headerWidth) -> assets.panel?.draw(batch, headerX, headerY, headerWidth, 60f) }
         font.color = Color.BLACK
         font.data.setScale(scale)
-        font.draw(batch, GameText.S_BBCCA2F5AB, x + 430f, 740f)
-        listOf(GameText.S_9AA18E5071 to 400f, GameText.S_85DE958B5F to 687f, GameText.S_453D0D2DF5 to 838f, GameText.S_E134585B3A to 930f, GameText.S_E6B2B4DBC0 to 1083f)
+        font.draw(batch, SystemMessage.S_BBCCA2F5AB, x + 430f, 740f)
+        listOf(SystemMessage.S_9AA18E5071 to 400f, SystemMessage.S_85DE958B5F to 687f, SystemMessage.S_453D0D2DF5 to 838f, SystemMessage.S_E134585B3A to 930f, SystemMessage.S_E6B2B4DBC0 to 1083f)
             .forEach { (label, position) -> font.draw(batch, label, position, 680f) }
         listOf(628.468f, 823.971f, 930.065f, 1032.026f)
             .forEach { lineX -> assets.verticalLine?.draw(batch, lineX, 122.75f, 6f, 515.38f) }
@@ -80,7 +80,7 @@ class BattlePropertyOverlayRenderer(
             font.draw(batch, row.label, x + 86f, rowY)
         }
         font.data.setScale(scale)
-        listOf(GameText.S_8C4DAC1FCC, GameText.S_44F9A814FE, GameText.S_51378A4614, GameText.S_B62250FE8D).forEachIndexed { index, label ->
+        listOf(SystemMessage.S_8C4DAC1FCC, SystemMessage.S_44F9A814FE, SystemMessage.S_51378A4614, SystemMessage.S_B62250FE8D).forEachIndexed { index, label ->
             val active = index == view.selectedTab
             font.color = if (active) Color(0.05f, .48f, .94f, 1f) else Color(.2f, .2f, .2f, 1f)
             font.draw(batch, if (active) "●" else "○", x + 28f + index * 146f, y + 30f)
@@ -89,7 +89,7 @@ class BattlePropertyOverlayRenderer(
         }
         assets.panel?.draw(batch, x + w - 158f, y + 10f, 140f, 54f)
         font.color = Color.BLACK
-        font.draw(batch, GameText.S_468266D639, x + w - 116f, y + 30f)
+        font.draw(batch, SystemMessage.S_468266D639, x + w - 116f, y + 30f)
         font.color = Color.WHITE
         font.data.setScale(1f)
         batch.end()

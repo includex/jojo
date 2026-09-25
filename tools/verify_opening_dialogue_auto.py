@@ -5,6 +5,11 @@ import json
 import math
 from pathlib import Path
 
+from dialogue_text_catalog import dialogue_text
+
+FIRST_TEXT = dialogue_text("opening_scene1_page1")
+SECOND_TEXT = dialogue_text("opening_scene1_page2")
+
 
 def threshold_frame(rows, seconds):
     elapsed = 0.0
@@ -29,21 +34,21 @@ def assess_game(game):
         raise ValueError('Unsupported or modified game capture')
     frames = game['frames']
     complete = next(i for i, row in enumerate(frames) if row['speaker'] == '181' and row['complete'])
-    if frames[complete]['text'] != '대장님, 서둘러야 해요!':
+    if frames[complete]['text'] != FIRST_TEXT:
         raise ValueError('Wrong first dialogue')
     next_page = next(i for i in range(complete + 1, len(frames)) if frames[i]['speaker'] == '0')
     first_revision = frames[complete]['revision']
     next_revision = frames[next_page]['revision']
     if (next_revision == first_revision or frames[next_page]['text'] != '' or
             any(r['speaker'] != '181' or not r['complete'] or r['playback'] != 'DIALOGUE' or
-                r['revision'] != first_revision or r['text'] != '대장님, 서둘러야 해요!'
+                r['revision'] != first_revision or r['text'] != FIRST_TEXT
                 for r in frames[complete:next_page])):
         raise ValueError('Unexpected dialogue transition')
     first_glyph = next(r for r in frames[next_page:] if r['text'])
-    if first_glyph['text'] != '알' or first_glyph['speaker'] != '0':
+    if first_glyph['text'] != SECOND_TEXT[:1] or first_glyph['speaker'] != '0':
         raise ValueError('Wrong second dialogue glyph')
     if any(r['speaker'] != '0' or r['playback'] != 'DIALOGUE' or r['revision'] != next_revision
-           or r['complete'] or r['text'] not in ('', '알') for r in frames[next_page:]):
+           or r['complete'] or r['text'] not in ('', SECOND_TEXT[:1]) for r in frames[next_page:]):
         raise ValueError('Second dialogue identity changed')
     expected_close = threshold_frame(frames[complete:], 1.6)
     expected_glyph = threshold_frame(frames[next_page:], .04)
@@ -73,7 +78,7 @@ def assess_source(source):
     first_glyph = one(source['events'], 'DialogueLayer.secondSpeakerFirstText')
     if (register['delay'] != 1.6 or register['callbackIdentityPreserved'] is not True or
             register['frame'] != complete['frame'] or callback['speakerId'] != 0 or
-            callback['content'] != '' or callback['remaining'] != '알아!' or first_glyph['text'] != '알'):
+            callback['content'] != '' or callback['remaining'] != SECOND_TEXT or first_glyph['text'] != SECOND_TEXT[:1]):
         raise ValueError('Source dialogue registration or transition inconsistent')
     updates = [r for r in events if r['kind'] == 'DialogueLayer.autoClose.timer.after']
     if (not updates or updates[0]['frame'] != register['frame'] or updates[0]['elapsedBefore'] != -1 or

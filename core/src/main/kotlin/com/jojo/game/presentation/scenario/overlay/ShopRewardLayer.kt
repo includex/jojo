@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 
 /** ShopItem: 상점·보상 화면이 표시하는 아이템의 식별자·이름·분류·구매·판매 가격을 나타낸다. */
@@ -76,7 +76,7 @@ class ShopPurchaseModel(private val items: List<ShopItem>, var money: Int, var o
 
         val limit = minOf(money / item.price, capacity - owned).coerceAtLeast(0)
         require(limit > 0) { "BuyLayer.onClick2 would show its error DialogueLayer" }
-        return MsgBox3Layer(limit.toDouble(), GameText.S_45EDDC7A28, GameText.S_620D5989B0, { quantity ->
+        return MsgBox3Layer(limit.toDouble(), SystemMessage.S_45EDDC7A28, SystemMessage.S_620D5989B0, { quantity ->
             if (quantity != 0.0) confirm(id, quantity.toInt())
         }, inputChanged)
     }
@@ -115,7 +115,7 @@ class ShopSaleModel(private val items: List<ShopItem>, var money: Int, var owned
 
         val item = rows("property").first { it.id == id }
         require(item.sell != 255 && owned > 0) { "SellLayer.onClick would not open MsgBox3" }
-        return MsgBox3Layer(owned.toDouble(), GameText.S_B9A391DF6A, GameText.S_F1BC97987B, { quantity ->
+        return MsgBox3Layer(owned.toDouble(), SystemMessage.S_B9A391DF6A, SystemMessage.S_F1BC97987B, { quantity ->
             if (quantity != 0.0) confirm(id, quantity.toInt())
         }, inputChanged)
     }

@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.infrastructure.audio.UiSound
 import com.jojo.game.infrastructure.data.GameDataCatalog
 
@@ -166,7 +166,7 @@ internal class HallManagementCoordinator(
                 HallEquipConfirmationInputIntent.CONFIRM -> {
                     val changed = if (confirmation.itemId != null || confirmation.unequipSlot != null)
                         confirmations.answer(unitId, accept = true) else false
-                    if (changed) notice = if (confirmation.actionLabel == GameText.S_A7ABEA5BBB) GameText.S_A1DB289D94 else GameText.S_1EEA906E1C
+                    if (changed) notice = if (confirmation.actionLabel == SystemMessage.S_A7ABEA5BBB) SystemMessage.S_A1DB289D94 else SystemMessage.S_1EEA906E1C
                 }
                 HallEquipConfirmationInputIntent.CANCEL -> {
                     confirmations.cancel(); confirmationSound = UiSound.CANCEL
@@ -181,7 +181,7 @@ internal class HallManagementCoordinator(
                 HallUnequipConfirmationInputIntent.CONFIRM -> {
                     val count = commands.unequipAll()
                     unequipConfirmationOpen = false
-                    notice = if (count == 0) GameText.S_3A1198BB6C else GameText.format(GameText.Key.SAVE_EQUIPMENT_NOTICE, count)
+                    notice = if (count == 0) SystemMessage.S_3A1198BB6C else SystemMessage.format(SystemMessage.Key.SAVE_EQUIPMENT_NOTICE, count)
                 }
                 HallUnequipConfirmationInputIntent.CANCEL -> unequipConfirmationOpen = false
                 HallUnequipConfirmationInputIntent.NONE -> unequipSound = null
@@ -241,7 +241,7 @@ internal class HallManagementCoordinator(
                 val itemId = views.equipInventory(interaction.view.equipTabIndex).getOrNull(intent.row)?.itemId
                     ?: return UiSound.CLICK
                 val preview = confirmations.requestEquip(unitId, itemId)
-                if (preview == null) notice = GameText.S_B2415CBA15
+                if (preview == null) notice = SystemMessage.S_B2415CBA15
                 else {
                     equipConfirmation = HallEquipConfirmation(preview.values, preview.actionLabel, itemId = preview.itemId)
                     notice = null

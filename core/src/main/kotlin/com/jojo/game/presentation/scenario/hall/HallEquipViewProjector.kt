@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
@@ -31,18 +31,18 @@ internal class HallEquipViewProjector(
             selectedTab = selectedTab,
             unit = HallEquipUnitView(
                 portraitId = portraitId(unitId),
-                name = campaign.unitNames[unitId] ?: unit?.name ?: GameText.S_6B1F41FC4A,
-                armName = if (unitId == 0) GameText.S_BE23B82091 else profile?.arm?.name ?: GameText.S_BE23B82091,
+                name = campaign.unitNames[unitId] ?: unit?.name ?: SystemMessage.S_6B1F41FC4A,
+                armName = if (unitId == 0) SystemMessage.S_BE23B82091 else profile?.arm?.name ?: SystemMessage.S_BE23B82091,
                 level = (profile?.level ?: 1).toString(),
                 stats = listOf(
                     HallEquipStatView("HP", (profile?.maxHitPoints ?: 0).toString()),
                     HallEquipStatView("MP", (profile?.maxMagicPoints ?: 0).toString()),
-                    HallEquipStatView(GameText.S_50B8DF8C55, ((profile?.attack ?: 0) + bonus.attack).toString()),
-                    HallEquipStatView(GameText.S_F3F57B591C, ((profile?.spirit ?: 0) + bonus.spirit).toString()),
-                    HallEquipStatView(GameText.S_5C349008C3, ((profile?.defense ?: 0) + bonus.defense).toString()),
-                    HallEquipStatView(GameText.S_9EC6283754, (profile?.critical ?: 0).toString()),
-                    HallEquipStatView(GameText.S_C91E618B9A, (profile?.morale ?: 0).toString()),
-                    HallEquipStatView(GameText.S_B2A0B8369E, (profile?.movement ?: 0).toString()),
+                    HallEquipStatView(SystemMessage.S_50B8DF8C55, ((profile?.attack ?: 0) + bonus.attack).toString()),
+                    HallEquipStatView(SystemMessage.S_F3F57B591C, ((profile?.spirit ?: 0) + bonus.spirit).toString()),
+                    HallEquipStatView(SystemMessage.S_5C349008C3, ((profile?.defense ?: 0) + bonus.defense).toString()),
+                    HallEquipStatView(SystemMessage.S_9EC6283754, (profile?.critical ?: 0).toString()),
+                    HallEquipStatView(SystemMessage.S_C91E618B9A, (profile?.morale ?: 0).toString()),
+                    HallEquipStatView(SystemMessage.S_B2A0B8369E, (profile?.movement ?: 0).toString()),
                 ),
                 slots = slots(unitId),
             ),
@@ -102,16 +102,16 @@ internal class HallEquipViewProjector(
     private fun slots(unitId: Int): List<HallEquipSlotView> {
         val equipped = campaign.inventory.equippedItems().filter { it.unitId == unitId }
         return listOf(
-            GameText.S_2B3DFBC5AD to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type < 20 } == true },
-            GameText.S_1B421182BF to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type in 20..25 } == true },
-            GameText.S_BC8AE9E500 to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type > 25 } == true },
+            SystemMessage.S_2B3DFBC5AD to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type < 20 } == true },
+            SystemMessage.S_1B421182BF to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type in 20..25 } == true },
+            SystemMessage.S_BC8AE9E500 to equipped.firstOrNull { catalog.equipmentProfile(it.itemId)?.itemType?.let { type -> type > 25 } == true },
         ).mapIndexedNotNull { index, (label, equippedItem) ->
             if (index == 2 && equippedItem == null) return@mapIndexedNotNull null
             val item = equippedItem?.let { catalog.equipmentProfile(it.itemId) }
             HallEquipSlotView(
                 index = index,
                 label = label,
-                name = item?.name ?: GameText.S_D58FA73ADC,
+                name = item?.name ?: SystemMessage.S_D58FA73ADC,
                 icon = item?.icon,
                 level = if (index == 0) (equippedItem?.level ?: 1).toString() else null,
                 experience = if (index == 0) "${equippedItem?.experience ?: 0}/100" else null,

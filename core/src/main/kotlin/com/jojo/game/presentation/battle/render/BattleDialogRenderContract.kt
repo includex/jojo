@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.render
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.presentation.shared.overlay.MagicUiList
 import com.jojo.game.presentation.battle.assets.BattleUiAssets
@@ -49,7 +49,7 @@ object BattleDialogRenderContract {
      * 닿지 않는다 — 표가 위력 없음을 어떻게 적는지는 아직 확인하지 못했다.
      */
     fun damageCoefficientText(power: Int?): String {
-        val value = power ?: return GameText.S_D58FA73ADC
+        val value = power ?: return SystemMessage.S_D58FA73ADC
         return java.math.BigDecimal(value)
             .divide(java.math.BigDecimal(100))
             .stripTrailingZeros()

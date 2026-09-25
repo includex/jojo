@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.magic
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
 
@@ -29,7 +29,7 @@ internal object MagicDamageCalculator {
 
         fun active(skill: Int) = attacker.skills[skill]?.and(255)?.let { it != 255 } == true
         if (magic.condition in 2..5 && active(136)) return null
-        if (magic.condition == 1 && attacker.hitPoints < 40) return GameText.S_9775E6B8B8
+        if (magic.condition == 1 && attacker.hitPoints < 40) return SystemMessage.S_9775E6B8B8
         val weatherAllowed = when (magic.condition) {
             0 -> weather in setOf(BattleWeather.CLEAR, BattleWeather.CLOUDY, BattleWeather.WINDY)
             2 -> weather in setOf(BattleWeather.HEAVY_RAIN, BattleWeather.SNOW)
@@ -37,8 +37,8 @@ internal object MagicDamageCalculator {
             4 -> weather == BattleWeather.CLOUDY
             else -> true
         }
-        if (!weatherAllowed && !active(20)) return GameText.S_54BF0673A8
-        return if (magic.condition == 5) GameText.S_30295DABD1 else null
+        if (!weatherAllowed && !active(20)) return SystemMessage.S_54BF0673A8
+        return if (magic.condition == 5) SystemMessage.S_30295DABD1 else null
     }
 
     /**

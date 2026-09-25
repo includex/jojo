@@ -7,9 +7,11 @@ import math
 from pathlib import Path
 
 from verify_opening_panel_pixels import compare
+from dialogue_text_catalog import dialogue_text
 from verify_opening_full_pages import AFTER_MOVE as INITIAL
+from dialogue_text_catalog import dialogue_text
 
-FULL_TEXT = '잠시만 기다려 주세요!'
+FULL_TEXT = dialogue_text("opening_scene1_page3")
 LENGTHS = list(range(len(FULL_TEXT) + 1))
 ASSET_UUIDS = {
     1: '40aee40e-20ae-4e90-b26c-648cfb672c93',
@@ -36,7 +38,10 @@ def validate(document, source=False):
     completions, inputs = document['dialogueCompletions'], document['inputs']
     require(len(completions) == 2 and len(inputs) == 2, 'two completed pages and normal inputs required')
     for index, (completion, event) in enumerate(zip(completions, inputs)):
-        text, speaker = [('대장님, 서둘러야 해요!', '181'), ('알아!', '0')][index]
+        text, speaker = [
+            (dialogue_text("opening_scene1_page1"), "181"),
+            (dialogue_text("opening_scene1_page2"), "0"),
+        ][index]
         require((completion['page'], str(completion['speakerId']), completion['text'], completion['complete']) ==
                 (index + 1, speaker, text, True), 'prior completed dialogue identity')
         require(event['afterPage'] == index + 1 and event['textBeforeInput'] == text and

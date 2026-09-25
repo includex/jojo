@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
 
@@ -194,7 +194,7 @@ object ScenarioMetadataReader {
      */
 
     private fun JsonValue.unitId(): Int {
-        check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { GameText.S_8828CC1AE7 }
+        check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { SystemMessage.S_8828CC1AE7 }
         return field("args").children().first().asIntValue()
     }
 

@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -123,9 +123,9 @@ class BattleScreen(
      */
 
     private fun CampaignEquipmentSlot.attributeLabel() = when (this) {
-        CampaignEquipmentSlot.WEAPON -> GameText.S_50B8DF8C55
-        CampaignEquipmentSlot.ARMOR -> GameText.S_5C349008C3
-        CampaignEquipmentSlot.AUXILIARY -> GameText.S_F3F57B591C
+        CampaignEquipmentSlot.WEAPON -> SystemMessage.S_50B8DF8C55
+        CampaignEquipmentSlot.ARMOR -> SystemMessage.S_5C349008C3
+        CampaignEquipmentSlot.AUXILIARY -> SystemMessage.S_F3F57B591C
     }
 
     /**
@@ -189,7 +189,7 @@ class BattleScreen(
      */
 
     /** 원본 RewardLayer 프리팹: fontSize 120, `_styleFlags=1` 굵게. */
-    private val rewardTitleFont: BitmapFont = KoreanFont.create(120, GameText.S_F80BBD09E2, faceIndex = KoreanFont.BOLD_FACE)
+    private val rewardTitleFont: BitmapFont = KoreanFont.create(120, SystemMessage.S_F80BBD09E2, faceIndex = KoreanFont.BOLD_FACE)
 
     /**
      * 원본 MsgBox4 프리팹 라벨의 `cc.LabelOutline` 색(모두 `_width` 2).
@@ -209,28 +209,28 @@ class BattleScreen(
 
     /** 원본 MsgBox4 프리팹 라벨(턴 종료 확인창): fontSize 40, 2px 테두리. 색은 프리팹의 노드/LabelOutline 값이다. */
     private val msgBoxMessageFont: BitmapFont = KoreanFont.create(
-        40, GameText.S_42D16CB521, borderWidth = 2f,
+        40, SystemMessage.S_42D16CB521, borderWidth = 2f,
         borderColor = MSGBOX4_MESSAGE_OUTLINE, fillColor = Color(147f / 255f, 97f / 255f, 0f, 1f),
     )
     private val msgBoxToggleFont: BitmapFont = KoreanFont.create(
-        40, GameText.S_3DD968413B, borderWidth = 2f, borderColor = MSGBOX4_TOGGLE_OUTLINE, fillColor = Color(0f, 5f / 255f, 1f, 1f),
+        40, SystemMessage.S_3DD968413B, borderWidth = 2f, borderColor = MSGBOX4_TOGGLE_OUTLINE, fillColor = Color(0f, 5f / 255f, 1f, 1f),
     )
     private val msgBoxNoFont: BitmapFont = KoreanFont.create(
-        40, GameText.S_5FF079CE3D, borderWidth = 2f, borderColor = MSGBOX4_NO_OUTLINE, fillColor = Color(252f / 255f, 0f, 0f, 1f),
+        40, SystemMessage.S_5FF079CE3D, borderWidth = 2f, borderColor = MSGBOX4_NO_OUTLINE, fillColor = Color(252f / 255f, 0f, 0f, 1f),
     )
     private val msgBoxYesFont: BitmapFont = KoreanFont.create(
-        40, GameText.S_A842629AFD, borderWidth = 2f, borderColor = MSGBOX4_YES_OUTLINE, fillColor = Color(2f / 255f, 110f / 255f, 0f, 1f),
+        40, SystemMessage.S_A842629AFD, borderWidth = 2f, borderColor = MSGBOX4_YES_OUTLINE, fillColor = Color(2f / 255f, 110f / 255f, 0f, 1f),
     )
     /** Plain MsgBox uses its own blue body and button colors; MsgBox4 above remains the manual-menu style. */
     private val plainMsgBoxMessageFont = KoreanFont.create(
-        40, GameText.S_9417C6AB3A, borderWidth = 2f,
+        40, SystemMessage.S_9417C6AB3A, borderWidth = 2f,
         borderColor = Color(91f / 255f, 222f / 255f, 1f, 1f), fillColor = Color(0f, 4f / 255f, 196f / 255f, 1f),
     )
     private val plainMsgBoxNoFont = KoreanFont.create(
-        40, GameText.S_D3B0E1A367, borderWidth = 2f, borderColor = Color(1f, 171f / 255f, 171f / 255f, 1f), fillColor = Color.RED,
+        40, SystemMessage.S_D3B0E1A367, borderWidth = 2f, borderColor = Color(1f, 171f / 255f, 171f / 255f, 1f), fillColor = Color.RED,
     )
     private val plainMsgBoxYesFont = KoreanFont.create(
-        40, GameText.S_A842629AFD, borderWidth = 2f, borderColor = Color(121f / 255f, 214f / 255f, 78f / 255f, 1f), fillColor = Color(10f / 255f, 105f / 255f, 0f, 1f),
+        40, SystemMessage.S_A842629AFD, borderWidth = 2f, borderColor = Color(121f / 255f, 214f / 255f, 78f / 255f, 1f), fillColor = Color(10f / 255f, 105f / 255f, 0f, 1f),
     )
     private val scriptInfoPanelTextureDelegate = lazy {
         val bytes = Gdx.files.internal("reference/source-hall-infolayer-bg-frame.rgba").readBytes()
@@ -252,7 +252,7 @@ class BattleScreen(
     private val ROUND_TURN_SHADOW = com.badlogic.gdx.graphics.Color.valueOf("#837f7fff")
 
     /** 원본 RoundLayer 프리팹: fontSize 120 굵게, 흰 글자 뒤에 빨간 그림자 라벨. */
-    private val roundLayerFont: BitmapFont = KoreanFont.create(120, GameText.S_17BDB458F6, faceIndex = KoreanFont.BOLD_FACE)
+    private val roundLayerFont: BitmapFont = KoreanFont.create(120, SystemMessage.S_17BDB458F6, faceIndex = KoreanFont.BOLD_FACE)
 
     /**
      * `sectionTitleFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -262,7 +262,7 @@ class BattleScreen(
     private val sectionTitleFontDelegate = lazy {
         // 진입 화면과 보상 화면이 같은 제목을 쓴다. 글리프 집합은 실제 전투 이름에서 얻는다.
         // 원본 BattleInitLayer 프리팹: fontSize 140 굵게, label0(검정, +10/-10) 위에 label1(흰색).
-        KoreanFont.create(140, GameText.S_1924279772 + battleSectionTitle(), faceIndex = KoreanFont.BOLD_FACE)
+        KoreanFont.create(140, SystemMessage.S_1924279772 + battleSectionTitle(), faceIndex = KoreanFont.BOLD_FACE)
     }
     private val sectionTitleFont: BitmapFont by sectionTitleFontDelegate
 
@@ -275,7 +275,7 @@ class BattleScreen(
      */
 
     private val menuBarLabelFontDelegate = lazy {
-        KoreanFont.create(30, GameText.S_475D2D45E2 + battleSectionTitle(), faceIndex = KoreanFont.BOLD_FACE)
+        KoreanFont.create(30, SystemMessage.S_475D2D45E2 + battleSectionTitle(), faceIndex = KoreanFont.BOLD_FACE)
     }
     private val menuBarLabelFont: BitmapFont by menuBarLabelFontDelegate
 
@@ -753,7 +753,7 @@ void main() {
     private val treasureLayer by lazy {
         TreasureLayer(
             gameDataCatalog.treasureProfiles().map {
-                TreasureLayer.Item(it.id, it.name, it.icon, it.itemType in 26..37, GameText.S_3830A5432E)
+                TreasureLayer.Item(it.id, it.name, it.icon, it.itemType in 26..37, SystemMessage.S_3830A5432E)
             },
             campaign.inventory.discoveredTreasures,
         )
@@ -1500,12 +1500,12 @@ void main() {
                 .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
         Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
-        append(GameText.S_555C05543A)
-        append(GameText.S_CF2C285BC5)
-        append(GameText.S_636899E260)
-        append(GameText.S_661525CA4A)
-        append(GameText.S_A7FDC582CF)
-        append(GameText.S_CBDCD710AB)
+        append(SystemMessage.S_555C05543A)
+        append(SystemMessage.S_CF2C285BC5)
+        append(SystemMessage.S_636899E260)
+        append(SystemMessage.S_661525CA4A)
+        append(SystemMessage.S_A7FDC582CF)
+        append(SystemMessage.S_CBDCD710AB)
     }
 
     private val font: BitmapFont = KoreanFont.create(26, battleFontCharacters)
@@ -1551,8 +1551,8 @@ void main() {
         PopupFontSpec(true, Color.WHITE, Color(0f, 0f, 192f / 255f, 1f), ""),
         PopupFontSpec(true, Color.WHITE, Color(112f / 255f, 16f / 255f, 0f, 1f), ""),
         PopupFontSpec(true, Color.WHITE, Color(7f / 255f, 85f / 255f, 193f / 255f, 1f), ""),
-        PopupFontSpec(true, Color(240f / 255f, 208f / 255f, 0f, 1f), Color(184f / 255f, 117f / 255f, 7f / 255f, 1f), GameText.S_7627935CE4),
-        PopupFontSpec(true, Color(32f / 255f, 140f / 255f, 240f / 255f, 1f), Color(16f / 255f, 88f / 255f, 128f / 255f, 1f), GameText.S_93A131140A),
+        PopupFontSpec(true, Color(240f / 255f, 208f / 255f, 0f, 1f), Color(184f / 255f, 117f / 255f, 7f / 255f, 1f), SystemMessage.S_7627935CE4),
+        PopupFontSpec(true, Color(32f / 255f, 140f / 255f, 240f / 255f, 1f), Color(16f / 255f, 88f / 255f, 128f / 255f, 1f), SystemMessage.S_93A131140A),
         PopupFontSpec(true, Color(128f / 255f, 212f / 255f, 128f / 255f, 1f), Color(104f / 255f, 144f / 255f, 64f / 255f, 1f), ""),
         PopupFontSpec(false, Color.WHITE, Color(160f / 255f, 156f / 255f, 120f / 255f, 1f), "%"),
     )
@@ -1675,7 +1675,7 @@ void main() {
      */
 
     private val itemUpgradeFont: BitmapFont =
-        KoreanFont.create(36, GameText.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString(""))
+        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString(""))
 
     /**
      * `battleRewardOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -1872,7 +1872,7 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    internal var eventMessage = GameText.S_57A2B6698C
+    internal var eventMessage = SystemMessage.S_57A2B6698C
 
     /**
      * `battleMenuOpen` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -3419,7 +3419,7 @@ void main() {
              */
 
             override fun showVictoryPrompt() {
-                eventMessage = GameText.S_293960AB27
+                eventMessage = SystemMessage.S_293960AB27
             }
 
             /**
@@ -4310,7 +4310,7 @@ void main() {
                 // 여기서 곧바로 모달을 열면 재생 상태가 MODAL로 바뀌어, 잠시 뒤 맵
                 // 텍스처가 준비될 때 `completeBattleBackgroundLoad`가 DELAY가 아닌
                 // 상태에서 불려 터진다. 배경 로드가 끝난 뒤로 미룬다.
-                pendingWinConditionFixtureText = GameText.S_981DA7E6CC
+                pendingWinConditionFixtureText = SystemMessage.S_981DA7E6CC
             }
 
             else -> Unit
@@ -4573,14 +4573,14 @@ void main() {
                         val unit = selectedUnitId?.let { battle.units[it] }
                         if (unit?.magic?.isNotEmpty() == true) {
                             openMagickList(unit)
-                        } else eventMessage = GameText.S_DB42F54740
+                        } else eventMessage = SystemMessage.S_DB42F54740
                     }
 
                     Input.Keys.B -> {
                         val unit = selectedUnitId?.let { battle.units[it] }
                         val properties = usableProperties()
-                        if (unit == null) eventMessage = GameText.S_DC25BE8397
-                        else if (properties.isEmpty()) eventMessage = GameText.S_CA6C5A2257
+                        if (unit == null) eventMessage = SystemMessage.S_DC25BE8397
+                        else if (properties.isEmpty()) eventMessage = SystemMessage.S_CA6C5A2257
                         else openUsePropertyLayer()
                     }
                 }
@@ -5317,7 +5317,7 @@ void main() {
             RuntimeBattleCommand.AdvanceDialogue -> advanceBattleDialogue()
             is RuntimeBattleCommand.Tap -> handleTileClick(command.x.toInt(), command.y.toInt())
             RuntimeBattleCommand.EndTurn -> if (!turnController.endPlayerTurn()) {
-                eventMessage = GameText.S_95B47268F5
+                eventMessage = SystemMessage.S_95B47268F5
             }
         }
     }
@@ -5555,7 +5555,7 @@ void main() {
                     BattleAutoOverlayView(
                         overlay = BattleAutoOverlayKind.PROMPT,
                         offersDelegation = false,
-                        message = GameText.S_5A268D48CF,
+                        message = SystemMessage.S_5A268D48CF,
                     )
                 )
             }
@@ -6051,7 +6051,7 @@ void main() {
             return
         }
         selectedUnitId = null
-        if (!turnController.endPlayerTurn()) eventMessage = GameText.S_95B47268F5
+        if (!turnController.endPlayerTurn()) eventMessage = SystemMessage.S_95B47268F5
     }
 
     /**
@@ -7802,7 +7802,7 @@ void main() {
         }
         if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION && battleCommandFlow.childCommand == BattleCommandFlow.Command.ATTACK) {
             if (clicked == null || !clicked.visible || unitsAreAllied(selected, clicked)) {
-                eventMessage = GameText.S_14E9E7E054
+                eventMessage = SystemMessage.S_14E9E7E054
                 return
             }
             val healthBeforeAction = battle.units.mapValues { it.value.hitPoints }
@@ -7826,13 +7826,13 @@ void main() {
                 propertyMode = false
                 val result = usableProperties().getOrNull(selectedPropertyIndex)
                     ?.let { battle.presentation.useProperty(selected.id, clicked.id, it.id) }
-                    ?: TacticalActionResult.Rejected(GameText.S_CA6C5A2257)
+                    ?: TacticalActionResult.Rejected(SystemMessage.S_CA6C5A2257)
                 applyAction(
                     result, selected.name, selected.id, targetId = clicked.id, healthBeforeAction = healthBeforeAction
                 )
             }
 
-            propertyMode -> eventMessage = GameText.S_93EEFD6430
+            propertyMode -> eventMessage = SystemMessage.S_93EEFD6430
             clicked?.id == selected.id -> openBattleCommand(selected)
             clicked != null && clicked.type() == selected.type() && !clicked.hasActed -> {
                 selectedUnitId = clicked.id
@@ -7853,7 +7853,7 @@ void main() {
                     selected.magic.getOrNull(selectedMagicIndex)?.let {
                         magicId = it.id
                         battle.presentation.castMagic(selected.id, clicked.id, it.id)
-                    } ?: TacticalActionResult.Rejected(GameText.S_18CB232899)
+                    } ?: TacticalActionResult.Rejected(SystemMessage.S_18CB232899)
                 } else battle.presentation.attack(selected.id, clicked.id)
                 applyAction(result, selected.name, selected.id, magicId, clicked.id, healthBeforeAction)
                 if (result !is TacticalActionResult.Rejected && battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) {
@@ -8033,9 +8033,9 @@ void main() {
             is BattleCommandFlow.Result.OpenChild -> when (result.command) {
                 BattleCommandFlow.Command.MAGICK -> openMagickList(selected)
                 BattleCommandFlow.Command.PROPERTY -> openUsePropertyLayer()
-                BattleCommandFlow.Command.ATTACK -> eventMessage = GameText.S_14E9E7E054
-                BattleCommandFlow.Command.SWAP -> eventMessage = GameText.S_FD293C8169
-                BattleCommandFlow.Command.SIEGE -> eventMessage = GameText.S_30B3504918
+                BattleCommandFlow.Command.ATTACK -> eventMessage = SystemMessage.S_14E9E7E054
+                BattleCommandFlow.Command.SWAP -> eventMessage = SystemMessage.S_FD293C8169
+                BattleCommandFlow.Command.SIEGE -> eventMessage = SystemMessage.S_30B3504918
                 else -> Unit
             }
 
@@ -8049,7 +8049,7 @@ void main() {
                 selected.tileX = result.pose.x; selected.tileY = result.pose.y
                 selected.direction = result.pose.direction; selected.hasMoved = false
                 selectedUnitId = null
-                eventMessage = GameText.S_B7A3BFF7B9
+                eventMessage = SystemMessage.S_B7A3BFF7B9
             }
 
             BattleCommandFlow.Result.Ignored -> Unit
@@ -8338,8 +8338,8 @@ void main() {
      */
 
     private fun outcomeText(outcome: BattleOutcome): String = when (outcome) {
-        BattleOutcome.PLAYER_VICTORY -> GameText.S_756B2E906A
-        BattleOutcome.ENEMY_VICTORY -> GameText.S_BF14E6715D
+        BattleOutcome.PLAYER_VICTORY -> SystemMessage.S_756B2E906A
+        BattleOutcome.ENEMY_VICTORY -> SystemMessage.S_BF14E6715D
     }
 
     /**
@@ -8992,12 +8992,12 @@ void main() {
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.301f, 487.229f, 169.8f, 50f)
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 768.224f, 430.411f, 160f, 50f)
         font.color = Color.BLACK
-        font.draw(batch, GameText.S_487C122B9A, 669.431f, 592f); font.draw(batch, GameText.S_21BAD5251F, 675.735f, 530f)
-        font.draw(batch, edit.weatherLabel, 817.601f, 529f); font.draw(batch, GameText.S_80A04709E3, 618.435f, 474f)
+        font.draw(batch, SystemMessage.S_487C122B9A, 669.431f, 592f); font.draw(batch, SystemMessage.S_21BAD5251F, 675.735f, 530f)
+        font.draw(batch, edit.weatherLabel, 817.601f, 529f); font.draw(batch, SystemMessage.S_80A04709E3, 618.435f, 474f)
         font.draw(batch, edit.roundText, 770.224f, 472f)
-        button(495.886f, 207.8f, GameText.S_E1407B5115); button(772.686f, 207.8f, GameText.S_19B2D19BC1)
-        button(495.886f, 354.9f, GameText.S_F4C1EA1E89); button(495.886f, 277.1f, GameText.S_C23A1CAF1F)
-        button(772.686f, 354.9f, GameText.S_BFCD361E58); button(772.686f, 277.1f, GameText.S_6EEBC7BA34)
+        button(495.886f, 207.8f, SystemMessage.S_E1407B5115); button(772.686f, 207.8f, SystemMessage.S_19B2D19BC1)
+        button(495.886f, 354.9f, SystemMessage.S_F4C1EA1E89); button(495.886f, 277.1f, SystemMessage.S_C23A1CAF1F)
+        button(772.686f, 354.9f, SystemMessage.S_BFCD361E58); button(772.686f, 277.1f, SystemMessage.S_6EEBC7BA34)
         batch.end()
         if (route == BattleEditLayer2Route.WEATHER) {
             beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
@@ -9060,14 +9060,14 @@ void main() {
             )
         }
         box(715.31f, 397f, 225.2f, 50f); box(715.31f, 315f, 225.2f, 50f); box(714.91f, 479f, 250f, 50f)
-        font.color = Color.BLACK; font.draw(batch, GameText.S_4A0717C830, 629.271f, 596f); font.draw(
-            batch, GameText.S_ECE4B128EA, 625.117f, 438f
+        font.color = Color.BLACK; font.draw(batch, SystemMessage.S_4A0717C830, 629.271f, 596f); font.draw(
+            batch, SystemMessage.S_ECE4B128EA, 625.117f, 438f
         ); font.draw(batch, "50", 717.31f, 439f)
-        font.draw(batch, GameText.S_2412A70276, 625.117f, 356f); font.draw(batch, "0", 717.31f, 357f); font.draw(
-            batch, GameText.S_C0E53C8835, 544.957f, 519f
-        ); font.draw(batch, GameText.S_3FC572DD08, 718.51f, 520f)
-        btn(876.797f, 212.983f, 150.4f, 58.5f, GameText.S_E1407B5115); btn(719.152f, 212.983f, 150.4f, 58.5f, GameText.S_438784C35E); btn(
-            487.035f, 212.95f, 221.5f, 58.5f, GameText.S_6C901520EF
+        font.draw(batch, SystemMessage.S_2412A70276, 625.117f, 356f); font.draw(batch, "0", 717.31f, 357f); font.draw(
+            batch, SystemMessage.S_C0E53C8835, 544.957f, 519f
+        ); font.draw(batch, SystemMessage.S_3FC572DD08, 718.51f, 520f)
+        btn(876.797f, 212.983f, 150.4f, 58.5f, SystemMessage.S_E1407B5115); btn(719.152f, 212.983f, 150.4f, 58.5f, SystemMessage.S_438784C35E); btn(
+            487.035f, 212.95f, 221.5f, 58.5f, SystemMessage.S_6C901520EF
         )
         batch.end()
     }
@@ -9084,7 +9084,7 @@ void main() {
         batch.begin(); batch.color = Color.WHITE
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 715.136f, 298.894f, 250f, 179.5f)
         val names = listOf(
-            GameText.S_901EA3E656, GameText.S_9A6128E64A, GameText.S_28B8268B1E, GameText.S_7579657A88, GameText.S_98CFB12354, GameText.S_09C5A32367, GameText.S_17F4CAA0C8, GameText.S_08E3B7B077, GameText.S_4DF0D9A984, GameText.S_AFB475EE1C
+            SystemMessage.S_901EA3E656, SystemMessage.S_9A6128E64A, SystemMessage.S_28B8268B1E, SystemMessage.S_7579657A88, SystemMessage.S_98CFB12354, SystemMessage.S_09C5A32367, SystemMessage.S_17F4CAA0C8, SystemMessage.S_08E3B7B077, SystemMessage.S_4DF0D9A984, SystemMessage.S_AFB475EE1C
         )
         names.forEachIndexed { index, name ->
             val y = 428.394f - index * 50f; NinePatch(
@@ -9109,10 +9109,10 @@ void main() {
         box.draw(batch, 344.186f, 163.5f, 800f, 473f); box.draw(batch, 355.686f, 520f, 773f, 54f)
         button.draw(batch, 916.163f, 180.272f, 200f, 50f); button.draw(batch, 698.334f, 180.272f, 200f, 50f)
         font.color = Color.BLACK
-        font.draw(batch, GameText.S_9EC75F36CA, 624.186f, 628f)
-        font.draw(batch, GameText.S_2B04A81A98, 369.186f, 563f)
+        font.draw(batch, SystemMessage.S_9EC75F36CA, 624.186f, 628f)
+        font.draw(batch, SystemMessage.S_2B04A81A98, 369.186f, 563f)
         font.draw(batch, "Label", 360.186f, 280f); font.draw(batch, "Label", 360.186f, 435f)
-        font.draw(batch, GameText.S_1BCE60B07B, 939.408f, 222f); font.draw(batch, GameText.S_19B2D19BC1, 748.334f, 229f)
+        font.draw(batch, SystemMessage.S_1BCE60B07B, 939.408f, 222f); font.draw(batch, SystemMessage.S_19B2D19BC1, 748.334f, 229f)
         batch.end()
     }
 
@@ -9147,7 +9147,7 @@ void main() {
         itemUpgradeFont.color = ItemUpgradeRenderContract.ownerColor
         itemUpgradeFont.draw(batch, flow.ownerName, 624.386f, 458f)
         itemUpgradeFont.color = ItemUpgradeRenderContract.labelColor
-        itemUpgradeFont.draw(batch, GameText.S_E17B206052, 815.347f, 458f)
+        itemUpgradeFont.draw(batch, SystemMessage.S_E17B206052, 815.347f, 458f)
         itemUpgradeFont.draw(
             batch, "${flow.attributeName} ${flow.request.oldValue} -> ${flow.request.newValue}", 554.836f, 403.7f
         )
@@ -9512,7 +9512,7 @@ void main() {
                     items = flow.reward.itemIds.take(flow.visibleItemCount).take(3).map { id ->
                         gameDataCatalog.equipmentProfile(id).let { profile ->
                             BattleRenderEventProjectionRewardItemInput(
-                                profile?.icon ?: id, profile?.name ?: GameText.S_75C20D3862 + id
+                                profile?.icon ?: id, profile?.name ?: SystemMessage.S_75C20D3862 + id
                             )
                         }
                     },
@@ -10140,7 +10140,7 @@ void main() {
         )
         font.draw(batch, eventMessage, 80f, 94f)
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
-        font.draw(batch, GameText.S_3992241AD7, 520f, 52f)
+        font.draw(batch, SystemMessage.S_3992241AD7, 520f, 52f)
         batch.end()
     }
 
@@ -10281,7 +10281,7 @@ void main() {
             WeatherTransitionLayout.BAR_WIDTH, Align.center, false
         )
         menuBarLabelFont.draw(
-            batch, GameText.S_7A2ACD7CB6,
+            batch, SystemMessage.S_7A2ACD7CB6,
             WeatherTransitionLayout.TURN_LABEL_LEFT_X, WeatherTransitionLayout.LABEL_BASELINE_Y
         )
         menuBarLabelFont.draw(
@@ -10321,7 +10321,7 @@ void main() {
         }
         font.color = Color.BLACK
         font.data.setScale(sourceLabelScale)
-        font.draw(batch, GameText.S_E7236FD795, x + 7f, y + 618f)
+        font.draw(batch, SystemMessage.S_E7236FD795, x + 7f, y + 618f)
         view.rows.drop(view.firstRow).take(4).forEachIndexed { index, row ->
             val column = index % 2
             val line = index / 2
@@ -10335,7 +10335,7 @@ void main() {
                 row.icon?.let { batch.draw(it, cardX + 12f, cardY - 112f, 90f, 90f) }
                 font.draw(batch, row.name, cardX + 134f, cardY - 25f)
             } else {
-                font.draw(batch, GameText.S_DAA1EDD590, cardX + 134f, cardY - 25f)
+                font.draw(batch, SystemMessage.S_DAA1EDD590, cardX + 134f, cardY - 25f)
             }
         }
         font.data.setScale(sourceLabelScale)
@@ -10344,7 +10344,7 @@ void main() {
             batch, view.title, x + 7f, 141f
         )
         overlayAssets.terrainLayerPanelPatch?.draw(batch, 1071f, 91f, 151f, 52f)
-        font.draw(batch, GameText.S_CAFDC61BBF, 1100f, 119f)
+        font.draw(batch, SystemMessage.S_CAFDC61BBF, 1100f, 119f)
         font.color = Color.WHITE; font.data.setScale(1f); batch.end()
     }
 
@@ -10355,7 +10355,7 @@ void main() {
 
     private fun handleSaveLoadEffect(effect: BattleSaveLoadOverlayController.Effect) {
         if (effect !is BattleSaveLoadOverlayController.Effect.Closed || effect.mode != BattleSaveLoadOverlayController.Mode.SAVE) return
-        if (effect.saved) eventMessage = GameText.S_EAD3664297
+        if (effect.saved) eventMessage = SystemMessage.S_EAD3664297
         if (outcomePresentation.postBattleSaveLayer) outcomePresentation.finishVictoryRoute()
     }
 
@@ -10447,7 +10447,7 @@ void main() {
             9 -> openWinConditionBox() // SLTJ: BattleScreen WIN_CONDITION → WinConBoxLayer
             10 -> Unit // XDT: 원본 분기에서 의도적으로 아무 동작도 하지 않는다.
             11 -> focusNextNoActionUnit() // JSWCZBD: NOACTION_INDEX
-            12 -> eventMessage = GameText.S_EC2B4248A3
+            12 -> eventMessage = SystemMessage.S_EC2B4248A3
             13 -> openHelperLayer() // HELP → Global/scene/HelperLayer
         }
     }
@@ -10519,7 +10519,7 @@ void main() {
             selectedUnitId = null
             if (autoBattleFlow.view().collocation) {
                 if (!turnController.runCollocatedPlayerTurn()) {
-                    eventMessage = GameText.S_888650180C
+                    eventMessage = SystemMessage.S_888650180C
                 }
             } else {
                 endTurn()
@@ -10703,7 +10703,7 @@ void main() {
                 else -> -1
             }
             return ForcesListLayer.Unit(
-                id = unit.characterId ?: 0, name = unit.name, post = GameText.S_F0D2E9FDE8, level = unit.level,
+                id = unit.characterId ?: 0, name = unit.name, post = SystemMessage.S_F0D2E9FDE8, level = unit.level,
                 hp = unit.hitPoints, maxHp = unit.maxHitPoints, mp = unit.magicPoints, maxMp = unit.maxMagicPoints,
                 attack = unit.attack, defense = unit.defense, spirit = unit.spirit, critical = unit.critical,
                 morale = unit.morale, famous = unit.famous,
@@ -10731,7 +10731,7 @@ void main() {
 
         val enemy = battle.units.values.filter { it.visible && it.type().isEnemySide() }.map(::asSource)
         forcesOverlay.open(mine, enemy, 1)
-        eventMessage = GameText.S_3A6CD5555C
+        eventMessage = SystemMessage.S_3A6CD5555C
     }
 
     /** 유닛 정보 창 열기: 선택 유닛과 같은 진영의 표시 행을 만들고 정보 오버레이를 활성화한다. */
@@ -10754,7 +10754,7 @@ void main() {
             postsName = gameDataCatalog.postsName(unit.posts),
             level = unit.level,
             camp = camp,
-            terrainName = gameDataCatalog.terrainRows().getOrNull(terrain)?.name ?: GameText.S_8916B6394A,
+            terrainName = gameDataCatalog.terrainRows().getOrNull(terrain)?.name ?: SystemMessage.S_8916B6394A,
             terrainImpact = unit.terrainImpacts[terrain] ?: 100,
             hitPoints = unit.hitPoints,
             maxHitPoints = unit.maxHitPoints,
@@ -10789,7 +10789,7 @@ void main() {
         fun row(u: BattleUnit) = UnitInfoLayer.Unit(
             u.characterId ?: 0,
             u.name,
-            GameText.S_F0D2E9FDE8,
+            SystemMessage.S_F0D2E9FDE8,
             u.level,
             u.hitPoints,
             u.maxHitPoints,
@@ -10915,7 +10915,7 @@ void main() {
                     magickListLayer = MagicUiList(
                         42,
                         42,
-                        listOf(MagicUiList.Magic(0, GameText.S_99BC913EA8, 6, 70, 1, 0, 0, "")),
+                        listOf(MagicUiList.Magic(0, SystemMessage.S_99BC913EA8, 6, 70, 1, 0, 0, "")),
                         emptyMap(),
                     )
                 }
@@ -11159,29 +11159,29 @@ void main() {
             roundLayerFont.color = color; roundLayerFont.draw(batch, value, x, y + 125f, width, Align.center, false)
         }
         if (layer.view.roundLabelsVisible) {
-            text(GameText.S_2F82A7D82B, 526.713f, 380.09f, 448.54f, Color.RED)
-            text(GameText.S_2F82A7D82B, 519.916f, 385.09f, 448.54f, Color.WHITE)
+            text(SystemMessage.S_2F82A7D82B, 526.713f, 380.09f, 448.54f, Color.RED)
+            text(SystemMessage.S_2F82A7D82B, 519.916f, 385.09f, 448.54f, Color.WHITE)
             /**
              * `width` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val width = if (layer.view.roundText == GameText.S_246D8BEA50) 344.74f else 274.34f
+            val width = if (layer.view.roundText == SystemMessage.S_246D8BEA50) 344.74f else 274.34f
 
             /**
              * `x` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val x = if (layer.view.roundText == GameText.S_246D8BEA50) 578.613f else 613.813f
+            val x = if (layer.view.roundText == SystemMessage.S_246D8BEA50) 578.613f else 613.813f
             // 원본 프리팹 `Battle/scene/RoundLayer`(import/5d/5ddb08c6-…44132.json)의 `label12`
             // `_color`는 4286545795 = (131,127,127)이다. 단계 그림자(`label02`/`label22`)만
             // 빨강이고 턴 수 그림자는 따뜻한 회색이다. 포트는 (255,128,128)을 쓰고 있었다.
             text(layer.view.roundText, x, 247.7f, width, ROUND_TURN_SHADOW)
             text(layer.view.roundText, x - 6.797f, 252.7f, width, Color.WHITE)
         } else {
-            text(GameText.S_AF6F2E389D, 526.713f, 319.4f, 448.54f, Color.RED)
-            text(GameText.S_AF6F2E389D, 519.916f, 324.4f, 448.54f, Color.WHITE)
+            text(SystemMessage.S_AF6F2E389D, 526.713f, 319.4f, 448.54f, Color.RED)
+            text(SystemMessage.S_AF6F2E389D, 519.916f, 324.4f, 448.54f, Color.WHITE)
         }
         roundLayerFont.color = Color.WHITE; batch.end()
     }
@@ -11298,7 +11298,7 @@ void main() {
      */
 
     private fun propertyEffectName(profile: GameDataCatalog.EquipmentProfile): String = when (profile.itemType) {
-        26 -> GameText.S_5250AF0F28
+        26 -> SystemMessage.S_5250AF0F28
         else -> gameDataCatalog.equipmentTypeName(profile.itemType)
     }
 
@@ -11341,7 +11341,7 @@ void main() {
                 } else {
                     if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCancelled()
                     propertyMode = false
-                    eventMessage = GameText.S_A7202337A7
+                    eventMessage = SystemMessage.S_A7202337A7
                 }
             },
             onInspect = { selected ->
@@ -11478,13 +11478,13 @@ void main() {
             NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 809.55f + ox, y + 5f, 100f, 100f)
             dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it, 814.55f + ox, y + 10f, 90f, 90f) }
             font.draw(batch, item.name, 912.036f + ox, y + 99f)
-            font.draw(batch, GameText.S_DF988D7025, 912.036f + ox, y + 47f)
+            font.draw(batch, SystemMessage.S_DF988D7025, 912.036f + ox, y + 47f)
             font.draw(batch, item.typeName, 1015.631f + ox, y + 47f)
-            font.draw(batch, GameText.S_F83EB3F89C, 1108.272f + ox, y + 99f)
+            font.draw(batch, SystemMessage.S_F83EB3F89C, 1108.272f + ox, y + 99f)
             font.draw(batch, item.count.toString(), 1249.503f + ox, y + 99f)
         }
         NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 1131.145f + ox, 394.896f + oy, 150f, 50f)
-        font.draw(batch, GameText.S_19B2D19BC1, 1156.145f + ox, 442f + oy)
+        font.draw(batch, SystemMessage.S_19B2D19BC1, 1156.145f + ox, 442f + oy)
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
@@ -11517,16 +11517,16 @@ void main() {
         font.data.setScale(40f / 26f); font.color = Color.BLACK
         listOf(
             item.name to (420.186f to 701f),
-            GameText.S_991BD0CC20 to (432.137f to 591f),
-            GameText.S_B62250FE8D to (522.525f to 591f),
-            GameText.S_C61005675A to (432.137f to 546f),
+            SystemMessage.S_991BD0CC20 to (432.137f to 591f),
+            SystemMessage.S_B62250FE8D to (522.525f to 591f),
+            SystemMessage.S_C61005675A to (432.137f to 546f),
             gameDataCatalog.purchasePrice(profile).toString() to (522.525f to 546f),
-            GameText.S_CE49DECB68 to (477.586f to 485f),
+            SystemMessage.S_CE49DECB68 to (477.586f to 485f),
             item.typeName to (265.686f to 432f),
-            GameText.S_841964364C to (953.586f to 421f),
+            SystemMessage.S_841964364C to (953.586f to 421f),
             profile.intro to (774.186f to 376f),
-            GameText.S_1CC0D0F805 to (804.516f to 704f),
-            GameText.S_468266D639 to (1090.827f to 147f)
+            SystemMessage.S_1CC0D0F805 to (804.516f to 704f),
+            SystemMessage.S_468266D639 to (1090.827f to 147f)
         ).forEach { (text, pos) -> font.draw(batch, text, pos.first, pos.second) }
         drawUsePropertyDetailPostsNames(profile)
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
@@ -11666,7 +11666,7 @@ void main() {
         dynamicTextures.battleDialog(BattleUiAssets.MP_MAX_MARK)
             ?.let { batch.draw(it, 743.186f, 663.207f, 200f * previewFraction, 20f) }
         font.data.setScale(40f / 26f); font.color = Color.BLACK
-        font.draw(batch, selectedUnitId?.let(battle.units::get)?.name ?: GameText.S_F8BE692B65, 495.586f, 695f); font.draw(
+        font.draw(batch, selectedUnitId?.let(battle.units::get)?.name ?: SystemMessage.S_F8BE692B65, 495.586f, 695f); font.draw(
             batch, "MP", 681.186f, 695f
         )
         font.draw(batch, "${layer.mp}/${layer.maxMp}", 793.136f, 696f)
@@ -11693,7 +11693,7 @@ void main() {
             font.draw(batch, magic.name, x + 92f, y + 129f)
             font.color = fixedColor; font.draw(batch, "MP：", x + 92f, y + 88f)
             font.color = costColor; font.draw(batch, magic.cost.toString(), x + 176f, y + 88f)
-            font.color = fixedColor; font.draw(batch, GameText.S_63314575EA, x + 2f, y + 47f)
+            font.color = fixedColor; font.draw(batch, SystemMessage.S_63314575EA, x + 2f, y + 47f)
             font.color = cardColor
             // 원본 `MagickListLayer.js:147-148`의 문구 규칙은 증거와 같은 계약이 든다.
             font.draw(batch, BattleDialogRenderContract.damageCoefficientText(magic.power), x + 180f, y + 47f)
@@ -11701,7 +11701,7 @@ void main() {
         font.color = Color.BLACK; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
             batch, 775.892f, 97.683f, 180f, 50f
         )
-        font.draw(batch, GameText.S_19B2D19BC1, 815.892f, 145f); font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+        font.draw(batch, SystemMessage.S_19B2D19BC1, 815.892f, 145f); font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
 
     /**
@@ -11730,14 +11730,14 @@ void main() {
         font.data.setScale(40f / 26f); font.color = Color.BLACK
         listOf(
             magic.name to (577.509f to 646f),
-            GameText.S_169487DB3A to (476.336f to 522f),
+            SystemMessage.S_169487DB3A to (476.336f to 522f),
             "${magic.power ?: 0}%" to (566.719f to 522f),
-            GameText.S_5FC06645C6 to (470.776f to 479f),
+            SystemMessage.S_5FC06645C6 to (470.776f to 479f),
             magic.cost.toString() to (627.053f to 479f),
             magic.intro to (470.786f to 415f),
-            GameText.S_AF99A26F2C to (839.654f to 653f),
-            GameText.S_368A5F6FF8 to (839.654f to 424f),
-            GameText.S_468266D639 to (898.564f to 192f)
+            SystemMessage.S_AF99A26F2C to (839.654f to 653f),
+            SystemMessage.S_368A5F6FF8 to (839.654f to 424f),
+            SystemMessage.S_468266D639 to (898.564f to 192f)
         ).forEach { (t, p) -> font.draw(batch, t, p.first, p.second) }
         font.data.setScale(1f); font.color = Color.WHITE; batch.end()
     }
@@ -11789,10 +11789,10 @@ void main() {
     private fun drawJiqiLayer() {
         val layer = jiqiLayer ?: return
         val labels = listOf(
-            Triple(GameText.S_66213DD030, 479.171f, 487.8f), Triple(GameText.S_7DC19BD3AD, 485.057f, 424.839f),
-            Triple(GameText.S_7210A3FD77, 484.731f, 360.8f), Triple(GameText.S_474B2D7F53, 424.571f, 297.8f),
-            Triple(GameText.S_39A4B2720C, 753.016f, 487.8f), Triple(GameText.S_D56C3E9F15, 738.416f, 306.8f),
-            Triple(GameText.S_B6BFF83C31, 821.431f, 370.8f), Triple(GameText.S_DD3E1D7F75, 753.016f, 433.8f),
+            Triple(SystemMessage.S_66213DD030, 479.171f, 487.8f), Triple(SystemMessage.S_7DC19BD3AD, 485.057f, 424.839f),
+            Triple(SystemMessage.S_7210A3FD77, 484.731f, 360.8f), Triple(SystemMessage.S_474B2D7F53, 424.571f, 297.8f),
+            Triple(SystemMessage.S_39A4B2720C, 753.016f, 487.8f), Triple(SystemMessage.S_D56C3E9F15, 738.416f, 306.8f),
+            Triple(SystemMessage.S_B6BFF83C31, 821.431f, 370.8f), Triple(SystemMessage.S_DD3E1D7F75, 753.016f, 433.8f),
         )
         shapes.projectionMatrix = viewport.camera.combined
         beginFilledShapes()
@@ -11857,7 +11857,7 @@ void main() {
                 }?.name
             },
             variable = { id -> (campaign.globalVariables[id] as? Number)?.toInt() ?: 0 },
-        ).ifEmpty { GameText.S_CB5A392498 }
+        ).ifEmpty { SystemMessage.S_CB5A392498 }
     }
 
     /**
@@ -11934,7 +11934,7 @@ void main() {
         }
         dialogueFont.color = WinConditionRenderContract.button
         overlayAssets.winConditionBoxPatch?.draw(batch, 957.134f, 88.204f, 256.7f, 60f)
-        dialogueFont.draw(batch, GameText.S_C04D541DFC, 982f, 107f)
+        dialogueFont.draw(batch, SystemMessage.S_C04D541DFC, 982f, 107f)
         dialogueFont.color = Color.WHITE
         batch.end()
     }
@@ -12025,7 +12025,7 @@ void main() {
         battleAutoOverlayRenderer.draw(BattleAutoOverlayView(
             overlay = BattleAutoOverlayKind.PROMPT,
             offersDelegation = false,
-            message = GameText.S_293960AB27,
+            message = SystemMessage.S_293960AB27,
         ))
     }
 
@@ -12251,7 +12251,7 @@ void main() {
     /** 특정 한 글자 검증 프레임에만 별도로 잘라 둔 본문 텍스처를 쓴다. */
     private fun battleBodyOverlay(dialogue: Dialogue, placement: DialogueComponentPlacement): DialogueTextureOverlay? {
         hudAssets.yingchuan477BodyTexture
-            ?.takeIf { dialogue.speakerId == "477" && dialogueReveal.visibleText == GameText.S_0DFFF1CFEB }
+            ?.takeIf { dialogue.speakerId == "477" && dialogueReveal.visibleText == SystemMessage.S_0DFFF1CFEB }
             ?.let {
                 // Cocos 캔버스 글리프 잘라내기는 2배 맵 변환 뒤 폭이 30px이다.
                 return DialogueTextureOverlay(
@@ -12360,7 +12360,7 @@ void main() {
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         font.color = Color(1f, 0.85f, 0.48f, 1f)
-        font.draw(batch, GameText.S_AB8D20CEA1, 94f, 234f)
+        font.draw(batch, SystemMessage.S_AB8D20CEA1, 94f, 234f)
         choice.options.forEachIndexed { index, option ->
             font.color = if (index == scriptRuntime.selectedChoice) Color(1f, 0.86f, 0.43f, 1f) else Color.WHITE
             font.draw(
@@ -12368,7 +12368,7 @@ void main() {
             )
         }
         font.color = Color(0.72f, 0.80f, 0.90f, 1f)
-        font.draw(batch, GameText.S_606322672A, 850f, 72f)
+        font.draw(batch, SystemMessage.S_606322672A, 850f, 72f)
         batch.end()
     }
 
@@ -12824,10 +12824,10 @@ void main() {
      */
 
     private fun Faction.label(): String = when (this) {
-        Faction.PLAYER -> GameText.S_3843E8E488
-        Faction.FRIEND -> GameText.S_7627935CE4
-        Faction.ENEMY -> GameText.S_93A131140A
-        Faction.REINFORCEMENTS -> GameText.S_654B500353
+        Faction.PLAYER -> SystemMessage.S_3843E8E488
+        Faction.FRIEND -> SystemMessage.S_7627935CE4
+        Faction.ENEMY -> SystemMessage.S_93A131140A
+        Faction.REINFORCEMENTS -> SystemMessage.S_654B500353
     }
 
     /**
@@ -12848,11 +12848,11 @@ void main() {
      */
 
     private fun BattleWeather.label(): String = when (this) {
-        BattleWeather.CLEAR -> GameText.S_9A7F95E71C
-        BattleWeather.CLOUDY -> GameText.S_887F182653
-        BattleWeather.WINDY -> GameText.S_80440AFFDF
-        BattleWeather.HEAVY_RAIN -> GameText.S_1F899001DE
-        BattleWeather.SNOW -> GameText.S_374A498946
+        BattleWeather.CLEAR -> SystemMessage.S_9A7F95E71C
+        BattleWeather.CLOUDY -> SystemMessage.S_887F182653
+        BattleWeather.WINDY -> SystemMessage.S_80440AFFDF
+        BattleWeather.HEAVY_RAIN -> SystemMessage.S_1F899001DE
+        BattleWeather.SNOW -> SystemMessage.S_374A498946
     }
 
     /**
@@ -12861,7 +12861,7 @@ void main() {
      */
 
     private fun scenarioMaxRound(): Int = scriptRuntime.stage.battleMaxRounds.takeIf { it != 99 }
-        ?: Regex(GameText.S_CC6A623F14).find(scriptRuntime.stage.winCondition)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        ?: Regex(SystemMessage.S_CC6A623F14).find(scriptRuntime.stage.winCondition)?.groupValues?.getOrNull(1)?.toIntOrNull()
         ?: 99
 
     /**

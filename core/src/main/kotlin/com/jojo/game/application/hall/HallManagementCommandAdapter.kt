@@ -1,7 +1,7 @@
 // Campaign
 package com.jojo.game.application.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.campaign.CampaignState
@@ -38,22 +38,22 @@ class HallManagementCommandAdapter(
 
     /** buy: 금화와 가격을 확인한 뒤 물품을 구매해 소지품에 추가한다. */
     fun buy(itemId: Int): Result {
-        val item = catalog.equipmentProfile(itemId) ?: return Result.Rejected(GameText.S_EB5475E97C)
+        val item = catalog.equipmentProfile(itemId) ?: return Result.Rejected(SystemMessage.S_EB5475E97C)
         val price = catalog.purchasePrice(item)
-        if (price == 255) return Result.Rejected(GameText.S_F1A4254DC6)
-        if (campaign.money < price) return Result.Rejected(GameText.S_A0B2E8A290)
+        if (price == 255) return Result.Rejected(SystemMessage.S_F1A4254DC6)
+        if (campaign.money < price) return Result.Rejected(SystemMessage.S_A0B2E8A290)
         campaign.addMoney(-price)
         campaign.inventory.addItem(itemId)
-        return Result.Success(GameText.format(GameText.Key.ITEM_PURCHASE, item.name))
+        return Result.Success(SystemMessage.format(SystemMessage.Key.ITEM_PURCHASE, item.name))
     }
 
     /** sell: 판매 가능한 소지품을 제거하고 판매 금액을 지급한다. */
     fun sell(itemId: Int): Result {
-        val item = catalog.equipmentProfile(itemId) ?: return Result.Rejected(GameText.S_6812661FAF)
-        if (item.price == 255) return Result.Rejected(GameText.S_6812661FAF)
-        if (!campaign.inventory.consumeItem(itemId)) return Result.Rejected(GameText.S_194D16A649)
+        val item = catalog.equipmentProfile(itemId) ?: return Result.Rejected(SystemMessage.S_6812661FAF)
+        if (item.price == 255) return Result.Rejected(SystemMessage.S_6812661FAF)
+        if (!campaign.inventory.consumeItem(itemId)) return Result.Rejected(SystemMessage.S_194D16A649)
         campaign.addMoney(catalog.sellingPrice(item))
-        return Result.Success(GameText.format(GameText.Key.ITEM_SALE, item.name))
+        return Result.Success(SystemMessage.format(SystemMessage.Key.ITEM_SALE, item.name))
     }
 
     /** discard: 지정한 소지품 하나를 폐기하고 성공 여부를 반환한다. */

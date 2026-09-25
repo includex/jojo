@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.magic
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
 
@@ -22,36 +22,36 @@ internal object MagicResolver {
         bypassCondition: Boolean = false,
         env: MagicEnvironment,
     ): TacticalActionResult {
-        if (env.isBattleEnded()) return TacticalActionResult.Rejected(GameText.S_14E3B0AF5D)
+        if (env.isBattleEnded()) return TacticalActionResult.Rejected(SystemMessage.S_14E3B0AF5D)
         /**
          * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val attacker = env.units().firstOrNull { it.id == attackerId }
-            ?: return TacticalActionResult.Rejected(GameText.S_D26EB7B9F4)
+            ?: return TacticalActionResult.Rejected(SystemMessage.S_D26EB7B9F4)
         /**
          * `target` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val target = env.units().firstOrNull { it.id == targetId }
-            ?: return TacticalActionResult.Rejected(GameText.S_367A0A7181)
+            ?: return TacticalActionResult.Rejected(SystemMessage.S_367A0A7181)
         /**
          * `magic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val magic = attacker.magic.firstOrNull { it.id == magicId }
-            ?: return TacticalActionResult.Rejected(GameText.S_30373C627C)
+            ?: return TacticalActionResult.Rejected(SystemMessage.S_30373C627C)
         if (!attacker.visible || !target.visible || (!reaction && (attacker.effectiveFaction() != env.activeFaction() || attacker.hasActed))) {
-            return TacticalActionResult.Rejected(GameText.S_DADF270A7B)
+            return TacticalActionResult.Rejected(SystemMessage.S_DADF270A7B)
         }
         if (BattleStatus.PARALYSIS in attacker.statuses || BattleStatus.CONFUSION in attacker.statuses || BattleStatus.SILENCE in attacker.statuses) {
-            return TacticalActionResult.Rejected(GameText.S_DA89D1A923)
+            return TacticalActionResult.Rejected(SystemMessage.S_DA89D1A923)
         }
         if (magic.target == 2) {
-            if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(GameText.S_6D37F45C92)
+            if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(SystemMessage.S_6D37F45C92)
             attacker.addMpcur(-magic.expendMp)
             if (!reaction) attacker.markActionComplete()
             when (magic.id) {
@@ -78,7 +78,7 @@ internal object MagicResolver {
                 target
             )))
         ) {
-            return TacticalActionResult.Rejected(if (targetsAllies) GameText.S_A889CDE68C else GameText.S_5045C9D518)
+            return TacticalActionResult.Rejected(if (targetsAllies) SystemMessage.S_A889CDE68C else SystemMessage.S_5045C9D518)
         }
         /**
          * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -87,17 +87,17 @@ internal object MagicResolver {
 
         val offset = target.tileX - attacker.tileX to target.tileY - attacker.tileY
         if (magic.category !in setOf(1, 29) && !magic.hitArea.allScreen && offset !in magic.hitArea.offsets) {
-            return TacticalActionResult.Rejected(GameText.S_DBCFE0B704)
+            return TacticalActionResult.Rejected(SystemMessage.S_DBCFE0B704)
         }
         if (!MagicDamageCalculator.magicTerrainAllowed(magic, target)) {
-            return TacticalActionResult.Rejected(GameText.S_BFE3A374EA)
+            return TacticalActionResult.Rejected(SystemMessage.S_BFE3A374EA)
         }
         if (!bypassCondition) {
             MagicDamageCalculator.magicConditionReason(attacker, magic, env.weather())?.let {
                 return TacticalActionResult.Rejected(it)
             }
         }
-        if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(GameText.S_6D37F45C92)
+        if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(SystemMessage.S_6D37F45C92)
         attacker.addMpcur(-magic.expendMp)
         if (!reaction) attacker.markActionComplete()
 
@@ -326,30 +326,30 @@ internal object MagicResolver {
         magicId: Int,
         env: MagicEnvironment,
     ): TacticalActionResult {
-        if (env.isBattleEnded()) return TacticalActionResult.Rejected(GameText.S_14E3B0AF5D)
+        if (env.isBattleEnded()) return TacticalActionResult.Rejected(SystemMessage.S_14E3B0AF5D)
         /**
          * `attacker` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val attacker = env.units().firstOrNull { it.id == attackerId }
-            ?: return TacticalActionResult.Rejected(GameText.S_D26EB7B9F4)
+            ?: return TacticalActionResult.Rejected(SystemMessage.S_D26EB7B9F4)
         /**
          * `magic` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val magic = attacker.magic.firstOrNull { it.id == magicId }
-            ?: return TacticalActionResult.Rejected(GameText.S_30373C627C)
-        if (magic.type != 37) return TacticalActionResult.Rejected(GameText.S_29708E4B21)
+            ?: return TacticalActionResult.Rejected(SystemMessage.S_30373C627C)
+        if (magic.type != 37) return TacticalActionResult.Rejected(SystemMessage.S_29708E4B21)
         if (!attacker.visible || attacker.effectiveFaction() != env.activeFaction() || attacker.hasActed) {
-            return TacticalActionResult.Rejected(GameText.S_DADF270A7B)
+            return TacticalActionResult.Rejected(SystemMessage.S_DADF270A7B)
         }
-        if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(GameText.S_6D37F45C92)
+        if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(SystemMessage.S_6D37F45C92)
         if (env.unitAt(targetX, targetY) != null || targetX < 0 || targetY < 0 ||
             env.terrain?.let { targetX >= it.width || targetY >= it.height } == true
         ) {
-            return TacticalActionResult.Rejected(GameText.S_A4D25C80A2)
+            return TacticalActionResult.Rejected(SystemMessage.S_A4D25C80A2)
         }
         /**
          * `offset` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -358,7 +358,7 @@ internal object MagicResolver {
 
         val offset = targetX - attacker.tileX to targetY - attacker.tileY
         if (!magic.hitArea.allScreen && offset !in magic.hitArea.offsets) {
-            return TacticalActionResult.Rejected(GameText.S_DBCFE0B704)
+            return TacticalActionResult.Rejected(SystemMessage.S_DBCFE0B704)
         }
         attacker.addMpcur(-magic.expendMp)
         attacker.tileX = targetX

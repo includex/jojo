@@ -7,6 +7,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.*
 import java.io.File
@@ -19,7 +20,7 @@ object OpeningPortraitReadinessDesktopLauncher {
         val rows = JsonValue(JsonValue.ValueType.array)
         val draws = JsonValue(JsonValue.ValueType.array)
         val inputs = JsonValue(JsonValue.ValueType.array)
-        val texts = listOf("대장님, 서둘러야 해요!", "알아!", "잠시만 기다려 주세요!")
+        val texts = listOf(ScenarioDialogueTextCatalog.text("opening_scene1_page1"), ScenarioDialogueTextCatalog.text("opening_scene1_page2"), ScenarioDialogueTextCatalog.text("opening_scene1_page3"))
         val speakers = listOf("181", "0", "157")
         var frame = 0
         var installed = false

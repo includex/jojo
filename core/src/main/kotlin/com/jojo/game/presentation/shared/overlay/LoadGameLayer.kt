@@ -1,7 +1,7 @@
 // Presentation
 package com.jojo.game.presentation.shared.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.utils.JsonReader
 
@@ -216,7 +216,7 @@ class LoadGameLayer(private val repository: Repository) {
         pendingIndex = index
         val row = view().rows.first { it.index == index }
         view =
-            view().copy(confirmation = Confirmation(index, GameText.format(GameText.Key.LOAD_CONFIRM, index + 1, row.name)), notice = null)
+            view().copy(confirmation = Confirmation(index, SystemMessage.format(SystemMessage.Key.LOAD_CONFIRM, index + 1, row.name)), notice = null)
         return true
     }
 
@@ -229,10 +229,10 @@ class LoadGameLayer(private val repository: Repository) {
             view = view().copy(confirmation = null)
             return false
         }
-        if (raw.isNullOrEmpty() || !raw.startsWith('{')) return fail(GameText.S_6B7BBE748F)
-        val root = runCatching { JsonReader().parse(raw) }.getOrNull() ?: return fail(GameText.S_6B7BBE748F)
+        if (raw.isNullOrEmpty() || !raw.startsWith('{')) return fail(SystemMessage.S_6B7BBE748F)
+        val root = runCatching { JsonReader().parse(raw) }.getOrNull() ?: return fail(SystemMessage.S_6B7BBE748F)
         val version = root.get("model")?.getInt("version", 0) ?: 0
-        if (version > repository.versionCode()) return fail(GameText.S_A7F94475AE)
+        if (version > repository.versionCode()) return fail(SystemMessage.S_A7F94475AE)
         val route = when (root.getInt("battle", 0)) {
             2 -> RestoreRoute.HALL_AFTER_BATTLE
             0 -> RestoreRoute.HALL
@@ -240,7 +240,7 @@ class LoadGameLayer(private val repository: Repository) {
         }
         val restored = repository.restore(index, raw, route)
         // `_loadGame`은 장면만 교체하고 removeFromParent를 호출하지 않으므로, 원본과 같게 이 레이어의 부착 상태를 유지한다.
-        view = view().copy(confirmation = null, attached = attached, notice = if (restored) null else GameText.S_6B7BBE748F)
+        view = view().copy(confirmation = null, attached = attached, notice = if (restored) null else SystemMessage.S_6B7BBE748F)
         return restored
     }
 

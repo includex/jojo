@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.preparation
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -67,8 +67,8 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         drawRoster(state)
         drawSelectedSlots(state)
         drawUnitInfo(state.units.firstOrNull { it.id == state.cursorId })
-        drawButton(954.76f, 49.88f, GameText.S_0C5EE2A0B8, state.canStart)
-        drawButton(1049.36f, 49.88f, GameText.S_19B2D19BC1, true)
+        drawButton(954.76f, 49.88f, SystemMessage.S_0C5EE2A0B8, state.canStart)
+        drawButton(1049.36f, 49.88f, SystemMessage.S_19B2D19BC1, true)
         if (state.sortOpen) drawBattleSortMenu()
         if (state.detailsVisible) drawUnitInfoOverlay(state)
         batch.end()
@@ -131,8 +131,8 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
             centered(assets.rosterNameFont, unit.name, cx, (625.287f - index / 6 * 144f) * SCALE + 13f)
         }
         assets.font.color = Color.BLACK
-        assets.font.draw(batch, GameText.format(GameText.Key.TROOP_COUNT, state.selectedIds.size, state.maximum), 144f, 315f)
-        drawButton(657.56f, 278.64f, GameText.S_F407A5EA8C, true, 172f)
+        assets.font.draw(batch, SystemMessage.format(SystemMessage.Key.TROOP_COUNT, state.selectedIds.size, state.maximum), 144f, 315f)
+        drawButton(657.56f, 278.64f, SystemMessage.S_F407A5EA8C, true, 172f)
     }
 
     /**
@@ -171,7 +171,7 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         assets.font.color = Color.BLACK
         assets.font.draw(batch, unit.name, 842.228f, 630f)
         right(assets.font, unit.armName, 1130.73f, 632f)
-        centered(assets.font, GameText.S_757535E6BD, 927f, 590f)
+        centered(assets.font, SystemMessage.S_757535E6BD, 927f, 590f)
         assets.face(unit.headId)?.let { batch.draw(it, 848.51f, 372.86f, 140.35f, 175.44f) }
         listOf("Lv" to unit.level, "EXP" to unit.experience, "HP:" to unit.maxHitPoints, "MP:" to unit.maxMagicPoints)
             .forEachIndexed { index, (label, value) ->
@@ -200,7 +200,7 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         batch.draw(assets.dim, 0f, 0f, 1280f, 688f)
         batch.color = Color.WHITE
         assets.box1Patch?.draw(batch, 658.06f, 32.25f, 172f, 243.81f)
-        listOf(GameText.S_F407A5EA8C, GameText.S_50B8DF8C55, GameText.S_F3F57B591C, GameText.S_5C349008C3, GameText.S_453D0D2DF5).forEachIndexed { index, value ->
+        listOf(SystemMessage.S_F407A5EA8C, SystemMessage.S_50B8DF8C55, SystemMessage.S_F3F57B591C, SystemMessage.S_5C349008C3, SystemMessage.S_453D0D2DF5).forEachIndexed { index, value ->
             assets.outerPatch?.draw(batch, 665.64f, 40.42f + (4 - index) * 46.44f, 155.57f, 43f)
             centered(assets.font, value, 743.43f, 70f + (4 - index) * 46.44f)
         }
@@ -246,8 +246,8 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
         assets.unitInfoBoxPatch?.draw(batch, 454.186f * SCALE, 339.359f * SCALE, 358f * SCALE, 144f * SCALE)
         assets.unitInfoBoxPatch?.draw(batch, 821.986f * SCALE, 71.95f * SCALE, 457f * SCALE, 580.5f * SCALE)
         listOf(
-            Triple(825.923f, 712.65f, GameText.S_54F6815FE2), Triple(1014.008f, 712.65f, GameText.S_EBE739C92D),
-            Triple(826.481f, 651.471f, GameText.S_8F2A423094), Triple(956.444f, 651.471f, GameText.S_E17B206052), Triple(1086.444f, 651.471f, GameText.S_9D41799D25)
+            Triple(825.923f, 712.65f, SystemMessage.S_54F6815FE2), Triple(1014.008f, 712.65f, SystemMessage.S_EBE739C92D),
+            Triple(826.481f, 651.471f, SystemMessage.S_8F2A423094), Triple(956.444f, 651.471f, SystemMessage.S_E17B206052), Triple(1086.444f, 651.471f, SystemMessage.S_9D41799D25)
         )
             .forEach { (x, y, text) ->
                 assets.unitInfoButtonPatch?.draw(
@@ -262,11 +262,11 @@ internal class BattlePreparationRenderer(private val assets: BattlePreparationAs
             }
         assets.font.color = Color.BLACK
         listOf(
-            GameText.S_757535E6BD to (202.186f to 780f), GameText.S_6B1F41FC4A to (455.186f to 716f), GameText.S_F407A5EA8C to (475.267f to 670f),
-            GameText.S_77286CB72C to (466.186f to 620f), "Exp                  0/100" to (466.186f to 561f),
-            GameText.S_2926977BA7 to (476.844f to 496f), "HP                 123/123" to (468.186f to 451f),
-            "MP                 36/36" to (468.186f to 395f), GameText.S_2C41F8D606 to (853.036f to 644f),
-            GameText.S_A6A330AD58 to (848.106f to 588f)
+            SystemMessage.S_757535E6BD to (202.186f to 780f), SystemMessage.S_6B1F41FC4A to (455.186f to 716f), SystemMessage.S_F407A5EA8C to (475.267f to 670f),
+            SystemMessage.S_77286CB72C to (466.186f to 620f), "Exp                  0/100" to (466.186f to 561f),
+            SystemMessage.S_2926977BA7 to (476.844f to 496f), "HP                 123/123" to (468.186f to 451f),
+            "MP                 36/36" to (468.186f to 395f), SystemMessage.S_2C41F8D606 to (853.036f to 644f),
+            SystemMessage.S_A6A330AD58 to (848.106f to 588f)
         )
             .forEach { (text, point) -> assets.font.draw(batch, text, point.first * SCALE, point.second * SCALE) }
         batch.color = Color.WHITE

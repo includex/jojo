@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.shared.overlay.*
 
 /** HallHelperView: 거점 도움말 표시 정보이며, 해당 화면에 표시할 텍스트·아이콘·선택 상태를 불변 값으로 전달한다. */
@@ -13,15 +13,15 @@ internal data class HallHelperView(val text: String) {
          */
 
         val default = HallHelperView(
-            GameText.S_DE036B2104 +
-                GameText.S_6C9CBA423C +
-                GameText.S_360FBBD2E1 +
-                GameText.S_F5CE653B43 +
-                GameText.S_79B24282A6 +
-                GameText.S_1DF67FC361 +
-                GameText.S_37E8F20B08 +
-                GameText.S_42FA751364 +
-                GameText.S_51F600E95C,
+            SystemMessage.S_DE036B2104 +
+                SystemMessage.S_6C9CBA423C +
+                SystemMessage.S_360FBBD2E1 +
+                SystemMessage.S_F5CE653B43 +
+                SystemMessage.S_79B24282A6 +
+                SystemMessage.S_1DF67FC361 +
+                SystemMessage.S_37E8F20B08 +
+                SystemMessage.S_42FA751364 +
+                SystemMessage.S_51F600E95C,
         )
     }
 }

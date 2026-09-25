@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.presentation.scenario.overlay.*
@@ -166,7 +166,7 @@ class HallMenuFlow(private val edit: Boolean) {
             "HelperLayer"
         )[id]
         val payload = when (id) {
-            0 -> GameText.S_A68C406265; 4 -> "{\"ms\":[\"unit-a\",\"unit-b\"],\"flag\":0}"; else -> null
+            0 -> SystemMessage.S_A68C406265; 4 -> "{\"ms\":[\"unit-a\",\"unit-b\"],\"flag\":0}"; else -> null
         }
         routes += HallRoute(route, payload); if (id == 0) msgBoxPending = true
     }

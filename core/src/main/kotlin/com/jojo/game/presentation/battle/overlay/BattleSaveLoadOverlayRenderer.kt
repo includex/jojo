@@ -1,7 +1,7 @@
 // Battle
 package com.jojo.game.presentation.battle.overlay
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.shared.overlay.*
 
 import com.jojo.game.*
@@ -82,20 +82,20 @@ class BattleSaveLoadOverlayRenderer(
         assets.panel?.draw(batch, 287f, 173f, 912f, 428f)
         font.color = Color.BLACK
         font.data.setScale(40f / 26f)
-        font.draw(batch, GameText.S_158191141D, 288f, 703f)
-        font.draw(batch, GameText.S_591250DCC4, 288f, 651f)
+        font.draw(batch, SystemMessage.S_158191141D, 288f, 703f)
+        font.draw(batch, SystemMessage.S_591250DCC4, 288f, 651f)
         drawRows(view.rows, view.firstRow, 8, y + 505f)
-        font.draw(batch, GameText.S_E1864601EE, 130f, 143f)
+        font.draw(batch, SystemMessage.S_E1864601EE, 130f, 143f)
         assets.panel?.draw(batch, 1046f, 104f, 148f, 56f)
-        font.draw(batch, GameText.S_19B2D19BC1, 1080f, 132f)
+        font.draw(batch, SystemMessage.S_19B2D19BC1, 1080f, 132f)
         if (view.pendingSave) {
-            font.draw(batch, view.saveConfirmation ?: GameText.S_DDA4595886, 500f, 430f)
-            font.draw(batch, GameText.S_1F1712ACFF, 620f, 320f)
-            font.draw(batch, GameText.S_2DD57A2739, 820f, 320f)
+            font.draw(batch, view.saveConfirmation ?: SystemMessage.S_DDA4595886, 500f, 430f)
+            font.draw(batch, SystemMessage.S_1F1712ACFF, 620f, 320f)
+            font.draw(batch, SystemMessage.S_2DD57A2739, 820f, 320f)
         }
         if (view.saveCompletionTip) {
-            font.draw(batch, GameText.S_5AB5BF64DD, 680f, 430f)
-            font.draw(batch, GameText.S_468266D639, 620f, 320f)
+            font.draw(batch, SystemMessage.S_5AB5BF64DD, 680f, 430f)
+            font.draw(batch, SystemMessage.S_468266D639, 620f, 320f)
         }
     }
 
@@ -113,11 +113,11 @@ class BattleSaveLoadOverlayRenderer(
         assets.panel?.draw(batch, 287f, 174f, 912f, 428f)
         font.color = Color.BLACK
         font.data.setScale(40f / 26f)
-        font.draw(batch, GameText.S_8FB0968760, 288f, 688f)
-        font.draw(batch, GameText.S_B53B4895CF, 288f, 640f)
+        font.draw(batch, SystemMessage.S_8FB0968760, 288f, 688f)
+        font.draw(batch, SystemMessage.S_B53B4895CF, 288f, 640f)
         drawRows(view.rows, view.firstRow, 8, 574f)
         assets.panel?.draw(batch, 1051f, 110f, 148f, 60f)
-        font.draw(batch, GameText.S_19B2D19BC1, 1082f, 148f)
+        font.draw(batch, SystemMessage.S_19B2D19BC1, 1082f, 148f)
         view.loadNotice?.let {
             font.color = Color(.8f, .15f, .15f, 1f)
             font.draw(batch, it, 500f, 240f)
@@ -125,8 +125,8 @@ class BattleSaveLoadOverlayRenderer(
         view.loadConfirmation?.let {
             font.color = Color.BLACK
             font.draw(batch, it, 500f, 430f)
-            font.draw(batch, GameText.S_F01A5A5229, 590f, 320f)
-            font.draw(batch, GameText.S_19B2D19BC1, 820f, 320f)
+            font.draw(batch, SystemMessage.S_F01A5A5229, 590f, 320f)
+            font.draw(batch, SystemMessage.S_19B2D19BC1, 820f, 320f)
         }
     }
 

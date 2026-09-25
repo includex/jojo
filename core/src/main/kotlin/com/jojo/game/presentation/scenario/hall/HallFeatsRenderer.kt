@@ -1,7 +1,7 @@
 // 시나리오 거점 공훈 화면 렌더링
 package com.jojo.game.presentation.scenario.hall
 
-import com.jojo.game.presentation.i18n.GameText
+import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
@@ -86,7 +86,7 @@ internal object HallFeatsRenderer {
         patch("box4")?.draw(batch, 267.686f * SCALE, 83.5f * SCALE, 953f * SCALE, 633f * SCALE)
         texture("bg1")?.let { batch.draw(it, 267.686f * SCALE, 656.5f * SCALE, 953f * SCALE, 60f * SCALE) }
         patch("box3")?.draw(batch, 267.686f * SCALE, 656.5f * SCALE, 953f * SCALE, 60f * SCALE)
-        label(GameText.S_F9225E4FF8, 669.686f, 662.3f, 71.2f)
+        label(SystemMessage.S_F9225E4FF8, 669.686f, 662.3f, 71.2f)
         texture("logo9")?.let { tiled(it, 277.686f * SCALE, 158.45f * SCALE, 933f * SCALE, 442.7f * SCALE) }
         texture("box2")?.let { tiled(it, 277.686f * SCALE, 158.45f * SCALE, 933f * SCALE, 442.7f * SCALE) }
         view.rows.forEachIndexed { index, row ->
@@ -102,7 +102,7 @@ internal object HallFeatsRenderer {
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val agility = row.title == GameText.S_983FFCFEC3
+            val agility = row.title == SystemMessage.S_983FFCFEC3
             label(row.title, if (agility) 290.286f else 307.586f, rowY + 9.8f, if (agility) 107.8f else 73.2f)
             label(row.ability, 462.941f, rowY + 9.8f, 48.49f)
             label(row.phaseLabel, 1086.816f, rowY + 9.8f, 70.74f)
@@ -116,21 +116,21 @@ internal object HallFeatsRenderer {
                 batch.draw(line, x * SCALE, 160.25f * SCALE, 6f * SCALE, 450.3f * SCALE)
             }
         }
-        header(272.836f, 601.45f, 142.7f, 55.1f, GameText.S_5503080A20, 269.431f, 149.51f)
-        header(415.436f, 601.45f, 143.5f, 55.1f, GameText.S_9E9117D015, 435.286f, 103.8f)
-        header(559.136f, 601.5f, 472.1f, 55f, GameText.S_7EB7AC14F9, 588.216f, 413.94f)
-        header(1030.886f, 601.45f, 182.6f, 55.1f, GameText.S_DF6168DB1C, 875.061f, 494.25f)
+        header(272.836f, 601.45f, 142.7f, 55.1f, SystemMessage.S_5503080A20, 269.431f, 149.51f)
+        header(415.436f, 601.45f, 143.5f, 55.1f, SystemMessage.S_9E9117D015, 435.286f, 103.8f)
+        header(559.136f, 601.5f, 472.1f, 55f, SystemMessage.S_7EB7AC14F9, 588.216f, 413.94f)
+        header(1030.886f, 601.45f, 182.6f, 55.1f, SystemMessage.S_DF6168DB1C, 875.061f, 494.25f)
         patch("box3")?.draw(batch, 1059.386f * SCALE, 96f * SCALE, 147.6f * SCALE, 56f * SCALE)
-        label(GameText.S_468266D639, 1083.186f, 104f, 100f)
+        label(SystemMessage.S_468266D639, 1083.186f, 104f, 100f)
         patch("box3")?.draw(batch, 904.386f * SCALE, 96f * SCALE, 147.6f * SCALE, 56f * SCALE)
-        label(GameText.S_841964364C, 928.186f, 104f, 100f)
+        label(SystemMessage.S_841964364C, 928.186f, 104f, 100f)
         if (view.helpOpen) {
             texture("logo9")?.let { tiled(it, 426.686f * SCALE, 252f * SCALE, 635f * SCALE, 296f * SCALE) }
             patch("box3")?.draw(batch, 426.686f * SCALE, 252f * SCALE, 635f * SCALE, 296f * SCALE)
             texture("logo3")?.let { batch.draw(it, 453.005f * SCALE, 373.951f * SCALE, 106f * SCALE, 124f * SCALE) }
             label(view.helpText, 573.686f, 335f, 463f, Align.left, true)
             patch("box3")?.draw(batch, 654.186f * SCALE, 271.285f * SCALE, 180f * SCALE, 50f * SCALE)
-            label(GameText.S_A842629AFD, 657.586f, 279.085f, 169.4f)
+            label(SystemMessage.S_A842629AFD, 657.586f, 279.085f, 169.4f)
         }
         batch.color = Color.WHITE
     }
