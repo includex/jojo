@@ -4,7 +4,6 @@ package com.jojo.game.application.battle
 import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.domain.battle.*
 
-import com.jojo.game.domain.battle.turn.BattleTurnPhase
 
 import com.jojo.game.domain.scenario.*
 
@@ -17,20 +16,6 @@ object NaturalBattleTransition {
      */
 
     enum class CompletionAction { WAIT, RUN_SCENE1, START_SCENE2 }
-
-    /**
-     * `shouldStartInitialScene1`: 조건과 입력 상태를 검증한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    fun shouldStartInitialScene1(
-        presentationReady: Boolean,
-        outcome: BattleOutcome?,
-        phase: BattleTurnPhase,
-        scriptState: PlaybackState,
-        alreadyStarted: Boolean,
-    ): Boolean = !alreadyStarted && presentationReady && outcome == null &&
-            phase == BattleTurnPhase.PLAYER_INPUT && scriptState == PlaybackState.COMPLETE
 
     /**
      * `completionAction`: 타입의 핵심 동작을 수행한다.
@@ -63,15 +48,6 @@ object NaturalBattleTransition {
         dialoguePresent: Boolean,
     ): Boolean = outcome == BattleOutcome.ENEMY_VICTORY &&
             scriptState == PlaybackState.COMPLETE && !dialoguePresent
-    /**
-     * `resultScriptReadyForContinuation`: 상태나 데이터를 조회한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    fun resultScriptReadyForContinuation(
-        scriptState: PlaybackState,
-        callbackPending: Boolean,
-    ): Boolean = scriptState == PlaybackState.COMPLETE && !callbackPending
     /**
      * `terminalReady`: 상태나 데이터를 조회한다.
      * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.

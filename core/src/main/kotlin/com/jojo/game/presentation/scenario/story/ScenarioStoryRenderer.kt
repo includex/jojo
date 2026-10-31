@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Align
 import com.jojo.game.presentation.scenario.assets.ScenarioSceneAssets
-import com.jojo.game.presentation.shared.dialogue.DialoguePortraitGeometry
+import com.jojo.engine.graphics.MaxDimensionImageFit
 
 /** ScenarioStoryRenderer: 궁전 고정 장면과 거리 대사 연출을 전용 view에 따라 그린다. */
 internal object ScenarioStoryRenderer {
@@ -18,7 +18,7 @@ internal object ScenarioStoryRenderer {
         batch.setBlendFunctionSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA)
         batch.color = Color.WHITE
         assets.portraitTexture(view.portraitId)?.let { texture ->
-            val bounds = DialoguePortraitGeometry.fit(texture, 98.628f * .86f, 496f * .86f, 192f * .86f, 240f * .86f)
+            val bounds = MaxDimensionImageFit.fit(texture.width, texture.height, 98.628f * .86f, 496f * .86f, 192f * .86f, 240f * .86f)
             batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height)
         }
         assets.dialoguePanelTexture?.let { texture ->

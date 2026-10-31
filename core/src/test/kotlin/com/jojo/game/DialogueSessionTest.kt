@@ -5,12 +5,12 @@ import com.jojo.game.presentation.shared.dialogue.DialogueChoice
 import com.jojo.game.presentation.shared.dialogue.DialogueMessage
 import com.jojo.game.presentation.shared.dialogue.DialogueModal
 import com.jojo.game.presentation.shared.dialogue.DialogueModalKind
-import com.jojo.game.presentation.shared.dialogue.DialogueRevealTiming
+import com.jojo.engine.text.RevealTiming
 import com.jojo.game.presentation.shared.dialogue.DialogueSession
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionMode
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
-import com.jojo.game.presentation.shared.dialogue.DialogueTextReveal
+import com.jojo.engine.text.TextReveal
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -83,7 +83,7 @@ class DialogueSessionTest {
 
     @Test
     fun cocosCallbackTimerPrimesThenRevealsAtMostOneUnitAndDropsOvershoot() {
-        val reveal = DialogueTextReveal(timing = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val reveal = TextReveal(timing = RevealTiming.COCOS_CALLBACK_TIMER)
         reveal.setSource("ABC")
 
         reveal.update(10f)
@@ -100,7 +100,7 @@ class DialogueSessionTest {
 
     @Test
     fun cocosCallbackTimerUsesJavaScriptPointZeroFourThreshold() {
-        val reveal = DialogueTextReveal(timing = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val reveal = TextReveal(timing = RevealTiming.COCOS_CALLBACK_TIMER)
         reveal.setSource("A")
         reveal.update(0f)
 
@@ -112,7 +112,7 @@ class DialogueSessionTest {
 
     @Test
     fun aNewRevisionRestartsTypingEvenWhenDialogueTextIsUnchanged() {
-        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val session = DialogueSession(dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER)
         val message = DialogueMessage(1, null, "같음")
         session.presentDialogue(message)
         session.update(0f, autoAdvanceEnabled = false)
@@ -127,7 +127,7 @@ class DialogueSessionTest {
 
     @Test
     fun sourceDialogueNaturalCompletionStartsPrimedOnePointSixSecondTimer() {
-        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val session = DialogueSession(dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER)
         session.presentDialogue(DialogueMessage(1, null, "가"))
 
         session.update(10f, autoAdvanceEnabled = true)
@@ -140,7 +140,7 @@ class DialogueSessionTest {
 
     @Test
     fun sourceDialogueManualRevealPrimesAutoCloseOnTheNextUpdate() {
-        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val session = DialogueSession(dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER)
         session.presentDialogue(DialogueMessage(1, null, "가나"))
         session.update(0f, autoAdvanceEnabled = true)
 
@@ -151,7 +151,7 @@ class DialogueSessionTest {
 
     @Test
     fun sourceDialogueAutoCloseUsesFirstUpdateSettingSnapshotAndResetsPerRevision() {
-        val session = DialogueSession(dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER)
+        val session = DialogueSession(dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER)
         session.presentDialogue(DialogueMessage(1, null, "가"))
         session.update(0f, autoAdvanceEnabled = false)
         session.update(.1f, autoAdvanceEnabled = true)

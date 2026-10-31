@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.application.scenario
 
-import com.jojo.game.infrastructure.data.HallPathfinder
+import com.jojo.engine.pathfinding.GridPathfinder
 
 import com.jojo.game.*
 
@@ -83,7 +83,7 @@ internal class ScenarioStageUnitMovementAnimator {
         } else {
             unit.action = 20
             path.getOrNull(1)?.let { next ->
-                unit.direction = HallPathfinder.direction(path[0].first, path[0].second, next.first, next.second)
+                unit.direction = GridPathfinder.direction(path[0].first, path[0].second, next.first, next.second)
             }
             onScriptedDirection(id to direction)
         }

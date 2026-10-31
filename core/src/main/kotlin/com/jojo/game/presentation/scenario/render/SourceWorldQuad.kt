@@ -3,7 +3,7 @@ package com.jojo.game.presentation.scenario.render
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.math.Matrix4
-import com.jojo.game.presentation.shared.SourceSlicedPatchClipMath
+import com.jojo.engine.graphics.SlicedPatchProjection
 
 /** Draws Hall quads from their source-canvas coordinates before Float vertex conversion. */
 internal class SourceWorldQuad {
@@ -21,12 +21,12 @@ internal class SourceWorldQuad {
         savedProjection.set(batch.projectionMatrix)
         savedTransform.set(batch.transformMatrix)
         combined.set(savedProjection).mul(savedTransform)
-        if (!SourceSlicedPatchClipMath.supportsCpuProjection(combined.`val`)) return false
+        if (!SlicedPatchProjection.supportsCpuProjection(combined.`val`)) return false
 
         val matrix = combined.`val`
         sourceScaleX = (matrix[Matrix4.M00].toDouble() * SOURCE_TO_PORT_SCALE).toFloat()
         sourceScaleY = (matrix[Matrix4.M11].toDouble() * SOURCE_TO_PORT_SCALE).toFloat()
-        SourceSlicedPatchClipMath.setIdentityXyProjection(cpuProjection, matrix)
+        SlicedPatchProjection.setIdentityXyProjection(cpuProjection, matrix)
         active = true
         try {
             batch.projectionMatrix = cpuProjection
@@ -96,8 +96,8 @@ internal class SourceWorldQuad {
     private fun vertex(index: Int, x: Double, y: Double, color: Float, u: Float, v: Float) {
         val offset = index * 5
         val matrix = combined.`val`
-        vertices[offset] = SourceSlicedPatchClipMath.project(x, sourceScaleX, matrix[Matrix4.M03])
-        vertices[offset + 1] = SourceSlicedPatchClipMath.project(y, sourceScaleY, matrix[Matrix4.M13])
+        vertices[offset] = SlicedPatchProjection.project(x, sourceScaleX, matrix[Matrix4.M03])
+        vertices[offset + 1] = SlicedPatchProjection.project(y, sourceScaleY, matrix[Matrix4.M13])
         vertices[offset + 2] = color
         vertices[offset + 3] = u
         vertices[offset + 4] = v

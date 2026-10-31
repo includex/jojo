@@ -1,6 +1,9 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.jojo.engine.text.TextReveal
+import com.jojo.engine.text.RevealTiming
+
 import com.jojo.game.presentation.i18n.SystemMessage
 
 /** 대화 한 줄: 화자 식별자, 본문, 초상화·배치에 필요한 화면 힌트를 함께 전달한다. */
@@ -150,7 +153,7 @@ class DialogueSession(
     /** 글자 한 단위를 공개하는 기본 간격이다. */
     private val characterIntervalSeconds: Float = DEFAULT_CHARACTER_INTERVAL_SECONDS,
     /** 대사 본문에 적용할 프레임 시간 처리 규칙이다. */
-    private val dialogueRevealTiming: DialogueRevealTiming = DialogueRevealTiming.ACCUMULATING,
+    private val dialogueRevealTiming: RevealTiming = RevealTiming.ACCUMULATING,
 ) {
     init {
         require(characterIntervalSeconds > 0f) { SystemMessage.S_D8BC2DB4DC }
@@ -169,10 +172,10 @@ class DialogueSession(
     private var modal: DialogueModal? = null
 
     /** 대사 본문의 글자 공개 진행 상태이다. */
-    private val dialogueReveal = DialogueTextReveal(characterIntervalSeconds, dialogueRevealTiming)
+    private val dialogueReveal = TextReveal(characterIntervalSeconds, dialogueRevealTiming)
 
     /** 모달 본문의 글자 공개 진행 상태이다. */
-    private val modalReveal = DialogueTextReveal(characterIntervalSeconds)
+    private val modalReveal = TextReveal(characterIntervalSeconds)
 
     /** 자동 진행까지 남은 시간이며 null이면 자동 진행을 기다리지 않는다. */
     private var autoAdvanceRemainingSeconds: Float? = null
@@ -257,7 +260,7 @@ class DialogueSession(
         var dialogueCompletedThisUpdate = false
         when (mode) {
             DialogueSessionMode.DIALOGUE -> {
-                if (dialogueRevealTiming == DialogueRevealTiming.COCOS_CALLBACK_TIMER &&
+                if (dialogueRevealTiming == RevealTiming.COCOS_CALLBACK_TIMER &&
                     sourceDialogueAutoAdvanceEnabled == null
                 ) {
                     sourceDialogueAutoAdvanceEnabled = autoAdvanceEnabled
@@ -297,7 +300,7 @@ class DialogueSession(
         enabled: Boolean,
         completedThisUpdate: Boolean,
     ): DialogueSessionTransition {
-        if (dialogueRevealTiming == DialogueRevealTiming.COCOS_CALLBACK_TIMER) {
+        if (dialogueRevealTiming == RevealTiming.COCOS_CALLBACK_TIMER) {
             if (completedThisUpdate && sourceDialogueAutoAdvanceEnabled == true) {
                 startSourceDialogueAutoAdvance(primed = true)
                 return DialogueSessionTransition.Ignored
@@ -313,7 +316,7 @@ class DialogueSession(
 
     /** 모달·대사 공통 글자 공개 입력을 처리한다. */
     private fun dispatchTextInput(
-        reveal: DialogueTextReveal,
+        reveal: TextReveal,
         completedTransition: DialogueSessionTransition,
         input: DialogueSessionInput,
     ): DialogueSessionTransition = when (input) {
@@ -383,10 +386,10 @@ class DialogueSession(
     }
 
     /** source 대사 수동 reveal 직후 timer를 예약하며 첫 update는 prime에만 사용한다. */
-    private fun startSourceDialogueAutoAdvanceAfterInput(reveal: DialogueTextReveal) {
+    private fun startSourceDialogueAutoAdvanceAfterInput(reveal: TextReveal) {
         if (mode == DialogueSessionMode.DIALOGUE &&
             reveal === dialogueReveal &&
-            dialogueRevealTiming == DialogueRevealTiming.COCOS_CALLBACK_TIMER &&
+            dialogueRevealTiming == RevealTiming.COCOS_CALLBACK_TIMER &&
             sourceDialogueAutoAdvanceEnabled == true
         ) {
             startSourceDialogueAutoAdvance(primed = false)
@@ -427,7 +430,7 @@ class DialogueSession(
     }
 
     /** 활성 상태의 글자 공개기를 선택한다. */
-    private fun activeReveal(): DialogueTextReveal = when (mode) {
+    private fun activeReveal(): TextReveal = when (mode) {
         DialogueSessionMode.DIALOGUE -> dialogueReveal
         DialogueSessionMode.MODAL -> modalReveal
         DialogueSessionMode.IDLE, DialogueSessionMode.CHOICE -> EMPTY_REVEAL
@@ -463,123 +466,9 @@ class DialogueSession(
         const val SOURCE_DIALOGUE_AUTO_ADVANCE_SECONDS = 1.6
 
         /** 유휴 상태에서 완료된 것으로 취급할 빈 글자 공개기이다. */
-        val EMPTY_REVEAL = DialogueTextReveal(DEFAULT_CHARACTER_INTERVAL_SECONDS)
+        val EMPTY_REVEAL = TextReveal(DEFAULT_CHARACTER_INTERVAL_SECONDS)
     }
 
     /** source 대사 자동 닫기 callback은 revision마다 최대 한 번 실행된다. */
     private enum class SourceAutoAdvanceState { NONE, RUNNING, FIRED }
-}
-
-/** 대사 글자 공개가 프레임 시간을 소비하는 방식이다. */
-enum class DialogueRevealTiming {
-    /** 누적된 시간이 간격을 여러 번 넘으면 한 update에서 여러 단위를 공개한다. */
-    ACCUMULATING,
-
-    /** Cocos CallbackTimer처럼 첫 update를 초기화에 쓰고 한 update에서 한 단위만 공개한다. */
-    COCOS_CALLBACK_TIMER,
-}
-
-/** 리치 텍스트 원문을 태그 단위로 공개해 렌더러가 바로 쓸 수 있는 본문을 제공한다. */
-class DialogueTextReveal(
-    /** 글자 또는 태그 한 단위를 공개하는 간격이다. */
-    private val characterIntervalSeconds: Float = 0.04f,
-    /** 프레임 시간 누적과 callback 실행 규칙이다. */
-    private val timing: DialogueRevealTiming = DialogueRevealTiming.ACCUMULATING,
-) {
-    init {
-        require(characterIntervalSeconds > 0f) { SystemMessage.S_D8BC2DB4DC }
-    }
-
-    /** 현재 공개 중인 원문이다. */
-    private var source = ""
-
-    /** 원문에서 다음에 공개할 문자 위치이다. */
-    private var cursor = 0
-
-    /** 글자 공개 간격을 누적한 시간이다. */
-    private var accumulatorSeconds = 0f
-
-    /** Cocos CallbackTimer가 마지막 callback 이후 누적한 Double 시간이다. */
-    private var callbackTimerElapsedSeconds = 0.0
-
-    /** Cocos CallbackTimer가 첫 update에서 elapsed를 0으로 초기화했는지 여부다. */
-    private var callbackTimerPrimed = false
-
-    /** 원문 전체가 공개되었는지 여부이다. */
-    val isComplete: Boolean get() = cursor >= source.length
-
-    /** 렌더러에 전달할 공개 본문이며 리치 텍스트 태그는 제외한다. */
-    val visibleText: String get() = source.substring(0, cursor).replace(RICH_TEXT_TAG, "")
-
-    /** 새 표시 요청의 원문을 설정하고 공개 진행을 처음부터 시작한다. */
-    fun setSource(text: String) {
-        source = text
-        cursor = 0
-        accumulatorSeconds = 0f
-        callbackTimerElapsedSeconds = 0.0
-        callbackTimerPrimed = false
-    }
-
-    /** 프레임 시간을 누적해 공개할 글자 또는 태그 단위를 진행한다. */
-    fun update(deltaSeconds: Float) {
-        if (timing == DialogueRevealTiming.COCOS_CALLBACK_TIMER) {
-            updateCocosCallbackTimer(deltaSeconds)
-            return
-        }
-        accumulatorSeconds += deltaSeconds.coerceAtLeast(0f)
-        while (accumulatorSeconds >= characterIntervalSeconds && !isComplete) {
-            accumulatorSeconds -= characterIntervalSeconds
-            revealNextSourceUnit()
-        }
-    }
-
-    /** 아직 공개하지 않은 원문이 있으면 전부 공개하고 true를 반환한다. */
-    fun revealAllIfPending(): Boolean {
-        if (isComplete) return false
-        cursor = source.length
-        accumulatorSeconds = 0f
-        callbackTimerElapsedSeconds = 0.0
-        return true
-    }
-
-    /** 원문과 공개 진행을 초기 상태로 되돌린다. */
-    fun reset() {
-        source = ""
-        cursor = 0
-        accumulatorSeconds = 0f
-        callbackTimerElapsedSeconds = 0.0
-        callbackTimerPrimed = false
-    }
-
-    /** 원본 Cocos CallbackTimer의 prime, 한 callback, remainder 폐기 규칙을 적용한다. */
-    private fun updateCocosCallbackTimer(deltaSeconds: Float) {
-        if (!callbackTimerPrimed) {
-            callbackTimerPrimed = true
-            callbackTimerElapsedSeconds = 0.0
-            return
-        }
-        callbackTimerElapsedSeconds += deltaSeconds.coerceAtLeast(0f).toDouble()
-        if (callbackTimerElapsedSeconds >= COCOS_CHARACTER_INTERVAL_SECONDS && !isComplete) {
-            callbackTimerElapsedSeconds = 0.0
-            revealNextSourceUnit()
-        }
-    }
-
-    /** 일반 문자는 한 글자, 리치 텍스트는 태그 전체를 한 단위로 공개한다. */
-    private fun revealNextSourceUnit() {
-        if (source[cursor] != '<') {
-            cursor++
-            return
-        }
-        val close = source.indexOf('>', cursor)
-        cursor = if (close == -1) cursor + 1 else close + 1
-    }
-
-    private companion object {
-        /** DialogueLayer가 JavaScript Number로 schedule에 전달하는 정확한 interval이다. */
-        const val COCOS_CHARACTER_INTERVAL_SECONDS = 0.04
-
-        /** 표시용 본문에서 제거할 리치 텍스트 태그 패턴이다. */
-        val RICH_TEXT_TAG = Regex("<[^>]*>")
-    }
 }

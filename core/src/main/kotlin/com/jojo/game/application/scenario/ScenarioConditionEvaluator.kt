@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.*
 /** 조건 평가에 필요한 변수와 전장 조회 함수를 모은다. */
 internal data class ScenarioConditionEnvironment(

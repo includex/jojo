@@ -9,7 +9,7 @@ import com.jojo.game.presentation.shared.dialogue.DialogueMessage
 import com.jojo.game.presentation.shared.dialogue.DialogueModal
 import com.jojo.game.presentation.shared.dialogue.DialogueModalKind
 import com.jojo.game.presentation.shared.dialogue.DialoguePlacement
-import com.jojo.game.presentation.shared.dialogue.DialogueRevealTiming
+import com.jojo.engine.text.RevealTiming
 import com.jojo.game.presentation.shared.dialogue.DialogueSession
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
@@ -22,7 +22,7 @@ import com.jojo.game.presentation.shared.dialogue.DialogueSessionView
 internal class ScenarioDialogueSessionAdapter(
     /** 시나리오와 전투가 함께 쓰는 대화 세션이다. */
     private val session: DialogueSession = DialogueSession(
-        dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER,
+        dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER,
     ),
 ) {
     /** 원본 DialogueLayer의 화자 교대와 Hall unit 위치 판정을 재현하는 정책이다. */

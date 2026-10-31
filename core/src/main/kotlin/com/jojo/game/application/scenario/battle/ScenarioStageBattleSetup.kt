@@ -1,11 +1,13 @@
 // Scenario
 package com.jojo.game.application.scenario.battle
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.application.scenario.ScenarioStageWeatherEnvironment
-import com.jojo.game.application.scenario.asInt
+import com.jojo.engine.script.asInt
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.domain.campaign.*
 

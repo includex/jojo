@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.*
 
 import com.jojo.game.application.scenario.*
@@ -21,7 +23,7 @@ internal object ScenarioUnitActionDispatcher {
         path: String,
         node: JsonValue,
         args: List<Any?>,
-        frame: Frame,
+        frame: ScriptFrame,
         env: ScenarioTacticalEnvironment,
     ): ScenarioHandledCall? {
         when (path) {

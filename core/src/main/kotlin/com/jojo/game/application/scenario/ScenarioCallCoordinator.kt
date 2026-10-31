@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.*
 import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 
@@ -22,10 +24,10 @@ internal class ScenarioCallCoordinator(
 
     private val moduleName: String,
     /**
-     * `functions` (Map<String, RuntimeFunction>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `functions` (Map<String, ScriptFunction>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    private val functions: Map<String, RuntimeFunction>,
+    private val functions: Map<String, ScriptFunction>,
     /**
      * `campaign` (CampaignState,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -57,10 +59,10 @@ internal class ScenarioCallCoordinator(
 
     private val delayCoordinator: ScenarioDelayCoordinator,
     /**
-     * `callStack` (ScenarioCallStack,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `callStack` (ScriptCallStack,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    private val callStack: ScenarioCallStack,
+    private val callStack: ScriptCallStack,
     /**
      * `randomGenerator` (ScenarioRandomGenerator,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -129,14 +131,12 @@ internal class ScenarioCallCoordinator(
     private val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
 ) {
     /**
-     * `expressionEnvironment` (ScenarioExpressionEnvironment): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `expressionEnvironment` (ExpressionEnvironment): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val expressionEnvironment: ScenarioExpressionEnvironment = ScenarioExpressionEnvironment(
-        vars = vars,
-        gvars = gvars,
-        pvars = pvars,
+    val expressionEnvironment: ExpressionEnvironment = ExpressionEnvironment(
+        bindings = mapOf("vars" to vars, "gvars" to gvars, "pvars" to pvars),
         globalVariables = globalVariables,
         invokeCall = ::invokeCall,
     )
@@ -147,8 +147,8 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun eval(node: JsonValue, frame: Frame): Any? =
-        ScenarioExpressionEvaluator.eval(node, frame, expressionEnvironment)
+    fun eval(node: JsonValue, frame: ScriptFrame): Any? =
+        ExpressionEvaluator.eval(node, frame, expressionEnvironment)
 
 
     /**
@@ -156,8 +156,8 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun evalBoolean(node: JsonValue, frame: Frame): Boolean =
-        ScenarioExpressionEvaluator.evalBoolean(node, frame, expressionEnvironment)
+    fun evalBoolean(node: JsonValue, frame: ScriptFrame): Boolean =
+        ExpressionEvaluator.evalBoolean(node, frame, expressionEnvironment)
 
 
     /**
@@ -165,8 +165,8 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun assign(target: JsonValue, value: Any?, frame: Frame) =
-        ScenarioExpressionEvaluator.assign(target, value, frame, expressionEnvironment)
+    fun assign(target: JsonValue, value: Any?, frame: ScriptFrame) =
+        ExpressionEvaluator.assign(target, value, frame, expressionEnvironment)
 
 
     /**
@@ -174,8 +174,8 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun evalArguments(args: JsonValue, frame: Frame): List<Any?> =
-        ScenarioExpressionEvaluator.evalArguments(args, frame, expressionEnvironment)
+    fun evalArguments(args: JsonValue, frame: ScriptFrame): List<Any?> =
+        ExpressionEvaluator.evalArguments(args, frame, expressionEnvironment)
 
 
     /**
@@ -199,7 +199,7 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    private fun unitReference(node: JsonValue, frame: Frame): ScenarioUnitReference? {
+    private fun unitReference(node: JsonValue, frame: ScriptFrame): ScenarioUnitReference? {
         val function = node.field("func")
         if (function.typeName() != "Attribute") return null
         return eval(function.field("value"), frame) as? ScenarioUnitReference
@@ -210,7 +210,7 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    private fun headReference(node: JsonValue, frame: Frame): HeadReference? {
+    private fun headReference(node: JsonValue, frame: ScriptFrame): HeadReference? {
         val function = node.field("func")
         if (function.typeName() != "Attribute") return null
         return eval(function.field("value"), frame) as? HeadReference
@@ -284,7 +284,7 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun invokeCall(node: JsonValue, frame: Frame): Any? {
+    fun invokeCall(node: JsonValue, frame: ScriptFrame): Any? {
         val path = node.field("func").expressionPath()
         val args = evalArguments(node.field("args"), frame)
         if (path != null && ScenarioFightDispatcher.dispatchFightCall(
@@ -343,12 +343,12 @@ internal class ScenarioCallCoordinator(
             }
 
             else -> {
-                val builtin = ScenarioBuiltinCallDispatcher.dispatch(
+                val builtin = BuiltinCallDispatcher.dispatch(
                     path = path ?: "",
                     node = node,
                     args = args,
                     frame = frame,
-                    env = ScenarioBuiltinCallEnvironment(
+                    env = BuiltinCallEnvironment(
                         functions = functions,
                         unhandledCalls = unhandledCalls,
                         jumpToLabel = ::jumpToLabel,

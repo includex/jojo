@@ -3,7 +3,7 @@ package com.jojo.game
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 import com.jojo.game.presentation.shared.dialogue.DialogueMessage
-import com.jojo.game.presentation.shared.dialogue.DialogueRevealTiming
+import com.jojo.engine.text.RevealTiming
 import com.jojo.game.presentation.shared.dialogue.DialogueSession
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -40,7 +40,7 @@ class DialogueTimerSourceFixtureTest {
     }
 
     private fun sourceSession(text: String) = DialogueSession(
-        dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER,
+        dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER,
     ).also {
         it.presentDialogue(DialogueMessage(revision = 1, speakerId = null, text = text))
     }

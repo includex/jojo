@@ -13,7 +13,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.async.AsyncExecutor
 import com.badlogic.gdx.utils.async.AsyncResult
 import com.badlogic.gdx.utils.async.AsyncTask
-import com.jojo.game.presentation.shared.SourceSlicedPatch
+import com.jojo.engine.graphics.SlicedPatch
 
 /** ScenarioSceneAssets: 시나리오·거점 화면이 공유하는 텍스처와 글꼴을 지연 생성하고 수명 종료 때 해제한다. */
 internal class ScenarioSceneAssets(
@@ -530,7 +530,7 @@ internal class ScenarioSceneAssets(
 
             try {
                 spriteAtlas.insert("InfoLayer/bg", pixmap)?.let {
-                    SourceSlicedPatch(it, insetLeft = 7, insetTop = 6, insetRight = 6, insetBottom = 6)
+                    SlicedPatch(it, insetLeft = 7, insetTop = 6, insetRight = 6, insetBottom = 6)
                 }
             } finally { pixmap.dispose() }
         }

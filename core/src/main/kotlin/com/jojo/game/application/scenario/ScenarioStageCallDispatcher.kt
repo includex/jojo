@@ -1,6 +1,8 @@
 // Game
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.badlogic.gdx.utils.JsonValue
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.PlaybackState
@@ -52,7 +54,7 @@ internal fun interface ScenarioStageCallFamily {
         path: String,
         node: JsonValue,
         args: List<Any?>,
-        frame: Frame,
+        frame: ScriptFrame,
         env: ScenarioStageCallEnvironment,
     ): ScenarioStageCallDispatcher.Result?
 }
@@ -90,7 +92,7 @@ internal object ScenarioStageCallDispatcher {
         path: String,
         node: JsonValue,
         args: List<Any?>,
-        frame: Frame,
+        frame: ScriptFrame,
         env: ScenarioStageCallEnvironment,
     ): Result? = families.firstNotNullOfOrNull { it.dispatch(path, node, args, frame, env) }
 }

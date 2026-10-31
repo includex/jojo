@@ -1,6 +1,8 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.jojo.engine.graphics.MaxDimensionImageFit
+
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -68,8 +70,8 @@ class ChoiceScene2dLayer(
             )
         }
         choice.portraitId?.let(assets::portrait)?.let { texture ->
-            val bounds = DialoguePortraitGeometry.fit(
-                texture, layout.choicePortraitX, layout.choicePortraitY, layout.portraitWidth, layout.portraitHeight,
+            val bounds = MaxDimensionImageFit.fit(
+                texture.width, texture.height, layout.choicePortraitX, layout.choicePortraitY, layout.portraitWidth, layout.portraitHeight,
             )
             addActor(image(texture, bounds.x, bounds.y, bounds.width, bounds.height))
         }

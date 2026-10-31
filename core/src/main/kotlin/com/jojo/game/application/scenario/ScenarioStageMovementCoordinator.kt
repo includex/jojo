@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.application.scenario
 
-import com.jojo.game.infrastructure.data.HallPathGrid
+import com.jojo.engine.pathfinding.PathGrid
 
 import com.jojo.game.*
 
@@ -33,11 +33,11 @@ internal class ScenarioStageMovementCoordinator {
     private val headCoordinator = ScenarioStageHeadCoordinator()
 
     /**
-     * `hallPathGrid` (HallPathGrid?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `hallPathGrid` (PathGrid?): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    var hallPathGrid: HallPathGrid?
+    var hallPathGrid: PathGrid?
         get() = planner.hallPathGrid
         set(value) {
             planner.hallPathGrid = value

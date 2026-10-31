@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 
 /** ScenarioConditionOperandResolver: 조건식에 인코딩된 값 종류를 실제 변수·상수·전장 수치로 해석한다. */
 internal object ScenarioConditionOperandResolver {

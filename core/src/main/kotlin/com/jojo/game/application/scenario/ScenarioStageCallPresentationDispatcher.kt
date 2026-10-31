@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.badlogic.gdx.utils.JsonValue
 import com.jojo.game.domain.scenario.PlaybackState
 import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
@@ -22,7 +24,7 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
         path: String,
         node: JsonValue,
         args: List<Any?>,
-        frame: Frame,
+        frame: ScriptFrame,
         env: ScenarioStageCallEnvironment,
     ): ScenarioStageCallDispatcher.Result? {
         /**

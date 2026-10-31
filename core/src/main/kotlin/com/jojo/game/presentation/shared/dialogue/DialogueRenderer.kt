@@ -1,9 +1,11 @@
 // Dialogue
 package com.jojo.game.presentation.shared.dialogue
 
+import com.jojo.engine.graphics.MaxDimensionImageFit
+
 import com.jojo.game.presentation.i18n.SystemMessage
 
-import com.jojo.game.presentation.shared.SourceSlicedPatch
+import com.jojo.engine.graphics.SlicedPatch
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -93,13 +95,13 @@ class DialogueRenderer(
             val region = if (model.portraitTexture == null) model.portraitId?.let(assets::portraitRegion) else null
             if (region != null) {
                 batch.color = Color.WHITE
-                val bounds = DialoguePortraitGeometry.fit(region.regionWidth, region.regionHeight,
+                val bounds = MaxDimensionImageFit.fit(region.regionWidth, region.regionHeight,
                     placement.portraitX, placement.portraitY, placement.portraitWidth, placement.portraitHeight)
                 batch.draw(region, bounds.x, bounds.y, bounds.width, bounds.height)
             } else (model.portraitTexture ?: model.portraitId?.let(assets::portrait))?.let {
                 batch.color = Color.WHITE
-                val bounds = DialoguePortraitGeometry.fit(
-                    it,
+                val bounds = MaxDimensionImageFit.fit(
+                    it.width, it.height,
                     placement.portraitX,
                     placement.portraitY,
                     placement.portraitWidth,
@@ -265,8 +267,8 @@ class DialogueRenderer(
             batch.draw(it, layout.choicePanelX, layout.choicePanelY, layout.choicePanelWidth, layout.choicePanelHeight)
         }
         model.portraitId?.let(assets::portrait)?.let { texture ->
-            val bounds = DialoguePortraitGeometry.fit(
-                texture,
+            val bounds = MaxDimensionImageFit.fit(
+                texture.width, texture.height,
                 layout.choicePortraitX,
                 layout.choicePortraitY,
                 layout.portraitWidth,
@@ -387,7 +389,7 @@ class DialogueRenderer(
         batch.transformMatrix = sourceBodyTransform
         try {
             when (val panel = assets.infoPanel) {
-                is SourceSlicedPatch -> panel.drawSource(batch, x, y, width, height)
+                is SlicedPatch -> panel.drawSource(batch, x, y, width, height)
                 null -> assets.dialoguePanel?.let { batch.draw(it, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat()) }
                 else -> panel.draw(batch, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
             }

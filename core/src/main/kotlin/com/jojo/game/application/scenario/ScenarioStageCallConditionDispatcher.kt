@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.badlogic.gdx.utils.JsonValue
 
 /** ScenarioStageCallConditionDispatcher: stage API의 조건·변수 질의를 스크립트 평가 결과로 변환한다. */
@@ -14,7 +16,7 @@ internal object ScenarioStageCallConditionDispatcher : ScenarioStageCallFamily {
         path: String,
         node: JsonValue,
         args: List<Any?>,
-        frame: Frame,
+        frame: ScriptFrame,
         env: ScenarioStageCallEnvironment,
     ): ScenarioStageCallDispatcher.Result? {
         /**

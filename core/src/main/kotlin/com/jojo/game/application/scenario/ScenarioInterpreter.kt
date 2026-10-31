@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
@@ -17,10 +19,10 @@ class ScenarioInterpreter internal constructor(
 
     private val moduleName: String,
     /**
-     * `functions` (Map<String, RuntimeFunction>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `functions` (Map<String, ScriptFunction>,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    private val functions: Map<String, RuntimeFunction>,
+    private val functions: Map<String, ScriptFunction>,
     /**
      * `campaign` (CampaignState,): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -245,7 +247,7 @@ class ScenarioInterpreter internal constructor(
      * `callStack` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    internal val callStack = ScenarioCallStack()
+    internal val callStack = ScriptCallStack()
     /**
      * `frames` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -255,7 +257,7 @@ class ScenarioInterpreter internal constructor(
      * `statementExecutor` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    private val statementExecutor = ScenarioStatementExecutor(moduleName)
+    private val statementExecutor = StatementExecutor(moduleName)
     /**
      * `randomGenerator` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -513,11 +515,11 @@ class ScenarioInterpreter internal constructor(
     }
     /** runUntilInput: 대화·선택·시간 지연·모달 같은 다음 중단 지점에 닿을 때까지 문장을 연속 실행한다. */
     private fun runUntilInput() {
-        statementExecutor.runUntilInput(
+        state = PlaybackState.COMPLETE
+        statementExecutor.runUntilYield(
             callStack = callStack,
             isEnded = { ended },
-            getState = { state },
-            setState = { state = it },
+            shouldYield = { state != PlaybackState.COMPLETE },
             executeStatement = ::executeStatement,
         )
     }
@@ -526,16 +528,17 @@ class ScenarioInterpreter internal constructor(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    private fun executeStatement(statement: JsonValue, frame: Frame) {
+    private fun executeStatement(statement: JsonValue, frame: ScriptFrame) {
         statementExecutor.executeStatement(
             statement = statement,
             frame = frame,
-            choiceCoordinator = choiceCoordinator,
             eval = callCoordinator::eval,
             evalBoolean = callCoordinator::evalBoolean,
-            evalArguments = callCoordinator::evalArguments,
             assign = callCoordinator::assign,
             callStack = callStack,
+            interceptStatement = { node, activeFrame ->
+                choiceCoordinator.interceptStatement(node, activeFrame, moduleName, callCoordinator::evalArguments)
+            },
         )
     }
     companion object {

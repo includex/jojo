@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.*
 
 import com.jojo.game.application.scenario.*
@@ -25,8 +27,8 @@ internal data class ScenarioTacticalEnvironment(
     val externalHallUnitReadiness: Boolean,
     val suspendForHallUnitReadiness: (List<ScenarioCommand.ShowUnit>) -> Unit,
     val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
-    val unitReference: (JsonValue, Frame) -> ScenarioUnitReference?,
-    val headReference: (JsonValue, Frame) -> HeadReference?,
+    val unitReference: (JsonValue, ScriptFrame) -> ScenarioUnitReference?,
+    val headReference: (JsonValue, ScriptFrame) -> HeadReference?,
 )
 
 /**
@@ -48,7 +50,7 @@ internal object ScenarioTacticalActionDispatcher {
         path: String,
         node: JsonValue,
         args: List<Any?>,
-        frame: Frame,
+        frame: ScriptFrame,
         env: ScenarioTacticalEnvironment,
     ): ScenarioHandledCall? {
         when (path) {

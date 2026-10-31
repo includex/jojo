@@ -4,9 +4,9 @@ package com.jojo.game.verification
 import com.jojo.game.presentation.battle.overlay.WinConBoxLayer
 
 import com.jojo.game.*
-import com.jojo.game.presentation.shared.LossFlow
+import com.jojo.game.verification.fixtures.framework.LossFlow
 import com.jojo.game.presentation.shared.StorySkipFlow
-import com.jojo.game.presentation.shared.TerminalFlow
+import com.jojo.game.verification.fixtures.framework.TerminalFlow
 
 import java.nio.file.Files
 import java.nio.file.Path

@@ -1,7 +1,7 @@
 // Game
 package com.jojo.game.application.scenario
 
-import com.jojo.game.infrastructure.data.HallPathGrid
+import com.jojo.game.infrastructure.data.HallPathGridLoader
 
 import com.jojo.game.*
 import com.jojo.game.infrastructure.data.GameDataCatalog
@@ -746,7 +746,7 @@ class ScenarioStage private constructor(
                 }
                 backgroundVariant = command.variant
                 movementCoordinator.hallPathGrid =
-                    if (command.backgroundId == 2) HallPathGrid.loadOrNull(command.variant) else null
+                    if (command.backgroundId == 2) HallPathGridLoader.loadOrNull(command.variant) else null
             }
 
             is ScenarioCommand.SetEventName -> eventName = command.name

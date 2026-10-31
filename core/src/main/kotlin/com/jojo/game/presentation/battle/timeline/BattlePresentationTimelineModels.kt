@@ -109,12 +109,3 @@ internal data class PendingDeathAnimation(
     val duration: Float,
     val showRetireMessage: Boolean,
 )
-/** 턴 사망 단계: 스크립트 전·숨김·스크립트 후의 사망 처리 위치를 구분한다. */
-internal enum class TurnDeathStage { NONE, PRE_SCRIPT, HIDING, POST_SCRIPT }
-
-/** 진행 중인 유닛 사망 상태: 대기 사망 정보와 종료 시각·원래 체력을 함께 보관한다. */
-internal data class ActiveUnitDeath(
-    val pending: PendingDeathAnimation,
-    val endsAt: Float,
-    val originalHp: Int,
-)

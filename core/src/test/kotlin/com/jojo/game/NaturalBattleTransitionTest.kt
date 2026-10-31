@@ -27,18 +27,6 @@ class NaturalBattleTransitionTest {
         ))
     }
 
-    @Test fun `result script waits for the presentation callback that owns the previous layer`() {
-        assertFalse(NaturalBattleTransition.resultScriptReadyForContinuation(
-            PlaybackState.DIALOGUE, callbackPending = false,
-        ))
-        assertFalse(NaturalBattleTransition.resultScriptReadyForContinuation(
-            PlaybackState.COMPLETE, callbackPending = true,
-        ))
-        assertTrue(NaturalBattleTransition.resultScriptReadyForContinuation(
-            PlaybackState.COMPLETE, callbackPending = false,
-        ))
-    }
-
     @Test fun `full trace waits for source result completion rather than tactical outcome alone`() {
         assertFalse(NaturalBattleTransition.terminalReady(
             PlaybackState.COMPLETE, callbackPending = false,

@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    api("com.badlogicgames.gdx:gdx:${property("gdxVersion")}")
+    api(project(":engine"))
     api("com.badlogicgames.gdx:gdx-freetype:${property("gdxVersion")}")
     testImplementation(kotlin("test"))
 }

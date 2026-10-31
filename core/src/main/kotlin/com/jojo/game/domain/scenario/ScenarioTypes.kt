@@ -33,9 +33,6 @@ sealed interface ScenarioCommand {
     data class Choose(val choice: Choice) : ScenarioCommand
 }
 
-/** 시나리오 명령의 재생 순서를 표현한다. */
-data class ScenarioTimeline(val moduleName: String, val commands: List<ScenarioCommand>)
-
 /** 스크립트가 요청한 유닛 연출 동작을 표현한다. */
 data class ScriptedUnitAction(
     val unitId: Int,

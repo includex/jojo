@@ -3,8 +3,8 @@ package com.jojo.game
 
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
-import com.jojo.game.application.scenario.Frame
-import com.jojo.game.application.scenario.RuntimeFunction
+import com.jojo.engine.script.ScriptFrame
+import com.jojo.engine.script.ScriptFunction
 import com.jojo.game.application.scenario.ScenarioBattleScriptContext
 import com.jojo.game.application.scenario.ScenarioConditionEnvironment
 import com.jojo.game.application.scenario.ScenarioModalKind
@@ -84,7 +84,7 @@ class ScenarioStageCallDispatcherTest {
         node: JsonValue = JsonReader().parse("{}"),
     ): Any? = assertNotNull(ScenarioStageCallDispatcher.dispatch(path, node, args, frame(), env)).value
 
-    private fun frame() = Frame(RuntimeFunction("scene0", emptyList(), emptyMap()))
+    private fun frame() = ScriptFrame(ScriptFunction("scene0", emptyList(), emptyMap()))
 
     private fun environment(
         stage: ScenarioStage = ScenarioStage(),

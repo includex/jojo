@@ -3,7 +3,7 @@ package com.jojo.game
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
 import com.jojo.game.presentation.shared.dialogue.DialogueMessage
-import com.jojo.game.presentation.shared.dialogue.DialogueRevealTiming
+import com.jojo.engine.text.RevealTiming
 import com.jojo.game.presentation.shared.dialogue.DialogueSession
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
@@ -99,7 +99,7 @@ class DialogueAutoSourceFixtureTest {
     }
 
     private fun sourceSession(text: String) = DialogueSession(
-        dialogueRevealTiming = DialogueRevealTiming.COCOS_CALLBACK_TIMER,
+        dialogueRevealTiming = RevealTiming.COCOS_CALLBACK_TIMER,
     ).also { it.presentDialogue(DialogueMessage(1, null, text)) }
 
     private fun JsonValue.floatDeltas(): List<Float> = get("deltas").map { value ->

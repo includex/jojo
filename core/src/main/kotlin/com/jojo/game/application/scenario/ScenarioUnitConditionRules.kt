@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 
 /** ScenarioUnitConditionRules: 스크립트 선택자와 유닛 상태를 대조해 조건식의 참·거짓을 판정한다. */
 internal object ScenarioUnitConditionRules {

@@ -462,9 +462,6 @@ class GameDataCatalog private constructor(
 
     data class EquipmentBonus(val attack: Int = 0, val defense: Int = 0, val spirit: Int = 0)
 
-    /** 특성 보정을 적용한 유닛 직위 스킬 정보이다. */
-    data class SkillProfile(val index: Int, val skillId: Int, val effect: Int, val name: String)
-
     /**
      * `skillsForUnit`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.

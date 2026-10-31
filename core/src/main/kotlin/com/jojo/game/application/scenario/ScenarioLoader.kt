@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.application.scenario.*
 import com.jojo.game.domain.campaign.*
 import com.jojo.game.domain.scenario.*
@@ -39,7 +41,7 @@ internal object ScenarioLoader {
                         call.field("args").children().firstOrNull()?.field("value")?.asString()?.let { it to index }
                     } else null
                 }.toMap()
-                node.field("name").asString() to RuntimeFunction(
+                node.field("name").asString() to ScriptFunction(
                     node.field("name").asString(),
                     statements,
                     labels,

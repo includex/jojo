@@ -1,9 +1,6 @@
 // Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.domain.scenario.Choice
-import com.jojo.game.domain.scenario.Dialogue
-import com.jojo.game.domain.scenario.PlaybackState
 
 /** ScenarioModalKind: 스크립트가 중단해 표시하는 모달의 용도와 재개 방식을 구분한다. */
 enum class ScenarioModalKind { EVENT, INFO, SECTION, MAP_INFO, AMBITION }
@@ -45,12 +42,3 @@ data class ScenarioUnitReference(val id: Int)
  */
 
 data class ScenarioFightReference(val id: Long)
-/**
- * `ScenarioPlaybackSnapshot` 클래스: scenario 패키지의 관련 상태와 동작을 묶는다.
- * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
- */
-
-data class ScenarioPlaybackSnapshot(
-    val state: PlaybackState, val dialogue: Dialogue?, val choice: Choice?, val modalText: String?,
-    val modalKind: ScenarioModalKind?, val selectedChoice: Int, val isAskChoice: Boolean,
-)

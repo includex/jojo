@@ -1,19 +1,16 @@
-// Scenario
 package com.jojo.game.application.scenario
-
-import com.jojo.game.presentation.i18n.SystemMessage
-
-import com.jojo.game.*
-
-import com.jojo.game.domain.scenario.*
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
+import com.jojo.engine.script.children
+import com.jojo.engine.script.expressionPath
+import com.jojo.engine.script.field
+import com.jojo.engine.script.typeName
+import com.jojo.game.domain.scenario.ScenarioJoinBattleLimit
 
-/** 복원된 시나리오 소스의 JSON AST에서 실행 메타데이터를 읽는다. */
+/** Reads static deployment metadata used when starting a battle directly. */
 object ScenarioMetadataReader {
-    /** 모듈에 마지막으로 작성된 전투 편성 제한을 읽는다. */
     fun loadLastJoinBattleLimit(moduleName: String): ScenarioJoinBattleLimit? {
         val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
         return payload.get("ast").walk()
@@ -30,216 +27,18 @@ object ScenarioMetadataReader {
             .lastOrNull()
     }
 
-    /** 함수의 첫 번째 대화·선택 구간을 타임라인으로 읽는다. */
-    fun loadFirstInteractiveSegment(moduleName: String, functionName: String): ScenarioTimeline {
-        val payload = JsonReader().parse(Gdx.files.internal("scenario-ast/$moduleName.json"))
-        val module = payload.get("ast")
-        val function = module.field("body").children().firstOrNull {
-            it.typeName() == "FunctionDef" && it.field("name").asString() == functionName
-        } ?: error("$moduleName.py에서 $functionName 함수를 찾지 못했습니다.")
-
-        val commands = mutableListOf<ScenarioCommand>()
-        for (statement in function.field("body").children()) {
-            if (appendStatement(statement, commands)) break
-        }
-        require(commands.any { it is ScenarioCommand.DialogueLine }) { "$moduleName:$functionName 대사를 찾지 못했습니다." }
-        require(commands.lastOrNull() is ScenarioCommand.Choose) { "$moduleName:$functionName 첫 선택지를 찾지 못했습니다." }
-        return ScenarioTimeline(moduleName, commands)
-    }
-
-    /** 선택지가 나타나 첫 상호작용 구간이 끝났는지 반환한다. */
-    private fun appendStatement(statement: JsonValue, commands: MutableList<ScenarioCommand>): Boolean {
-        val expression = when (statement.typeName()) {
-            "Expr" -> statement.field("value")
-            "Assign" -> statement.field("value")
-            else -> return false
-        }
-        if (expression.typeName() != "Call") return false
-
-        val path = expression.field("func").expressionPath()
-        val args = expression.field("args").children().toList()
-        when (path) {
-            "stage.loadBg" -> commands += ScenarioCommand.LoadBackground(args.intAt(0), args.intAt(1))
-            "stage.setEventName" -> commands += ScenarioCommand.SetEventName(args.stringAt(0))
-            "stage.showUnit" -> commands += ScenarioCommand.ShowUnit(
-                args.intAt(0),
-                args.intAt(1),
-                args.intAt(2),
-                args.intAt(3)
-            )
-
-            "stage.showUnits" -> appendShowUnits(args.firstOrNull(), commands)
-            "stage.unitsMove" -> appendUnitMoves(args.firstOrNull(), commands)
-            "stage.unit().move" -> {
-                val unitId = expression.field("func").field("value").unitId()
-                commands += ScenarioCommand.MoveUnit(unitId, args.intAt(0), args.intAt(1), args.intAt(2))
-            }
-
-            "stage.unit().setAction" -> {
-                val unitId = expression.field("func").field("value").unitId()
-                commands += ScenarioCommand.SetUnitAction(unitId, args.intAt(0))
-            }
-
-            "stage.say" -> commands += ScenarioCommand.DialogueLine(toDialogue(args.stringAt(0)))
-            "stage.choice" -> {
-                commands += ScenarioCommand.Choose(
-                    Choice(
-                        args.stringAt(0).lineSequence().map(String::trim).filter(String::isNotEmpty).toList()
-                    )
-                )
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * `appendShowUnits`: 화면 표시 상태를 렌더링한다.
-     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
-     */
-
-    private fun appendShowUnits(node: JsonValue?, commands: MutableList<ScenarioCommand>) {
-        if (node?.typeName() != "List") return
-        node.field("elts").children().forEach { entry ->
-            val values = entry.listValues()
-            if (values.size >= 3) {
-                commands += ScenarioCommand.ShowUnit(
-                    values[0].asIntValue(),
-                    values[1].asIntValue(),
-                    values[2].asIntValue(),
-                    values.getOrNull(3)?.asIntValue() ?: 0
-                )
-            }
-        }
-    }
-
-    /**
-     * `appendUnitMoves`: 타입의 핵심 동작을 수행한다.
-     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
-     */
-
-    private fun appendUnitMoves(node: JsonValue?, commands: MutableList<ScenarioCommand>) {
-        if (node?.typeName() != "List") return
-        node.field("elts").children().forEach { entry ->
-            val values = entry.listValues()
-            val unitId = values.firstOrNull()?.unitId() ?: return@forEach
-            if (values.size >= 3) {
-                commands += ScenarioCommand.MoveUnit(
-                    unitId, values[1].asIntValue(), values[2].asIntValue(), values.getOrNull(3)?.asIntValue() ?: 0
-                )
-            }
-        }
-    }
-
-    /**
-     * `toDialogue`: 입력을 규칙에 따라 계산·변환한다.
-     * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
-     */
-
-    private fun toDialogue(raw: String): Dialogue {
-        val match = Regex("""^&(\d+)\n(.*)$""", setOf(RegexOption.DOT_MATCHES_ALL)).matchEntire(raw)
-        return if (match == null) Dialogue(null, raw) else Dialogue(match.groupValues[1], match.groupValues[2])
-    }
-
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun JsonValue.typeName(): String = getString("type")
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun JsonValue.field(name: String): JsonValue = get("fields").get(name)
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun JsonValue.children(): Sequence<JsonValue> = sequence {
-        var item = child
-        while (item != null) {
-            yield(item)
-            item = item.next
-        }
-    }
-
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
     private fun JsonValue.walk(): Sequence<JsonValue> = sequence {
         yield(this@walk)
         children().forEach { child -> yieldAll(child.walk()) }
     }
 
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun JsonValue.expressionPath(): String? = when (typeName()) {
-        "Name" -> field("id").asString()
-        "Attribute" -> field("value").expressionPath()?.plus(".")?.plus(field("attr").asString())
-        "Call" -> field("func").expressionPath()?.plus("()")
-        else -> null
-    }
-
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun JsonValue.unitId(): Int {
-        check(typeName() == "Call" && field("func").expressionPath() == "stage.unit") { SystemMessage.S_8828CC1AE7 }
-        return field("args").children().first().asIntValue()
-    }
-
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun JsonValue.listValues(): List<JsonValue> =
-        if (typeName() == "List") field("elts").children().toList() else emptyList()
-
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
     private fun JsonValue.intListValues(): List<Int> {
         check(typeName() == "List") { "setJoinBattle 명단은 정적 List여야 합니다: ${typeName()}" }
-        return listValues().map { it.asIntValue() }
+        return field("elts").children().map { it.asIntValue() }.toList()
     }
-
-    /**
-     * `JsonValue`: 타입의 핵심 동작을 수행한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
 
     private fun JsonValue.asIntValue(): Int {
         check(typeName() == "Constant") { "정수 상수가 필요합니다: ${typeName()}" }
         return field("value").asString().toInt()
-    }
-
-    /**
-     * `List`: 조건과 입력 상태를 검증한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun List<JsonValue>.intAt(index: Int): Int = getOrNull(index)?.asIntValue() ?: error("인수 ${index}가 없습니다.")
-    /**
-     * `List`: 조건과 입력 상태를 검증한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun List<JsonValue>.stringAt(index: Int): String {
-        val value = getOrNull(index) ?: error("인수 ${index}가 없습니다.")
-        check(value.typeName() == "Constant") { "문자열 상수가 필요합니다: ${value.typeName()}" }
-        return value.field("value").asString()
     }
 }

@@ -8,4 +8,4 @@ pluginManagement {
 
 rootProject.name = "jojo-game"
 
-include("core", "desktop", "android", "verification")
+include("engine", "core", "desktop", "android", "verification")

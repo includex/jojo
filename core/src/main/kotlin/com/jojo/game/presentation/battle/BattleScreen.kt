@@ -78,11 +78,11 @@ import com.jojo.game.presentation.battle.settlement.*
 import com.jojo.game.presentation.battle.timeline.*
 import com.jojo.game.presentation.battle.trace.*
 import com.jojo.game.presentation.battle.unit.*
-import com.jojo.game.presentation.shared.SourceSlicedPatch
+import com.jojo.engine.graphics.SlicedPatch
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationCoordinator
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationInput
 import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
-import com.jojo.game.presentation.scenario.overlay.SourceTextReveal
+import com.jojo.engine.text.TextReveal
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.KoreanFont
 import com.jojo.game.presentation.shared.overlay.TerrainLayerChromeRenderContract
@@ -94,7 +94,7 @@ import com.jojo.game.presentation.shared.dialogue.DialogueSpeakerStyle
 import com.jojo.game.presentation.shared.dialogue.DialogueTextureOverlay
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderModel
 import com.jojo.game.presentation.shared.dialogue.DialogueRenderer
-import com.jojo.game.presentation.shared.dialogue.DialoguePortraitGeometry
+import com.jojo.engine.graphics.MaxDimensionImageFit
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionInput
 import com.jojo.game.presentation.shared.dialogue.DialogueSessionTransition
 import com.jojo.game.infrastructure.audio.UiSound
@@ -245,7 +245,7 @@ class BattleScreen(
     }
     private val scriptInfoPanelTexture by scriptInfoPanelTextureDelegate
     private val scriptInfoPanelPatch by lazy {
-        SourceSlicedPatch(TextureRegion(scriptInfoPanelTexture), 7, 6, 6, 6)
+        SlicedPatch(TextureRegion(scriptInfoPanelTexture), 7, 6, 6, 6)
     }
 
     /** 원본 RoundLayer 프리팹의 `label12` 턴 수 그림자 색 4286545795 = (131,127,127). */
@@ -1462,7 +1462,7 @@ void main() {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val dialogueReveal = SourceTextReveal()
+    private val dialogueReveal = TextReveal()
 
     /** 전투 스크립트 상태를 공용 대화 세션으로 투영하는 어댑터다. */
     private val dialogueSessionAdapter = BattleDialogueSessionAdapter()

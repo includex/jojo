@@ -2,8 +2,8 @@
 package com.jojo.game.verification
 
 import com.jojo.game.*
-import com.jojo.game.presentation.shared.ServiceFlow
-import com.jojo.game.presentation.shared.ServiceMenuState
+import com.jojo.game.verification.fixtures.framework.ServiceFlow
+import com.jojo.game.verification.fixtures.framework.ServiceMenuState
 
 import java.nio.file.Files
 import java.nio.file.Path

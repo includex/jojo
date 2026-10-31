@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.application.scenario
 
+import com.jojo.engine.script.*
+
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.*
@@ -83,11 +85,11 @@ internal class ScenarioChoiceCoordinator(
     var pendingAskStatement: JsonValue? = null
         private set
     /**
-     * `pendingAskFrame` (Frame?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `pendingAskFrame` (ScriptFrame?): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    var pendingAskFrame: Frame? = null
+    var pendingAskFrame: ScriptFrame? = null
         private set
     /**
      * `pendingAskResult` (Int?): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -166,21 +168,51 @@ internal class ScenarioChoiceCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun setChoiceSource(node: JsonValue, frame: Frame, moduleName: String) {
+    fun setChoiceSource(node: JsonValue, frame: ScriptFrame, moduleName: String) {
         currentChoiceFunction = frame.sourceFunction
         currentChoiceLine = node.get("location")?.getInt("line", -1)?.takeIf { it > 0 }
             ?: error("$moduleName ${frame.function.name} choice has no source line")
     }
 
-    /**
-     * `startChoice`: 해당 흐름을 실행하거나 다음 단계로 전달한다.
-     * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
+    /** Consume game-specific choice/ask syntax before the generic engine executes it. */
+    fun interceptStatement(
+        statement: JsonValue,
+        frame: ScriptFrame,
+        moduleName: String,
+        evalArguments: (JsonValue, ScriptFrame) -> List<Any?>,
+    ): Boolean = when (statement.typeName()) {
+        "Assign" -> {
+            val valueNode = statement.field("value")
+            if (!isStageChoice(valueNode)) false else {
+                val args = evalArguments(valueNode.field("args"), frame)
+                startChoice(
+                    choice = Choice(
+                        args.firstOrNull().asText().lineSequence().map(String::trim).filter(String::isNotEmpty).toList(),
+                        args.getOrNull(1)?.asInt()?.takeIf { it >= 0 },
+                    ),
+                    node = valueNode,
+                    frame = frame,
+                    moduleName = moduleName,
+                    target = statement.field("targets").children().firstOrNull(),
+                )
+                true
+            }
+        }
+        "If" -> {
+            val ask = findStageAsk(statement.field("test"))
+            if (ask != null && pendingAskResult == null) {
+                startAsk(ask, statement, frame, moduleName)
+                true
+            } else false
+        }
+        else -> false
+    }
 
+    /** Suspend the scenario with its game choice UI and optional assignment target. */
     fun startChoice(
         choice: Choice,
         node: JsonValue,
-        frame: Frame,
+        frame: ScriptFrame,
         moduleName: String,
         target: JsonValue? = null,
     ) {
@@ -199,7 +231,7 @@ internal class ScenarioChoiceCoordinator(
     fun startAsk(
         ask: JsonValue,
         statement: JsonValue,
-        frame: Frame,
+        frame: ScriptFrame,
         moduleName: String,
     ) {
         currentChoice = Choice(listOf(SystemMessage.S_A842629AFD, SystemMessage.S_D3B0E1A367), null)
@@ -219,9 +251,9 @@ internal class ScenarioChoiceCoordinator(
     fun confirmChoice(
         currentState: PlaybackState,
         moduleName: String,
-        frames: ArrayDeque<Frame>,
-        evalBoolean: (JsonValue, Frame) -> Boolean,
-        assign: (JsonValue, Any?, Frame) -> Unit,
+        frames: ArrayDeque<ScriptFrame>,
+        evalBoolean: (JsonValue, ScriptFrame) -> Boolean,
+        assign: (JsonValue, Any?, ScriptFrame) -> Unit,
         onResumeExecution: () -> Unit,
     ) {
         check(currentState == PlaybackState.CHOICE) { SystemMessage.S_B1622411B7 }
@@ -269,8 +301,8 @@ internal class ScenarioChoiceCoordinator(
 
             val statements = selected.children().toList()
             if (statements.isNotEmpty()) frames.addLast(
-                Frame(
-                    RuntimeFunction("<if>", statements, emptyMap()),
+                ScriptFrame(
+                    ScriptFunction("<if>", statements, emptyMap()),
                     0,
                     sourceFrame.locals,
                     sourceFrame.sourceFunction

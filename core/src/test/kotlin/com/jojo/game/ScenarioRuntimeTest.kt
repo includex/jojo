@@ -1,6 +1,8 @@
 // Test
 package com.jojo.game
 
+import com.jojo.engine.text.TextReveal
+
 import com.jojo.game.application.scenario.ScenarioStageWeatherEnvironment
 import com.jojo.game.infrastructure.data.EncryptedGameDataCodec
 import com.jojo.game.infrastructure.data.GameDataCatalog
@@ -893,17 +895,6 @@ class ScenarioRuntimeTest {
     }
 
     @Test
-    fun `choice retains source face unit argument`() {
-        val playback = ScenarioPlayback(
-            ScenarioTimeline(
-                "test",
-                listOf(ScenarioCommand.Choose(Choice(listOf("첫째", "둘째"), 0))),
-            ),
-        )
-        assertEquals(0, playback.currentChoice?.faceId)
-    }
-
-    @Test
     fun `recovered Tool random LCG preserves inclusive model random range`() {
         val (seedOne, valueOne) = com.jojo.game.domain.scenario.ScenarioRandomSequence.nextFromSeed(0.0)
         val (seedTwo, valueTwo) = com.jojo.game.domain.scenario.ScenarioRandomSequence.nextFromSeed(seedOne)
@@ -955,7 +946,7 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `source dialogue reveal consumes rich text tags without displaying markup`() {
-        val reveal = SourceTextReveal()
+        val reveal = TextReveal()
         reveal.update("<color=#ff0000>가</c>나", 0.04f)
         assertEquals("", reveal.visibleText)
 
@@ -1562,41 +1553,6 @@ class ScenarioRuntimeTest {
     }
 
     @Test
-    fun `stage commands run until dialogue then resume to choice`() {
-        val timeline = ScenarioTimeline(
-            "test",
-            listOf(
-                ScenarioCommand.LoadBackground(2, 30),
-                ScenarioCommand.ShowUnit(181, 40, 5, 2),
-                ScenarioCommand.DialogueLine(Dialogue("181", "주군, 서두르셔야 합니다!")),
-                ScenarioCommand.MoveUnit(181, 40, 15, 2),
-                ScenarioCommand.Choose(Choice(listOf("계속", "중단")))
-            )
-        )
-
-        val playback = ScenarioPlayback(timeline)
-        assertEquals(PlaybackState.DIALOGUE, playback.state)
-        assertEquals(71, playback.stage.backgroundId)
-        assertEquals(5, playback.stage.unit(181).y)
-        assertEquals("주군, 서두르셔야 합니다!", playback.currentDialogue?.text)
-
-        playback.advanceDialogue()
-        assertEquals(PlaybackState.CHOICE, playback.state)
-        // 테스트 근거: 경로 탐색의 방문 순서와 목적지 선택을 검증한다.
-        assertEquals(5, playback.stage.unit(181).y)
-        assertEquals(20, playback.stage.unit(181).action)
-        playback.stage.finishAnimations()
-        assertEquals(15, playback.stage.unit(181).y)
-        assertEquals(listOf("계속", "중단"), playback.currentChoice?.options)
-
-        playback.selectNext()
-        playback.confirmChoice()
-        assertEquals(PlaybackState.COMPLETE, playback.state)
-        assertEquals("중단", playback.chosenOption)
-        assertNull(playback.currentChoice)
-    }
-
-    @Test
     fun `battle context seeds lazy stage unit at its live tactical tile`() {
         val runtime = ScenarioInterpreter.load("S_00", CampaignState())
         runtime.setBattleContext(
@@ -1751,32 +1707,6 @@ class ScenarioRuntimeTest {
         battle.roundLifecycle.endTurn()
 
         assertEquals(BattleOutcome.ENEMY_VICTORY, battle.outcome())
-    }
-
-    @Test
-    fun `python choice variable selects matching conditional branch`() {
-        val program = ScenarioScript(
-            "test",
-            listOf(
-                ScriptStep.Command(ScenarioCommand.LoadBackground(2, 30)),
-                ScriptStep.PromptChoice("sel", Choice(listOf("첫 번째", "두 번째"))),
-                ScriptStep.Conditional(
-                    "sel", 2,
-                    whenTrue = listOf(ScriptStep.Command(ScenarioCommand.DialogueLine(Dialogue("0", "두 번째 분기")))),
-                    whenFalse = listOf(ScriptStep.Command(ScenarioCommand.DialogueLine(Dialogue("0", "첫 번째 분기"))))
-                )
-            ),
-            emptyList()
-        )
-
-        val playback = ProgramPlayback(program)
-        assertEquals(PlaybackState.CHOICE, playback.state)
-        playback.selectNext()
-        playback.confirmChoice()
-
-        assertEquals(PlaybackState.DIALOGUE, playback.state)
-        assertEquals("두 번째 분기", playback.currentDialogue?.text)
-        assertEquals("두 번째", playback.chosenOption)
     }
 
     @Test

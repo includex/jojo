@@ -1,7 +1,7 @@
 // Scenario
 package com.jojo.game.application.scenario
 
-import com.jojo.game.infrastructure.data.HallPathfinder
+import com.jojo.engine.pathfinding.GridPathfinder
 
 import kotlin.math.floor
 
@@ -131,7 +131,7 @@ object HallMoveTimeline {
         var direction = -1
         var count = 0
         path.drop(1).forEach { point ->
-            val nextDirection = HallPathfinder.direction(previous.first, previous.second, point.first, point.second)
+            val nextDirection = GridPathfinder.direction(previous.first, previous.second, point.first, point.second)
             if (nextDirection == direction) {
                 count++
             } else {

@@ -1,8 +1,9 @@
 // Game
 package com.jojo.game.application.scenario
 
-import com.jojo.game.infrastructure.data.HallPathGrid
-import com.jojo.game.infrastructure.data.HallPathfinder
+import com.jojo.engine.pathfinding.PathGrid
+import com.jojo.engine.pathfinding.PathCosts
+import com.jojo.engine.pathfinding.GridPathfinder
 
 import com.jojo.game.*
 
@@ -23,12 +24,17 @@ internal data class PlannedScenarioMovement(
 
 /** ScenarioStageMovementPlanner: 스크립트 이동 경로 선택과 콜백 지속 시간을 관리한다. */
 internal class ScenarioStageMovementPlanner {
+    private companion object {
+        val openHallGrid = PathGrid.open(100, 100)
+        val hallMovementCosts = PathCosts(step = 1, blocked = 767, occupied = 511, directionChange = 15)
+    }
+
     /**
-     * `hallPathGrid` (HallPathGrid?): 객체가 유지하는 구성·진행 상태를 보관한다.
+     * `hallPathGrid` (PathGrid?): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    var hallPathGrid: HallPathGrid? = null
+    var hallPathGrid: PathGrid? = null
     /**
      * `battleMovementTimeline` (Boolean): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -109,12 +115,13 @@ internal class ScenarioStageMovementPlanner {
         x: Int,
         y: Int,
         occupied: Set<Pair<Int, Int>>,
-    ): List<Pair<Int, Int>>? = HallPathfinder.find(
+    ): List<Pair<Int, Int>>? = GridPathfinder.find(
         unit.x,
         unit.y,
         x.coerceIn(0, 99),
         y.coerceIn(0, 99),
-        hallPathGrid,
+        hallPathGrid ?: openHallGrid,
         occupied,
+        hallMovementCosts,
     )
 }
