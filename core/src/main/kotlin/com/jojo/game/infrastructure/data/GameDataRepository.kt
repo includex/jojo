@@ -126,7 +126,7 @@ internal class GameDataRepository(
         val decoded = requireNotNull(EncryptedGameDataCodec.decode(source.read(fileName))) {
             "$tableName 테이블 검증 실패"
         }
-        return runCatching { jsonReader.parse(decoded) }.getOrElse { cause ->
+        return runCatching { ReviewedKoreanText.apply(jsonReader.parse(decoded), fileName) }.getOrElse { cause ->
             throw IllegalArgumentException("$tableName 테이블 JSON 형식이 잘못되었습니다.", cause)
         }
     }

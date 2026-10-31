@@ -26,7 +26,7 @@ class RoundLayerTest {
 
         val final = RoundLayer({}, {})
         final.onCreate(round = 21, max = 20)
-        assertEquals(RoundLayer.View(true, false, "최종 턴"), final.view)
+        assertEquals(RoundLayer.View(true, false, "마지막 턴"), final.view)
 
         val camp = RoundLayer({}, {})
         camp.onCreate(round = null, max = null)

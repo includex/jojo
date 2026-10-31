@@ -2,6 +2,7 @@ package com.jojo.game.presentation.i18n
 
 import java.text.MessageFormat
 import java.util.Locale
+import com.jojo.game.infrastructure.data.ReviewedKoreanText
 
 /** Central catalog for statically authored system and UI messages. */
 object SystemMessage {
@@ -13,18 +14,18 @@ object SystemMessage {
     enum class Key(val korean: String) {
         ITEM_PURCHASE("{0} 구매"),
         ITEM_SALE("{0} 판매"),
-        ITEM_DISCARDED("{0} 이미 버렸습니다..."),
-        UNIT_FALLBACK("유닛 {0}"),
+        ITEM_DISCARDED("{0}을(를) 버렸습니다."),
+        UNIT_FALLBACK("부대 {0}"),
         STAT_BONUS("{0} +{1}\n{2}"),
         CHAPTER_PREFIX("제{0}"),
         TREASURE_PROGRESS("지금까지 발견한 보물 {0} / {1}"),
         SELL_PRICE("판매가: {0}"),
         INVENTORY_COUNT("인벤토리: {0}"),
         PRICE("가격: {0}"),
-        TROOP_COUNT("출진 무장 - {0}/{1}"),
-        SELECTION_TOTAL("선택했습니다{0}항, 총{1}원"),
+        TROOP_COUNT("출전 무장 - {0}/{1}"),
+        SELECTION_TOTAL("{0}개 선택 · 합계 {1}금"),
         EVENT_WEATHER("날씨: {0}"),
-        BATTLE_ROUND("라운드 {0} · {1} 차례 · {2}"),
+        BATTLE_ROUND("{0}턴 · {1} 차례 · {2}"),
         AI_TURN_SUMMARY("{0}: 이동 {1} · 공격 {2} · 대기 {3}"),
         AI_UNIT_ACTION("{0}: {1} 행동"),
         UNIT_SELECTED("{0} 선택"),
@@ -44,15 +45,15 @@ object SystemMessage {
         ATTRIBUTE_INCREASE("{0} 상승"),
         HP_INCREASE("최대 HP {0} 증가"),
         MP_INCREASE("최대 MP {0} 증가"),
-        SAVE_CONFIRM("진행도 No.{0}:{1}저장할 수 있나요?"),
-        LOAD_CONFIRM("진행도 No.{0}:{1}불러올 수 있나요?"),
-        ITEM_DROP_CONFIRM("버릴 것을 결정하시겠습니까?{0}?"),
-        RESOURCE_LOADING("자원 로딩 중{0}%"),
+        SAVE_CONFIRM("슬롯 {0}: {1}\n저장하시겠습니까?"),
+        LOAD_CONFIRM("슬롯 {0}: {1}\n불러오시겠습니까?"),
+        ITEM_DROP_CONFIRM("{0}을(를) 버리시겠습니까?"),
+        RESOURCE_LOADING("불러오는 중 {0}%"),
         SAVE_EQUIPMENT_NOTICE("장비 {0}개를 모두 해제했습니다."),
         ABILITY_LEVEL("{0} 상승"),
-        PROMOTION_LEVEL("{0} 승격하여{1}레벨"),
-        MAGIC_LEARNED("법술 「{0}」！"),
-        STAGE_NAME("전역{0}"),
+        PROMOTION_LEVEL("{0} 레벨 상승 · {1}레벨"),
+        MAGIC_LEARNED("법술 「{0}」 습득!"),
+        STAGE_NAME("전역 {0}"),
         VERIFICATION_UNIT_MISSING("{0} 원본 전투 유닛이 없습니다."),
         VERIFICATION_MAP_MISSING("{0} 원본 HM 전장 이미지를 찾을 수 없습니다: {1}"),
         VERIFICATION_UNIT_COUNT("{0} 전투 유닛 변환 수가 일치하지 않습니다."),
@@ -1011,7 +1012,7 @@ object SystemMessage {
     )
 
     fun text(key: Key): String = when (language) {
-        Language.KOREAN -> key.korean
+        Language.KOREAN -> ReviewedKoreanText.text(key.korean)
         Language.ENGLISH -> english[key] ?: key.korean
     }
 

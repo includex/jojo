@@ -35,13 +35,14 @@ class LoadGameLayerTest {
     @Test fun `touch end confirm is required before manager restore`() {
         val repo = Repo(mapOf(5 to save(1, "조조"))); val layer = LoadGameLayer(repo); layer.onCreate()
         assertFalse(layer.onRowTouch(5, 0)); assertTrue(layer.onRowTouch(5, LoadGameLayer.TOUCH_END))
+        assertEquals("슬롯 6: 조조\n불러오시겠습니까?", layer.view().confirmation?.message)
         assertEquals(5, layer.view().confirmation?.index); assertFalse(layer.onConfirm(1)); assertEquals(null, repo.restored)
         assertTrue(layer.onRowTouch(5, LoadGameLayer.TOUCH_END)); assertTrue(layer.onConfirm(0)); assertEquals(5, repo.restored)
     }
     @Test fun `newer source model is rejected`() {
         val repo = Repo(mapOf(0 to save(1, "future", version = 5))); val layer = LoadGameLayer(repo); layer.onCreate()
         layer.onRowTouch(0, LoadGameLayer.TOUCH_END)
-        assertFalse(layer.onConfirm(0)); assertEquals("저장이 호환되지 않아 불러오기에 실패했습니다!", layer.view().notice)
+        assertFalse(layer.onConfirm(0)); assertEquals("호환되지 않는 저장 파일이라 불러올 수 없습니다!", layer.view().notice)
     }
     @Test fun `source battle field selects exact scene branch`() {
         val repo = Repo(mapOf(0 to (save(1, "battle") + " ").replace("} ", ",\"battle\":2}")))

@@ -1,0 +1,16 @@
+{
+  "assigned": 2570,
+  "translated": 2562,
+  "remaining": 0,
+  "method": "Sol direct translation from Chinese originals",
+  "next_row": 2570,
+  "assigned_original": 2820,
+  "delegated_tail": {
+    "start_row": 2570,
+    "end_row_exclusive": 2820,
+    "owner": "translation_b",
+    "directory": "localization/sol/c-tail"
+  },
+  "delegated_opening_count": 8,
+  "status": "complete for own range; opening and tail delegated"
+}

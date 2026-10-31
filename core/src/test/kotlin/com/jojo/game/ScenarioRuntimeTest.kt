@@ -374,13 +374,13 @@ class ScenarioRuntimeTest {
         runtime.start("scene1")
 
         assertEquals(PlaybackState.MODAL, runtime.state)
-        assertEquals("조조가 군대를 일으키다", runtime.currentModalText)
+        assertEquals("조조가 군사를 일으키다", runtime.currentModalText)
         assertEquals("", runtime.stage.stageName)
 
         runtime.resumeModal()
-        assertEquals("낙양 @ 총리관", runtime.stage.stageName)
+        assertEquals("낙양@승상부", runtime.stage.stageName)
         assertEquals(PlaybackState.MODAL, runtime.state)
-        assertEquals("낙양 @ 총리관", runtime.currentModalText)
+        assertEquals("낙양@승상부", runtime.currentModalText)
     }
 
     @Test
@@ -392,7 +392,7 @@ class ScenarioRuntimeTest {
         runtime.setStagePresentationSkipped(true)
         runtime.resumeModal()
 
-        assertEquals("낙양 @ 총리관", runtime.stage.stageName)
+        assertEquals("낙양@승상부", runtime.stage.stageName)
         assertEquals(PlaybackState.DELAY, runtime.state)
         assertNull(runtime.currentModalText)
     }
@@ -432,7 +432,7 @@ class ScenarioRuntimeTest {
 
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
         assertFalse(runtime.stage.menuVisible)
-        assertEquals(Dialogue("0", "출발."), runtime.currentDialogue)
+        assertEquals(Dialogue("0", "출발하라."), runtime.currentDialogue)
         // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
         assertEquals(15, runtime.stage.backgroundSound)
 
@@ -606,7 +606,7 @@ class ScenarioRuntimeTest {
         assertEquals(1025, request.unitSelector)
         assertEquals(5, request.action)
         assertTrue(request.addToInventory)
-        assertTrue(request.completionMessage.startsWith("얻었다"))
+        assertTrue(request.completionMessage.startsWith("획득: "))
         assertTrue(request.completionMessage.endsWith("!"))
         assertEquals(PlaybackState.DELAY, runtime.state)
         runtime.presentExternalBattleInfo(request.completionMessage)
@@ -710,7 +710,7 @@ class ScenarioRuntimeTest {
 
         assertEquals(PlaybackState.MODAL, runtime.state)
         assertEquals(ScenarioModalKind.INFO, runtime.currentModalKind)
-        assertEquals("조조 황번군에게 패배했다.", runtime.currentModalText)
+        assertEquals("조조는 황건군에게 패했다.", runtime.currentModalText)
         assertNull(runtime.stage.scriptedBattleOutcome)
         assertFalse(runtime.stage.battleEndedByScript)
 
@@ -734,7 +734,7 @@ class ScenarioRuntimeTest {
         runtime.start("scene1")
 
         assertEquals(PlaybackState.COMPLETE, runtime.state)
-        assertEquals(listOf(9 to "조조 황번군에게 패배했다."), runtime.stage.controlledInfos)
+        assertEquals(listOf(9 to "조조는 황건군에게 패했다."), runtime.stage.controlledInfos)
         assertFalse(4071 in campaign.globalVariables)
         assertEquals(BattleOutcome.ENEMY_VICTORY, runtime.stage.scriptedBattleOutcome)
     }
@@ -758,11 +758,11 @@ class ScenarioRuntimeTest {
 
     @Test
     fun `live modal timers honor source auto close setting`() {
-        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.SECTION, "서막", false))
+        assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.SECTION, "서장", false))
         assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.MAP_INFO, "긴 지도 정보", false))
         assertEquals(false, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.INFO, "열 글자가 넘는 안내 문장", false))
         assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.INFO, "영천", false))
-        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.SECTION, "서막", true))
+        assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.SECTION, "서장", true))
         assertEquals(true, ScenarioInterpreter.modalMayAutoClose(ScenarioModalKind.AMBITION, null, false))
     }
 
@@ -1198,7 +1198,7 @@ class ScenarioRuntimeTest {
     fun `original continuous attack makes a second reduced damage hit`() {
         val state = Battle(
             units = listOf(
-                BattleUnit("attacker", "연격", Faction.PLAYER, 0, 0, attack = 100, skills = mapOf(92 to 0, 226 to 0, 276 to 0)),
+                BattleUnit("attacker", "연속 공격", Faction.PLAYER, 0, 0, attack = 100, skills = mapOf(92 to 0, 226 to 0, 276 to 0)),
                 BattleUnit("target", "대상", Faction.ENEMY, 1, 0, defense = 1, hitPoints = 500, maxHitPoints = 500),
             ), events = emptyList(),
         )
@@ -1568,7 +1568,7 @@ class ScenarioRuntimeTest {
             listOf(
                 ScenarioCommand.LoadBackground(2, 30),
                 ScenarioCommand.ShowUnit(181, 40, 5, 2),
-                ScenarioCommand.DialogueLine(Dialogue("181", "대장님, 서둘러야 해요!")),
+                ScenarioCommand.DialogueLine(Dialogue("181", "주군, 서두르셔야 합니다!")),
                 ScenarioCommand.MoveUnit(181, 40, 15, 2),
                 ScenarioCommand.Choose(Choice(listOf("계속", "중단")))
             )
@@ -1578,7 +1578,7 @@ class ScenarioRuntimeTest {
         assertEquals(PlaybackState.DIALOGUE, playback.state)
         assertEquals(71, playback.stage.backgroundId)
         assertEquals(5, playback.stage.unit(181).y)
-        assertEquals("대장님, 서둘러야 해요!", playback.currentDialogue?.text)
+        assertEquals("주군, 서두르셔야 합니다!", playback.currentDialogue?.text)
 
         playback.advanceDialogue()
         assertEquals(PlaybackState.CHOICE, playback.state)
@@ -1658,7 +1658,7 @@ class ScenarioRuntimeTest {
 
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
         assertEquals("57", runtime.currentDialogue?.speakerId)
-        assertTrue(runtime.currentDialogue?.text.orEmpty().contains("양평관을 점령"))
+        assertTrue(runtime.currentDialogue?.text.orEmpty().contains("양평관을 함락"))
     }
 
     @Test
@@ -2011,7 +2011,7 @@ class ScenarioRuntimeTest {
     @Test
     fun `offensive strategy applies target tile terrain rather than caster tile terrain`() {
         val wind = GameDataCatalog.MagicProfile(
-            10, "회오리", 0, 0,
+            10, "선풍", 0, 0,
             GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)),
             0, emptySet(), 0, 50, 0, 0,
         )
@@ -2213,7 +2213,7 @@ class ScenarioRuntimeTest {
     fun `HP recovery strategy targets ally and caps at original maximum HP`() {
         val supply = GameDataCatalog.MagicProfile(
             id = 39,
-            name = "소량의 보급품",
+            name = "소보급",
             type = 19,
             target = 1,
             hitArea = GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)),
@@ -2454,7 +2454,7 @@ class ScenarioRuntimeTest {
     @Test
     fun `poison uses the original cloudy weather fifteen percent rate`() {
         val poison = GameDataCatalog.MagicProfile(2, "독연", 0, 0, GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), 0, emptySet(), 1, 0, 4, 9)
-        val cloudy = GameDataCatalog.MagicProfile(60, "담천", 23, 2, GameDataCatalog.HitAreaProfile(0, emptySet()), 0, emptySet(), 1, 0, 4, 22)
+        val cloudy = GameDataCatalog.MagicProfile(60, "흐린 날", 23, 2, GameDataCatalog.HitAreaProfile(0, emptySet()), 0, emptySet(), 1, 0, 4, 22)
         val battle = Battle(
             listOf(
                 BattleUnit("strategist", "책사", Faction.PLAYER, 0, 0, magicPoints = 5, maxMagicPoints = 5, spirit = 100, morale = 100, magic = listOf(poison, cloudy)),
@@ -2512,7 +2512,7 @@ class ScenarioRuntimeTest {
     @Test
     fun `defense-reduction strategy changes battle ability then expires after three target turns`() {
         val weakenDefense = GameDataCatalog.MagicProfile(
-            id = 3, name = "선동", type = 0, target = 0,
+            id = 3, name = "도발", type = 0, target = 0,
             hitArea = GameDataCatalog.HitAreaProfile(0, setOf(1 to 0)), effectAreaId = 0,
             effectOffsets = emptySet(), expendMp = 1, power = 0, harmType = 4, category = 7,
         )
@@ -2796,8 +2796,8 @@ class ScenarioRuntimeTest {
 
         runtime.advanceDialogue()
 
-        assertEquals(Dialogue("157", "헤헤, 하!\n그럼, 이건 어때?"), runtime.currentDialogue)
-        assertEquals("&157\n헤헤, 하!\n그럼, 이건 어때?", runtime.currentDialogueSourceText)
+        assertEquals(Dialogue("157", "허, 허, 허!\n그럼 이것은 어떠냐?"), runtime.currentDialogue)
+        assertEquals("&157\n허, 허, 허!\n그럼 이것은 어떠냐?", runtime.currentDialogueSourceText)
         assertFalse("stage.talk" in runtime.unhandledCalls)
     }
 
@@ -2818,7 +2818,7 @@ class ScenarioRuntimeTest {
 
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
         assertEquals("0", runtime.currentDialogue?.speakerId)
-        assertTrue(runtime.currentDialogueSourceText.orEmpty().contains("당신이 장량 맞죠?"))
+        assertTrue(runtime.currentDialogueSourceText.orEmpty().contains("네가 장량이냐?"))
     }
 
     @Test
@@ -2970,9 +2970,9 @@ class ScenarioRuntimeTest {
         )
 
         runtime.start("scene1")
-        assertEquals(Dialogue("3", "나는 둘째 동생을 유비관우관운장,\n만나게 해줘."), runtime.currentDialogue)
+        assertEquals(Dialogue("3", "나는 유비의 둘째 아우 관우 관운장이다.\n내가 상대해 주마."), runtime.currentDialogue)
         runtime.advanceDialogue()
-        assertEquals(Dialogue("134", "흥, 아무도 아니야!"), runtime.currentDialogue)
+        assertEquals(Dialogue("134", "흥, 이름 없는 졸개로군!"), runtime.currentDialogue)
         runtime.advanceDialogue()
 
         // 테스트 근거: 연출 프레임과 콜백 처리 순서을 검증한다.
@@ -3023,7 +3023,7 @@ class ScenarioRuntimeTest {
         runtime.resumeExternalDelay()
         assertEquals(PlaybackState.DELAY, runtime.state)
         assertEquals(
-            ScenarioFightCommand.ShowUnit(start.fightId, true, "관우관운장,\n화웅, 네 목을 가져가러 왔어.", 9),
+            ScenarioFightCommand.ShowUnit(start.fightId, true, "나는 관우 관운장이다.\n화웅, 네 목을 거두러 왔다.", 9),
             runtime.stage.consumeFightCommands().single(),
         )
     }

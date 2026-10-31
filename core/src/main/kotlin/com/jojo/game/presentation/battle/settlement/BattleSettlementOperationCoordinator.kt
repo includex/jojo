@@ -225,10 +225,10 @@ internal class BattleSettlementOperationCoordinator {
                 SettlementGrowthStep.UnitLevelUpActionFinished -> add(TurnSettlementOp.Actions(unitId, listOf(11)))
                 SettlementGrowthStep.UnitLevelUpInfo -> {
                     val unit = port.presentationUnit(unitId)
-                    add(TurnSettlementOp.Info2("${unit?.name.orEmpty()} 승격하여${unit?.level ?: 0}레벨"))
+                    add(TurnSettlementOp.Info2(SystemMessage.format(SystemMessage.Key.PROMOTION_LEVEL, unit?.name.orEmpty(), unit?.level ?: 0)))
                 }
                 is SettlementGrowthStep.LearnedMagicInfo -> add(
-                    TurnSettlementOp.Info2("법술 「${port.magicName(step.magicId) ?: step.magicId}」！"),
+                    TurnSettlementOp.Info2(SystemMessage.format(SystemMessage.Key.MAGIC_LEARNED, port.magicName(step.magicId) ?: step.magicId)),
                 )
                 is SettlementGrowthStep.EquipmentLevelUpAction -> add(
                     TurnSettlementOp.Actions(

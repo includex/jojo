@@ -331,7 +331,7 @@ class FightPresentationStateTest {
                 assertFalse(runtime.stage.unit(134).visible)
                 assertTrue(127 in runtime.stage.acquiredItems)
                 assertEquals(PlaybackState.DIALOGUE, runtime.state)
-                assertEquals(Dialogue("135", "아, 화웅 장군이 패배했다!"), runtime.currentDialogue)
+                assertEquals(Dialogue("135", "아, 화웅 장군이 패하셨다!"), runtime.currentDialogue)
                 postEndAstObservedBeforeEndAck = true
             }
             sequence++
@@ -361,7 +361,7 @@ class FightPresentationStateTest {
         assertEquals(listOf("delay20:start", "delay20:prime", "delay20:complete"), authoredDelayTrace)
         assertTrue(postEndAstObservedBeforeEndAck)
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
-        assertEquals(Dialogue("135", "아, 화웅 장군이 패배했다!"), runtime.currentDialogue)
+        assertEquals(Dialogue("135", "아, 화웅 장군이 패하셨다!"), runtime.currentDialogue)
     }
 
     @Test
@@ -382,7 +382,7 @@ class FightPresentationStateTest {
 
         runtime.start("scene1")
         runtime.advanceDialogue() // first speaker page
-        assertEquals(Dialogue("134", "흥, 아무도 아니야!"), runtime.currentDialogue)
+        assertEquals(Dialogue("134", "흥, 이름 없는 졸개로군!"), runtime.currentDialogue)
 
         // 테스트 근거: 연출 프레임과 콜백 처리 순서 (MAX_VALUE, AST)을 검증한다.
         val delay = ScenarioInterpreter::class.java

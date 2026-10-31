@@ -115,9 +115,9 @@ class BattleDefeatPresentationTest {
 
         val battle = BattleScenarioFactory.fromScriptedUnits(listOf(mine, enemy), gameDataCatalog = data)
 
-        assertEquals("하늘이 나를 돕지 않는 건가... 너무 분해서 못 참겠다!", battle.units.getValue("mine-0").retireMessage)
+        assertEquals("하늘도 나를 돕지 않는단 말인가……분하구나!", battle.units.getValue("mine-0").retireMessage)
         assertTrue(battle.units.getValue("mine-0").deathMessageEnabled)
-        assertEquals("맹덕, 미안해……", battle.units.getValue("enemy-0").retireMessage)
+        assertEquals("맹덕, 미안하네……", battle.units.getValue("enemy-0").retireMessage)
         assertFalse(battle.units.getValue("enemy-0").deathMessageEnabled)
     }
 

@@ -28,6 +28,6 @@ class ItemLayerTest {
         assertTrue(layer.onButton(1, ItemLayer.TOUCH_END)); assertTrue(layer.discardConfirmationOpen)
         assertFalse(layer.onDiscardAnswer(1)); assertTrue(layer.attached); assertTrue(discarded.isEmpty())
         assertTrue(layer.onButton(1, ItemLayer.TOUCH_END)); assertTrue(layer.onDiscardAnswer(0))
-        assertEquals(listOf(4), discarded); assertEquals("긴 창 이미 버렸습니다...", layer.toast); assertFalse(layer.attached)
+        assertEquals(listOf(4), discarded); assertEquals("긴 창을(를) 버렸습니다.", layer.toast); assertFalse(layer.attached)
     }
 }

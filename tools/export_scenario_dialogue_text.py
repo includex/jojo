@@ -6,9 +6,9 @@ import sys
 from pathlib import Path
 
 ALIASES = {
-    "opening_scene1_page1": "대장님, 서둘러야 해요!",
-    "opening_scene1_page2": "알아!",
-    "opening_scene1_page3": "잠시만 기다려 주세요!",
+    "opening_scene1_page1": "주군, 서두르셔야 합니다!",
+    "opening_scene1_page2": "알고 있다!",
+    "opening_scene1_page3": "잠시 걸음을 멈춰 주시겠습니까!",
     "yingchuan_round2_followup_speaker32": "이것은 만민의 분노입니다!",
 }
 

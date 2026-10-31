@@ -40,7 +40,7 @@ class ScenarioDialogueAutoAdvanceTest {
     fun `natural completion waits source sixteen tenths before advancing to Cao Cao`() {
         val h = Harness()
         h.update(10f) // Creation update primes the glyph timer.
-        repeat(13) { h.update(.05f) }
+        repeat(h.playback.currentDialogue!!.text.length) { h.update(.05f) }
         assertEquals(true, h.controller.viewState.dialogueTextComplete)
         repeat(15) {
             h.update(.1f)

@@ -1,0 +1,44 @@
+{
+  "reviewed": [
+    "tools/apply_sol_translation.py",
+    "tools/verify_sol_translation.py",
+    "ReviewedKoreanText.kt",
+    "GameDataRepository.kt",
+    "SystemMessage.kt"
+  ],
+  "confirmed": [
+    "Original-table positional patches disambiguate old Korean name collisions.",
+    "Original/current numeric and container equality assertions passed during parent applications.",
+    "No serialized nested JSON strings found in 12 original table backups.",
+    "No ASCII identifier collision found in scenario baseline: only four dialogue constants matched ASCII-valued legacy translations.",
+    "Scenario AST structure and statement line numbers are validated before writes."
+  ],
+  "recommendations": [
+    {
+      "priority": "medium",
+      "file": "tools/apply_sol_translation.py",
+      "issue": "Catalog and global map are written before original-table validation executes.",
+      "fix": "Compute table_overrides(translations) before beginning any apply writes."
+    },
+    {
+      "priority": "medium",
+      "file": "SystemMessage.kt",
+      "issue": "Exact legacy-string mapping does not improve composed templates that do not exactly match cached values.",
+      "examples": [
+        "SAVE_CONFIRM",
+        "LOAD_CONFIRM",
+        "ITEM_DROP_CONFIRM",
+        "PROMOTION_LEVEL",
+        "MAGIC_LEARNED"
+      ],
+      "fix": "Polish static templates directly, preserving MessageFormat placeholders."
+    },
+    {
+      "priority": "low",
+      "file": "tools/verify_sol_translation.py",
+      "issue": "Dynamic *.digits placeholders are not included in persistent verifier; parent manual scan passed.",
+      "fix": "Add dynamic marker matching to protected tokens."
+    }
+  ],
+  "not_changed": "No integration or translation files modified."
+}

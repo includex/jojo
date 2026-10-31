@@ -19,7 +19,7 @@ class AchievementsRouteTest {
         assertTrue(empty.touch(7, true).isEmpty())
         empty.exposeToolsPanel()
         assertEquals(
-            listOf(SettingAchievementsRoute.Effect.Toast("저장된 게임에서 다시 확인해 주세요./현재 업적이 없습니다.")),
+            listOf(SettingAchievementsRoute.Effect.Toast("저장 파일을 불러온 뒤 확인해 주세요. 현재 업적이 없습니다.")),
             empty.touch(7, true),
         )
 

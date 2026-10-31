@@ -682,7 +682,7 @@ class ScenarioStageBattleSetup(private val campaign: CampaignState) : ScenarioSt
      */
 
     fun battleItemCompletionMessage(itemId: Int): String =
-        "얻었다${GameDataCatalog.load().equipmentProfile(itemId)?.name ?: "아이템 $itemId"}!"
+        "획득: ${GameDataCatalog.load().equipmentProfile(itemId)?.name ?: "도구 $itemId"}!"
 
     /**
      * `setJoinEquip`: 현재 상태를 갱신한다.

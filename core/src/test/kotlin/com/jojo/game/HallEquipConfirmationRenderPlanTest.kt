@@ -30,7 +30,7 @@ class HallEquipConfirmationRenderPlanTest {
                 add("PATCH|maps/ui/start-battle/box2.png|")
                 add("TEXT||$value")
             }
-            listOf("이동력", "사기", "폭발력", "방어력", "정신력", "공격력", "MP", "HP").forEach { add("TEXT||$it") }
+            listOf("이동력", "사기", "순발력", "방어력", "정신력", "공격력", "MP", "HP").forEach { add("TEXT||$it") }
             addAll(listOf(
                 "PATCH|maps/ui/unit-info/box3.png|",
                 "TEXT||장비",

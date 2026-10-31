@@ -16,7 +16,7 @@ class BattleEditLayer2Test {
     @Test
     fun `weather panel exposes five source labels and keeps recovered revert typo`() {
         val layer = BattleEditLayer2(initialWeather = 0, initialRound = 3, canApplyRound = true)
-        assertEquals(listOf("맑음", "어두움", "바람", "비", "설"), BattleEditLayer2.weatherNames)
+        assertEquals(listOf("맑음", "흐림", "바람", "비", "눈"), BattleEditLayer2.weatherNames)
         layer.openWeatherPanel()
         assertTrue(layer.weatherPanelVisible)
         layer.selectWeather(3)

@@ -1,0 +1,11 @@
+{
+  "partition": "source_index % 3 == 0",
+  "assigned_records": 2821,
+  "assigned_unique": 2821,
+  "completed_unique": 2815,
+  "delegated_to_opening": 6,
+  "missing": 0,
+  "next_source_index": 8463,
+  "model": "gpt-6.1-sol",
+  "status": "complete"
+}

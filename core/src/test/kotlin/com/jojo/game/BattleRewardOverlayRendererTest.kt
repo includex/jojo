@@ -42,7 +42,7 @@ class BattleRewardOverlayRendererTest {
         )
 
         assertEquals("사수관 전투 ▪ 훈련", view.sectionTitle)
-        assertEquals("영천의 전투", BattleRewardOverlayView(0f, 0f, null).sectionTitle)
+        assertEquals("영천 전투", BattleRewardOverlayView(0f, 0f, null).sectionTitle)
     }
 
     @Test

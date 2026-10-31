@@ -22,7 +22,7 @@ class StorySkipFlowTest {
         })
         skip.onCreate();assertEquals(999,skip.zIndex);assertTrue(skip.button);assertFalse(skip.panel)
         skip.touch(1);assertEquals("",prompt)
-        skip.touch(2);assertEquals("스토리를 건너뛸까요?",prompt)
+        skip.touch(2);assertEquals("이야기를 건너뛰시겠습니까?",prompt)
         answer?.invoke(1);assertTrue(skip.button);assertFalse(skip.panel)
         skip.touch(2);answer?.invoke(0)
         assertFalse(skip.button);assertTrue(skip.panel);assertEquals(listOf("SKIP"),events)

@@ -30,7 +30,7 @@ class HallTreasureRenderPlanTest {
                 "TEXT||첫보물",
                 "PATCH|maps/ui/start-battle/box2.png|",
                 "PATCH|maps/ui/start-battle/box2.png|",
-                "TEXT||발견되지 않음",
+                "TEXT||미발견",
                 "TEXT||지금까지 발견한 보물 02 / 13",
                 "PATCH|maps/ui/start-battle/button.png|",
                 "TEXT||종료",

@@ -28,10 +28,10 @@ class HallForcesRenderPlanTest {
             ),
             commands.take(6).map { it.kind },
         )
-        assertEquals("부대 정보 일람", commands[3].text)
+        assertEquals("부대 정보 목록", commands[3].text)
         assertEquals(147.49f, commands[4].x)
         assertEquals(518.63f, commands[4].y)
-        assertEquals("무장명", commands[5].text)
+        assertEquals("무장 이름", commands[5].text)
         assertEquals(Align.center, commands[5].align)
 
         val rowStart = 24
@@ -42,7 +42,7 @@ class HallForcesRenderPlanTest {
         assertEquals(Align.left, commands[rowStart + 1].align)
         assertEquals("3", commands[rowStart + 5].text)
         assertEquals(Align.center, commands[rowStart + 5].align)
-        assertEquals("폐쇄", commands.last().text)
+        assertEquals("닫기", commands.last().text)
         assertEquals(973.51f, commands.last().x)
         assertEquals(108.37f, commands.last().y)
     }

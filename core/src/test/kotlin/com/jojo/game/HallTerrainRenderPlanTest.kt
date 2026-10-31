@@ -37,7 +37,7 @@ class HallTerrainRenderPlanTest {
                 "TILED|maps/ui/start-battle/logo9.png|",
                 "PATCH|maps/ui/start-battle/box1.png|",
                 "PATCH|maps/ui/start-battle/title.png|",
-                "TEXT||지형 정보 일람",
+                "TEXT||지형 정보 목록",
                 "PATCH|maps/ui/start-battle/box2.png|",
                 "TEXT||이름",
             ))
@@ -60,7 +60,7 @@ class HallTerrainRenderPlanTest {
                 "PATCH|maps/ui/start-battle/button.png|",
                 "TEXT||지형 효과",
                 "PATCH|maps/ui/start-battle/button.png|",
-                "TEXT||기동력 소모",
+                "TEXT||이동력 소모",
                 "PATCH|maps/ui/start-battle/button.png|",
                 "TEXT||확인",
             ))

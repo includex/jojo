@@ -1,0 +1,15 @@
+{
+  "assigned": 2821,
+  "translated": 2813,
+  "covered_by_opening": 8,
+  "remaining": 0,
+  "model": "gpt-6.1-sol",
+  "status": "complete",
+  "batches": 31,
+  "checks": {
+    "all_assigned_covered": true,
+    "speaker_markers": true,
+    "format_markers": true,
+    "remaining_han": 0
+  }
+}

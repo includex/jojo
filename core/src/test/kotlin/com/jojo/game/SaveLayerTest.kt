@@ -31,8 +31,10 @@ class SaveLayerTest {
         val layer = SaveLayer(repo).also { it.onCreate() }
         val early = layer.view().rows.first { it.index == 4 }
         assertEquals("No.  5", early.number); assertEquals("전역2", early.stage)
-        assertEquals("진행 상황 저장 안 함", layer.view().rows.first { !it.occupied }.name)
+        assertEquals("진행 상황이 저장되지 않았습니다.", layer.view().rows.first { !it.occupied }.name)
         assertTrue(layer.view().rows.indexOf(early) < layer.view().rows.indexOfFirst { it.index == 1 })
+        assertTrue(layer.onRowTouch(4, SaveLayer.TOUCH_END))
+        assertEquals("슬롯 5: 초기\n저장하시겠습니까?", layer.pendingPrompt())
     }
 
     @Test fun `only touch end plus confirm saves then callback removes layer while cancel does not save`() {
