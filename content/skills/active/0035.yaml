@@ -1,0 +1,18 @@
+# skills/active / stable ID: 35
+id: 35
+name: "제지"
+type: 17
+target: 0
+hitArea: 13
+effectArea: 0
+mpCost: 8
+icon: 12
+intro: "여러 의심스러운 현상을 만들어 적군이 함부로 움직이지 못하게 합니다. 개별 적군에게 피해를 입혀 일시적으로 움직일 수 없게 만듭니다."
+effect: 26
+power: 50
+harmType: 1
+condition: 6
+aiUse: 0
+hitRateLimit: 80
+category: 10
+learnLevels: {"30": 11, "31": 11, "32": 11, "34": 17, "35": 17, "66": 11, "67": 1, "79": 1}

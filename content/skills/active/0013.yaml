@@ -1,0 +1,18 @@
+# skills/active / stable ID: 13
+id: 13
+name: "바람 용"
+type: 3
+target: 0
+hitArea: 13
+effectArea: 2
+mpCost: 20
+icon: 2
+intro: "회오리바람을 불러와 넓은 지역에 고강도 피해를 줍니다. 건물이나 숲에 있는 부대에게는 사용할 수 없습니다."
+effect: 102
+power: 50
+harmType: 0
+condition: 6
+aiUse: 0
+hitRateLimit: 90
+category: 0
+learnLevels: {"35": 32, "66": 32, "67": 1, "79": 1}

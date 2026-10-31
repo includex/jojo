@@ -1,0 +1,18 @@
+# skills/active / stable ID: 66
+id: 66
+name: "현무"
+type: 25
+target: 0
+hitArea: 12
+effectArea: 3
+mpCost: 40
+icon: 29
+intro: "현무 소환. 소환된 현무는 적군과 아군을 가리지 않고 모든 부대에 다양한 영향을 준다."
+effect: 107
+power: 28
+harmType: 4
+condition: 4
+aiUse: 5
+hitRateLimit: 2
+category: 28
+learnLevels: {"32": 35, "67": 1, "79": 1}

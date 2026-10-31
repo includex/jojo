@@ -1,0 +1,15 @@
+# characters / stable ID: 498
+id: 498
+name: "황건군 25"
+face: 171
+mapAvatar: 0
+speechGroup: 3
+attack: 30
+defense: 30
+spirit: 20
+critical: 30
+morale: 20
+maxHitPoints: 90
+maxMagicPoints: 5
+posts: 61
+intro: ""

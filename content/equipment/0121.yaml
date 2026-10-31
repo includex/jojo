@@ -1,0 +1,12 @@
+# equipment / stable ID: 121
+id: 121
+name: "적로"
+itemType: 42
+specialType: 2
+iconIndex: 78
+value: 1
+effectValue: 4
+upgradeValue: 255
+treasure: 1
+intro: "유비가 타던 명마. 뛰어난 말로 단계의 일화가 가장 유명합니다. 이동할 수 없는 지형을 제외하고 다른 지형을 걸을 때 이동력 소모는 모두 1입니다.\n\n【확장 효과】추가적으로 지형 적응도가 110% 이상 높습니다."
+skillEffects: [6]

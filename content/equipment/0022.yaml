@@ -1,0 +1,9 @@
+# equipment / stable ID: 22
+id: 22
+name: "군선"
+itemType: 14
+price: 10
+iconIndex: 16
+value: 48
+upgradeValue: 10
+intro: "군사용 부채. 대나무 부채보다 위력이 크다."

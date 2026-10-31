@@ -1,0 +1,18 @@
+# skills/active / stable ID: 20
+id: 20
+name: "유혹"
+type: 5
+target: 0
+hitArea: 12
+effectArea: 0
+mpCost: 8
+icon: 7
+intro: "백거이의 시에 이르기를, 돌아보는 한 번의 미소에 백 가지 매력이 피어난다. 당나라 양옥환의 요염함은 사람의 영혼을 사로잡는다. 적군의 HP를 하나 빼앗고 자신의 HP를 증가시킨다.\r\n"
+effect: 31
+power: 70
+harmType: 0
+condition: 6
+aiUse: 0
+hitRateLimit: 60
+category: 0
+learnLevels: {"30": 7, "31": 7, "32": 7, "37": 15, "38": 15, "66": 7, "67": 1, "79": 1}

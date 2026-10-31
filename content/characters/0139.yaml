@@ -1,0 +1,15 @@
+# characters / stable ID: 139
+id: 139
+name: "한수"
+face: 139
+mapAvatar: 139
+speechGroup: 4
+attack: 41
+defense: 44
+spirit: 37
+critical: 31
+morale: 18
+maxHitPoints: 110
+maxMagicPoints: 40
+posts: 24
+intro: "자문약. 의형인 마등에게 복수하기 위해 마등의 아들 마초와 함께 군사를 일으켜 조조를 공격했다. 하지만 나중에 마초가 가후의 이간계에 빠져 그와 반목했고, 이로 인해 그는 어쩔 수 없이 조조에게 항복했다."

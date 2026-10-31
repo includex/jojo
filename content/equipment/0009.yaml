@@ -1,0 +1,9 @@
+# equipment / stable ID: 9
+id: 9
+name: "단검"
+itemType: 6
+price: 5
+iconIndex: 9
+value: 10
+upgradeValue: 10
+intro: "나무로 만든 칼. 처음에는 큰 효과를 기대하지 마세요. 단련을 거치면 위력이 점차 강해집니다."

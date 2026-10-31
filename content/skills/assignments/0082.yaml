@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 82
+id: 82
+name: "MP 공격"
+index: 82
+skillId: 4
+value: 50
+intro: "MP 수치가 공격력에 직접 더해지며, 공격 시 일정량의 MP를 소모합니다."

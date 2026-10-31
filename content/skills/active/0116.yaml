@@ -1,0 +1,16 @@
+# skills/active / stable ID: 116
+id: 116
+name: "빈칸0116"
+type: 40
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 43
+intro: "전략 116"
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 5
+category: 0

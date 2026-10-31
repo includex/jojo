@@ -1,0 +1,16 @@
+# characters / stable ID: 58
+id: 58
+name: "마대"
+face: 58
+mapAvatar: 58
+speechGroup: 2
+attack: 43
+defense: 45
+spirit: 24
+critical: 25
+morale: 21
+maxHitPoints: 110
+maxMagicPoints: 5
+posts: 60
+intro: "마초의 사촌 동생. 마초와 함께 유비에게 귀순하여 남쪽과 북쪽에서 싸우며 여러 전공을 세웠고, 제갈량은 그의 충성심과 재능을 매우 높이 평가했다. 제갈량이 죽기 전에 그에게 비상한 계책이 담긴 주머니를 직접 전수해 주어 나중에 반란을 일으킬 위연을 제거하게 했다."
+battleAvatar: 49

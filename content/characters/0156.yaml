@@ -1,0 +1,15 @@
+# characters / stable ID: 156
+id: 156
+name: "추부인"
+face: 156
+mapAvatar: 156
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 73
+intro: ""

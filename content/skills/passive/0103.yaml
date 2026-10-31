@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 103
+id: 103
+name: "주변 상태 회복"
+format: 0
+intro: "매 턴 주변 아군들의 부정적인 상태가 자동으로 회복됩니다."

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 141
+id: 141
+name: "눈부신 달빛"
+format: 4
+intro: "공격 시 정신력 초기치의 x%를 공격력에 추가합니다. 시전 시 공격력 초기치의 x%를 정신력에 추가합니다."

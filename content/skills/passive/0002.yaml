@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 2
+id: 2
+name: "MP 방어"
+format: 0
+intro: "공격을 받으면 MP가 HP 대신 소모됩니다."

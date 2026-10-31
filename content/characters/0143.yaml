@@ -1,0 +1,16 @@
+# characters / stable ID: 143
+id: 143
+name: "장표"
+face: 143
+mapAvatar: 143
+speechGroup: 0
+attack: 40
+defense: 38
+spirit: 31
+critical: 29
+morale: 28
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "장제의 조카입니다. 장제가 죽은 후, 그는 군사를 이끌고 유표를 돕다가 조조와 싸웠습니다. 책사 가후의 지도 아래 여러 번 승리했습니다. 나중에 가후의 충고를 듣고 조조에게 투항하여 중용되었습니다."
+battleAvatar: 70

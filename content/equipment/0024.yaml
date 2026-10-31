@@ -1,0 +1,9 @@
+# equipment / stable ID: 24
+id: 24
+name: "돌로 만든 보검"
+itemType: 16
+price: 5
+iconIndex: 18
+value: 10
+upgradeValue: 10
+intro: "돌로 만든 보검입니다. 처음에는 큰 효과를 기대하기 어렵지만, 단련을 거치면 위력이 점차 강해집니다."

@@ -1,0 +1,10 @@
+# equipment / stable ID: 143
+id: 143
+name: "주작보옥"
+itemType: 58
+specialType: 2
+iconIndex: 138
+value: 3
+upgradeValue: 255
+treasure: 1
+intro: "붉은 빛을 내는 보옥. 사신 중 주작을 소환하기 위해 만들어졌으며, 책사 계열만 장착할 수 있습니다.\n\n【확장 효과】공격 후 해당 전략을 발동합니다. 만약 전략 발동이 불가능하면 일반 공격으로 대체됩니다."

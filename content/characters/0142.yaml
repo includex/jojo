@@ -1,0 +1,15 @@
+# characters / stable ID: 142
+id: 142
+name: "염보"
+face: 142
+mapAvatar: 142
+speechGroup: 7
+attack: 24
+defense: 28
+spirit: 42
+critical: 31
+morale: 30
+maxHitPoints: 90
+maxMagicPoints: 40
+posts: 24
+intro: "장로의 부하. 참모를 맡아 여러 번 계책을 바쳤다. 장로가 양송의 모함에 속아 방덕을 죽이려 할 때, 그는 힘껏 만류했으나 실패했다. 장로가 항복한 후, 그 역시 조조에게 열후 작위를 받았다."

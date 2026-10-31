@@ -56,7 +56,7 @@ import com.jojo.game.presentation.battle.bootstrap.BattleBootstrapCallbackState
 import com.jojo.game.presentation.battle.bootstrap.BattleInitLayer
 import com.jojo.game.presentation.battle.bootstrap.completeInitialBattleOperation
 import com.jojo.game.presentation.battle.combat.*
-import com.jojo.game.presentation.battle.dialogue.BattleDialogueSessionAdapter
+import com.jojo.game.presentation.shared.dialogue.RuntimeDialogueSessionAdapter
 import com.jojo.game.presentation.battle.dialogue.BattleDialoguePlacementPolicy
 import com.jojo.game.presentation.battle.edit.BattleEditLayer2
 import com.jojo.game.presentation.battle.edit.BattleEditRenderContract
@@ -81,8 +81,6 @@ import com.jojo.game.presentation.battle.unit.*
 import com.jojo.engine.graphics.SlicedPatch
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationCoordinator
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationInput
-import com.jojo.game.presentation.scenario.overlay.SayLayerAutoClose
-import com.jojo.engine.text.TextReveal
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.KoreanFont
 import com.jojo.game.presentation.shared.overlay.TerrainLayerChromeRenderContract
@@ -478,8 +476,8 @@ class BattleScreen(
                 BattleCompositionEvidenceDialogueInput(
                     speakerId = current.speakerId,
                     sourceText = current.text,
-                    visibleText = dialogueReveal.visibleText,
-                    typewriterComplete = dialogueReveal.isComplete,
+                    visibleText = dialogueSessionAdapter.view.dialogueVisibleText,
+                    typewriterComplete = dialogueSessionAdapter.view.textComplete,
                 )
             },
             speakerName = { speakerId ->
@@ -1457,22 +1455,8 @@ void main() {
         SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
     ) and bit != 0
 
-    /**
-     * `dialogueReveal` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-     */
-
-    private val dialogueReveal = TextReveal()
-
-    /** 전투 스크립트 상태를 공용 대화 세션으로 투영하는 어댑터다. */
-    private val dialogueSessionAdapter = BattleDialogueSessionAdapter()
-
-    /**
-     * `sayAutoClose` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-     */
-
-    private val sayAutoClose = SayLayerAutoClose()
+    /** 대사 표시·입력·자동 진행은 시나리오와 같은 세션이 소유한다. */
+    private val dialogueSessionAdapter = RuntimeDialogueSessionAdapter()
 
     /**
      * `settingsPreferences` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -5201,7 +5185,9 @@ void main() {
         )
         // 전투 런타임이 갱신된 뒤 공용 세션에도 같은 대사·선택·모달 스냅샷을 투영한다.
         dialogueSessionAdapter.synchronize(scriptRuntime)
-        dialogueSessionAdapter.update(delta, autoAdvanceEnabled = false)
+        if (scriptRuntime.state != PlaybackState.DIALOGUE) {
+            dialogueSessionAdapter.update(delta, autoAdvanceEnabled = false)
+        }
         battle.syncScriptedOutcome(scriptRuntime.stage.scriptedBattleOutcome)
         if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) {
             battleInfoPanelPressed = false
@@ -5345,7 +5331,10 @@ void main() {
         dialogueComponentStage?.let { stage ->
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-            scriptRuntime.currentDialogue?.let { dialogueReveal.update(it.text, delta) }
+            scriptRuntime.currentDialogue?.let {
+                dialogueSessionAdapter.synchronize(scriptRuntime)
+                dialogueSessionAdapter.update(delta, autoAdvanceEnabled = false)
+            }
             if (scriptRuntime.currentDialogue != null) {
                 if (stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_BACKGROUND || stage == RuntimeBattleRoute.DIALOGUE_COMPONENT_CHARACTERS) drawGrid()
                 drawScriptDialogue(stage.name.removePrefix("DIALOGUE_COMPONENT_").lowercase())
@@ -5363,7 +5352,7 @@ void main() {
                 elapsed = elapsed,
                 dialogueState = scriptRuntime.state,
                 dialogueVisible = scriptRuntime.currentDialogue != null,
-                dialogueComplete = dialogueReveal.isComplete,
+                dialogueComplete = dialogueSessionAdapter.view.textComplete,
             ),
             captureFixturePort,
         )
@@ -5409,14 +5398,15 @@ void main() {
             }
         }
         scriptRuntime.currentDialogue?.let {
-            dialogueReveal.update(it.text, delta)
-            if (battleDialogueBlendRoute) dialogueReveal.revealAllIfPending()
+            dialogueSessionAdapter.synchronize(scriptRuntime)
             val autoCloseEnabled =
                 !verification.active && !game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest() && settingsPreferences.getInteger(
                     SettingLayer.GAME_SETTING,
                     SettingLayer.BG_SOUND or SettingLayer.EFFECT_SOUND or SettingLayer.MINI_MAP,
                 ) and SettingLayer.AUTO_CLOSE != 0
-            if (sayAutoClose.update(dialogueReveal.isComplete, autoCloseEnabled, delta)) {
+            if (battleDialogueBlendRoute) dialogueSessionAdapter.dispatch(DialogueSessionInput.RevealAll)
+            val transition = dialogueSessionAdapter.update(delta, autoCloseEnabled)
+            if (transition == DialogueSessionTransition.AutoAdvance) {
                 advanceBattleDialogue()
             }
         }
@@ -5573,7 +5563,7 @@ void main() {
             if (itemUpgradeRouteState != null) drawRewardSectionOverlay()
         }
         val dedicatedCaptureRoute =
-            rewardRouteState != null || itemUpgradeRouteState != null || jiqiRouteFixture || magickRouteState != null || usePropertyRouteState != null || roundRouteState != null || winConditionRouteState != null || miniMapRouteState != null || autoBattleRouteReadyToCapture() || battleCommandRouteState != null || otherUnitInfoRoute || mineUnitInfoRoute || (battleDialogueBlendRoute && scriptRuntime.currentDialogue != null && dialogueReveal.isComplete)
+            rewardRouteState != null || itemUpgradeRouteState != null || jiqiRouteFixture || magickRouteState != null || usePropertyRouteState != null || roundRouteState != null || winConditionRouteState != null || miniMapRouteState != null || autoBattleRouteReadyToCapture() || battleCommandRouteState != null || otherUnitInfoRoute || mineUnitInfoRoute || (battleDialogueBlendRoute && scriptRuntime.currentDialogue != null && dialogueSessionAdapter.view.textComplete)
         if (BattleCaptureRouteCoordinator.shouldWriteRenderEventLog(
                 BattleCaptureRouteCoordinator.RenderEventLogInput(elapsed, dedicatedCaptureRoute),
             ) && game.writeRenderEventLogIfRequested()
@@ -5583,7 +5573,7 @@ void main() {
                 elapsed = elapsed,
                 dialogueState = scriptRuntime.state,
                 dialogueVisible = scriptRuntime.currentDialogue != null,
-                dialogueComplete = dialogueReveal.isComplete,
+                dialogueComplete = dialogueSessionAdapter.view.textComplete,
             ),
         )
         if (captureFixtureCoordinator.consumeDialogueLog(elapsed, captureAt)) {
@@ -5930,8 +5920,8 @@ void main() {
                 aiLastCompletedActorId = aiPresentation.lastCompletedActorId,
                 dialogueSpeakerId = scriptRuntime.currentDialogue?.speakerId,
                 dialogueText = scriptRuntime.currentDialogue?.text,
-                dialogueVisibleText = dialogueReveal.visibleText,
-                dialogueTextComplete = dialogueReveal.isComplete,
+                dialogueVisibleText = dialogueSessionAdapter.view.dialogueVisibleText,
+                dialogueTextComplete = dialogueSessionAdapter.view.textComplete,
                 activeActionActorId = actionAnimation?.takeIf { animationClock() < it.endsAt }?.unitId,
                 activeActionSourceAction = actionAnimation?.takeIf { animationClock() < it.endsAt }?.sourceAction,
                 settlementInfoVisible = settlementPresentation.infoView() != null || settlementPresentation.info2View() != null,
@@ -9465,7 +9455,7 @@ void main() {
         val dialogue = requireNotNull(scriptRuntime.currentDialogue)
         val speaker = dialogue.speakerId?.toIntOrNull()?.let(gameDataCatalog::unitProfile)
         return BattleRenderEventProjectionDialogueInput(
-            speaker?.face, dialogueReveal.visibleText, speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
+            speaker?.face, dialogueSessionAdapter.view.dialogueVisibleText, speaker?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
         )
     }
 
@@ -12201,7 +12191,7 @@ void main() {
         val headId = profile?.face?.plus(8)
         return DialogueRenderModel(
             speaker = profile?.name?.let(GameDataCatalog::sayLayerUnitName).orEmpty(),
-            visibleText = dialogueReveal.visibleText,
+            visibleText = dialogueSessionAdapter.view.dialogueVisibleText,
             portraitId = headId,
             portraitTexture = headId?.let { battleDialoguePortrait(dialogue, it) },
             componentStage = componentStage?.let(::battleDialogueStage),
@@ -12251,7 +12241,7 @@ void main() {
     /** 특정 한 글자 검증 프레임에만 별도로 잘라 둔 본문 텍스처를 쓴다. */
     private fun battleBodyOverlay(dialogue: Dialogue, placement: DialogueComponentPlacement): DialogueTextureOverlay? {
         hudAssets.yingchuan477BodyTexture
-            ?.takeIf { dialogue.speakerId == "477" && dialogueReveal.visibleText == SystemMessage.S_0DFFF1CFEB }
+            ?.takeIf { dialogue.speakerId == "477" && dialogueSessionAdapter.view.dialogueVisibleText == SystemMessage.S_0DFFF1CFEB }
             ?.let {
                 // Cocos 캔버스 글리프 잘라내기는 2배 맵 변환 뒤 폭이 30px이다.
                 return DialogueTextureOverlay(
@@ -12299,17 +12289,10 @@ void main() {
     )
 
     private fun advanceBattleDialogue() {
-        // 원본 SayLayer는 글자 공개 상태를 하나만 가진다. 한 번 누르면 남은 글자를 모두 보이고,
-        // 다시 누르면 다음 대사로 넘어간다. 화면에 실제로 보이는 글자는 dialogueReveal이
-        // 결정하므로 진행 판단도 이 하나만 본다. 세션에는 같은 입력을 전달해 상태만 맞춘다.
-        dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm)
-        if (dialogueReveal.revealAllIfPending()) {
-            sayAutoClose.reset()
-            return
-        }
-        sayAutoClose.reset()
+        dialogueSessionAdapter.synchronize(scriptRuntime)
+        if (dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm) != DialogueSessionTransition.AdvanceDialogue) return
         scriptRuntime.advanceDialogue(deferCloseCallbackFrame = true)
-        dialogueReveal.reset()
+        dialogueSessionAdapter.resetDialogueReveal()
         syncScriptedUnits()
         syncDialogueSpeakerPresentation()
         completeTurnScriptIfReady()
@@ -12318,7 +12301,7 @@ void main() {
     /** 캡처 대사 진행: 원본 캡처 경로처럼 대사를 즉시 넘기고 화면 유닛 상태만 동기화한다. */
     private fun advanceCaptureFixtureDialogue() {
         scriptRuntime.advanceDialogue()
-        dialogueReveal.reset()
+        dialogueSessionAdapter.resetDialogueReveal()
         syncScriptedUnits()
     }
 

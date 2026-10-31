@@ -1,0 +1,16 @@
+# skills/active / stable ID: 131
+id: 131
+name: "공백0131"
+type: 42
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 45
+intro: "전략 131"
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 13
+category: 0

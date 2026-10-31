@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 150
+id: 150
+name: "매 턴 장비 EXP를 얻습니다."
+format: 1
+incrementType: 1
+intro: "매 턴 방어구 경험치 x점 획득."

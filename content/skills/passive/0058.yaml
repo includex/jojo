@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 58
+id: 58
+name: "지형 상태 보조"
+format: 2
+intro: "모든 지형에 대한 적응력 +x% 적응력."

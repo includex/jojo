@@ -1,0 +1,11 @@
+# equipment / stable ID: 92
+id: 92
+name: "청룡전포"
+itemType: 23
+specialType: 110
+iconIndex: 52
+value: 14
+effectValue: 1
+upgradeValue: 9
+intro: "관우가 입는 전투복.\n\n【보물 효과】장착자의 실제 공격력은 현재 자신의 공격력 + 남은 MP이며, 적에게 공격당하면 MP가 1 감소합니다."
+skillEffects: [143]

@@ -1,0 +1,17 @@
+# skills/active / stable ID: 79
+id: 79
+name: "광뢰"
+type: 38
+target: 0
+hitArea: 13
+effectArea: 0
+mpCost: 10
+icon: 41
+intro: "신선 전용 전략. 중급 뇌법으로 지형이나 날씨에 구애받지 않고 피해를 입히며, 파괴력이 향상됩니다."
+effect: 22
+power: 90
+harmType: 0
+condition: 6
+aiUse: 4
+hitRateLimit: 90
+category: 0

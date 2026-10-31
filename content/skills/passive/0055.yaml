@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 55
+id: 55
+name: "전략 방어 보조"
+format: 2
+incrementType: 1
+intro: "전략 명중률 감소"

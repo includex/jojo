@@ -1,0 +1,16 @@
+# characters / stable ID: 35
+id: 35
+name: "제갈량"
+face: 35
+mapAvatar: 35
+speechGroup: 5
+attack: 17
+defense: 46
+spirit: 50
+critical: 34
+morale: 41
+maxHitPoints: 80
+maxMagicPoints: 60
+posts: 66
+intro: "자는 공명이며, 별호는 와룡선생이고, 촉한의 승상이다. 유비가 세 번이나 초가를 찾아와 그에게 출사할 것을 청한 후, 그는 계책을 내어 무서울 곳 없는 유비를 도와 촉한을 건국하게 했다. 유비 사후에도 유업을 이어받아 한실을 바로잡기 위해 몸을 바쳐 애썼고, 죽을 때까지 그러했다."
+battleAvatar: 46

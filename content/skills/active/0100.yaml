@@ -1,0 +1,16 @@
+# skills/active / stable ID: 100
+id: 100
+name: "공백0100"
+type: 40
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 43
+intro: "먹으면 지휘 능력을 높여주는 신비한 열매입니다. 방어력도 어느 정도 상승합니다."
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 13
+category: 0

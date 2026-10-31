@@ -1,0 +1,16 @@
+# characters / stable ID: 6
+id: 6
+name: "하후연"
+face: 7
+mapAvatar: 6
+speechGroup: 0
+attack: 46
+defense: 40
+spirit: 31
+critical: 33
+morale: 39
+maxHitPoints: 105
+maxMagicPoints: 17
+posts: 12
+intro: "자는 묘재이며, 조조의 딸과 결혼했다. 위나라의 정서 장군으로, 기습에 능한 용맹한 장수이다. 나중에 정군산에 주둔할 때 법정의 계략에 빠져 황충에게 참살당했다.\r\n☆주: 여기는 오류가 있다! 하후연의 아내는 조조의 아내의 여동생이며, 하후연과 조조는 사돈 관계이다."
+battleAvatar: 11

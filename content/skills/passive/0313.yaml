@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 313
+id: 313
+name: "전의 체력"
+format: 5
+intro: "체력이 100 미만일 때, 150으로 회복됩니다."

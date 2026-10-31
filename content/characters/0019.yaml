@@ -1,0 +1,16 @@
+# characters / stable ID: 19
+id: 19
+name: "사마의"
+face: 19
+mapAvatar: 19
+speechGroup: 7
+attack: 39
+defense: 34
+spirit: 50
+critical: 23
+morale: 21
+maxHitPoints: 100
+maxMagicPoints: 48
+posts: 33
+intro: "자는 중달. 조씨 가문 네 대에 걸쳐 봉사한 유명한 책사다. 뛰어난 지혜와 재능으로 제갈량이 기산에서 여섯 번 출정했으나 모두 공을 세우지 못하고 돌아가게 했으며, 삼진 지역을 지켜냈다. 나중에 반대파를 제거하고 실권을 장악하여 진나라 건국의 기반을 다졌다."
+battleAvatar: 48

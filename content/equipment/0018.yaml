@@ -1,0 +1,9 @@
+# equipment / stable ID: 18
+id: 18
+name: "신비한 활시총"
+itemType: 12
+price: 5
+iconIndex: 108
+value: 20
+upgradeValue: 10
+intro: "보통의 큰 도끼로, 공격력이 평범합니다."

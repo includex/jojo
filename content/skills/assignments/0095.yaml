@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 95
+id: 95
+name: "전략 반격"
+index: 95
+skillId: 45
+value: 5
+intro: "물리 공격을 받은 후 전략으로 반격하고, 전략 반격이 불가능할 경우 물리 반격을 합니다."

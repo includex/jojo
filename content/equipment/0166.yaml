@@ -1,0 +1,9 @@
+# equipment / stable ID: 166
+id: 166
+name: "경험치 열매"
+itemType: 38
+specialType: 3
+iconIndex: 103
+value: 100
+upgradeValue: 0
+intro: "먹으면 경험치를 얻을 수 있는 신비한 열매입니다. 이 열매를 먹고 레벨업하면 체력과 마나를 모두 회복할 수 있습니다."

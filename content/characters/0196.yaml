@@ -1,0 +1,15 @@
+# characters / stable ID: 196
+id: 196
+name: "문관05"
+face: 163
+mapAvatar: 196
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 24
+intro: ""

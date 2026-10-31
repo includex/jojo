@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 243
+id: 243
+name: "기세 모으기"
+format: 4
+resetType: 1
+intro: "특수 공격을 받은 후(명중 여부와 관계없이), 다음 공격력이 X% 증가합니다(중첩 가능)."

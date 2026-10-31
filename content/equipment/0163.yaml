@@ -1,0 +1,9 @@
+# equipment / stable ID: 163
+id: 163
+name: "지력 과일"
+itemType: 35
+specialType: 3
+iconIndex: 99
+value: 2
+upgradeValue: 0
+intro: "먹으면 지모를 높여주는 신비한 열매입니다. 정신력도 어느 정도 상승합니다."

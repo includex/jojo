@@ -1,0 +1,10 @@
+# equipment / stable ID: 72
+id: 72
+name: "철갑"
+itemType: 20
+price: 30
+iconIndex: 40
+value: 80
+upgradeValue: 10
+intro: "철제 갑옷. 모든 갑옷 중에서 방어력이 가장 강합니다."
+skillEffects: [120]

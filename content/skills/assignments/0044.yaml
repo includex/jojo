@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 44
+id: 44
+name: "분노 공격"
+index: 44
+skillId: 26
+value: 10
+intro: "피격 시 아군이 공격하는 적에게 가하는 피해 능력이 상승합니다."

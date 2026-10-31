@@ -1,0 +1,18 @@
+# skills/active / stable ID: 0
+id: 0
+name: "작열"
+type: 0
+target: 0
+hitArea: 13
+effectArea: 0
+mpCost: 6
+icon: 0
+intro: "보통의 화계는 단일 적군에게 소량의 피해를 주지만, 비나 눈 오는 날에는 사용할 수 없으며, 황무지, 산지, 얕은 물가, 습지, 큰 강, 설원에 있는 부대에게는 사용할 수 없습니다."
+effect: 0
+power: 70
+harmType: 0
+condition: 0
+aiUse: 0
+hitRateLimit: 2
+category: 0
+learnLevels: {"24": 1, "25": 1, "26": 1, "33": 5, "34": 5, "35": 5, "57": 10, "58": 10, "59": 10, "65": 4, "66": 1, "67": 1, "79": 1}

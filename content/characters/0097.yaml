@@ -1,0 +1,16 @@
+# characters / stable ID: 97
+id: 97
+name: "장굉"
+face: 97
+mapAvatar: 97
+speechGroup: 5
+attack: 20
+defense: 21
+spirit: 45
+critical: 37
+morale: 33
+maxHitPoints: 80
+maxMagicPoints: 40
+posts: 30
+intro: "자지강. 유명한 '강동의 두 장' 중 한 명이다. 예리한 통찰력을 지녀 주유로부터 '하늘과 땅을 아우르는 재능'이라는 칭송을 받았다. 손책과 손권을 보좌하며 여러 차례 간언했다. 임종 시에는 상소를 올려 손권에게 도읍을 건업으로 옮기라고 권했다."
+battleAvatar: 71

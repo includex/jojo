@@ -1,0 +1,8 @@
+# skills/assignments / stable ID: 100
+id: 100
+name: "주변 상태 회복"
+index: 100
+posts: 36
+skillId: 103
+value: 1
+intro: "매 턴 주변 유닛의 이상 상태를 회복합니다."

@@ -1,0 +1,16 @@
+# characters / stable ID: 21
+id: 21
+name: "정욱"
+face: 25
+mapAvatar: 21
+speechGroup: 3
+attack: 29
+defense: 31
+spirit: 46
+critical: 32
+morale: 38
+maxHitPoints: 91
+maxMagicPoints: 43
+posts: 24
+intro: "자는 중덕. 순욱의 추천으로 조조를 보좌했으며, 조조의 주요 군사 참모 중 한 명이다. 연주가 빼앗긴 후, 의기소침한 조조에게 사기를 북돋아 주었다. 창정 전투에서 '십면매복' 계책을 내어 원소를 크게 격파했다."
+battleAvatar: 44

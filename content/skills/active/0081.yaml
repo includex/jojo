@@ -1,0 +1,17 @@
+# skills/active / stable ID: 81
+id: 81
+name: "뇌룡"
+type: 38
+target: 0
+hitArea: 17
+effectArea: 1
+mpCost: 20
+icon: 41
+intro: "신선 전용 전략. 최고급 뇌법으로 지형이나 날씨에 구애받지 않고 강력한 광역 피해를 입힙니다."
+effect: 109
+power: 90
+harmType: 0
+condition: 6
+aiUse: 5
+hitRateLimit: 80
+category: 0

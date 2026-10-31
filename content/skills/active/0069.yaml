@@ -1,0 +1,17 @@
+# skills/active / stable ID: 69
+id: 69
+name: "질주"
+type: 29
+target: 1
+hitArea: 11
+effectArea: 0
+mpCost: 15
+icon: 31
+intro: "[이동] 명령을 한 번 수행할 수 있습니다."
+effect: 0
+power: 28
+harmType: 4
+condition: 6
+aiUse: 13
+hitRateLimit: 2
+category: 31

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 229
+id: 229
+name: "능력치 무시"
+format: 4
+intro: "공격 및 피격 시, 공방 계산에서 적의 능력 N%를 무시합니다."

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 82
+id: 82
+name: "진실 피해 모든 능력치 보조"
+format: 4
+intro: "고정 피해량 증가: 모든 능력치 합계 x 특수 효과 값%."

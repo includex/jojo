@@ -1,0 +1,10 @@
+# equipment / stable ID: 104
+id: 104
+name: "여유 공간 15"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "손전지"
+skillEffects: [75]

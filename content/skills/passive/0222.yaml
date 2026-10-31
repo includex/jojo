@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 222
+id: 222
+name: "방어 붕괴"
+format: 5
+intro: "공격이 명중할 때마다 목표의 패널 방어력을 영구적으로 N점 감소시키며, 전투 종료 전까지 회복되지 않음."

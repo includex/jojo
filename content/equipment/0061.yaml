@@ -1,0 +1,10 @@
+# equipment / stable ID: 61
+id: 61
+name: "여유 공간 2"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "짐승 가죽으로 만든 의복. 추위를 막아주는 것 외에도 착용자가 다치지 않도록 보호해 줍니다."
+skillEffects: [52]

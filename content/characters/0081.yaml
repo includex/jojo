@@ -1,0 +1,16 @@
+# characters / stable ID: 81
+id: 81
+name: "육손"
+face: 81
+mapAvatar: 81
+speechGroup: 7
+attack: 38
+defense: 41
+spirit: 48
+critical: 27
+morale: 30
+maxHitPoints: 90
+maxMagicPoints: 30
+posts: 65
+intro: "자는 백언이라 하며, 손권의 군사입니다. 병법과 계략은 전임 군사였던 주유, 노숙, 육모 아래라고 할 수는 없습니다. 계책을 세워 형주를 빼앗고 관우를 격파했으며, 이릉대전에서는 오군 총지휘관으로서 거세게 밀려오는 유비를 물리쳤습니다."
+battleAvatar: 57

@@ -1,0 +1,17 @@
+# skills/active / stable ID: 38
+id: 38
+name: "팔진도"
+type: 24
+target: 0
+hitArea: 12
+effectArea: 2
+mpCost: 20
+icon: 26
+intro: "삼국 시대의 명장 제갈량이 발명한 팔진도입니다. 매우 오묘하여 범위 내 적군과 아군에게 온갖 예상치 못한 영향을 줄 수 있습니다."
+effect: 104
+power: 120
+harmType: 2
+condition: 6
+aiUse: 0
+category: 12
+learnLevels: {"32": 33, "66": 33, "67": 1, "79": 1}

@@ -1,0 +1,9 @@
+# equipment / stable ID: 167
+id: 167
+name: "선도"
+itemType: 42
+specialType: 3
+iconIndex: 140
+value: 15
+upgradeValue: 0
+intro: "선나무에 열린 복숭아로, 수가 희소하여 먹으면 최대 HP가 15점 증가합니다."

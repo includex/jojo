@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 61
+id: 61
+name: "방어력 보조"
+argument: 1
+format: 4
+incrementType: 1

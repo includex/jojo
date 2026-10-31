@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 272
+id: 272
+name: "중독 공격"
+format: 4
+intro: "공격 후 x% 확률로 적에게 중독을 걸어 매 턴 최대 생명치의 10%에 해당하는 현재 HP를 감소시킵니다."

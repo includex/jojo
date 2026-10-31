@@ -1,0 +1,16 @@
+# characters / stable ID: 10
+id: 10
+name: "악진"
+face: 11
+mapAvatar: 10
+speechGroup: 4
+attack: 39
+defense: 46
+spirit: 38
+critical: 27
+morale: 43
+maxHitPoints: 118
+maxMagicPoints: 15
+posts: 3
+intro: "자는 문겸이다. 본래 조조 휘하의 문관이었으나, 나중에 무장으로 전향하여 오대 장수 중 한 명으로 꼽힌다. 그는 장료, 이전과 함께 합비성을 지키며 동오의 공격을 막아내 큰 공을 세웠다."
+battleAvatar: 13

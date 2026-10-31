@@ -1,0 +1,11 @@
+# equipment / stable ID: 140
+id: 140
+name: "옥새"
+itemType: 49
+specialType: 2
+iconIndex: 127
+value: 1
+effectValue: 1
+upgradeValue: 255
+treasure: 1
+intro: "전국옥새. 전설에 따르면 옥새를 얻은 자는 천하를 차지할 수 있으며 매우 특별한 효과를 지니고 있어 매번 치명적인 일격을 가한다고 합니다.\n\n[확장 효과] 공격과 계책이 반드시 치명타가 되며, [치명타 무효] 효과를 무시합니다."

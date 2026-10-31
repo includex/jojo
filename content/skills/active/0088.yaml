@@ -1,0 +1,16 @@
+# skills/active / stable ID: 88
+id: 88
+name: "공백0088"
+type: 40
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 43
+intro: "북방의 주요 식량으로, 먹으면 콩보다 효과가 좋고 체력을 많이 회복할 수 있습니다."
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 7
+category: 40

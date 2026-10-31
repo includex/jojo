@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 145
+id: 145
+name: "맥동"
+format: 5
+intro: "MP가 절반을 넘으면 마법 피해에 30% 증가, 절반 미만이면 공격력과 방어력이 각각 50점씩 증가합니다."

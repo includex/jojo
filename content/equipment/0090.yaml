@@ -1,0 +1,12 @@
+# equipment / stable ID: 90
+id: 90
+name: "봉황 깃옷"
+itemType: 23
+specialType: 26
+iconIndex: 50
+value: 12
+effectValue: 20
+upgradeValue: 9
+treasure: 1
+intro: "봉황 깃털로 만든 옷입니다. 착용자에게 끊임없이 신비한 힘을 공급하여 HP를 회복시킵니다.\n\n【확장 효과】 적의 모든 능력치를 20% 무시합니다. (모든 능력치란 공격력, 방어력 등을 말합니다.)"
+skillEffects: [26]

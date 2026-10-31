@@ -1,0 +1,10 @@
+# equipment / stable ID: 149
+id: 149
+name: "여유 공간 21"
+itemType: 127
+specialType: 2
+price: 0
+iconIndex: 1
+value: 6
+upgradeValue: 255
+intro: "맹호 가죽을 재료로, 흑금사로 엮어 만든 장갑입니다. 효과: 공격 시 두 명의 적을 관통합니다."

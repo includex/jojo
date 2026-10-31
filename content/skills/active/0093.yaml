@@ -1,0 +1,16 @@
+# skills/active / stable ID: 93
+id: 93
+name: "공백0093"
+type: 41
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 44
+intro: "혼란 상태에 빠진 부대가 정상으로 회복되는 약입니다. 맛이 유난히 씁니다.\r\n"
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 10
+category: 45

@@ -1,0 +1,10 @@
+# equipment / stable ID: 136
+id: 136
+name: "흑금 장갑"
+itemType: 51
+specialType: 2
+iconIndex: 123
+value: 4
+effectValue: 50
+upgradeValue: 255
+intro: "맹호 가죽을 재료로, 흑금사로 엮어 만든 장갑입니다.\n\n【보물 효과】 공격 시 두 명의 적을 관통합니다."

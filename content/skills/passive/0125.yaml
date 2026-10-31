@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 125
+id: 125
+name: "금전 방어"
+format: 5
+intro: "소모 피해량*x의 금전으로, 피해량을 1로 만듭니다."
+argument: 10

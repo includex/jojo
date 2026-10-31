@@ -1,0 +1,18 @@
+# skills/active / stable ID: 47
+id: 47
+name: "대각성"
+type: 21
+target: 1
+hitArea: 12
+effectArea: 2
+mpCost: 18
+icon: 9
+intro: "위대한 고승이 지혜로 사람에게 가르침을 주어 깨우치게 하는 법. 독, 마비, 혼란 상태에 빠진 여러 아군 부대를 정상으로 회복시킬 수 있습니다."
+effect: 28
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 1
+category: 15
+learnLevels: {"29": 31, "37": 22, "38": 22, "66": 29, "67": 1, "74": 29, "79": 1}

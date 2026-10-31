@@ -1,0 +1,16 @@
+# characters / stable ID: 88
+id: 88
+name: "장소"
+face: 88
+mapAvatar: 88
+speechGroup: 0
+attack: 12
+defense: 23
+spirit: 46
+critical: 25
+morale: 38
+maxHitPoints: 80
+maxMagicPoints: 40
+posts: 24
+intro: "자는 자포로, '강동의 두 장' 중 한 명이다. 장굉과 함께 손책에게 고용되었으며 내정에 능하다. 손책이 임종을 앞두고 손권에게 말하기를, 외사는 주유에게 묻고 내사는 장소에게 물으라고 했다. 손권은 그에게 자주 의견을 구하며 아버지를 여기는 듯했다."
+battleAvatar: 58

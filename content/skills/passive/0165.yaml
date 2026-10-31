@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 165
+id: 165
+name: "틈새를 파고들다"
+format: 0
+intro: "공격 시 상대방 능력 중 가장 낮은 항목을 방어력, 폭발력, 사기로 간주합니다."

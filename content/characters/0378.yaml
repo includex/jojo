@@ -1,0 +1,15 @@
+# characters / stable ID: 378
+id: 378
+name: "해적 21"
+face: 187
+mapAvatar: 0
+speechGroup: 8
+attack: 40
+defense: 30
+spirit: 30
+critical: 35
+morale: 30
+maxHitPoints: 90
+maxMagicPoints: 20
+posts: 62
+intro: ""

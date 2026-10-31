@@ -1,0 +1,16 @@
+# skills/active / stable ID: 101
+id: 101
+name: "공백0101"
+type: 41
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 44
+intro: "먹으면 반응 속도를 높여주는 신비한 열매입니다. 폭발력도 어느 정도 증가합니다."
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 15
+category: 0

@@ -10,7 +10,7 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 
 const sourceRoot = path.resolve(process.argv[2] || process.env.JOJO_SOURCE_ROOT || path.join(__dirname, '../../jojo_mobile/sgccz-desktop'));
-const catalogPath = path.resolve(process.argv[3] || process.env.JOJO_UNIT_CATALOG || path.join(process.cwd(), 'core/build/generated/map-assets/data/unit.bin'));
+const catalogPath = path.resolve(process.argv[3] || process.env.JOJO_UNIT_CATALOG || path.join(process.cwd(), 'core/build/generated/game-content/data/unit.bin'));
 const outputRoot = path.resolve(process.argv[4] || process.env.JOJO_LABEL_OUT || path.join(process.cwd(), 'core/build/generated/street-speaker-labels'));
 const port = Number(process.env.JOJO_CDP_PORT || 9800 + process.pid % 100);
 const deadlineMs = Number(process.env.JOJO_EXPORT_DEADLINE_MS || 55000);
@@ -204,7 +204,7 @@ const exportExpression = `(()=>{
     fs.writeFileSync(path.join(outputRoot, 'manifest.json'), JSON.stringify({
       contractVersion:contract.version, environment,
       generator:'original Cocos Electron Canvas whole-string raster; no screenshot or crop',
-      catalog:'decoded original unit.bin field 0, original Unit.unitName(id, true) first-digit truncation, distinct nonempty text in first-id order',
+      catalog:'decoded authored unit.bin field 0, original Unit.unitName(id, true) first-digit truncation, distinct nonempty text in first-id order',
       catalogPath,catalogSha256:crypto.createHash('sha256').update(fs.readFileSync(catalogPath)).digest('hex'),
       contract:{font:'36px Arial',lineHeight:40,alignment:['center','center'],baselineRatio:.26,baselineOffset:0,lineJoin:'miter',rasterEncoding:'Canvas WebGL upload RGBA without PNG re-unpremultiply',outline:{width:2,rgba:[102,255,255,255]},fill:[35,2,234,255],background:[102,255,255,.004]},
       sourceRoot,sourceSha256:contract.sourceSha256,entries,

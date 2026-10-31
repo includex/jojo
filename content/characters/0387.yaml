@@ -1,0 +1,15 @@
+# characters / stable ID: 387
+id: 387
+name: "곰 훈련사 6"
+face: 190
+mapAvatar: 0
+speechGroup: 1
+attack: 40
+defense: 35
+spirit: 20
+critical: 30
+morale: 30
+maxHitPoints: 110
+maxMagicPoints: 5
+posts: 63
+intro: ""

@@ -1,0 +1,17 @@
+# skills/active / stable ID: 21
+id: 21
+name: "현기증"
+type: 4
+target: 0
+hitArea: 12
+effectArea: 0
+mpCost: 16
+icon: 25
+intro: "이능자가 최종적으로 습득한 영적인 술법은 상대에게 큰 피해를 줄 것입니다."
+effect: 24
+power: 100
+harmType: 0
+condition: 6
+aiUse: 0
+hitRateLimit: 4
+category: 0

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 17
+id: 17
+name: "전략 면역"
+format: 0
+intro: "전략이 명중하지 못하게 하지만, [전략 필중]의 영향은 받지 않습니다."

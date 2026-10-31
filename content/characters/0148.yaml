@@ -1,0 +1,15 @@
+# characters / stable ID: 148
+id: 148
+name: "몽매"
+face: 148
+mapAvatar: 148
+speechGroup: 0
+attack: 3
+defense: 7
+spirit: 48
+critical: 39
+morale: 49
+maxHitPoints: 80
+maxMagicPoints: 60
+posts: 67
+intro: "알 수 없음"

@@ -1,0 +1,15 @@
+# characters / stable ID: 110
+id: 110
+name: "전풍"
+face: 110
+mapAvatar: 110
+speechGroup: 5
+attack: 27
+defense: 34
+spirit: 48
+critical: 28
+morale: 19
+maxHitPoints: 90
+maxMagicPoints: 40
+posts: 24
+intro: "자원호. 원소의 책사. 학식이 뛰어나고 재능이 많아 훌륭한 군사의 자질을 갖추었다. 하지만 성격이 곧아서 원소를 거스르지 못했다. 관도 대전에서 장기전을 주장하다가 원소의 분노를 사 죄수 신세가 되었다."

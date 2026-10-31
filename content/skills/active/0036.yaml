@@ -1,0 +1,18 @@
+# skills/active / stable ID: 36
+id: 36
+name: "정군"
+type: 17
+target: 0
+hitArea: 12
+effectArea: 1
+mpCost: 18
+icon: 12
+intro: "삼국 시대의 명장 조인이 신야를 포위 공격할 때 사용했던 진법으로, 휴식, 생존, 부상, 두려움, 경계, 죽음, 놀람, 개방 여덟 개의 문을 나누어 배치했습니다. 세부 사항을 모른 채 진에 들어온 자는 빠져나올 수 없습니다. 여러 적군 부대가 피해를 입고 일시적으로 움직일 수 없게 만듭니다."
+effect: 26
+power: 20
+harmType: 1
+condition: 6
+aiUse: 0
+hitRateLimit: 60
+category: 10
+learnLevels: {"31": 30, "32": 30, "66": 30, "67": 1, "79": 1}

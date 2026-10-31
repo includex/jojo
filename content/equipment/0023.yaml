@@ -1,0 +1,9 @@
+# equipment / stable ID: 23
+id: 23
+name: "깃털 부채"
+itemType: 14
+price: 30
+iconIndex: 17
+value: 80
+upgradeValue: 10
+intro: "깃털로 만든 부채입니다. 모든 부채 중에서 위력이 가장 강합니다."

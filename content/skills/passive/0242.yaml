@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 242
+id: 242
+name: "피해량 제한"
+format: 5
+intro: "한 번에 최대 x만큼의 피해를 받습니다."

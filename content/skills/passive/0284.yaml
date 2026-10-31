@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 284
+id: 284
+name: "자동 사용"
+format: 6
+intro: "물리 공격을 받으면 지정된 아이템을 자동으로 사용합니다."

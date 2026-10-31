@@ -1,0 +1,15 @@
+# characters / stable ID: 246
+id: 246
+name: "궁병13"
+face: 170
+mapAvatar: 0
+speechGroup: 7
+attack: 35
+defense: 30
+spirit: 30
+critical: 30
+morale: 40
+maxHitPoints: 90
+maxMagicPoints: 10
+posts: 6
+intro: ""

@@ -1,0 +1,11 @@
+# equipment / stable ID: 36
+id: 36
+name: "방천화극"
+itemType: 3
+specialType: 54
+iconIndex: 57
+value: 18
+upgradeValue: 9
+treasure: 1
+intro: "여포가 즐겨 사용하던 장창입니다. 창날 옆으로 초승달 모양의 날카로운 칼날이 덧붙어져 있어, '요걸'이라고도 불립니다. 적에게 치명타를 입힌 후에도 자동으로 다른 적을 공격하는 특성이 있습니다.\n\n【확장 효과】전투 공격: 주도적으로 공격할 경우 범위 내의 적 4명을 연속으로 타격합니다."
+skillEffects: [60, 118, 170]

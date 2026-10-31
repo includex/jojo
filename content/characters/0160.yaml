@@ -1,0 +1,15 @@
+# characters / stable ID: 160
+id: 160
+name: "유장"
+face: 167
+mapAvatar: 160
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 3
+intro: ""

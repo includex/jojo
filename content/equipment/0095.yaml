@@ -1,0 +1,11 @@
+# equipment / stable ID: 95
+id: 95
+name: "국사 무쌍포"
+itemType: 23
+specialType: 114
+iconIndex: 55
+value: 12
+effectValue: 30
+upgradeValue: 9
+intro: "고조 유방이 장군으로 임명될 때 한신에게 하사한 비단 옷.\n\n【보물 효과】장착자가 단일로 최대 피해를 입을 경우 75의 피해를 받습니다."
+skillEffects: [16, 192]

@@ -1,0 +1,15 @@
+# characters / stable ID: 439
+id: 439
+name: "토우 2"
+face: 161
+mapAvatar: 0
+speechGroup: 9
+attack: 40
+defense: 40
+spirit: 20
+critical: 30
+morale: 30
+maxHitPoints: 110
+maxMagicPoints: 20
+posts: 71
+intro: ""

@@ -1,0 +1,16 @@
+# characters / stable ID: 7
+id: 7
+name: "장합"
+face: 8
+mapAvatar: 7
+speechGroup: 0
+attack: 45
+defense: 34
+spirit: 33
+critical: 37
+morale: 46
+maxHitPoints: 102
+maxMagicPoints: 16
+posts: 12
+intro: "자는 준예이다. 처음에는 원소의 부하였다. 관도대전 때 고람과 함께 조조에게 투항했다. 다섯 명 장수 중 한 명으로, 여러 번 전공을 세웠다. 심지어 제갈량마저 그가 비범하게 용맹하다고 인정했으며, 촉나라의 큰 위협이었다."
+battleAvatar: 15

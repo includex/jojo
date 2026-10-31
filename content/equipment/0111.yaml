@@ -1,0 +1,12 @@
+# equipment / stable ID: 111
+id: 111
+name: "바람신 방패"
+itemType: 63
+specialType: 2
+iconIndex: 66
+value: 15
+effectValue: 10
+upgradeValue: 255
+treasure: 1
+intro: "바람신이 만든 방패. 적의 공격력과 전략 두 가지 모두에 대한 방어력을 높일 수 있습니다."
+skillEffects: [199]

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 277
+id: 277
+name: "피해 전환"
+format: 4
+intro: "피격 시 피해의 x%를 공격 범위 내 다른 적에게 분산시킵니다."

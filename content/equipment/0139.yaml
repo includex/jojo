@@ -1,0 +1,10 @@
+# equipment / stable ID: 139
+id: 139
+name: "콩주머니"
+itemType: 70
+specialType: 2
+iconIndex: 156
+value: 150
+upgradeValue: 255
+treasure: 1
+intro: "'회복용 콩'을 담는 주머니를 장착할 수 있습니다. 부대가 공격을 받거나 계략으로 HP가 감소하면 자동으로 '회복용 콩'을 사용합니다.\n\n【확장 효과】주변 아군 부대의 공격력, 방어력, 이동력을 높여줍니다."

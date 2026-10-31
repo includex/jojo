@@ -1,0 +1,15 @@
+# characters / stable ID: 75
+id: 75
+name: "공도"
+face: 75
+mapAvatar: 75
+speechGroup: 1
+attack: 36
+defense: 26
+spirit: 18
+critical: 29
+morale: 41
+maxHitPoints: 100
+maxMagicPoints: 20
+posts: 21
+intro: "황건군 대장. 황건의 난이 진압된 후, 잔당을 이끌고 여남에 자리 잡았다. 관도대전 때 원소와 유비를 도우며 조조군의 후방을 교란했다. 나중에 조조군과 싸울 때 하후연에게 살해당했다."

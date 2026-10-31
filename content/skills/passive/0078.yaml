@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 78
+id: 78
+name: "진실 피해 폭발 보조"
+format: 4
+intro: "공격 시 피해가 추가로 [해당 능력*N%] 증가합니다.\r\n\r\n-모든 종류의 공격력 증가 효과에 영향을 받지 않습니다."

@@ -1,0 +1,15 @@
+# characters / stable ID: 194
+id: 194
+name: "문관03"
+face: 162
+mapAvatar: 194
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 24
+intro: ""

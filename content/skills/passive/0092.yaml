@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 92
+id: 92
+name: "절대 명중합니다."
+format: 0
+intro: "물리 공격 명중률은 항상 100%이지만, 방어 특수 공격 및 방어 원거리 공격에 의해 막힐 수 있습니다."

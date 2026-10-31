@@ -1,0 +1,15 @@
+# characters / stable ID: 404
+id: 404
+name: "물자 수송대 7"
+face: 166
+mapAvatar: 0
+speechGroup: 0
+attack: 20
+defense: 20
+spirit: 30
+critical: 20
+morale: 30
+maxHitPoints: 80
+maxMagicPoints: 10
+posts: 68
+intro: ""

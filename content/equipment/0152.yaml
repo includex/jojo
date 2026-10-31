@@ -1,0 +1,10 @@
+# equipment / stable ID: 152
+id: 152
+name: "회복용 쌀"
+itemType: 26
+specialType: 3
+price: 10
+iconIndex: 89
+value: 255
+upgradeValue: 0
+intro: "HP를 완전히 회복시키는 신비의 쌀입니다. 이 쌀은 매우 희귀해서 얻기 어렵습니다."

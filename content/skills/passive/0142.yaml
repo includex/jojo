@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 142
+id: 142
+name: "살력동심"
+format: 5
+intro: "적군 턴에 적군이 아군 유닛을 공격할 때, 이 효과를 가진 자는 해당 적군을 공격합니다."

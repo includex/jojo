@@ -1,0 +1,16 @@
+# characters / stable ID: 33
+id: 33
+name: "장비"
+face: 33
+mapAvatar: 33
+speechGroup: 0
+attack: 50
+defense: 37
+spirit: 23
+critical: 36
+morale: 38
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "자는 익덕. 유비와 관우와 도원에서 의형제를 맺은 후, 유비를 따라 전장을 누비며 한나라를 지키는 데 힘썼다. 한 번은 말과 창으로 조군을 장번에서 막아섰고; 유비가 촉에 들어갈 때, 그는 군대를 이끌고 출전하여 공격하는 곳마다 승리했다. 나중에 차기장군으로 봉해져 촉한 오호장 중 한 명이다."
+battleAvatar: 7

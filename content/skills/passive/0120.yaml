@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 120
+id: 120
+name: "피해 감소"
+format: 3
+intro: "현재 생명력의 K% 피해 감소"

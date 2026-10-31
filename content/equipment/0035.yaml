@@ -1,0 +1,12 @@
+# equipment / stable ID: 35
+id: 35
+name: "사모"
+itemType: 3
+specialType: 51
+iconIndex: 26
+value: 18
+effectValue: 4
+upgradeValue: 9
+treasure: 1
+intro: "장비가 주로 사용하던 창입니다. 창끝이 뱀 모양이며, 힘껏 앞으로 찌르면 두 부대를 관통할 수 있습니다."
+skillEffects: [42]

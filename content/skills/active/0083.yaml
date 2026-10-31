@@ -1,0 +1,16 @@
+# skills/active / stable ID: 83
+id: 83
+name: "정면 충돌"
+type: 39
+target: 1
+hitArea: 13
+effectArea: 0
+mpCost: 6
+icon: 42
+intro: "아군 유닛에게 사용하며, 피해를 입히는 동시에 자신의 상태를 회복시킵니다."
+effect: 27
+power: 60
+harmType: 2
+condition: 0
+aiUse: 5
+category: 15

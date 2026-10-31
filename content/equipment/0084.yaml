@@ -1,0 +1,11 @@
+# equipment / stable ID: 84
+id: 84
+name: "패왕 오금갑"
+itemType: 21
+specialType: 109
+iconIndex: 49
+value: 18
+effectValue: 8
+upgradeValue: 9
+intro: "서초패왕 항우가 착용했던 갑옷으로 전해진다.\n\n【보물 효과】장착자의 HP가 X% 감소할 때마다, 그 모든 능력치가 (X/2)% 상승한다. 상승량의 최대치는 10%/15%이다."
+skillEffects: [162]

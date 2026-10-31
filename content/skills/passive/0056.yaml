@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 56
+id: 56
+name: "전략 명중 보조"
+format: 2
+incrementType: 1
+intro: "전략의 기본 명중률 상한선을 초과할 수 있습니다."

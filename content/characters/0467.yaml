@@ -1,0 +1,15 @@
+# characters / stable ID: 467
+id: 467
+name: "서량 기병 6"
+face: 179
+mapAvatar: 0
+speechGroup: 1
+attack: 40
+defense: 40
+spirit: 20
+critical: 30
+morale: 30
+maxHitPoints: 110
+maxMagicPoints: 5
+posts: 60
+intro: ""

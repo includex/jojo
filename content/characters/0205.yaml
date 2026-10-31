@@ -1,0 +1,15 @@
+# characters / stable ID: 205
+id: 205
+name: "젊은이"
+face: 196
+mapAvatar: 205
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 73
+intro: ""

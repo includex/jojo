@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 275
+id: 275
+name: "중장비"
+format: 4
+intro: "물리 피해 감소(정면 15%, 측면 10%, 후면 5%)"

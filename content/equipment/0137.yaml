@@ -1,0 +1,10 @@
+# equipment / stable ID: 137
+id: 137
+name: "-"
+itemType: 59
+specialType: 2
+iconIndex: 124
+value: 1
+effectValue: 50
+upgradeValue: 255
+intro: "요술사 좌사의 비법서.\n\n【보물 효과】주변 사람이 사용하는 계책을 모방하여 즉시 회복성 전략을 배웁니다."

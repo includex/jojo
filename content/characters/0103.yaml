@@ -1,0 +1,15 @@
+# characters / stable ID: 103
+id: 103
+name: "곽도"
+face: 103
+mapAvatar: 103
+speechGroup: 7
+attack: 20
+defense: 28
+spirit: 46
+critical: 37
+morale: 34
+maxHitPoints: 80
+maxMagicPoints: 40
+posts: 30
+intro: "원소의 책사. 늘 신중한 거수와 대립했다. 관도 대전에서는 주전론을 펼쳤으나, 상황 판단에 오류가 있어 원군이 크게 패배했다. 원소가 죽은 후, 원담을 도와 조조 군에 저항하다 전사했다."

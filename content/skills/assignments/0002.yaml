@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 2
+id: 2
+name: "매 턴 상태를 회복합니다."
+index: 2
+skillId: 148
+value: 1
+intro: "매 턴 이상 상태 회복 가능."

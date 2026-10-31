@@ -1,0 +1,9 @@
+# equipment / stable ID: 7
+id: 7
+name: "대궁"
+itemType: 4
+price: 10
+iconIndex: 7
+value: 40
+upgradeValue: 10
+intro: "뼈대가 크고 무거운 활. 단궁보다 위력이 큽니다."

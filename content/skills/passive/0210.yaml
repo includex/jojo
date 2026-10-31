@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 210
+id: 210
+name: "주변 능력치를 향상시킵니다."
+format: 15
+intro: "매 턴마다 자신과 주변 아군의 방어력이 자동으로 상승합니다."

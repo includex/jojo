@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 62
+id: 62
+name: "말 타고 공격"
+index: 62
+skillId: 285
+value: 50
+intro: "매 턴마다 모든 능력치가 자동으로 향상됩니다."

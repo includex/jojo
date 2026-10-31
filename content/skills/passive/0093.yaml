@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 93
+id: 93
+name: "공격 추가"
+format: 0
+intro: "공격 후 즉시 추격 공격을 한 번 합니다. 더블 클릭으로 발동하면 두 번 추격합니다."

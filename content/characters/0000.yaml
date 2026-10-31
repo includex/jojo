@@ -1,0 +1,16 @@
+# characters / stable ID: 0
+id: 0
+name: "조조"
+face: 0
+mapAvatar: 0
+speechGroup: 0
+attack: 41
+defense: 49
+spirit: 46
+critical: 40
+morale: 42
+maxHitPoints: 102
+maxMagicPoints: 30
+posts: 0
+intro: "자는 맹덕이다. 문무를 겸비한 한 시대의 간웅으로, 뛰어난 전략적 안목과 예견 능력을 가졌다. 황건군을 평정한 후, 동탁을 정벌하고 천자를 인질 삼아 제후들을 다스렸다. 크고 작은 수십 번의 전투를 거치며 북방을 통일했고, 위나라의 기반을 다졌다."
+battleAvatar: 1

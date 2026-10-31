@@ -1,0 +1,10 @@
+# equipment / stable ID: 71
+id: 71
+name: "청동 갑옷"
+itemType: 20
+price: 10
+iconIndex: 39
+value: 45
+upgradeValue: 10
+intro: "청동 갑옷. 가죽 갑옷보다 방어력이 높습니다."
+skillEffects: [129, 157]

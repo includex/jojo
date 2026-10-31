@@ -1,0 +1,18 @@
+# skills/active / stable ID: 31
+id: 31
+name: "거짓 보고"
+type: 15
+target: 0
+hitArea: 13
+effectArea: 0
+mpCost: 8
+icon: 11
+intro: "각종 가짜 소문을 퍼뜨려 개별 적군을 혼란에 빠지게 한다."
+effect: 25
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 80
+category: 8
+learnLevels: {"31": 15, "32": 15, "65": 20, "66": 15, "67": 1, "74": 15, "79": 1}

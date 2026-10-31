@@ -1,0 +1,15 @@
+# characters / stable ID: 182
+id: 182
+name: "병사 02"
+face: 177
+mapAvatar: 182
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 3
+intro: ""

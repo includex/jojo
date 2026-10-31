@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 217
+id: 217
+name: "기습 공격"
+format: 4
+intro: "후방 공격 시 피해량 증가 N%\n측면 공격 시 피해량 증가 (N-10)%\n정면 공격 시 피해량 증가 (N-20)%"

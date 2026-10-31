@@ -1,0 +1,10 @@
+# equipment / stable ID: 100
+id: 100
+name: "여유 공간 11"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "먹으면 지휘 능력을 높여주는 신비한 열매입니다. 방어력도 어느 정도 상승합니다."
+skillEffects: [200]

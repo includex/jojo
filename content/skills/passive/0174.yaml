@@ -1,0 +1,7 @@
+# skills/passive / stable ID: 174
+id: 174
+name: "갑옷 관통 공격"
+argument: 1
+format: 4
+incrementType: 1
+intro: "체력 상한선의 x%에 해당하는 피해를 줍니다."

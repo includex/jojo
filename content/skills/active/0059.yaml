@@ -1,0 +1,18 @@
+# skills/active / stable ID: 59
+id: 59
+name: "청명"
+type: 23
+target: 2
+hitArea: 11
+effectArea: 0
+mpCost: 16
+icon: 6
+intro: "기문둔갑술을 사용하여 날씨가 맑게 합니다."
+effect: 255
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+hitRateLimit: 2
+category: 22
+learnLevels: {"34": 27, "35": 27, "67": 1, "79": 1}

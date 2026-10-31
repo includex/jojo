@@ -1,0 +1,10 @@
+# equipment / stable ID: 64
+id: 64
+name: "여유 5"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "양직의 옷은 문양이 섬세하고, 위의 자수 변화가 매우 많아 문사들이 특히 좋아합니다."
+skillEffects: [36]

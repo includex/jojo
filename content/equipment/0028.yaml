@@ -1,0 +1,10 @@
+# equipment / stable ID: 28
+id: 28
+name: "황금 검"
+itemType: 18
+price: 10
+iconIndex: 112
+value: 70
+upgradeValue: 10
+intro: "황금으로 주조된 검으로, 높은 지위와 권력을 가진 자만이 착용할 수 있어 그 존귀한 신분을 나타낸다."
+skillEffects: [113]

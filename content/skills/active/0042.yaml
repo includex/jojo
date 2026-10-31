@@ -1,0 +1,17 @@
+# skills/active / stable ID: 42
+id: 42
+name: "지원군"
+type: 19
+target: 1
+hitArea: 12
+effectArea: 2
+mpCost: 20
+icon: 7
+intro: "신의가 심장, 간, 신장, 폐, 비 오장의 기운을 단전으로 끌어들여 내단 수련하는 법으로, 아군 여러 부대의 HP를 대량 회복할 수 있습니다."
+effect: 10
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+category: 13
+learnLevels: {"29": 33, "59": 30, "66": 33, "67": 1, "79": 1}

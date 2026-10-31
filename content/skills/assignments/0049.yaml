@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 49
+id: 49
+name: "연속 방어"
+index: 49
+skillId: 47
+value: 1
+intro: "두 번의 공격 피해를 방어할 수 있습니다."

@@ -1,0 +1,16 @@
+# characters / stable ID: 1
+id: 1
+name: "하후돈"
+face: 1
+mapAvatar: 1
+speechGroup: 0
+attack: 49
+defense: 41
+spirit: 32
+critical: 45
+morale: 33
+maxHitPoints: 106
+maxMagicPoints: 10
+posts: 9
+intro: "자원랑. 위나라 전장군이자 조조의 사촌 동생. 여포를 정벌할 때 조성이 왼쪽 눈을 쏘았는데, 그는 화살을 뽑아 눈으로 삼키며 용감하게 싸워 오히려 조성의 목숨까지 베었다. 조조에게 깊은 신임을 받아 조비가 즉위한 후 대장군에 임명되었다."
+battleAvatar: 2

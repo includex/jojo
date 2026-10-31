@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 71
+id: 71
+name: "방어력 보조"
+format: 2
+incrementType: 1
+intro: "공격 및 전략의 명중률 감소"

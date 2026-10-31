@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 281
+id: 281
+name: "추가 피해"
+format: 2
+intro: "공격 시 적의 현재 생명치*효과치만큼 추가 피해를 줍니다."

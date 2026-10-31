@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 123
+id: 123
+name: "MP 절약"
+format: 3
+incrementType: 1
+intro: "전략 사용에 소모되는 MP 수치가 x% 감소합니다."

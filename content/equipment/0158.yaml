@@ -1,0 +1,9 @@
+# equipment / stable ID: 158
+id: 158
+name: "기침약"
+itemType: 31
+specialType: 3
+price: 3
+iconIndex: 95
+upgradeValue: 0
+intro: "금지된 주술 상태를 해제하는 약입니다. 입에 넣는 느낌이 아주 좋습니다."

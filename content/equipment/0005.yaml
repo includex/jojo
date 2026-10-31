@@ -1,0 +1,9 @@
+# equipment / stable ID: 5
+id: 5
+name: "강철 창"
+itemType: 2
+price: 30
+iconIndex: 5
+value: 80
+upgradeValue: 10
+intro: "위력이 가장 큰 창입니다."

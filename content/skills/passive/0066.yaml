@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 66
+id: 66
+name: "공격 명중 보조"
+format: 2
+incrementType: 1
+intro: "물리 공격 명중률이 X퍼센트 증가하며, 보조 공격의 명중률을 계산한 후 보조 공격의 방어 감소 명중률을 계산합니다."

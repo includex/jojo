@@ -1,0 +1,11 @@
+# equipment / stable ID: 34
+id: 34
+name: "청룡언월도"
+itemType: 3
+specialType: 52
+iconIndex: 33
+value: 18
+upgradeValue: 9
+treasure: 1
+intro: "관우가 주로 사용하는 대도. 무게는 82근으로, 그 위력은 적의 반격을 봉쇄할 수 있습니다.\n\n【확장 효과】적군은 반격할 수 없으며, 공격과 전략 시 상대 최대 생명력의 10%~30% 추가 피해를 입힙니다."
+skillEffects: [56]

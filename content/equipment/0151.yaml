@@ -1,0 +1,10 @@
+# equipment / stable ID: 151
+id: 151
+name: "회복용 밀"
+itemType: 26
+specialType: 3
+price: 3
+iconIndex: 88
+value: 120
+upgradeValue: 0
+intro: "HP를 회복시키는 신비한 곡물. 효과가 좋습니다."

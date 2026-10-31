@@ -1,0 +1,16 @@
+# characters / stable ID: 125
+id: 125
+name: "장패"
+face: 125
+mapAvatar: 125
+speechGroup: 1
+attack: 37
+defense: 26
+spirit: 18
+critical: 31
+morale: 45
+maxHitPoints: 100
+maxMagicPoints: 20
+posts: 21
+intro: "자는 선고. 도겸의 부하였으며, 황건군을 토벌하는 과정에서 활약했다. 나중에 여포의 부하가 되어 여러 곳을 전전했다. 조조와 작전할 때 각지의 산적들을 규합하여 조조를 골머리 앓게 했다. 여포가 몰락한 후, 조조에게 투항했다."
+battleAvatar: 87

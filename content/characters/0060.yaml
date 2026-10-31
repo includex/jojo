@@ -1,0 +1,15 @@
+# characters / stable ID: 60
+id: 60
+name: "이엄"
+face: 60
+mapAvatar: 60
+speechGroup: 4
+attack: 34
+defense: 40
+spirit: 37
+critical: 32
+morale: 28
+maxHitPoints: 110
+maxMagicPoints: 10
+posts: 3
+intro: "자는 정방. 원래 유장 부하였으나, 유비가 촉에 들어올 때 유비를 따랐다. 용맹함은 황충과 비견될 만하며, 유비에게 높은 평가를 받았다. 제갈량 등과 함께 유비가 신임한 인물이다."

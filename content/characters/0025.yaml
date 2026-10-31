@@ -1,0 +1,16 @@
+# characters / stable ID: 25
+id: 25
+name: "만총"
+face: 21
+mapAvatar: 25
+speechGroup: 8
+attack: 27
+defense: 34
+spirit: 45
+critical: 39
+morale: 42
+maxHitPoints: 81
+maxMagicPoints: 49
+posts: 27
+intro: "자는 백녕이다. 유엽의 추천으로 조조 휘하에서 힘을 보탰다. 서황이 항복하여 조조에게 합류하도록 설득한 적도 있다. 조인과 함께 번성을 지키려 할 때, 조인이 한때 성을 포기하려 하자 그가 간곡히 만류하여 굳건히 지키게 했고, 그리하여 패배를 승리로 바꾸었다. 또한 촉군이 북벌하는 것을 지원하는 오나라 군대에게도 큰 승리를 거둔 적이 있다."
+battleAvatar: 42

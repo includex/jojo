@@ -1,0 +1,15 @@
+# characters / stable ID: 31
+id: 31
+name: "조앙"
+face: 31
+mapAvatar: 31
+speechGroup: 0
+attack: 42
+defense: 34
+spirit: 30
+critical: 31
+morale: 48
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "자자수. 조조의 장남이다. 장표가 밤에 조조 진영을 기습했을 때, 그가 자신의 말을 조조에게 양보하여 조조가 위기를 모면하게 했으나, 자신은 난군 속에서 사망했다."

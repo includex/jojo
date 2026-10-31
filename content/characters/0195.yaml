@@ -1,0 +1,15 @@
+# characters / stable ID: 195
+id: 195
+name: "문관04"
+face: 164
+mapAvatar: 195
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 24
+intro: ""

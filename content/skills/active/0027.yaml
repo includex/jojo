@@ -1,0 +1,18 @@
+# skills/active / stable ID: 27
+id: 27
+name: "압박"
+type: 7
+target: 0
+hitArea: 13
+effectArea: 0
+mpCost: 6
+icon: 20
+intro: "당나라 명장 장순이 풀로 만든 몽둥이로 성을 지켜, 허공에서 적군의 화살을 얻는 전략이다. 단일 적군의 공격력을 일시적으로 감소시키고, 문관 계열은 정신력이 감소한다."
+effect: 18
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 80
+category: 6
+learnLevels: {"30": 13, "31": 13, "32": 13, "66": 13, "67": 1, "74": 17, "79": 1}

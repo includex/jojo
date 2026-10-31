@@ -1,0 +1,9 @@
+# equipment / stable ID: 12
+id: 12
+name: "나무 투석기"
+itemType: 8
+price: 5
+iconIndex: 12
+value: 10
+upgradeValue: 10
+intro: "나무로 만든 투석기. 처음에는 큰 효과를 기대하지 마세요. 단련을 거치면 위력이 점차 강해집니다."

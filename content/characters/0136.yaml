@@ -1,0 +1,15 @@
+# characters / stable ID: 136
+id: 136
+name: "원술"
+face: 136
+mapAvatar: 136
+speechGroup: 3
+attack: 32
+defense: 29
+spirit: 31
+critical: 30
+morale: 26
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "자는 공로다. 원소의 이복형제이자 남양 태수였다. 성품이 게으르고 가차 없었다. 옥새를 얻은 후, 스스로 황제의 칭호를 사용하다가 신하들의 배신을 자초했고, 유비에게 패한 뒤 피를 여러 그릇이나 토하며 비참하게 죽었다."

@@ -1,0 +1,9 @@
+# equipment / stable ID: 125
+id: 125
+name: "조야 옥사자"
+itemType: 93
+specialType: 2
+iconIndex: 81
+effectValue: 50
+upgradeValue: 255
+intro: "조운이 탄 말.\n\n【보물 효과】적군의 위치 선정 영향 없이 자유롭게 이동할 수 있으며, [행동] 후 한 번의 [이동]을 할 수 있다."

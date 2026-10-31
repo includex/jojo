@@ -1,0 +1,17 @@
+# skills/active / stable ID: 48
+id: 48
+name: "강제"
+type: 27
+target: 1
+hitArea: 12
+effectArea: 0
+mpCost: 8
+icon: 24
+intro: "양의가 경공술을 익혀 날아다니는 듯 걷게 하는 방법입니다. 아군 개별 부대의 이동력을 일시적으로 높일 수 있습니다."
+effect: 30
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+category: 16
+learnLevels: {"28": 21, "29": 21, "66": 21, "67": 1, "74": 23, "79": 1}

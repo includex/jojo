@@ -1,0 +1,15 @@
+# characters / stable ID: 411
+id: 411
+name: "식량 보급대 6"
+face: 183
+mapAvatar: 0
+speechGroup: 1
+attack: 20
+defense: 20
+spirit: 30
+critical: 20
+morale: 30
+maxHitPoints: 80
+maxMagicPoints: 10
+posts: 69
+intro: ""

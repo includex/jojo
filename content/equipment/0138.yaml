@@ -1,0 +1,11 @@
+# equipment / stable ID: 138
+id: 138
+name: "청낭서"
+itemType: 26
+specialType: 2
+iconIndex: 120
+value: 20
+effectValue: 5
+upgradeValue: 255
+treasure: 1
+intro: "명의 화타가 쓴 의학 서적. 매 턴마다 HP를 회복할 수 있습니다.\n\n【확장 효과】주변 아군과 이상 상태의 HP를 회복합니다."

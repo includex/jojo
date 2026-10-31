@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 49
+id: 49
+name: "방어 치명타 공격"
+format: 0
+intro: "자신이 받는 치명타를 완전히 막고, 공격의 절대 명중률을 무시한다."

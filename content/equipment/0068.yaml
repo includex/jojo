@@ -1,0 +1,10 @@
+# equipment / stable ID: 68
+id: 68
+name: "여유 9"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "은으로 만든 갑옷입니다. 효과: 장착자가 적의 전략 공격을 받을 때, 명중률이 27%/40% 감소하며, 명중하더라도 전략 피해가 27%/40% 감소합니다."
+skillEffects: [3]

@@ -1,0 +1,7 @@
+# skills/passive / stable ID: 53
+id: 53
+name: "MP 보조"
+argument: 0
+format: 5
+incrementType: 1
+intro: "최대 마나량의 x% 증가"

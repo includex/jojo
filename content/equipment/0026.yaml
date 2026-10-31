@@ -1,0 +1,10 @@
+# equipment / stable ID: 26
+id: 26
+name: "철제 보검"
+itemType: 16
+price: 30
+iconIndex: 20
+value: 75
+upgradeValue: 10
+intro: "철로 만든 보검. 모든 보검 중에서 위력이 가장 강합니다."
+skillEffects: [106]

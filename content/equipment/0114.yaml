@@ -1,0 +1,12 @@
+# equipment / stable ID: 114
+id: 114
+name: "풍차 바퀴"
+itemType: 40
+specialType: 2
+iconIndex: 153
+value: 2
+effectValue: 87
+upgradeValue: 255
+treasure: 1
+intro: "가볍고 튼튼한 바퀴입니다. 포차류만 장착할 수 있으며, 포차에 장착하면 고속 이동이 가능합니다.\n\n【확장 효과】 추가로 지형 무시 이동 효과를 가집니다."
+skillEffects: [177]

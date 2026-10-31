@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 20
+id: 20
+name: "전략 날씨 무시"
+format: 0
+intro: "전략 사용 시 날씨의 제약을 무시합니다."

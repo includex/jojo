@@ -1,0 +1,9 @@
+# equipment / stable ID: 147
+id: 147
+name: "국사 패검"
+itemType: 51
+specialType: 2
+iconIndex: 148
+value: 1
+upgradeValue: 255
+intro: "전설 속 신병 중 하나로, 덕망 높은 이들이 지니는 검입니다.\n\n[보물 효과] 장착자가 공격할 때 십자 관통 효과를 가집니다."

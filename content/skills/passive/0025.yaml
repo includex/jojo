@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 25
+id: 25
+name: "돌격 공격"
+format: 2
+intro: "이동 거리에 따라 추가 피해를 입힙니다."

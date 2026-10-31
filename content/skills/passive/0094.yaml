@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 94
+id: 94
+name: "고정 피해 감소"
+format: 5
+intro: "피격 시 [적군 레벨/2+15]만큼의 피해를 감소시킵니다.\n\n-모든 피해 감소 효과에 영향을 받지 않습니다."

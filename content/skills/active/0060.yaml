@@ -1,0 +1,18 @@
+# skills/active / stable ID: 60
+id: 60
+name: "담천"
+type: 23
+target: 2
+hitArea: 11
+effectArea: 0
+mpCost: 16
+icon: 4
+intro: "기문둔갑술을 사용하여 하늘에 먹구름이 가득하게 합니다."
+effect: 255
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+hitRateLimit: 2
+category: 22
+learnLevels: {"33": 13, "34": 13, "35": 13, "67": 1, "79": 1}

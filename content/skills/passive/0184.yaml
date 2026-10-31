@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 184
+id: 184
+name: "전군 돌격"
+format: 0
+intro: "전투 시 (14-X) * 5%의 피해 증폭 효과가 있으며, 여기서 X는 상대방의 이동력입니다."

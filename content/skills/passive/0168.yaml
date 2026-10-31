@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 168
+id: 168
+name: "파괴 폭발"
+format: 0
+intro: "공격 후 적의 해당 능력치가 디버프가 됩니다. 만약 이전에 버프 상태였다면 정상 상태로 돌아갑니다."

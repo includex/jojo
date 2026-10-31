@@ -1,0 +1,16 @@
+# characters / stable ID: 11
+id: 11
+name: "이전"
+face: 9
+mapAvatar: 11
+speechGroup: 2
+attack: 41
+defense: 45
+spirit: 34
+critical: 37
+morale: 28
+maxHitPoints: 114
+maxMagicPoints: 17
+posts: 3
+intro: "자는 만성이며, 위나라의 파로 장군이다. 황건군을 토벌할 때부터 조조를 따라다니며 수많은 전투를 겪었다. 성격이 침착하고 신중하며, 여러 번 동료들의 경솔한 행동을 제지했다. 장료, 낙진과 함께 합비성을 지켰다."
+battleAvatar: 14

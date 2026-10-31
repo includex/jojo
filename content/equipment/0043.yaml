@@ -1,0 +1,10 @@
+# equipment / stable ID: 43
+id: 43
+name: "패왕창"
+itemType: 3
+specialType: 53
+iconIndex: 34
+value: 18
+upgradeValue: 9
+intro: "손책이 사용하는 장창.\n\n【보물 효과】 공격을 받은 적군은 강제로 한 칸 뒤로 물러나며, 상대가 물러날 수 없을 경우 이번 공격의 피해량이 40% 증가합니다."
+skillEffects: [76]

@@ -15,10 +15,11 @@ Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이�
 
 - `engine`: 범용 경로 탐색·스크립트 실행·글자 공개·렌더링 연산
 - `core`: 게임 규칙·시나리오·화면·저장·데이터·번역
+- `content`: 인물·장비·책략·스킬을 항목별 YAML로 정의 ([편집 안내](content/README.md))
 - `desktop` / `android`: 플랫폼 시작과 백엔드 구성
 - `verification`: 실행 비교와 캡처 도구
 
-엔진은 게임 모듈에 의존하지 않는다. 상세 책임과 의존 방향은 [게임 아키텍처](GAME_ARCHITECTURE.md)를 참고한다.
+엔진은 게임 모듈에 의존하지 않는다. 상세 책임과 의존 방향은 [게임 아키텍처](GAME_ARCHITECTURE.md)를 참고한다. 신규 인물·대화·전투·아이템·스킬을 추가하는 순서는 [엔진·코어 이용 가이드](docs/engine-core-feature-guide.html)를 참고한다.
 
 ## 실행
 

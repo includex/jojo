@@ -1,0 +1,18 @@
+# skills/active / stable ID: 23
+id: 23
+name: "둔병"
+type: 9
+target: 0
+hitArea: 13
+effectArea: 1
+mpCost: 6
+icon: 22
+intro: "전국시대 손빈이 매일 자취를 줄여서 방천을 마비시킨 전략입니다. 적군이 방심하게 만들어 일시적으로 폭발력이 감소하며, 그 결과 공격 명중률과 방어 성공률이 모두 하락합니다."
+effect: 20
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 90
+category: 4
+learnLevels: {"18": 8, "19": 8, "20": 8, "30": 5, "31": 5, "32": 5, "66": 5, "67": 1, "74": 5, "79": 1}

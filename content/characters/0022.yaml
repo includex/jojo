@@ -1,0 +1,16 @@
+# characters / stable ID: 22
+id: 22
+name: "곽가"
+face: 22
+mapAvatar: 22
+speechGroup: 4
+attack: 11
+defense: 32
+spirit: 49
+critical: 41
+morale: 45
+maxHitPoints: 80
+maxMagicPoints: 46
+posts: 30
+intro: "자는 봉효이며, 조조가 가장 신뢰했던 책사입니다. 하북을 평정할 때 병으로 세상을 떠났고, 나이는 겨우 서른여덟 살이었습니다. 조조는 크게 슬퍼하며 '하늘이 나를 잃었구나'라고 말했습니다. 적벽대패 후, 조조는 한숨 쉬며 '만약 봉효가 있었다면, 결코 이런 큰 패배를 당하지 않았을 것이다'라고 했습니다."
+battleAvatar: 34

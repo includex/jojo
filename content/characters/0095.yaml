@@ -1,0 +1,16 @@
+# characters / stable ID: 95
+id: 95
+name: "태사자"
+face: 95
+mapAvatar: 95
+speechGroup: 0
+attack: 47
+defense: 44
+spirit: 34
+critical: 32
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "자자의. 원래 유요의 부하였다. 무예가 뛰어나고 특히 활쏘기에 능하여, 한때 손책과 일대일로 싸워 승패를 가리지 못했다. 나중에 손책에게 포로로 잡혔으나, 손책의 인덕에 감화되어 항복했고, 동오의 건국에 큰 공을 세웠다."
+battleAvatar: 65

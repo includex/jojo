@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 42
+id: 42
+name: "전략 날씨 무시"
+index: 42
+skillId: 20
+value: 1
+intro: "전략을 사용할 때 날씨 제한을 무시하는 효과를 얻습니다."

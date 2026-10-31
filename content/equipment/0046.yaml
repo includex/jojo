@@ -1,0 +1,11 @@
+# equipment / stable ID: 46
+id: 46
+name: "쌍극"
+itemType: 11
+specialType: 101
+iconIndex: 25
+value: 18
+effectValue: 30
+upgradeValue: 9
+intro: "정원이 사람을 시켜 만든 무기로, 전장에 한 번도 나간 적이 없다. 사용자가 초월적인 힘과 매우 높은 기술을 갖추어야 하기 때문이다.\n\n【보물 효과】공격 피해의 일부가 자신에게 회복으로 전환되며, 일반 공격은 반드시 명중한다."
+skillEffects: [96]

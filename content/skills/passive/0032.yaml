@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 32
+id: 32
+name: "지속성 전략 피해 증가"
+format: 1
+intro: "지 계열 전략을 사용할 때, 피해량이 추가로 증가합니다."

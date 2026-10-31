@@ -1,0 +1,15 @@
+# characters / stable ID: 315
+id: 315
+name: "무술가 6"
+face: 191
+mapAvatar: 0
+speechGroup: 4
+attack: 35
+defense: 35
+spirit: 20
+critical: 40
+morale: 30
+maxHitPoints: 90
+maxMagicPoints: 20
+posts: 18
+intro: ""

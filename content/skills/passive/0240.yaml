@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 240
+id: 240
+name: "선제 공격"
+format: 5
+intro: "적이 공격 범위에 들어오면 이동을 차단하고 한 번 공격합니다. 매 턴 최대 x회 발동 가능합니다."

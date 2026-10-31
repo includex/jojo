@@ -1,0 +1,9 @@
+# equipment / stable ID: 0
+id: 0
+name: "단검"
+itemType: 0
+price: 5
+iconIndex: 0
+value: 10
+upgradeValue: 10
+intro: "짧고 작은 검입니다. 처음에는 큰 위력을 기대하지 마세요. 훈련을 거치면 위력이 점차 강해집니다."

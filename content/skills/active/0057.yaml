@@ -1,0 +1,17 @@
+# skills/active / stable ID: 57
+id: 57
+name: "귀환"
+type: 22
+target: 1
+hitArea: 1
+effectArea: 0
+mpCost: 24
+icon: 14
+intro: "신의가 군사들의 피로를 풀어 지속적으로 전투할 수 있게 하는 방법입니다. 행동을 마친 아군 단일 부대가 다시 행동할 수 있게 합니다."
+effect: 29
+power: 28
+harmType: 4
+condition: 6
+aiUse: 13
+category: 21
+learnLevels: {"67": 1, "74": 32, "79": 1}

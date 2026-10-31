@@ -1,0 +1,15 @@
+# characters / stable ID: 468
+id: 468
+name: "서량 기병 7"
+face: 193
+mapAvatar: 0
+speechGroup: 1
+attack: 40
+defense: 40
+spirit: 20
+critical: 30
+morale: 30
+maxHitPoints: 110
+maxMagicPoints: 5
+posts: 60
+intro: ""

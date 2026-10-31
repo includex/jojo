@@ -1,0 +1,17 @@
+# skills/active / stable ID: 54
+id: 54
+name: "북치기"
+type: 11
+target: 1
+hitArea: 12
+effectArea: 1
+mpCost: 12
+icon: 15
+intro: "신의가 사람들에게 천마 해체대법을 가르쳐 인체의 잠재력을 자극하는 방법인데, 신체를 많이 소모합니다. 일시적으로 아군 여러 부대의 공격력을 높이고, 문관 계열은 정신력을 높일 수 있습니다."
+effect: 13
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+category: 19
+learnLevels: {"28": 27, "29": 27, "66": 25, "67": 1, "74": 25, "79": 1}

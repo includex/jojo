@@ -1,0 +1,9 @@
+# equipment / stable ID: 157
+id: 157
+name: "파스"
+itemType: 30
+specialType: 3
+price: 3
+iconIndex: 94
+upgradeValue: 0
+intro: "마비 상태에 빠진 부대의 행동을 회복시키는 약입니다. 발에 붙여 사용해야 합니다."

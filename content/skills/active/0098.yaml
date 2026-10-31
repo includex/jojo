@@ -1,0 +1,16 @@
+# skills/active / stable ID: 98
+id: 98
+name: "공백0098"
+type: 42
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 45
+intro: "먹으면 무용을 높여주는 신비한 열매입니다. 공격력도 어느 정도 상승합니다."
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 13
+category: 0

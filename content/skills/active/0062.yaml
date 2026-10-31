@@ -1,0 +1,18 @@
+# skills/active / stable ID: 62
+id: 62
+name: "명상"
+type: 20
+target: 1
+hitArea: 11
+effectArea: 0
+mpCost: 0
+icon: 8
+intro: "아군 부대의 HP를 줄여 MP를 높입니다. MP를 소모하지 않는 유일한 전략입니다."
+effect: 31
+power: 28
+harmType: 4
+condition: 1
+aiUse: 13
+hitRateLimit: 2
+category: 24
+learnLevels: {"25": 23, "26": 23, "34": 23, "35": 23, "66": 23, "67": 1, "74": 10, "79": 1}

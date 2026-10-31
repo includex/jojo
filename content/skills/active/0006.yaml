@@ -1,0 +1,18 @@
+# skills/active / stable ID: 6
+id: 6
+name: "격류"
+type: 1
+target: 0
+hitArea: 12
+effectArea: 0
+mpCost: 10
+icon: 1
+intro: "큰 물을 일으켜 절벽을 무너뜨리고, 단일 적군에게 큰 피해를 줍니다. 다리, 얕은 곳, 습지, 큰 강, 설원 등에 위치한 부대에만 사용할 수 있습니다."
+effect: 3
+power: 90
+harmType: 0
+condition: 6
+aiUse: 0
+hitRateLimit: 90
+category: 0
+learnLevels: {"25": 21, "26": 21, "62": 15, "65": 16, "66": 16, "67": 1, "79": 1}

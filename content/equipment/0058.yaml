@@ -1,0 +1,11 @@
+# equipment / stable ID: 58
+id: 58
+name: "달을 삼키고 해를 가리다"
+itemType: 3
+specialType: 72
+iconIndex: 143
+value: 18
+effectValue: 1
+upgradeValue: 9
+intro: "전설 속 신병 중 하나로, 이 무기는 하늘에 기이한 광경을 일으킨다고 전해지며, 베인 자는 죽거나 비참하다.\n\n【특수 설명/사방】창/장창류/도끼류\n\n【보물 효과】가 주는 피해량은 상대 최대 생명력의 60% 미만이 되지 않는다."
+skillEffects: [101]

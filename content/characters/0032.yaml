@@ -1,0 +1,16 @@
+# characters / stable ID: 32
+id: 32
+name: "유비"
+face: 32
+mapAvatar: 32
+speechGroup: 8
+attack: 39
+defense: 36
+spirit: 38
+critical: 37
+morale: 50
+maxHitPoints: 100
+maxMagicPoints: 30
+posts: 0
+intro: "자는 현덕, 동한의 중산정왕 유승의 후예이다. 조조에게 당대의 영웅으로 여겨져 많은 영웅호걸과 현명한 은사들을 모았고, 나중에는 직접 촉나라를 세웠다. 한 황제가 물러난 후, 스스로 촉한의 황제에 올랐다."
+battleAvatar: 4

@@ -1,0 +1,12 @@
+# equipment / stable ID: 41
+id: 41
+name: "유성추"
+itemType: 7
+specialType: 43
+iconIndex: 32
+value: 12
+effectValue: 100
+upgradeValue: 9
+treasure: 1
+intro: "양 끝에 금속으로 만든 무거운 망치가 달린 무기. 예측할 수 없는 공격 궤적으로 눈앞의 적을 혼란에 빠뜨릴 수 있습니다."
+skillEffects: [175]

@@ -1,0 +1,18 @@
+# skills/active / stable ID: 63
+id: 63
+name: "패기"
+type: 26
+target: 1
+hitArea: 11
+effectArea: 0
+mpCost: 8
+icon: 19
+intro: "아군 부대의 공격력, 정신력, 방어력, 폭발력, 사기를 일시적으로 높입니다."
+effect: 17
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+hitRateLimit: 2
+category: 25
+learnLevels: {"0": 10, "1": 10, "2": 10, "67": 1, "79": 1}

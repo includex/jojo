@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 330
+id: 330
+name: "전략 증강 회복"
+format: 4
+intro: "소지자가 회복 전략 증폭 효과를 받을 때 x%의 추가 보너스를 얻습니다."

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 4
+id: 4
+name: "MP 공격"
+format: 0
+intro: "자신의 현재 MP를 공격력에 추가하며, 속성 패널에는 표시되지 않습니다."

@@ -1,0 +1,15 @@
+# characters / stable ID: 120
+id: 120
+name: "위속"
+face: 120
+mapAvatar: 120
+speechGroup: 2
+attack: 39
+defense: 38
+spirit: 21
+critical: 29
+morale: 22
+maxHitPoints: 110
+maxMagicPoints: 5
+posts: 60
+intro: "여포의 부장. 후성, 송헌과 함께 여포를 배신하고 조조에게 투항했습니다. 백마대전에서 안량과 일대일로 싸우다 단 한 턴 만에 베였습니다."

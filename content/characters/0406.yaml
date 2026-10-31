@@ -1,0 +1,15 @@
+# characters / stable ID: 406
+id: 406
+name: "식량 보급대 1"
+face: 166
+mapAvatar: 0
+speechGroup: 1
+attack: 20
+defense: 20
+spirit: 30
+critical: 20
+morale: 30
+maxHitPoints: 80
+maxMagicPoints: 10
+posts: 69
+intro: ""

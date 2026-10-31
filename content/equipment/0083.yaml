@@ -1,0 +1,12 @@
+# equipment / stable ID: 83
+id: 83
+name: "연환 갑옷"
+itemType: 21
+specialType: 85
+iconIndex: 155
+value: 18
+effectValue: 1
+upgradeValue: 9
+treasure: 1
+intro: "사슬로 만든 갑옷입니다. 행동이 편리하여 적의 연속 공격을 예방할 수 있습니다."
+skillEffects: [7, 11, 12]

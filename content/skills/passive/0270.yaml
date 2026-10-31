@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 270
+id: 270
+name: "치명타 공격"
+format: 0
+intro: "공격 시 반드시 치명타가 발생합니다. 공격 치명타 피해 계수 150%"

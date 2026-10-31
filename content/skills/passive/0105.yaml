@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 105
+id: 105
+name: "혼란 공격"
+format: 4
+intro: "공격 후 x% 확률로 적이 혼란에 빠져 행동하거나 방어할 수 없게 만듭니다."

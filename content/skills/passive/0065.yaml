@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 65
+id: 65
+name: "공격력 보조"
+argument: 1
+format: 4
+incrementType: 1

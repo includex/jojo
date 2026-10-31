@@ -1,0 +1,16 @@
+# characters / stable ID: 12
+id: 12
+name: "조홍"
+face: 4
+mapAvatar: 12
+speechGroup: 8
+attack: 32
+defense: 39
+spirit: 41
+critical: 33
+morale: 35
+maxHitPoints: 110
+maxMagicPoints: 13
+posts: 3
+intro: "자지렴. 조조의 사촌 동생이다. 형인 조인과 함께 조조를 따랐다. 조군 핵심 대장으로서 여러 곳으로 전장을 옮겨 싸웠고, 수차례 조조가 위기에 처했을 때 구해주었다."
+battleAvatar: 12

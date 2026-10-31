@@ -1,0 +1,9 @@
+# equipment / stable ID: 141
+id: 141
+name: "여유 공간 20"
+itemType: 26
+specialType: 2
+iconIndex: 1
+value: 6
+upgradeValue: 255
+intro: "사신 중 하나인 청룡의 힘이 깃든 보옥입니다.\n【보물 효과】적군을 공격할 때, 능력치 중 가장 낮은 항목을 방어력, 폭발력, 사기로 간주합니다."

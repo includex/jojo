@@ -25,6 +25,8 @@ verification ───────────┘
 
 엔진에는 전투 규칙, 캐릭터·아이템·병종, 조조전 시나리오 이름, 한국어 번역, 게임 리소스 경로가 없다. AST는 LibGDX `JsonValue`로 전달하지만 파일을 찾거나 시나리오를 고르는 것은 엔진의 책임이 아니다.
 
+전투·거리·궁전의 대사, 선택지와 모달은 `RuntimeDialogueSessionAdapter`가 스크립트 상태를 변환하고 `DialogueSession`이 글자 공개·확인 입력·자동 진행을 소유한다. 전투의 별도 글자 공개 상태와 자동 닫기 타이머는 제거했다. `ScenarioDialogueSessionAdapter`는 시나리오 배치 정책만 연결한다. 전투는 누적 시간 방식과 공개 후 1초 자동 진행을, 시나리오는 원본 콜백 타이머 방식과 자동 진행 규칙을 유지한다.
+
 화면별 자동 진행, 전투 연출 순서, 시나리오 선택지와 모달의 의미도 게임 정책이다. 범용 글자 공개 기능을 사용하되 `DialogueSession`과 화면 어댑터가 이 정책을 결정한다.
 
 ## 게임이 소유하는 것
@@ -43,6 +45,12 @@ verification ───────────┘
 게임의 `vars`, `gvars`, `pvars`는 `ScenarioCallCoordinator`가 이름과 실제 맵을 바인딩한다. `stage.*`, 대사·선택 입력·전투 대기 등은 게임이 처리하며, 엔진은 콜백으로 그 처리를 요청하거나 실행을 중단한다.
 
 한국어 글꼴 선택, `JOJO_FONT_PATH`, `JOJO_FONT_HINTING`, 번역 카탈로그도 core의 책임이다. 엔진 렌더링은 텍스처·글꼴 선택이나 콘텐츠를 결정하지 않는다.
+
+## 인물·장비·스킬 작성 원본
+
+`content/characters`, `content/equipment`, `content/skills/{active,passive,assignments,equipment}`에서 각 요소를 YAML 파일 하나로 정의한다. `content/schema.json`이 이름 있는 필드와 기존 런타임 테이블의 대응을 명시한다. `:core:compileGameContent`는 빌드 시 YAML·ID·필드 타입과 주요 스킬 참조를 검증하고 여섯 테이블을 `core/build/generated/game-content/data`에 생성한다. `processResources`는 이 테이블만 번들하며 외부 원본의 동일한 테이블은 제외한다. 화자 이름 라벨 생성도 YAML에서 컴파일한 인물 표를 읽는다.
+
+인덱스형 런타임과 저장 호환성을 유지하기 위해 기존 ID를 보존한다. 다른 병종·지형·상점·이미지·시나리오 입력은 아직 기존 경로를 사용한다. YAML 파서는 buildSrc에만 있으며 engine/core 런타임 의존을 늘리지 않는다. 편집 방법과 ID 제약은 [콘텐츠 안내](content/README.md)를 따른다.
 
 ## 경계를 유지하는 방법
 
@@ -68,7 +76,7 @@ verification ───────────┘
 
 ## 이번 분리의 검증 결과
 
-- 엔진 단위 테스트 24개, 게임 회귀 테스트 1,148개 통과.
+- 엔진 단위 테스트 24개, 게임 회귀 테스트 1,151개 통과.
 - desktop·android·verification 컴파일 통과.
 - 59개 R 시나리오의 기동 및 한 입력 분기 진행, 58개 S 전투의 초기화와 1턴 이벤트 검증 통과.
 - 영천 진행 경로와 전투 데이터 적합성 검증 통과. AST API 누락 없음.

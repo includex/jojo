@@ -1,0 +1,11 @@
+# equipment / stable ID: 85
+id: 85
+name: "치우 전갑"
+itemType: 21
+specialType: 113
+iconIndex: 128
+value: 18
+effectValue: 2
+upgradeValue: 9
+intro: "상고 시대 치우가 입었다는 갑옷입니다.\n\n[보물 효과] 자신 전체 능력치가 X*2%/3% 증가합니다. (X는 주변 적군 수 + 1)"
+skillEffects: [35]

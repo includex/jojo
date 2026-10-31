@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 116
+id: 116
+name: "근접 피해 경감"
+format: 3
+intro: "x% 근접(보병 사거리 이내) 피해 경감 (상태 변화 가능)."

@@ -1,0 +1,16 @@
+# characters / stable ID: 101
+id: 101
+name: "원소"
+face: 101
+mapAvatar: 101
+speechGroup: 5
+attack: 35
+defense: 38
+spirit: 37
+critical: 40
+morale: 39
+maxHitPoints: 100
+maxMagicPoints: 30
+posts: 0
+intro: "자는 본초이며, 명문가인 원씨 집안의 우두머리다. 십팔 진후들이 동탁을 치러 나설 때, 그는 연맹주로 추대된 후 중원을 호령하려 조조와 결전을 벌였다. 충고를 듣지 않고 우유부단하여 신하들의 배신을 자초했고, 결국 관도에서 크게 패했다."
+battleAvatar: 68

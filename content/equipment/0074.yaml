@@ -1,0 +1,9 @@
+# equipment / stable ID: 74
+id: 74
+name: "가죽 옷"
+itemType: 22
+price: 10
+iconIndex: 115
+value: 42
+upgradeValue: 10
+intro: "가죽으로 만든 옷. 천 옷보다 방어력이 강합니다."

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 153
+id: 153
+name: "맹격"
+format: 4
+intro: "상대방을 공격하면 x%의 HP 실질 피해를 입히고, 상대방을 혼란에 빠뜨립니다."

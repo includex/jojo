@@ -1,0 +1,15 @@
+# characters / stable ID: 351
+id: 351
+name: "도사 2"
+face: 165
+mapAvatar: 0
+speechGroup: 8
+attack: 20
+defense: 30
+spirit: 40
+critical: 35
+morale: 30
+maxHitPoints: 80
+maxMagicPoints: 40
+posts: 30
+intro: ""

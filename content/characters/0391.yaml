@@ -1,0 +1,15 @@
+# characters / stable ID: 391
+id: 391
+name: "호랑이 길들이는 사부2"
+face: 189
+mapAvatar: 0
+speechGroup: 3
+attack: 35
+defense: 35
+spirit: 20
+critical: 40
+morale: 20
+maxHitPoints: 90
+maxMagicPoints: 5
+posts: 64
+intro: ""

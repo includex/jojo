@@ -1,0 +1,15 @@
+# characters / stable ID: 379
+id: 379
+name: "해적 22"
+face: 192
+mapAvatar: 0
+speechGroup: 8
+attack: 40
+defense: 30
+spirit: 30
+critical: 35
+morale: 30
+maxHitPoints: 90
+maxMagicPoints: 20
+posts: 62
+intro: ""

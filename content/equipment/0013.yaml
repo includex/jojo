@@ -1,0 +1,9 @@
+# equipment / stable ID: 13
+id: 13
+name: "청동 투석기"
+itemType: 8
+price: 10
+iconIndex: 13
+value: 45
+upgradeValue: 10
+intro: "청동 투석기. 나무로 만든 투석기보다 위력이 큽니다."

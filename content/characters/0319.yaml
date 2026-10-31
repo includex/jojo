@@ -1,0 +1,15 @@
+# characters / stable ID: 319
+id: 319
+name: "도적병2"
+face: 197
+mapAvatar: 0
+speechGroup: 1
+attack: 40
+defense: 30
+spirit: 20
+critical: 30
+morale: 40
+maxHitPoints: 100
+maxMagicPoints: 20
+posts: 21
+intro: ""

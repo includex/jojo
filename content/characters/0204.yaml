@@ -1,0 +1,15 @@
+# characters / stable ID: 204
+id: 204
+name: "상인"
+face: 202
+mapAvatar: 204
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 73
+intro: ""

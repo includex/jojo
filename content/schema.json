@@ -1,0 +1,322 @@
+{
+  "characters": {
+    "table": "unit.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "face": {
+        "key": "1",
+        "type": "integer"
+      },
+      "mapAvatar": {
+        "key": "2",
+        "type": "integer"
+      },
+      "speechGroup": {
+        "key": "3",
+        "type": "integer"
+      },
+      "attack": {
+        "key": "4",
+        "type": "integer"
+      },
+      "defense": {
+        "key": "5",
+        "type": "integer"
+      },
+      "spirit": {
+        "key": "6",
+        "type": "integer"
+      },
+      "critical": {
+        "key": "7",
+        "type": "integer"
+      },
+      "morale": {
+        "key": "8",
+        "type": "integer"
+      },
+      "maxHitPoints": {
+        "key": "9",
+        "type": "integer"
+      },
+      "maxMagicPoints": {
+        "key": "10",
+        "type": "integer"
+      },
+      "posts": {
+        "key": "11",
+        "type": "integer"
+      },
+      "level": {
+        "key": "12",
+        "type": "integer"
+      },
+      "intro": {
+        "key": "13",
+        "type": "string"
+      },
+      "battleAvatar": {
+        "key": "14",
+        "type": "integer"
+      },
+      "criticalTexts": {
+        "key": "15",
+        "type": "string-list"
+      },
+      "weapon": {
+        "key": "16",
+        "type": "integer"
+      },
+      "armor": {
+        "key": "17",
+        "type": "integer"
+      },
+      "auxiliary": {
+        "key": "18",
+        "type": "integer"
+      },
+      "famous": {
+        "key": "19",
+        "type": "integer"
+      },
+      "retreat": {
+        "key": "20",
+        "type": "string"
+      },
+      "battleAvatarType": {
+        "key": "21",
+        "type": "integer"
+      },
+      "forceJoin": {
+        "key": "22",
+        "type": "integer"
+      }
+    }
+  },
+  "equipment": {
+    "table": "item.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "itemType": {
+        "key": "1",
+        "type": "integer"
+      },
+      "specialType": {
+        "key": "2",
+        "type": "integer"
+      },
+      "price": {
+        "key": "3",
+        "type": "integer"
+      },
+      "iconIndex": {
+        "key": "4",
+        "type": "integer"
+      },
+      "value": {
+        "key": "5",
+        "type": "integer"
+      },
+      "effectValue": {
+        "key": "6",
+        "type": "integer"
+      },
+      "arms": {
+        "key": "7",
+        "type": "integer-list"
+      },
+      "upgradeValue": {
+        "key": "8",
+        "type": "integer"
+      },
+      "treasure": {
+        "key": "9",
+        "type": "integer"
+      },
+      "intro": {
+        "key": "10",
+        "type": "string"
+      }
+    }
+  },
+  "skills/active": {
+    "table": "magic.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "type": {
+        "key": "1",
+        "type": "integer"
+      },
+      "target": {
+        "key": "2",
+        "type": "integer"
+      },
+      "hitArea": {
+        "key": "3",
+        "type": "integer"
+      },
+      "effectArea": {
+        "key": "4",
+        "type": "integer"
+      },
+      "mpCost": {
+        "key": "5",
+        "type": "integer"
+      },
+      "icon": {
+        "key": "6",
+        "type": "integer"
+      },
+      "intro": {
+        "key": "7",
+        "type": "string"
+      },
+      "effect": {
+        "key": "8",
+        "type": "integer"
+      },
+      "power": {
+        "key": "9",
+        "type": "integer"
+      },
+      "harmType": {
+        "key": "10",
+        "type": "integer"
+      },
+      "condition": {
+        "key": "11",
+        "type": "integer"
+      },
+      "aiUse": {
+        "key": "12",
+        "type": "integer"
+      },
+      "hitRateLimit": {
+        "key": "13",
+        "type": "integer"
+      },
+      "category": {
+        "key": "14",
+        "type": "integer"
+      },
+      "learnLevels": {
+        "key": "15",
+        "type": "integer-map"
+      }
+    }
+  },
+  "skills/passive": {
+    "table": "defineSkill.bin",
+    "fields": {
+      "name": {
+        "key": "name",
+        "type": "string",
+        "required": true
+      },
+      "format": {
+        "key": "format",
+        "type": "integer"
+      },
+      "intro": {
+        "key": "intro",
+        "type": "string"
+      },
+      "incrementType": {
+        "key": "incType",
+        "type": "integer"
+      },
+      "argument": {
+        "key": "arg",
+        "type": "integer"
+      },
+      "resetType": {
+        "key": "resetType",
+        "type": "integer"
+      }
+    }
+  },
+  "skills/assignments": {
+    "table": "unitPostsSkill.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "index": {
+        "key": "1",
+        "type": "integer"
+      },
+      "posts": {
+        "key": "2",
+        "type": "integer"
+      },
+      "skillId": {
+        "key": "3",
+        "type": "integer"
+      },
+      "isArm": {
+        "key": "4",
+        "type": "integer"
+      },
+      "value": {
+        "key": "5",
+        "type": "integer"
+      },
+      "unit0": {
+        "key": "6",
+        "type": "integer"
+      },
+      "unit1": {
+        "key": "7",
+        "type": "integer"
+      },
+      "unit2": {
+        "key": "8",
+        "type": "integer"
+      },
+      "intro": {
+        "key": "9",
+        "type": "string"
+      },
+      "phase": {
+        "key": "10",
+        "type": "integer"
+      }
+    }
+  },
+  "skills/equipment": {
+    "table": "itemSkills.bin",
+    "fields": {
+      "skillId": {
+        "key": "skillId",
+        "type": "integer",
+        "required": true
+      },
+      "phase": {
+        "key": "phase",
+        "type": "integer"
+      },
+      "effectValue": {
+        "key": "effval",
+        "type": "integer"
+      },
+      "upgrade": {
+        "key": "upgrade",
+        "type": "integer"
+      }
+    }
+  }
+}

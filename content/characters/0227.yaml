@@ -1,0 +1,15 @@
+# characters / stable ID: 227
+id: 227
+name: "보병 18"
+face: 178
+mapAvatar: 0
+speechGroup: 0
+attack: 30
+defense: 40
+spirit: 35
+critical: 30
+morale: 30
+maxHitPoints: 110
+maxMagicPoints: 10
+posts: 3
+intro: ""

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 139
+id: 139
+name: "기병을 약화시킵니다."
+format: 3
+intro: "기마 유닛의 공격을 받을 때, 피해를 X% 감소시킵니다."

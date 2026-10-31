@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 25
+id: 25
+name: "돌격 공격"
+index: 25
+skillId: 25
+value: 6
+intro: "이동한 칸 수에 따라 일정량의 공격력을 높여주는 능력이 있습니다."

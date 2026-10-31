@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 110
+id: 110
+name: "질풍 공격"
+format: 4
+intro: "상대방의 이동력이 낮을수록, 그에 대한 피해가 높습니다."

@@ -1,0 +1,10 @@
+# equipment / stable ID: 67
+id: 67
+name: "여유 8"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "몸에 기러기 깃털 모양의 황금 자개판이 박혀 있음. 효과: 적의 치명타 공격과 연속 공격을 방어할 수 있으며, 장착자의 공격 범위는 8방향임."
+skillEffects: [87]

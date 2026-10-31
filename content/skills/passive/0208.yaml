@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 208
+id: 208
+name: "주변 HP를 향상시킵니다."
+format: 4
+intro: "매 턴 자신과 주변 아군의 HP가 자동으로 회복됩니다."

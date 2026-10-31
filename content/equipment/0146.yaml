@@ -1,0 +1,9 @@
+# equipment / stable ID: 146
+id: 146
+name: "총사령관의 검"
+itemType: 92
+specialType: 2
+iconIndex: 150
+value: 5
+upgradeValue: 255
+intro: "전설 속 장비 중 하나로, 삼군을 호령하는 자만이 이 검의 위력을 제어할 수 있으며, 착용자의 잠재력을 일깨웁니다.\n\n[보물 효과] 인물 및 병종 능력치 제한을 무시하며, 모든 능력치의 최소 성장치가 5점입니다."

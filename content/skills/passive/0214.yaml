@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 214
+id: 214
+name: "같은 적에게 분개하다"
+format: 5
+intro: "우군이 공격하는 적에게 추가 공격을 한 번 더 하며, 매 턴 최대 2회까지 발동할 수 있습니다."

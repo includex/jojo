@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 64
+id: 64
+name: "공격 방어 보조"
+format: 2
+incrementType: 1
+intro: "공격 명중률을 낮춥니다."

@@ -1,4 +1,5 @@
 import java.time.Duration
+import com.jojo.content.CompileGameContent
 
 plugins {
     kotlin("jvm")
@@ -47,6 +48,10 @@ tasks.test { dependsOn(auditScenarioBranchSurface) }
 val cocosAssetsDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/assets")
 val generatedAstDirectory = layout.buildDirectory.dir("generated/scenario-ast")
 val generatedMapAssetsDirectory = layout.buildDirectory.dir("generated/map-assets")
+val generatedGameContentDirectory = layout.buildDirectory.dir("generated/game-content")
+val authoredGameTables = listOf(
+    "unit", "item", "magic", "defineSkill", "unitPostsSkill", "itemSkills",
+).map { "data/$it.bin" }
 val generatedSourceMapTexturesDirectory = layout.buildDirectory.dir("generated/source-map-textures")
 val generatedStreetBodyLabelsDirectory = layout.buildDirectory.dir("generated/street-body-labels")
 val generatedInfoLabelsDirectory = layout.buildDirectory.dir("generated/info-labels")
@@ -86,6 +91,10 @@ val exportMapAssets = tasks.register<Exec>("exportMapAssets") {
     commandLine("python3", rootProject.file("tools/export_map_assets.py").absolutePath,
         cocosAssetsDirectory.absolutePath, generatedMapAssetsDirectory.get().asFile.absolutePath)
 }
+val compileGameContent = tasks.register<CompileGameContent>("compileGameContent") {
+    sourceDirectory.set(rootProject.layout.projectDirectory.dir("content"))
+    outputDirectory.set(generatedGameContentDirectory)
+}
 val exportSourceMapTextures = tasks.register<Exec>("exportSourceMapTextures") {
     dependsOn(exportMapAssets)
     timeout.set(Duration.ofSeconds(60))
@@ -109,11 +118,11 @@ val exportAudioAssets = tasks.register<Exec>("exportAudioAssets") {
         cocosAssetsDirectory.absolutePath, generatedAudioAssetsDirectory.get().asFile.absolutePath)
 }
 val exportStreetSpeakerLabels = tasks.register<Exec>("exportStreetSpeakerLabels") {
-    dependsOn(exportMapAssets)
+    dependsOn(compileGameContent)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_speaker_labels.cjs"))
     inputs.file(rootProject.file("tools/street_speaker_label_contract.json"))
-    inputs.file(generatedMapAssetsDirectory.map { it.file("data/unit.bin") })
+    inputs.file(generatedGameContentDirectory.map { it.file("data/unit.bin") })
     inputs.file(cocosAssetsDirectory.parentFile.resolve("package-lock.json"))
     inputs.files(
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/assets/CCTexture2D.js"),
@@ -133,7 +142,7 @@ val exportStreetSpeakerLabels = tasks.register<Exec>("exportStreetSpeakerLabels"
     outputs.dir(generatedStreetSpeakerLabelsDirectory)
     commandLine("node", rootProject.file("tools/export_street_speaker_labels.cjs").absolutePath,
         cocosAssetsDirectory.parentFile.absolutePath,
-        generatedMapAssetsDirectory.get().file("data/unit.bin").asFile.absolutePath,
+        generatedGameContentDirectory.get().file("data/unit.bin").asFile.absolutePath,
         generatedStreetSpeakerLabelsDirectory.get().asFile.absolutePath)
 }
 val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
@@ -270,11 +279,18 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
     into(generatedReferenceFramebuffersDirectory)
 }
 tasks.processResources {
-    dependsOn(exportScenarioAst, exportMapAssets, exportSourceMapTextures, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
+    dependsOn(exportScenarioAst, exportMapAssets, compileGameContent, exportSourceMapTextures, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
         extractTitleLoadConfirmations, exportScenarioChoiceReference)
     from(restoredScenarioDirectory) { include("*.py", "manifest.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
-    from(generatedMapAssetsDirectory) { into("maps") }
+    from(generatedMapAssetsDirectory) {
+        exclude(*authoredGameTables.toTypedArray())
+        into("maps")
+    }
+    from(generatedGameContentDirectory) {
+        include(*authoredGameTables.toTypedArray())
+        into("maps")
+    }
     from(generatedSourceMapTexturesDirectory) { include("*.png", "manifest.json"); into("source-map-textures") }
     from(generatedStreetBodyLabelsDirectory) { include("*.png", "manifest.json"); into("street-body-labels") }
     from(generatedInfoLabelsDirectory) { include("*.png", "manifest.json"); into("info-labels") }

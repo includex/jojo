@@ -1,0 +1,15 @@
+# characters / stable ID: 274
+id: 274
+name: "기병17"
+face: 173
+mapAvatar: 0
+speechGroup: 2
+attack: 40
+defense: 35
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: ""

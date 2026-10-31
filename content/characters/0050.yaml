@@ -1,0 +1,15 @@
+# characters / stable ID: 50
+id: 50
+name: "마책"
+face: 50
+mapAvatar: 50
+speechGroup: 3
+attack: 37
+defense: 29
+spirit: 44
+critical: 37
+morale: 26
+maxHitPoints: 80
+maxMagicPoints: 40
+posts: 30
+intro: "자호는 어린 상. 마량의 동생이다. 재주가 뛰어나 제갈량이 후계자로 여겼으나, 유비가 임종 시 그가 지나치게 말하는 경향이 있어 크게 쓰기 어렵다고 했다. 계정 전투 때, 종이 위의 전술만으로 인해 패배하여 제갈량에게 눈물을 흘리며 참수당했다."

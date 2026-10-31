@@ -1,0 +1,9 @@
+# equipment / stable ID: 160
+id: 160
+name: "관직명"
+itemType: 39
+specialType: 3
+price: 10
+iconIndex: 97
+upgradeValue: 0
+intro: "병종 승급 시 필요한 인수. 등급이 일정 수준에 도달한 부대가 사용하면 상위 단계의 병종으로 승급할 수 있으며, HP와 MP를 완전히 회복하는 작용을 합니다."

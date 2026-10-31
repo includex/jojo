@@ -1,0 +1,16 @@
+# characters / stable ID: 66
+id: 66
+name: "관삭"
+face: 66
+mapAvatar: 66
+speechGroup: 2
+attack: 46
+defense: 40
+spirit: 28
+critical: 28
+morale: 31
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "관우의 삼형제. 형주가 함락되었을 때 피신하여 요양했습니다. 제갈량이 남쪽으로 정벌할 때 의지하여 군에 합류해 선봉장 역할을 맡았습니다. 아버지 대부터 내려온 무용 덕분에 만왕 맹획과 큰 전투를 치르며 공을 세웠습니다."
+battleAvatar: 82

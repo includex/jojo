@@ -1,0 +1,9 @@
+# equipment / stable ID: 170
+id: 170
+name: "거친 곡물"
+itemType: 26
+specialType: 3
+iconIndex: 87
+value: 40
+upgradeValue: 0
+intro: ""

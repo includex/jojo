@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 261
+id: 261
+name: "원거리 피해"
+format: 2
+intro: "공격으로 보병 범위 밖의 적에게 N%의 피해 증가를 줍니다."

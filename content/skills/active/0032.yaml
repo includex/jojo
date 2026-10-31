@@ -1,0 +1,18 @@
+# skills/active / stable ID: 32
+id: 32
+name: "거짓말"
+type: 15
+target: 0
+hitArea: 12
+effectArea: 1
+mpCost: 18
+icon: 11
+intro: "법력을 운용하여 신기루의 가짜 환영을 만들어 여러 적군이 혼란에 빠지게 합니다."
+effect: 25
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 50
+category: 8
+learnLevels: {"32": 30, "66": 30, "67": 1, "74": 31, "79": 1}

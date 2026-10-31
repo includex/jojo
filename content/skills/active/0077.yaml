@@ -1,0 +1,16 @@
+# skills/active / stable ID: 77
+id: 77
+name: "순간이동"
+type: 37
+target: 1
+hitArea: 22
+effectArea: 0
+mpCost: 25
+icon: 40
+intro: "손오공이 보리 조사님께 배운 구름을 나는 술법으로, 한 번의 근두로 만 팔천 리를 이동하며 지도상의 어느 위치로든 순간이동할 수 있다."
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 13
+category: 35

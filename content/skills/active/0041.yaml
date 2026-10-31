@@ -1,0 +1,17 @@
+# skills/active / stable ID: 41
+id: 41
+name: "지원대"
+type: 19
+target: 1
+hitArea: 13
+effectArea: 1
+mpCost: 12
+icon: 7
+intro: "명의가 음양을 조화시키고 천지의 이치에 순응하는 방법으로, 소량의 아군 부대 HP를 회복할 수 있습니다."
+effect: 9
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+category: 13
+learnLevels: {"27": 15, "28": 15, "29": 15, "58": 20, "59": 20, "66": 13, "67": 1, "79": 1}

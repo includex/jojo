@@ -1,0 +1,15 @@
+# characters / stable ID: 349
+id: 349
+name: "풍수사 8"
+face: 164
+mapAvatar: 0
+speechGroup: 0
+attack: 20
+defense: 20
+spirit: 40
+critical: 35
+morale: 35
+maxHitPoints: 80
+maxMagicPoints: 50
+posts: 27
+intro: ""

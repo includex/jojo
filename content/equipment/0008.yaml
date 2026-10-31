@@ -1,0 +1,9 @@
+# equipment / stable ID: 8
+id: 8
+name: "철궁"
+itemType: 4
+price: 30
+iconIndex: 8
+value: 70
+upgradeValue: 15
+intro: "철로 만든 활. 모든 활 중에서 위력이 가장 강합니다."

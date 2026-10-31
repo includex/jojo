@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 161
+id: 161
+name: "역반"
+format: 4
+intro: "적군의 공격을 막아낸 후, 상대에게 x% HP의 실제 피해를 주고 적을 마비시킵니다."

@@ -1,0 +1,9 @@
+# equipment / stable ID: 21
+id: 21
+name: "대나무 부채"
+itemType: 14
+price: 5
+iconIndex: 15
+value: 12
+upgradeValue: 10
+intro: "대나무로 만든 부채입니다. 처음에는 큰 효과를 기대하기 어렵지만, 훈련을 거치면서 위력이 점차 강해집니다."

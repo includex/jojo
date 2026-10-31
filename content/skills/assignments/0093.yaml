@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 93
+id: 93
+name: "전략 추격"
+index: 93
+skillId: 93
+value: 20
+intro: "물리 공격 후 전략 공격을 한 번 추가합니다. 만약 전략 추격이 불가능하면 물리 추격을 합니다."

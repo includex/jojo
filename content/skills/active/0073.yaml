@@ -1,0 +1,17 @@
+# skills/active / stable ID: 73
+id: 73
+name: "가짜 보고"
+type: 33
+target: 0
+hitArea: 13
+effectArea: 0
+mpCost: 50
+icon: 36
+intro: "적군 부대 하나를 제어합니다. 주장에게는 효과가 없습니다."
+effect: 27
+power: 28
+harmType: 4
+condition: 0
+aiUse: 13
+hitRateLimit: 80
+category: 2

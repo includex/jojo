@@ -1,0 +1,11 @@
+# equipment / stable ID: 128
+id: 128
+name: "맹덕 신서"
+itemType: 39
+specialType: 2
+iconIndex: 85
+value: 50
+effectValue: 1
+upgradeValue: 255
+treasure: 1
+intro: "조조가 저술한 병법서. 획득하는 경험치(EXP)를 증가시킬 수 있다.\n\n【확장 효과】 실제 공격력에 MP 수치가 추가되며, 피격당하면 MP가 1 감소한다."

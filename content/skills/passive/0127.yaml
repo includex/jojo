@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 127
+id: 127
+name: "금지 마법 공격"
+format: 4
+intro: "공격 후 x% 확률로 적이 전략 사용을 못하게 만듭니다."

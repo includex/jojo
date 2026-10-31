@@ -1,0 +1,12 @@
+# equipment / stable ID: 122
+id: 122
+name: "절영"
+itemType: 40
+specialType: 2
+iconIndex: 79
+value: 1
+effectValue: 10
+upgradeValue: 255
+treasure: 1
+intro: "조조가 타던 명마. 이동력을 높일 수 있다.\n\n【확장 효과】 공격 시 90도 방향을 돌면 피해량이 증가한다. 180도 방향을 돌면 효과가 두 배가 된다."
+skillEffects: [122]

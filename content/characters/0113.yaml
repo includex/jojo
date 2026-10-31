@@ -1,0 +1,15 @@
+# characters / stable ID: 113
+id: 113
+name: "원담"
+face: 113
+mapAvatar: 113
+speechGroup: 2
+attack: 37
+defense: 35
+spirit: 26
+critical: 29
+morale: 28
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "자현사. 원소의 첫째 아들이다. 아버지 사후, 위조된 유서로 인해 후계자로 지명된 남동생 원상이와 사이가 좋지 않았다. 군사를 일으켜 원상을 공격하며 원씨 가문의 통치권을 되찾으려 했으나, 조조의 공격을 받아 죽었다."

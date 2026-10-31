@@ -1,0 +1,9 @@
+# equipment / stable ID: 161
+id: 161
+name: "무력 과"
+itemType: 33
+specialType: 3
+iconIndex: 98
+value: 2
+upgradeValue: 0
+intro: "먹으면 무용을 높여주는 신비한 열매입니다. 공격력도 어느 정도 상승합니다."

@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 3
+id: 3
+name: "매 턴 경험치 획득"
+index: 3
+skillId: 149
+value: 10
+intro: "매 턴 일정량의 경험치 획득 가능."

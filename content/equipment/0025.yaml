@@ -1,0 +1,9 @@
+# equipment / stable ID: 25
+id: 25
+name: "청동 보검"
+itemType: 16
+price: 10
+iconIndex: 19
+value: 42
+upgradeValue: 10
+intro: "청동으로 만든 보검. 돌로 만든 보검보다 위력이 큽니다."

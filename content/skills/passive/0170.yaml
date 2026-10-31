@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 170
+id: 170
+name: "공격 파괴"
+format: 0
+intro: "공격 후 적의 해당 능력치가 디버프가 됩니다. 만약 이전에 버프 상태였다면 정상 상태로 돌아갑니다."

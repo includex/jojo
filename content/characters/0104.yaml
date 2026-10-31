@@ -1,0 +1,15 @@
+# characters / stable ID: 104
+id: 104
+name: "허유"
+face: 104
+mapAvatar: 104
+speechGroup: 3
+attack: 23
+defense: 15
+spirit: 41
+critical: 36
+morale: 24
+maxHitPoints: 80
+maxMagicPoints: 50
+posts: 27
+intro: "자자원. 원소의 책사이다. 관도 대전에서 원소가 그를 믿지 않아 항복한 이전의 오랜 친구 조조에게 투항했고, 원군이 오거에 비축한 식량에 대한 중요한 정보를 가져와 조조가 원소를 이기는 데 큰 공을 세웠다."

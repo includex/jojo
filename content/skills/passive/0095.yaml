@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 95
+id: 95
+name: "고정 피해 증가"
+format: 1
+intro: "공격 시 추가로 [자신 레벨/2+15] 피해가 증가합니다.\r\n\r\n-모든 종류의 공격력 증가 효과에 영향을 받지 않습니다."

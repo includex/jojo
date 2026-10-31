@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 42
+id: 42
+name: "반동 이상 공격"
+format: 0
+intro: "적군 공격에 부가되는 이상 상태 및 디버프를 반사합니다."

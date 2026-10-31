@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 151
+id: 151
+name: "매 턴 무기 경험치 획득"
+format: 1
+incrementType: 1
+intro: "매 턴 무기 경험치 x점 획득."

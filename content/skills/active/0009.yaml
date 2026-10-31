@@ -1,0 +1,18 @@
+# skills/active / stable ID: 9
+id: 9
+name: "쓰나미"
+type: 1
+target: 0
+hitArea: 6
+effectArea: 0
+mpCost: 20
+icon: 1
+intro: "넓은 바닷물을 옮겨 적군에게 들이붓는 것으로, 개별 적군에게 큰 피해를 입힙니다. 다리, 얕은 물가, 습지, 큰 강, 설원 등에 위치한 부대에만 사용할 수 있습니다."
+effect: 3
+power: 100
+harmType: 0
+condition: 6
+aiUse: 0
+hitRateLimit: 3
+category: 0
+learnLevels: {"25": 27, "26": 27, "62": 30, "65": 32, "67": 1, "79": 1}

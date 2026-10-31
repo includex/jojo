@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 94
+id: 94
+name: "전략 선제공격"
+index: 94
+skillId: 22
+value: 33
+intro: "물리적 또는 전략 공격을 받을 경우, 먼저 전략 공격을 한 번 가합니다."

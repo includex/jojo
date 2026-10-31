@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 144
+id: 144
+name: "마비 공격"
+format: 4
+intro: "공격 후 x% 확률로 적의 이동력이 0으로 처리되어 움직일 수 없게 만듭니다."

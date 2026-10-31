@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 315
+id: 315
+name: "공방 무시"
+format: 4
+intro: "공격 시 적의 방어력을 x% 무시하고, 방어 시 적의 공격력을 x% 무시합니다."

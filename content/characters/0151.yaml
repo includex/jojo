@@ -1,0 +1,15 @@
+# characters / stable ID: 151
+id: 151
+name: "서서"
+face: 151
+mapAvatar: 151
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 24
+intro: ""

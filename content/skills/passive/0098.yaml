@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 98
+id: 98
+name: "지형 적성 무시"
+format: 4
+intro: "공격 시 적의 지형 적응성 x%를 무시합니다."

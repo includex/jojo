@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 65
+id: 65
+name: "보병 방어"
+index: 65
+skillId: 285
+value: 50
+intro: "매 턴마다 정신력이 자동으로 상승합니다."

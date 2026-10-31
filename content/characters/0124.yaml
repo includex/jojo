@@ -1,0 +1,16 @@
+# characters / stable ID: 124
+id: 124
+name: "조성"
+face: 124
+mapAvatar: 124
+speechGroup: 1
+attack: 36
+defense: 37
+spirit: 25
+critical: 32
+morale: 38
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 12
+intro: "여포 휘하의 대장군. 동료 고순이 하후돈에게 추격당하는 것을 보고, 진형 속에서 화살을 쏘아 하후돈의 왼쪽 눈에 명중시켰습니다. 결국 분노한 하후돈에게 베였습니다."
+battleAvatar: 85

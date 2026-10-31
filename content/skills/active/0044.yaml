@@ -1,0 +1,17 @@
+# skills/active / stable ID: 44
+id: 44
+name: "건언"
+type: 20
+target: 1
+hitArea: 12
+effectArea: 0
+mpCost: 24
+icon: 8
+intro: "명의가 인체의 삼화, 즉 정기신이 어우러져 현관 한 구멍에 모이는 법을 가르칩니다. 소량으로 아군 개별 부대의 MP를 회복할 수 있습니다."
+effect: 11
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+category: 14
+learnLevels: {"1": 20, "2": 20, "27": 11, "28": 11, "29": 11, "66": 19, "67": 1, "79": 1}

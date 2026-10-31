@@ -1,0 +1,16 @@
+# characters / stable ID: 9
+id: 9
+name: "방덕"
+face: 10
+mapAvatar: 9
+speechGroup: 0
+attack: 45
+defense: 48
+spirit: 39
+critical: 31
+morale: 30
+maxHitPoints: 120
+maxMagicPoints: 11
+posts: 3
+intro: "자는 영명이며, 마초의 심복 장수이다. 조조에게 포로로 잡힌 후 조군에 투항하여 공을 세웠다. 관우가 번성에서 공격할 때, 그는 관우의 관을 들고 싸워 거의 관우를 격파할 뻔했다. 나중에 관우에게 일곱 군대를 물에 잠기게 당해 포로가 되었으나 항복하지 않고 죽었다."
+battleAvatar: 17

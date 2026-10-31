@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 43
+id: 43
+name: "전략 지형 무시"
+index: 43
+skillId: 19
+value: 1
+intro: "전략을 사용할 때 지형 제한을 무시하는 효과를 얻습니다."

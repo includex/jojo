@@ -1,0 +1,16 @@
+# characters / stable ID: 24
+id: 24
+name: "순유"
+face: 24
+mapAvatar: 24
+speechGroup: 0
+attack: 17
+defense: 40
+spirit: 47
+critical: 38
+morale: 39
+maxHitPoints: 82
+maxMagicPoints: 50
+posts: 27
+intro: "자는 공달이며, 순욱의 조카입니다. 순욱과 함께 조조를 섬겼습니다. 군사적인 재능이 뛰어나 전장에서 자주 계책을 내어 적군을 격파했습니다. 적벽대전에서는 그와 정욱이 함께 군대 참모 역할을 맡았습니다."
+battleAvatar: 33

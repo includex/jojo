@@ -1,0 +1,16 @@
+# characters / stable ID: 40
+id: 40
+name: "손건"
+face: 40
+mapAvatar: 40
+speechGroup: 8
+attack: 38
+defense: 29
+spirit: 33
+critical: 31
+morale: 38
+maxHitPoints: 90
+maxMagicPoints: 10
+posts: 6
+intro: "자는 공우다. 원래 도겸의 부하였다. 도겸이 죽은 후, 뒤를 이은 유비를 보좌했다. 유비 초기에 주요한 참모이자 외교관으로서 여러 번 큰 공을 세웠다. 유비가 회현에 도착했을 때 그의 대우는 미축 다음이었다."
+battleAvatar: 79

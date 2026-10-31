@@ -1,0 +1,15 @@
+# characters / stable ID: 306
+id: 306
+name: "포병 9"
+face: 182
+mapAvatar: 0
+speechGroup: 8
+attack: 40
+defense: 35
+spirit: 30
+critical: 20
+morale: 35
+maxHitPoints: 90
+maxMagicPoints: 10
+posts: 15
+intro: ""

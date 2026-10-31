@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 36
+id: 36
+name: "두 번째 행동"
+format: 0
+intro: "대기 후 한 번 더 행동할 수 있으며, 회귀 시에는 두 번이 아닌 한 번의 행동 기회만 있습니다."

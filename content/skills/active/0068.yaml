@@ -1,0 +1,18 @@
+# skills/active / stable ID: 68
+id: 68
+name: "쇠퇴기"
+type: 28
+target: 0
+hitArea: 6
+effectArea: 0
+mpCost: 20
+icon: 35
+intro: "부대의 공격력, 정신력, 방어력, 폭발력, 사기를 낮춥니다."
+effect: 27
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+hitRateLimit: 60
+category: 30
+learnLevels: {"74": 26}

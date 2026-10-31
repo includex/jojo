@@ -1,0 +1,18 @@
+# skills/active / stable ID: 61
+id: 61
+name: "기합"
+type: 11
+target: 1
+hitArea: 11
+effectArea: 0
+mpCost: 3
+icon: 15
+intro: "아군 부대의 공격력을 일시적으로 높입니다. 다만 책사 계열, 도사 계열, 풍수사 계열 등 문관 계열 부대는 정신력을 높입니다."
+effect: 13
+power: 28
+harmType: 4
+condition: 6
+aiUse: 5
+hitRateLimit: 2
+category: 23
+learnLevels: {"18": 1, "19": 1, "20": 1, "24": 3, "25": 3, "26": 3, "33": 3, "34": 3, "35": 3, "43": 15, "44": 15, "57": 1, "58": 1, "59": 1, "66": 1, "67": 1, "75": 1, "76": 8, "79": 1}

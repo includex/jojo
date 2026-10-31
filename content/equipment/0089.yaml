@@ -1,0 +1,11 @@
+# equipment / stable ID: 89
+id: 89
+name: "흑우 두루마기"
+itemType: 23
+specialType: 99
+iconIndex: 133
+value: 14
+effectValue: 1
+upgradeValue: 9
+intro: "까마귀 깃털로 만든 옷.\n\n【보물 효과】아군이 공격하는 적에게 추가 공격을 한 번 더 가합니다. 매 턴 최대 2/3회 발동 가능."
+skillEffects: [29, 31]

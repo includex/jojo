@@ -1,0 +1,7 @@
+# skills/passive / stable ID: 157
+id: 157
+name: "능력 보조"
+argument: 20
+format: 9
+incrementType: 2
+intro: "특정 능력의 x%를 다른 능력 위에 추가하는 능력 보조입니다."

@@ -1,0 +1,10 @@
+# equipment / stable ID: 135
+id: 135
+name: "손자병법"
+itemType: 86
+specialType: 2
+iconIndex: 122
+value: 4
+upgradeValue: 255
+treasure: 1
+intro: "춘추시대 오나라 손무가 저술한 병법서다. 매 턴마다 경험치(EXP)가 상승한다.\n\n【확장 효과】연격 두 번째 공격과 반격 피해량이 증가하며, 공격이 반드시 명중한다."

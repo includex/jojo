@@ -1,0 +1,6 @@
+# skills/passive / stable ID: 26
+id: 26
+name: "분노 공격"
+format: 2
+resetType: 2
+intro: "적군이 턴을 거치며 받은 공격 횟수에 따라 추가 피해를 입힙니다."

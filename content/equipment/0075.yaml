@@ -1,0 +1,10 @@
+# equipment / stable ID: 75
+id: 75
+name: "전투 복장"
+itemType: 22
+price: 30
+iconIndex: 116
+value: 70
+upgradeValue: 10
+intro: "전투에 사용되는 복장입니다. 모든 의복 중 방어력이 가장 좋습니다."
+skillEffects: [21, 128]

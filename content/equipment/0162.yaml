@@ -1,0 +1,9 @@
+# equipment / stable ID: 162
+id: 162
+name: "총사령관 과"
+itemType: 34
+specialType: 3
+iconIndex: 100
+value: 2
+upgradeValue: 0
+intro: "먹으면 지휘 능력을 높여주는 신비한 열매입니다. 방어력도 어느 정도 상승합니다."

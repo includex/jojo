@@ -1,0 +1,17 @@
+# skills/active / stable ID: 70
+id: 70
+name: "저주"
+type: 30
+target: 0
+hitArea: 12
+effectArea: 0
+mpCost: 120
+icon: 32
+intro: "조건 교환 적우 양측의 HP 무시."
+effect: 27
+power: 28
+harmType: 4
+condition: 6
+aiUse: 3
+hitRateLimit: 60
+category: 0

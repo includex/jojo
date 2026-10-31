@@ -1,0 +1,15 @@
+# characters / stable ID: 26
+id: 26
+name: "하후은"
+face: 26
+mapAvatar: 26
+speechGroup: 2
+attack: 38
+defense: 37
+spirit: 29
+critical: 30
+morale: 41
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "조조의 등검관으로, 조조의 청강검을 관리했다. 장판파에서 민간 재물을 빼앗는 과정에서 조운의 창 아래 사망했고, 청강검은 결국 조운에게 빼앗겼다."

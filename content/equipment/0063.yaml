@@ -1,0 +1,10 @@
+# equipment / stable ID: 63
+id: 63
+name: "여유 4"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "문무 관리가 공복이나 조회 시 입는 의복입니다. 특정 색상이나 무늬로 관직의 등급을 나타내며, 봉건 사회에서 권위를 상징하는 역할을 합니다."
+skillEffects: [57]

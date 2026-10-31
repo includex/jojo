@@ -1,0 +1,10 @@
+# equipment / stable ID: 65
+id: 65
+name: "여유 6"
+itemType: 0
+specialType: 0
+price: 0
+iconIndex: 0
+upgradeValue: 0
+intro: "초나라의 비단은 모양이 화려하고 세부적인 마감이 정교하여 사대부들이 선호하는 의복입니다."
+skillEffects: [37]

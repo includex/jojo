@@ -1,0 +1,18 @@
+# skills/active / stable ID: 46
+id: 46
+name: "각성"
+type: 21
+target: 1
+hitArea: 13
+effectArea: 0
+mpCost: 8
+icon: 9
+intro: "선문에서 전해 내려오는 덕산봉이나 임제차는 나중에 대덕 고승들이 정신을 번쩍 들게 하고 길을 가르쳐주는 데 자주 사용되는 수단이 되었습니다. 독, 마비, 혼란 상태에 빠진 개별 아군 부대를 정상으로 회복시킬 수 있습니다."
+effect: 28
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 1
+category: 15
+learnLevels: {"27": 7, "28": 7, "29": 7, "36": 1, "37": 1, "38": 1, "57": 3, "58": 3, "59": 3, "66": 7, "67": 1, "74": 7, "79": 1}

@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 33
+id: 33
+name: "적법"
+format: 4
+intro: "공격 시 적 최대 MP의 20%에 해당하는 피해가 추가됩니다."

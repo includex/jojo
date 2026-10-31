@@ -1,0 +1,18 @@
+# skills/active / stable ID: 30
+id: 30
+name: "선동"
+type: 8
+target: 0
+hitArea: 12
+effectArea: 1
+mpCost: 12
+icon: 21
+intro: "서한의 명장 한신이 자택길을 수리하고 몰래 진창으로 나와 적의 허를 찔러 삼진 지역을 평정한 전략입니다. 여러 적군의 방어력을 하락시킵니다."
+effect: 19
+power: 28
+harmType: 4
+condition: 6
+aiUse: 0
+hitRateLimit: 60
+category: 7
+learnLevels: {"31": 29, "32": 29, "66": 29, "67": 1, "74": 29, "79": 1}

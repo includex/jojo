@@ -1,0 +1,7 @@
+# skills/passive / stable ID: 158
+id: 158
+name: "능력 무시"
+argument: 15
+format: 10
+incrementType: 2
+intro: "상대방의 특정 능력 x% 무시."

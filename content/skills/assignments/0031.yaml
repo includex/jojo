@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 31
+id: 31
+name: "공격 명중 보조"
+index: 31
+skillId: 66
+value: 20
+intro: "공격 시 상대방에 대한 명중률을 높일 수 있습니다."

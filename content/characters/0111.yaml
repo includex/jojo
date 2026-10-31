@@ -1,0 +1,15 @@
+# characters / stable ID: 111
+id: 111
+name: "순우경"
+face: 111
+mapAvatar: 111
+speechGroup: 3
+attack: 36
+defense: 28
+spirit: 20
+critical: 34
+morale: 26
+maxHitPoints: 110
+maxMagicPoints: 10
+posts: 3
+intro: "원소 휘하 대장군. 원래 원소, 조조와 마찬가지로 서원 팔교위 중 한 명이었다. 관도 대전 때 오소에 군량을 지키고 있었다. 술에 취해 일을 그르치면서, 조조에게 기회를 얻어 화공을 당했고, 이로 인해 원군이 크게 패배했다."

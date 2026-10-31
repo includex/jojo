@@ -1,0 +1,15 @@
+# characters / stable ID: 123
+id: 123
+name: "후성"
+face: 123
+mapAvatar: 123
+speechGroup: 0
+attack: 38
+defense: 35
+spirit: 27
+critical: 26
+morale: 27
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "여포의 부장으로, 조군과 대치할 때 실수로 여포의 금주령을 어기다 독을 맞아 심한 상처를 입었다. 원한을 품고 위속, 송헌과 함께 반란을 일으켜 여포의 적토마를 훔쳐 조조에게 넘겼다."

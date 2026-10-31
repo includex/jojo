@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 263
+id: 263
+name: "지형 상태 추가"
+format: 2
+intro: "지형 적응력 증가 x%"

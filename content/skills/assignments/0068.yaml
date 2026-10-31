@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 68
+id: 68
+name: "회마 공격"
+index: 68
+skillId: 285
+value: 25
+intro: "매 턴마다 이동 능력이 자동으로 상승합니다."

@@ -1,0 +1,9 @@
+# equipment / stable ID: 159
+id: 159
+name: "만능 약"
+itemType: 32
+specialType: 3
+price: 10
+iconIndex: 96
+upgradeValue: 0
+intro: "중독, 혼란, 마비, 금지된 주문 등 모든 이상 상태를 치유하는 약입니다."

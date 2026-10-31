@@ -1,0 +1,11 @@
+# equipment / stable ID: 109
+id: 109
+name: "청동 방패"
+itemType: 61
+specialType: 2
+price: 10
+iconIndex: 67
+value: 15
+upgradeValue: 255
+intro: "청동으로 만든 방패. 적의 공격에 대한 방어율을 높일 수 있습니다."
+skillEffects: [70]

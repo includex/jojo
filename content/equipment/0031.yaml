@@ -1,0 +1,12 @@
+# equipment / stable ID: 31
+id: 31
+name: "의천검"
+itemType: 1
+specialType: 61
+iconIndex: 22
+value: 16
+effectValue: 15
+upgradeValue: 9
+treasure: 1
+intro: "조조가 사용하는 보검으로, 청강검과 한 쌍이다. 검신이 넓고 매우 견고하여 적의 공격을 막는 방패로 사용할 수 있다.\n\n【확장 효과】 공격 및 계책의 명중률 감소."
+skillEffects: [133]

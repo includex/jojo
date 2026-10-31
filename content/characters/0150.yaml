@@ -1,0 +1,15 @@
+# characters / stable ID: 150
+id: 150
+name: "양수"
+face: 150
+mapAvatar: 150
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 24
+intro: ""

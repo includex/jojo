@@ -1,0 +1,16 @@
+# skills/active / stable ID: 74
+id: 74
+name: "방화"
+type: 34
+target: 1
+hitArea: 1
+effectArea: 0
+mpCost: 20
+icon: 37
+intro: "불을 지펴 적군의 진격을 막는 데 사용하지만, 방화는 불을 끄기 어려우니 신중하게 사용하세요!"
+effect: 144
+power: 28
+harmType: 4
+condition: 0
+aiUse: 13
+category: 27

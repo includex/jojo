@@ -1,0 +1,16 @@
+# characters / stable ID: 119
+id: 119
+name: "여포"
+face: 119
+mapAvatar: 119
+speechGroup: 0
+attack: 50
+defense: 50
+spirit: 6
+critical: 47
+morale: 42
+maxHitPoints: 110
+maxMagicPoints: 5
+posts: 60
+intro: "자는 봉선이며, '사람 중의 여포, 말 중의 적토'라 불리는 용맹한 장수입니다. 무예가 뛰어나고 활과 말을 능숙하게 다루지만, 성격이 변덕스러워 몇 번이나 주군을 배신하고 살해했습니다. 결국 부하의 배신으로 조조에게 붙잡혀 목매어 죽은 후 참수당했습니다."
+battleAvatar: 73

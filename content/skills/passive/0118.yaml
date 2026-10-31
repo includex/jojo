@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 118
+id: 118
+name: "물리 피해 경감"
+format: 3
+intro: "받는 물리 공격 피해 X% 감소, 방어력 무시 공격 피해 감소 불가"

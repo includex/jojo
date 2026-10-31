@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 114
+id: 114
+name: "공격력이 강화됩니다."
+format: 2
+intro: "공격 피해가 x% 증가합니다."

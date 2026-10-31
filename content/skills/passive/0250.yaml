@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 250
+id: 250
+name: "일걸음"
+format: 4
+intro: "피격 시 후퇴할 수 있다면, 피해를 x% 감소시킵니다."

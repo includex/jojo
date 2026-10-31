@@ -1,0 +1,17 @@
+# skills/active / stable ID: 84
+id: 84
+name: "세 가지 맛의 진화"
+type: 0
+target: 0
+hitArea: 13
+effectArea: 3
+mpCost: 10
+icon: 0
+intro: "한 유닛에게 3회 화염 공격을 가합니다."
+effect: 0
+power: 70
+harmType: 0
+condition: 2
+aiUse: 5
+hitRateLimit: 80
+category: 26

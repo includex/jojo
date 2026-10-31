@@ -1,0 +1,11 @@
+# equipment / stable ID: 119
+id: 119
+name: "철투구"
+itemType: 37
+specialType: 2
+iconIndex: 76
+value: 45
+upgradeValue: 255
+treasure: 1
+intro: "철제 투구. 모든 투구 중에서 효과가 가장 좋으며, 장착자의 최대 HP를 크게 상승시킵니다.\n\n【확장 효과】받는 피해가 해당 수치를 초과하지 않습니다."
+skillEffects: [14]

@@ -1,0 +1,11 @@
+# equipment / stable ID: 115
+id: 115
+name: "두건"
+itemType: 38
+specialType: 2
+price: 10
+iconIndex: 72
+value: 30
+upgradeValue: 255
+intro: "두건의 일종. 은거하는 사람들이 좋아하여 착용자의 최대 MP를 높일 수 있습니다."
+skillEffects: [202]

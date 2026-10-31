@@ -1,0 +1,5 @@
+# skills/passive / stable ID: 183
+id: 183
+name: "거문고 마음과 검의 담대함"
+format: 4
+intro: "공격 시 x의 고정 피해를 부여하고, 피격 시 x의 고정 피해를 감소시킵니다. 여기서 x는: 무력 × (x×10)%입니다."

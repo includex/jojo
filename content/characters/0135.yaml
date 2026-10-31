@@ -1,0 +1,15 @@
+# characters / stable ID: 135
+id: 135
+name: "이숙"
+face: 135
+mapAvatar: 135
+speechGroup: 7
+attack: 17
+defense: 19
+spirit: 41
+critical: 36
+morale: 29
+maxHitPoints: 80
+maxMagicPoints: 40
+posts: 30
+intro: "동탁의 부하. 적토마를 여포에게 바치고 설득하여 반란을 일으키게 한 뒤 동탁에게 투항하게 했다. 나중에 왕윤이 동탁을 암살하는 계획에 가담하여, 사신인 척하며 동탁을 궁궐로 유인했다."

@@ -1,0 +1,15 @@
+# characters / stable ID: 73
+id: 73
+name: "맹우"
+face: 73
+mapAvatar: 73
+speechGroup: 1
+attack: 40
+defense: 37
+spirit: 23
+critical: 37
+morale: 22
+maxHitPoints: 90
+maxMagicPoints: 5
+posts: 64
+intro: "남만왕 맹획의 동생입니다. 형을 도와 제갈량을 저항했으며, 현명한 도사대왕을 패전하여 비참했던 맹획에게 소개했습니다. 결국 여전히 제갈량의 지모를 이기지 못하고 형과 함께 항복하며 영원히 반란을 일으키지 않겠다고 맹세했습니다."

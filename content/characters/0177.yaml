@@ -1,0 +1,15 @@
+# characters / stable ID: 177
+id: 177
+name: "농민 01"
+face: 157
+mapAvatar: 177
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 73
+intro: ""

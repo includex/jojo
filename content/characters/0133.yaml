@@ -1,0 +1,15 @@
+# characters / stable ID: 133
+id: 133
+name: "번주"
+face: 133
+mapAvatar: 133
+speechGroup: 1
+attack: 36
+defense: 31
+spirit: 24
+critical: 27
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 10
+posts: 9
+intro: "동탁의 부장. 동탁 사후, 흥병으로 역모를 꾸미는 마릉과 한수이를 물리치고 적군을 추격하던 중, 옛정을 그리워하여 고향 사람인 한수이를 놓아주었고, 이로 인해 이각과 곽사에게 살해당했다."

@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 33
+id: 33
+name: "방어력 보조"
+index: 33
+skillId: 71
+value: 20
+intro: "방어력을 높여 적이 사용하는 전략과 공격의 명중률을 높일 수 있습니다."

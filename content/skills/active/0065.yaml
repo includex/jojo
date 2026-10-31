@@ -1,0 +1,18 @@
+# skills/active / stable ID: 65
+id: 65
+name: "주작"
+type: 25
+target: 0
+hitArea: 13
+effectArea: 2
+mpCost: 40
+icon: 27
+intro: "주작 소환. 소환된 주작은 맹렬한 불꽃으로 적군 부대를 태운다."
+effect: 105
+power: 100
+harmType: 3
+condition: 3
+aiUse: 5
+hitRateLimit: 2
+category: 0
+learnLevels: {"26": 35, "67": 1, "79": 1}

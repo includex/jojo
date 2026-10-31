@@ -1,0 +1,16 @@
+# characters / stable ID: 162
+id: 162
+name: "노숙 99"
+face: 212
+mapAvatar: 0
+speechGroup: 4
+attack: 26
+defense: 32
+spirit: 47
+critical: 26
+morale: 34
+maxHitPoints: 90
+maxMagicPoints: 40
+posts: 24
+intro: "자지경. 줄곧 유비와 연합하여 조조에 대항할 것을 주장했다. 적벽대전 때 주유를 보좌하여 유비와 연합해 조조를 물리쳤다. 주유와 관계가 매우 좋았다. 주유 사후 도독을 계승하며 중책을 맡았다."
+battleAvatar: 94

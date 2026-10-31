@@ -1,0 +1,16 @@
+# skills/active / stable ID: 103
+id: 103
+name: "공백0103"
+type: 40
+target: 0
+hitArea: 0
+effectArea: 0
+mpCost: 6
+icon: 43
+intro: "먹으면 경험치를 얻을 수 있는 신비한 열매입니다. 체력과 법력을 완전히 회복할 수 있습니다."
+effect: 0
+power: 28
+harmType: 4
+condition: 0
+aiUse: 15
+category: 0

@@ -1,0 +1,15 @@
+# characters / stable ID: 201
+id: 201
+name: "관우의 목마"
+face: 6
+mapAvatar: 201
+speechGroup: 0
+attack: 30
+defense: 30
+spirit: 30
+critical: 30
+morale: 30
+maxHitPoints: 100
+maxMagicPoints: 100
+posts: 73
+intro: ""

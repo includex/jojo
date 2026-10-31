@@ -1,0 +1,7 @@
+# skills/assignments / stable ID: 1
+id: 1
+name: "매 턴 MP를 회복합니다."
+index: 1
+skillId: 147
+value: 10
+intro: "매 턴 일정량의 MP 회복 가능."

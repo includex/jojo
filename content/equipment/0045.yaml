@@ -1,0 +1,10 @@
+# equipment / stable ID: 45
+id: 45
+name: "개산도"
+itemType: 7
+specialType: 94
+iconIndex: 36
+value: 16
+upgradeValue: 9
+intro: "서황이 자주 사용하는 무기입니다.\n\n【보물 효과】 적군의 여러 능력치를 무작위로 낮추고, 다양한 이상 상태에 빠지게 합니다."
+skillEffects: [105]

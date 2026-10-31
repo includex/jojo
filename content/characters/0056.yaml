@@ -1,0 +1,15 @@
+# characters / stable ID: 56
+id: 56
+name: "비의"
+face: 56
+mapAvatar: 56
+speechGroup: 0
+attack: 20
+defense: 24
+spirit: 40
+critical: 35
+morale: 37
+maxHitPoints: 80
+maxMagicPoints: 50
+posts: 27
+intro: "자문위. 제갈량의 참모였다. 능력이 뛰어난 문관으로, 후방에 남아 북벌을 지원했다. 제갈량이 죽은 후, 그는 유지를 계승하여 장완과 함께 쇠락해가는 촉나라를 지탱했다."
