@@ -20,7 +20,16 @@ object LinchongModSmokeLauncher {
         var readyFrames = 0
         var debugAt = 3f
         var checkedRescue = false
+        var attackSamples = 0
+        var nextAttackSample = 0f
         val driver = RuntimeBattleDriver { frame, probe ->
+            if (probe.activeActionSourceAction in setOf(6, 7, 25, 48) &&
+                attackSamples < 8 && frame.elapsed >= nextAttackSample) {
+                capture("$output-combat-${attackSamples.toString().padStart(2, '0')}.png")
+                println("SPRITE_COMBAT_SAMPLE actor=${probe.activeActionActorId} action=${probe.activeActionSourceAction} time=${frame.elapsed}")
+                attackSamples++
+                nextAttackSample = frame.elapsed + .12f
+            }
             if (frame.elapsed >= debugAt) {
                 println("MOD_STATE $scenario ${probe.playback} ${probe.turnPhase} win=${probe.winConditionsOpen} boot=${probe.bootstrapComplete}")
                 capture("$output-current.png")

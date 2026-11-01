@@ -1,0 +1,27 @@
+{
+  "key": "lu",
+  "mode": "builtin image_gen edit",
+  "sourcePaths": [
+    "content/examples/linchong/assets/sprites-v2/lu.png"
+  ],
+  "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-ef0e2ae0-e5ee-497d-8a45-40c82a038879.png",
+  "savedPath": "content/examples/linchong/assets/sprites-v2/lu.png",
+  "prompt": "Use case: precise-object-edit.\nEdit target: the supplied Lu Zhishen transparent game sprite sheet. Preserve the SAME distinctive bald, heavily bearded muscular monk in saffron-yellow robes with an ornate broad monk's spade polearm, 1990s Jojo-era crisp square-pixel style, colors, and all 28 keyed poses.\nRequired correction: REMOVE every separate WHITE/SILVER slash trail, impact crescent, glow, and motion arc from attack frames. Keep only the monk and his physical gray bladed polearm. Make every attack actor and polearm physically separate from adjacent cells.\nRecompose the sheet as EXACTLY FOUR COLUMNS and SEVEN ROWS of 28 distinct sprites. Transparent background. Square equal cells with at least 32 pixels of clear alpha gutter on ALL FOUR SIDES of EACH cell at the 948x1659 output size; scale the actor and complete polearm uniformly smaller as necessary. No character or weapon may touch or cross any cell border or another sprite. In particular row 1 column 4 (frame 3) must be a complete separate front recovery pose, not obscured by the prior slash. All bodies centered with consistent foot anchors.\nPreserve row-major pose order: row 1 four front attacks anticipation/windup/strike/recovery; row 2 four back attacks; row 3 four LEFT profile attacks; row 4 front walk A/B and back walk A/B; row 5 LEFT walk A/B and front/back neutral; row 6 LEFT neutral, hurt kneel, fallen, front guard; row 7 back guard, LEFT guard, wounded recoil, victory raised polearm. Attack poses must remain genuinely different with strong motion in body and weapon, but NO detached special effects.\nAvoid text, labels, grid lines, opaque background, extra frames, painterly gradients, blur, realism, or 3D. Render as compact hand-drawn pixel game sprites with bold dark pixel outlines and limited flat colors.",
+  "postprocess": "Retained exactly 28 connected actor-and-weapon components, one per frame; uniformly scaled each to 69% with nearest-neighbor sampling and placed in the original 4x7 grid with at least 32 transparent pixels on all sides, consistent foot anchor. No detached white attack arcs.",
+  "validation": {
+    "imageSize": [
+      948,
+      1659
+    ],
+    "frameGrid": [
+      4,
+      7
+    ],
+    "frameSize": [
+      237,
+      237
+    ],
+    "nonemptyFrames": 28,
+    "transparent": true
+  }
+}

@@ -44,6 +44,7 @@ python3 scripts/import_linchong.py
 python3 scripts/validate_linchong.py
 python3 scripts/build_linchong_mod_content.py
 python3 scripts/package_linchong_assets.py
+python3 tools/verify_linchong_sprites.py
 python3 scripts/build_linchong_mod.py
 python3 tools/export_python_ast.py content/scenarios /tmp/linchong-native-ast
 ```
@@ -56,7 +57,7 @@ python3 tools/export_python_ast.py content/scenarios /tmp/linchong-native-ast
 
 `engine/`, `core/`, `desktop/` 및 콘텐츠 컴파일러를 수정하지 않습니다. 실행 내용은 기존 `content/characters`, `equipment`, `skills/active`, `scenarios`, `assets`, `ui/dialogue.yaml`, `game.yaml`에 있습니다. 이 폴더는 원안·생성 원본·변환 기록을 보관하는 제작 자료이며 별도 게임 실행기가 아닙니다.
 
-생성한 유닛 말은 단일 포즈를 기존 이동·공격 아틀라스의 프레임 규격에 반복 배치했습니다. 이동·피격·전투 계산은 원래 시스템을 사용하지만, 방향별·동작별 신규 애니메이션 작화까지 제작한 것은 아닙니다.
+`assets/sprites-v2/`의 캐릭터별 4×7 시트는 공격 12프레임, 이동·피격 11프레임, 특수 동작 5프레임으로 기존 아틀라스에 배치됩니다. 패키징은 투명 여백에 따른 셀 분리, 동작 종류별 공통 크기·발 위치 정렬, 최근접 축소, 투명 행 여백을 수행하며 원본 타임라인을 유지합니다. 검토 페이지는 `docs/linchong-sprite-review.html`에 생성됩니다. 617–620번 물체 말은 정적 아틀라스를 유지합니다.
 
 검증 명령:
 

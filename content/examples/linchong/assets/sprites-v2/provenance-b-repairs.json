@@ -1,0 +1,112 @@
+{
+  "assets": [
+    {
+      "key": "chai",
+      "mode": "builtin image_gen edit",
+      "sourcePaths": [
+        "content/examples/linchong/assets/sprites-v2/chai.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-6b6c54bd-69ab-4547-8896-dec43f4cf8c6.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/chai.png",
+      "prompt": "Use case: precise-object-edit. Edit this Chai Jin transparent 4-column by 7-row pixel-art tactical RPG sprite sheet. Preserve his identity (noble hunter in deep red and brown robe, dark topknot, one-handed sword), palette, compact Jojo-era square-pixel style, and all 28 distinct poses in exact same row-major order. Main repair: every sprite must be a completely SEPARATE actor+physical sword shape with clear transparent space from all 27 other sprites. REMOVE the detached WHITE slash crescent/arc/effects in attack row 1, 2 and 3 entirely; the game supplies attack effects. Specifically row 1 column 4 must be a complete visible recovery pose, not swallowed by the neighboring strike arc. Recompose on exactly 4 equal columns x 7 equal rows, each actor+weapon uniformly smaller and centered to allow at least 32 transparent pixels of margin on all sides of each cell; fixed foot anchor. Keep all 28 poses: front attacks anticipation/windup/strike/recovery; back same; LEFT profile same; front walk A/B, back walk A/B; LEFT walk A/B, front/back neutral; LEFT neutral, hurt kneel, fallen, front guard; back guard, LEFT guard, wounded recoil, victory raised sword. Dramatic distinct physical strike actions without any slash VFX. Transparent only, no grid, labels, scenery, painterly blur, 3D or gradients.",
+      "postprocess": "Isolated exactly 28 connected actor-and-weapon components, uniformly scaled each to 63% using nearest-neighbor, placed row-major in 4x7 grid with at least 32px transparent gutters and common foot anchor.",
+      "validation": {
+        "imageSize": [
+          948,
+          1659
+        ],
+        "frameGrid": [
+          4,
+          7
+        ],
+        "frameSize": [
+          237,
+          237
+        ],
+        "nonemptyFrames": 28,
+        "transparent": true
+      }
+    },
+    {
+      "key": "song",
+      "mode": "builtin image_gen edit",
+      "sourcePaths": [
+        "content/examples/linchong/assets/sprites-v2/song.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-00a07a70-a4be-4138-b2f6-a6536cc6a269.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/song.png",
+      "prompt": "Use case: precise-object-edit. Edit this Song Wan transparent 4x7 tactical RPG sprite sheet, preserving all 28 keyed poses, stout brown-clad outlaw identity, broad physical saber, limited earthy palette, and crisp old-school square pixel style. Fix row 2 columns 3 and 4, where back-strike blade/effect intrudes into and connects to the back-recovery sprite. Remove ALL detached white slash crescents, impact arcs, glow, and motion trails from all 12 attack frames, leaving only physical held saber and distinct body poses. Make 28 completely isolated actors with generous transparent separation: EXACT four equal columns and seven equal rows, at least 32 pixels clear alpha on all four sides of EVERY cell; uniformly scale characters and saber smaller, centered, stable foot anchor. Keep row-major order: 4 front attack phases, 4 back attack phases, 4 LEFT-profile attack phases; front walk A/B, back walk A/B; LEFT walk A/B, front/back neutral; LEFT neutral, hurt kneel, fallen, front guard; back/LEFT guard, recoil, victory. Attack anticipation, windup, full strike, recovery must have genuinely different physical poses. Transparent no scenery/grid/labels, no painterly blur, 3D, gradients, extra sprites.",
+      "postprocess": "Isolated exactly 28 connected actor-and-weapon components, uniformly scaled each to 63% using nearest-neighbor, placed row-major in 4x7 grid with at least 32px transparent gutters and common foot anchor.",
+      "validation": {
+        "imageSize": [
+          948,
+          1659
+        ],
+        "frameGrid": [
+          4,
+          7
+        ],
+        "frameSize": [
+          237,
+          237
+        ],
+        "nonemptyFrames": 28,
+        "transparent": true
+      }
+    },
+    {
+      "key": "fu",
+      "mode": "builtin image_gen edit",
+      "sourcePaths": [
+        "content/examples/linchong/assets/sprites-v2/fu.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-77db2172-05ad-42ab-bbe4-dad70b2c3106.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/fu.png",
+      "prompt": "Use case: precise-object-edit. Edit this Fu An transparent 4-column x 7-row sprite sheet. Preserve the original 28 keyed animation poses, green-clad sly clerk identity, dagger, crisp late-1990s square-pixel art palette/style, exact row-major frame order. Repair connected neighboring sprites: all 28 actor+physical dagger shapes must be completely isolated from each other by transparent gutters. Especially row 2 columns 2 and 3 (back windup and back strike) must not touch or share any dagger, robe, or pixel. Uniformly reduce sprite scale enough to leave at least 32 clear alpha pixels on every side of every equal square cell, center each figure with a stable foot anchor. Keep no motion arcs, glows, or detached effects; only body and held physical dagger. Exact 4 columns x 7 rows, transparent, no text/grid/scenery. Poses 0-11 front/back/LEFT attack four phases each (anticipation, deep windup, full lunging strike, recovery), 12-22 walks/neutrals/hurt/fallen, 23-27 front/back/LEFT guard, recoil, victory. All attack poses distinct. No painterly blur, gradients, 3D or realism.",
+      "postprocess": "Isolated exactly 28 connected actor-and-weapon components, uniformly scaled each to 69% using nearest-neighbor, placed row-major in 4x7 grid with at least 32px transparent gutters and common foot anchor.",
+      "validation": {
+        "imageSize": [
+          948,
+          1659
+        ],
+        "frameGrid": [
+          4,
+          7
+        ],
+        "frameSize": [
+          237,
+          237
+        ],
+        "nonemptyFrames": 28,
+        "transparent": true
+      }
+    },
+    {
+      "key": "luk",
+      "mode": "builtin image_gen edit",
+      "sourcePaths": [
+        "content/examples/linchong/assets/sprites-v2/luk.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-89bbc88c-3391-46e8-94a2-1f36d23112a3.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/luk.png",
+      "prompt": "Use case: precise-object-edit. Edit this Lu Qian transparent 4-column x 7-row pixel-art sprite sheet. Preserve his scheming black-robed official identity (black hat, thin moustache, charcoal and dark burgundy robe, one-handed straight sword), consistent old 1990s Jojo-era square pixel art, original palette, and exact 28 keyed poses. Primary repair: separate neighboring row 6 columns 2 and 3 (hurt kneel and fallen); these must be two COMPLETE DISCONNECTED sprites, with no shared robe, sword, or pixels. Every sprite must be its own isolated actor+physical sword silhouette. Recompose on exactly 4 equal columns and 7 equal rows with at least 32 transparent pixels of margin on every side of every cell; uniformly scale actors and swords down to fit, center horizontally and use stable foot anchor. Keep all 28 poses in row-major order: front attacks anticipation/windup/full strike/recovery; back same; LEFT same; front walk A/B, back walk A/B; LEFT walk A/B, front/back neutral; LEFT neutral, hurt kneel, fallen, front guard; back guard, LEFT guard, wounded recoil, victory raised sword. All attacks visibly different physical poses. Remove detached slash/VFX shapes. Transparent background, no text/grid/scenery, no blur, gradients, painterly details, 3D or modern miniature styling.",
+      "postprocess": "Isolated exactly 28 connected actor-and-weapon components, uniformly scaled each to 62% using nearest-neighbor, placed row-major in 4x7 grid with at least 32px transparent gutters and common foot anchor.",
+      "validation": {
+        "imageSize": [
+          948,
+          1659
+        ],
+        "frameGrid": [
+          4,
+          7
+        ],
+        "frameSize": [
+          237,
+          237
+        ],
+        "nonemptyFrames": 28,
+        "transparent": true
+      }
+    }
+  ]
+}

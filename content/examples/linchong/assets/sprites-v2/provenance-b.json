@@ -1,0 +1,172 @@
+{
+  "assets": [
+    {
+      "key": "chai",
+      "mode": "builtin image_gen",
+      "prompt": "Use case: stylized-concept\nAsset type: production pixel-art sprite sheet for a late-1990s tactical RPG.\nPrimary request: ONE original sprite sheet for Chai Jin, a noble hunter and swordsman from Water Margin, identifiable by rich deep-red and warm-brown hunting robes, a small high topknot, dark boots, and a one-handed straight sword. Use the attached local reference sheets only for the compact Jojo-era pixel art style and the portrait atlas for character identity.\nCanvas/layout: exact 4 columns by 7 rows, 28 distinct FULL-BODY sprites, row-major, evenly spaced, no overlap, no grid lines, no captions. Transparent background. Logical cells 64x64 enlarged exactly 4x by nearest-neighbor, target full sheet 1024x1792. Center each character consistently; feet on same baseline within each cell. Keep entire sword and all body parts inside the cell.\nFrame order by row:\nrow 1 columns 1-4: front-facing attack anticipation, deep windup with sword drawn back, extended full sword strike with visible weapon arc, recovery stance.\nrow 2: back-facing same four attack phases with visibly different silhouettes.\nrow 3: left-profile same four attack phases, with extended sword thrust/slash. Right profile will be mirrored by the game.\nrow 4: front walk step A, front walk step B, back walk A, back walk B.\nrow 5: left walk A, left walk B, front neutral, back neutral.\nrow 6: left neutral, hurt kneel, fallen on ground, front guard.\nrow 7: back guard, left guard, wounded recoil, victory raised sword or hand.\nActually 28 frames total: row 6 column 4 is frame 23 front guard; row 7 columns 1-4 are frames 24-27.\nStyle: original hand-drawn 1990s JRPG pixel art; compact 2.5-head stocky figure; hard square pixels and clean one-pixel dark outlines at logical resolution; limited flat palette, minimal dither, crisp readable sword; no smooth shading, gradients, antialiasing, blur, miniature rendering, 3D, painterly detail, text or scenery. Make all attack keyframes truly different, readable as a fast sword animation.",
+      "sourcePaths": [
+        "content/assets/maps/units/atk2/1.png",
+        "content/assets/maps/units/mov2/1.png",
+        "content/assets/maps/units/spc2/1.png",
+        "content/examples/linchong/assets/portraits.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-421ace8c-0492-40b3-a0a5-a055f10c48bf.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/chai.png",
+      "imageSize": [
+        948,
+        1659
+      ],
+      "frameGrid": [
+        4,
+        7
+      ],
+      "frameSize": [
+        237,
+        237
+      ],
+      "transparent": true,
+      "nonemptyFrames": 28,
+      "uniqueFrames": 28
+    },
+    {
+      "key": "song",
+      "mode": "builtin image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: production transparent pixel-art sprite sheet for a late-1990s Chinese tactical RPG. ONE original character: Song Wan, stocky brown-clad outlaw, dark brown tunic over tan trousers, shaggy dark hair under simple brown headwrap, short broad saber, heavy boots. Draw EXACTLY 4 columns x 7 rows = 28 separate full-body sprites, row-major, in a 1024x1792 portrait canvas representing 64x64 logical cells enlarged 4x; absolutely even positions, centered bodies and consistent foot baseline, full saber fully inside each cell. Transparent background, no scenery, no labels, no grid lines. Frame indices 0-3 front attack: anticipation, deep saber windup, full extended strike with visible blade arc, recovery. 4-7 back attack with same four phases. 8-11 left profile attack with same phases. All phases MUST differ in arms, weapon angle and body posture. 12-15 front walk A/B, back walk A/B. 16-19 left walk A/B, front neutral, back neutral. 20-23 left neutral, hurt kneel, fallen, front guard. 24-27 back guard, left guard, wounded recoil, victory raised saber. Refer to late-1990s Jojo RPG original 2.5-head compact stocky game sprites: very bold square pixel outline at logical resolution, limited earthy palette and flat color clusters, crisp no blur; no modern painterly illustration, no 3D miniature, no gradients, no smooth shading. Prioritize readable distinct animation poses and perfect grid registration.",
+      "sourcePaths": [
+        "content/assets/maps/units/atk2/1.png",
+        "content/assets/maps/units/mov2/1.png",
+        "content/assets/maps/units/spc2/1.png",
+        "content/examples/linchong/assets/portraits.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-30a3c8fc-6dc2-4ef0-b0e4-fb461a5d9064.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/song.png",
+      "imageSize": [
+        948,
+        1659
+      ],
+      "frameGrid": [
+        4,
+        7
+      ],
+      "frameSize": [
+        237,
+        237
+      ],
+      "transparent": true,
+      "nonemptyFrames": 28,
+      "uniqueFrames": 28
+    },
+    {
+      "key": "dong",
+      "mode": "builtin image_gen",
+      "prompt": "Use case: stylized-concept. Asset: transparent 28-frame pixel art sprite sheet for a late-1990s Chinese tactical RPG. Character: Dong Ping's red-uniform guard, athletic compact adult soldier in a red tunic and dark red padded armor, simple dark helmet with small red plume, brown boots, wielding one LONG SPEAR with silver tip. EXACT 4 columns x 7 rows, row-major, each one 64x64 logical cell enlarged 4x, overall target 1024x1792; evenly spaced, no overlaps, no grid/labels, transparent. Make soldier relatively small in each cell so the COMPLETE spear fits within boundaries even when horizontal. Feet on same baseline. Frame 0-3 front attack anticipation / pull spear back / full long spear thrust / recovery; 4-7 back same phases; 8-11 LEFT profile same phases. Strong genuinely different body and spear positions, with leg lunges and weapon extension. Frame 12-15 front walk A/B, back walk A/B; 16-19 left walk A/B, front neutral, back neutral; 20-23 left neutral, hurt kneel, fallen, front guard; 24-27 back guard, left guard, wounded recoil, victory raising spear. Sprite style: compact 2.5-head stocky game body, hard square pixels, bold dark one-pixel logical outlines, very limited flat red/brown/steel palette, flat color clusters, no gradients/anti-alias/blur/modern miniature/3D/painterly rendering. Full character and weapon in each cell; readable animation, consistent size.",
+      "sourcePaths": [
+        "content/assets/maps/units/atk2/1.png",
+        "content/assets/maps/units/mov2/1.png",
+        "content/assets/maps/units/spc2/1.png",
+        "content/examples/linchong/assets/portraits.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-3290a59b-43dd-4d5d-b4a0-1377f58ebfe1.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/dong.png",
+      "imageSize": [
+        948,
+        1659
+      ],
+      "frameGrid": [
+        4,
+        7
+      ],
+      "frameSize": [
+        237,
+        237
+      ],
+      "transparent": true,
+      "nonemptyFrames": 28,
+      "uniqueFrames": 28
+    },
+    {
+      "key": "xue",
+      "mode": "builtin image_gen",
+      "prompt": "Use case: stylized-concept. Asset: ONE original transparent 28-frame sprite sheet for a late-1990s Chinese tactical RPG. Character: Xue Ba, brown-uniform guard, short dark hair, simple brown padded guard uniform, tan belt and boots, compact 2.5-head stocky body, carries a straight single-edged saber. EXACT 4 columns x 7 rows of distinct full-body game sprites, evenly spaced square cells, no overlap, canvas approximately 1024x1792 (4:7). Transparent. No grid lines or labels or scenery. Center each body, feet consistent, full saber inside each cell. Frame sequence row-major: 0-3 front attack anticipation, deep windup, full extension slash, recovery; 4-7 back attack same four distinct phases; 8-11 LEFT-profile attack same four distinct phases; 12-15 front walk A/B, back walk A/B; 16-19 LEFT walk A/B, front neutral, back neutral; 20-23 LEFT neutral, hurt kneel, fallen, front guard; 24-27 back guard, LEFT guard, wounded recoil, victory hand or saber raised. Each attack phase has unmistakably different arms, weapon position, legs and torso; visible believable combat motion. Crisp original 1990s pixel art with obvious hard square pixels, bold dark one-pixel logical outlines, very limited flat earth-tone palette, tiny color clusters. No modern painterly/3D/miniature look, no gradients, no soft shading, no blur, no anti-aliasing.",
+      "sourcePaths": [
+        "content/assets/maps/units/atk2/1.png",
+        "content/assets/maps/units/mov2/1.png",
+        "content/assets/maps/units/spc2/1.png",
+        "content/examples/linchong/assets/portraits.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-c2bd185b-b7a5-4c01-a87a-1437cc5c7148.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/xue.png",
+      "imageSize": [
+        948,
+        1659
+      ],
+      "frameGrid": [
+        4,
+        7
+      ],
+      "frameSize": [
+        237,
+        237
+      ],
+      "transparent": true,
+      "nonemptyFrames": 28,
+      "uniqueFrames": 28
+    },
+    {
+      "key": "luk",
+      "mode": "builtin image_gen",
+      "prompt": "Use case: stylized-concept. Asset: ONE original transparent pixel-art 28-frame character sprite sheet for a late-1990s Chinese tactical RPG. Character: Lu Qian, scheming black-clad officer: lean adult with sharp face, thin moustache, black scholar/officer hat, black and charcoal official robe with muted dark-red trim, dark boots, one-handed straight sword. EXACTLY 4 columns x 7 rows of separate full-body sprites, row-major, evenly spaced in square logical cells, target portrait 1024x1792 with 64x64 logical cells enlarged 4x. No overlap, full sword inside each cell, centered body and aligned feet, transparent background, no scenery, text, or grid lines. Rows 1-3 respectively front, back, LEFT profile attack, each with four clearly distinct animation phases: tense anticipation; dramatic deep sword windup; full extended slash/thrust with changed legs and torso; recovery. Row 4: front walk A/B, back walk A/B. Row 5: LEFT walk A/B, front neutral, back neutral. Row 6: LEFT neutral, hurt kneel, fallen, front guard. Row 7: back guard, LEFT guard, wounded recoil, victory hand/sword raised. All 28 frames unique as required, ensure physically readable combat and actual movement poses. Old-school hand-drawn pixel art: compact stocky 2.5-head game sprites, bold one-pixel logical black outlines, hard square pixels, limited flat black/charcoal/burgundy palette, no gradients, no anti-alias, no blur, no 3D/miniature rendering or painterly shading.",
+      "sourcePaths": [
+        "content/assets/maps/units/atk2/1.png",
+        "content/assets/maps/units/mov2/1.png",
+        "content/assets/maps/units/spc2/1.png",
+        "content/examples/linchong/assets/portraits.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-1171a5d6-a20e-48a4-b281-72023770305c.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/luk.png",
+      "imageSize": [
+        948,
+        1659
+      ],
+      "frameGrid": [
+        4,
+        7
+      ],
+      "frameSize": [
+        237,
+        237
+      ],
+      "transparent": true,
+      "nonemptyFrames": 28,
+      "uniqueFrames": 28
+    },
+    {
+      "key": "fu",
+      "mode": "builtin image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: ONE original transparent 28-frame pixel-art sprite sheet for a late-1990s Chinese tactical RPG. Character: Fu An, sly green-robed clerk with neat black topknot, lean small-framed body, green official/work robe over tan trousers, dark shoes, a SHORT DAGGER in one hand. EXACT 4 columns x 7 rows of separate evenly-spaced square cells; 64x64 logical cells enlarged 4x, target 1024x1792 portrait. Transparent background; no text, scene, grid, or overlapping cells. Body consistently centered, feet same baseline, dagger and limbs fully within each cell. 0-3 front attack anticipation with tucked dagger / pronounced low windup / full lunging dagger strike / recovery. 4-7 same distinct four phases from BACK. 8-11 same distinct four phases from LEFT profile. 12-15 front walk A/B, back walk A/B. 16-19 LEFT walk A/B, front neutral, back neutral. 20-23 LEFT neutral, hurt kneel, fallen, front guard. 24-27 back guard, LEFT guard, wounded recoil, victory raised hand/dagger. Give each attack frame genuinely changed pose and readable weapon action. Old Jojo-era hand pixel art, compact stocky 2.5-head figure, hard square pixels, bold one-pixel logical dark outlines, limited flat green/earth-tone palette with simple flat color clusters. No realistic miniature, no 3D, no painterly rendering, no gradient/blur/soft shading/anti-alias.",
+      "sourcePaths": [
+        "content/assets/maps/units/atk2/1.png",
+        "content/assets/maps/units/mov2/1.png",
+        "content/assets/maps/units/spc2/1.png",
+        "content/examples/linchong/assets/portraits.png"
+      ],
+      "generatedPath": "/Users/ain/.codex/generated_images/01a196eb-e713-7351-a8f9-5c73d796efd1/exec-1cec7fb6-185d-4512-a0c2-6c46e4c70db5.png",
+      "savedPath": "content/examples/linchong/assets/sprites-v2/fu.png",
+      "imageSize": [
+        948,
+        1659
+      ],
+      "frameGrid": [
+        4,
+        7
+      ],
+      "frameSize": [
+        237,
+        237
+      ],
+      "transparent": true,
+      "nonemptyFrames": 28,
+      "uniqueFrames": 28
+    }
+  ]
+}
