@@ -1,6 +1,0 @@
-# skills/passive / stable ID: 147
-id: 147
-name: "매 턴 MP를 회복합니다."
-format: 5
-incrementType: 1
-intro: "매 턴 일정 수치의 MP를 고정으로 회복합니다."

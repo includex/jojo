@@ -1,6 +1,0 @@
-# skills/passive / stable ID: 146
-id: 146
-name: "매 턴 HP를 회복합니다."
-format: 4
-incrementType: 1
-intro: "턴 시작 시 일정 비율의 HP가 회복됩니다. 중독 효과가 있다면 먼저 체력이 감소한 후 회복됩니다."

@@ -1,0 +1,60 @@
+{
+  "damage": {
+    "type": 38,
+    "target": 0,
+    "hitArea": 5,
+    "effectArea": 0,
+    "mpCost": 4,
+    "icon": 41,
+    "effect": 22,
+    "power": 70,
+    "harmType": 0,
+    "condition": 6,
+    "aiUse": 4,
+    "hitRateLimit": 90,
+    "category": 0
+  },
+  "defense": {
+    "type": 12,
+    "target": 1,
+    "hitArea": 13,
+    "effectArea": 0,
+    "mpCost": 0,
+    "icon": 16,
+    "effect": 14,
+    "power": 28,
+    "harmType": 4,
+    "condition": 6,
+    "aiUse": 5,
+    "category": 20
+  },
+  "agility": {
+    "type": 13,
+    "target": 1,
+    "hitArea": 13,
+    "effectArea": 1,
+    "mpCost": 5,
+    "icon": 17,
+    "effect": 15,
+    "power": 28,
+    "harmType": 4,
+    "condition": 6,
+    "aiUse": 5,
+    "category": 17
+  },
+  "recovery": {
+    "type": 21,
+    "target": 1,
+    "hitArea": 13,
+    "effectArea": 0,
+    "mpCost": 0,
+    "icon": 9,
+    "effect": 28,
+    "power": 28,
+    "harmType": 4,
+    "condition": 6,
+    "aiUse": 0,
+    "hitRateLimit": 1,
+    "category": 15
+  }
+}

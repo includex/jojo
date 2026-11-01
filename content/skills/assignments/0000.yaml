@@ -1,7 +1,0 @@
-# skills/assignments / stable ID: 0
-id: 0
-name: "매 턴 HP를 회복합니다."
-index: 0
-skillId: 146
-value: 25
-intro: "매 턴 일정량의 HP 회복 가능."

@@ -9,6 +9,10 @@ internal abstract class GameDataCatalogTableDomain(tables: GameDataTableBundle) 
      * `units` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
+    /** Indexed JSON null slots represent IDs omitted from authored content. */
+    protected fun List<JsonValue>.getOrNull(index: Int): JsonValue? =
+        if (index in indices) this[index].takeUnless { it.isNull } else null
+
     protected val units = tables.units
     /**
      * `arms` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.

@@ -1,13 +1,10 @@
 # Lin Chong mod / native Jojo content catalog
-id: 100
-name: "추풍창"
 type: 38
 target: 0
 hitArea: 5
 effectArea: 0
 mpCost: 4
 icon: 41
-intro: "직선 1~2칸의 적 하나에게 전술 피해를 준다. 기력 4 소비."
 effect: 22
 power: 70
 harmType: 0
@@ -15,4 +12,7 @@ condition: 6
 aiUse: 4
 hitRateLimit: 90
 category: 0
+id: 100
+name: "추풍창"
+intro: "직선 1~2칸의 적 하나에게 전술 피해를 준다. 기력 4 소비."
 learnLevels: {}

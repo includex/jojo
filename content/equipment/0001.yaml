@@ -1,9 +1,0 @@
-# equipment / stable ID: 1
-id: 1
-name: "대검"
-itemType: 0
-price: 10
-iconIndex: 1
-value: 45
-upgradeValue: 10
-intro: "칼날이 길고 무거운 검. 단검보다 위력이 크다."

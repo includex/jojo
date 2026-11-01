@@ -1,7 +1,0 @@
-# skills/assignments / stable ID: 86
-id: 86
-name: "피해량 제한"
-index: 86
-skillId: 242
-value: 60
-intro: "피해를 입을 때, 일정량 이상의 비율로 줄어듭니다."

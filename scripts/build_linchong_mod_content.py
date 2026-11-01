@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate Lin Chong catalogs for the existing Jojo package and native table ABI.
-No runtime or renderer code is generated. Original nonblank item rows are preserved.
+No runtime or renderer code is generated. Only this game owns its catalogs.
 """
 from pathlib import Path
 import json
@@ -84,10 +84,11 @@ def main():
     # Keep each skill inside an existing, fully implemented native effect family.
     # PRD physical martial damage is adapted to native strategic damage; buffs use native statuses.
     skill_records={s['id']:s for s in campaign['skills']}
-    templates={'wind_spear':80,'circling_spear':80,'staff_smash':80,'iron_guard':55,'quick_step':49,'snow_resolve':46,'water_stride':49,'tiger_charge':80,'swift_blade':80,'staff_combo':80}
+    templates={'wind_spear':'damage','circling_spear':'damage','staff_smash':'damage','iron_guard':'defense','quick_step':'agility','snow_resolve':'recovery','water_stride':'agility','tiger_charge':'damage','swift_blade':'damage','staff_combo':'damage'}
+    technique_templates=json.loads((SOURCE/'technique-templates.json').read_text())
     for key,skill_id in SKILL_IDS.items():
         item=skill_records.get(key,{})
-        base=read_yaml(ROOT/f'content/skills/active/{templates[key]:04}.yaml')
+        base=dict(technique_templates[templates[key]])
         params=campaign.get('mechanics',{}).get('skillParameters',{}).get(key,campaign.get('mechanics',{}).get('authoredParameters',{}).get('skills',{}).get(key,{}))
         base.update(id=skill_id,name=item.get('name',params.get('name',key)),mpCost=params.get('mpCost',0),intro=({'iron_guard':'선택한 아군의 방어력을 일시적으로 높인다. 사용하면 행동을 마친다.','quick_step':'선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다.','water_stride':'선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다.','snow_resolve':'선택한 아군의 독·마비·혼란을 해제한다. 사용하면 행동을 마친다.'}.get(key,'인접한 적을 중심으로 십자 범위에 전술 피해를 준다.' if key in ('circling_spear','staff_smash') else '직선 1~2칸의 적 하나에게 전술 피해를 준다.' if key=='wind_spear' else '3칸 이내의 적 하나에게 강한 전술 피해를 준다.' if key=='tiger_charge' else '인접한 적 하나에게 전술 피해를 준다.')+f' 기력 {params.get("mpCost",0)} 소비.'),learnLevels={})
         if key in ('wind_spear','tiger_charge','swift_blade','staff_combo'):base.update(hitArea=5 if key=='wind_spear' else 12 if key=='tiger_charge' else 0,effectArea=0,power=70 if key=='wind_spear' else 95 if key=='tiger_charge' else 80)
@@ -98,14 +99,8 @@ def main():
         index=ids['battles'][battle['id']]['mapIndex']
         write_yaml('shop',{'id':index,'name':battle['name'],'weaponLevel':0,'armorLevel':0,'items':[255]*16})
     package=ROOT/'content/game.yaml'
-    original=package.read_text()
-    replacements={'id':'linchong','title':'수호전 외전: 임충전','startModule':'R_90','startScene':'scene0','resumeScene':'scene0','protagonistId':512,'saveNamespace':'linchong-native-jojo-v1','defaultBattleModule':'S_90'}
-    for key,value in replacements.items():
-        line=f'{key}: {json.dumps(value,ensure_ascii=False)}'
-        original=re.sub(rf'^{key}:.*$',lambda _:line,original,flags=re.M)
-    for index in range(90,98):
-        if f'  R_{index}: S_{index}' not in original:original+=f'  R_{index}: S_{index}\n'
-    package.write_text(original)
+    settings={'id':'linchong','title':'수호전 외전: 임충전','startModule':'R_90','startScene':'scene0','resumeScene':'scene0','protagonistId':512,'saveNamespace':'linchong-native-jojo-v1','defaultBattleModule':'S_90'}
+    package.write_text('# Lin Chong standalone game package.\n'+'\n'.join(f'{k}: {json.dumps(v,ensure_ascii=False)}' for k,v in settings.items())+'\nbattleModules:\n'+''.join(f'  R_{i}: S_{i}\n' for i in range(90,98)))
     report={'itemIds':ITEM_IDS,'skillIds':SKILL_IDS,'characterIds':sorted(int(x) for x in written),'nativeAdapters':{'damage':'Native type38 terrain-independent strategic damage; native hit/effect area and animations. No replacement combat formula.','support':'Native defense/critical/status-restoration effects; automatic PRD mastery and mind slots are not implemented by catalog rows alone.','equipment':'Native one weapon/one armor/one auxiliary format; spare items below150 or appended256+; properties200..217.'}}
     (SOURCE/'native-content-mapping.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     print(f'Generated {len(written)} native characters, {len(ITEM_IDS)} items, {len(SKILL_IDS)} active techniques, 8 battle names, and package routing.')

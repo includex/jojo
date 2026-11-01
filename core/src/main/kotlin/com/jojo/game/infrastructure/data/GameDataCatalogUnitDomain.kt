@@ -76,6 +76,7 @@ internal class GameDataCatalogUnitDomain(
         val postContributions = mutableListOf<SkillContribution>()
         val unitContributions = mutableListOf<SkillContribution>()
         unitPostSkills.forEachIndexed { index, raw ->
+            if (raw.isNull) return@forEachIndexed
             val post = campaign?.talents?.get(index to 3)?.effect ?: raw.int("2", 255)
             val isPostSkill = post in basePosts until upperPosts
             val isUnitSkill = (0..2).any { slot ->

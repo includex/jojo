@@ -1,6 +1,6 @@
 id: 1
 name: "보병"
-advantages: {"arms2":150,"arms3":60,"arms4":150,"arms5":150,"arms38":80}
+advantages: {"arms2":150}
 unitType: 2
 attackRange: 1
 movementType: 0

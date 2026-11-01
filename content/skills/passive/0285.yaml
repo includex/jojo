@@ -1,5 +1,0 @@
-# skills/passive / stable ID: 285
-id: 285
-name: "자동 상승"
-format: 15
-intro: "턴 시작 시 지정된 능력이 버프 상태로 변합니다."

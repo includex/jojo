@@ -1,9 +1,0 @@
-# equipment / stable ID: 14
-id: 14
-name: "철제 투석기"
-itemType: 8
-price: 30
-iconIndex: 14
-value: 80
-upgradeValue: 10
-intro: "철제 투석기. 투석기 중에서 위력이 가장 강합니다."

@@ -28,6 +28,13 @@ class GameContentCompilerTest {
                 () -> GameContentCompiler.compile(content, temp.resolve("bad")));
     }
 
+    @Test void emptyCatalogCompilesWithoutSyntheticRecords() throws Exception {
+        Path content = fixture();
+        Files.delete(content.resolve("characters/0000.yaml"));
+        GameContentCompiler.compile(content, temp.resolve("empty"));
+        assertEquals("[]", decode(Files.readAllBytes(temp.resolve("empty/data/unit.bin"))).substring(32));
+    }
+
     @Test void encodingMatchesRuntimeRotationAndDigest() throws Exception {
         String json = "[{\"0\":\"조조\\n\\\"test\\\"\"}]";
         byte[] encoded = GameContentCompiler.encode(json);
@@ -46,7 +53,7 @@ class GameContentCompilerTest {
                 "arms", "posts", "hitarea", "effarea", "shop", "config", "gameConfig", "Meff")) {
             byte[] output = Files.readAllBytes(first.resolve("data/" + table + ".bin"));
             assertArrayEquals(output, Files.readAllBytes(second.resolve("data/" + table + ".bin")));
-            assertTrue(decode(output).substring(32).length() > 2);
+            assertTrue(decode(output).substring(32).length() >= 2); // Empty catalogs serialize as [].
         }
         assertTrue(Files.exists(first.resolve("data/skillEffects.json")));
         assertTrue(Files.exists(first.resolve("data/magicEffects.json")));
@@ -63,8 +70,8 @@ class GameContentCompilerTest {
         assertTrue(assertThrows(IllegalArgumentException.class,
                 () -> GameContentCompiler.compile(content, temp.resolve("badId"))).getMessage().contains("id must be a nonnegative integer"));
         Files.writeString(first, original.replace("id: 0", "id: 1"));
-        assertTrue(assertThrows(IllegalArgumentException.class,
-                () -> GameContentCompiler.compile(content, temp.resolve("gap"))).getMessage().contains("missing id 0"));
+        GameContentCompiler.compile(content, temp.resolve("gap"));
+        assertTrue(decode(Files.readAllBytes(temp.resolve("gap/data/unit.bin"))).substring(32).startsWith("[null,{"));
         Files.writeString(first, original.replace("attack: 41", "attack: invalid"));
         assertTrue(assertThrows(IllegalArgumentException.class,
                 () -> GameContentCompiler.compile(content, temp.resolve("badType"))).getMessage().contains("field attack must be integer"));

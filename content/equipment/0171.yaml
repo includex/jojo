@@ -1,9 +1,0 @@
-# equipment / stable ID: 171
-id: 171
-name: "잡곡"
-itemType: 26
-specialType: 3
-iconIndex: 88
-value: 60
-upgradeValue: 0
-intro: ""

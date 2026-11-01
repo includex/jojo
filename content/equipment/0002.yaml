@@ -1,9 +1,0 @@
-# equipment / stable ID: 2
-id: 2
-name: "강철 검"
-itemType: 0
-price: 30
-iconIndex: 2
-value: 80
-upgradeValue: 10
-intro: "가장 위력이 큰 검."

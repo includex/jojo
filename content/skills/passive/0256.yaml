@@ -1,5 +1,0 @@
-# skills/passive / stable ID: 256
-id: 256
-name: "싸울수록 용맹해진다."
-format: 4
-intro: "턴 수 보조 능력. 턴이 길어질수록 능력이 강해집니다.\r\n(현재 턴 수/총 턴 수) * K%의 능력 증가"

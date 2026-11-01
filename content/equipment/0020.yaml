@@ -1,9 +1,0 @@
-# equipment / stable ID: 20
-id: 20
-name: "허리 끌어당기는 쇠뇌"
-itemType: 12
-price: 30
-iconIndex: 110
-value: 120
-upgradeValue: 15
-intro: "상전설에 따르면 촉왕이 오정을 파견하여 산을 개척할 때 남긴 거대한 전도입니다. 매우 무거워 힘이 넘치는 사람이 아니면 사용할 수 없습니다."

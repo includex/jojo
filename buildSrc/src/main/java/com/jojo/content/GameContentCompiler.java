@@ -59,7 +59,6 @@ public final class GameContentCompiler {
                     files = paths.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".yaml") || p.toString().endsWith(".yml"))
                             .sorted().toList();
                 }
-                if (files.isEmpty()) throw problem(directory, "no YAML records");
                 for (Path file : files) {
                     Map<String, Object> row = mapping(read(file), file);
                     int id = checkedId(row.remove("id"), file);
@@ -86,8 +85,9 @@ public final class GameContentCompiler {
                 }
                 ArrayList<Object> ordered = new ArrayList<>(sorted.size());
                 ArrayList<Path> orderedFiles = new ArrayList<>(sorted.size());
-                for (int id = 0; id < sorted.size(); id++) {
-                    if (!sorted.containsKey(id)) throw problem(directory, "missing id " + id + " (indexed table cannot be renumbered)");
+                // Preserve numeric IDs without requiring authored filler records.
+                // JSON null slots are absent records, never synthetic catalog entries.
+                for (int id = 0; id < (sorted.isEmpty() ? 0 : sorted.lastKey() + 1); id++) {
                     ordered.add(sorted.get(id));
                     orderedFiles.add(sortedFiles.get(id));
                 }
@@ -95,13 +95,13 @@ public final class GameContentCompiler {
                 rowFiles.put(category, orderedFiles);
             }
             int passiveCount = rows.get("skills/passive").size();
-            validateSkillRefs(rows.get("skills/equipment"), rowFiles.get("skills/equipment"), "skillId", passiveCount);
-            validateSkillRefs(rows.get("skills/equipment"), rowFiles.get("skills/equipment"), "upgrade", passiveCount);
-            validateSkillRefs(rows.get("skills/assignments"), rowFiles.get("skills/assignments"), "3", passiveCount);
+            validateSkillRefs(rows.get("skills/equipment"), rowFiles.get("skills/equipment"), "skillId", rows.get("skills/passive"));
+            validateSkillRefs(rows.get("skills/equipment"), rowFiles.get("skills/equipment"), "upgrade", rows.get("skills/passive"));
+            validateSkillRefs(rows.get("skills/assignments"), rowFiles.get("skills/assignments"), "3", rows.get("skills/passive"));
             int effectCount = rows.get("skills/equipment").size();
             for (Map.Entry<String, List<Integer>> entry : equipmentEffects.entrySet()) {
                 for (int index : entry.getValue()) {
-                    if (index >= effectCount) throw problem(equipmentEffectFiles.get(entry.getKey()),
+                    if (index >= effectCount || rows.get("skills/equipment").get(index) == null) throw problem(equipmentEffectFiles.get(entry.getKey()),
                             "skillEffects index " + index + " for equipment " + entry.getKey() + " exceeds " + (effectCount - 1));
                 }
             }
@@ -158,6 +158,7 @@ public final class GameContentCompiler {
     private static void validateSourceTree(Path source) throws IOException {
         try (Stream<Path> paths = Files.walk(source)) {
             for (Path file : paths.filter(Files::isRegularFile).toList()) {
+                if (List.of(".DS_Store", ".gitkeep").contains(file.getFileName().toString())) continue;
                 String relative = source.relativize(file).toString().replace('\\', '/');
                 // Scenario sources belong to the separate Python AST resource pipeline.
                 if (relative.startsWith("scenarios/") || relative.startsWith("assets/") || relative.startsWith("resources/") || relative.startsWith("examples/")) continue;
@@ -175,11 +176,12 @@ public final class GameContentCompiler {
     }
 
     @SuppressWarnings("unchecked")
-    private static void validateSkillRefs(List<Object> rows, List<Path> files, String key, int count) {
+    private static void validateSkillRefs(List<Object> rows, List<Path> files, String key, List<Object> targets) {
         for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i) == null) continue;
             Object value = ((Map<String, Object>) rows.get(i)).get(key);
             if (value == null) continue;
-            if (!(value instanceof Integer id) || id < 0 || id >= count)
+            if (!(value instanceof Integer id) || id < 0 || id >= targets.size() || targets.get(id) == null)
                 throw problem(files.get(i), "row " + i + " references invalid passive skill " + value + " in " + key);
         }
     }

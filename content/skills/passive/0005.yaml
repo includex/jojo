@@ -1,5 +1,0 @@
-# skills/passive / stable ID: 5
-id: 5
-name: "MP 강화 능력"
-format: 4
-intro: "현재 MP가 0이 아닐 경우, 공격력과 방어력이 N% 증가합니다."

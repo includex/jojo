@@ -1,5 +1,0 @@
-# skills/passive / stable ID: 186
-id: 186
-name: "평탄한 땅"
-format: 4
-intro: "범위 내 아군 유닛의 지형 적응도가 최소 N% 이상일 경우\n공격 시 적군의 지형 적응도가 N% 이상일 경우 10% 감소합니다."

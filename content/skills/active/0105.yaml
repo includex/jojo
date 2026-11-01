@@ -1,13 +1,10 @@
 # Lin Chong mod / native Jojo content catalog
-id: 105
-name: "설중정심"
 type: 21
 target: 1
 hitArea: 13
 effectArea: 0
 mpCost: 0
 icon: 9
-intro: "선택한 아군의 독·마비·혼란을 해제한다. 사용하면 행동을 마친다. 기력 0 소비."
 effect: 28
 power: 28
 harmType: 4
@@ -15,4 +12,7 @@ condition: 6
 aiUse: 0
 hitRateLimit: 1
 category: 15
+id: 105
+name: "설중정심"
+intro: "선택한 아군의 독·마비·혼란을 해제한다. 사용하면 행동을 마친다. 기력 0 소비."
 learnLevels: {}

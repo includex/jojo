@@ -1,17 +1,17 @@
 # Lin Chong mod / native Jojo content catalog
-id: 103
-name: "철벽호신"
 type: 12
 target: 1
 hitArea: 13
 effectArea: 0
 mpCost: 0
 icon: 16
-intro: "선택한 아군의 방어력을 일시적으로 높인다. 사용하면 행동을 마친다. 기력 0 소비."
 effect: 14
 power: 28
 harmType: 4
 condition: 6
 aiUse: 5
 category: 20
+id: 103
+name: "철벽호신"
+intro: "선택한 아군의 방어력을 일시적으로 높인다. 사용하면 행동을 마친다. 기력 0 소비."
 learnLevels: {}

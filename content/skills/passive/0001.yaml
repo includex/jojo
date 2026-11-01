@@ -1,4 +1,0 @@
-# skills/passive / stable ID: 1
-id: 1
-name: "HP를 MP로 전환"
-intro: "보조 MP 방어\n적군 턴에, MP가 0이 될 때마다 최대 MP 수량만큼의 HP를 잃고 MP를 1 회복합니다(최대 4회까지 회복 가능)."

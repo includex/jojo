@@ -1,9 +1,0 @@
-# equipment / stable ID: 17
-id: 17
-name: "방천극"
-itemType: 10
-price: 30
-iconIndex: 107
-value: 120
-upgradeValue: 15
-intro: "여포의 비기로 전해지며, 양면으로 날카롭고 기능이 다양하여 엄청난 힘과 기술을 필요로 합니다. 경량 병기와 중화기 기능을 하나에 모았습니다."

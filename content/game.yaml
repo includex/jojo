@@ -1,4 +1,4 @@
-# Package-wide choices. Scenario and battle pairs are explicit below; modules are validated against scenarios/manifest.json.
+# Lin Chong standalone game package.
 id: "linchong"
 title: "수호전 외전: 임충전"
 startModule: "R_90"
@@ -8,64 +8,6 @@ protagonistId: 512
 saveNamespace: "linchong-native-jojo-v1"
 defaultBattleModule: "S_90"
 battleModules:
-  R_00: S_00
-  R_01: S_01
-  R_02: S_02
-  R_03: S_03
-  R_04: S_04
-  R_05: S_05
-  R_06: S_06
-  R_07: S_07
-  R_08: S_08
-  R_09: S_09
-  R_10: S_10
-  R_11: S_11
-  R_12: S_12
-  R_13: S_13
-  R_14: S_14
-  R_15: S_15
-  R_16: S_16
-  R_17: S_17
-  R_18: S_18
-  R_19: S_19
-  R_20: S_20
-  R_21: S_21
-  R_22: S_22
-  R_23: S_23
-  R_24: S_24
-  R_25: S_25
-  R_26: S_26
-  R_27: S_27
-  R_28: S_28
-  R_29: S_29
-  R_30: S_30
-  R_31: S_31
-  R_32: S_32
-  R_33: S_33
-  R_34: S_34
-  R_35: S_35
-  R_36: S_36
-  R_37: S_37
-  R_38: S_38
-  R_39: S_39
-  R_40: S_40
-  R_41: S_41
-  R_42: S_42
-  R_43: S_43
-  R_44: S_44
-  R_45: S_45
-  R_46: S_46
-  R_47: S_47
-  R_48: S_48
-  R_49: S_49
-  R_50: S_50
-  R_51: S_51
-  R_52: S_52
-  R_53: S_53
-  R_54: S_54
-  R_55: S_55
-  R_56: S_56
-  R_57: S_57
   R_90: S_90
   R_91: S_91
   R_92: S_92

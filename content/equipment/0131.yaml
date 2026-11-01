@@ -1,8 +1,0 @@
-# equipment / stable ID: 131
-id: 131
-name: "구름 꿰뚫는 화살"
-itemType: 66
-specialType: 2
-iconIndex: 118
-upgradeValue: 2
-intro: "개량된 화살로 특수 화살촉이 장착되어 있습니다.\n\n【보물 효과】공격 시 연타가 발생합니다."

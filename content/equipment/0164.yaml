@@ -1,9 +1,0 @@
-# equipment / stable ID: 164
-id: 164
-name: "민첩성 열매"
-itemType: 36
-specialType: 3
-iconIndex: 101
-value: 2
-upgradeValue: 0
-intro: "먹으면 반응 속도를 높여주고, 폭발력도 어느 정도 증가하는 신비한 열매입니다."

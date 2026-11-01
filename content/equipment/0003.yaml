@@ -1,9 +1,0 @@
-# equipment / stable ID: 3
-id: 3
-name: "단창"
-itemType: 2
-price: 5
-iconIndex: 3
-value: 12
-upgradeValue: 10
-intro: "짧고 작은 창입니다. 처음에는 큰 효과를 기대하지 마세요. 훈련을 거치면 위력이 점차 강해집니다."

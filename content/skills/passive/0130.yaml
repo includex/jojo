@@ -1,5 +1,0 @@
-# skills/passive / stable ID: 130
-id: 130
-name: "나라를 위해 목숨을 바치다"
-format: 5
-intro: "아군이 턴 시작 시 MP가 x 미만이면 MP를 먼저 x까지 회복합니다."

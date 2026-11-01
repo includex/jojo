@@ -293,9 +293,9 @@ for bi,b in enumerate(c['battles']):
  grid=[[0]*b['map']['width'] for _ in range(b['map']['height'])]
  for p in b['runtime']['blocked']:grid[p['y']-1][p['x']-1]=5
  (D/f'assets/maps/hexmaps/{58+bi}.json').write_text(json.dumps({'width':b['map']['width'],'height':b['map']['height'],'data':grid},separators=(',',':'))+'\n')
-# Extend rather than replace original scenario catalogs.
-p=D/'scenarios/dialogue-text.json';catalog=json.loads(p.read_text());catalog['entries']={k:v for k,v in catalog['entries'].items() if not re.match(r'^[RS]_9[0-7]\.',k)};catalog['entries'].update(entries);p.write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n')
-p=D/'scenarios/manifest.json';manifest=json.loads(p.read_text())
+# This package contains only the Lin Chong campaign.
+p=D/'scenarios/dialogue-text.json';catalog={'format':'jojo-scenario-dialogue-text/v1','entries':entries,'aliases':{},'legacyKeys':{}};p.write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n')
+p=D/'scenarios/manifest.json';manifest={}
 for i in range(90,98):
  for prefix in ['R','S']:
   name=f'{prefix}_{i}';manifest[name]={'source':f'linchong/{name}.py','functions':['__dispatch__','scene0']+(['scene1','scene2','win_condition','lose_condition'] if prefix=='S' else []),'output':f'decompiled-python/{name}.py'}

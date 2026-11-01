@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>임충전 콘텐츠 패키지 경계</title>
+<style>body{margin:0;background:#f5f5f0;color:#203832;font:16px/1.8 system-ui,sans-serif}main{max-width:900px;margin:auto;padding:40px 24px}a{color:#08736b}h1,h2{line-height:1.3}h2{margin-top:36px}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:12px;border-bottom:1px solid #ccd6ce;vertical-align:top}code,pre{background:#e7ece6;border-radius:4px}code{padding:2px 5px}pre{padding:18px;overflow:auto}.notice{border-left:4px solid #08736b;padding:16px 20px;background:#e7efe8}@media(max-width:600px){main{padding:24px 16px}th,td{padding:8px;font-size:14px}}</style>
+</head>
+<body><main>
+<p><a href="index.html">문서 홈</a> · <a href="developer-onboarding.html">제작 교실</a> · 2026-11-02</p>
+<h1>임충전의 실행 콘텐츠와 공통 기반</h1>
+<p class="notice">현재 게임은 <strong>수호전 외전: 임충전</strong>이다. 조조전의 캠페인 시나리오·대사·인물·아이템·책략 데이터는 실행 패키지에서 제거했다. 공통 전투 규칙과 화면 자산을 활용해 임충전만 실행한다.</p>
+<h2>실행 패키지</h2>
+<table><thead><tr><th>대상</th><th>현재 원본과 범위</th></tr></thead><tbody>
+<tr><td>게임 진입·저장</td><td><a href="../content/game.yaml">content/game.yaml</a>: 게임 ID <code>linchong</code>, 시작 <code>R_90/scene0</code>, 주인공 512, 기본 전투 S_90, 저장 namespace <code>linchong-native-jojo-v1</code>.</td></tr>
+<tr><td>시나리오·대사</td><td><code>content/scenarios/</code>: R_90~R_97과 S_90~S_97의 16개 모듈, manifest.json, dialogue-text.json. 원작 R/S 모듈과 common/train 모듈은 포함하지 않는다.</td></tr>
+<tr><td>인물·물체</td><td><code>content/characters/0512.yaml</code>~<code>0575.yaml</code>: 임충전 인물, 전장 물체, 내레이터 64개.</td></tr>
+<tr><td>장비·기술·상점</td><td><code>content/equipment/</code> 28개, <code>skills/active/0100.yaml</code>~<code>0109.yaml</code> 10개, <code>shop/0058.yaml</code>~<code>0065.yaml</code> 8개. 장면 번호 90~97과 상점·전장 인덱스 58~65는 별도 식별자다.</td></tr>
+<tr><td>작성 원본·생성기</td><td><code>content/examples/linchong/</code>의 캠페인 JSON·규칙·원본 그림·ID 매핑과 <code>scripts/</code>의 임충전 생성기. 실행 파일은 content/의 정식 카탈로그와 scenarios에서 빌드한다.</td></tr>
+<tr><td>진행 상태</td><td><code>content/variables/globals.yaml</code>의 <code>linchong.*</code> 변수. 저장 키와 배포된 숫자 ID를 유지한다.</td></tr>
+</tbody></table>
+<h2>남아 있는 공통 기반</h2>
+<p>병과·병종(arms/posts), 공격·효과 범위(hitarea/effarea), 효과 애니메이션, 지형·상태 설정, 수동 효과 정의와 의미 이름 매핑은 전투 계산에 필요한 공통 데이터다. 이 목록은 플레이 가능한 원작 캠페인을 등록하지 않는다. 스킬 배정과 장비 효과 카탈로그는 현재 비어 있다.</p>
+<p><code>content/assets/</code>에는 임충전 그림과 공통 UI·아이콘·전투 효과·음원이 있다. <code>content/resources/i18n/</code>는 시스템 문구다. 런타임이 공유하는 경로와 효과 ID는 참조를 확인하고 변경해야 한다. 공통 화면·효과 자산을 전부 삭제하면 임충전도 표시할 수 없다.</p>
+<p><code>engine/</code>는 콘텐츠를 모르는 실행 기반이고, <code>core/</code>는 화면·전투·콘텐츠 로딩을 담당한다. 저장소의 과거 검증 코드나 개발 기록에 남은 원작 이름은 현재 배포 콘텐츠 목록을 뜻하지 않는다.</p>
+<h2>희소 ID와 빌드</h2>
+<p>YAML ID는 0 이상의 정수이며 연속일 필요가 없다. 빌드는 최대 ID까지 배열을 만들고 빈 자리를 JSON <code>null</code>로 기록한다. 런타임 조회는 빈 자리를 없는 항목으로 처리하며 인물·장비·기술 목록에 가짜 항목을 노출하지 않는다. 빈 카탈로그 디렉터리는 빈 배열로 생성한다. 기존 ID를 다시 매기면 시나리오·장비·저장 참조도 함께 바뀌므로 번호를 유지한다.</p>
+<p>빌드는 <code>core/build/generated/game-content/</code>에 테이블을 생성하고 <code>maps/data/</code>에 패키징한다. AST는 별도 시나리오 빌드가 생성한다. 자산 패키징은 content/assets의 상대 경로를 유지한다. 생성 파일을 직접 편집하지 않는다.</p>
+<pre>./gradlew :core:compileGameContent :core:processResources
+python3 scripts/validate_linchong.py
+python3 scripts/smoke_linchong.py
+./gradlew :desktop:run --args="--scenario=R_90"</pre>
+<p>삭제한 콘텐츠가 오래된 빌드 산출물에 남아 있다면 <code>./gradlew clean</code> 후 다시 빌드한다. 원작 비교를 전제로 한 과거 검증 도구는 임충전 패키지 검증 명령과 구분한다.</p>
+<h2>기존 학습 문서 읽기</h2>
+<p>기존 제작 교실과 API 가이드의 R_00·R_01·S_00, 인물 0, 원작 아이템 이름은 이전 패키지를 대상으로 한 예제다. 해당 파일은 현재 제공되지 않는다. 현재 파일을 수정할 때는 임충 512, 철창 60, 기술 100~109, R/S_90~97과 실제 manifest·대사 ID를 확인한다. 새 동료의 ID는 512처럼 이미 사용 중인 번호를 재사용하지 않는다.</p>
+<p><a href="../content/README.md">YAML 작성 계약</a> · <a href="../content/assets/README.md">자산 패키징</a> · <a href="linchong-campaign.html">임충전 캠페인</a></p>
+</main></body></html>

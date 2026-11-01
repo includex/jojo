@@ -1,9 +1,0 @@
-# equipment / stable ID: 134
-id: 134
-name: "춘추좌전"
-itemType: 92
-specialType: 2
-iconIndex: 121
-value: 4
-upgradeValue: 255
-intro: "관우가 좋아하는 책.\n\n【보물 효과】인물 및 병종 속성 제한을 무시하며, 모든 능력치의 최소 성장은 4점입니다."

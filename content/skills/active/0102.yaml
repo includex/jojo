@@ -1,13 +1,10 @@
 # Lin Chong mod / native Jojo content catalog
-id: 102
-name: "석파장"
 type: 38
 target: 0
 hitArea: 0
 effectArea: 1
 mpCost: 8
 icon: 41
-intro: "인접한 적을 중심으로 십자 범위에 전술 피해를 준다. 기력 8 소비."
 effect: 22
 power: 60
 harmType: 0
@@ -15,4 +12,7 @@ condition: 6
 aiUse: 4
 hitRateLimit: 90
 category: 0
+id: 102
+name: "석파장"
+intro: "인접한 적을 중심으로 십자 범위에 전술 피해를 준다. 기력 8 소비."
 learnLevels: {}

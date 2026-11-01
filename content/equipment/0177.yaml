@@ -1,9 +1,0 @@
-# equipment / stable ID: 177
-id: 177
-name: "여유 26"
-itemType: 0
-specialType: 0
-price: 0
-iconIndex: 0
-upgradeValue: 0
-intro: "어린애 비늘 갑옷을 기반으로 하여 좌우 가슴 부분에 후대와 유사한 호신경 대철판이 생기고, 아군 전체 능력치가 상승합니다(X+1)*3%이며, 주변 8칸의 적군 전체 능력치는 하락합니다(X+1)*3%."

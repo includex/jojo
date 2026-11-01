@@ -1,7 +1,0 @@
-# skills/assignments / stable ID: 97
-id: 97
-name: "돌파 공격"
-index: 97
-skillId: 221
-value: 1
-intro: "상대방을 공격하면 피격자가 후퇴합니다. 만약 후퇴하지 않으면 피해 비율이 증가합니다."

@@ -1,9 +1,0 @@
-# equipment / stable ID: 148
-id: 148
-name: "분뢰축월"
-itemType: 109
-specialType: 2
-iconIndex: 147
-value: 25
-upgradeValue: 255
-intro: "전체적으로 노란색이며, 달리는 속도가 번개 같고 종종 위험한 순간에 주인을 보호하여 곤경에서 벗어나게 합니다.\n\n【보물 효과】장착자의 HP가 X% 감소할 때마다, 그 모든 능력치가 (X/2)% 상승합니다. 상승량의 최대치는 25%입니다."

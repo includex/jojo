@@ -1,9 +1,0 @@
-# equipment / stable ID: 16
-id: 16
-name: "정강철 장창"
-itemType: 10
-price: 10
-iconIndex: 106
-value: 70
-upgradeValue: 10
-intro: "여러 번 단련하여 만들어진 장창으로, 길이가 3미터가 넘습니다. 곧게 찌르거나, 박고, 걸거나, 쪼는 것이 가능하여 보병과 기병 모두 사용하는 날카로운 무기입니다."

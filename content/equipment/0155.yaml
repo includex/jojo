@@ -1,9 +1,0 @@
-# equipment / stable ID: 155
-id: 155
-name: "해독제"
-itemType: 29
-specialType: 3
-price: 3
-iconIndex: 92
-upgradeValue: 0
-intro: "혼란 상태에 빠진 부대가 정상으로 회복되는 약입니다. 맛이 유난히 씁니다."

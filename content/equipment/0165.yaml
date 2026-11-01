@@ -1,9 +1,0 @@
-# equipment / stable ID: 165
-id: 165
-name: "행운 과일"
-itemType: 37
-specialType: 3
-iconIndex: 102
-value: 2
-upgradeValue: 0
-intro: "먹으면 운을 높여주는 신비한 열매입니다. 사기도 어느 정도 상승합니다."

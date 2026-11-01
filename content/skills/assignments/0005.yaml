@@ -1,7 +1,0 @@
-# skills/assignments / stable ID: 5
-id: 5
-name: "매 턴 장비 EXP"
-index: 5
-skillId: 150
-value: 8
-intro: "매 턴 일정량의 방어구 경험치 획득 가능."

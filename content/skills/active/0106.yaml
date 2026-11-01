@@ -1,17 +1,17 @@
 # Lin Chong mod / native Jojo content catalog
-id: 106
-name: "부수보"
 type: 13
 target: 1
 hitArea: 13
 effectArea: 1
 mpCost: 6
 icon: 17
-intro: "선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다. 기력 6 소비."
 effect: 15
 power: 28
 harmType: 4
 condition: 6
 aiUse: 5
 category: 17
+id: 106
+name: "부수보"
+intro: "선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다. 기력 6 소비."
 learnLevels: {}

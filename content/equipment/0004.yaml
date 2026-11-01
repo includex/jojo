@@ -1,9 +1,0 @@
-# equipment / stable ID: 4
-id: 4
-name: "긴 창"
-itemType: 2
-price: 10
-iconIndex: 4
-value: 48
-upgradeValue: 10
-intro: "길고 무거운 창. 짧은 창보다 위력이 크다."

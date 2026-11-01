@@ -1,6 +1,6 @@
 id: 2
 name: "궁병"
-advantages: {"arms3":150,"arms18":120,"arms23":150,"arms24":150,"arms38":120}
+advantages: {}
 unitType: 2
 attackRange: 1
 movementType: 1
