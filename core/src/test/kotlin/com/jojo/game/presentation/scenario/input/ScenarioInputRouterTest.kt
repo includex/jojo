@@ -88,4 +88,14 @@ class ScenarioInputRouterTest {
             ),
         )
     }
+    @Test fun `custom choice geometry is shared with hit testing and scrolling`() {
+        val layout = com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout(
+            choicePanelX = 10f, choicePanelY = 20f, choicePanelWidth = 300f,
+            choiceRowX = 20f, choiceRowWidth = 280f, choiceVisibleRows = 2,
+        )
+        assertEquals(ScenarioInputRouter.Touch.SelectAndConfirm(3),
+            ScenarioInputRouter.choiceTouch(false, 5, 50f,
+                layout.choiceRowBottom(1) + 5f, 2, layout))
+        assertEquals(3, ScenarioInputRouter.firstVisibleChoiceIndex(5, 4, 2))
+    }
 }

@@ -46,6 +46,8 @@ class BattleDialogueRendererAdapter(
     /** 그리기에 쓰는 배치다. 선택 항목 클릭 판정이 같은 값을 봐야 한다. */
     val layout: DialogueRenderLayout get() = renderer.layout
 
+    fun dispose() = renderer.dispose()
+
     /** 대사·선택·모달을 전투 화면의 SpriteBatch와 ShapeRenderer에 연결한다. */
     fun draw(
         batch: SpriteBatch,

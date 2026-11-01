@@ -299,6 +299,7 @@ tasks.processResources {
     from(restoredScenarioDirectory) { include("*.py", "manifest.json", "dialogue-text.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
     from(rootProject.file("content/resources"))
+    from(rootProject.file("content/ui")) { include("dialogue.yaml"); into("ui") }
     from(rootProject.file("content/rules")) { include("lua-rules.yaml", "lua/**"); into("rules") }
     from(generatedContentAssetsDirectory)
     from(generatedGameContentDirectory) {

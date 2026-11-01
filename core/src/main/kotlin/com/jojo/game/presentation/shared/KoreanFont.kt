@@ -14,6 +14,10 @@ import java.io.File
 
 /** KoreanFont: 실행 환경에 맞는 한국어 비트맵 글꼴을 생성한다. */
 object KoreanFont {
+    data class Settings(val size: Int, val borderWidth: Float, val borderColor: Color, val faceIndex: Int)
+    private val settings = java.util.WeakHashMap<BitmapFont, Settings>()
+    fun settings(font: BitmapFont): Settings? = settings[font]
+
     /** 크기·외곽선·색상 설정으로 글꼴을 생성한다. */
     /** Apple SD Gothic Neo 모음의 Bold(700) 얼굴 색인. 원본 Cocos `enableBold`/`_styleFlags=1`에 대응한다. */
     const val BOLD_FACE = 6
@@ -25,6 +29,7 @@ object KoreanFont {
         borderColor: Color = Color.CLEAR,
         fillColor: Color = Color.WHITE,
         faceIndex: Int = 0,
+        fontAssetPath: String? = null,
     ): BitmapFont {
         /**
          * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -45,7 +50,9 @@ object KoreanFont {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val fontPath = candidates.firstOrNull { File(it).isFile }
+        val fontFile = fontAssetPath?.let { path ->
+            Gdx.files.internal(path).also { require(it.exists()) { "Dialogue font asset does not exist: $path" } }
+        } ?: candidates.firstOrNull { File(it).isFile }?.let { FileHandle(File(it)) }
             ?: error(SystemMessage.S_1217D649AD)
         /**
          * `generator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -53,7 +60,7 @@ object KoreanFont {
          */
 
         // 굵은 얼굴은 macOS Apple SD Gothic Neo 모음(.ttc)에서만 고를 수 있다. 단일 글꼴 파일은 얼굴 0만 가진다.
-        val generator = FreeTypeFontGenerator(FileHandle(File(fontPath)), if (fontPath.endsWith(".ttc")) faceIndex else 0)
+        val generator = FreeTypeFontGenerator(fontFile, if (fontFile.extension().equals("ttc", true)) faceIndex else 0)
         return try {
             generator.generateFont(
                 FreeTypeFontGenerator.FreeTypeFontParameter().apply {
@@ -71,7 +78,7 @@ object KoreanFont {
                         else -> error("JOJO_FONT_HINTING must be auto, none, slight, or full")
                     }
                 }
-            )
+            ).also { settings[it] = Settings(size, borderWidth, Color(borderColor), faceIndex) }
         } finally {
             generator.dispose()
         }

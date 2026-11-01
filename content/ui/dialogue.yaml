@@ -1,0 +1,26 @@
+# Runtime override: -Djojo.ui.dialogue.path=/path/to/dialogue.yaml
+# Missing values inherit each screen's established rendering defaults.
+# layout accepts panel, portrait, speaker, text, and choice fields in logical screen pixels.
+# Font keys: path, size, bold, faceIndex, color, borderWidth, borderColor, scaleX, scaleY.
+# Colors must be quoted #RRGGBB or #RRGGBBAA; asset paths are packaged internal paths.
+# Any font or layout customization disables recovered raster labels.
+# legacyRaster: false forces live font rendering even without customization.
+# followSpeaker: false uses fixed layout positions for battle dialogue.
+version: 1
+profiles:
+  scenario:
+    layout: {}
+    bodyFont: {}
+    speakerFont: {}
+    background: {}
+  battle:
+    layout: {}
+    bodyFont: {}
+    speakerFont: {}
+    background: {}
+# background example:
+#   leftImage: ui/custom-left.png
+#   rightImage: ui/custom-right.png
+#   tint: "#FFFFFFFF"
+#   fillColor: "#202030FF"
+#   ninePatch: { enabled: true, left: 16, right: 16, top: 16, bottom: 16 }

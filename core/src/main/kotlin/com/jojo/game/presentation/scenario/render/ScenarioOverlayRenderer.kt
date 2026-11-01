@@ -28,9 +28,11 @@ import com.jojo.game.presentation.shared.dialogue.ChoiceScene2dLayer
 import com.jojo.game.presentation.shared.dialogue.ModalRenderModel
 
 /** ScenarioOverlayRenderer: 대사·선택·모달처럼 장면 위에 겹치는 시나리오 오버레이를 그린다. */
-internal object ScenarioOverlayRenderer {
+internal class ScenarioOverlayRenderer(profile: com.jojo.game.presentation.shared.dialogue.DialogueUiProfile) {
     /** 시나리오와 전투가 공유하는 대화·선택·모달 표시기다. */
-    private val dialogueRenderer = DialogueRenderer()
+    private val dialogueRenderer = DialogueRenderer(profile.applyLayout(com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout()), profile = profile)
+
+    fun dispose() = dialogueRenderer.dispose()
 
     /**
      * `draw`: 화면 표시 상태를 렌더링한다.

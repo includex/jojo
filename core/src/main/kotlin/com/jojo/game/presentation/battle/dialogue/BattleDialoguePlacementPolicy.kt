@@ -89,6 +89,27 @@ internal object BattleDialoguePlacementPolicy {
         return componentPlacement(panelY)
     }
 
+    /** Authored positions follow the same speaker displacement, or remain fixed when requested. */
+    fun place(
+        speakerScreenCenterY: Float?, viewportHeight: Float,
+        layout: com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout,
+        followSpeaker: Boolean,
+    ): DialogueComponentPlacement {
+        val legacy = place(speakerScreenCenterY, viewportHeight)
+        val y = if (followSpeaker && speakerScreenCenterY != null) {
+            legacy.panelY + layout.panelY - DEFAULT_PANEL_Y - (layout.panelHeight - PANEL_HEIGHT) / 2f
+        } else layout.panelY
+        return DialogueComponentPlacement(
+            panelX = layout.panelRightX, panelY = y,
+            panelWidth = layout.panelWidth, panelHeight = layout.panelHeight,
+            portraitX = layout.portraitRightX, portraitY = y + layout.portraitOffsetY,
+            portraitWidth = layout.portraitWidth, portraitHeight = layout.portraitHeight,
+            speakerX = layout.speakerRightX, speakerDrawY = y + layout.speakerOffsetY,
+            textX = layout.textRightX, textDrawY = y + layout.textOffsetY,
+            textWidth = layout.textWidth,
+        )
+    }
+
     /** 패널 아래 좌표가 정해진 뒤 모든 자식의 동일한 상대 오프셋을 적용한다. */
     private fun componentPlacement(panelY: Float): DialogueComponentPlacement =
         DialogueComponentPlacement(

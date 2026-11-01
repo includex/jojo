@@ -1604,11 +1604,8 @@ void main() {
         append(BATTLE_UI_GLYPHS)
     })
 
-    /** 전투 대사 좌표·HUD 자원을 공용 대화 렌더러에 연결하는 어댑터다. */
-    private val battleDialogueRendererAdapter by lazy {
-        BattleDialogueRendererAdapter(
-            renderer = DialogueRenderer(
-                DialogueRenderLayout(
+    private val dialogueUi = com.jojo.game.presentation.shared.dialogue.DialogueUiConfig.load().profile("battle")
+    private val battleDialogueLayout = dialogueUi.applyLayout(DialogueRenderLayout(
                     width = 1488.3721f,
                     height = 800f,
                     panelLeftX = 245.65f,
@@ -1616,6 +1613,7 @@ void main() {
                     panelY = 282f,
                     panelWidth = 796f,
                     panelHeight = 212f,
+                    portraitOffsetY = -2f,
                     portraitWidth = 192f,
                     portraitHeight = 240f,
                     portraitLeftX = 1064.62f,
@@ -1623,9 +1621,9 @@ void main() {
                     speakerLeftX = 307.23f,
                     speakerRightX = 307.23f,
                     speakerOffsetY = 189.4f,
-                    textLeftX = 278.705f,
-                    textRightX = 278.705f,
-                    textOffsetY = 99.814f,
+                    textLeftX = 271.146f,
+                    textRightX = 271.146f,
+                    textOffsetY = 134.501f,
                     textWidth = 728f,
                     // 전투는 설계 좌표(1488.372x800)를 그대로 쓴다. 원본 ChooseLayer 노드 값이다.
                     choicePanelX = 492.686f,
@@ -1643,9 +1641,16 @@ void main() {
                     choiceRowSpacing = 56f,
                     choiceTextX = 561.486f,
                     choiceTextOffsetY = 44.55f,
-                ),
+                ))
+
+    /** 전투 대사 좌표·HUD 자원을 공용 대화 렌더러에 연결하는 어댑터다. */
+    private val battleDialogueRendererAdapterDelegate = lazy {
+        BattleDialogueRendererAdapter(
+            renderer = DialogueRenderer(
+                battleDialogueLayout,
                 // 전투 대사 캡처는 단일 블렌드로 고정돼 있다. 알파 분리 블렌드는 쓰지 않는다.
                 separateAlphaBlend = false,
+                profile = dialogueUi,
             ),
             assets = BattleDialogueRendererAssetsAdapter(
                 dialoguePanel = hudAssets.dialoguePanelTexture,
@@ -1656,6 +1661,8 @@ void main() {
             ),
         )
     }
+
+    private val battleDialogueRendererAdapter by battleDialogueRendererAdapterDelegate
 
     /**
      * `itemUpgradeFont` (BitmapFont): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -12270,6 +12277,8 @@ void main() {
             1776f + battleCamera.y - visualY * 96f
         },
         viewportHeight = viewport.worldHeight,
+        layout = battleDialogueLayout,
+        followSpeaker = dialogueUi.followSpeaker,
     )
 
     /**
@@ -13004,6 +13013,7 @@ void main() {
      */
 
     override fun dispose() {
+        if (battleDialogueRendererAdapterDelegate.isInitialized()) battleDialogueRendererAdapter.dispose()
         unitPresentationStore.clear()
         audio.dispose()
         font.dispose()

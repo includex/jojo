@@ -1,0 +1,122 @@
+# Complete editable live-font example. Copy to a file and select with jojo.ui.dialogue.path.
+# This deliberately selects live text; packaged dialogue.yaml preserves recovered raster defaults.
+version: 1
+profiles:
+  scenario:
+    legacyRaster: false
+    followSpeaker: true
+    layout:
+      panelLeftX: 274.54054
+      panelRightX: 316.40878
+      panelY: 55.47
+      topOffsetY: 373.24
+      panelWidth: 686.28
+      panelHeight: 164.26
+      portraitOffsetY: -2.15
+      portraitWidth: 165.12
+      portraitHeight: 206.4
+      portraitLeftX: 84.8199
+      portraitRightX: 1030.2742
+      speakerLeftX: 349.35056
+      speakerRightX: 365.315
+      speakerOffsetY: 147.03
+      textLeftX: 328.93882
+      textRightX: 341.1233
+      textOffsetY: 108.03
+      textWidth: 626.08
+      choicePanelX: 423.70996
+      choicePanelY: 265.009
+      choicePanelWidth: 642.42
+      choicePanelHeight: 157.982
+      choicePortraitX: 231.07598
+      choicePortraitY: 240.21004
+      choiceRowX: 463.44196
+      choiceRowWidth: 593.916
+      choiceRowHeight: 38.7
+      choiceRowTopInset: 50.341
+      choiceRowSpacing: 48
+      choiceTextX: 482.87796
+      choiceTextOffsetY: 38.313
+      choiceVisibleRows: 3
+    bodyFont:
+      size: 31
+      bold: false
+      faceIndex: 0
+      color: "#000000FF"
+      borderWidth: 0
+      borderColor: "#000000FF"
+      scaleX: 1
+      scaleY: 1
+    speakerFont:
+      size: 31
+      bold: true
+      color: "#2302EAFF"
+      borderWidth: 2
+      borderColor: "#66FFFFFF"
+      scaleX: 1
+      scaleY: 1
+    background:
+      tint: "#FFFFFFFF"
+      ninePatch: {enabled: false, left: 0, right: 0, top: 0, bottom: 0}
+    # Add bodyFont.path / speakerFont.path for a packaged TTF or OTF.
+    # Add background.leftImage/rightImage to replace the recovered panel.
+    # Add background.fillColor: "#202030FF" to draw a solid panel.
+  battle:
+    legacyRaster: false
+    followSpeaker: true
+    layout:
+      panelLeftX: 245.65
+      panelRightX: 245.65
+      panelY: 282
+      topOffsetY: 373.24
+      panelWidth: 796
+      panelHeight: 212
+      portraitOffsetY: -2
+      portraitWidth: 192
+      portraitHeight: 240
+      portraitLeftX: 1064.62
+      portraitRightX: 1064.62
+      speakerLeftX: 307.23
+      speakerRightX: 307.23
+      speakerOffsetY: 189.4
+      textLeftX: 271.146
+      textRightX: 271.146
+      textOffsetY: 134.501
+      textWidth: 728
+      choicePanelX: 492.686
+      choicePanelY: 308.15
+      choicePanelWidth: 747
+      choicePanelHeight: 183.7
+      choicePortraitX: 268.693
+      choicePortraitY: 279.314
+      choiceRowX: 538.886
+      choiceRowWidth: 690.6
+      choiceRowHeight: 45
+      choiceRowTopInset: 58.35
+      choiceRowSpacing: 56
+      choiceTextX: 561.486
+      choiceTextOffsetY: 44.55
+      choiceVisibleRows: 3
+    bodyFont:
+      size: 36
+      bold: false
+      faceIndex: 0
+      color: "#000000FF"
+      borderWidth: 0
+      borderColor: "#000000FF"
+      scaleX: 1
+      scaleY: 1
+    speakerFont:
+      size: 36
+      bold: true
+      color: "#2302EAFF"
+      borderWidth: 2
+      borderColor: "#66FFFFFF"
+      scaleX: 1
+      scaleY: 1
+    background:
+      tint: "#FFFFFFFF"
+      ninePatch: {enabled: false, left: 0, right: 0, top: 0, bottom: 0}
+    # Add bodyFont.path / speakerFont.path for a packaged TTF or OTF.
+    # Add background.leftImage/rightImage to replace the recovered panel.
+    # Add background.fillColor: "#202030FF" to draw a solid panel.

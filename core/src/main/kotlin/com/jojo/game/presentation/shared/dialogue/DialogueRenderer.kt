@@ -28,7 +28,14 @@ class DialogueRenderer(
      * 끈다. 화면별로 검증된 값을 보존하기 위한 명시적 선택이다.
      */
     private val separateAlphaBlend: Boolean = true,
-) {
+    val profile: DialogueUiProfile? = null,
+) : com.badlogic.gdx.utils.Disposable {
+    private val uiResources = DialogueUiResources()
+    private val customBody get() = profile?.bodyFont?.takeIf { it != DialogueFontConfig() }
+    private val customSpeaker get() = profile?.speakerFont?.takeIf { it != DialogueFontConfig() }
+    private val useLegacyRaster get() = profile?.legacyRaster ?: true
+    override fun dispose() = uiResources.dispose()
+
     private val bodyVertices = FloatArray(20)
     private val savedBodyTransform = Matrix4()
     private val sourceBodyTransform = Matrix4()
@@ -82,12 +89,17 @@ class DialogueRenderer(
         val include = { target: DialogueRenderStage -> stage == null || stage.includes(target) }
         val placement = resolvePlacement(model)
         if (include(DialogueRenderStage.PANEL)) {
-            val region = assets.panelRegion(model.isLeft)
-            if (region != null) {
-                batch.color = Color.WHITE
+            val background = profile?.background
+            val customPanel = background?.let { uiResources.drawBackground(batch, it, placement, model.isLeft) } == true
+            val region = if (customPanel) null else assets.panelRegion(model.isLeft)
+            if (!customPanel && background?.ninePatch?.enabled == true) {
+                val patchRegion = region ?: assets.dialoguePanel?.let { com.badlogic.gdx.graphics.g2d.TextureRegion(it).apply { if (placement.mirrorPanel) flip(true, false) } }
+                patchRegion?.let { uiResources.drawLegacyPatch(batch, it, background, placement) }
+            } else if (region != null) {
+                batch.color = background?.tint?.let(Color::valueOf) ?: Color.WHITE
                 batch.draw(region, placement.panelX, placement.panelY, placement.panelWidth, placement.panelHeight)
-            } else assets.dialoguePanel?.let {
-                batch.color = Color.WHITE
+            } else if (!customPanel) assets.dialoguePanel?.let {
+                batch.color = background?.tint?.let(Color::valueOf) ?: Color.WHITE
                 drawMirrored(batch, it, placement.panelX, placement.panelY, placement.panelWidth, placement.panelHeight, placement.mirrorPanel)
             }
         }
@@ -121,11 +133,11 @@ class DialogueRenderer(
         model: DialogueRenderModel,
         placement: DialogueComponentPlacement,
     ) {
-        model.speakerOverlay?.let {
+        model.speakerOverlay?.takeIf { useLegacyRaster && customSpeaker == null }?.let {
             drawOverlay(batch, it)
             return
         }
-        assets.speakerLabel(model.speaker)?.let { label ->
+        (if (useLegacyRaster && customSpeaker == null) assets.speakerLabel(model.speaker) else null)?.let { label ->
             // Cocos anchors the integer-sized canvas quad against the float node height.
             // The Label node has anchor (0, .5); its quad is not stretched to nodeSize.
             val sourceScale = layout.speakerLabelScale
@@ -141,8 +153,15 @@ class DialogueRenderer(
                 label.texture.width * sourceScale, label.texture.height * sourceScale)
             return
         }
-        val style = model.speakerStyle
-        val font = assets.speakerFont
+        val config = customSpeaker
+        val style = if (config == null) model.speakerStyle else model.speakerStyle.copy(
+            fillColor = config.color?.let(Color::valueOf) ?: model.speakerStyle.fillColor,
+            outlineColor = if (config.borderWidth != null ||
+                (com.jojo.game.presentation.shared.KoreanFont.settings(assets.speakerFont)?.borderWidth ?: 0f) > 0f
+            ) null else model.speakerStyle.outlineColor,
+            scaleX = 1f, scaleY = 1f,
+        )
+        val font = config?.let { uiResources.font(batch, it, assets.speakerFont, model.speaker, style.fillColor) } ?: assets.speakerFont
         // 화면별 글꼴은 이미 자체 배율을 구워 둘 수 있으므로 곱해서 적용하고 원래 값으로 되돌린다.
         val baseScaleX = font.data.scaleX
         val baseScaleY = font.data.scaleY
@@ -160,7 +179,7 @@ class DialogueRenderer(
                 font.draw(batch, model.speaker, placement.speakerX + dx, placement.speakerDrawY + dy)
             }
         }
-        font.color = style.fillColor
+        font.color = if (config == null) style.fillColor else Color.WHITE
         font.draw(batch, model.speaker, placement.speakerX, placement.speakerDrawY)
         font.data.setScale(baseScaleX, baseScaleY)
     }
@@ -172,11 +191,11 @@ class DialogueRenderer(
         model: DialogueRenderModel,
         placement: DialogueComponentPlacement,
     ) {
-        model.bodyOverlay?.let {
+        model.bodyOverlay?.takeIf { useLegacyRaster && customBody == null }?.let {
             drawOverlay(batch, it)
             return
         }
-        assets.bodyLabels(model.visibleText)?.let { segments ->
+        (if (useLegacyRaster && customBody == null) assets.bodyLabels(model.visibleText) else null)?.let { segments ->
             val scale = layout.bodyLabelScale
             val x = if (model.isLeft) {
                 layout.bodyLabelLeftSourceX + (placement.panelX - layout.panelLeftX) / scale
@@ -199,11 +218,12 @@ class DialogueRenderer(
             }
             return
         }
-        val font = assets.bodyFont
+        val config = customBody
+        val font = config?.let { uiResources.font(batch, it, assets.bodyFont, model.visibleText, Color.BLACK) } ?: assets.bodyFont
         val baseScaleX = font.data.scaleX
         val baseScaleY = font.data.scaleY
-        font.data.setScale(baseScaleX, baseScaleY * model.bodyScaleY)
-        font.color = Color.BLACK
+        font.data.setScale(baseScaleX, baseScaleY * if (config == null) model.bodyScaleY else 1f)
+        font.color = if (config == null) Color.BLACK else Color.WHITE
         font.draw(batch, model.visibleText, placement.textX, placement.textDrawY, placement.textWidth, Align.left, true)
         font.data.setScale(baseScaleX, baseScaleY)
     }

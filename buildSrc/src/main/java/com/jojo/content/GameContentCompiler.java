@@ -161,6 +161,7 @@ public final class GameContentCompiler {
                 String relative = source.relativize(file).toString().replace('\\', '/');
                 // Scenario sources belong to the separate Python AST resource pipeline.
                 if (relative.startsWith("scenarios/") || relative.startsWith("assets/") || relative.startsWith("resources/") || relative.startsWith("examples/")) continue;
+                if ((relative.equals("ui/dialogue.yaml") || relative.equals("ui/dialogue-custom.example.yaml"))) continue;
                 if (relative.equals("rules/lua-rules.yaml") || (relative.startsWith("rules/lua/") && relative.endsWith(".lua"))) continue;
                 if (relative.equals("schema.json") || relative.equals("README.md")) continue;
                 if (relative.equals("game.yaml") || relative.equals("config.yaml") || relative.equals("gameConfig.yaml")

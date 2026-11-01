@@ -149,9 +149,9 @@ object ScenarioInputRouter {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    fun choiceTouch(ask: Boolean, optionCount: Int, x: Float, y: Float, firstVisibleIndex: Int = 0): Touch {
-        if (x !in 463f..1059f) return Touch.Advance
+    fun choiceTouch(ask: Boolean, optionCount: Int, x: Float, y: Float, firstVisibleIndex: Int = 0, layout: DialogueRenderLayout = CHOICE_LAYOUT): Touch {
         if (ask) {
+            if (x !in 463f..1059f) return Touch.Advance
             val index = when {
                 x in 482.84f..628.18f && y in 306.16f..349.16f -> 0
                 x in 646.27f..791.61f && y in 306.16f..349.16f -> 1
@@ -163,9 +163,10 @@ object ScenarioInputRouter {
         // 닿는다. 눌린 줄은 보이는 창의 첫 항목을 더해 실제 선택지 번호로 되돌린다.
         // 줄 판정은 그리기와 같은 배치 값에서 가져와, 항목 사이 여백을 누르면 아무것도
         // 고르지 않는다.
-        val first = firstVisibleIndex.coerceIn(0, maxOf(0, optionCount - VISIBLE_CHOICE_ROWS))
-        val visible = minOf(optionCount - first, VISIBLE_CHOICE_ROWS)
-        val row = CHOICE_LAYOUT.choiceRowIndexAt(x, y, visible) ?: return Touch.None
+        val first = firstVisibleIndex.coerceIn(0, maxOf(0, optionCount - layout.choiceVisibleRows))
+        val visible = minOf(optionCount - first, layout.choiceVisibleRows)
+        if (x < layout.choicePanelX || x > layout.choicePanelX + layout.choicePanelWidth) return Touch.Advance
+        val row = layout.choiceRowIndexAt(x, y, visible) ?: return Touch.None
         return Touch.SelectAndConfirm(first + row)
     }
 
@@ -182,8 +183,8 @@ object ScenarioInputRouter {
      * 선택이 창을 벗어날 때만 창을 밀어 같은 접근성을 만든다. 그리기와 입력이 같은 값을
      * 써야 눌린 줄과 실제 선택지가 어긋나지 않는다.
      */
-    fun firstVisibleChoiceIndex(optionCount: Int, selectedIndex: Int): Int {
-        if (optionCount <= VISIBLE_CHOICE_ROWS) return 0
-        return (selectedIndex - VISIBLE_CHOICE_ROWS + 1).coerceIn(0, optionCount - VISIBLE_CHOICE_ROWS)
+    fun firstVisibleChoiceIndex(optionCount: Int, selectedIndex: Int, visibleRows: Int = VISIBLE_CHOICE_ROWS): Int {
+        if (optionCount <= visibleRows) return 0
+        return (selectedIndex - visibleRows + 1).coerceIn(0, optionCount - visibleRows)
     }
 }

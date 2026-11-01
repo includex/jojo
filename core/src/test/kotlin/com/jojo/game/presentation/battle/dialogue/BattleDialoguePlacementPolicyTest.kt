@@ -37,4 +37,22 @@ class BattleDialoguePlacementPolicyTest {
         assertEquals(245.65f, placement.panelX)
         assertEquals(282f, placement.panelY)
     }
+    @Test
+    fun `authored fixed placement controls all dialogue components`() {
+        val layout = com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout(
+            panelRightX = 100f, panelY = 80f, panelWidth = 700f, panelHeight = 220f,
+            portraitRightX = 900f, portraitOffsetY = 12f, speakerRightX = 150f,
+            speakerOffsetY = 190f, textRightX = 160f, textOffsetY = 140f, textWidth = 600f,
+        )
+        val result = BattleDialoguePlacementPolicy.place(500f, 800f, layout, false)
+        assertEquals(100f, result.panelX)
+        assertEquals(80f, result.panelY)
+        assertEquals(900f, result.portraitX)
+        assertEquals(92f, result.portraitY)
+        assertEquals(150f, result.speakerX)
+        assertEquals(270f, result.speakerDrawY)
+        assertEquals(160f, result.textX)
+        assertEquals(220f, result.textDrawY)
+        assertEquals(600f, result.textWidth)
+    }
 }

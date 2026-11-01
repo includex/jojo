@@ -6,6 +6,7 @@ import com.jojo.game.domain.scenario.PlaybackState
 
 /** ScenarioInputPort: 시나리오 입력 Port로, 시나리오 표현 계층 사이에서 필요한 동작과 데이터를 약속한다. */
 interface ScenarioInputPort {
+    fun choiceLayout() = com.jojo.game.presentation.shared.dialogue.DialogueRenderLayout()
     /**
      * `hallState`: 타입의 핵심 동작을 수행한다.
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
@@ -105,7 +106,7 @@ class ScenarioInputController(private val port: ScenarioInputPort) {
         if (port.playbackState() == PlaybackState.CHOICE) {
             when (
                 val choice = ScenarioInputRouter.choiceTouch(
-                    port.isAskChoice(), port.choiceCount(), x, y, port.choiceFirstVisibleIndex(),
+                    port.isAskChoice(), port.choiceCount(), x, y, port.choiceFirstVisibleIndex(), port.choiceLayout(),
                 )
             ) {
                 is ScenarioInputRouter.Touch.SelectAndConfirm -> port.selectAndConfirm(choice.index)

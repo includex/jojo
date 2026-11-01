@@ -173,6 +173,10 @@ class ScenarioScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    private val dialogueUi = com.jojo.game.presentation.shared.dialogue.DialogueUiConfig.load().profile("scenario")
+    private val dialogueLayout = dialogueUi.applyLayout(DialogueRenderLayout())
+    private val scenarioOverlayRenderer = ScenarioOverlayRenderer(dialogueUi)
+
     private val sceneAssets = ScenarioSceneAssets {
         buildString {
             append("삼국지 조조전 LibGDX 게임 개발 직접 읽은 한국어 시나리오 인물 내레이션 선택 선택완료 Enter Space 클릭 다음 확정 처음으로 재능의 첫 징후 전투 병영 원본 궁정 대화 UI 비교 조조가 수저우 도겸과 전투를 벌였을 때 장비 장비 정보 매입 판매하기 상품 목록 창고 목록 무기점 상점 현금 종료 모두 해제 자동 장비 전부 무기 보구 보조 정보 조조 군웅 이전 무장 다음 무장 공격력 정신력 방어력 폭발력 사기 이동력 레벨 속성 검 이벤트 총합 가격 인벤토리 판매가 없음 부대 정보 일람 무장명 부대 속성 체력 공격 방어 정신 폭발 폐쇄 창고 일람 이름 경험치 소지자 아이템 확인 지형 정보 효과 기동력 소모 마왕 보병 기병 궁기 포차 무술 보물 도감 발견되지 않음 지금까지 발견한 역사 단축키 설명 메뉴 설정 단계 속도 변화 전용 목록 세트 목록 특수 효과 진영에 따라 다른 색상의 체력 바를 표시합니다 ★◎○△×—☆●")
@@ -199,7 +203,7 @@ class ScenarioScreen(
      * 수 없다. 캡처 경로에서는 붙이지 않고 공용 렌더러가 그대로 그린다.
      */
     private val choiceScene2dLayer = lazy {
-        ChoiceScene2dLayer(DialogueRenderLayout()) { index -> selectAndConfirm(index) }
+        ChoiceScene2dLayer(dialogueLayout) { index -> selectAndConfirm(index) }
             .also { dialogueScene2dStage.value.addActor(it) }
     }
     /**
@@ -1029,7 +1033,7 @@ class ScenarioScreen(
                         drawUnits = false,
                     )
                 }
-                ScenarioOverlayRenderer.drawStreetStage(
+                scenarioOverlayRenderer.drawStreetStage(
                     sceneAssets,
                     batch,
                     shapes,
@@ -1077,6 +1081,7 @@ class ScenarioScreen(
         playbackController.dispose()
         if (dialogueScene2dStage.isInitialized()) dialogueScene2dStage.value.dispose()
         if (dialogueScene2dSkin.isInitialized()) dialogueScene2dSkin.value.dispose()
+        scenarioOverlayRenderer.dispose()
         sceneAssets.dispose()
         sceneFrameTarget.dispose()
         batch.dispose()
@@ -1235,7 +1240,7 @@ class ScenarioScreen(
             val choiceLayer = if (!game.hasFrameCaptureRequest() && !game.hasRenderEventLogRequest()) {
                 choiceScene2dLayer.value
             } else null
-            ScenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view, choiceLayer)
+            scenarioOverlayRenderer.draw(sceneAssets, batch, shapes, viewport.camera.combined, view, choiceLayer)
             if (view.modal?.kind == ScenarioOverlayModalKind.AMBITION) {
                 batch.projectionMatrix = viewport.camera.combined
                 batch.begin(); drawHallMenu(); batch.end()
@@ -1618,6 +1623,8 @@ class ScenarioScreen(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    override fun choiceLayout() = dialogueLayout
+
     override fun hallState() = ScenarioInputRouter.HallState(
         playback.state == PlaybackState.COMPLETE && playback.stage.menuVisible,
         hallFeatsLayer != null, hallUnitInfoLayer != null, hallMagicLayer != null, hallItemLayer != null,
@@ -1651,7 +1658,7 @@ class ScenarioScreen(
 
     /** 그리기와 입력이 같은 스크롤 위치를 쓰도록 판정을 한 곳에서 가져온다. */
     private fun choiceFirstVisibleIndex(count: Int): Int =
-        ScenarioInputRouter.firstVisibleChoiceIndex(count, playback.selectedChoice)
+        ScenarioInputRouter.firstVisibleChoiceIndex(count, playback.selectedChoice, dialogueLayout.choiceVisibleRows)
 
     /**
      * 원본 `ChooseLayer.onCreate`는 항목을 만들기 전에 `Model.replaceSpeInfo`를 통과시킨다.
