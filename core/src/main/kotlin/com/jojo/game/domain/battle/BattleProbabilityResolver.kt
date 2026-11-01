@@ -61,7 +61,7 @@ internal class BattleProbabilityResolver(
          */
 
         var incoming = rate
-        if (attacker.skills[111]?.and(255)?.let { it != 255 } == true) incoming = incoming shl 1
+        if (attacker.skills[SkillEffects.id("doubleEnergyCharge")]?.and(255)?.let { it != 255 } == true) incoming = incoming shl 1
         /**
          * `own` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -158,7 +158,7 @@ internal class BattleProbabilityResolver(
             BattleAttributeCalculator.defenseAgainst(attacker, target, BattleAttribute.CRITICAL),
         )
         return (
-                baseline - effect(target, 64) - effect(target, 71) + effect(attacker, 66)
+                baseline - effect(target, SkillEffects.id("physicalDefenseBonus")) - effect(target, SkillEffects.id("defenseAbilityBonus")) + effect(attacker, SkillEffects.id("physicalHitBonus"))
                 ).coerceIn(25, 100)
     }
     /**
@@ -174,8 +174,8 @@ internal class BattleProbabilityResolver(
             BattleRateGauge.PHYSICAL_GUARD,
             hitRate,
         )
-        if (attacker.remoteAttack && hasSkill(target, 48)) return false
-        if (hasSkill(attacker, 92)) return true
+        if (attacker.remoteAttack && hasSkill(target, SkillEffects.id("blockRangedAttack"))) return false
+        if (hasSkill(attacker, SkillEffects.id("guaranteedPhysicalHit"))) return true
         if (BattleStatus.CONFUSION in target.statuses) return true
         return rolled
     }
@@ -205,7 +205,7 @@ internal class BattleProbabilityResolver(
      */
 
     fun criticalHit(attacker: BattleUnit, target: BattleUnit): Boolean {
-        val rate = if (hasSkill(attacker, 270)) {
+        val rate = if (hasSkill(attacker, SkillEffects.id("criticalAttack"))) {
             100
         } else {
             criticalRate(
@@ -282,10 +282,10 @@ internal class BattleProbabilityResolver(
             else -> base * limit
         }
         if (!famousCap) {
-            if (hasSkill(attacker, 15)) rate = 100
-            rate += effect(attacker, 56)
-            rate -= effect(target, 55)
-            rate -= effect(target, 71)
+            if (hasSkill(attacker, SkillEffects.id("guaranteedMagicHit"))) rate = 100
+            rate += effect(attacker, SkillEffects.id("magicHitBonus"))
+            rate -= effect(target, SkillEffects.id("magicDefenseBonus"))
+            rate -= effect(target, SkillEffects.id("defenseAbilityBonus"))
         }
         return rate.coerceIn(25, 100)
     }
@@ -302,7 +302,7 @@ internal class BattleProbabilityResolver(
             BattleRateGauge.MAGIC_GUARD,
             hitRate,
         )
-        return rolled && target.skills[17]?.and(255)?.let { it == 255 } != false
+        return rolled && target.skills[SkillEffects.id("magicImmunity")]?.and(255)?.let { it == 255 } != false
     }
     /**
      * `continuousAttack`: 타입의 핵심 동작을 수행한다.
@@ -310,7 +310,7 @@ internal class BattleProbabilityResolver(
      */
 
     fun continuousAttack(attacker: BattleUnit, target: BattleUnit): Boolean {
-        val forced = hasSkill(attacker, 197) || hasSkill(attacker, 276)
+        val forced = hasSkill(attacker, SkillEffects.id("doubleCounterAttack")) || hasSkill(attacker, SkillEffects.id("continuousAttack"))
         val own = BattleAttributeCalculator.effective(attacker, BattleAttribute.CRITICAL).toDouble()
         val opponent = BattleAttributeCalculator.defenseAgainst(
             attacker,

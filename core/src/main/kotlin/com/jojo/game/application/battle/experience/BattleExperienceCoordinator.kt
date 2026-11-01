@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.application.battle.experience
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
 import com.jojo.game.domain.battle.settlement.SettlementGrowthKind
@@ -80,7 +81,7 @@ internal object BattleExperienceCoordinator {
             result *= 4
             if (target.id == enemyMasterUnitId) result *= 2
         }
-        attacker.skills[67]?.and(255)?.takeIf { it != 255 }?.let { result += it }
+        attacker.skills[SkillEffects.id("experienceBonus")]?.and(255)?.takeIf { it != 255 }?.let { result += it }
         return result
     }
 

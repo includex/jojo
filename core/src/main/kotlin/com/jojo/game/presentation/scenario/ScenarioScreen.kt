@@ -1907,8 +1907,7 @@ class ScenarioScreen(
      */
 
     private fun matchingBattleModule(): String {
-        val candidate = moduleName.replaceFirst("R_", "S_")
-        return candidate.takeIf { it in ScenarioCatalog.sModuleNames() } ?: "S_00"
+        return com.jojo.game.infrastructure.data.GamePackage.load().battleModule(moduleName)
     }
 
     /**

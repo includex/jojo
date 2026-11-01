@@ -1,6 +1,6 @@
 # 엔진과 게임 아키텍처
 
-현재 기준: 엔진은 `:engine`, 게임 구현과 콘텐츠는 `:core`에 둔다. 엔진은 게임 모듈을 참조할 수 없으며, 게임이 정책·데이터·호출 처리를 엔진에 전달한다.
+현재 기준: 엔진은 `:engine`, 게임 구현은 `:core`, 게임별 작성 콘텐츠는 `content/`에 둔다. 엔진은 게임 모듈을 참조할 수 없으며, 게임이 정책·데이터·호출 처리를 엔진에 전달한다.
 
 ```text
 desktop ──────┐
@@ -46,11 +46,19 @@ verification ───────────┘
 
 한국어 글꼴 선택, `JOJO_FONT_PATH`, `JOJO_FONT_HINTING`, 번역 카탈로그도 core의 책임이다. 엔진 렌더링은 텍스처·글꼴 선택이나 콘텐츠를 결정하지 않는다.
 
-## 인물·장비·스킬 작성 원본
+## 콘텐츠와 런타임 규칙
 
-`content/characters`, `content/equipment`, `content/skills/{active,passive,assignments,equipment}`에서 각 요소를 YAML 파일 하나로 정의한다. `content/schema.json`이 이름 있는 필드와 기존 런타임 테이블의 대응을 명시한다. `:core:compileGameContent`는 빌드 시 YAML·ID·필드 타입과 주요 스킬 참조를 검증하고 여섯 테이블을 `core/build/generated/game-content/data`에 생성한다. `processResources`는 이 테이블만 번들하며 외부 원본의 동일한 테이블은 제외한다. 화자 이름 라벨 생성도 YAML에서 컴파일한 인물 표를 읽는다.
+`content/`가 게임별 작성 원본이다. 인물·장비·스킬·병종·상점 등 14개 테이블은 YAML로 관리하고, `:core:compileGameContent`가 검증·변환한다. `content/game.yaml`에는 제목·시작 장면·주인공·저장 공간·장면과 전투의 명시적 연결을 선언한다. 일반 빌드는 `content/assets`, `content/resources`, `content/scenarios/compatibility`의 로컬 입력을 사용한다. 외부 원본은 선택적인 비교·수입 도구에서만 사용한다.
 
-인덱스형 런타임과 저장 호환성을 유지하기 위해 기존 ID를 보존한다. Python 시나리오·manifest·대사는 content/scenarios에서 관리하며, 다른 병종·지형·상점·이미지 입력은 아직 기존 외부 경로를 사용한다. YAML 파서는 buildSrc에만 있으며 engine/core 런타임 의존을 늘리지 않는다. 편집 방법과 ID 제약은 [콘텐츠 안내](content/README.md)를 따른다.
+`content/variables/globals.yaml`은 이름 있는 `gvars`의 타입·기본값·설명과 선택적인 숫자 별칭을 정의한다. core의 `GlobalVariableStore`가 이름과 기존 숫자 주소를 같은 값에 연결하고 저장을 이전한다. engine은 `NamedIndexAccess` 인터페이스만 알며 게임별 변수 이름은 알지 못한다.
+
+`content/rules/game-rules.yaml`은 확장 자원과 내장/Kotlin 규칙을 선언한다. `RuleEngine`은 상태 스냅샷과 검증 가능한 효과 목록을 주고받으며 `BattleRuleRuntime`이 전투 상태에 적용한다. 게임별 Kotlin 모듈은 `RuleModule`로 등록한다.
+
+`content/rules/lua-rules.yaml`은 선택적인 Lua 규칙과 장수·착용 장비의 연결을 선언한다. core의 `LuaRulePackage`가 YAML을 읽고 `LuaRuleHandler`가 제한된 LuaJ 환경에서 실행한다. 따라서 core에는 런타임 YAML 및 Lua 의존성이 있다. engine에는 게임 규칙이나 Lua 라이브러리 의존성을 추가하지 않는다.
+
+외부 규칙 폴더를 지정하면 Lua 소스와 등록 YAML을 새 전투마다 읽는다. 턴 시작·종료, 공격·피격의 이번 공격력·피해 보정을 지원하며, 계산 이벤트는 상태 변경과 난수를 금지해 AI 예측에서도 사용한다. 진행 중인 전투는 생성 시 읽은 소스를 유지한다. 장면 진행용 Python은 여전히 빌드 시 AST로 변환하며 전체 게임 패키지의 런타임 교체는 아직 구현하지 않았다.
+
+작성 절차는 [게임 패키지 가이드](docs/game-package-guide.html), [이름 있는 변수](docs/global-variables-guide.html), [Lua 규칙 가이드](docs/lua-rules-guide.html)를 따른다.
 
 ## 경계를 유지하는 방법
 

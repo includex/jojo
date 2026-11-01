@@ -1,0 +1,13 @@
+id: 21
+name: "산적"
+arms: 5
+attack: 1
+defense: 4
+spirit: 2
+critical: 1
+morale: 2
+movement: 5
+range: 8
+type: 1
+upgrades: [0,1,22,23]
+intro: "적군 계열 병종 1. 공격력이 강력하고 사기가 높은 부대입니다. 산지나 황무지에서 진가를 발휘할 수 있습니다. 적군을 상대할 때 치명타가 기대됩니다."

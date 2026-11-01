@@ -1,6 +1,7 @@
 // Game
 package com.jojo.game
 import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.infrastructure.data.GamePackage
 import com.jojo.game.infrastructure.preferences.GamePreferenceProvider
 import com.jojo.game.presentation.shared.overlay.*
 
@@ -199,7 +200,7 @@ class JojoGame(private val configuration: GameLaunchConfiguration = GameLaunchCo
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val campaign by lazy { CampaignStore(preferenceProvider.campaign()) }
+    private val campaign by lazy { CampaignStore(preferenceProvider.campaign(), GamePackage.load().startModule) }
     /**
      * `screenNavigator` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

@@ -240,7 +240,7 @@ class TitleScreen(
              */
 
             override fun newGame(moduleName: String) {
-                check(moduleName == "R_00")
+                check(moduleName == com.jojo.game.infrastructure.data.GamePackage.load().startModule)
                 game.startNewGame()
             }
 

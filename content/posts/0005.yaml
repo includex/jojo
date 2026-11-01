@@ -1,0 +1,13 @@
+id: 5
+name: "근위병"
+arms: 5
+attack: 1
+defense: 2
+spirit: 4
+critical: 3
+morale: 2
+movement: 3
+range: 9
+type: 1
+upgrades: [0,1,20,21]
+intro: "보병 계열 병종 3. 이동력이 상승하여 적의 맹공을 막아낼 수 있습니다. 매우 믿음직한 부대입니다."

@@ -1,0 +1,13 @@
+id: 4
+name: "중장 보병"
+arms: 5
+attack: 1
+defense: 2
+spirit: 4
+critical: 3
+morale: 2
+movement: 3
+range: 9
+type: 1
+upgrades: [0,1,20,21]
+intro: "보병 계열 병종 2. 강력한 방어력을 발휘한다면 아군 부대의 벽이 될 수 있습니다. 전략에 대한 저항력도 강합니다."

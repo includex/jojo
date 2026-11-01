@@ -1,0 +1,13 @@
+id: 1
+name: "영웅"
+arms: 6
+attack: 1
+defense: 3
+spirit: 3
+critical: 3
+morale: 3
+movement: 3
+range: 7
+type: 2
+upgrades: [0,1,20,21]
+intro: "군주 계열 병종 2. 공격 범위가 더 넓어지고, 만능적인 경향이 더욱 뚜렷해졌습니다."

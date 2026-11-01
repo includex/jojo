@@ -1,0 +1,5 @@
+id: 7
+name: "세 칸"
+upgrade: 5
+flag: 1
+offsets: [[0,-1],[0,-2],[0,-3]]

@@ -2,6 +2,7 @@
 package com.jojo.game.application.runtime
 
 import com.jojo.game.*
+import com.jojo.game.infrastructure.data.GamePackage
 
 import com.jojo.game.application.runtime.RuntimeArtifactObserver
 import com.jojo.game.application.runtime.RuntimeBattleObserver
@@ -34,7 +35,7 @@ data class ScenarioRunConfiguration(
     val battlePositions: Map<Int, Pair<Int, Int>> = emptyMap(),
     val battlePositionsByCamp: Map<Int, List<Pair<Int, Int>>> = emptyMap(),
     val battleEnemyDefeated: Boolean = false,
-    val startScene: String = "scene1",
+    val startScene: String = GamePackage.load().resumeScene,
     val startLabel: String? = null,
     val stopAfterRandomTrace: Boolean = false,
     val stopAfterRandomTraceCount: Int? = null,
@@ -64,7 +65,7 @@ data class RenderCaptureConfiguration(
 /** GameLaunchConfiguration: 게임 시작 경로와 시나리오·검증·캡처 의존성을 한 번에 전달하는 최상위 설정이다. */
 data class GameLaunchConfiguration(
     val entryPoint: GameEntryPoint = GameEntryPoint.TITLE,
-    val initialScenario: String = "R_00",
+    val initialScenario: String = GamePackage.load().startModule,
     val battleReturnScenario: String? = null,
     val initialScenarioExplicit: Boolean = false,
     val scenarioRun: ScenarioRunConfiguration = ScenarioRunConfiguration(),

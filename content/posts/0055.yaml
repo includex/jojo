@@ -1,0 +1,13 @@
+id: 55
+name: "철갑 기병"
+arms: 6
+attack: 1
+defense: 3
+spirit: 4
+critical: 2
+morale: 2
+movement: 3
+range: 8
+type: 1
+upgrades: [2,3,6,7,20,21]
+intro: ""

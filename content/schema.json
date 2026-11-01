@@ -318,5 +318,293 @@
         "type": "integer"
       }
     }
+  },
+  "arms": {
+    "table": "arms.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "advantages": {
+        "key": "1",
+        "type": "object"
+      },
+      "unitType": {
+        "key": "2",
+        "type": "integer"
+      },
+      "attackRange": {
+        "key": "3",
+        "type": "integer"
+      },
+      "movementType": {
+        "key": "4",
+        "type": "integer"
+      },
+      "equipmentType": {
+        "key": "5",
+        "type": "integer"
+      },
+      "special": {
+        "key": "6",
+        "type": "boolean"
+      },
+      "classId": {
+        "key": "7",
+        "type": "integer"
+      },
+      "terrain": {
+        "key": "8",
+        "type": "object"
+      },
+      "flag": {
+        "key": "9",
+        "type": "boolean"
+      },
+      "value": {
+        "key": "10",
+        "type": "integer"
+      }
+    }
+  },
+  "posts": {
+    "table": "posts.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "arms": {
+        "key": "1",
+        "type": "integer"
+      },
+      "attack": {
+        "key": "2",
+        "type": "integer"
+      },
+      "defense": {
+        "key": "3",
+        "type": "integer"
+      },
+      "spirit": {
+        "key": "4",
+        "type": "integer"
+      },
+      "critical": {
+        "key": "5",
+        "type": "integer"
+      },
+      "morale": {
+        "key": "6",
+        "type": "integer"
+      },
+      "movement": {
+        "key": "7",
+        "type": "integer"
+      },
+      "range": {
+        "key": "8",
+        "type": "integer"
+      },
+      "type": {
+        "key": "9",
+        "type": "integer"
+      },
+      "upgrades": {
+        "key": "10",
+        "type": "integer-list"
+      },
+      "intro": {
+        "key": "11",
+        "type": "string"
+      }
+    }
+  },
+  "hitarea": {
+    "table": "hitarea.bin",
+    "fields": {
+      "upgrade": {
+        "key": "upgrade",
+        "type": "integer"
+      },
+      "name": {
+        "key": "name",
+        "type": "string",
+        "required": true
+      },
+      "offsets": {
+        "key": "ps",
+        "type": "offsets"
+      },
+      "flag": {
+        "key": "flag",
+        "type": "integer"
+      }
+    }
+  },
+  "effarea": {
+    "table": "effarea.bin",
+    "fields": {
+      "upgrade": {
+        "key": "upgrade",
+        "type": "integer"
+      },
+      "name": {
+        "key": "name",
+        "type": "string"
+      },
+      "offsets": {
+        "key": "ps",
+        "type": "offsets"
+      },
+      "flag": {
+        "key": "flag",
+        "type": "integer"
+      }
+    }
+  },
+  "shop": {
+    "table": "shop.bin",
+    "fields": {
+      "name": {
+        "key": "0",
+        "type": "string",
+        "required": true
+      },
+      "weaponLevel": {
+        "key": "1",
+        "type": "integer"
+      },
+      "armorLevel": {
+        "key": "2",
+        "type": "integer"
+      },
+      "items": {
+        "key": "3",
+        "type": "integer-list"
+      },
+      "extras": {
+        "key": "4",
+        "type": "integer-list"
+      }
+    }
+  },
+  "config": {
+    "table": "config.bin",
+    "fields": {
+      "single": {
+        "key": "single",
+        "type": "boolean",
+        "required": true
+      },
+      "ability": {
+        "key": "ability",
+        "type": "array",
+        "required": true
+      },
+      "transfer": {
+        "key": "transfer",
+        "type": "array",
+        "required": true
+      },
+      "unit": {
+        "key": "unit",
+        "type": "object",
+        "required": true
+      },
+      "comEquip": {
+        "key": "comEquip",
+        "type": "object",
+        "required": true
+      },
+      "speEquip": {
+        "key": "speEquip",
+        "type": "object",
+        "required": true
+      },
+      "appearLv": {
+        "key": "appearLv",
+        "type": "integer",
+        "required": true
+      },
+      "item": {
+        "key": "item",
+        "type": "array",
+        "required": true
+      },
+      "prop": {
+        "key": "prop",
+        "type": "array",
+        "required": true
+      },
+      "magic": {
+        "key": "magic",
+        "type": "array",
+        "required": true
+      },
+      "criIds": {
+        "key": "criIds",
+        "type": "array",
+        "required": true
+      },
+      "criTxt": {
+        "key": "criTxt",
+        "type": "array",
+        "required": true
+      },
+      "retreatTxt": {
+        "key": "retreatTxt",
+        "type": "array",
+        "required": true
+      },
+      "skillEx": {
+        "key": "skillEx",
+        "type": "object",
+        "required": true
+      }
+    }
+  },
+  "gameConfig": {
+    "table": "gameConfig.bin",
+    "fields": {
+      "untAttr": {
+        "key": "untAttr",
+        "type": "array",
+        "required": true
+      },
+      "mcall": {
+        "key": "mcall",
+        "type": "array",
+        "required": true
+      },
+      "meff": {
+        "key": "meff",
+        "type": "object",
+        "required": true
+      },
+      "terrain": {
+        "key": "terrain",
+        "type": "array",
+        "required": true
+      },
+      "weater": {
+        "key": "weater",
+        "type": "array",
+        "required": true
+      },
+      "cri": {
+        "key": "cri",
+        "type": "array",
+        "required": true
+      },
+      "status": {
+        "key": "status",
+        "type": "array",
+        "required": true
+      }
+    }
   }
 }

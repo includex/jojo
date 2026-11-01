@@ -3,6 +3,7 @@ package com.jojo.game.domain.campaign
 
 import com.jojo.game.*
 import com.jojo.game.domain.scenario.*
+import com.jojo.game.infrastructure.data.GamePackage
 
 import java.util.*
 
@@ -54,7 +55,7 @@ class CampaignRoster internal constructor(
         val excluded = limit.excludedUnitIds.distinct()
         val available = joinedUnitIds().filterNot { it in excluded }
         val mandatory = buildList {
-            if (0 in available) add(0)
+            if (GamePackage.load().protagonistId in available) add(GamePackage.load().protagonistId)
             limit.requiredUnitIds.forEach { id ->
                 if (id in available && id !in this) add(id)
             }
@@ -101,8 +102,8 @@ class CampaignRoster internal constructor(
     fun prepareImplicitSingleUnitBattle(): Boolean {
         if (selectedUnitIds.isNotEmpty()) return true
         val joined = joinedUnitIds()
-        if (joined.size != 1 || 0 !in joined) return false
-        selectedUnitIds += 0
+        if (joined.size != 1 || GamePackage.load().protagonistId !in joined) return false
+        selectedUnitIds += GamePackage.load().protagonistId
         return true
     }
 }

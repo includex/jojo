@@ -7,6 +7,7 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleWeather
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.ScenarioBattleUnit
+import com.jojo.game.domain.rules.RuleModule
 
 /** BattleScenarioRequest: 전투 시작 전에 시나리오가 제공하는 입력 묶음으로, 초기 유닛·규칙·런타임 훅을 전달한다. */
 internal data class BattleScenarioRequest(
@@ -22,4 +23,5 @@ internal data class BattleScenarioRequest(
     val campaign: CampaignState? = null,
     val sourceRandomStreams: BattleTraceRandomStreams? = null,
     val enabledFeatures: Int = 32,
+    val ruleModules: List<RuleModule> = emptyList(),
 )

@@ -13,6 +13,7 @@ import com.jojo.game.application.runtime.BattleVerificationRuntime
 import com.jojo.game.presentation.battle.preparation.BattlePreparationScreen
 import com.jojo.game.presentation.shared.overlay.LoadGameLayer
 import com.jojo.game.infrastructure.data.CampaignStore
+import com.jojo.game.infrastructure.data.GamePackage
 import com.jojo.game.infrastructure.data.BattleTerrainLoader
 
 import com.badlogic.gdx.Screen
@@ -113,7 +114,7 @@ internal class GameScreenNavigator(
      */
 
     fun startNewGame() {
-        campaign.newGame(); showScenario("R_00", "scene0")
+        campaign.newGame(); showScenario(GamePackage.load().startModule, GamePackage.load().startScene)
     }
 
     /**
@@ -248,8 +249,8 @@ internal class GameScreenNavigator(
      */
 
     fun showBattleSandbox(
-        sourceScenario: String = initialScenario.replaceFirst("R_", "S_"),
-        returnScenario: String = configuration.battleReturnScenario ?: initialScenario.replaceFirst("S_", "R_"),
+        sourceScenario: String = GamePackage.load().battleModule(initialScenario),
+        returnScenario: String = configuration.battleReturnScenario ?: GamePackage.load().returnModule(initialScenario),
     ) {
         campaign.persist(); replaceScreen(
             BattleScreen(

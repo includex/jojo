@@ -1,0 +1,3324 @@
+{
+  "contractVersion": 1,
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.5.0",
+    "electronVersion": "44.0.0",
+    "fontSha256": {
+      "/System/Library/Fonts/AppleSDGothicNeo.ttc": "e33989af92c53dd2b80efd88f50c404094a046658d0e7a7692619587570e616c",
+      "/System/Library/Fonts/Supplemental/Arial.ttf": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9"
+    }
+  },
+  "generator": "original offscreen cc.RichText segment textures via GL readback; no screenshot/crop",
+  "styleContract": "street-richtext-arial36-line42-black-v1",
+  "catalog": {
+    "kind": "R_00-json-AST",
+    "path": "/Users/ain/workspace/jojo/core/build/generated/scenario-ast/R_00.json",
+    "sha256": "15d2b83769828dfa05c9fd3e1335253e3be64eb2ac7fb90536724bfb74f82e63",
+    "pages": [
+      "주군, 서두르셔야 합니다!",
+      "알고 있다!",
+      "잠시 걸음을 멈춰 주시겠습니까!",
+      "누구냐! 감히 관군의 앞길을 막으려는 것이냐!",
+      "잠깐 기다려라.",
+      "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라 하오."
+    ],
+    "coverage": {
+      "scene": "scene1",
+      "maxRenderedPages": 6,
+      "renderedPages": 6,
+      "origins": [
+        {
+          "callIndex": 0,
+          "pageInCall": 1,
+          "speakerId": "181",
+          "authoredLines": [
+            2
+          ]
+        },
+        {
+          "callIndex": 0,
+          "pageInCall": 2,
+          "speakerId": "0",
+          "authoredLines": [
+            4
+          ]
+        },
+        {
+          "callIndex": 1,
+          "pageInCall": 1,
+          "speakerId": "157",
+          "authoredLines": [
+            2
+          ]
+        },
+        {
+          "callIndex": 2,
+          "pageInCall": 1,
+          "speakerId": "181",
+          "authoredLines": [
+            2
+          ]
+        },
+        {
+          "callIndex": 3,
+          "pageInCall": 1,
+          "speakerId": "0",
+          "authoredLines": [
+            2
+          ]
+        },
+        {
+          "callIndex": 4,
+          "pageInCall": 1,
+          "speakerId": "0",
+          "authoredLines": [
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    }
+  },
+  "contract": {
+    "width": 728,
+    "font": "36px Arial",
+    "lineHeight": 42,
+    "color": [
+      0,
+      0,
+      0,
+      255
+    ],
+    "background": [
+      0,
+      0,
+      0,
+      0.004
+    ],
+    "baselineRatio": 0.26,
+    "filter": "LINEAR"
+  },
+  "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop",
+  "sourceSha256": {
+    "cocos-engine-web/cocos2d/core/components/CCRichText.js": "b2ace4afd2e0a9e1728179eef82077deb8588333274d115664d01466daa5b44a",
+    "cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js": "afeffaf1205a73d7242d6c6d91cbbc00b724e4be55138f7e745dba915dacf4be",
+    "cocos-engine-web/cocos2d/core/utils/text-utils.js": "0eecc74822b9397c1a57d5cba095a5bae25f641cd5664b0cd1f0da40a1e9ef74",
+    "cocos-engine-web/cocos2d/core/renderer/utils/utils.js": "f7d3e995d92a22a3e72df5ec8dd9e190bf7ac153826a480f319ca2d098f30b97",
+    "cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js": "637842f53bb0c36d5ff6f83f2d67c7c4a4d8fb485084fc3fee9c6b04981c803f",
+    "cocos-engine-web/cocos2d/core/assets/CCTexture2D.js": "819492c405ede50e923595494290e21253ec7bc3651251fa5e7a8c7c969ecd95",
+    "cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js": "2d02658e532c3216de102263a3eb70a84c816fccf3d51bbd12d41cb3eec836c8",
+    "recovered-js/modules/ui/DialogueLayer.js": "75a4468691683549a748b0f87860461632e595c84d6ea2ccd5c3d76e32b04877",
+    "decompiled-python/R_00.py": "7aebd16dd58301e15190c67258f0aa84f28bb4661aa01340b350667de1866b75",
+    "cocos-engine-web/cocos2d/core/utils/html-text-parser.js": "784a9c642f38fed485755e48de93cdb305b460c8ab093158df76dabaa0abe370",
+    "web/cocos2d-js.js": "9a450c3bde95a72c81411ead393a2031aeb0ef18c63bbbfe3a475bd4e0c9d0ee"
+  },
+  "entries": [
+    {
+      "pageIndex": 0,
+      "text": "주",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "de3af904b34c90b86c37e554321155a068a31e16223699db3786fc75a85f819a.png",
+          "sha256": "de3af904b34c90b86c37e554321155a068a31e16223699db3786fc75a85f819a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "bd4fcfd8911c2fe0be17b419fa3fa71e57a28a8cb820aa7dee7e0dcdbe17641e.png",
+          "sha256": "bd4fcfd8911c2fe0be17b419fa3fa71e57a28a8cb820aa7dee7e0dcdbe17641e"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군,",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군,",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 72.28,
+          "nodeHeight": 52.92,
+          "width": 72,
+          "height": 52,
+          "file": "fc1624c9f8b82e9e8f14fbfd90ba07a81399e9ec37494860f902ab7dad9a70f9.png",
+          "sha256": "fc1624c9f8b82e9e8f14fbfd90ba07a81399e9ec37494860f902ab7dad9a70f9"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 82.28,
+          "nodeHeight": 52.92,
+          "width": 82,
+          "height": 52,
+          "file": "29b585ea0c858b74d60d92e356d3be927fc60625a5efae5726aa8b0146ccdb87.png",
+          "sha256": "29b585ea0c858b74d60d92e356d3be927fc60625a5efae5726aa8b0146ccdb87"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 113.42,
+          "nodeHeight": 52.92,
+          "width": 113,
+          "height": 52,
+          "file": "316aa8dd96a90483720f2fa41fa866468d0781f500b7cf8c24c4946ec350209b.png",
+          "sha256": "316aa8dd96a90483720f2fa41fa866468d0781f500b7cf8c24c4946ec350209b"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 144.56,
+          "nodeHeight": 52.92,
+          "width": 144,
+          "height": 52,
+          "file": "f612ae9a05e9a137245e386610f03d1881dd15b2f4a846b3bc40b47695094391.png",
+          "sha256": "f612ae9a05e9a137245e386610f03d1881dd15b2f4a846b3bc40b47695094391"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 175.7,
+          "nodeHeight": 52.92,
+          "width": 175,
+          "height": 52,
+          "file": "9bba74d803a6c53add5c57d1654c54387af8e0becd2246e40dcb3eb3e5a73da9.png",
+          "sha256": "9bba74d803a6c53add5c57d1654c54387af8e0becd2246e40dcb3eb3e5a73da9"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 206.84,
+          "nodeHeight": 52.92,
+          "width": 206,
+          "height": 52,
+          "file": "34def0f169f3baf02cb07be92af45946682155ffcb0c2ea724e343dfa50cf4db.png",
+          "sha256": "34def0f169f3baf02cb07be92af45946682155ffcb0c2ea724e343dfa50cf4db"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔야",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔야",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 237.98,
+          "nodeHeight": 52.92,
+          "width": 237,
+          "height": 52,
+          "file": "816cf88a045972744e0ce50139a1305c22c7ba3fb879abb195fa2ee1ad51211c.png",
+          "sha256": "816cf88a045972744e0ce50139a1305c22c7ba3fb879abb195fa2ee1ad51211c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔야 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔야 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 247.99,
+          "nodeHeight": 52.92,
+          "width": 247,
+          "height": 52,
+          "file": "fd3f080be02d9c1ce3ee4412cec03a2a8c5f88260f373f260ffa554e08892417.png",
+          "sha256": "fd3f080be02d9c1ce3ee4412cec03a2a8c5f88260f373f260ffa554e08892417"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔야 합",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔야 합",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 279.13,
+          "nodeHeight": 52.92,
+          "width": 279,
+          "height": 52,
+          "file": "13024155b129153573f9dbfa7218ae69836ee4b72a2c4481d2aa4750eef3e8c4.png",
+          "sha256": "13024155b129153573f9dbfa7218ae69836ee4b72a2c4481d2aa4750eef3e8c4"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔야 합니",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔야 합니",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 310.27,
+          "nodeHeight": 52.92,
+          "width": 310,
+          "height": 52,
+          "file": "9bb843aa078b89fa37a15d57eef5c40c1ea4db362581339565ebedbe47582bde.png",
+          "sha256": "9bb843aa078b89fa37a15d57eef5c40c1ea4db362581339565ebedbe47582bde"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔야 합니다",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔야 합니다",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 341.41,
+          "nodeHeight": 52.92,
+          "width": 341,
+          "height": 52,
+          "file": "a58ba654be8404fe6dbcc25d35aee39e3b3cccd4554355e4800245b3c285b576.png",
+          "sha256": "a58ba654be8404fe6dbcc25d35aee39e3b3cccd4554355e4800245b3c285b576"
+        }
+      ]
+    },
+    {
+      "pageIndex": 0,
+      "text": "주군, 서두르셔야 합니다!",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "주군, 서두르셔야 합니다!",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 351.41,
+          "nodeHeight": 52.92,
+          "width": 351,
+          "height": 52,
+          "file": "72b5152ec95b740e898a2952fb490863a77b15606de044554b719a3bcc797df7.png",
+          "sha256": "72b5152ec95b740e898a2952fb490863a77b15606de044554b719a3bcc797df7"
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "text": "알",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "알",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "68f096b980c4cefc322dfe749cb5cc08cb3dc8e971e26f0cba6e289168ed47fa.png",
+          "sha256": "68f096b980c4cefc322dfe749cb5cc08cb3dc8e971e26f0cba6e289168ed47fa"
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "text": "알고",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "알고",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "6a6915cbc9aabcd003a273b9179a993c70bedc1445cce8a34609d63438dd6f98.png",
+          "sha256": "6a6915cbc9aabcd003a273b9179a993c70bedc1445cce8a34609d63438dd6f98"
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "text": "알고 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "알고 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 72.28,
+          "nodeHeight": 52.92,
+          "width": 72,
+          "height": 52,
+          "file": "69b69c1aa9ee40499ff86480379c35eebd1d9e3ee0efb84d73738f95da2e8e40.png",
+          "sha256": "69b69c1aa9ee40499ff86480379c35eebd1d9e3ee0efb84d73738f95da2e8e40"
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "text": "알고 있",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "알고 있",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "3a984d4e368d859170092eb6a2ccdf0aa1b23befedeb0d3a81c26c996a525588.png",
+          "sha256": "3a984d4e368d859170092eb6a2ccdf0aa1b23befedeb0d3a81c26c996a525588"
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "text": "알고 있다",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "알고 있다",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 134.56,
+          "nodeHeight": 52.92,
+          "width": 134,
+          "height": 52,
+          "file": "d44b21a9a02e2aef2e327f8706a5d619575831a832b1da8856106a38bcf46949.png",
+          "sha256": "d44b21a9a02e2aef2e327f8706a5d619575831a832b1da8856106a38bcf46949"
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "text": "알고 있다!",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "알고 있다!",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 144.56,
+          "nodeHeight": 52.92,
+          "width": 144,
+          "height": 52,
+          "file": "42434c722d0ad1c8993eb0c7deae3389dc59e07fce2049cbb5c12ebe8ecf0267.png",
+          "sha256": "42434c722d0ad1c8993eb0c7deae3389dc59e07fce2049cbb5c12ebe8ecf0267"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "765a223fc4cbdd1135b9ebe0322633457c61af3d9c84915c94848e687fe6e411.png",
+          "sha256": "765a223fc4cbdd1135b9ebe0322633457c61af3d9c84915c94848e687fe6e411"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "7abb7c9ec31bbc09f7e615706d07edd04c253e90463d9c63b0cf8751762ee983.png",
+          "sha256": "7abb7c9ec31bbc09f7e615706d07edd04c253e90463d9c63b0cf8751762ee983"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 72.28,
+          "nodeHeight": 52.92,
+          "width": 72,
+          "height": 52,
+          "file": "2bf6419f1d0f51e6f2eb0658ef82193910239c7617f02a18c82d654f74cd860c.png",
+          "sha256": "2bf6419f1d0f51e6f2eb0658ef82193910239c7617f02a18c82d654f74cd860c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "52b19ebc05d811f2f1d4f3fce73017c1ee62e543745260c772b3752c0e2af87e.png",
+          "sha256": "52b19ebc05d811f2f1d4f3fce73017c1ee62e543745260c772b3752c0e2af87e"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 134.56,
+          "nodeHeight": 52.92,
+          "width": 134,
+          "height": 52,
+          "file": "135dc177fd30367068dfcf87eb2f5e87fbe069d64eddd9018a284b3f24f23f93.png",
+          "sha256": "135dc177fd30367068dfcf87eb2f5e87fbe069d64eddd9018a284b3f24f23f93"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 165.7,
+          "nodeHeight": 52.92,
+          "width": 165,
+          "height": 52,
+          "file": "672257f09bd8a13b4ccb30dd61b1f153d9f4f77b61c1397c9ab2e3f6792bbf6a.png",
+          "sha256": "672257f09bd8a13b4ccb30dd61b1f153d9f4f77b61c1397c9ab2e3f6792bbf6a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 175.7,
+          "nodeHeight": 52.92,
+          "width": 175,
+          "height": 52,
+          "file": "272659928e4cb35d5e9790c073ec070e21756cd075a2390db84dac8da6b52659.png",
+          "sha256": "272659928e4cb35d5e9790c073ec070e21756cd075a2390db84dac8da6b52659"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 206.84,
+          "nodeHeight": 52.92,
+          "width": 206,
+          "height": 52,
+          "file": "c85410dbd7af56638e5dc6defab1a2cc99a2c511f9591cc0fe7294f94bdc3b06.png",
+          "sha256": "c85410dbd7af56638e5dc6defab1a2cc99a2c511f9591cc0fe7294f94bdc3b06"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 237.98,
+          "nodeHeight": 52.92,
+          "width": 237,
+          "height": 52,
+          "file": "d83e5506cfe91bf7beb23c79cf83f3986518f1a466513da85b11dbc9b5e14def.png",
+          "sha256": "d83e5506cfe91bf7beb23c79cf83f3986518f1a466513da85b11dbc9b5e14def"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 247.99,
+          "nodeHeight": 52.92,
+          "width": 247,
+          "height": 52,
+          "file": "93c0280d774006767ab13a2d10d73aa4e937f745f12b67eb84aa4ff29172443d.png",
+          "sha256": "93c0280d774006767ab13a2d10d73aa4e937f745f12b67eb84aa4ff29172443d"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 279.13,
+          "nodeHeight": 52.92,
+          "width": 279,
+          "height": 52,
+          "file": "d36a57ea6473e53c8fb21a1cdba1b6281f00d94c67b95f05b077de4d53cf3445.png",
+          "sha256": "d36a57ea6473e53c8fb21a1cdba1b6281f00d94c67b95f05b077de4d53cf3445"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주시",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주시",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 310.27,
+          "nodeHeight": 52.92,
+          "width": 310,
+          "height": 52,
+          "file": "3668d8e4f6ab20ef06217e5990b380431f9b0eb75e21d128a92452e10a664dfb.png",
+          "sha256": "3668d8e4f6ab20ef06217e5990b380431f9b0eb75e21d128a92452e10a664dfb"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주시겠",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주시겠",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 341.41,
+          "nodeHeight": 52.92,
+          "width": 341,
+          "height": 52,
+          "file": "54a19e28b625ba1c27f87c611260f665f33fbe6679024ca80d23a4ffce68cc62.png",
+          "sha256": "54a19e28b625ba1c27f87c611260f665f33fbe6679024ca80d23a4ffce68cc62"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주시겠습",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주시겠습",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "6b03ff4124700c90992df25b6158cf5f337923e4e5936fa9d9c80bd028a44eb0.png",
+          "sha256": "6b03ff4124700c90992df25b6158cf5f337923e4e5936fa9d9c80bd028a44eb0"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주시겠습니",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주시겠습니",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 403.69,
+          "nodeHeight": 52.92,
+          "width": 403,
+          "height": 52,
+          "file": "bc9dc23719614be1a09d7670827c2e3559df2f735249834143a762c65da7e99c.png",
+          "sha256": "bc9dc23719614be1a09d7670827c2e3559df2f735249834143a762c65da7e99c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주시겠습니까",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주시겠습니까",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 434.83,
+          "nodeHeight": 52.92,
+          "width": 434,
+          "height": 52,
+          "file": "f019346491644d648a9508ca2f5ff48160c8cf56f4951bb7186425067f979ccc.png",
+          "sha256": "f019346491644d648a9508ca2f5ff48160c8cf56f4951bb7186425067f979ccc"
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "text": "잠시 걸음을 멈춰 주시겠습니까!",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠시 걸음을 멈춰 주시겠습니까!",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 444.83,
+          "nodeHeight": 52.92,
+          "width": 444,
+          "height": 52,
+          "file": "244019639020bc5f817bb4d3500ea7da8832c8aa409c8a56c62e97b157b2390b.png",
+          "sha256": "244019639020bc5f817bb4d3500ea7da8832c8aa409c8a56c62e97b157b2390b"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "c6e4b55a2bf6c3c72c1d685b88d7a0c278dcc8b91c2d8db15c9daf7fd7cf14d3.png",
+          "sha256": "c6e4b55a2bf6c3c72c1d685b88d7a0c278dcc8b91c2d8db15c9daf7fd7cf14d3"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "08ccfadb3a7dd8d63b7f1d4fc9d864c288c46112188732e0fae1da6496730aa0.png",
+          "sha256": "08ccfadb3a7dd8d63b7f1d4fc9d864c288c46112188732e0fae1da6496730aa0"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 93.42,
+          "nodeHeight": 52.92,
+          "width": 93,
+          "height": 52,
+          "file": "668546b89e33229fced411e164e194659ddbe4441f878829cd5abf5dc6920833.png",
+          "sha256": "668546b89e33229fced411e164e194659ddbe4441f878829cd5abf5dc6920833"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐!",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐!",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "88305733396fb228e692cd64544e5f424c8a9048a1e96c15abb8f75f7bd169aa.png",
+          "sha256": "88305733396fb228e692cd64544e5f424c8a9048a1e96c15abb8f75f7bd169aa"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 113.42,
+          "nodeHeight": 52.92,
+          "width": 113,
+          "height": 52,
+          "file": "0ecb3939533e0c5ef71bf93925edc289353b11d26f175ff25a0e41287083df82.png",
+          "sha256": "0ecb3939533e0c5ef71bf93925edc289353b11d26f175ff25a0e41287083df82"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 144.56,
+          "nodeHeight": 52.92,
+          "width": 144,
+          "height": 52,
+          "file": "3d117d11b0dc6fad660b6084eacb7c8e22f2d524e89e862eb5ba9154b2d42538.png",
+          "sha256": "3d117d11b0dc6fad660b6084eacb7c8e22f2d524e89e862eb5ba9154b2d42538"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 175.7,
+          "nodeHeight": 52.92,
+          "width": 175,
+          "height": 52,
+          "file": "500b4d5a0b9a86b76d0de645d576445f1e8f32bedb3cab675e71e197e9e5ca1f.png",
+          "sha256": "500b4d5a0b9a86b76d0de645d576445f1e8f32bedb3cab675e71e197e9e5ca1f"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 185.71,
+          "nodeHeight": 52.92,
+          "width": 185,
+          "height": 52,
+          "file": "602429846d66189b9994055e0b17d52229f5dba4f6c2904eaac8529fae3430aa.png",
+          "sha256": "602429846d66189b9994055e0b17d52229f5dba4f6c2904eaac8529fae3430aa"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 216.85,
+          "nodeHeight": 52.92,
+          "width": 216,
+          "height": 52,
+          "file": "46e61397d0d8d36731e9dad302f157b5dce34fdb09de1ddf8adf82b26a3130f8.png",
+          "sha256": "46e61397d0d8d36731e9dad302f157b5dce34fdb09de1ddf8adf82b26a3130f8"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 247.99,
+          "nodeHeight": 52.92,
+          "width": 247,
+          "height": 52,
+          "file": "d098c9ef88081471cf535dc22ab7496b0eb72e5ff3688ffade1ed4640407cb20.png",
+          "sha256": "d098c9ef88081471cf535dc22ab7496b0eb72e5ff3688ffade1ed4640407cb20"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 279.13,
+          "nodeHeight": 52.92,
+          "width": 279,
+          "height": 52,
+          "file": "dbcbcd3b6ee591b013a16a4a54c6351dfdc4da940980d23926674df707a5d4ee.png",
+          "sha256": "dbcbcd3b6ee591b013a16a4a54c6351dfdc4da940980d23926674df707a5d4ee"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 289.13,
+          "nodeHeight": 52.92,
+          "width": 289,
+          "height": 52,
+          "file": "54bca0bd432a81391d1cafc02126da842c325ebd7b520366259d17aa62da2de7.png",
+          "sha256": "54bca0bd432a81391d1cafc02126da842c325ebd7b520366259d17aa62da2de7"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 320.27,
+          "nodeHeight": 52.92,
+          "width": 320,
+          "height": 52,
+          "file": "b5e54bba7e34f082dedc80a4c26b0233b73ecb0391a892fd59e8d4e1b127d907.png",
+          "sha256": "b5e54bba7e34f082dedc80a4c26b0233b73ecb0391a892fd59e8d4e1b127d907"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 351.41,
+          "nodeHeight": 52.92,
+          "width": 351,
+          "height": 52,
+          "file": "e91e01ae364e4996b7e7c7c118420160cc0531a3374aa5193a4999447b0375fd.png",
+          "sha256": "e91e01ae364e4996b7e7c7c118420160cc0531a3374aa5193a4999447b0375fd"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 382.55,
+          "nodeHeight": 52.92,
+          "width": 382,
+          "height": 52,
+          "file": "88fa242169346dc7e2e37f33216906ee84fbda1dc8621115d1e2401aa006b4ed.png",
+          "sha256": "88fa242169346dc7e2e37f33216906ee84fbda1dc8621115d1e2401aa006b4ed"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 392.55,
+          "nodeHeight": 52.92,
+          "width": 392,
+          "height": 52,
+          "file": "d45c47cd36f1d40288d967ee9223404931b4a467f11c8e25d4de5afdeb2ff7d1.png",
+          "sha256": "d45c47cd36f1d40288d967ee9223404931b4a467f11c8e25d4de5afdeb2ff7d1"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 423.69,
+          "nodeHeight": 52.92,
+          "width": 423,
+          "height": 52,
+          "file": "3866bed16c999f275a9e6572fe08a13dbca535a68bd12dca981718560a674d16.png",
+          "sha256": "3866bed16c999f275a9e6572fe08a13dbca535a68bd12dca981718560a674d16"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 454.83,
+          "nodeHeight": 52.92,
+          "width": 454,
+          "height": 52,
+          "file": "34da292a16f00bde8ed0d62159942adcc28b5906029ed08e619e900f3cd7bd9f.png",
+          "sha256": "34da292a16f00bde8ed0d62159942adcc28b5906029ed08e619e900f3cd7bd9f"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 485.97,
+          "nodeHeight": 52.92,
+          "width": 485,
+          "height": 52,
+          "file": "8c2626085b5cdcdde34cb8f07d445508f13a6d661a27c2d8bd7b08cb3034e3a9.png",
+          "sha256": "8c2626085b5cdcdde34cb8f07d445508f13a6d661a27c2d8bd7b08cb3034e3a9"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려는",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려는",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 517.11,
+          "nodeHeight": 52.92,
+          "width": 517,
+          "height": 52,
+          "file": "163427a94504b6e93ae08bf1a905ba27cce078bff5e525a721276e7001f62245.png",
+          "sha256": "163427a94504b6e93ae08bf1a905ba27cce078bff5e525a721276e7001f62245"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려는 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려는 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 527.11,
+          "nodeHeight": 52.92,
+          "width": 527,
+          "height": 52,
+          "file": "82d62112a655ab410b8cfd9d567daabf3dda2cc98abeb7a06879774c7abf1cdd.png",
+          "sha256": "82d62112a655ab410b8cfd9d567daabf3dda2cc98abeb7a06879774c7abf1cdd"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려는 것",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려는 것",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 558.25,
+          "nodeHeight": 52.92,
+          "width": 558,
+          "height": 52,
+          "file": "8b58d9df7fee6256fbfe2b885672b9e42819b784082eed02c4d97e8fa66e3ba6.png",
+          "sha256": "8b58d9df7fee6256fbfe2b885672b9e42819b784082eed02c4d97e8fa66e3ba6"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려는 것이",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려는 것이",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 589.39,
+          "nodeHeight": 52.92,
+          "width": 589,
+          "height": 52,
+          "file": "f6554b4b4e0f43ddd7a2ce3bf957e47ae05cf948a478b17ebf8a6f5381828919.png",
+          "sha256": "f6554b4b4e0f43ddd7a2ce3bf957e47ae05cf948a478b17ebf8a6f5381828919"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려는 것이냐",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려는 것이냐",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 620.53,
+          "nodeHeight": 52.92,
+          "width": 620,
+          "height": 52,
+          "file": "010e1bf793366dd3c873f066187529107995ce1cc391522e7c336da94fb6c2d4.png",
+          "sha256": "010e1bf793366dd3c873f066187529107995ce1cc391522e7c336da94fb6c2d4"
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "text": "누구냐! 감히 관군의 앞길을 막으려는 것이냐!",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "누구냐! 감히 관군의 앞길을 막으려는 것이냐!",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 630.53,
+          "nodeHeight": 52.92,
+          "width": 630,
+          "height": 52,
+          "file": "bcaa58ac1d3dfce21c8cf0059f013902a3dc0258bfed9e6f38fb0bcf8b1c93ca.png",
+          "sha256": "bcaa58ac1d3dfce21c8cf0059f013902a3dc0258bfed9e6f38fb0bcf8b1c93ca"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "765a223fc4cbdd1135b9ebe0322633457c61af3d9c84915c94848e687fe6e411.png",
+          "sha256": "765a223fc4cbdd1135b9ebe0322633457c61af3d9c84915c94848e687fe6e411"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "aba6ad1ce6331b9d4ff8b0e0690fd9c39aaf61f266e3373ff45203b0152fae25.png",
+          "sha256": "aba6ad1ce6331b9d4ff8b0e0690fd9c39aaf61f266e3373ff45203b0152fae25"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 72.28,
+          "nodeHeight": 52.92,
+          "width": 72,
+          "height": 52,
+          "file": "c04ead4041b57daa8d7f7a8a4e70fe5d7ebb2ecd4e5fbacb88ded0dc56601165.png",
+          "sha256": "c04ead4041b57daa8d7f7a8a4e70fe5d7ebb2ecd4e5fbacb88ded0dc56601165"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐 기",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐 기",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "18d8675411e16bde43509686b3af5349d4bbe15d7aa7efd3b13a1c209398457f.png",
+          "sha256": "18d8675411e16bde43509686b3af5349d4bbe15d7aa7efd3b13a1c209398457f"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐 기다",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐 기다",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 134.56,
+          "nodeHeight": 52.92,
+          "width": 134,
+          "height": 52,
+          "file": "9ab538f98aff725b5ca173814b84d78ccf7b0d2cf98f3c8e38f160bfe41baf25.png",
+          "sha256": "9ab538f98aff725b5ca173814b84d78ccf7b0d2cf98f3c8e38f160bfe41baf25"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐 기다려",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐 기다려",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 165.7,
+          "nodeHeight": 52.92,
+          "width": 165,
+          "height": 52,
+          "file": "f362d3897b63987b85e2d511dbe7e1f12d71d7577715b22731b3bbf97a922b35.png",
+          "sha256": "f362d3897b63987b85e2d511dbe7e1f12d71d7577715b22731b3bbf97a922b35"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐 기다려라",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐 기다려라",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 196.84,
+          "nodeHeight": 52.92,
+          "width": 196,
+          "height": 52,
+          "file": "e4885f773f3591c2f60bb303aeb084bef7ec1afa3223e88051162e2249f6b74e.png",
+          "sha256": "e4885f773f3591c2f60bb303aeb084bef7ec1afa3223e88051162e2249f6b74e"
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "text": "잠깐 기다려라.",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "잠깐 기다려라.",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 206.84,
+          "nodeHeight": 52.92,
+          "width": 206,
+          "height": 52,
+          "file": "822b6ed324af7616ec8759fb6354b8430da6ee0fb7d480d5091f61db58e822e9.png",
+          "sha256": "822b6ed324af7616ec8759fb6354b8430da6ee0fb7d480d5091f61db58e822e9"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "49fe98ba00637fe061d587072e89fe6adc3c19dee78c51682943fe0a91e7d065.png",
+          "sha256": "49fe98ba00637fe061d587072e89fe6adc3c19dee78c51682943fe0a91e7d065"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "0afa59a89dc76bef903b69534c136889474409db3bbef9759ca86fbedcb5492a.png",
+          "sha256": "0afa59a89dc76bef903b69534c136889474409db3bbef9759ca86fbedcb5492a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 93.42,
+          "nodeHeight": 52.92,
+          "width": 93,
+          "height": 52,
+          "file": "ff587f2a6455cfba1011d09e6d45095840dc81bbf6cc26eadf2ca951fc9ece27.png",
+          "sha256": "ff587f2a6455cfba1011d09e6d45095840dc81bbf6cc26eadf2ca951fc9ece27"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신,",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신,",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "bd8f8f41643c29018ffdd0b1c2df567779e51c8d08577e16a535c0575dc23304.png",
+          "sha256": "bd8f8f41643c29018ffdd0b1c2df567779e51c8d08577e16a535c0575dc23304"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 113.42,
+          "nodeHeight": 52.92,
+          "width": 113,
+          "height": 52,
+          "file": "80e3b414a394da72b87a38e20da7ee9c43887eb5e31c8d0428a49b4ac8bd0b7a.png",
+          "sha256": "80e3b414a394da72b87a38e20da7ee9c43887eb5e31c8d0428a49b4ac8bd0b7a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 144.56,
+          "nodeHeight": 52.92,
+          "width": 144,
+          "height": 52,
+          "file": "92362a9d2ab664323afa4b92ea3fe987dbf3ac554399f70449318e33215e27f8.png",
+          "sha256": "92362a9d2ab664323afa4b92ea3fe987dbf3ac554399f70449318e33215e27f8"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 175.7,
+          "nodeHeight": 52.92,
+          "width": 175,
+          "height": 52,
+          "file": "6fb8bed71ab7db44be6affcb7a2ef392f620f48247ef280c0a96a5d156b37b7e.png",
+          "sha256": "6fb8bed71ab7db44be6affcb7a2ef392f620f48247ef280c0a96a5d156b37b7e"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 185.71,
+          "nodeHeight": 52.92,
+          "width": 185,
+          "height": 52,
+          "file": "9851e87421fa66f2f2041d2c8bb309c5e1936533757c841da6866770bf6b5774.png",
+          "sha256": "9851e87421fa66f2f2041d2c8bb309c5e1936533757c841da6866770bf6b5774"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 216.85,
+          "nodeHeight": 52.92,
+          "width": 216,
+          "height": 52,
+          "file": "5c8f7965a36cef1e7686e9bc854ecb51c17740872efd4906aeea5343a8828468.png",
+          "sha256": "5c8f7965a36cef1e7686e9bc854ecb51c17740872efd4906aeea5343a8828468"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 247.99,
+          "nodeHeight": 52.92,
+          "width": 247,
+          "height": 52,
+          "file": "4d9789fc0d938b6f471f2e0819e8c2d5b418ffa4039692b7007f086290ca2dda.png",
+          "sha256": "4d9789fc0d938b6f471f2e0819e8c2d5b418ffa4039692b7007f086290ca2dda"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 257.99,
+          "nodeHeight": 52.92,
+          "width": 257,
+          "height": 52,
+          "file": "4d98599a1019a87f5af000b8e960fb02b6c02b42465b6b6d2912ff5f748002fc.png",
+          "sha256": "4d98599a1019a87f5af000b8e960fb02b6c02b42465b6b6d2912ff5f748002fc"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 289.13,
+          "nodeHeight": 52.92,
+          "width": 289,
+          "height": 52,
+          "file": "69e15fe5a4a9b047e7c5c5bec42c7cb72e94d539acf63fdd8a823f53937c666b.png",
+          "sha256": "69e15fe5a4a9b047e7c5c5bec42c7cb72e94d539acf63fdd8a823f53937c666b"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 320.27,
+          "nodeHeight": 52.92,
+          "width": 320,
+          "height": 52,
+          "file": "41ac4e9d4f445fbf1f0cf626a28cf411e65cec9a5d2a56e0cc0f27f9ffb0cfd7.png",
+          "sha256": "41ac4e9d4f445fbf1f0cf626a28cf411e65cec9a5d2a56e0cc0f27f9ffb0cfd7"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 351.41,
+          "nodeHeight": 52.92,
+          "width": 351,
+          "height": 52,
+          "file": "e90d5d29c9ae3d868672a8336c0dc1a3d23f9ee3fe7e18d06e880a27df85f81d.png",
+          "sha256": "e90d5d29c9ae3d868672a8336c0dc1a3d23f9ee3fe7e18d06e880a27df85f81d"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 ",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 ",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 361.41,
+          "nodeHeight": 52.92,
+          "width": 361,
+          "height": 52,
+          "file": "0c892f935db5eff6ca1d872f853b8f2b5262922c37d0d514453f3ad575230658.png",
+          "sha256": "0c892f935db5eff6ca1d872f853b8f2b5262922c37d0d514453f3ad575230658"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 392.55,
+          "nodeHeight": 52.92,
+          "width": 392,
+          "height": 52,
+          "file": "1da8e7c8dff1ce7cccb06c17b630805d87a2201cf64d701093cbb1468e3d6292.png",
+          "sha256": "1da8e7c8dff1ce7cccb06c17b630805d87a2201cf64d701093cbb1468e3d6292"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 423.69,
+          "nodeHeight": 52.92,
+          "width": 423,
+          "height": 52,
+          "file": "54ca1326fffebdfbc59d917d683e83c836c96a06a6cb6d7252e82266d9ff84fc.png",
+          "sha256": "54ca1326fffebdfbc59d917d683e83c836c96a06a6cb6d7252e82266d9ff84fc"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 454.83,
+          "nodeHeight": 52.92,
+          "width": 454,
+          "height": 52,
+          "file": "b0db730544f433560f028e96e2926fbc1a8263c038ddac7e4786032e7de60bbf.png",
+          "sha256": "b0db730544f433560f028e96e2926fbc1a8263c038ddac7e4786032e7de60bbf"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 485.97,
+          "nodeHeight": 52.92,
+          "width": 485,
+          "height": 52,
+          "file": "4c0c74ff3ad53dbc792ba5e4166465f8c2022f308d0fd3941ba7bfaad2dae241.png",
+          "sha256": "4c0c74ff3ad53dbc792ba5e4166465f8c2022f308d0fd3941ba7bfaad2dae241"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?",
+      "width": 728,
+      "height": 52.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.92,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "나",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "3c8f6d1c964a2e2be33f6771fb9276bd48a68ab4015f8e2647c77fc63fd0efcd.png",
+          "sha256": "3c8f6d1c964a2e2be33f6771fb9276bd48a68ab4015f8e2647c77fc63fd0efcd"
+        },
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "0381ab3510e22ebe105ee9a0caa7028c121140d61f2bb58f303d5f8c61416d7d.png",
+          "sha256": "0381ab3510e22ebe105ee9a0caa7028c121140d61f2bb58f303d5f8c61416d7d"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 ",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 ",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 72.28,
+          "nodeHeight": 52.92,
+          "width": 72,
+          "height": 52,
+          "file": "823ff82b593ad258160c50a2a610a63e094a01b566d095833c43fecf571ca208.png",
+          "sha256": "823ff82b593ad258160c50a2a610a63e094a01b566d095833c43fecf571ca208"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "c0ad7aa95088379c33fe6db159e1e461688d99aadaa7b0e1d4ea3c56d7ab7e00.png",
+          "sha256": "c0ad7aa95088379c33fe6db159e1e461688d99aadaa7b0e1d4ea3c56d7ab7e00"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 134.56,
+          "nodeHeight": 52.92,
+          "width": 134,
+          "height": 52,
+          "file": "79ab3a736093492f07dd87d42e0d19401d9b22f09f22df16ae646248472396ec.png",
+          "sha256": "79ab3a736093492f07dd87d42e0d19401d9b22f09f22df16ae646248472396ec"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 165.7,
+          "nodeHeight": 52.92,
+          "width": 165,
+          "height": 52,
+          "file": "960fe43c897e0bdbcc9936f83381a23d7fc020d0d48f109bae37b5fd9500d169.png",
+          "sha256": "960fe43c897e0bdbcc9936f83381a23d7fc020d0d48f109bae37b5fd9500d169"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 ",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 ",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 175.7,
+          "nodeHeight": 52.92,
+          "width": 175,
+          "height": 52,
+          "file": "7488a213397865b2241610279aac88579dcc4b9cd7aa44fc5ebfc7c0bbda7de0.png",
+          "sha256": "7488a213397865b2241610279aac88579dcc4b9cd7aa44fc5ebfc7c0bbda7de0"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 206.84,
+          "nodeHeight": 52.92,
+          "width": 206,
+          "height": 52,
+          "file": "f7ea477486e5b61593f313595d513bf70ae4f94445608c773884e06fb3cfb301.png",
+          "sha256": "f7ea477486e5b61593f313595d513bf70ae4f94445608c773884e06fb3cfb301"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 237.98,
+          "nodeHeight": 52.92,
+          "width": 237,
+          "height": 52,
+          "file": "2a8e015f4d994b1dd144467b75beecbdfb7cfa279403f002b51288c5a2b89f6b.png",
+          "sha256": "2a8e015f4d994b1dd144467b75beecbdfb7cfa279403f002b51288c5a2b89f6b"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 269.12,
+          "nodeHeight": 52.92,
+          "width": 269,
+          "height": 52,
+          "file": "d39794a4529670d5096b25da25f96cf04840130a9dde80e1c88872981ddb5e2c.png",
+          "sha256": "d39794a4529670d5096b25da25f96cf04840130a9dde80e1c88872981ddb5e2c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 300.26,
+          "nodeHeight": 52.92,
+          "width": 300,
+          "height": 52,
+          "file": "f88a9aa00ea2ea79e92ee6fc42198802b3ec5da0540811e8a219c77c2183bc02.png",
+          "sha256": "f88a9aa00ea2ea79e92ee6fc42198802b3ec5da0540811e8a219c77c2183bc02"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 331.4,
+          "nodeHeight": 52.92,
+          "width": 331,
+          "height": 52,
+          "file": "8b8116789beea25df8a4a70ee1ec2916ce1463c7bdf7c92fd2fb4e9c8b416675.png",
+          "sha256": "8b8116789beea25df8a4a70ee1ec2916ce1463c7bdf7c92fd2fb4e9c8b416675"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 362.54,
+          "nodeHeight": 52.92,
+          "width": 362,
+          "height": 52,
+          "file": "e9e44c987d414c8e6b38072d7c74179d7e1428d0c73f548e197304d916416816.png",
+          "sha256": "e9e44c987d414c8e6b38072d7c74179d7e1428d0c73f548e197304d916416816"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.",
+      "width": 728,
+      "height": 94.91999999999999,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "성",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 31.14,
+          "nodeHeight": 52.92,
+          "width": 31,
+          "height": 52,
+          "file": "28d72e3b3256daedbe1ee9b415284c97b39feb58df6193a19b87d99e647a9d7a.png",
+          "sha256": "28d72e3b3256daedbe1ee9b415284c97b39feb58df6193a19b87d99e647a9d7a"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 62.28,
+          "nodeHeight": 52.92,
+          "width": 62,
+          "height": 52,
+          "file": "2c73dddbf7b684e45bde9f78b6ae1589ee53ef6d06c272b9239c24fbf35b20b0.png",
+          "sha256": "2c73dddbf7b684e45bde9f78b6ae1589ee53ef6d06c272b9239c24fbf35b20b0"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 ",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 ",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 72.28,
+          "nodeHeight": 52.92,
+          "width": 72,
+          "height": 52,
+          "file": "537c0b5628426b3968fc7b653a295f90c62a93e68c793c28812c51950719eefd.png",
+          "sha256": "537c0b5628426b3968fc7b653a295f90c62a93e68c793c28812c51950719eefd"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 103.42,
+          "nodeHeight": 52.92,
+          "width": 103,
+          "height": 52,
+          "file": "fc3902c51e58de119d746df54abc5cc4c697b95525980395e4c96bed4423f264.png",
+          "sha256": "fc3902c51e58de119d746df54abc5cc4c697b95525980395e4c96bed4423f264"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조,",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조,",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 113.42,
+          "nodeHeight": 52.92,
+          "width": 113,
+          "height": 52,
+          "file": "9db640d72da3d91eb3718666ff5cb5d40b83a26ab77a9523535ec282b473977c.png",
+          "sha256": "9db640d72da3d91eb3718666ff5cb5d40b83a26ab77a9523535ec282b473977c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, ",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, ",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 123.43,
+          "nodeHeight": 52.92,
+          "width": 123,
+          "height": 52,
+          "file": "d33bdcf46bda0b580d0d671572c11158ee21d110c35d9e54fd227ec571275571.png",
+          "sha256": "d33bdcf46bda0b580d0d671572c11158ee21d110c35d9e54fd227ec571275571"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 154.57,
+          "nodeHeight": 52.92,
+          "width": 154,
+          "height": 52,
+          "file": "72fe083a5f51479a3b825f098443a1e85e188abf9b6bd5db3387bcd76e9c5742.png",
+          "sha256": "72fe083a5f51479a3b825f098443a1e85e188abf9b6bd5db3387bcd76e9c5742"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 185.71,
+          "nodeHeight": 52.92,
+          "width": 185,
+          "height": 52,
+          "file": "404902791fd46495ac3c949807ec3cce2917890b22a0ef7a8eb79fc93286ad1a.png",
+          "sha256": "404902791fd46495ac3c949807ec3cce2917890b22a0ef7a8eb79fc93286ad1a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 216.85,
+          "nodeHeight": 52.92,
+          "width": 216,
+          "height": 52,
+          "file": "fc9ebfb2e7705e89f82559e471b68cfb3927b161208f92cf37ad911de534cb7c.png",
+          "sha256": "fc9ebfb2e7705e89f82559e471b68cfb3927b161208f92cf37ad911de534cb7c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 ",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 ",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 226.85,
+          "nodeHeight": 52.92,
+          "width": 226,
+          "height": 52,
+          "file": "7279b2b7d4fb849e6e87e81f9a39f4670df09a460b4e1b194308c682e92a32d5.png",
+          "sha256": "7279b2b7d4fb849e6e87e81f9a39f4670df09a460b4e1b194308c682e92a32d5"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 257.99,
+          "nodeHeight": 52.92,
+          "width": 257,
+          "height": 52,
+          "file": "53077a4f188e665d5fa51e09187a11066c3cb3f04e8f508483c3beffc96216ec.png",
+          "sha256": "53077a4f188e665d5fa51e09187a11066c3cb3f04e8f508483c3beffc96216ec"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 289.13,
+          "nodeHeight": 52.92,
+          "width": 289,
+          "height": 52,
+          "file": "aea6d43de9d0ad06c31a7410f0aad7e54e80cf3614f5c543ce376e1fd330b7bc.png",
+          "sha256": "aea6d43de9d0ad06c31a7410f0aad7e54e80cf3614f5c543ce376e1fd330b7bc"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 320.27,
+          "nodeHeight": 52.92,
+          "width": 320,
+          "height": 52,
+          "file": "7aa5060d822e72f8fba44ac359205abff6343f22f20f255ad6a6d392f277d01b.png",
+          "sha256": "7aa5060d822e72f8fba44ac359205abff6343f22f20f255ad6a6d392f277d01b"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 ",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 ",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 330.27,
+          "nodeHeight": 52.92,
+          "width": 330,
+          "height": 52,
+          "file": "99538428f2e94238968425d25c7d1027fa260cde0b029cdb412efd81b6c19371.png",
+          "sha256": "99538428f2e94238968425d25c7d1027fa260cde0b029cdb412efd81b6c19371"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 361.41,
+          "nodeHeight": 52.92,
+          "width": 361,
+          "height": 52,
+          "file": "c0bdb41fbad5159741df02bcadd3e1f64fac9086c55503165ac43548d90d082f.png",
+          "sha256": "c0bdb41fbad5159741df02bcadd3e1f64fac9086c55503165ac43548d90d082f"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 392.55,
+          "nodeHeight": 52.92,
+          "width": 392,
+          "height": 52,
+          "file": "8db0565f0f5348f1e0646b45e3976956a8525ece64f960292d6feead78bb6616.png",
+          "sha256": "8db0565f0f5348f1e0646b45e3976956a8525ece64f960292d6feead78bb6616"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 ",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 ",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 402.55,
+          "nodeHeight": 52.92,
+          "width": 402,
+          "height": 52,
+          "file": "11afa1b15e5623f5ce21d81978a7b085e9f88ae1a16fa95ddc8feecbf80afe8c.png",
+          "sha256": "11afa1b15e5623f5ce21d81978a7b085e9f88ae1a16fa95ddc8feecbf80afe8c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 433.69,
+          "nodeHeight": 52.92,
+          "width": 433,
+          "height": 52,
+          "file": "9eaddddd9783fbd02225b90380c6dd4ae5df4a3162144f41943c817bcf79071c.png",
+          "sha256": "9eaddddd9783fbd02225b90380c6dd4ae5df4a3162144f41943c817bcf79071c"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 464.83,
+          "nodeHeight": 52.92,
+          "width": 464,
+          "height": 52,
+          "file": "160b236db00ce87e2510225bcfc188c7ea6ffcc02ec37942d4a2c9cd9b9ade10.png",
+          "sha256": "160b236db00ce87e2510225bcfc188c7ea6ffcc02ec37942d4a2c9cd9b9ade10"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕이",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 495.97,
+          "nodeHeight": 52.92,
+          "width": 495,
+          "height": 52,
+          "file": "eacae9ba79edf1a5304a03b6bd27c3b094b5ee6bc65f4a1985c39cbfcbcdd42a.png",
+          "sha256": "eacae9ba79edf1a5304a03b6bd27c3b094b5ee6bc65f4a1985c39cbfcbcdd42a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕이라",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 527.11,
+          "nodeHeight": 52.92,
+          "width": 527,
+          "height": 52,
+          "file": "e30be47218c0c734e885acc41342965766beb78b4f15f17bae33db08d2894e9a.png",
+          "sha256": "e30be47218c0c734e885acc41342965766beb78b4f15f17bae33db08d2894e9a"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라 ",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕이라 ",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 537.11,
+          "nodeHeight": 52.92,
+          "width": 537,
+          "height": 52,
+          "file": "64c9d09d758138dd60f2b601d541f8bb57c16990b6eb2d7562cbeb441df95e85.png",
+          "sha256": "64c9d09d758138dd60f2b601d541f8bb57c16990b6eb2d7562cbeb441df95e85"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라 하",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕이라 하",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 568.25,
+          "nodeHeight": 52.92,
+          "width": 568,
+          "height": 52,
+          "file": "5f5f9d16cc96dfe68c569b91c4eea0a54ca3fc5980a3f9a37462b88f042817b3.png",
+          "sha256": "5f5f9d16cc96dfe68c569b91c4eea0a54ca3fc5980a3f9a37462b88f042817b3"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라 하오",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕이라 하오",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 599.39,
+          "nodeHeight": 52.92,
+          "width": 599,
+          "height": 52,
+          "file": "e0ddbf440589f5d506af06a3de1702cb4a07254e76738e890692a79e080bd2a0.png",
+          "sha256": "e0ddbf440589f5d506af06a3de1702cb4a07254e76738e890692a79e080bd2a0"
+        }
+      ]
+    },
+    {
+      "pageIndex": 5,
+      "text": "어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라 하오.",
+      "width": 728,
+      "height": 136.92,
+      "segments": [
+        {
+          "text": "어르신, 내게 무슨 볼일이 있으시오?",
+          "x": 0,
+          "y": -52.91999999999999,
+          "nodeWidth": 505.99,
+          "nodeHeight": 52.92,
+          "width": 505,
+          "height": 52,
+          "file": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794.png",
+          "sha256": "fe22b02c8c2009d4a4c149db2a399af3d40c88d8df322f5a22d45ed813cf7794"
+        },
+        {
+          "text": "나는 관군의 기병대장이오.",
+          "x": 0,
+          "y": -94.91999999999999,
+          "nodeWidth": 372.55,
+          "nodeHeight": 52.92,
+          "width": 372,
+          "height": 52,
+          "file": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c.png",
+          "sha256": "4077754e5744584e53c3769f8eddbdb2b981ff6baff1ff3227a11156ddfeb66c"
+        },
+        {
+          "text": "성은 조, 이름은 조이며 자는 맹덕이라 하오.",
+          "x": 0,
+          "y": -136.92,
+          "nodeWidth": 609.4,
+          "nodeHeight": 52.92,
+          "width": 609,
+          "height": 52,
+          "file": "0a57b925bf6668ca81a414891a91a3780c8fa8f44b41ba994d58773f81ad9eae.png",
+          "sha256": "0a57b925bf6668ca81a414891a91a3780c8fa8f44b41ba994d58773f81ad9eae"
+        }
+      ]
+    }
+  ]
+}

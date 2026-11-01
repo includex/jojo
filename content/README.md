@@ -10,6 +10,13 @@
 | `skills/passive/` | 패시브 효과 정의 | defineSkill | 334 |
 | `skills/assignments/` | 인물·병종 스킬 배정 | unitPostsSkill | 157 |
 | `skills/equipment/` | 장비 스킬 효과·성장 | itemSkills.define | 252 |
+| `arms/` | 병과 | arms | 40 |
+| `posts/` | 병종 | posts | 80 |
+| `hitarea/` | 공격 범위 | hitarea | 33 |
+| `effarea/` | 효과 범위 | effarea | 15 |
+| `shop/` | 전투별 상점 | shop | 99 |
+
+`config.yaml`과 `gameConfig.yaml`은 전역 설정 객체다. `effects/animations.yaml`은 64개 효과 애니메이션 원본이다. `resources/`에는 번역 문구, 시스템 메시지, 대사 이미지 등 클래스패스 리소스를 둔다.
 
 `schema.json`은 필드 이름·타입·필수 여부와 기존 런타임 필드의 대응을 정의한다. 런타임에 새 효과를 구현하지 않고 스키마에만 필드를 추가하면 그 효과가 생기는 것은 아니다.
 
@@ -26,7 +33,7 @@
 ./gradlew :verification:verifyAllHeadless
 ```
 
-일반 빌드의 `:core:processResources`도 자동으로 컴파일한다. 출력은 `core/build/generated/game-content/data/*.bin`이고 번들에서는 `maps/data/`가 된다. 생성물은 편집하지 않는다. 기존 외부 프로젝트의 같은 여섯 테이블은 번들에서 제외하므로 YAML이 실제 실행 데이터의 원본이다. Python 시나리오·manifest·대사는 content/scenarios에서 관리한다. 다른 병종·지형·상점·이미지·음원은 아직 기존 외부 입력을 사용한다.
+일반 빌드의 `:core:processResources`도 자동으로 컴파일한다. 출력은 `core/build/generated/game-content/data/*.bin`이고 번들에서는 `maps/data/`가 된다. 생성물은 편집하지 않는다. 기존 외부 프로젝트의 같은 데이터 테이블은 번들에서 제외하므로 YAML이 실제 실행 데이터의 원본이다. Python 시나리오·manifest·대사는 content/scenarios에서 관리한다.
 
 ## 예시
 
@@ -99,6 +106,35 @@ learnLevels:
 ./gradlew :desktop:run --args="--scenario=R_01"
 ```
 
-새 모듈은 Python 파일뿐 아니라 manifest에도 등록한다. `stage.say('@dialogue:R_00.scene1.dialogue0001')`처럼 대사 ID를 소스에 명시하고, 해당 ID의 한국어 텍스트를 `dialogue-text.json`의 `entries`에 추가한다. 기존 ID는 대사를 이동하거나 앞에 줄을 삽입해도 바꾸지 않는다. AST 내보내기는 누락되거나 중복된 ID와 직접 입력한 대사를 거부한다. AST 생성은 원본 바이트코드의 잘못 복원된 분기를 보정하기 위해 아직 외부 assets를 참조한다. 원본 비교용 도구는 별도 외부 원본을 유지할 수 있으며, 실행용 시나리오 작성 위치는 이 디렉토리다. YAML 컴파일러는 scenarios를 처리하지 않고 별도 AST 빌드가 담당한다.
+새 모듈은 Python 파일뿐 아니라 manifest에도 등록한다. `stage.say('@dialogue:R_00.scene1.dialogue0001')`처럼 대사 ID를 소스에 명시하고, 해당 ID의 한국어 텍스트를 `dialogue-text.json`의 `entries`에 추가한다. 기존 ID는 대사를 이동하거나 앞에 줄을 삽입해도 바꾸지 않는다. AST 내보내기는 누락되거나 중복된 ID와 직접 입력한 대사를 거부한다. AST 생성은 scenarios/compatibility의 로컬 바이트코드로 복원 분기를 보정한다. 원본 비교용 도구는 별도 외부 원본을 유지할 수 있으며, 실행용 시나리오 작성 위치는 이 디렉토리다. YAML 컴파일러는 scenarios를 처리하지 않고 별도 AST 빌드가 담당한다.
 
 고정 ID 작성 절차와 API 계약은 [시나리오 플랫폼 가이드](../docs/scenario-platform-guide.html)를 참고한다.
+
+## 게임 패키지와 효과 매핑
+
+`game.yaml`이 게임 제목·시작/복귀 장면·주인공·저장 namespace·전투 연결을 소유한다. `rules/skill-effects.yaml`은 패시브 효과 이름을 스킬 ID에, `rules/magic-effects.yaml`은 능동 책략의 type/category/spell 이름을 코드에 연결한다. 알고리즘을 새로 정의하는 언어는 아니며 기존 효과를 재배치하는 계약이다.
+
+일반 빌드는 `assets/`의 로컬 자산을 패키징한다. `.rgba.gz`는 빌드에서 `.rgba`로 무손실 해제하고 나머지 파일은 그대로 복사한다. `resources/`는 시스템 문구·번역 등 리소스 경로를 보존한다. 외부 Cocos 프로젝트는 선택적인 원본 비교/수입 작업에만 필요하다. 복원 시나리오 보정 입력은 `scenarios/compatibility/`에 있다.
+
+[게임 패키지 작성 예제](../docs/game-package-guide.html)를 따라 설정·효과·자산을 수정하고 검증한다.
+
+## 게임별 규칙 계약 v1
+
+`rules/game-rules.yaml`의 version/resources/rules가 추가 규칙을 설정한다. 기본값은 비활성 목록이다. `examples/yitian-rules.yaml`은 캐릭터별 내공 회복을 켜는 복사 예제이며 자동 적용되지 않는다. 새 Kotlin 핸들러는 RuleModule로 등록한다. [규칙 확장 가이드](../docs/game-rule-extension-guide.html)에 실제 후크 범위, 저장·난수 계약과 작성 절차를 정리했다.
+
+## 이름 있는 시나리오 전역 변수
+
+`variables/globals.yaml`의 `version: 1`, `variables` 매핑에 `namespace.snake_case` 이름과 `type`(`int`/`bool`), `default`, `description`을 선언한다. 기존 숫자 주소가 필요하면 선택 필드 `legacyId`를 연결한다. 이 파일의 이름은 저장 파일의 영속 키이므로 배포 후 변경하려면 마이그레이션이 필요하다.
+
+시나리오는 `gvars["campaign.current_chapter"]`로 읽고 쓰며 정수에는 `+=`도 사용한다. 선언된 이름의 타입을 엄격히 검사하고 숫자 별칭과 동일 상태를 공유한다. 이름이 없는 기존 숫자 접근도 유지한다. 새 저장은 `namedGlobals` v1에 이름별 값을 기록하고 기존 숫자 저장은 별칭으로 복원한다. 게임 규칙의 `extensionState`와는 별개다.
+
+[전역 변수 작성·시나리오·저장 호환성 가이드](../docs/global-variables-guide.html)에 YAML과 불리언 예제, 복원 오류 규칙, 검증 명령을 정리했다.
+
+
+## 외부 Lua 전투 규칙
+
+정적 설정으로 충분한 인물·장비는 기존 YAML만 사용한다. 동적 행동은 `rules/lua-rules.yaml`에 스크립트와 이벤트, 선택적인 `binding: {scope: character|equipment, id: ...}`를 등록한다. 바인딩 ID는 인물/장비의 실제 YAML ID이며 장비는 착용 중인 항목만 적용한다. 기본 등록부는 비어 있어 기존 게임 효과를 바꾸지 않는다.
+
+`JOJO_RULES_DIR` 또는 `-Djojo.rules.dir`로 외부 등록부 디렉터리를 지정하면 Lua와 등록 YAML을 새 전투마다 다시 읽는다. `examples/lua/`는 수정해 실행할 수 있는 독립 예제다. 활성 전투는 소스 스냅샷을 유지한다. 전체 게임 데이터·시나리오를 외부에서 로딩하는 기능과는 별개다.
+
+[Lua 작성·장수/장비 연결·실행 가이드](../docs/lua-rules-guide.html)를 참고한다.

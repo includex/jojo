@@ -43,6 +43,52 @@ class ExpressionEvaluatorTest {
     }
 
     @Test
+    fun `string map subscripts preserve named keys including numeric strings`() {
+        val values = mutableMapOf<Any?, Any?>(7 to 12, "7" to 19, "ready" to false)
+        val frame = frame()
+        val env = ExpressionEnvironment(bindings = mapOf("values" to values), globalVariables = emptyMap(), invokeCall = { _, _ -> null })
+        fun target(key: JsonValue) = node("Subscript", "value" to name("values"), "slice" to key)
+        fun string(value: String) = node("Constant", "value" to JsonValue(value))
+        assertEquals(12, ExpressionEvaluator.eval(target(integer(7)), frame, env))
+        assertEquals(19, ExpressionEvaluator.eval(target(string("7")), frame, env))
+        assertEquals(false, ExpressionEvaluator.evalBoolean(target(string("ready")), frame, env))
+        ExpressionEvaluator.assign(target(string("ready")), true, frame, env)
+        assertEquals(true, ExpressionEvaluator.evalBoolean(target(string("ready")), frame, env))
+        ExpressionEvaluator.assign(target(string("new")), "hello", frame, env)
+        assertEquals("hello", values["new"])
+        assertEquals(0, ExpressionEvaluator.eval(target(string("absent")), frame, env))
+    }
+
+    @Test
+    fun `named host access supports reads writes truthiness and augmented assignments`() {
+        val numbers = mutableMapOf<Int, Any?>(7 to 12)
+        val names = mutableMapOf<String, Any?>("score" to 4)
+        val host = object : MutableMap<Int, Any?> by numbers, NamedIndexAccess {
+            override fun getNamedValue(name: String): Any? = names[name]
+            override fun setNamedValue(name: String, value: Any?) { names[name] = value }
+        }
+        val frame = frame()
+        val env = ExpressionEnvironment(bindings = mapOf("host" to host), globalVariables = emptyMap(), invokeCall = { _, _ -> null })
+        val target = node("Subscript", "value" to name("host"), "slice" to node("Constant", "value" to JsonValue("score")))
+        val executor = StatementExecutor("test")
+        executor.executeStatement(
+            node("AugAssign", "target" to target, "op" to node("Add"), "value" to integer(3)), frame,
+            { expression, active -> ExpressionEvaluator.eval(expression, active, env) },
+            { expression, active -> ExpressionEvaluator.evalBoolean(expression, active, env) },
+            { destination, value, active -> ExpressionEvaluator.assign(destination, value, active, env) },
+            ScriptCallStack(),
+        )
+        assertEquals(7, names["score"])
+        assertEquals(true, ExpressionEvaluator.evalBoolean(target, frame, env))
+        ExpressionEvaluator.assign(target, false, frame, env)
+        assertEquals(false, ExpressionEvaluator.evalBoolean(target, frame, env))
+        val numericTarget = node("Subscript", "value" to name("host"), "slice" to integer(7))
+        ExpressionEvaluator.assign(numericTarget, 24, frame, env)
+        assertEquals(24, ExpressionEvaluator.eval(numericTarget, frame, env))
+        assertEquals(false, names["score"])
+    }
+
+    @Test
     fun `short circuit preserves host side effects and calls receive the active frame`() {
         val frame = frame()
         var calls = 0

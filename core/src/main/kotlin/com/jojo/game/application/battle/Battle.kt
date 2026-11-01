@@ -82,6 +82,8 @@ class Battle(
     /** initialEnemyMoney: 전투 시작 시 적 진영이 보유한 금액이다. */
     initialEnemyMoney: Int = 0,
     onUnitRetreat: (BattleUnit) -> Unit = {},
+    /** Optional battle-scoped extension rules and campaign resource state. */
+    val ruleRuntime: BattleRuleRuntime = BattleRuleRuntime(),
 ) {
     /**
      * `configuration` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -120,6 +122,18 @@ class Battle(
      */
 
     internal val battlefield = Battlefield(units)
+
+    init { units.forEach(::attachRuleCallbacks) }
+
+    private fun attachRuleCallbacks(unit: BattleUnit) {
+        unit.onRuleActionCompleted = {
+            val apply = { ruleRuntime.onActionCompleted(unit) }
+            journal.stagedCompletionSideEffects()?.add(apply) ?: apply()
+        }
+        unit.onRuleAttackPower = { target, power, kind -> ruleRuntime.modifyAttackPower(unit, target, power, kind) }
+        unit.onRuleDamage = { target, damage, kind -> ruleRuntime.modifyDamage(unit, target, damage, kind) }
+        unit.onRulePhysicalDamage = { target, damage -> ruleRuntime.modifyPhysicalDamage(unit, target, damage) }
+    }
 
     /** units: 전장에 남아 있는 전투 유닛을 식별자별로 조회하는 읽기 전용 맵이다. */
     val units: Map<String, BattleUnit> = battlefield.activeMap
@@ -414,6 +428,7 @@ class Battle(
      */
 
     fun addUnit(unit: BattleUnit) {
+        attachRuleCallbacks(unit)
         battlefield.add(unit)
         initializeRateGauges(unit)
     }

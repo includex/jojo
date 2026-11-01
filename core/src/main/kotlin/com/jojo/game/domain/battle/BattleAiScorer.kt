@@ -393,12 +393,11 @@ internal object BattleAiScorer {
             val victim = (target as? AiScoringUnit)?.source ?: return 0
             val base = maxOf(
                 1,
-                (BattleAttributeCalculator.effective(
-                    source,
-                    BattleAttribute.SPIRIT
-                ) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + source.level
+                ((source.onRuleAttackPower?.invoke(victim,
+                    BattleAttributeCalculator.effective(source, BattleAttribute.SPIRIT), "magic")
+                    ?: BattleAttributeCalculator.effective(source, BattleAttribute.SPIRIT)) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + source.level
             )
-            return when (profile.type) {
+            val calculated = when (profile.type) {
                 19 -> source.hitPoints * profile.power / 100 + if (profile.id == 39 || profile.id == 41) source.spirit / 10 else source.spirit / 2
                 20 -> profile.expendMp
                 4 -> if (profile.category == 2) victim.maxHitPoints * profile.power / 100 else offensiveMagicHarm(
@@ -409,6 +408,8 @@ internal object BattleAiScorer {
 
                 else -> offensiveMagicHarm(base, profile, victim)
             }
+            return if (profile.type in setOf(19, 20)) calculated
+            else source.onRuleDamage?.invoke(victim, calculated, "magic") ?: calculated
         }
 
         /**
@@ -420,7 +421,7 @@ internal object BattleAiScorer {
             var value = maxOf(1, base * magic.power / 100 * victim.magicHarmRate / 100)
             value += MagicDamageCalculator.magicFlatSkillDamage(source, magic)
             val flagBonus =
-                source.skills[292]?.and(255)?.takeIf { it != 255 }?.let { env.probabilityResolver.flagRandom(0, 5) }
+                source.skills[SkillEffects.id("maxHealthBonusDamage")]?.and(255)?.takeIf { it != 255 }?.let { env.probabilityResolver.flagRandom(0, 5) }
                     ?: 0
             value = maxOf(1, value * MagicDamageCalculator.magicSkillDamageRate(source, victim, magic, flagBonus) / 100)
             value = value * MagicDamageCalculator.magicWeatherRate(magic, env.weather()) / 100

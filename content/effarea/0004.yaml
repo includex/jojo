@@ -1,0 +1,5 @@
+id: 4
+name: "두 칸"
+flag: 1
+upgrade: 7
+offsets: [[0,-1],[0,-2]]

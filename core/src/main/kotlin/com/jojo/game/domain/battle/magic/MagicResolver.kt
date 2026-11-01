@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.domain.battle.magic
 
+import com.jojo.game.domain.battle.MagicEffects
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
@@ -55,9 +57,9 @@ internal object MagicResolver {
             attacker.addMpcur(-magic.expendMp)
             if (!reaction) attacker.markActionComplete()
             when (magic.id) {
-                58 -> env.setWeather(BattleWeather.HEAVY_RAIN)
-                59 -> env.setWeather(BattleWeather.CLEAR)
-                60 -> env.setWeather(BattleWeather.CLOUDY)
+                MagicEffects.id("spellHeavyRain") -> env.setWeather(BattleWeather.HEAVY_RAIN)
+                MagicEffects.id("spellClearWeather") -> env.setWeather(BattleWeather.CLEAR)
+                MagicEffects.id("spellCloudyWeather") -> env.setWeather(BattleWeather.CLOUDY)
             }
             return TacticalActionResult.Magic(magic.name, magic.expendMp, emptyList())
         }
@@ -106,7 +108,7 @@ internal object MagicResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val magicCritical = magic.harmType != 4 && if (attacker.skills[269]?.and(255)?.let { it != 255 } == true) {
+        val magicCritical = magic.harmType != 4 && if (attacker.skills[SkillEffects.id("guaranteedMagicCritical")]?.and(255)?.let { it != 255 } == true) {
             true
         } else {
             env.probabilityResolver.criticalHit(attacker, target)
@@ -209,7 +211,7 @@ internal object MagicResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val repeatCount = if (attacker.skills[16]?.and(255)?.let { it != 255 } == true) 2 else 1
+        val repeatCount = if (attacker.skills[SkillEffects.id("magicRepeat")]?.and(255)?.let { it != 255 } == true) 2 else 1
         /**
          * `criticalSpeeches` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -341,7 +343,7 @@ internal object MagicResolver {
 
         val magic = attacker.magic.firstOrNull { it.id == magicId }
             ?: return TacticalActionResult.Rejected(SystemMessage.S_30373C627C)
-        if (magic.type != 37) return TacticalActionResult.Rejected(SystemMessage.S_29708E4B21)
+        if (magic.type != MagicEffects.id("typeTeleport")) return TacticalActionResult.Rejected(SystemMessage.S_29708E4B21)
         if (!attacker.visible || attacker.effectiveFaction() != env.activeFaction() || attacker.hasActed) {
             return TacticalActionResult.Rejected(SystemMessage.S_DADF270A7B)
         }

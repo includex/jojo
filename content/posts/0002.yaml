@@ -1,0 +1,13 @@
+id: 2
+name: "패왕"
+arms: 7
+attack: 1
+defense: 3
+spirit: 3
+critical: 3
+morale: 3
+movement: 3
+range: 7
+type: 2
+upgrades: [0,1,20,21]
+intro: "군주 계열 병종 3. 이동력도 다소 향상되어 각 방면에서 모두 유리한 부대가 되었습니다."

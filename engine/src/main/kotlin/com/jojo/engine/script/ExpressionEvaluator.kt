@@ -9,6 +9,12 @@ data class ExpressionEnvironment(
     val invokeCall: (JsonValue, ScriptFrame) -> Any?,
 )
 
+/** 호스트 컨테이너의 이름 기반 첨자 접근을 제공한다. */
+interface NamedIndexAccess {
+    fun getNamedValue(name: String): Any?
+    fun setNamedValue(name: String, value: Any?)
+}
+
 /** 스크립트 AST의 리터럴, 변수, 연산, 호출 표현식을 평가한다. */
 object ExpressionEvaluator {
 
@@ -97,10 +103,11 @@ object ExpressionEvaluator {
     /** 첨자 접근 AST에서 컨테이너 값을 읽는다. */
     fun readSubscript(node: JsonValue, frame: ScriptFrame, env: ExpressionEnvironment): Any? {
         val container = eval(node.field("value"), frame, env)
-        val index = eval(node.field("slice"), frame, env).asInt()
-        return when (container) {
-            is Map<*, *> -> container[index] ?: 0
-            is List<*> -> container.getOrElse(index) { 0 }
+        val index = eval(node.field("slice"), frame, env)
+        return when {
+            container is NamedIndexAccess && index is String -> container.getNamedValue(index) ?: 0
+            container is Map<*, *> -> container[if (index is String) index else index.asInt()] ?: 0
+            container is List<*> -> container.getOrElse(index.asInt()) { 0 }
             else -> 0
         }
     }
@@ -111,9 +118,13 @@ object ExpressionEvaluator {
             "Name" -> frame.locals[target.field("id").asString()] = value
             "Subscript" -> {
                 val container = eval(target.field("value"), frame, env)
-                val index = eval(target.field("slice"), frame, env).asInt()
-                @Suppress("UNCHECKED_CAST")
-                (container as? MutableMap<Int, Any?>)?.set(index, value)
+                val index = eval(target.field("slice"), frame, env)
+                if (container is NamedIndexAccess && index is String) {
+                    container.setNamedValue(index, value)
+                } else {
+                    @Suppress("UNCHECKED_CAST")
+                    (container as? MutableMap<Any?, Any?>)?.set(if (index is String) index else index.asInt(), value)
+                }
             }
         }
     }

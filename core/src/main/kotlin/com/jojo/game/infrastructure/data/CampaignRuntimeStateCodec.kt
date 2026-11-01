@@ -5,6 +5,7 @@ import com.badlogic.gdx.utils.JsonReader
 import com.jojo.game.domain.campaign.CampaignMagic
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.campaign.CampaignTalent
+import com.jojo.game.domain.rules.ExtensionStateSnapshot
 import java.util.Base64
 
 /** 캠페인 저장 데이터에 포함되는 런타임 상태를 직렬화하고 복원한다. */
@@ -12,12 +13,15 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
     /** 현재 캠페인 런타임 상태를 Base64 JSON으로 인코딩한다. */
     fun encode(): String = Base64.getEncoder().encodeToString(runtimeJson().toByteArray(Charsets.UTF_8))
 
+    /** Check extension data before the caller resets or mutates campaign state. */
+    fun canRestore(encoded: String): Boolean = parsed(encoded) != null
+
     /** 손상되거나 형식이 다른 입력은 무시하고 저장된 런타임 상태를 적용한다. */
-    fun restore(encoded: String) {
-        val json = runCatching { String(Base64.getDecoder().decode(encoded), Charsets.UTF_8) }.getOrNull() ?: return
-        val root = runCatching { JsonReader().parse(json) }.getOrNull() ?: return
+    fun restore(encoded: String): Boolean {
+        val (root, extension, variables) = parsed(encoded) ?: return false
+        state.extensionState.restore(extension)
         state.addMoney(root.getInt("money", 0))
-        root.get("globals").intEntries().forEach { (id, value) -> state.globalVariables[id] = value }
+        state.globalVariables.restore(variables)
         root.get("joined").children().forEach { state.joinedUnits += it.asInt() }
         root.get("attributes").children().forEach { unit ->
             unit.intEntries().forEach { (attribute, value) ->
@@ -76,6 +80,65 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
             }
         }
         root.get("ending")?.asInt()?.let { state.applyInfoTransfer(22, it.toString()) }
+        return true
+    }
+
+    private fun parsed(encoded: String): Triple<com.badlogic.gdx.utils.JsonValue, ExtensionStateSnapshot, com.jojo.game.domain.scenario.GlobalVariableStore>? = runCatching {
+        val json = String(Base64.getDecoder().decode(encoded), Charsets.UTF_8)
+        val root = JsonReader().parse(json)
+        val extension = parseExtension(root.get("extensionState"))
+        state.extensionState.validate(extension)
+        val oldValues = root.get("globals")?.also { require(it.isObject) }?.children()?.associateUnique { entry ->
+            requireNotNull(entry.name.toIntOrNull()) to entry.strictInt()
+        }.orEmpty()
+        val namedSection = root.get("namedGlobals")
+        val namedValues: Map<String, Any> = if (namedSection == null) emptyMap() else {
+            require(namedSection.isObject)
+            val fields = namedSection.children().map { it.name }.toList()
+            require(fields.size == fields.distinct().size && fields.toSet() == setOf("version", "values"))
+            require(namedSection.get("version").strictInt() == 1) { "Unsupported named globals version" }
+            val values = namedSection.get("values")
+            require(values.isObject)
+            values.children().associateUnique { entry ->
+                entry.name to if (entry.isBoolean) entry.asBoolean() else entry.strictInt()
+            }
+        }
+        val variables = state.globalVariables.validateRestore(oldValues, namedValues)
+        Triple(root, extension, variables)
+    }.getOrNull()
+
+    private fun parseExtension(value: com.badlogic.gdx.utils.JsonValue?): ExtensionStateSnapshot {
+        if (value == null) return ExtensionStateSnapshot()
+        require(value.isObject)
+        val fields = value.children().map { it.name }.toList()
+        require(fields.size == fields.distinct().size) { "Duplicate extension state field" }
+        require(fields.all { it in setOf("version", "global", "characters", "randomState") }) { "Unknown extension state field" }
+        val version = value.get("version")?.strictInt() ?: throw IllegalArgumentException("Missing extension state version")
+        val randomState = value.get("randomState")?.strictInt() ?: 1
+        val globals = value.get("global")?.also { require(it.isObject) }?.children()?.associateUnique { entry ->
+            entry.name to entry.strictInt()
+        }.orEmpty()
+        val characters = value.get("characters")?.also { require(it.isObject) }?.children()?.associateUnique { entry ->
+            val id = entry.name.toIntOrNull() ?: throw IllegalArgumentException("Invalid character ID")
+            require(entry.isObject)
+            id to entry.children().associateUnique { resource -> resource.name to resource.strictInt() }
+        }.orEmpty()
+        return ExtensionStateSnapshot(version, globals, characters, randomState)
+    }
+
+    private fun com.badlogic.gdx.utils.JsonValue.strictInt(): Int {
+        require(isLong) { "Extension resource must be an integer" }
+        return asString().toIntOrNull() ?: throw IllegalArgumentException("Extension integer overflow")
+    }
+
+    private fun <K, V> Sequence<com.badlogic.gdx.utils.JsonValue>.associateUnique(
+        transform: (com.badlogic.gdx.utils.JsonValue) -> Pair<K, V>,
+    ): Map<K, V> = linkedMapOf<K, V>().also { result ->
+        forEach { entry ->
+            val (key, value) = transform(entry)
+            require(!result.containsKey(key)) { "Duplicate extension state key $key" }
+            result[key] = value
+        }
     }
 
     /**
@@ -85,7 +148,11 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
 
     private fun runtimeJson(): String = buildString {
         append('{')
-        append("\"globals\":").append(intMap(state.globalVariables.mapValues { it.value.toString().toIntOrNull() ?: 0 }))
+        append("\"globals\":").append(intMap(state.globalVariables.legacySnapshot().mapValues { it.value.toString().toIntOrNull() ?: 0 }))
+        append(",\"namedGlobals\":{\"version\":1,\"values\":{")
+        append(state.globalVariables.namedSnapshot().entries.joinToString(",") { (name, value) ->
+            "${quote(name)}:$value"
+        }).append("}}")
         append(",\"money\":").append(state.money)
         append(",\"joined\":[").append(state.joinedUnits.joinToString(",")).append(']')
         append(",\"attributes\":{")
@@ -114,6 +181,15 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
         append(",\"equipment\":{").append(state.inventory.equipment.entries.joinToString(",") { (unitId, item) ->
             "${quote(unitId.toString())}:[${item.weapon},${item.weaponLevel},${item.armor},${item.armorLevel},${item.auxiliary},${item.weaponExperience},${item.armorExperience}]"
         }).append('}')
+        val extension = state.extensionState.snapshot()
+        append(",\"extensionState\":{\"version\":").append(extension.version)
+        append(",\"randomState\":").append(extension.randomState)
+        append(",\"global\":{").append(extension.global.entries.joinToString(",") { (key, value) ->
+            "${quote(key)}:$value"
+        }).append('}')
+        append(",\"characters\":{").append(extension.characters.entries.joinToString(",") { (id, values) ->
+            "${quote(id.toString())}:{${values.entries.joinToString(",") { (key, value) -> "${quote(key)}:$value" }}}"
+        }).append("}}")
         state.endingId?.let { append(",\"ending\":").append(it) }
         append('}')
     }

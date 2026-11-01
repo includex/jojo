@@ -9,6 +9,7 @@ import com.jojo.game.domain.battle.BattleTerrainGrid
 import com.jojo.game.domain.battle.BattleWeather
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.ScenarioBattleUnit
+import com.jojo.game.domain.rules.RuleModule
 
 /** BattleScenarioFactory: 작성된 시나리오에서 전투를 생성하는 호환 진입점으로, 기존 호출 경로를 유지한다. */
 object BattleScenarioFactory {
@@ -37,11 +38,12 @@ object BattleScenarioFactory {
         campaign: CampaignState? = null,
         sourceRandomStreams: BattleTraceRandomStreams? = null,
         enabledFeatures: Int = 32,
+        ruleModules: List<RuleModule> = emptyList(),
     ): Battle = BattleScenarioAssembler.materialize(
         BattleScenarioRequest(
             units, blockedTiles, gameDataCatalog, terrain, enemyMasterInstanceId,
             initialWeather, weatherSchedule, weatherOffset, enemyEquipment, campaign,
-            sourceRandomStreams, enabledFeatures,
+            sourceRandomStreams, enabledFeatures, ruleModules,
         )
     )
 }

@@ -5,7 +5,7 @@ import com.badlogic.gdx.Preferences
 import com.jojo.game.domain.campaign.CampaignState
 
 /** CampaignStore: 화면 전환에 필요한 캠페인 상태와 환경설정 기반 저장 슬롯을 함께 보관한다. */
-class CampaignStore(private val preferences: Preferences) {
+class CampaignStore(private val preferences: Preferences, private val startModule: String = GamePackage.load().startModule) {
     /**
      * `Snapshot` 클래스: data 패키지의 관련 상태와 동작을 묶는다.
      * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
@@ -17,7 +17,7 @@ class CampaignStore(private val preferences: Preferences) {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val currentScenario: String = "R_00",
+        val currentScenario: String = GamePackage.load().startModule,
         /**
          * `completed` (Set<String>): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -40,7 +40,7 @@ class CampaignStore(private val preferences: Preferences) {
      * `persistence` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    private val persistence = CampaignStorePersistence(preferences, state)
+    private val persistence = CampaignStorePersistence(preferences, state, startModule)
     /**
      * `snapshot` (Snapshot): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -51,7 +51,7 @@ class CampaignStore(private val preferences: Preferences) {
 
     /** enter: R_로 시작하는 시나리오만 현재 진입 지점으로 저장한다. */
     fun enter(scenario: String) {
-        if (!scenario.startsWith("R_")) return
+        if (scenario.isBlank()) return
         snapshot = snapshot.copy(currentScenario = scenario)
         persist()
     }
@@ -59,7 +59,7 @@ class CampaignStore(private val preferences: Preferences) {
     /** newGame: 저장된 스냅샷과 런타임 캠페인 상태를 새 게임 기본값으로 초기화한다. */
     fun newGame() {
         state.reset()
-        snapshot = Snapshot()
+        snapshot = Snapshot(currentScenario = startModule)
         persist()
     }
 

@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.settlement
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.BattleAttribute
 import com.jojo.game.domain.battle.BattleStatus
 import com.jojo.game.domain.battle.Faction
@@ -293,7 +294,7 @@ object BattleSettlementPlanner {
 
             val ids = units.filter {
                 effectiveFaction(it.baseFaction, it.hasLostStatus).isPlayerSide() == playerSide &&
-                    it.skillIds.any { id -> id in setOf(103, 208, 209, 210) }
+                    it.skillIds.any { id -> id in setOf("nearbyStatusRecovery", "nearbyHealthRecovery", "nearbyMagicRecovery", "nearbyDefenseBoost").map(SkillEffects::id) }
             }.map { it.id }
             if (ids.isNotEmpty()) add(SettlementPendingIntegration(SettlementPendingKind.LOCAL_AURA, ids))
         }
@@ -305,7 +306,7 @@ object BattleSettlementPlanner {
 
             val ids = units.filter {
                 effectiveFaction(it.baseFaction, it.hasLostStatus) == settlement.faction &&
-                    it.skillIds.any { id -> id in setOf(149, 150, 151) }
+                    it.skillIds.any { id -> id in setOf("turnExperienceGain", "turnArmorExperienceGain", "turnWeaponExperienceGain").map(SkillEffects::id) }
             }.map { it.id }
             if (ids.isNotEmpty()) add(SettlementPendingIntegration(SettlementPendingKind.EXPERIENCE_AND_LEVEL_UP, ids))
         }

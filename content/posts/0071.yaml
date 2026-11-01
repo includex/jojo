@@ -1,0 +1,13 @@
+id: 71
+name: "토우상"
+arms: 4
+attack: 0
+defense: 4
+spirit: 4
+critical: 1
+morale: 2
+movement: 3
+range: 9
+type: 1
+upgrades: [0,1,20,21]
+intro: "흙으로 만든 인형. 공격 시 적을 혼란에 빠뜨릴 수 있다. 전략에 대한 저항력은 없는 듯하며, 자세한 상황은 불명이다."

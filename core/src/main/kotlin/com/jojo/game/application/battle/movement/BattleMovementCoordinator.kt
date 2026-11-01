@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.application.battle.movement
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
@@ -130,10 +131,10 @@ internal object BattleMovementCoordinator {
      */
 
     fun movementRules(unit: BattleUnit): BattleMovementPlanner.MovementRules {
-        val ignoresTerrain = unit.skills[29]?.and(255)?.let { it != 255 } == true
-        val ignoresTerrainAndEnemyNear = unit.skills[219]?.and(255)?.let { it != 255 } == true
-        val oneTerrainCost = !ignoresTerrainAndEnemyNear && unit.skills[35]?.and(255)?.let { it != 255 } == true
-        val canLeaveEnemyNear = ignoresTerrainAndEnemyNear || unit.skills[220]?.and(255)?.let { it != 255 } == true
+        val ignoresTerrain = unit.skills[SkillEffects.id("ignoreTerrain")]?.and(255)?.let { it != 255 } == true
+        val ignoresTerrainAndEnemyNear = unit.skills[SkillEffects.id("chargeThroughBadTerrain")]?.and(255)?.let { it != 255 } == true
+        val oneTerrainCost = !ignoresTerrainAndEnemyNear && unit.skills[SkillEffects.id("oneTerrainMoveCost")]?.and(255)?.let { it != 255 } == true
+        val canLeaveEnemyNear = ignoresTerrainAndEnemyNear || unit.skills[SkillEffects.id("ignoreEnemyZone")]?.and(255)?.let { it != 255 } == true
         return BattleMovementPlanner.MovementRules(
             ignoresTerrain = ignoresTerrain,
             treatsEveryTerrainAsOne = ignoresTerrainAndEnemyNear || oneTerrainCost,
@@ -183,7 +184,7 @@ internal object BattleMovementCoordinator {
                 penalizeEnemyTiles = penalizeEnemyTiles,
                 allowEnemyOnTarget = allowEnemyOnTarget,
                 treatsEveryTerrainAsOne = unit.skills.keys.any {
-                    it in setOf(35, 219) && unit.skills[it]?.and(255) != 255
+                    it in setOf(SkillEffects.id("oneTerrainMoveCost"), SkillEffects.id("chargeThroughBadTerrain")) && unit.skills[it]?.and(255) != 255
                 },
             ),
         )

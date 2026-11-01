@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -351,6 +352,17 @@ def repair_module(tree: ast.Module, functions: list[Function]) -> list[str]:
 def load_containers(assets_directory: Path) -> dict[str, list[Function]]:
     """Read every scenario container, keyed by the module name it declares."""
     containers: dict[str, list[Function]] = {}
+    local_manifest = assets_directory / "manifest.json"
+    if local_manifest.is_file():
+        document = json.loads(local_manifest.read_text(encoding="utf-8"))
+        if document.get("format") != "jojo-scenario-compat/v1":
+            raise ValueError(f"unsupported scenario compatibility manifest: {local_manifest}")
+        for name, relative in document["modules"].items():
+            path = (assets_directory / relative).resolve()
+            if assets_directory.resolve() not in path.parents:
+                raise ValueError(f"invalid compatibility container path: {relative}")
+            containers[name] = parse_module(path)
+        return containers
     for path, name in module_names(assets_directory).items():
         functions = parse_module(path)
         if functions:

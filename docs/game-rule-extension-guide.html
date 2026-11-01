@@ -1,0 +1,44 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>게임별 규칙 확장 계약 v1</title><style>*{box-sizing:border-box}body{margin:0;background:#0c1421;color:#dce8f3;font:16px/1.8 system-ui,sans-serif}main{max-width:1150px;margin:auto;padding:50px 28px}h1{font-size:42px;letter-spacing:-1px;line-height:1.3}h2{font-size:26px;margin-top:42px}h3{margin-top:0}p,li{color:#b7cadd}a{color:#7be2d1;text-underline-offset:4px}code{color:#9de9d7;font:13px ui-monospace,monospace;overflow-wrap:anywhere}pre{padding:20px;border:1px solid #354c62;background:#111f30;white-space:pre-wrap;overflow-wrap:anywhere}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{background:#142438;border:1px solid #304b64;border-radius:14px;padding:24px}.eyebrow{font-size:12px;color:#6fddcd;letter-spacing:2px}.notice{padding:20px;border-left:3px solid #efc177;background:#252433}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:14px;text-align:left;border-bottom:1px solid #304b64;vertical-align:top}th{background:#172c43}.table{overflow-x:auto}.route{display:flex;gap:10px;flex-wrap:wrap}.route a{padding:12px 16px;border:1px solid #35566b;border-radius:10px}footer{border-top:1px solid #304b64;margin-top:45px;padding-top:20px;color:#94aec6;font-size:13px}@media(max-width:700px){main{padding:28px 18px}.cards{grid-template-columns:1fr}h1{font-size:32px}}</style></head><body><main><div class="eyebrow">JOJO / GAME RULE CONTRACT V1</div><h1>게임별 규칙 확장 가이드</h1><p><a href="lua-rules-guide.html">Lua 전투 규칙 — 외부 파일 실행·장수/장비 연결·턴/공격/피격 예제</a></p><p><a href="index.html">문서 홈</a> · <a href="game-package-guide.html">게임 패키지</a> · 2026-11-01 작업 트리</p><h2>설정은 콘텐츠, 행동은 규칙 모듈</h2><p>rules/game-rules.yaml은 실행할 규칙·우선순위·인자·확장 자원을 정의합니다. RuleHandler는 읽기 전용 스냅샷을 받아 효과 목록을 반환합니다. BattleRuleRuntime이 전체 요청을 검증하고 게임 상태에 적용합니다. 핸들러에 BattleUnit이나 화면 객체를 전달하지 않습니다.</p><div class="route"><a href="../content/rules/game-rules.yaml">① YAML 선언</a><a href="../core/src/main/kotlin/com/jojo/game/infrastructure/data/GameRuleConfig.kt">② 등록·인자 검사</a><a href="../core/src/main/kotlin/com/jojo/game/domain/rules/RuleEngine.kt">③ 스냅샷 → 효과 요청</a><a href="../core/src/main/kotlin/com/jojo/game/application/battle/BattleRuleRuntime.kt">④ 검증 → core 적용</a></div><div class="cards"><article class="card"><h3>기존 동작 보존</h3><p>기본 game-rules.yaml은 resources: {} / rules: []입니다. 기존 인접 HP 회복 스킬은 내부 core.recovery 호출을 통해 적용됩니다. 최대 HP × 효과값 ÷ 100의 정수 절삭과 LocalAura 정산 시점은 유지합니다.</p></article><article class="card"><h3>새 게임 예제</h3><p>yitian.innerEnergy는 캐릭터별 0~100 자원입니다. core.resourceRegeneration 핸들러로 처리 진영의 턴 시작마다 5씩 회복합니다. yitian이라는 이름을 알고 있는 특별한 core 분기는 없습니다.</p></article></div><h2>1. 내공 회복을 켜 봅니다</h2><p><a href="../content/examples/yitian-rules.yaml">content/examples/yitian-rules.yaml</a>은 자동으로 활성화되지 않는 예제입니다. 현재 rules/game-rules.yaml을 백업한 후 예제 내용으로 교체하고 빌드합니다.</p><pre>version: 1
+resources:
+  yitian.innerEnergy:
+    default: 0
+    min: 0
+    max: 100
+    scope: character
+rules:
+  - id: yitian.innerEnergyRecovery
+    event: TURN_START
+    handler: core.resourceRegeneration
+    priority: 10
+    parameters:
+      resource: yitian.innerEnergy
+      amount: 5</pre><ol><li>scope: character는 전투 슬롯이 아니라 인물 characterId별로 저장합니다. 같은 인물의 전투 인스턴스는 같은 값을 공유합니다.</li><li>기본 핸들러는 해당 자원을 가진 처리 대상마다 실행됩니다. 특정 주인공만 선택하는 조건은 이 예제에 포함되지 않습니다. characterId가 없는 유닛은 캐릭터 자원을 갖지 않아 회복을 건너뜁니다.</li><li>상한에 도달하면 회복량을 줄여 100을 유지합니다. 다른 사용자 핸들러가 범위를 넘는 ResourceDelta를 요청하면 전체 요청 적용을 거부합니다.</li><li>실행 확인은 아래 테스트와 디버깅 API로 합니다. 내공 게이지 UI나 Python 시나리오용 자원 API가 자동 생성되지는 않습니다.</li></ol><pre>./gradlew --no-daemon :core:processResources :core:test \
+  --tests 'com.jojo.game.BattleRuleRuntimeTest'
+
+// Kotlin에서 캐릭터별 값 확인
+campaign.extensionState.read("yitian.innerEnergy", characterId = 0)</pre><p class="notice">예제를 끄려면 rules/game-rules.yaml을 원래 내용으로 되돌리고 새 게임/새 저장 공간에서 확인하세요. 이미 저장된 확장 자원의 선언을 지우거나 이름을 바꾸면 이전 저장을 그대로 읽을 수 없습니다. 저장 호환성이 필요한 변경은 선언을 유지하거나 별도 이전 절차를 마련합니다.</p><h2>2. 이벤트와 적용 순서</h2><div class="table"><table><tr><th>이벤트</th><th>실제 연결 지점</th><th>계약</th></tr><tr><td>TURN_START</td><td>기존 진영 시작 정산 후, 현재 활성 진영의 생존·표시 유닛별 처리</td><td>회복·자원·상태 요청 가능. 기존 정산의 HP/MP 변화 표시 경로를 사용</td></tr><tr><td>DAMAGE_CALCULATION</td><td>연결된 물리 공격·공격 마법의 HP 피해 결과</td><td>DamageModifier만 허용. 상태 변경과 RNG 사용 금지. AI 예상 계산에도 안전한 순수 보정</td></tr><tr><td>ACTION_COMPLETED</td><td>hasActed가 false→true로 바뀔 때. 지연 처리하는 AI 행동은 실제 커밋 뒤</td><td>같은 행동을 반복 완료해도 중복 적용하지 않음. 미리보기 중 캠페인 자원을 바꾸지 않음</td></tr></table></div><p>물리 공격과 공격 마법의 HP 피해를 보정합니다. 반사·반동 같은 2차 피해, 회복·상태 전용 마법은 새 공격 이벤트로 처리하지 않습니다. 자세한 경로와 예외는 Lua 전투 규칙 가이드를 확인하세요.</p><p>동일 이벤트는 priority 오름차순, 같은 값이면 rule id 순서로 평가합니다. 모든 핸들러는 이벤트 시작 시의 같은 스냅샷을 읽습니다. 효과는 그 순서로 적용되며, 후순위 핸들러가 앞선 핸들러의 변경값을 읽는 연쇄 계산 방식은 아닙니다.</p><h2>3. 내장 핸들러와 효과</h2><div class="table"><table><tr><th>handler</th><th>parameters</th><th>허용 이벤트</th></tr><tr><td>core.recovery</td><td>hpAmount / mpAmount: 0 이상 정수, 적어도 하나. 상한까지 회복</td><td>TURN_START, TURN_END, ACTION_COMPLETED</td></tr><tr><td>core.resourceRegeneration</td><td>resource: 선언된 namespace.key / amount: 0 이상 정수</td><td>TURN_START, TURN_END, ACTION_COMPLETED</td></tr><tr><td>core.damageModifier</td><td>amount: 정수 가산 보정. 최종 피해는 0 이상 Int 범위여야 함</td><td>DAMAGE_CALCULATION</td></tr></table></div><p>RuleEffect는 HpDelta, MpDelta, ResourceDelta, StatusAdd, StatusRemove, DamageModifier, AttackPowerModifier를 제공합니다. ATTACK/HIT의 POWER 단계에는 AttackPowerModifier만, DAMAGE 단계에는 DamageModifier만 허용합니다. TURN_END는 기존 종료 정산 뒤 활성 진영의 생존·표시 유닛별로 실행합니다. HP/MP는 유닛의 범위로 보정하고 자원은 선언 범위를 검사합니다. 실제 전투 상태는 현재 core의 BattleStatus에 대응하는 core.* 이름만 허용하며, 새 임의 상태 이름만 선언해서 게임 규칙/아이콘이 생기지는 않습니다. 새로 부여하는 상태의 기본 지속 값은 1입니다.</p><h2>4. Kotlin 게임 모듈을 추가합니다</h2><p>내장 핸들러로 표현되지 않는 행동은 RuleHandler를 구현합니다. 다음 예제는 내공의 1/5만큼 일반 물리 피해를 가산합니다.</p><pre>object InnerEnergyDamage : RuleHandler {
+    override val id = "yitian.innerEnergyDamage"
+    override val supportedEvents = setOf(RuleEvent.DAMAGE_CALCULATION)
+    override fun validate(parameters: Map&lt;String, String&gt;) {
+        require(parameters.isEmpty())
+    }
+    override fun evaluate(
+        context: RuleContext,
+        parameters: Map&lt;String, String&gt;,
+        random: RuleRandom,
+    ): List&lt;RuleEffect&gt; {
+        val actor = context.units.getValue(context.actorId)
+        val energy = actor.resources["yitian.innerEnergy"] ?: 0
+        return listOf(RuleEffect.DamageModifier(energy / 5))
+    }
+}
+
+object YitianRules : RuleModule {
+    override val handlers = listOf(InnerEnergyDamage)
+}</pre><ol><li>게임의 Kotlin 코드에 구현을 추가하고 위 domain.rules 타입들을 import합니다. engine에 게임별 코드를 넣지 않습니다.</li><li>전투 조립 지점의 기존 BattleScenarioFactory.fromScriptedUnits 호출에 <code>ruleModules = listOf(YitianRules)</code> 인자를 전달합니다. 개별 테스트에서는 GameRuleConfig.createEngine(random, modules)로 주입할 수 있습니다.</li><li>rules/game-rules.yaml의 rules 목록에 아래 항목을 추가합니다. 자원 선언과 회복 규칙은 필요에 따라 유지합니다.</li><li>등록 누락·중복 handler/id·잘못된 인자·지원하지 않는 이벤트가 전투 조립 시 거부되는지 확인합니다. 정상 공격과 미리보기의 결과도 비교합니다.</li></ol><pre>- id: yitian.innerEnergyAttack
+  event: DAMAGE_CALCULATION
+  handler: yitian.innerEnergyDamage
+  priority: 20
+  parameters: {}</pre><p>YAML의 handler 문자열은 Kotlin 클래스를 자동 탐색하거나 로드하지 않습니다. 모듈은 조립 지점에서 명시적으로 등록합니다. 새로운 Kotlin 핸들러 코드는 빌드가 필요합니다. Lua 핸들러는 별도 lua-rules.yaml 등록부와 외부 디렉터리 로더로 실행할 수 있습니다. JAR 플러그인 로딩은 구현하지 않았습니다.</p><h2>5. 상태와 저장 계약</h2><p>ExtensionState는 global 또는 character 범위의 정수 자원을 관리합니다. read/write는 선언·범위·characterId를 검사하고 snapshot/restore/reset을 제공합니다. 저장은 extensionState version 1로 기록되며 자원이 없는 이전 저장은 선언의 기본값으로 읽습니다. 알 수 없는 키·잘못된 타입/범위·중복 키·미지원 버전은 상태 변경 전에 거부합니다.</p><p>규칙 난수는 주입된 RuleRandom을 사용합니다. 실제 캠페인은 ExtensionState의 난수 상태를 함께 저장하므로 저장 후 다음 난수열을 이어갈 수 있습니다. DAMAGE_CALCULATION에서는 난수 사용을 금지합니다. 상태 변경 이벤트의 실패 시 확장 자원과 난수 스냅샷을 복원합니다.</p><h2>6. 실패·테스트·한계</h2><ul><li>효과 전체를 검증한 뒤 live 상태에 적용합니다. 미등록 대상·자원·상태나 범위 초과는 오류입니다. 실패를 무시하고 다음 규칙을 계속 실행하지 않습니다.</li><li>이벤트당 규칙 128개·효과 512개 한도와 재진입 방지를 적용합니다. 이는 Kotlin 사용자 코드의 무한 루프나 파일 접근을 차단하는 샌드박스가 아닙니다.</li><li>새로운 HP 손실/상태 규칙은 사망·퇴각·상태 지속 시간·표시와의 상호작용을 별도로 테스트하세요. 최소 계약이 모든 게임별 전투 연출을 자동 처리하지는 않습니다.</li><li>확장 자원 UI, 일반 스키마 이전 시스템, 장면 진행용 Lua 어댑터, 모든 2차 피해 종류의 후크는 후속 범위입니다.</li></ul><pre>./gradlew --no-daemon :buildSrc:test :core:test
+# 주요 회귀: RuleEngineTest, GameRuleConfigTest,
+# ExtensionStatePersistenceTest, BattleRuleRuntimeTest</pre><p><a href="../core/src/main/kotlin/com/jojo/game/domain/rules/RuleEngine.kt">계약과 내장 핸들러</a> · <a href="../core/src/main/kotlin/com/jojo/game/domain/rules/ExtensionState.kt">확장 상태</a> · <a href="../core/src/test/kotlin/com/jojo/game/BattleRuleRuntimeTest.kt">전투 연결 회귀 테스트</a></p></main></body></html>

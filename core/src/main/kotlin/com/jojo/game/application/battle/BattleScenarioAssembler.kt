@@ -9,6 +9,9 @@ import com.jojo.game.application.battle.Battle
 import com.jojo.game.application.battle.BattleEvent
 import com.jojo.game.domain.battle.BattleUnit
 import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.infrastructure.data.GameRuleConfig
+import com.jojo.game.infrastructure.rules.LuaRulePackage
+import com.jojo.game.domain.rules.RuleRandom
 import com.jojo.game.domain.battle.TurnTrigger
 import com.jojo.game.domain.battle.Faction
 import com.jojo.game.domain.battle.BattleEquipmentExperienceKind
@@ -49,6 +52,16 @@ internal object BattleScenarioAssembler {
         val projector = BattleUnitProjector(request.gameDataCatalog, request.campaign, request.enemyEquipment)
         val catalog = request.gameDataCatalog
         val campaign = request.campaign
+        val ruleConfig = GameRuleConfig.load()
+        campaign?.extensionState?.let { state -> ruleConfig.resources.forEach(state::declare) }
+        val ruleRandom = java.util.Random(0)
+        // External files are snapshotted per battle: editing Lua requires no application rebuild.
+        val luaRules = LuaRulePackage.load()
+        val definitions = ruleConfig.rules + luaRules.rules
+        val ruleEngine = ruleConfig.createEngine(RuleRandom { bound ->
+            campaign?.extensionState?.nextRandomInt(bound) ?: ruleRandom.nextInt(bound)
+        }, request.ruleModules + luaRules.module)
+        ruleEngine.validate(definitions)
         return Battle(
             units = request.units.map(projector::project),
             events = emptyList(),
@@ -94,6 +107,11 @@ internal object BattleScenarioAssembler {
             onRestoreUnitExperience = restoreUnitExperience(campaign, catalog),
             onRestoreEquipmentExperience = restoreEquipmentExperience(campaign, catalog),
             sourceRandomStreams = request.sourceRandomStreams,
+            ruleRuntime = BattleRuleRuntime(
+                definitions,
+                ruleEngine,
+                campaign?.extensionState,
+            ),
         ).also { it.initializeAllRateGauges() }
     }
 

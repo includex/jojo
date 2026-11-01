@@ -1,0 +1,13 @@
+id: 73
+name: "백성"
+arms: 4
+attack: 11
+defense: 1
+spirit: 1
+critical: 1
+morale: 1
+movement: 1
+range: 3
+type: 1
+upgrades: [22,23]
+intro: "전술을 모르는 무고한 백성으로 공격 능력이 없다."

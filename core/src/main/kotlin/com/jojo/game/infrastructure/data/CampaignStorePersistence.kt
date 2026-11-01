@@ -18,6 +18,7 @@ internal class CampaignStorePersistence(
      */
 
     private val state: CampaignState,
+    private val startModule: String = GamePackage.load().startModule,
 ) {
     /**
      * `runtime` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -28,8 +29,8 @@ internal class CampaignStorePersistence(
     /** 환경설정에 저장된 캠페인 스냅샷을 읽는다. */
     fun read(): CampaignStore.Snapshot {
         val encoded = preferences.getString(KEY, "")
-        if (encoded.isBlank()) return CampaignStore.Snapshot()
-        val root = decodeEnvelope(encoded) ?: return CampaignStore.Snapshot()
+        if (encoded.isBlank()) return CampaignStore.Snapshot(currentScenario = startModule)
+        val root = decodeEnvelope(encoded) ?: return CampaignStore.Snapshot(currentScenario = startModule)
         root.getString("runtime", "").takeIf { it.isNotBlank() }?.let(runtime::restore)
         return snapshotFrom(root)
     }
@@ -64,11 +65,13 @@ internal class CampaignStorePersistence(
         val encoded = record.getString("payload", "")
         val envelope = runCatching { String(Base64.getDecoder().decode(encoded), Charsets.ISO_8859_1) }.getOrNull() ?: return null
         val root = CampaignSaveCodec.decode(envelope)?.let { runCatching { JsonReader().parse(it) }.getOrNull() } ?: return null
-        val scenario = root.getString("currentScenario", "").takeIf { it.startsWith("R_") } ?: return null
+        val scenario = root.getString("currentScenario", "").takeIf { it.isNotBlank() } ?: return null
         val stage = record.get("model")?.get("property2")?.get(1)?.asInt()
             ?: record.get("model")?.getInt("stage", 0) ?: 0
+        val runtimeData = root.getString("runtime", "").takeIf { it.isNotBlank() }
+        if (runtimeData != null && !runtime.canRestore(runtimeData)) return null
         state.reset()
-        root.getString("runtime", "").takeIf { it.isNotBlank() }?.let(runtime::restore)
+        runtimeData?.let(runtime::restore)
         val snapshot = snapshotFrom(root).copy(stage = stage)
         write(snapshot)
         return snapshot.copy(currentScenario = scenario)
@@ -92,7 +95,7 @@ internal class CampaignStorePersistence(
     private fun snapshotFrom(root: com.badlogic.gdx.utils.JsonValue): CampaignStore.Snapshot {
         val completed = root.get("completed").children().map { it.asString() }.toSet()
         val choices = root.get("choices").children().associate { it.name to it.asString() }
-        return CampaignStore.Snapshot(root.getString("currentScenario", "R_00"), completed, choices, root.getInt("stage", 0))
+        return CampaignStore.Snapshot(root.getString("currentScenario", startModule), completed, choices, root.getInt("stage", 0))
     }
 
     /**

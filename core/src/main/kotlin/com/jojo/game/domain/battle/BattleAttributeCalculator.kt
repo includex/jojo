@@ -39,7 +39,7 @@ internal object BattleAttributeCalculator {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val abilitySupport = unit.skills[157]?.and(255)?.takeIf { it != 255 } ?: 0
+        val abilitySupport = unit.skills[SkillEffects.id("abilitySupport")]?.and(255)?.takeIf { it != 255 } ?: 0
         when (attribute) {
             BattleAttribute.ATTACK -> {
                 if (abilitySupport and 1 != 0) base += baseOf(BattleAttribute.SPIRIT) / 5
@@ -69,7 +69,7 @@ internal object BattleAttributeCalculator {
      */
 
     fun defenseAgainst(attacker: BattleUnit, defender: BattleUnit, attribute: BattleAttribute): Int {
-        val usesLowestDefense = attacker.skills[165]?.and(255)?.let { it != 255 } == true
+        val usesLowestDefense = attacker.skills[SkillEffects.id("useLowestDefense")]?.and(255)?.let { it != 255 } == true
         if (!usesLowestDefense) return effective(defender, attribute)
         return listOf(
             BattleAttribute.ATTACK,
@@ -98,7 +98,7 @@ internal object BattleAttributeCalculator {
         var result = effectiveMovement(unit)
         if (
             weather == BattleWeather.WINDY ||
-            (weather == BattleWeather.HEAVY_RAIN && unit.skills[268]?.and(255)?.let { it != 255 } != true)
+            (weather == BattleWeather.HEAVY_RAIN && unit.skills[SkillEffects.id("ignoreStormMovementPenalty")]?.and(255)?.let { it != 255 } != true)
         ) {
             result -= 1
         }
@@ -111,8 +111,8 @@ internal object BattleAttributeCalculator {
 
     fun physicalDamageAfterResistance(rawDamage: Int, attacker: BattleUnit, defender: BattleUnit): Int {
         var rate = 100
-        if (attacker.remoteAttack && attacker.skills[230]?.and(255)?.let { it != 255 } != true) {
-            defender.skills[119]?.and(255)?.takeIf { it != 255 }?.let { rate -= it }
+        if (attacker.remoteAttack && attacker.skills[SkillEffects.id("ignoreRangedDefense")]?.and(255)?.let { it != 255 } != true) {
+            defender.skills[SkillEffects.id("rangedDamageReduction")]?.and(255)?.takeIf { it != 255 }?.let { rate -= it }
         }
         return maxOf(1, rawDamage * maxOf(0, rate) / 100)
     }

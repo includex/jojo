@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.combat
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
@@ -106,7 +107,7 @@ internal object PhysicalCombatResolver {
          */
 
         val critical = hit && criticalRoll &&
-                !(target.skills[49]?.and(255)?.let { it != 255 } == true && attacker.skills[227]?.and(255)
+                !(target.skills[SkillEffects.id("blockCriticalAttack")]?.and(255)?.let { it != 255 } == true && attacker.skills[SkillEffects.id("ignoreCriticalDefense")]?.and(255)
                     ?.let { it != 255 } != true)
         /**
          * `xuShiDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -126,7 +127,7 @@ internal object PhysicalCombatResolver {
          */
 
         val resolvedDamage = if (hit) {
-            specialDamage ?: PhysicalDamageCalculator.calculatePhysicalDamage(
+            specialDamage?.let { PhysicalDamageCalculator.modifySpecialDamage(attacker, target, it) } ?: PhysicalDamageCalculator.calculatePhysicalDamage(
                 attacker = attacker,
                 target = target,
                 baseDamage = baseDamage,
@@ -227,7 +228,7 @@ internal object PhysicalCombatResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val criticalFollowUp = criticalRoll && attacker.skills[7]?.and(255)?.let { it != 255 } == true
+        val criticalFollowUp = criticalRoll && attacker.skills[SkillEffects.id("criticalFollowUp")]?.and(255)?.let { it != 255 } == true
         if (attacker.hitPoints > 0 && !defeated && (plannedContinuousAttack || criticalFollowUp)) {
             /**
              * `followUpCriticalRoll` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -240,7 +241,7 @@ internal object PhysicalCombatResolver {
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val followUpHit = target.skills[47]?.and(255)?.let { it != 255 } != true &&
+            val followUpHit = target.skills[SkillEffects.id("blockSecondAttack")]?.and(255)?.let { it != 255 } != true &&
                     env.probabilityResolver.physicalHit(attacker, target, hitRate)
             /**
              * `followUpIsCritical` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -261,7 +262,7 @@ internal object PhysicalCombatResolver {
              */
 
             val followUpResolvedHarm = if (followUpHit) {
-                followUpSpecialDamage ?: PhysicalDamageCalculator.calculatePhysicalDamage(
+                followUpSpecialDamage?.let { PhysicalDamageCalculator.modifySpecialDamage(attacker, target, it) } ?: PhysicalDamageCalculator.calculatePhysicalDamage(
                     attacker = attacker,
                     target = target,
                     baseDamage = baseDamage,
@@ -324,7 +325,7 @@ internal object PhysicalCombatResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val counterMagic = target.skills[13]?.and(255)?.takeIf { it != 255 }
+        val counterMagic = target.skills[SkillEffects.id("magicCounter")]?.and(255)?.takeIf { it != 255 }
             ?.let { magicId -> env.castReactionMagic(target, attacker, magicId) }
         /**
          * `canCounter` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -332,7 +333,7 @@ internal object PhysicalCombatResolver {
          */
 
         val canCounter = counterMagic == null && attacker.hitPoints > 0 && !defeated && target.visible &&
-                attacker.skills[226]?.and(255)?.let { it == 255 } != false && env.canAttack(target, attacker) &&
+                attacker.skills[SkillEffects.id("preventCounterAttack")]?.and(255)?.let { it == 255 } != false && env.canAttack(target, attacker) &&
                 BattleStatus.PARALYSIS !in target.statuses && BattleStatus.CONFUSION !in target.statuses
         /**
          * `counterDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -480,8 +481,8 @@ internal object PhysicalCombatResolver {
              */
 
             val forcedCounterFollowUp =
-                listOf(197, 43).any { target.skills[it]?.and(255)?.let { value -> value != 255 } == true } ||
-                        (counterCriticalRoll && target.skills[7]?.and(255)?.let { value -> value != 255 } == true)
+                listOf(SkillEffects.id("doubleCounterAttack"), SkillEffects.id("guaranteedCounterFollowUp")).any { target.skills[it]?.and(255)?.let { value -> value != 255 } == true } ||
+                        (counterCriticalRoll && target.skills[SkillEffects.id("criticalFollowUp")]?.and(255)?.let { value -> value != 255 } == true)
             if (attacker.hitPoints > 0 && forcedCounterFollowUp) {
                 /**
                  * `secondCriticalRoll` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -594,7 +595,7 @@ internal object PhysicalCombatResolver {
             playerMoneyDelta = accumulator.playerMoneyDelta,
             enemyMoneyDelta = accumulator.enemyMoneyDelta,
             counterMagic = counterMagic,
-            counterMagicId = counterMagic?.let { target.skills[13]?.and(255) },
+            counterMagicId = counterMagic?.let { target.skills[SkillEffects.id("magicCounter")]?.and(255) },
             automaticProperty = accumulator.automaticProperty,
             physicalPasses = accumulator.physicalPasses,
         )

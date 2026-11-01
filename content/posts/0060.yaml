@@ -1,0 +1,13 @@
+id: 60
+name: "서량 기병"
+arms: 6
+attack: 1
+defense: 4
+spirit: 4
+critical: 1
+morale: 2
+movement: 4
+range: 8
+type: 1
+upgrades: [2,3,20,21]
+intro: "공격력과 방어력이 모두 뛰어난 부대입니다. 무관 계열 중 가장 강하다고 해도 과언이 아닙니다. 단점은 전략에 대한 저항력이 떨어진다는 점입니다."

@@ -1,0 +1,13 @@
+id: 9
+name: "경기병"
+arms: 6
+attack: 0
+defense: 4
+spirit: 3
+critical: 2
+morale: 3
+movement: 2
+range: 7
+type: 1
+upgrades: [2,3,20,21]
+intro: "기병 계열 병종 1. 기동력과 공격력이 우수한 부대입니다. 보병 계열에 대한 방어력이 매우 강하지만, 궁병이나 포차에는 저항력이 다소 약합니다."

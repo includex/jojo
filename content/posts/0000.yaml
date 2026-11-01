@@ -1,0 +1,13 @@
+id: 0
+name: "군웅"
+arms: 6
+attack: 1
+defense: 3
+spirit: 3
+critical: 3
+morale: 3
+movement: 3
+range: 7
+type: 2
+upgrades: [0,1,20,21]
+intro: "군주 계열 병종 1. 균형 있게 발전한 만능형 부대입니다. 공격과 전략 양면에서 모두 상당히 활발합니다."

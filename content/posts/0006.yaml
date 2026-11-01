@@ -1,0 +1,13 @@
+id: 6
+name: "궁병"
+arms: 4
+attack: 2
+defense: 3
+spirit: 2
+critical: 2
+morale: 3
+movement: 4
+range: 6
+type: 1
+upgrades: [4,5,20,21]
+intro: "궁병 계열 병종 1. 원거리 공격에 능한 부대입니다. 기병류에게의 공격 효과가 매우 높지만, 반대로 보병류에 대한 방어 효과는 매우 약하니 이 점은 유념해 주십시오."

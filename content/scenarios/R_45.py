@@ -114,7 +114,7 @@ def scene0():
     stage.setMenuVisible(True)
     stage.setJoinBattle(1, 15)
     gvars[4076] = 0
-    gvars[4057] = 45
+    gvars["campaign.current_chapter"] = 45
     stage.setBattlePos([
         [
             19,

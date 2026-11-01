@@ -1,0 +1,12 @@
+version: 1
+variables:
+  campaign.current_chapter:
+    type: int
+    default: 0
+    description: Current campaign chapter recorded by the chapter scenarios.
+    legacyId: 4057
+  ui.feats_enabled:
+    type: int
+    default: 0
+    description: Enables the unit feats display when set to one.
+    legacyId: 4074

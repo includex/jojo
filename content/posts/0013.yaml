@@ -1,0 +1,13 @@
+id: 13
+name: "쇠뇌기병"
+arms: 6
+attack: 2
+defense: 4
+spirit: 2
+critical: 2
+morale: 3
+movement: 3
+range: 7
+type: 1
+upgrades: [4,5,20,21]
+intro: "궁병 기병 계열 병종 2. 궁병에 비해 사거리는 짧지만 공격력이 높아 적군에게 큰 피해를 줄 수 있습니다."

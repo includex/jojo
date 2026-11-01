@@ -1,0 +1,13 @@
+id: 8
+name: "연노병"
+arms: 5
+attack: 4
+defense: 3
+spirit: 2
+critical: 2
+morale: 3
+movement: 4
+range: 6
+type: 1
+upgrades: [4,5,20,21]
+intro: "궁병 계열 병종 3. 백보천양의 고수만이 이끌 수 있는 부대입니다. 그 사거리의 넓이는 가히 뛰어납니다."

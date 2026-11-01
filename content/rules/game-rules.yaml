@@ -1,0 +1,5 @@
+# Versioned game extension rules. Jojo's existing recovery is adapted internally;
+# no additional rules are enabled by default, preserving existing gameplay.
+version: 1
+resources: {}
+rules: []

@@ -192,4 +192,36 @@ class MagicResolverTest {
         assertEquals(30, caster.magicPoints)
         assertTrue(caster.hasActed)
     }
+    @Test
+    fun `offensive magic uses temporary rule power and final damage`() {
+        fun cast(withRules: Boolean): Int {
+            val caster = unit("mage", magic = listOf(magic()), spirit = 100)
+            val target = unit("enemy", faction = Faction.ENEMY, hitPoints = 1000,
+                maxHitPoints = 1000, tileX = 2, tileY = 3)
+            val handler = object : com.jojo.game.domain.rules.RuleHandler {
+                override val id = "test.magic"
+                override fun validate(parameters: Map<String, String>) = Unit
+                override fun evaluate(context: com.jojo.game.domain.rules.RuleContext,
+                    parameters: Map<String, String>, random: com.jojo.game.domain.rules.RuleRandom): List<com.jojo.game.domain.rules.RuleEffect> {
+                    assertEquals("magic", context.damageKind)
+                    return when (context.combatPhase) {
+                        com.jojo.game.domain.rules.RuleCombatPhase.POWER -> listOf(com.jojo.game.domain.rules.RuleEffect.AttackPowerModifier(30))
+                        com.jojo.game.domain.rules.RuleCombatPhase.DAMAGE -> listOf(com.jojo.game.domain.rules.RuleEffect.DamageModifier(7))
+                        null -> emptyList()
+                    }
+                }
+            }
+            if (withRules) com.jojo.game.application.battle.Battle(listOf(caster, target), emptyList(),
+                ruleRuntime = com.jojo.game.application.battle.BattleRuleRuntime(listOf(
+                    com.jojo.game.domain.rules.RuleDefinition("magic", com.jojo.game.domain.rules.RuleEvent.ATTACK, handler.id)),
+                    com.jojo.game.domain.rules.RuleEngine(listOf(handler), com.jojo.game.domain.rules.RuleRandom { error("Rule RNG") })))
+            val result = MagicResolver.castMagic("mage", "enemy", 1, env = createEnv(listOf(caster, target)))
+            assertIs<TacticalActionResult.Magic>(result)
+            assertEquals(100, caster.spirit)
+            assertTrue(result.targets.first().hit)
+            return result.targets.first().damage
+        }
+        assertEquals(cast(false) + 17, cast(true))
+    }
+
 }

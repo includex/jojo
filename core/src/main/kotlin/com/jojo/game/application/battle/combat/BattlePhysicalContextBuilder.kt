@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.application.battle.combat
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 import com.jojo.game.*
 import com.jojo.game.application.battle.*
@@ -90,7 +91,7 @@ internal object BattlePhysicalContextBuilder {
      */
 
     fun consumeMpAttackSkill(attacker: BattleUnit) {
-        if (attacker.skills[4]?.and(255)?.let { it != 255 } == true) attacker.addMpcur(-1)
+        if (attacker.skills[SkillEffects.id("mpAttack")]?.and(255)?.let { it != 255 } == true) attacker.addMpcur(-1)
     }
 
 
@@ -100,7 +101,7 @@ internal object BattlePhysicalContextBuilder {
      */
 
     fun consumeXuShiDamage(attacker: BattleUnit, env: BattlePhysicalContextEnvironment): Int {
-        val effect = attacker.skills[243]?.and(255)?.takeIf { it != 255 } ?: return 0
+        val effect = attacker.skills[SkillEffects.id("momentumDamageBonus")]?.and(255)?.takeIf { it != 255 } ?: return 0
         val stored = env.skillTemp(attacker.id, 243, 0)
         if (stored < 1) return 0
         env.setSkillTemp(attacker.id, 243, 0)
@@ -114,7 +115,7 @@ internal object BattlePhysicalContextBuilder {
      */
 
     fun accumulateChargeWhenHit(defender: BattleUnit, activeAttack: Boolean, env: BattlePhysicalContextEnvironment) {
-        if (activeAttack && defender.skills[26]?.and(255)?.let { it != 255 } == true) {
+        if (activeAttack && defender.skills[SkillEffects.id("rageAttack")]?.and(255)?.let { it != 255 } == true) {
             env.incSkillTemp(defender.id, 26)
         }
     }
@@ -126,7 +127,7 @@ internal object BattlePhysicalContextBuilder {
      */
 
     fun mrspDamage(attacker: BattleUnit, target: BattleUnit, random100: () -> Int): Int? {
-        if (attacker.skills[156]?.and(255)?.let { it != 255 } != true) return null
+        if (attacker.skills[SkillEffects.id("minimumDamage")]?.and(255)?.let { it != 255 } != true) return null
         return target.maxHitPoints * BattleMrspDamage.percent(random100()) / 100
     }
 
@@ -165,7 +166,7 @@ internal object BattlePhysicalContextBuilder {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val skill292RandomBonus = attacker.skills[292]?.and(255)?.takeIf { it != 255 }
+        val skill292RandomBonus = attacker.skills[SkillEffects.id("maxHealthBonusDamage")]?.and(255)?.takeIf { it != 255 }
             ?.let { env.probabilityResolver.flagRandom(0, 5) }
         return PhysicalDamageRateContext(
             targetHasNearbyAlly = targetHasNearbyAlly,
@@ -198,7 +199,7 @@ internal object BattlePhysicalContextBuilder {
 
         var counterSkill46Bonus = 0
         if (counter) {
-            attacker.skills[46]?.and(255)?.takeIf { it != 255 }?.let { bonus ->
+            attacker.skills[SkillEffects.id("counterDamageBonus")]?.and(255)?.takeIf { it != 255 }?.let { bonus ->
                 if (env.skillTemp(attacker.id, 46, 0) != 0) {
                     env.setSkillTemp(attacker.id, 46, 0)
                     counterSkill46Bonus = bonus

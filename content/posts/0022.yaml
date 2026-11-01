@@ -1,0 +1,13 @@
+id: 22
+name: "의적"
+arms: 5
+attack: 1
+defense: 4
+spirit: 2
+critical: 1
+morale: 2
+movement: 5
+range: 8
+type: 1
+upgrades: [0,1,22,23]
+intro: "적군 계열 병종 2. 적군 계열은 지형 관련 전략을 펼쳐, 적을 자신에게 유리한 지형으로 유인한 뒤 일망타진할 수 있습니다!"

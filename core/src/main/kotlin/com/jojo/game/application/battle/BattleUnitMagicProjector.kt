@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.application.battle
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.domain.battle.magic.BattleMagicProfileValue
 import com.jojo.game.domain.campaign.CampaignState
@@ -55,7 +56,7 @@ internal class BattleUnitMagicProjector(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val xhcl = skills.skillValue(244) ?: return@buildList
+        val xhcl = skills.skillValue(SkillEffects.id("learnMagic")) ?: return@buildList
         catalog?.allMagicProfiles()?.filter { it.belongsTo(xhcl) }?.forEach { addIfMissing(it) }
     }
 
@@ -74,7 +75,7 @@ internal class BattleUnitMagicProjector(
      */
 
     private fun upgradeCastArea(magic: GameDataCatalog.MagicProfile): GameDataCatalog.MagicProfile {
-        if (skills.skillValue(259) == null) return magic
+        if (skills.skillValue(SkillEffects.id("rangedMagicUpgrade")) == null) return magic
         val upgraded = magic.hitArea.upgradeId.let { catalog?.hitAreaProfile(it) } ?: return magic
         return magic.copy(hitArea = upgraded)
     }
@@ -85,7 +86,7 @@ internal class BattleUnitMagicProjector(
      */
 
     private fun upgradeEffectArea(magic: GameDataCatalog.MagicProfile): GameDataCatalog.MagicProfile {
-        if (skills.skillValue(264) == null) return magic
+        if (skills.skillValue(SkillEffects.id("magicAreaUpgrade")) == null) return magic
         return catalog?.upgradedEffectArea(magic.effectAreaId)
             ?.let { (id, offsets) -> magic.copy(effectAreaId = id, effectOffsets = offsets) }
             ?: magic

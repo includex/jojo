@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.application.battle
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.BattleUnit
@@ -41,6 +42,7 @@ data class BattleTurnSettlementEnvironment(
     val onRestoreUnitExperience: (BattleUnit, Int) -> RestoreGrowthResolution<CampaignExperienceResult>,
     val onRestoreEquipmentExperience: (BattleUnit, Int, CampaignEquipmentSlot) -> RestoreGrowthResolution<CampaignEquipmentExperienceResult>,
     val onEquipmentUpgrade: (CampaignEquipmentExperienceResult) -> Unit,
+    val ruleRuntime: BattleRuleRuntime = BattleRuleRuntime(),
 )
 
 /** BattleTurnSettlementService: 실제 전투 유닛을 갱신하면서, 표현과 기록에 쓸 정산 DTO를 함께 만든다. */
@@ -165,7 +167,16 @@ object BattleTurnSettlementService {
      */
 
     fun settleCampStart(faction: Faction, env: BattleTurnSettlementEnvironment): CampSettlement =
-        captureSettlement(CampSettlementStage.START_STATE, faction, env) { processStartOfTurn(faction, it, env) }
+        captureSettlement(CampSettlementStage.START_STATE, faction, env) { subflows ->
+            val before = turnSnapshot(env.units())
+            processStartOfTurn(faction, subflows, env)
+            env.units().filter { it.visible && it.hitPoints > 0 && it.effectiveFaction() == faction }
+                .forEach { unit ->
+                    env.ruleRuntime.onTurnStart(unit)
+                    if (unit.hitPoints <= 0) env.defeatUnit(unit.id)
+                }
+            turnChanges(before, env.presentationUnit)
+        }
 
     /**
      * `settleCampEnd`: 현재 상태를 갱신한다.
@@ -174,6 +185,7 @@ object BattleTurnSettlementService {
 
     fun settleCampEnd(faction: Faction, env: BattleTurnSettlementEnvironment): CampSettlement =
         captureSettlement(CampSettlementStage.END_RESTORE, faction, env) { subflows ->
+            val before = turnSnapshot(env.units())
             if (faction == Faction.FRIEND || faction == Faction.REINFORCEMENTS) {
                 /**
                  * `side` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -184,6 +196,12 @@ object BattleTurnSettlementService {
                 env.units().filter { it.effectiveFaction().isPlayerSide() == side }.forEach { it.hasActed = false }
             }
             processEndOfTurn(faction, subflows, env)
+            env.units().filter { it.visible && it.hitPoints > 0 && it.effectiveFaction() == faction }
+                .forEach { unit ->
+                    env.ruleRuntime.onTurnEnd(unit)
+                    if (unit.hitPoints <= 0) env.defeatUnit(unit.id)
+                }
+            turnChanges(before, env.presentationUnit)
         }
 
     /**
@@ -279,7 +297,7 @@ object BattleTurnSettlementService {
                  */
 
                 fun effect(id: Int) = caster.skills[id]?.and(255)?.takeIf { it != 255 }
-                effect(103)?.let { value ->
+                effect(SkillEffects.id("nearbyStatusRecovery"))?.let { value ->
                     /**
                      * `targets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -294,16 +312,18 @@ object BattleTurnSettlementService {
                             .forEach(target.statuses::remove)
                     } }
                 }
-                effect(208)?.let { value ->
+                effect(SkillEffects.id("nearbyHealthRecovery"))?.let { value ->
                     /**
                      * `targets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
                      */
 
                     val targets = nearby().filter { it.hitPoints < it.maxHitPoints }
-                    record(208, value, "resume_hp", targets) { targets.forEach { it.addHpcur(it.maxHitPoints * value / 100) } }
+                    record(208, value, "resume_hp", targets) { targets.forEach {
+                        env.ruleRuntime.recoverHp(it, it.maxHitPoints * value / 100)
+                    } }
                 }
-                effect(209)?.let { value ->
+                effect(SkillEffects.id("nearbyMagicRecovery"))?.let { value ->
                     /**
                      * `targets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -314,7 +334,7 @@ object BattleTurnSettlementService {
                         target.addMpcur(if (value == 0) (caster.level + 10) / 10 else target.maxMagicPoints * value / 100)
                     } }
                 }
-                effect(210)?.takeIf { it and 31 != 0 }?.let { mask ->
+                effect(SkillEffects.id("nearbyDefenseBoost"))?.takeIf { it and 31 != 0 }?.let { mask ->
                     /**
                      * `targets` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -354,7 +374,7 @@ object BattleTurnSettlementService {
              */
 
             val grants = buildList {
-                unit.skills[149]?.and(255)?.takeIf { it != 255 }?.let { amount ->
+                unit.skills[SkillEffects.id("turnExperienceGain")]?.and(255)?.takeIf { it != 255 }?.let { amount ->
                     when (val resolution = env.onRestoreUnitExperience(unit, amount)) {
                         RestoreGrowthResolution.Unavailable -> add(SettlementGrowthGrant(SettlementGrowthKind.UNIT_EXP, amount))
                         RestoreGrowthResolution.NotApplicable -> Unit
@@ -366,7 +386,7 @@ object BattleTurnSettlementService {
                         }
                     }
                 }
-                unit.skills[150]?.and(255)?.takeIf { it != 255 }?.let { amount ->
+                unit.skills[SkillEffects.id("turnArmorExperienceGain")]?.and(255)?.takeIf { it != 255 }?.let { amount ->
                     when (val resolution = env.onRestoreEquipmentExperience(unit, amount, CampaignEquipmentSlot.WEAPON)) {
                         RestoreGrowthResolution.Unavailable -> add(SettlementGrowthGrant(SettlementGrowthKind.WEAPON_EXP, amount))
                         RestoreGrowthResolution.NotApplicable -> Unit
@@ -384,7 +404,7 @@ object BattleTurnSettlementService {
                         }
                     }
                 }
-                unit.skills[151]?.and(255)?.takeIf { it != 255 }?.let { amount ->
+                unit.skills[SkillEffects.id("turnWeaponExperienceGain")]?.and(255)?.takeIf { it != 255 }?.let { amount ->
                     when (val resolution = env.onRestoreEquipmentExperience(unit, amount, CampaignEquipmentSlot.ARMOR)) {
                         RestoreGrowthResolution.Unavailable -> add(SettlementGrowthGrant(SettlementGrowthKind.ARMOR_EXP, amount))
                         RestoreGrowthResolution.NotApplicable -> Unit

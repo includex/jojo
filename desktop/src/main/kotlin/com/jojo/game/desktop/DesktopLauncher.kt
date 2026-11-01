@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.jojo.game.application.runtime.GameEntryPoint
 import com.jojo.game.application.runtime.GameLaunchConfiguration
 import com.jojo.game.JojoGame
+import com.jojo.game.infrastructure.data.GamePackage
 
 /** 실제 게임 실행을 담당하는 데스크톱 진입점입니다. */
 object DesktopLauncher {
@@ -14,7 +15,7 @@ object DesktopLauncher {
     fun main(args: Array<String>) {
         val options = ProductionLaunchOptions.parse(args)
         val configuration = Lwjgl3ApplicationConfiguration().apply {
-            setTitle("삼국지 조조전")
+            setTitle(GamePackage.load().title)
             setWindowedMode(1280, 688)
             setForegroundFPS(60)
         }
@@ -49,7 +50,7 @@ internal data class ProductionLaunchOptions(
                 }
             }
             return ProductionLaunchOptions(
-                scenario = args.firstOrNull { it.startsWith("--scenario=") }?.substringAfter('=')?.uppercase() ?: "R_00",
+                scenario = args.firstOrNull { it.startsWith("--scenario=") }?.substringAfter('=')?.uppercase() ?: GamePackage.load().startModule,
                 battleReturnScenario = args.firstOrNull { it.startsWith("--battle-return=") }?.substringAfter('=')?.uppercase(),
                 explicitScenario = args.any { it.startsWith("--scenario=") },
                 battle = "--battle" in args,

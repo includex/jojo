@@ -63,4 +63,29 @@ class BattleMrspTest {
         val result = assertIs<TacticalActionResult.Attack>(battle.combat.forcedAttack("attacker", "target"))
         assertEquals(20, result.damage)
     }
+    @Test
+    fun `MRSP normal followup and forced attacks apply final rules exactly once`() {
+        fun battle() = Battle(listOf(
+            BattleUnit("attacker", "Attack", Faction.PLAYER, 0, 0, attack = 999,
+                critical = 100, morale = 100, skills = mapOf(156 to 0)),
+            BattleUnit("target", "Target", Faction.ENEMY, 1, 0, hitPoints = 100,
+                maxHitPoints = 100, defense = 999, critical = 1, morale = 1),
+        ), emptyList(), random = object : Random() {
+            private val values = intArrayOf(26, 26)
+            private var index = 0
+            override fun nextInt(bound: Int) = values.getOrElse(index++) { 100 }.mod(bound)
+        }, ruleRuntime = com.jojo.game.application.battle.BattleRuleRuntime(
+            listOf(com.jojo.game.domain.rules.RuleDefinition("bonus", com.jojo.game.domain.rules.RuleEvent.DAMAGE_CALCULATION,
+                com.jojo.game.domain.rules.DamageModifierRuleHandler.id, parameters = mapOf("amount" to "7"))),
+            com.jojo.game.domain.rules.RuleEngine(listOf(com.jojo.game.domain.rules.DamageModifierRuleHandler),
+                com.jojo.game.domain.rules.RuleRandom { error("Rule RNG") })))
+        val normal = battle()
+        val result = assertIs<TacticalActionResult.Attack>(normal.combat.attack("attacker", "target"))
+        assertEquals(27, result.damage)
+        assertEquals(27, result.followUpDamage)
+        assertEquals(46, normal.units.getValue("target").hitPoints)
+        val forced = assertIs<TacticalActionResult.Attack>(battle().combat.forcedAttack("attacker", "target"))
+        assertEquals(27, forced.damage)
+    }
+
 }

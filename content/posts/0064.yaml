@@ -1,0 +1,13 @@
+id: 64
+name: "호랑이 길들이는 사부"
+arms: 5
+attack: 1
+defense: 4
+spirit: 3
+critical: 1
+morale: 4
+movement: 2
+range: 7
+type: 1
+upgrades: [6,7,22,23]
+intro: "폭발적인 전투력을 가진 호랑이를 모는 부대입니다. 돌격 시 적군 두 명에게 반격을 유발하니 이 점은 주의하세요. 활과 전략에 대한 저항력이 낮습니다."

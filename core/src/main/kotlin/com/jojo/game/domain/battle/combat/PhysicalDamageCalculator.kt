@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.combat
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
@@ -85,7 +86,8 @@ internal object PhysicalDamageCalculator {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val attack = BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) *
+        val intrinsicAttack = BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK)
+        val attack = (attacker.onRuleAttackPower?.invoke(target, intrinsicAttack, "physical") ?: intrinsicAttack) *
                 context.attackTerrainImpact / 100
         /**
          * `targetDefense` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -121,7 +123,7 @@ internal object PhysicalDamageCalculator {
      */
 
     fun armorPiercingMinimumDamage(attacker: BattleUnit, target: BattleUnit, currentDamage: Int): Int {
-        val percent = effect(attacker, 174) ?: return currentDamage
+        val percent = effect(attacker, SkillEffects.id("armorPiercingAttack")) ?: return currentDamage
         return maxOf(currentDamage, percent * target.maxHitPoints / 100)
     }
 
@@ -131,7 +133,7 @@ internal object PhysicalDamageCalculator {
      */
 
     fun cappedPhysicalDamage(target: BattleUnit, currentDamage: Int): Int =
-        effect(target, 242)?.let { minOf(currentDamage, it) } ?: currentDamage
+        effect(target, SkillEffects.id("damageCap"))?.let { minOf(currentDamage, it) } ?: currentDamage
 
     /**
      * `physicalMinimumDamage`: 타입의 핵심 동작을 수행한다.
@@ -149,11 +151,11 @@ internal object PhysicalDamageCalculator {
      */
 
     fun physicalArmRestraint(attacker: BattleUnit, target: BattleUnit): Int {
-        if (hasSkill(attacker, 316)) return 130
-        if (hasSkill(target, 316)) return 70
+        if (hasSkill(attacker, SkillEffects.id("absoluteCounterTwo"))) return 130
+        if (hasSkill(target, SkillEffects.id("absoluteCounterTwo"))) return 70
         return (attacker.armRestraints[target.armId] ?: 100) +
-                (effect(attacker, 133) ?: 0) -
-                (effect(target, 133) ?: 0)
+                (effect(attacker, SkillEffects.id("absoluteCounter")) ?: 0) -
+                (effect(target, SkillEffects.id("absoluteCounter")) ?: 0)
     }
 
     /**
@@ -172,19 +174,19 @@ internal object PhysicalDamageCalculator {
          */
 
         var addition = 0
-        effect(attacker, 9)?.let { addition += attacker.hitPoints * it / 100 }
-        effect(attacker, 141)?.let {
+        effect(attacker, SkillEffects.id("healthBasedAttack"))?.let { addition += attacker.hitPoints * it / 100 }
+        effect(attacker, SkillEffects.id("moonlightAttackMagicBonus"))?.let {
             addition += BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT) * it / 100
         }
-        effect(attacker, 33)?.let { addition += target.magicPoints * it / 100 }
-        effect(attacker, 183)?.let { addition += attacker.martial * it * 10 / 100 }
-        if (context.activeAttack) effect(attacker, 26)?.let { addition += context.charge * it }
+        effect(attacker, SkillEffects.id("targetMagicBasedAttack"))?.let { addition += target.magicPoints * it / 100 }
+        effect(attacker, SkillEffects.id("martialAttackBonus"))?.let { addition += attacker.martial * it * 10 / 100 }
+        if (context.activeAttack) effect(attacker, SkillEffects.id("rageAttack"))?.let { addition += context.charge * it }
         if (context.activeAttack && context.moveLength >= 2) {
-            effect(attacker, 25)?.let { addition += (context.moveLength - 1) * it }
+            effect(attacker, SkillEffects.id("chargeAttack"))?.let { addition += (context.moveLength - 1) * it }
         }
-        effect(attacker, 109)?.let { addition += it * context.adjacentOccupiedCount }
-        if (hasSkill(attacker, 95)) addition += attacker.level / 2 + 15
-        if (hasSkill(target, 95)) addition -= target.level / 2 + 15
+        effect(attacker, SkillEffects.id("adjacentMeleeBonus"))?.let { addition += it * context.adjacentOccupiedCount }
+        if (hasSkill(attacker, SkillEffects.id("fixedDamageBonus"))) addition += attacker.level / 2 + 15
+        if (hasSkill(target, SkillEffects.id("fixedDamageBonus"))) addition -= target.level / 2 + 15
         listOf(
             80 to BattleAttribute.ATTACK,
             79 to BattleAttribute.DEFENSE,
@@ -216,21 +218,21 @@ internal object PhysicalDamageCalculator {
 
         var rate = 100
         if (BattleStatus.CONFUSION in target.statuses) rate += 10
-        if (!context.targetHasNearbyAlly) effect(attacker, 176)?.let { rate += it }
+        if (!context.targetHasNearbyAlly) effect(attacker, SkillEffects.id("isolatedTargetBonus"))?.let { rate += it }
         when (target.armMoveSound) {
-            0 -> effect(attacker, 129)?.let { rate += it }
-            1 -> effect(attacker, 164)?.let { rate += it }
-            2 -> effect(attacker, 11)?.let { rate += it }
+            0 -> effect(attacker, SkillEffects.id("sniperAttackBonus"))?.let { rate += it }
+            1 -> effect(attacker, SkillEffects.id("artilleryAttackBonus"))?.let { rate += it }
+            2 -> effect(attacker, SkillEffects.id("infantryAttackBonus"))?.let { rate += it }
         }
-        if (attacker.statuses.isNotEmpty()) effect(attacker, 99)?.let { rate += it }
-        effect(attacker, 110)?.let { rate += (14 - context.targetFinalMovement) * it }
-        effect(attacker, 312)?.let { value ->
+        if (attacker.statuses.isNotEmpty()) effect(attacker, SkillEffects.id("statusBasedAttackBonus"))?.let { rate += it }
+        effect(attacker, SkillEffects.id("swiftAttackBonus"))?.let { rate += (14 - context.targetFinalMovement) * it }
+        effect(attacker, SkillEffects.id("swiftAttackBonusTwo"))?.let { value ->
             rate += 5 * (value - if (BattleStatus.PARALYSIS in target.statuses) 0 else context.targetFinalMovement)
         }
-        effect(attacker, 104)?.let { value ->
+        effect(attacker, SkillEffects.id("magicRecoveryAttack"))?.let { value ->
             rate += directionalAttackBonus(value, context.incomingDirection, attacker.direction)
         }
-        if (!context.hasSplashTarget) effect(attacker, 126)?.let { rate += it }
+        if (!context.hasSplashTarget) effect(attacker, SkillEffects.id("piercingAttackBonus"))?.let { rate += it }
         /**
          * `dx` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -249,22 +251,22 @@ internal object PhysicalDamageCalculator {
          */
 
         val sameLine = dx == 0 || dy == 0
-        if (sameLine && dx + dy < 3) effect(attacker, 234)?.let { rate += it }
-        effect(attacker, 184)?.let { rate += 5 * (14 - target.movement) }
-        if (!context.hasBackPosition) effect(attacker, 221)?.let { rate += it }
-        effect(attacker, 114)?.let { rate += it }
-        effect(attacker, 292)?.let { rate += 10 + requireNotNull(context.skill292RandomBonus) }
-        if (sameLine) effect(target, 6)?.let { rate -= it }
-        if (!sameLine) effect(target, 121)?.let { rate -= it }
-        if (dx == 1 && dy == 1) effect(target, 132)?.let { rate -= it }
-        effect(target, 118)?.let { rate -= it }
-        effect(target, 245)?.let {
+        if (sameLine && dx + dy < 3) effect(attacker, SkillEffects.id("closeLineAttackBonus"))?.let { rate += it }
+        effect(attacker, SkillEffects.id("allArmyChargeBonus"))?.let { rate += 5 * (14 - target.movement) }
+        if (!context.hasBackPosition) effect(attacker, SkillEffects.id("pushbackAttack"))?.let { rate += it }
+        effect(attacker, SkillEffects.id("attackPowerBoost"))?.let { rate += it }
+        effect(attacker, SkillEffects.id("maxHealthBonusDamage"))?.let { rate += 10 + requireNotNull(context.skill292RandomBonus) }
+        if (sameLine) effect(target, SkillEffects.id("straightLineDefense"))?.let { rate -= it }
+        if (!sameLine) effect(target, SkillEffects.id("diagonalDamageReduction"))?.let { rate -= it }
+        if (dx == 1 && dy == 1) effect(target, SkillEffects.id("diagonalSweepDefense"))?.let { rate -= it }
+        effect(target, SkillEffects.id("physicalDamageReduction"))?.let { rate -= it }
+        effect(target, SkillEffects.id("lowHealthDefense"))?.let {
             rate -= (target.maxHitPoints - target.hitPoints) * 100 / target.maxHitPoints.coerceAtLeast(1)
         }
-        effect(target, 247)?.let { rate += target.movement * it }
-        if (attacker.armMoveSound == 0) effect(target, 139)?.let { rate -= it }
-        effect(target, 250)?.let { rate -= if (context.hasBackPosition) it else it / 2 }
-        effect(target, 275)?.let { value ->
+        effect(target, SkillEffects.id("movementBasedDefensePenalty"))?.let { rate += target.movement * it }
+        if (attacker.armMoveSound == 0) effect(target, SkillEffects.id("weakenCavalry"))?.let { rate -= it }
+        effect(target, SkillEffects.id("singleStepDefense"))?.let { rate -= if (context.hasBackPosition) it else it / 2 }
+        effect(target, SkillEffects.id("heavyArmorDefense"))?.let { value ->
             rate -= directionalDefenseReduction(value, context.incomingDirection, target.direction)
         }
         return rate
@@ -288,15 +290,15 @@ internal object PhysicalDamageCalculator {
         var rate = 100
         if (context.critical) {
             rate += 50
-            if ((attacker.skills[271]?.and(255) ?: 255) != 0) rate += 30
+            if ((attacker.skills[SkillEffects.id("criticalDamageBonus")]?.and(255) ?: 255) != 0) rate += 30
         }
         if (context.counter) {
             rate += context.counterSkill46Bonus
-            if (!hasSkill(attacker, 181)) rate -= 25
+            if (!hasSkill(attacker, SkillEffects.id("strongCounterAttack"))) rate -= 25
         }
-        if (context.continuous && !hasSkill(attacker, 291)) rate -= 25
+        if (context.continuous && !hasSkill(attacker, SkillEffects.id("continuousAttackBoost"))) rate -= 25
         if (context.splash) rate -= 20
-        effect(attacker, 217)?.let { bonus ->
+        effect(attacker, SkillEffects.id("surpriseAttackBonus"))?.let { bonus ->
             rate += when {
                 context.incomingDirection == target.direction -> bonus
                 context.incomingDirection % 2 == target.direction % 2 -> bonus - 20
@@ -341,6 +343,10 @@ internal object PhysicalDamageCalculator {
      * 전달된 입력을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    /** Fixed special damage bypasses the ordinary formula, but keeps the same final rule hooks. */
+    fun modifySpecialDamage(attacker: BattleUnit, target: BattleUnit, damage: Int): Int =
+        if (damage == 0) 0 else attacker.onRulePhysicalDamage?.invoke(target, damage) ?: damage
+
     fun calculatePhysicalDamage(
         attacker: BattleUnit,
         target: BattleUnit,
@@ -366,10 +372,11 @@ internal object PhysicalDamageCalculator {
         normalDamage = maxOf(1, normalDamage)
         normalDamage = armorPiercingMinimumDamage(attacker, target, normalDamage)
         normalDamage = cappedPhysicalDamage(target, normalDamage)
-        return maxOf(
+        val result = maxOf(
             physicalMinimumDamage(attacker, visibleFamousPlayerCount),
             normalDamage * physicalCriticalRate(attacker, target, criticalRateContext) / 100,
         )
+        return attacker.onRulePhysicalDamage?.invoke(target, result) ?: result
     }
 
     /**

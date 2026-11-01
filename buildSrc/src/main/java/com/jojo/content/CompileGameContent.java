@@ -21,7 +21,14 @@ public abstract class CompileGameContent extends DefaultTask {
 
     @TaskAction
     public void compile() {
+        getProject().delete(getOutputDirectory().get().getAsFile());
         GameContentCompiler.compile(getSourceDirectory().get().getAsFile().toPath(),
                 getOutputDirectory().get().getAsFile().toPath());
+        GlobalVariableCompiler.compile(getSourceDirectory().get().getAsFile().toPath().resolve("variables/globals.yaml"),
+                getOutputDirectory().get().getAsFile().toPath().resolve("global-variables.json"));
+        GameRuleCompiler.compile(getSourceDirectory().get().getAsFile().toPath().resolve("rules/game-rules.yaml"),
+                getOutputDirectory().get().getAsFile().toPath().resolve("game-rules.json"));
+        GamePackageCompiler.compile(getSourceDirectory().get().getAsFile().toPath().resolve("game.yaml"),
+                getOutputDirectory().get().getAsFile().toPath().resolve("game-package.json"));
     }
 }

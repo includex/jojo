@@ -1,0 +1,13 @@
+id: 47
+name: "선봉군"
+arms: 6
+attack: 6
+defense: 4
+spirit: 3
+critical: 2
+morale: 4
+movement: 2
+range: 6
+type: 1
+upgrades: [2,3,20,21]
+intro: ""

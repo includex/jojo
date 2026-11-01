@@ -133,7 +133,7 @@ def scene0():
     stage.setMenuVisible(True)
     if vars[740]:
         gvars[4076] = 0
-        gvars[4057] = 41
+        gvars["campaign.current_chapter"] = 41
         stage.setJoinBattle(1, 15, [
             1,
             4,
@@ -188,7 +188,7 @@ def scene0():
                 1]])
     if not vars[740]:
         gvars[4076] = 0
-        gvars[4057] = 41
+        gvars["campaign.current_chapter"] = 41
         stage.setJoinBattle(1, 13, [
             1,
             4,

@@ -53,7 +53,7 @@ class BattleRoundLifecycleFacade internal constructor(
      * `environment` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    private val environment = BattleTurnEnvironmentAssembler.build(configuration, journal, battlefield, units)
+    private val environment = BattleTurnEnvironmentAssembler.build(configuration, journal, battlefield, units, battle.ruleRuntime)
 
     /**
      * `endTurn`: 타입의 핵심 동작을 수행한다.

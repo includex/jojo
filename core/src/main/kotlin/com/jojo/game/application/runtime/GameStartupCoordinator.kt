@@ -3,6 +3,7 @@ package com.jojo.game.application.runtime
 
 import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.infrastructure.data.GameDataCatalog
+import com.jojo.game.infrastructure.data.GamePackage
 
 import com.jojo.game.*
 
@@ -59,15 +60,14 @@ internal class GameStartupCoordinator(
         if (configuration.yingchuanEntryFlowTracePath != null) campaignState.reset()
         if (routeRuntimeStartup()) return
 
-        val directBattleScenario = configuration.initialScenario.replaceFirst("R_", "S_")
+        val directBattleScenario = GamePackage.load().battleModule(configuration.initialScenario)
         if (configuration.entryPoint == GameEntryPoint.BATTLE &&
-            Regex("S_(?:[0-4][0-9]|5[0-7])").matches(directBattleScenario) &&
+            directBattleScenario in GamePackage.load().battleModules.values &&
             configuration.capture.state != "map-only"
         ) {
             if (configuration.battleTraceRuntime != null) {
-                val routeIndex = directBattleScenario.removePrefix("S_").toInt()
-                val entryLimit = if (routeIndex == 0) null else
-                    ScenarioMetadataReader.loadLastJoinBattleLimit("R_%02d".format(routeIndex))
+                val entryLimit = if (directBattleScenario == GamePackage.load().defaultBattleModule) null else
+                    ScenarioMetadataReader.loadLastJoinBattleLimit(GamePackage.load().returnModule(directBattleScenario))
                 prepareDirectBattleCampaign(campaignState, directBattleScenario, entryLimit)
             } else {
                 prepareYingchuanBattleCampaign()
@@ -83,7 +83,7 @@ internal class GameStartupCoordinator(
             configuration.entryPoint == GameEntryPoint.TITLE -> showTitle()
             else -> {
                 val scenario = if (!configuration.initialScenarioExplicit &&
-                    configuration.initialScenario == "R_00"
+                    configuration.initialScenario == GamePackage.load().startModule
                 ) savedScenario() else configuration.initialScenario
                 showScenario(scenario)
             }
@@ -97,8 +97,8 @@ internal class GameStartupCoordinator(
 
     private fun prepareYingchuanBattleCampaign() {
         campaignState.reset()
-        val prelude = ScenarioInterpreter.load("R_00", campaignState)
-        prelude.start("scene1")
+        val prelude = ScenarioInterpreter.load(GamePackage.load().startModule, campaignState)
+        prelude.start(GamePackage.load().resumeScene)
         var steps = 0
         while (prelude.state != PlaybackState.COMPLETE && steps++ < 10_000) {
             when (prelude.state) {
@@ -139,21 +139,16 @@ internal fun prepareDirectBattleCampaign(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val match = Regex("S_(\\d{2})").matchEntire(scenario)
-    /**
-     * `index` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
-     * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
-     */
-
-    val index = match?.groupValues?.get(1)?.toIntOrNull()
-    require(index != null && index in 0..57) { "full-battle scenario must be S_00 through S_57: $scenario" }
+    require(scenario in GamePackage.load().battleModules.values) {
+        "full-battle scenario must be in game.yaml battleModules: $scenario"
+    }
     /**
      * `seeded` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val seeded = if (index == 0) {
-        listOf(0)
+    val seeded = if (scenario == GamePackage.load().defaultBattleModule) {
+        listOf(GamePackage.load().protagonistId)
     } else {
         /**
          * `limit` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -175,7 +170,7 @@ internal fun prepareDirectBattleCampaign(
          */
 
         val mandatory = buildList {
-            if (0 !in excluded) add(0)
+            if (GamePackage.load().protagonistId !in excluded) add(GamePackage.load().protagonistId)
             limit.requiredUnitIds.forEach { id -> if (id !in excluded && id !in this) add(id) }
         }
         require(mandatory.size <= limit.maximum) {

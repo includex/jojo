@@ -23,3 +23,8 @@ kotlin {
 tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
     options.release.set(17)
 }
+
+// An external Lua rules directory can be changed between battles without repackaging assets.
+tasks.named<JavaExec>("run") {
+    providers.gradleProperty("jojo.rules.dir").orNull?.let { systemProperty("jojo.rules.dir", it) }
+}

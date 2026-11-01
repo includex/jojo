@@ -1,0 +1,13 @@
+id: 15
+name: "경포차"
+arms: 3
+attack: 7
+defense: 4
+spirit: 3
+critical: 2
+morale: 1
+movement: 3
+range: 6
+type: 1
+upgrades: [8,9,22,23]
+intro: "포차 계열 병종 1. 사거리가 비교할 수 없을 만큼 먼 원거리 공격 부대입니다. 마음을 다해 단련한다면, 장래에 상당한 전투력을 갖게 될 것입니다."

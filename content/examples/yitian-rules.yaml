@@ -1,0 +1,17 @@
+# Opt-in example: copy this file to rules/game-rules.yaml and rebuild.
+# Every visible unit of the camp starting its turn receives the rule.
+version: 1
+resources:
+  yitian.innerEnergy:
+    default: 0
+    min: 0
+    max: 100
+    scope: character
+rules:
+  - id: yitian.innerEnergyRecovery
+    event: TURN_START
+    handler: core.resourceRegeneration
+    priority: 10
+    parameters:
+      resource: yitian.innerEnergy
+      amount: 5

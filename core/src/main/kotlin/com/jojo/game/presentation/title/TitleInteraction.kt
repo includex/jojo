@@ -260,7 +260,7 @@ object TitleInteraction {
 
     /** dispatch: 타이틀 입력을 메뉴 선택·설정·장면 전환 결과로 변환한다. */
     fun dispatch(action: MainAction, routes: MainRoutes) = when (action) {
-        MainAction.NEW_GAME -> routes.newGame("R_00")
+        MainAction.NEW_GAME -> routes.newGame(com.jojo.game.infrastructure.data.GamePackage.load().startModule)
         MainAction.LOAD -> routes.openLoad()
         MainAction.SETTINGS -> routes.openSettings()
         MainAction.EXIT -> routes.requestExit()

@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.domain.battle.magic
 
+import com.jojo.game.domain.battle.MagicEffects
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
@@ -28,7 +30,7 @@ internal object MagicDamageCalculator {
          */
 
         fun active(skill: Int) = attacker.skills[skill]?.and(255)?.let { it != 255 } == true
-        if (magic.condition in 2..5 && active(136)) return null
+        if (magic.condition in 2..5 && active(SkillEffects.id("forbiddenMagic"))) return null
         if (magic.condition == 1 && attacker.hitPoints < 40) return SystemMessage.S_9775E6B8B8
         val weatherAllowed = when (magic.condition) {
             0 -> weather in setOf(BattleWeather.CLEAR, BattleWeather.CLOUDY, BattleWeather.WINDY)
@@ -37,7 +39,7 @@ internal object MagicDamageCalculator {
             4 -> weather == BattleWeather.CLOUDY
             else -> true
         }
-        if (!weatherAllowed && !active(20)) return SystemMessage.S_54BF0673A8
+        if (!weatherAllowed && !active(SkillEffects.id("ignoreMagicWeather"))) return SystemMessage.S_54BF0673A8
         return if (magic.condition == 5) SystemMessage.S_30295DABD1 else null
     }
 
@@ -75,7 +77,7 @@ internal object MagicDamageCalculator {
         val terrainId = terrain?.terrainAt(attacker.tileX, attacker.tileY) ?: return 100
         val flag = terrainMagicFlags[terrainId] ?: return 100
         if (flag and (1 shl magic.type) != 0) return 100
-        return if (attacker.skills[19]?.and(255)?.let { it != 255 } == true) 85 else 0
+        return if (attacker.skills[SkillEffects.id("ignoreMagicTerrain")]?.and(255)?.let { it != 255 } == true) 85 else 0
     }
 
     /**
@@ -90,8 +92,8 @@ internal object MagicDamageCalculator {
          */
 
         fun effect(skill: Int) = attacker.skills[skill]?.and(255)?.takeIf { it != 255 }
-        var addition = effect(141)?.let { BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) * it / 100 } ?: 0
-        if (magic.type == 0) addition += effect(107) ?: 0
+        var addition = effect(SkillEffects.id("moonlightAttackMagicBonus"))?.let { BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK) * it / 100 } ?: 0
+        if (magic.type == MagicEffects.id("typeFireDamage")) addition += effect(SkillEffects.id("fireMagicDamageBonus")) ?: 0
         return addition
     }
 
@@ -108,13 +110,13 @@ internal object MagicDamageCalculator {
 
         fun effect(unit: BattleUnit, skill: Int) = unit.skills[skill]?.and(255)?.takeIf { it != 255 }
         var rate = 100
-        effect(attacker, 292)?.let { rate += 10 + flagRandomBonus }
-        if (magic.type in 0..3) rate += effect(attacker, 75) ?: 0
-        if (magic.type == 0 && magic.effectAreaId == 0) rate += effect(attacker, 128) ?: 0
-        if (magic.type in 4..18) rate += effect(attacker, 62) ?: 0
-        effect(attacker, 145)?.takeIf { attacker.hitPoints >= attacker.magicPoints / 2 }?.let { rate += it }
-        rate -= effect(target, 115) ?: 0
-        effect(target, 245)?.let { rate -= (target.maxHitPoints - target.hitPoints.coerceAtMost(target.maxHitPoints)) * 100 / target.maxHitPoints.coerceAtLeast(1) }
+        effect(attacker, SkillEffects.id("maxHealthBonusDamage"))?.let { rate += 10 + flagRandomBonus }
+        if (magic.type in MagicEffects.elementalTypes) rate += effect(attacker, SkillEffects.id("elementalMagicBonus")) ?: 0
+        if (magic.type == MagicEffects.id("typeFireDamage") && magic.effectAreaId == 0) rate += effect(attacker, SkillEffects.id("preciseMagicBonus")) ?: 0
+        if (magic.type in MagicEffects.hinderingTypes) rate += effect(attacker, SkillEffects.id("hinderingMagicBonus")) ?: 0
+        effect(attacker, SkillEffects.id("pulseMagicBonus"))?.takeIf { attacker.hitPoints >= attacker.magicPoints / 2 }?.let { rate += it }
+        rate -= effect(target, SkillEffects.id("magicDamageReduction")) ?: 0
+        effect(target, SkillEffects.id("lowHealthDefense"))?.let { rate -= (target.maxHitPoints - target.hitPoints.coerceAtMost(target.maxHitPoints)) * 100 / target.maxHitPoints.coerceAtLeast(1) }
         return maxOf(1, rate)
     }
 

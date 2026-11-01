@@ -1,0 +1,13 @@
+id: 3
+name: "경보병"
+arms: 4
+attack: 1
+defense: 2
+spirit: 4
+critical: 3
+morale: 2
+movement: 3
+range: 9
+type: 1
+upgrades: [0,1,20,21]
+intro: "보병 계열 병종 1. 방어력이 우수한 부대입니다. 궁병 계열 상대에게는 강력한 공격력을 자랑하지만, 기병 계열 부대를 상대할 때는 평범한 모습을 보입니다."

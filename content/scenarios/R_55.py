@@ -179,7 +179,7 @@ def scene0():
         17,
         23])
     gvars[4076] = 0
-    gvars[4057] = 55
+    gvars["campaign.current_chapter"] = 55
     stage.setBattlePos([
         [
             9,

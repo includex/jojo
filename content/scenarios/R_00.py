@@ -313,7 +313,7 @@ def scene1():
                 gvars[1] = 1
                 gvars[4039] = 1
                 gvars[4047] = 1
-                gvars[4074] = 1
+                gvars["ui.feats_enabled"] = 1
                 gvars[4075] = 1
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '공훈 모드')
@@ -322,7 +322,7 @@ def scene1():
                 gvars[1] = 0
                 gvars[4039] = 0
                 gvars[4047] = 0
-                gvars[4074] = 0
+                gvars["ui.feats_enabled"] = 0
                 gvars[4075] = 0
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '과실 육성 모드')
@@ -424,7 +424,7 @@ def scene1():
                 gvars[6] = 1
                 gvars[4039] = 0
                 gvars[4047] = 0
-                gvars[4074] = 0
+                gvars["ui.feats_enabled"] = 0
                 gvars[4075] = 1
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '슈퍼 과실 육성')
@@ -433,7 +433,7 @@ def scene1():
                 gvars[6] = 2
                 gvars[4039] = 1
                 gvars[4047] = 1
-                gvars[4074] = 1
+                gvars["ui.feats_enabled"] = 1
                 gvars[4075] = 1
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '공훈 모드')
@@ -442,7 +442,7 @@ def scene1():
                 gvars[6] = 0
                 gvars[4039] = 0
                 gvars[4047] = 0
-                gvars[4074] = 0
+                gvars["ui.feats_enabled"] = 0
                 gvars[4075] = 0
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '과실 육성 모드')
@@ -589,7 +589,7 @@ def scene1():
                 gvars[6] = 1
                 gvars[4039] = 0
                 gvars[4047] = 0
-                gvars[4074] = 0
+                gvars["ui.feats_enabled"] = 0
                 gvars[4075] = 1
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '슈퍼 과실 육성')
@@ -598,7 +598,7 @@ def scene1():
                 gvars[6] = 2
                 gvars[4039] = 1
                 gvars[4047] = 1
-                gvars[4074] = 1
+                gvars["ui.feats_enabled"] = 1
                 gvars[4075] = 1
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '공훈 모드')
@@ -607,7 +607,7 @@ def scene1():
                 gvars[6] = 0
                 gvars[4039] = 0
                 gvars[4047] = 0
-                gvars[4074] = 0
+                gvars["ui.feats_enabled"] = 0
                 gvars[4075] = 0
                 gvars[4054] = 1000
                 stage.infoTransfer(0, '과실 육성 모드')
@@ -1333,7 +1333,7 @@ def scene1():
                     goto('lab1900')
                 if gvars[4025] == 83:
                     goto('lab1900')
-            if gvars[4074] == 0 and gvars[4025] == 69:
+            if gvars["ui.feats_enabled"] == 0 and gvars[4025] == 69:
                 goto('lab1900')
             gvars[1] = gvars[4025]
             gvars[1] *= 8
@@ -2461,7 +2461,7 @@ def scene1():
             gvars[0] += 1
             goto('lab3606')
     if vars[1002]:
-        if gvars[4074] == 0:
+        if gvars["ui.feats_enabled"] == 0:
             stage.getItem(161, 4)
             stage.getItem(162, 4)
             stage.getItem(163, 4)
@@ -2948,7 +2948,7 @@ def scene3():
             stage.varOper(0, 261, 2, 0, 33)
             pvars[262] = 4857351
             stage.varOper(0, 262, 2, 0, 20)
-            if gvars[4074] == 0:
+            if gvars["ui.feats_enabled"] == 0:
                 gvars[4076] = 0
                 pvars[263] = 4767765
                 stage.varOper(0, 263, 2, 0, 0xB8B1B0D7)
@@ -2957,7 +2957,7 @@ def scene3():
                 stage.varOper(0, 264, 2, 0, 29)
                 pvars[265] = 4444111
                 stage.varOper(0, 265, 2, 0, 29)
-            if gvars[4074] == 1:
+            if gvars["ui.feats_enabled"] == 1:
                 pvars[263] = 4857397
                 stage.varOper(0, 263, 2, 0, 103)
                 pvars[264] = 4857401
@@ -3244,11 +3244,11 @@ def scene3():
             pvars[281] = 4604471
             stage.varOper(0, 281, 2, 0, 257)
             gvars[4076] = 0
-        if gvars[4074] == 0 and gvars[4075] == 1:
+        if gvars["ui.feats_enabled"] == 0 and gvars[4075] == 1:
             gvars[4076] = 0
             pvars[284] = 4248941
             stage.varOper(0, 284, 2, 0, 0x89909090)
-        if gvars[4074] == 1:
+        if gvars["ui.feats_enabled"] == 1:
             gvars[4076] = 1
             pvars[284] = 4208890
             pvars[287] = 4330344

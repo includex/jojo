@@ -1,0 +1,13 @@
+id: 42
+name: "창병"
+arms: 4
+attack: 5
+defense: 4
+spirit: 2
+critical: 2
+morale: 2
+movement: 4
+range: 6
+type: 1
+upgrades: [2,3,20,21]
+intro: ""

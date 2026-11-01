@@ -1,0 +1,13 @@
+id: 25
+name: "참모"
+arms: 4
+attack: 0
+defense: 2
+spirit: 2
+critical: 5
+morale: 2
+movement: 3
+range: 6
+type: 2
+upgrades: [14,15,22,23]
+intro: "책사 계열 병종 2. 더욱 강력한 공격형 전략을 펼칠 수 있으며, 특히 정신력이 낮은 적에게 강합니다."

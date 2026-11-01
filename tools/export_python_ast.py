@@ -74,15 +74,19 @@ def collect_dialogue_texts(tree: ast.Module, module_name: str, catalog: dict[str
 
 
 def main() -> None:
-    if len(sys.argv) != 4:
-        raise SystemExit("usage: export_python_ast.py SOURCE_DIR ASSETS_DIR OUTPUT_DIR")
+    if len(sys.argv) not in (3, 4):
+        raise SystemExit("usage: export_python_ast.py SOURCE_DIR [LEGACY_ASSETS_DIR] OUTPUT_DIR")
     source_dir = Path(sys.argv[1]).resolve()
     # The decompiler that produced SOURCE_DIR sometimes attaches an `elif` arm
     # to the wrong `if`, which strands whole branches.  Re-nest against the
     # original bytecode here, where the executed program is built, so the
     # restored sources keep their recovered line numbers untouched.
-    containers = REPAIR.load_containers(Path(sys.argv[2]).resolve())
-    output_dir = Path(sys.argv[3]).resolve()
+    # Local compatibility containers preserve recovered Jojo branches. A new
+    # game can omit compatibility/ and author its control flow directly.
+    compat_dir = source_dir / "compatibility"
+    containers = (REPAIR.load_containers(Path(sys.argv[2]).resolve()) if len(sys.argv) == 4
+                  else REPAIR.load_containers(compat_dir) if compat_dir.is_dir() else {})
+    output_dir = Path(sys.argv[-1]).resolve()
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True)

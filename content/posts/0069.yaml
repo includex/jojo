@@ -1,0 +1,13 @@
+id: 69
+name: "식량 보급대"
+arms: 4
+attack: 11
+defense: 1
+spirit: 2
+critical: 4
+morale: 2
+movement: 2
+range: 5
+type: 5
+upgrades: [14,15,16,17,22,23]
+intro: "식량 수송이 주 임무인 부대입니다. 공격 능력이 없습니다."

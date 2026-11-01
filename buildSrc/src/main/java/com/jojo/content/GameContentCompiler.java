@@ -21,10 +21,13 @@ import java.util.stream.Stream;
 /** Strict, deterministic translator from semantic YAML rows to legacy encrypted JSON tables. */
 public final class GameContentCompiler {
     private static final String KEY = "ccz65Sha08GeZ1Fu";
-    private static final Map<String, String> TABLES = Map.of(
-            "characters", "unit.bin", "equipment", "item.bin", "skills/active", "magic.bin",
-            "skills/passive", "defineSkill.bin", "skills/assignments", "unitPostsSkill.bin",
-            "skills/equipment", "itemSkills.bin");
+    private static final Map<String, String> TABLES = Map.ofEntries(
+            Map.entry("characters", "unit.bin"), Map.entry("equipment", "item.bin"),
+            Map.entry("skills/active", "magic.bin"), Map.entry("skills/passive", "defineSkill.bin"),
+            Map.entry("skills/assignments", "unitPostsSkill.bin"), Map.entry("skills/equipment", "itemSkills.bin"),
+            Map.entry("arms", "arms.bin"), Map.entry("posts", "posts.bin"),
+            Map.entry("hitarea", "hitarea.bin"), Map.entry("effarea", "effarea.bin"),
+            Map.entry("shop", "shop.bin"));
 
     private GameContentCompiler() { }
 
@@ -37,7 +40,11 @@ public final class GameContentCompiler {
             Map<String, List<Integer>> equipmentEffects = new TreeMap<>(Comparator.comparingInt(Integer::parseInt));
             Map<String, Path> equipmentEffectFiles = new LinkedHashMap<>();
             for (String category : List.of("characters", "equipment", "skills/active", "skills/passive",
-                    "skills/assignments", "skills/equipment")) {
+                    "skills/assignments", "skills/equipment", "arms", "posts", "hitarea", "effarea", "shop")) {
+                Path directory = source.resolve(category);
+                // Older small fixtures contain only the original six categories.
+                if (!Files.exists(directory) && !List.of("characters", "equipment", "skills/active", "skills/passive",
+                        "skills/assignments", "skills/equipment").contains(category)) continue;
                 Object spec = schema.get(category);
                 if (spec == null) throw problem(source.resolve("schema.json"), "missing category " + category);
                 Map<String, Object> categorySpec = mapping(spec, source.resolve("schema.json"));
@@ -46,7 +53,6 @@ public final class GameContentCompiler {
                 Map<String, Object> fields = mapping(categorySpec.get("fields"), source.resolve("schema.json"));
                 TreeMap<Integer, Object> sorted = new TreeMap<>();
                 TreeMap<Integer, Path> sortedFiles = new TreeMap<>();
-                Path directory = source.resolve(category);
                 if (!Files.isDirectory(directory)) throw problem(directory, "missing category directory");
                 List<Path> files;
                 try (Stream<Path> paths = Files.walk(directory)) {
@@ -110,6 +116,40 @@ public final class GameContentCompiler {
                 }
                 Files.write(output.resolve("data").resolve(TABLES.get(entry.getKey())), encode(json(table)));
             }
+            for (String name : List.of("config", "gameConfig")) {
+                Path file = source.resolve(name + ".yaml");
+                if (!Files.exists(file)) continue;
+                Map<String, Object> data = mapping(read(file), file);
+                Map<String, Object> fields = mapping(mapping(schema.get(name), source.resolve("schema.json")).get("fields"), source.resolve("schema.json"));
+                if (!data.keySet().equals(fields.keySet())) throw problem(file, "configuration keys do not match schema");
+                for (Map.Entry<String, Object> entry : data.entrySet()) {
+                    Field rule = fieldRule(fields.get(entry.getKey()), file);
+                    if (!rule.key.equals(entry.getKey())) throw problem(file, "configuration field key mismatch " + entry.getKey());
+                    validate(entry.getValue(), rule.type, file, entry.getKey());
+                }
+                Files.write(output.resolve("data").resolve(name + ".bin"), encode(json(data)));
+            }
+            Path animations = source.resolve("effects/animations.yaml");
+            if (Files.exists(animations)) {
+                Object animationTable = read(animations);
+                if (!(animationTable instanceof List<?> list) || list.isEmpty()) throw problem(animations, "expected nonempty animation array");
+                for (int i = 0; i < list.size(); i++) {
+                    if (!(list.get(i) instanceof List<?> effect) || effect.size() != 7)
+                        throw problem(animations, "animation " + i + " must have six properties and frames");
+                    for (int j = 0; j < 6; j++)
+                        if (!(effect.get(j) instanceof Integer)) throw problem(animations, "animation " + i + " property " + j + " must be integer");
+                    if (!(effect.get(6) instanceof List<?> frames) || frames.isEmpty())
+                        throw problem(animations, "animation " + i + " needs frames");
+                    for (Object frame : frames)
+                        if (!(frame instanceof List<?> values) || values.size() != 6 || values.stream().anyMatch(v -> !(v instanceof Integer)))
+                            throw problem(animations, "animation " + i + " frame must contain six integers");
+                }
+                Files.write(output.resolve("data/Meff.bin"), encode(json(animationTable)));
+            }
+            if (Files.exists(source.resolve("rules/skill-effects.yaml")))
+                SkillEffectRuleCompiler.compile(source, output, passiveCount);
+            if (Files.exists(source.resolve("rules/magic-effects.yaml")))
+                MagicEffectRuleCompiler.compile(source, output, rows.get("skills/active").size());
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot compile game content: " + e.getMessage(), e);
         }
@@ -120,8 +160,12 @@ public final class GameContentCompiler {
             for (Path file : paths.filter(Files::isRegularFile).toList()) {
                 String relative = source.relativize(file).toString().replace('\\', '/');
                 // Scenario sources belong to the separate Python AST resource pipeline.
-                if (relative.startsWith("scenarios/")) continue;
+                if (relative.startsWith("scenarios/") || relative.startsWith("assets/") || relative.startsWith("resources/") || relative.startsWith("examples/")) continue;
+                if (relative.equals("rules/lua-rules.yaml") || (relative.startsWith("rules/lua/") && relative.endsWith(".lua"))) continue;
                 if (relative.equals("schema.json") || relative.equals("README.md")) continue;
+                if (relative.equals("game.yaml") || relative.equals("config.yaml") || relative.equals("gameConfig.yaml")
+                        || relative.equals("variables/globals.yaml") || relative.equals("effects/animations.yaml") || relative.equals("rules/skill-effects.yaml")
+                        || relative.equals("rules/magic-effects.yaml") || relative.equals("rules/game-rules.yaml")) continue;
                 if (!relative.endsWith(".yaml") && !relative.endsWith(".yml")) throw problem(file, "unexpected content file");
                 boolean known = TABLES.keySet().stream().anyMatch(category -> relative.startsWith(category + "/"));
                 if (!known) throw problem(file, "YAML file outside a declared category");
@@ -187,6 +231,9 @@ public final class GameContentCompiler {
             case "number" -> value instanceof Number;
             case "boolean", "bool" -> value instanceof Boolean;
             case "string-list" -> value instanceof List<?> list && list.stream().allMatch(v -> v instanceof String);
+            case "array" -> value instanceof List<?>;
+            case "offsets" -> value instanceof List<?> list && list.stream().allMatch(v -> v instanceof List<?> pair
+                    && pair.size() == 2 && pair.stream().allMatch(x -> x instanceof Integer));
             case "object", "map" -> value instanceof Map<?, ?>;
             case "intMap", "integerMap", "integer-map" -> value instanceof Map<?, ?> map && map.entrySet().stream().allMatch(e ->
                     String.valueOf(e.getKey()).matches("[0-9]+") && e.getValue() instanceof Integer);

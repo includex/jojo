@@ -1,0 +1,13 @@
+id: 11
+name: "근위대"
+arms: 7
+attack: 1
+defense: 4
+spirit: 3
+critical: 2
+morale: 3
+movement: 2
+range: 7
+type: 1
+upgrades: [2,3,20,21]
+intro: "기병 계열 병종 3. 기동력이 한층 더 향상되었습니다. 반드시 이 병종을 전선에서 활약시켜 모든 적군을 무너뜨리세요!"

@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.combat
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
@@ -60,13 +61,13 @@ internal object PhysicalTargetResolver {
                 if (random100() < rate) statuses += status
             }
         }
-        chance(105, BattleStatus.CONFUSION)
-        chance(144, BattleStatus.PARALYSIS)
-        chance(127, BattleStatus.SILENCE)
-        attacker.skills[272]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+        chance(SkillEffects.id("confusionAttack"), BattleStatus.CONFUSION)
+        chance(SkillEffects.id("paralysisAttack"), BattleStatus.PARALYSIS)
+        chance(SkillEffects.id("silencingAttack"), BattleStatus.SILENCE)
+        attacker.skills[SkillEffects.id("poisonAttack")]?.and(255)?.takeIf { it != 255 }?.let { rate ->
             if (random100() <= rate) statuses += BattleStatus.POISON
         }
-        if (attacker.skills[204]?.and(255)?.let { it != 255 } == true) {
+        if (attacker.skills[SkillEffects.id("randomDebuffAttack")]?.and(255)?.let { it != 255 } == true) {
             listOf(BattleStatus.PARALYSIS, BattleStatus.SILENCE, BattleStatus.CONFUSION, BattleStatus.POISON)
                 .filterNot(statuses::contains)
                 .forEach { status -> if (random100() > 70) statuses += status }
@@ -78,8 +79,8 @@ internal object PhysicalTargetResolver {
 
         val staticAttributes = linkedSetOf<BattleAttribute>()
         mapOf(
-            170 to BattleAttribute.ATTACK, 169 to BattleAttribute.DEFENSE, 171 to BattleAttribute.SPIRIT,
-            168 to BattleAttribute.CRITICAL, 172 to BattleAttribute.MORALE, 173 to BattleAttribute.MOVEMENT,
+            SkillEffects.id("attackBreakAttack") to BattleAttribute.ATTACK, SkillEffects.id("defenseBreakAttack") to BattleAttribute.DEFENSE, SkillEffects.id("spiritBreakAttack") to BattleAttribute.SPIRIT,
+            SkillEffects.id("criticalBreakAttack") to BattleAttribute.CRITICAL, SkillEffects.id("moraleBreakAttack") to BattleAttribute.MORALE, SkillEffects.id("movementBreakAttack") to BattleAttribute.MOVEMENT,
         ).forEach { (skill, attribute) ->
             if (attacker.skills[skill]?.and(255)?.let { it != 255 } == true) staticAttributes += attribute
         }
@@ -89,7 +90,7 @@ internal object PhysicalTargetResolver {
          */
 
         val down = staticAttributes.toMutableSet()
-        if (attacker.skills[203]?.and(255)?.let { it != 255 } == true) {
+        if (attacker.skills[SkillEffects.id("randomStatusAttack")]?.and(255)?.let { it != 255 } == true) {
             /**
              * `threshold` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -120,8 +121,8 @@ internal object PhysicalTargetResolver {
 
         val newlyApplied = batch.statuses.filterTo(linkedSetOf()) { it !in target.statuses }
         batch.statuses.forEach { status -> target.statuses[status] = statusDuration(status, target) }
-        if (target.skills[42]?.and(255)?.let { it != 255 } == true) newlyApplied.forEach(target.statuses::remove)
-        if (target.skills[122]?.and(255)?.let { it != 255 } != true) {
+        if (target.skills[SkillEffects.id("reflectStatus")]?.and(255)?.let { it != 255 } == true) newlyApplied.forEach(target.statuses::remove)
+        if (target.skills[SkillEffects.id("debuffImmunity")]?.and(255)?.let { it != 255 } != true) {
             batch.downAttributes.forEach { attribute ->
                 target.applyAttributeLift(attribute, -1, 3)
             }
@@ -223,7 +224,7 @@ internal object PhysicalTargetResolver {
         var enemyMoneyDelta = 0
 
         if (n == 0) {
-            target.skills[153]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+            target.skills[SkillEffects.id("confusingStrike")]?.and(255)?.takeIf { it != 255 }?.let { rate ->
                 /**
                  * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                  * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -237,7 +238,7 @@ internal object PhysicalTargetResolver {
                     harm,
                 )
             }
-            target.skills[161]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+            target.skills[SkillEffects.id("counterTrueDamage")]?.and(255)?.takeIf { it != 255 }?.let { rate ->
                 /**
                  * `harm` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                  * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -253,12 +254,12 @@ internal object PhysicalTargetResolver {
             }
         } else {
             applyIncomingAttackStatuses(statuses, target, env.statusDuration)
-            if (target.skills[2]?.and(255)?.let { it != 255 } == true && target.magicPoints > 0) {
+            if (target.skills[SkillEffects.id("mpDefense")]?.and(255)?.let { it != 255 } == true && target.magicPoints > 0) {
                 n = n.coerceIn(0, target.magicPoints)
                 mpShieldDamage = n
                 target.addMpcur(-n)
             } else {
-                target.skills[125]?.and(255)?.takeIf { it != 255 }?.let { costPerDamage ->
+                target.skills[SkillEffects.id("goldDefense")]?.and(255)?.takeIf { it != 255 }?.let { costPerDamage ->
                     if (target.hitPoints >= costPerDamage) {
                         /**
                          * `price` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -287,7 +288,7 @@ internal object PhysicalTargetResolver {
                 hpDamage = n
                 target.addHpcur(-n)
 
-                attacker.skills[238]?.and(255)?.takeIf { it != 255 }?.let { rate ->
+                attacker.skills[SkillEffects.id("lifeSteal")]?.and(255)?.takeIf { it != 255 }?.let { rate ->
                     /**
                      * `resolvedRate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -317,11 +318,11 @@ internal object PhysicalTargetResolver {
                     lifeStealHealing = minOf(attacker.maxHitPoints - attacker.hitPoints, healing)
                     attacker.addHpcur(lifeStealHealing)
                 }
-                attacker.skills[298]?.and(255)?.takeIf { it != 255 }?.let {
+                attacker.skills[SkillEffects.id("tearRecordLifeSteal")]?.and(255)?.takeIf { it != 255 }?.let {
                     qxlHealing = minOf(attacker.maxHitPoints - attacker.hitPoints, n)
                     attacker.addHpcur(qxlHealing)
                 }
-                attacker.skills[237]?.and(255)?.takeIf { it != 255 }?.let { effect ->
+                attacker.skills[SkillEffects.id("goldAbsorption")]?.and(255)?.takeIf { it != 255 }?.let { effect ->
                     /**
                      * `amount` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -344,13 +345,13 @@ internal object PhysicalTargetResolver {
                 }
             }
 
-            if (attacker.skills[221]?.and(255)?.let { it != 255 } == true) {
+            if (attacker.skills[SkillEffects.id("pushbackAttack")]?.and(255)?.let { it != 255 } == true) {
                 env.backPosition(target, attacker)?.let { (x, y) ->
                     target.tileX = x
                     target.tileY = y
                 }
             }
-            if (activeAttack && target.skills[26]?.and(255)?.let { it != 255 } == true) {
+            if (activeAttack && target.skills[SkillEffects.id("rageAttack")]?.and(255)?.let { it != 255 } == true) {
                 env.incSkillTemp(target.id, 26)
             }
         }
@@ -362,7 +363,7 @@ internal object PhysicalTargetResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val recoilDamage = target.skills[40]?.and(255)?.takeIf { it != 255 && n > 0 }
+        val recoilDamage = target.skills[SkillEffects.id("reflectDamage")]?.and(255)?.takeIf { it != 255 && n > 0 }
             ?.let { n * it / 100 }
             ?.takeIf { it >= 1 }
             ?: 0
@@ -398,7 +399,7 @@ internal object PhysicalTargetResolver {
          */
 
         val automaticProperty = if (n > 0) {
-            target.skills[284]?.and(255)?.takeIf { itemId ->
+            target.skills[SkillEffects.id("automaticItemUse")]?.and(255)?.takeIf { itemId ->
                 itemId != 255 && target.hitPoints > 0 && target.hitPoints < target.maxHitPoints
             }?.let { itemId ->
                 automaticPropertyId = itemId

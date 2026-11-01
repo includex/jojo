@@ -1,0 +1,13 @@
+id: 63
+name: "곰 길들이는 사부"
+arms: 4
+attack: 1
+defense: 4
+spirit: 3
+critical: 1
+morale: 3
+movement: 3
+range: 9
+type: 1
+upgrades: [6,7,22,23]
+intro: "공격력이 강력한 곰을 모는 부대입니다. 공격할 때마다 적을 마비시키는 추가 효과가 있습니다. 활과 전략에 대한 저항력이 낮습니다."

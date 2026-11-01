@@ -6,6 +6,8 @@ plugins {
 }
 
 dependencies {
+    implementation("org.luaj:luaj-jse:3.0.1")
+    implementation("org.yaml:snakeyaml:2.6")
     api(project(":engine"))
     api("com.badlogicgames.gdx:gdx-freetype:${property("gdxVersion")}")
     testImplementation(kotlin("test"))
@@ -45,13 +47,12 @@ tasks.test { dependsOn(auditScenarioBranchSurface) }
 // Production resources remain packaged by core; verification owns only the
 // source/game oracle tasks.  Keep these inputs here so :core:processResources
 // remains identical in purpose and does not acquire a verification edge.
-val cocosAssetsDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/assets")
+// Legacy oracle/import tasks are opt-in. Normal builds use only content/.
+val cocosAssetsDirectory = providers.gradleProperty("jojo.legacyAssets")
+    .map { rootProject.file(it) }.getOrElse(rootProject.file("legacy-assets"))
 val generatedAstDirectory = layout.buildDirectory.dir("generated/scenario-ast")
 val generatedMapAssetsDirectory = layout.buildDirectory.dir("generated/map-assets")
 val generatedGameContentDirectory = layout.buildDirectory.dir("generated/game-content")
-val authoredGameTables = listOf(
-    "unit", "item", "magic", "defineSkill", "unitPostsSkill", "itemSkills",
-).map { "data/$it.bin" }
 val generatedSourceMapTexturesDirectory = layout.buildDirectory.dir("generated/source-map-textures")
 val generatedStreetBodyLabelsDirectory = layout.buildDirectory.dir("generated/street-body-labels")
 val generatedInfoLabelsDirectory = layout.buildDirectory.dir("generated/info-labels")
@@ -65,13 +66,19 @@ val generatedReferenceFramebuffersDirectory = layout.buildDirectory.dir("generat
 // authored `.py` control flow is preserved; only the executed AST is corrected.
 val exportScenarioAst = tasks.register<Exec>("exportScenarioAst") {
     inputs.dir(restoredScenarioDirectory)
-    inputs.dir(cocosAssetsDirectory)
     inputs.file(rootProject.file("tools/export_python_ast.py"))
     inputs.file(rootProject.file("tools/repair_scenario_branch_nesting.py"))
     outputs.dir(generatedAstDirectory)
     commandLine("python3", rootProject.file("tools/export_python_ast.py").absolutePath,
-        restoredScenarioDirectory.absolutePath, cocosAssetsDirectory.absolutePath,
-        generatedAstDirectory.get().asFile.absolutePath)
+        restoredScenarioDirectory.absolutePath, generatedAstDirectory.get().asFile.absolutePath)
+}
+val generatedContentAssetsDirectory = layout.buildDirectory.dir("generated/content-assets")
+val packageContentAssets = tasks.register<Exec>("packageContentAssets") {
+    inputs.dir(rootProject.file("content/assets"))
+    inputs.file(rootProject.file("tools/package_content_assets.py"))
+    outputs.dir(generatedContentAssetsDirectory)
+    commandLine("python3", rootProject.file("tools/package_content_assets.py").absolutePath,
+        rootProject.file("content/assets").absolutePath, generatedContentAssetsDirectory.get().asFile.absolutePath)
 }
 val exportMapAssets = tasks.register<Exec>("exportMapAssets") {
     inputs.dir(cocosAssetsDirectory)
@@ -94,6 +101,14 @@ val exportMapAssets = tasks.register<Exec>("exportMapAssets") {
 val compileGameContent = tasks.register<CompileGameContent>("compileGameContent") {
     sourceDirectory.set(rootProject.layout.projectDirectory.dir("content"))
     outputDirectory.set(generatedGameContentDirectory)
+}
+val verifyContentEffectBindings = tasks.register<Exec>("verifyContentEffectBindings") {
+    dependsOn(compileGameContent)
+    inputs.dir(file("src/main/kotlin"))
+    inputs.dir(generatedGameContentDirectory)
+    inputs.file(rootProject.file("tools/verify_content_effect_bindings.py"))
+    commandLine("python3", rootProject.file("tools/verify_content_effect_bindings.py").absolutePath,
+        file("src/main/kotlin").absolutePath, generatedGameContentDirectory.get().asFile.absolutePath)
 }
 val exportSourceMapTextures = tasks.register<Exec>("exportSourceMapTextures") {
     dependsOn(exportMapAssets)
@@ -279,28 +294,21 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
     into(generatedReferenceFramebuffersDirectory)
 }
 tasks.processResources {
-    dependsOn(exportScenarioAst, exportMapAssets, compileGameContent, exportSourceMapTextures, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
-        extractTitleLoadConfirmations, exportScenarioChoiceReference)
+    dependsOn(exportScenarioAst, compileGameContent, packageContentAssets, verifyContentEffectBindings)
+    duplicatesStrategy = DuplicatesStrategy.FAIL
     from(restoredScenarioDirectory) { include("*.py", "manifest.json", "dialogue-text.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
-    from(generatedMapAssetsDirectory) {
-        exclude(*authoredGameTables.toTypedArray())
-        into("maps")
-    }
+    from(rootProject.file("content/resources"))
+    from(rootProject.file("content/rules")) { include("lua-rules.yaml", "lua/**"); into("rules") }
+    from(generatedContentAssetsDirectory)
     from(generatedGameContentDirectory) {
-        include(*authoredGameTables.toTypedArray())
+        include("data/**")
         into("maps")
     }
-    from(generatedSourceMapTexturesDirectory) { include("*.png", "manifest.json"); into("source-map-textures") }
-    from(generatedStreetBodyLabelsDirectory) { include("*.png", "manifest.json"); into("street-body-labels") }
-    from(generatedInfoLabelsDirectory) { include("*.png", "manifest.json"); into("info-labels") }
-    from(generatedStreetSpeakerLabelsDirectory) { include("*.png", "manifest.json"); into("street-speaker-labels") }
-    from(generatedAudioAssetsDirectory) { into("audio") }
-    from(generatedTitleAssetsDirectory) { into("title") }
-    from(generatedTitleLoadConfirmationDirectory) { into("title") }
-    from(generatedReferenceFramebuffersDirectory) { into("reference") }
+    from(generatedGameContentDirectory) { include("game-package.json", "game-rules.json", "global-variables.json") }
 }
-tasks.test { dependsOn(verifyTerrainLayerAssets) }
+// Recovered-source asset comparisons remain explicit legacy oracle tasks;
+// production tests must not require an external project checkout.
 
 tasks.register<Test>("battleRewardFlowTest") {
     useJUnitPlatform()

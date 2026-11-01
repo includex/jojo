@@ -95,6 +95,8 @@ data class BattleUnit(
     var hasAuthoredTileY: Boolean = true,
     /** battleSlot: 편성 화면에서 유닛을 식별하는 전투 배치 슬롯 번호이다. */
     val battleSlot: Int? = null,
+    /** Actual projected weapon, armor and accessory IDs; carried inventory is excluded. */
+    var equipmentIds: List<Int> = emptyList(),
 ) {
     /** 원본 `Unit.unitName(id, true)`: 표시 이름은 첫 숫자부터 잘라낸다("보병1" → "보병", "황건군 3" → "황건군 "). */
     val displayName: String get() = name.takeWhile { !it.isDigit() }
@@ -102,10 +104,18 @@ data class BattleUnit(
     /** actionStatusRound: 행동 상태가 기록된 라운드 번호로, 턴별 초기화 판단에 사용한다. */
     var actionStatusRound: Int = if (hasActed) 1 else 0
 
+    /** Battle-scoped rule callbacks are attached when the unit enters a battlefield. */
+    internal var onRuleActionCompleted: (() -> Unit)? = null
+    internal var onRuleAttackPower: ((BattleUnit, Int, String) -> Int)? = null
+    internal var onRuleDamage: ((BattleUnit, Int, String) -> Int)? = null
+    internal var onRulePhysicalDamage: ((BattleUnit, Int) -> Int)? = null
+
     /** markActionComplete: 유닛이 현재 턴의 행동을 마쳤음을 기록한다. */
     fun markActionComplete() {
+        val newlyCompleted = !hasActed
         actionStatusRound = 1
         hasActed = true
+        if (newlyCompleted) onRuleActionCompleted?.invoke()
     }
 
     /** applyAttributeLift: 요청한 능력치 증감을 한 단계 적용하고, 남은 지속 라운드를 기록한다. */
@@ -135,6 +145,7 @@ data class BattleUnit(
         morale = source.morale
         movement = source.movement
         skills = source.skills
+        equipmentIds = source.equipmentIds.toList()
         magic = source.magic
         attackOffsets = source.attackOffsets
         attackEffectOffsets = source.attackEffectOffsets
@@ -157,6 +168,7 @@ data class BattleUnit(
 
     fun refreshPostsDerivedState(source: BattleUnit, refreshAbilityPhase: Boolean) {
         posts = source.posts
+        equipmentIds = source.equipmentIds.toList()
         armId = source.armId
         armType = source.armType
         remoteAttack = source.remoteAttack

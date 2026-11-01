@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.domain.battle.magic
 
+import com.jojo.game.domain.battle.MagicEffects
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
@@ -71,12 +73,12 @@ internal object MagicTargetResolver {
             return result to entry
         }
 
-        if (magic.type == 22) { // HUIGUI
+        if (magic.type == MagicEffects.id("typeRestoreAction")) { // HUIGUI
             victim.hasActed = false
             attacker.ai = 0
             return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = true, defeated = false))
         }
-        if (magic.type == 25 && magic.category == 29) { // SISHEN / BH
+        if (magic.type == MagicEffects.id("typeDivineSummon") && magic.category == MagicEffects.id("categoryWhiteTiger")) { // SISHEN / BH
             /**
              * `healing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -96,13 +98,13 @@ internal object MagicTargetResolver {
                 )
             )
         }
-        if (magic.type == 26 || magic.type == 28) { // BAQI / SHUAIQI
+        if (magic.type == MagicEffects.id("typeRaiseAllAbilities") || magic.type == MagicEffects.id("typeLowerAllAbilities")) { // BAQI / SHUAIQI
             /**
              * `lift` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val lift = if (magic.type == 26) 1 else -1
+            val lift = if (magic.type == MagicEffects.id("typeRaiseAllAbilities")) 1 else -1
             /**
              * `attributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -127,7 +129,7 @@ internal object MagicTargetResolver {
                 )
             )
         }
-        if (magic.type == 27) { // QIANGXING
+        if (magic.type == MagicEffects.id("typeMovementIncrease")) { // QIANGXING
             /**
              * `applied` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -146,7 +148,7 @@ internal object MagicTargetResolver {
                 )
             )
         }
-        if (magic.type == 6) { // XISHOU_MP
+        if (magic.type == MagicEffects.id("typeMagicAbsorption")) { // XISHOU_MP
             /**
              * `hitRate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -166,10 +168,9 @@ internal object MagicTargetResolver {
 
             val base = maxOf(
                 1,
-                (BattleAttributeCalculator.effective(
-                    attacker,
-                    BattleAttribute.SPIRIT
-                ) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level
+                ((attacker.onRuleAttackPower?.invoke(victim,
+                    BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT), "magic")
+                    ?: BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT)) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level
             )
             /**
              * `drained` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -245,7 +246,7 @@ internal object MagicTargetResolver {
          */
 
         val attributeChange = MagicDamageCalculator.attributeChange(magic.category)
-        if (magic.type == 21) { // JUEXING
+        if (magic.type == MagicEffects.id("typeStatusRecovery")) { // JUEXING
             /**
              * `hadStatus` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -255,13 +256,13 @@ internal object MagicTargetResolver {
             victim.statuses.clear()
             return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = hadStatus, defeated = false))
         }
-        if (magic.type == 7 || magic.type == 11) { // NLXJ / TSNL
+        if (magic.type == MagicEffects.id("typeAbilityReduction") || magic.type == MagicEffects.id("typeAbilityIncrease")) { // NLXJ / TSNL
             /**
              * `lift` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val lift = if (magic.type == 7) -1 else 1
+            val lift = if (magic.type == MagicEffects.id("typeAbilityReduction")) -1 else 1
             /**
              * `attributes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -313,14 +314,14 @@ internal object MagicTargetResolver {
                 )
             )
         }
-        if (magic.type == 19) {
+        if (magic.type == MagicEffects.id("typeHealthRecovery")) {
             /**
              * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
             val base =
-                attacker.hitPoints * magic.power / 100 + if (magic.id == 39 || magic.id == 41) attacker.spirit / 10 else attacker.spirit / 2
+                attacker.hitPoints * magic.power / 100 + if (magic.id == MagicEffects.id("spellSmallSupply") || magic.id == MagicEffects.id("spellSupportSupply")) attacker.spirit / 10 else attacker.spirit / 2
             /**
              * `healingRate` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -346,7 +347,7 @@ internal object MagicTargetResolver {
                 )
             )
         }
-        if (magic.type == 20 && magic.category == 24) { // MX
+        if (magic.type == MagicEffects.id("typeMagicRecovery") && magic.category == MagicEffects.id("categoryHealthForMagic")) { // MX
             /**
              * `transferred` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -375,7 +376,7 @@ internal object MagicTargetResolver {
             }
             return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = false, defeated = false))
         }
-        if (magic.type == 20) { // JMP
+        if (magic.type == MagicEffects.id("typeMagicRecovery")) { // JMP
             /**
              * `healing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -411,7 +412,7 @@ internal object MagicTargetResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val assassination = magic.type == 4 && magic.category == 2
+        val assassination = magic.type == MagicEffects.id("typeSpiritualDamage") && magic.category == MagicEffects.id("categoryAssassination")
         /**
          * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -422,10 +423,9 @@ internal object MagicTargetResolver {
         } else {
             maxOf(
                 1,
-                (BattleAttributeCalculator.effective(
-                    attacker,
-                    BattleAttribute.SPIRIT
-                ) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level
+                ((attacker.onRuleAttackPower?.invoke(victim,
+                    BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT), "magic")
+                    ?: BattleAttributeCalculator.effective(attacker, BattleAttribute.SPIRIT)) - BattleAttributeCalculator.effective(victim, BattleAttribute.SPIRIT)) / 3 + 25 + attacker.level
             )
         }
         /**
@@ -433,7 +433,7 @@ internal object MagicTargetResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val damage = if (hit) {
+        val calculatedDamage = if (hit) {
             if (assassination) maxOf(1, magicHarm(base))
             else {
                 /**
@@ -448,7 +448,7 @@ internal object MagicTargetResolver {
                  * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
                  */
 
-                val flagBonus = attacker.skills[292]?.and(255)?.takeIf { it != 255 }
+                val flagBonus = attacker.skills[SkillEffects.id("maxHealthBonusDamage")]?.and(255)?.takeIf { it != 255 }
                     ?.let { env.probabilityResolver.flagRandom(0, 5) } ?: 0
                 value = maxOf(
                     1,
@@ -477,13 +477,14 @@ internal object MagicTargetResolver {
                 magicHarm(maxOf(enemyMinimum, value))
             }
         } else 0
+        val damage = if (hit) attacker.onRuleDamage?.invoke(victim, calculatedDamage, "magic") ?: calculatedDamage else 0
         victim.addHpcur(-damage)
         /**
          * `casterHealing` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val casterHealing = if (magic.type == 5 && damage > 0) {
+        val casterHealing = if (magic.type == MagicEffects.id("typeHealthAbsorption") && damage > 0) {
             minOf(attacker.maxHitPoints - attacker.hitPoints, damage).also { attacker.addHpcur(it) }
         } else 0
         /**

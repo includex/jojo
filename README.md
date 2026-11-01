@@ -2,7 +2,7 @@
 
 Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이다.
 
-현재 실행본은 Python 시나리오 실행기와 전술 전투, 캠페인 저장, 화면 검증 기반을 갖추고 있다.
+현재 실행본은 Python AST 시나리오 실행기와 전술 전투, 캠페인 저장, 이름 있는 전역 변수, 외부 Lua 전투 규칙을 지원한다.
 
 - LibGDX 1.14.2 기반 macOS 데스크톱 앱
 - 복원·한국어화된 Python 시나리오 119개와 해당 표준 AST를 빌드 리소스로 포함
@@ -17,7 +17,7 @@ Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이�
 
 - `engine`: 범용 경로 탐색·스크립트 실행·글자 공개·렌더링 연산
 - `core`: 게임 규칙·시나리오·화면·저장·데이터·번역
-- `content`: 인물·장비·책략·스킬을 항목별 YAML로 정의 ([편집 안내](content/README.md))
+- `content`: 게임 패키지 설정·14개 테이블·시나리오·효과 매핑·문구·실행 자산의 작성 원본 ([편집 안내](content/README.md))
 - `desktop` / `android`: 플랫폼 시작과 백엔드 구성
 - `verification`: 실행 비교와 캡처 도구
 
@@ -30,7 +30,7 @@ Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이�
 
 | 인자 | 의미 |
 | --- | --- |
-| `--scenario=<ID>` | 시작 시나리오 지정 (기본 `R_00`) |
+| `--scenario=<ID>` | 시작 시나리오 지정 (기본 `content/game.yaml`의 startModule) |
 | `--battle` | 전투 화면으로 바로 진입 |
 | `--battle-return=<ID>` | 전투 종료 후 복귀할 시나리오 |
 
@@ -45,6 +45,20 @@ Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이�
 일반 실행 중 `B`를 누르면 LibGDX 전술 전투 화면으로 전환한다. `[`/`]`로 번들된 R 시나리오를 앞뒤로 전환할 수 있다. 전투 화면에서는 아군을 클릭한 뒤 빈 칸을 클릭해 이동하고, 인접 적을 클릭해 공격한다. `T`, `Space`, `Enter`로 턴을 종료하면 적군이 자동 행동하며, 모든 적 또는 아군이 전멸하면 전투 결과가 확정된다. 승리 후 `Enter`는 다음 R 시나리오로, 패배 후 `Enter`는 같은 전투 재시작으로 이어진다.
 
 macOS에서는 시스템 한국어 글꼴을 자동으로 사용한다. 다른 플랫폼에서는 `JOJO_FONT_PATH`에 한국어 TTF/OTF 경로를 지정한다.
+
+## 게임별 콘텐츠와 동적 규칙
+
+- [게임 패키지](docs/game-package-guide.html): `content/game.yaml`, 14개 YAML 테이블, 시나리오·리소스 구성
+- [전역 변수](docs/global-variables-guide.html): `variables/globals.yaml`과 이름 기반 `gvars`, 기존 숫자 키·저장 호환
+- [Lua 전투 규칙](docs/lua-rules-guide.html): 장수·착용 장비의 턴 시작/종료·공격/피격 행동과 이번 공격력·피해 보정
+
+정적 요소는 기존 YAML을 사용한다. 동적 행동이 필요한 항목만 Lua에 연결하며 기본 Lua 등록부는 비어 있다. 예제를 실행하려면 저장소 루트에서 다음 명령을 사용한다.
+
+```sh
+./gradlew :desktop:run -Pjojo.rules.dir="$PWD/content/examples/lua"
+```
+
+외부 Lua/YAML을 수정하면 재빌드 없이 **다음 전투**부터 반영된다. 설치된 실행 프로그램은 `JOJO_RULES_DIR` 환경 변수로도 폴더를 지정할 수 있다. 이는 전투 규칙의 외부 로딩이며, 전체 콘텐츠의 런타임 교체나 장면 시나리오의 Lua 전환을 뜻하지 않는다.
 
 ## 검증
 
@@ -235,3 +249,5 @@ RenderTexture를 사용해 RGBA8를 읽고, 게임는 같은 6초 settle phase�
 attack-6 첫 프레임, WinCon open, enemy-turn planner, 승리 저장 프롬프트, 패배
 독립 씬의 7개 상태를 통과한다. 이는 raw 픽셀 일치 검증을 대체하지 않으며,
 각 상태의 남은 visual 항목은 위 표의 raw 비교로 계속 관리한다.
+
+게임별 설정·효과 ID·자산을 교체하는 방법은 [게임 패키지 작성 가이드](docs/game-package-guide.html)를 참고한다. 일반 빌드는 외부 복원 프로젝트 없이 content에서 실행 리소스를 생성한다.

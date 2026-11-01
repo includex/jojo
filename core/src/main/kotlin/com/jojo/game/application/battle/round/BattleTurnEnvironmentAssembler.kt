@@ -28,6 +28,7 @@ internal object BattleTurnEnvironmentAssembler {
         journal: BattleStateJournal,
         battlefield: Battlefield,
         units: () -> Collection<BattleUnit>,
+        ruleRuntime: BattleRuleRuntime,
     ): BattleTurnSettlementEnvironment = BattleTurnSettlementEnvironment(
         units = units,
         presentationUnit = battlefield::presentationUnit,
@@ -43,5 +44,6 @@ internal object BattleTurnEnvironmentAssembler {
         onRestoreUnitExperience = configuration.onRestoreUnitExperience,
         onRestoreEquipmentExperience = configuration.onRestoreEquipmentExperience,
         onEquipmentUpgrade = journal::queueEquipmentUpgrade,
+        ruleRuntime = ruleRuntime,
     )
 }

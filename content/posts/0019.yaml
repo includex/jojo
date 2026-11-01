@@ -1,0 +1,13 @@
+id: 19
+name: "권사"
+arms: 5
+attack: 1
+defense: 3
+spirit: 3
+critical: 2
+morale: 5
+movement: 2
+range: 6
+type: 1
+upgrades: [6,7,22,23]
+intro: "무술가 계열 병종 2. 공격 범위가 더 넓고 사용하기 쉽습니다. 민첩한 이동력을 바탕으로 적군을 손바닥 안에서 농락할 수 있습니다."

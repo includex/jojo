@@ -1,0 +1,13 @@
+id: 67
+name: "신선"
+arms: 7
+attack: 12
+defense: 3
+spirit: 3
+critical: 5
+morale: 3
+movement: 4
+range: 7
+type: 3
+upgrades: [0,1,2,3,4,5,6,7,14,15,16,17,20,21,22,23]
+intro: "모든 책략을 사용할 수 있는 부대입니다. 원래부터 속세와 떨어진 병종이라 전투 경험이 거의 없습니다."

@@ -1,0 +1,13 @@
+id: 48
+name: "암살자"
+arms: 6
+attack: 27
+defense: 4
+spirit: 1
+critical: 2
+morale: 5
+movement: 2
+range: 5
+type: 1
+upgrades: [0,1,4,5,22,23]
+intro: ""

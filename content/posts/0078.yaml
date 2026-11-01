@@ -1,0 +1,13 @@
+id: 78
+name: "숙위기병"
+arms: 6
+attack: 1
+defense: 5
+spirit: 3
+critical: 1
+morale: 3
+movement: 3
+range: 8
+type: 1
+upgrades: [2,3,20,21]
+intro: ""

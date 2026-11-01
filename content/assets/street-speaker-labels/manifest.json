@@ -1,0 +1,3699 @@
+{
+  "contractVersion": 1,
+  "environment": {
+    "platform": "darwin",
+    "osRelease": "25.5.0",
+    "electronVersion": "44.0.0",
+    "fontSha256": {
+      "/System/Library/Fonts/AppleSDGothicNeo.ttc": "e33989af92c53dd2b80efd88f50c404094a046658d0e7a7692619587570e616c",
+      "/System/Library/Fonts/Supplemental/Arial.ttf": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9"
+    }
+  },
+  "generator": "original Cocos Electron Canvas whole-string raster; no screenshot or crop",
+  "catalog": "decoded authored unit.bin field 0, original Unit.unitName(id, true) first-digit truncation, distinct nonempty text in first-id order",
+  "catalogPath": "/Users/ain/workspace/jojo/core/build/generated/game-content/data/unit.bin",
+  "catalogSha256": "0d4eb6cd08222ef74e8c2b4d095f900dd795d67e4f4139a137c11487f5a0263e",
+  "contract": {
+    "font": "36px Arial",
+    "lineHeight": 40,
+    "alignment": [
+      "center",
+      "center"
+    ],
+    "baselineRatio": 0.26,
+    "baselineOffset": 0,
+    "lineJoin": "miter",
+    "rasterEncoding": "Canvas WebGL upload RGBA without PNG re-unpremultiply",
+    "outline": {
+      "width": 2,
+      "rgba": [
+        102,
+        255,
+        255,
+        255
+      ]
+    },
+    "fill": [
+      35,
+      2,
+      234,
+      255
+    ],
+    "background": [
+      102,
+      255,
+      255,
+      0.004
+    ]
+  },
+  "sourceRoot": "/Users/ain/workspace/jojo_mobile/sgccz-desktop",
+  "sourceSha256": {
+    "cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js": "afeffaf1205a73d7242d6c6d91cbbc00b724e4be55138f7e745dba915dacf4be",
+    "cocos-engine-web/cocos2d/core/utils/text-utils.js": "0eecc74822b9397c1a57d5cba095a5bae25f641cd5664b0cd1f0da40a1e9ef74",
+    "cocos-engine-web/cocos2d/core/renderer/utils/utils.js": "f7d3e995d92a22a3e72df5ec8dd9e190bf7ac153826a480f319ca2d098f30b97",
+    "recovered-js/modules/game-data/Unit.js": "62a64dd6dc14b081661a8f58cc0a51754fd70b48712e30a2a6440dbd381baad7",
+    "cocos-engine-web/cocos2d/core/assets/CCTexture2D.js": "819492c405ede50e923595494290e21253ec7bc3651251fa5e7a8c7c969ecd95",
+    "cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js": "2d02658e532c3216de102263a3eb70a84c816fccf3d51bbd12d41cb3eec836c8",
+    "cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js": "637842f53bb0c36d5ff6f83f2d67c7c4a4d8fb485084fc3fee9c6b04981c803f"
+  },
+  "entries": [
+    {
+      "firstUnitId": 0,
+      "text": "조조",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "000-b8c5a29d6382.png",
+      "sha256": "b8c5a29d6382010ac1279ab37bda5eae43152e9d6a91f5e2f6abd3e9cb673831"
+    },
+    {
+      "firstUnitId": 1,
+      "text": "하후돈",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "001-12313675f388.png",
+      "sha256": "12313675f388ff8882c8b78a018ab08d957d3973b6eb88cd6648b3401093069c"
+    },
+    {
+      "firstUnitId": 2,
+      "text": "장료",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "002-e0daa31beca4.png",
+      "sha256": "e0daa31beca42b3648689843ebdaa31ed42d033af60753aaaae8e834adce1517"
+    },
+    {
+      "firstUnitId": 3,
+      "text": "관우",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "003-754ad5e813a1.png",
+      "sha256": "754ad5e813a171e9a4feb347de5d8bfc9be2821fdf81caf8c6445ca7b0de44dd"
+    },
+    {
+      "firstUnitId": 4,
+      "text": "조장",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "004-ef3d539781bb.png",
+      "sha256": "ef3d539781bbb05db75c709d456a501f9c52d9813188feaa2fb02306f9854b90"
+    },
+    {
+      "firstUnitId": 5,
+      "text": "조인",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "005-3133b6de6b83.png",
+      "sha256": "3133b6de6b8304e9d217d56cce961590e4fc72912f3f903a1ec5a6bb7599f68e"
+    },
+    {
+      "firstUnitId": 6,
+      "text": "하후연",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "006-daf27ff32a1e.png",
+      "sha256": "daf27ff32a1e6a1352cf76a874af74037468f8a1270b2cce5dbdd3aeae94c874"
+    },
+    {
+      "firstUnitId": 7,
+      "text": "장합",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "007-9d42c048cf56.png",
+      "sha256": "9d42c048cf56817ee3cb51bf3f87413a0c8b0a01df796d226913f8f38c9ffeb1"
+    },
+    {
+      "firstUnitId": 8,
+      "text": "조비",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "008-ebc6b0eece4d.png",
+      "sha256": "ebc6b0eece4dab14dc2697d2214f73e6d9180bd3796d03e6f5166b7ebccf4355"
+    },
+    {
+      "firstUnitId": 9,
+      "text": "방덕",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "009-3c3f426d4d32.png",
+      "sha256": "3c3f426d4d32acdeca26e4fa560b7dfedc52bd211d9b6e5518be8ca5fdec7bcd"
+    },
+    {
+      "firstUnitId": 10,
+      "text": "악진",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "010-d98f358eafe6.png",
+      "sha256": "d98f358eafe62ea92c236d8da6439b6d2e2a0cd092173a098559eef1c3fb3b02"
+    },
+    {
+      "firstUnitId": 11,
+      "text": "이전",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "011-0c5209776ab5.png",
+      "sha256": "0c5209776ab54aea52559e6de0f87f17dd999844b135ddcfc7ea253c014d3161"
+    },
+    {
+      "firstUnitId": 12,
+      "text": "조홍",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "012-450b2902623d.png",
+      "sha256": "450b2902623dd08ac7258f5244fd031d5bb2306d7bc4445bd6789f315e1abf50"
+    },
+    {
+      "firstUnitId": 13,
+      "text": "서황",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "013-4dd51f2200f7.png",
+      "sha256": "4dd51f2200f7f6c9da0ae547ccb8a35914f97ab1c0e81b1f4bbe545cef47dde2"
+    },
+    {
+      "firstUnitId": 14,
+      "text": "우금",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "014-65dcb51fdff4.png",
+      "sha256": "65dcb51fdff40ad31dc339682cc650947cc3b892359eb3603888ba947b42ec69"
+    },
+    {
+      "firstUnitId": 15,
+      "text": "허저",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "015-15c07176d1cd.png",
+      "sha256": "15c07176d1cd78fe86692aa0ca66961e48f36749be83737df4fb7e8baab336fc"
+    },
+    {
+      "firstUnitId": 16,
+      "text": "전위",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "016-d19aa80081fa.png",
+      "sha256": "d19aa80081fa58edd47d599dce0ea340b7924e586913b65c251fbc520e7f2a46"
+    },
+    {
+      "firstUnitId": 17,
+      "text": "초선",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "017-1d02005bb899.png",
+      "sha256": "1d02005bb899c47b1ec3cc27da6465eca85878df93c90781fd6052474140259f"
+    },
+    {
+      "firstUnitId": 18,
+      "text": "유엽",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "018-a9aca3114646.png",
+      "sha256": "a9aca3114646fd9ed1be3b5a4bb855d748d42cfc7cff70bdb6aaa33807ec6037"
+    },
+    {
+      "firstUnitId": 19,
+      "text": "사마의",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "019-2f2400fe0dcf.png",
+      "sha256": "2f2400fe0dcf8cd372386137a5c382686c8041bf59aeb97c62583225a4c9e685"
+    },
+    {
+      "firstUnitId": 20,
+      "text": "순욱",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "020-680fd6629150.png",
+      "sha256": "680fd66291502c36a4f44ab9e00909b843a4081007cc188f6e8fedf3ce9e0dd1"
+    },
+    {
+      "firstUnitId": 21,
+      "text": "정욱",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "021-f5a5fd76ef0e.png",
+      "sha256": "f5a5fd76ef0e62a49fa2b1f8ae5846deefea280e86219cf57d4930dd42706f39"
+    },
+    {
+      "firstUnitId": 22,
+      "text": "곽가",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "022-5f6ee0e15bec.png",
+      "sha256": "5f6ee0e15bec2f04f32d7d4735ef123c881098732b4b924b17c52b2f980a68a1"
+    },
+    {
+      "firstUnitId": 23,
+      "text": "가현",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "023-d5321711841a.png",
+      "sha256": "d5321711841a0984e7c946b8e3b9eaafda267757a87b26391dcd0a5f856cd6bf"
+    },
+    {
+      "firstUnitId": 24,
+      "text": "순유",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "024-d980856fe9a5.png",
+      "sha256": "d980856fe9a59db9aa617b85b20989776dc50c2d579254649bca03aa9ea6c47b"
+    },
+    {
+      "firstUnitId": 25,
+      "text": "만총",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "025-aa7a1a5f1e90.png",
+      "sha256": "aa7a1a5f1e901fcda97826eb771fa4ce680e64fa55e23e99384fe8ac3ca26789"
+    },
+    {
+      "firstUnitId": 26,
+      "text": "하후은",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "026-34df7f6f34cb.png",
+      "sha256": "34df7f6f34cb5d3b3e55edb1be3ead49796a40f69fedb44b8407a9c568899eca"
+    },
+    {
+      "firstUnitId": 27,
+      "text": "문빙",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "027-155270f3d28a.png",
+      "sha256": "155270f3d28a1ad86b0a353538426e0a198b02b80929054241dd1f2fc7e26ed6"
+    },
+    {
+      "firstUnitId": 28,
+      "text": "하후걸",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "028-d4b6a6dd517e.png",
+      "sha256": "d4b6a6dd517ec85ceee7fd27c158050cbb4074964a52b0a02bf69cf2435d0bfe"
+    },
+    {
+      "firstUnitId": 29,
+      "text": "곽회",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "029-f73ad8d308ea.png",
+      "sha256": "f73ad8d308eab2e89be3d038b9e9ef1642e78bfaa93a5652a1af610008025350"
+    },
+    {
+      "firstUnitId": 30,
+      "text": "조안민",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "030-0a16942484f6.png",
+      "sha256": "0a16942484f61d42d414b68fd4b9a01fb24e6784645e76429fb5c9b7c767bc7a"
+    },
+    {
+      "firstUnitId": 31,
+      "text": "조앙",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "031-f2380307f8e6.png",
+      "sha256": "f2380307f8e6d83f760911af3798e3d7334117433bdd1b9b31d9e7bdec3a0837"
+    },
+    {
+      "firstUnitId": 32,
+      "text": "유비",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "032-68ef5adda4a7.png",
+      "sha256": "68ef5adda4a7edd5ddc0cff0239743c4d4e0b3871adc2df49d60ef174fc08ae5"
+    },
+    {
+      "firstUnitId": 33,
+      "text": "장비",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "033-e6fae2430b8c.png",
+      "sha256": "e6fae2430b8c6b520b75d99c7670a9f1808a78113c42fb708ee6066652958ca8"
+    },
+    {
+      "firstUnitId": 34,
+      "text": "조운",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "034-ce44a1ce64ab.png",
+      "sha256": "ce44a1ce64ab8361eb3f5c3f6a8c3fc5d80b6ed78c1b5d4115cbb65c6c9589ad"
+    },
+    {
+      "firstUnitId": 35,
+      "text": "제갈량",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "035-bd96daffc4a2.png",
+      "sha256": "bd96daffc4a23c82c62a38cd12d700f3ea64d3ef4db2ca45fb8b17709bafe2b2"
+    },
+    {
+      "firstUnitId": 36,
+      "text": "황충",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "036-837312385bbc.png",
+      "sha256": "837312385bbc4a13a39e6b81271dfe73b9e87993584759e48a1c79bdef90ced4"
+    },
+    {
+      "firstUnitId": 37,
+      "text": "위연",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "037-eab654cad83c.png",
+      "sha256": "eab654cad83cbaab0f90e013102d7ed44a406afa361998430ad68131fcc99ea5"
+    },
+    {
+      "firstUnitId": 38,
+      "text": "마법 정지",
+      "measureWidth": 134.56195068359375,
+      "rawWidth": 134.56,
+      "rawHeight": 50.4,
+      "nodeWidth": 138.56,
+      "nodeHeight": 54.4,
+      "width": 138,
+      "height": 54,
+      "baseline": [
+        69.28,
+        40.519999999999996
+      ],
+      "file": "038-d1fe2a3e7788.png",
+      "sha256": "d1fe2a3e778844bcb110b5354149c4e394cc36847f5e86bbe523287bdb7f01b7"
+    },
+    {
+      "firstUnitId": 39,
+      "text": "이적",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "039-e42e89e6fcc2.png",
+      "sha256": "e42e89e6fcc2b240cd1d0cd8fab858870fa192090e73f4e8f5fb275732597fb8"
+    },
+    {
+      "firstUnitId": 40,
+      "text": "손건",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "040-a668b1df87a1.png",
+      "sha256": "a668b1df87a191af149f031904b80f23b0f640fe4a57dad7231044d14e8f5c0c"
+    },
+    {
+      "firstUnitId": 41,
+      "text": "미축",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "041-c513396fc63f.png",
+      "sha256": "c513396fc63f850905dfe04ec515d7d33c3a515961496d21c57ce1f76417ac31"
+    },
+    {
+      "firstUnitId": 42,
+      "text": "미방",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "042-0af3d3ae36a5.png",
+      "sha256": "0af3d3ae36a5c0ca69de95dd90d229f69660f0b34816f7f1f442d46ea12e3535"
+    },
+    {
+      "firstUnitId": 43,
+      "text": "간옹",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "043-68481ee6a561.png",
+      "sha256": "68481ee6a56148121139c4dadd400a8dd071fdd09f9db87a333e221b15ecc662"
+    },
+    {
+      "firstUnitId": 44,
+      "text": "요화",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "044-09d692658afd.png",
+      "sha256": "09d692658afdb5ed14ba5625bc5d697e0e18c1d9e37ee048abd24ab5b0b2fc15"
+    },
+    {
+      "firstUnitId": 45,
+      "text": "유봉",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "045-d63641137690.png",
+      "sha256": "d636411376908132c0c55c3032b3c1b0d0835cede8ca2ab5e04775332cdfd9eb"
+    },
+    {
+      "firstUnitId": 46,
+      "text": "관평",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "046-71cd216cf169.png",
+      "sha256": "71cd216cf169d13c6dbc2dc3d36bd5ab6fd6dca611a03ab09540aa2d3bf521ca"
+    },
+    {
+      "firstUnitId": 47,
+      "text": "주창",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "047-8d8aa56ad039.png",
+      "sha256": "8d8aa56ad039476851aa41b98660e2a59a4e75866ae826d36b103ba10fc1e717"
+    },
+    {
+      "firstUnitId": 48,
+      "text": "엄언",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "048-c61423a4bebe.png",
+      "sha256": "c61423a4bebee0c59112902f6469c9720bd41af7c15ac929cd802c703165d764"
+    },
+    {
+      "firstUnitId": 49,
+      "text": "마량",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "049-3640020d1986.png",
+      "sha256": "3640020d19861a58d2362a276320b95587588214ff1545a1e625d0772341c1a3"
+    },
+    {
+      "firstUnitId": 50,
+      "text": "마책",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "050-f993f4737041.png",
+      "sha256": "f993f4737041e53489cdb23d66be5e655f495e5eebfc3216a4ca8bfb2fedcdec"
+    },
+    {
+      "firstUnitId": 51,
+      "text": "왕보",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "051-26e5afe6a6f9.png",
+      "sha256": "26e5afe6a6f9dd757379d6bcf73e6398560681c32da2553c96c96f406132d527"
+    },
+    {
+      "firstUnitId": 52,
+      "text": "사마가",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "052-452f00131151.png",
+      "sha256": "452f00131151082bc904016a9f3cc67040c91a31ab3746e76085d2efbafeceff"
+    },
+    {
+      "firstUnitId": 53,
+      "text": "관흥",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "053-17637a53d5fd.png",
+      "sha256": "17637a53d5fdae58fb2329700f49bad0953457ac0c5b7035d92f7e03e612b2d3"
+    },
+    {
+      "firstUnitId": 54,
+      "text": "장포",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "054-739e8276d2fa.png",
+      "sha256": "739e8276d2faa583f2081b96b932361a4b8c5154bec15d65c2f63a174d8f23b5"
+    },
+    {
+      "firstUnitId": 55,
+      "text": "장완",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "055-7fcdd799d299.png",
+      "sha256": "7fcdd799d29937bef27398bafe07bdefc4bd255f0dd54443ad5529e06b356299"
+    },
+    {
+      "firstUnitId": 56,
+      "text": "비의",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "056-90be32954b46.png",
+      "sha256": "90be32954b4686d008052e580c14f506f09afb92918f4889128ed2bbd232d855"
+    },
+    {
+      "firstUnitId": 57,
+      "text": "마초",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "057-4b2818746f59.png",
+      "sha256": "4b2818746f5934dede74eada382d8e213c46e6448bb9d533fe73b2747a75a648"
+    },
+    {
+      "firstUnitId": 58,
+      "text": "마대",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "058-637bacf5c56b.png",
+      "sha256": "637bacf5c56bbdf16123010a75cb15990e5e6177543f356899bd098d54355c25"
+    },
+    {
+      "firstUnitId": 59,
+      "text": "왕평",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "059-554b7ba5b205.png",
+      "sha256": "554b7ba5b2056fa160576e5072d5fca5ee2cfbd560392c0ae2d192ad06cdb84d"
+    },
+    {
+      "firstUnitId": 60,
+      "text": "이엄",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "060-96bc2e95d119.png",
+      "sha256": "96bc2e95d119141f7330dbb537f733335ec145928e027d5cfe7c554949ed07fe"
+    },
+    {
+      "firstUnitId": 61,
+      "text": "오의",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "061-006c813293b5.png",
+      "sha256": "006c813293b50249bc76aedfa8f6d777bed8a961181d78befc6e4fa694fb4360"
+    },
+    {
+      "firstUnitId": 62,
+      "text": "오란",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "062-ec3b556396b4.png",
+      "sha256": "ec3b556396b438bb13174f9af55f4714757b0970e693cdce918f3d98b4271012"
+    },
+    {
+      "firstUnitId": 63,
+      "text": "뇌동",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "063-9c32fc13c5cb.png",
+      "sha256": "9c32fc13c5cbd46adaaf86af41819a90996d9b6aef8ce19537f04d9582fe4407"
+    },
+    {
+      "firstUnitId": 64,
+      "text": "유기",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "064-be0c3cc23ff8.png",
+      "sha256": "be0c3cc23ff8e8a501f11b21971f94571c23911d2c82dace63a21d185d97386c"
+    },
+    {
+      "firstUnitId": 65,
+      "text": "맹달",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "065-3936d417ef1f.png",
+      "sha256": "3936d417ef1f1bc4d5eff0147440b4850d65c7a8c007d4eaf3c1e427a7381cf3"
+    },
+    {
+      "firstUnitId": 66,
+      "text": "관삭",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "066-272b9f6fb513.png",
+      "sha256": "272b9f6fb5136447c0174bba80207c76b4a6fc220453c44edfabd045603a9e9e"
+    },
+    {
+      "firstUnitId": 67,
+      "text": "유선",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "067-3d00a5746e44.png",
+      "sha256": "3d00a5746e44cea67ad42ff90562aae3436da1492fcf196700fa302e8a808f13"
+    },
+    {
+      "firstUnitId": 68,
+      "text": "장익",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "068-ef34a846436e.png",
+      "sha256": "ef34a846436e1d2ccd051783eb99c2b17346389ab7a69557c521fda13e446f84"
+    },
+    {
+      "firstUnitId": 69,
+      "text": "강유",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "069-6a2bc2250ebb.png",
+      "sha256": "6a2bc2250ebbaa51bcc83a3cb14f4c7e3525423f897da397671f73b55041cb54"
+    },
+    {
+      "firstUnitId": 71,
+      "text": "맹획",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "070-17070e0f184e.png",
+      "sha256": "17070e0f184ec17a880e3c44c567b70b168e72a0708035b954d67cdb8120de7f"
+    },
+    {
+      "firstUnitId": 72,
+      "text": "축융",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "071-482e4bbbeb0a.png",
+      "sha256": "482e4bbbeb0a5e649a8afd40f3b3e32c6e2291677ac556176c812da2b7907848"
+    },
+    {
+      "firstUnitId": 73,
+      "text": "맹우",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "072-6b36798accfd.png",
+      "sha256": "6b36798accfd579a926e0fe3feee7088a43c9319a677e802aa56d7cea9103844"
+    },
+    {
+      "firstUnitId": 74,
+      "text": "유벽",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "073-d5dd19b37bc5.png",
+      "sha256": "d5dd19b37bc5b331dda4e395be04d3afe1eba15ba476f25be9b8530ce16983bb"
+    },
+    {
+      "firstUnitId": 75,
+      "text": "공도",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "074-3e7289822ea9.png",
+      "sha256": "3e7289822ea97ac2d166148b9ab4b447c185639e0ae941234b407d29497102a2"
+    },
+    {
+      "firstUnitId": 76,
+      "text": "손권",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "075-fff00a456c60.png",
+      "sha256": "fff00a456c60b6c7ffa764b25d3a7f1b38f74b923fb57a89aa2b6b623a3c40c4"
+    },
+    {
+      "firstUnitId": 77,
+      "text": "주유",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "076-476b24416438.png",
+      "sha256": "476b24416438fe168272eb8eb12a59b9a87a4346672227a936f062ebdf888946"
+    },
+    {
+      "firstUnitId": 78,
+      "text": "노숙",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "077-8a6aaab3080d.png",
+      "sha256": "8a6aaab3080ddaa3ea3a97a5e8dac2e9e7daf9ba9f7a7cff72151f1a10827b4f"
+    },
+    {
+      "firstUnitId": 79,
+      "text": "제갈근",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "078-079b38837202.png",
+      "sha256": "079b38837202f407475c8c6c977989a0bbff73fb225add403e02a54bc1298963"
+    },
+    {
+      "firstUnitId": 80,
+      "text": "여몽",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "079-a2282a4d0364.png",
+      "sha256": "a2282a4d03643e9ed755adfbfe57d961f0b0fab0e832f60ba78d9f73cecb5268"
+    },
+    {
+      "firstUnitId": 81,
+      "text": "육손",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "080-5ffb5e71ed44.png",
+      "sha256": "5ffb5e71ed44538b924fb7a53c2c3717f1946b66591db8928ef6bd4a03e002e3"
+    },
+    {
+      "firstUnitId": 82,
+      "text": "판장",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "081-059b7c29fb8a.png",
+      "sha256": "059b7c29fb8a215bbe09570c802f9d766eebf26739811f9002c15f8ba46c25f4"
+    },
+    {
+      "firstUnitId": 83,
+      "text": "서성",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "082-8b1fd8cef337.png",
+      "sha256": "8b1fd8cef337eb9c3430f5d48e0301bd5bfd51e998559891012d064b8350741e"
+    },
+    {
+      "firstUnitId": 84,
+      "text": "감녕",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "083-f127bd17bdc2.png",
+      "sha256": "f127bd17bdc2d167ab5ca5d1dcbe31e68feb17e7af24e6f57e62ac716c430806"
+    },
+    {
+      "firstUnitId": 85,
+      "text": "능통",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "084-91dc24dcde2b.png",
+      "sha256": "91dc24dcde2b826307ea08416a329608465b934e6fb9f0ea06cbd16d85b1f3bd"
+    },
+    {
+      "firstUnitId": 86,
+      "text": "주태",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "085-2af8c8d01498.png",
+      "sha256": "2af8c8d01498eeab9f8acad6ded9311b0ca1d4f55a37404dea41dc3414a891b9"
+    },
+    {
+      "firstUnitId": 87,
+      "text": "장흠",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "086-70a644558f5b.png",
+      "sha256": "70a644558f5b145e7e82d6abe655ee0cd956fccd1ba615343c028a55d7570b3c"
+    },
+    {
+      "firstUnitId": 88,
+      "text": "장소",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "087-f9787fcf3d5c.png",
+      "sha256": "f9787fcf3d5c82a845df0bae8e4132f6ddaa085507ad4464cf3e31b752f58b1e"
+    },
+    {
+      "firstUnitId": 89,
+      "text": "진무",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "088-8bf98bda52ab.png",
+      "sha256": "8bf98bda52abf0df53c4ea9837c031c9c2b9f2593dffca4aaf0d6cc402328135"
+    },
+    {
+      "firstUnitId": 90,
+      "text": "방통",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "089-2a6d7c96d21a.png",
+      "sha256": "2a6d7c96d21a8c40e6afc8b36c65ab78f6eb4cde8c34483165c980be5007a275"
+    },
+    {
+      "firstUnitId": 91,
+      "text": "황개",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "090-888a92e29ff9.png",
+      "sha256": "888a92e29ff9bc400884ec015a34e0b6eec0750eac6eb9ee1a33835707895391"
+    },
+    {
+      "firstUnitId": 92,
+      "text": "전종",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "091-99880bb044d4.png",
+      "sha256": "99880bb044d44e13863a0d09e17bab4d9fd8cbbee22eabdc8dcc87aad5e16719"
+    },
+    {
+      "firstUnitId": 93,
+      "text": "동습",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "092-fc807ac66deb.png",
+      "sha256": "fc807ac66deb380ad023b9762f50ab3b18732bc3f5b2615e9a730660db00a804"
+    },
+    {
+      "firstUnitId": 94,
+      "text": "한당",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "093-c783d2ca9d80.png",
+      "sha256": "c783d2ca9d805f7b84629609a780696aa3d4fc67460978ca30542fcfad1f45ec"
+    },
+    {
+      "firstUnitId": 95,
+      "text": "태사자",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "094-df9e5fa9aaff.png",
+      "sha256": "df9e5fa9aaff4ba54eeedc82a58388420af7bff7edc530f7c5d32b5da4fdc87c"
+    },
+    {
+      "firstUnitId": 96,
+      "text": "정봉",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "095-95d3dd88ecd3.png",
+      "sha256": "95d3dd88ecd3e980f183ff9915fd8aefaec294c8060b9b8f932c8a4d354153e8"
+    },
+    {
+      "firstUnitId": 97,
+      "text": "장굉",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "096-ed421a1d8961.png",
+      "sha256": "ed421a1d89610ffcb8d19e1aab3e0527a82a54d571acf72d1d046736485e420b"
+    },
+    {
+      "firstUnitId": 98,
+      "text": "정포",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "097-1c31124f6e9c.png",
+      "sha256": "1c31124f6e9cbf37b650a741a67f87d59524e0935adcd5fa29257f4fe6e3bf9a"
+    },
+    {
+      "firstUnitId": 99,
+      "text": "손견",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "098-17fb3d18e2e3.png",
+      "sha256": "17fb3d18e2e3642f6984759e5f142bf7c771239c1826407d1d20c3d145f4af47"
+    },
+    {
+      "firstUnitId": 100,
+      "text": "손책",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "099-d7a559ae9559.png",
+      "sha256": "d7a559ae955982b515de038fd101db6309c8d2b87cb2bda5b9ca9688c1080797"
+    },
+    {
+      "firstUnitId": 101,
+      "text": "원소",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "100-1c0077983e18.png",
+      "sha256": "1c0077983e188677ca0760a6a270ca4997372477d875801ab3c9c9ea40bc0c0b"
+    },
+    {
+      "firstUnitId": 102,
+      "text": "봉기",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "101-4bf70089fea6.png",
+      "sha256": "4bf70089fea6dd56a506647828d18dbbf8352611560e0659195c8cc5d6e7cb8c"
+    },
+    {
+      "firstUnitId": 103,
+      "text": "곽도",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "102-203c10b3baf6.png",
+      "sha256": "203c10b3baf6e868b63d7035aa8c2607a9aad6340b9fd0ef3e8b47262b352ba8"
+    },
+    {
+      "firstUnitId": 104,
+      "text": "허유",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "103-0a01aa51fc48.png",
+      "sha256": "0a01aa51fc48dc243e1f5291ebfd7e06d8a7f752ff96dd4076634a544929ab8f"
+    },
+    {
+      "firstUnitId": 105,
+      "text": "거수",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "104-9832c41a9629.png",
+      "sha256": "9832c41a96292466872f234aaba4e42dd8d580d7e71a08a96c4ab5163aaa0ece"
+    },
+    {
+      "firstUnitId": 106,
+      "text": "검토 배정",
+      "measureWidth": 134.56195068359375,
+      "rawWidth": 134.56,
+      "rawHeight": 50.4,
+      "nodeWidth": 138.56,
+      "nodeHeight": 54.4,
+      "width": 138,
+      "height": 54,
+      "baseline": [
+        69.28,
+        40.519999999999996
+      ],
+      "file": "105-b9347a6e1408.png",
+      "sha256": "b9347a6e1408b0f2e83d8f1999b80031055ae1282a9d617623639f558b40fc9b"
+    },
+    {
+      "firstUnitId": 107,
+      "text": "고람",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "106-14620d8b9ce7.png",
+      "sha256": "14620d8b9ce76bdc62d9ea3322caacebe26e78f1b4c606cbc8ab852a250dbd5e"
+    },
+    {
+      "firstUnitId": 108,
+      "text": "안량",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "107-680c1e9d8e1f.png",
+      "sha256": "680c1e9d8e1f52163d92c460a92e3cb5ce8091d9669db840ab5605e10068ddbd"
+    },
+    {
+      "firstUnitId": 109,
+      "text": "문축",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "108-040fc5ad51c2.png",
+      "sha256": "040fc5ad51c2cd63217cb7bc79a2a438773df75b641088147be08cbc99be106b"
+    },
+    {
+      "firstUnitId": 110,
+      "text": "전풍",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "109-4c2aecbe6c8b.png",
+      "sha256": "4c2aecbe6c8b1bb66d99d6133d26d25ce8807e05257fcc83e6a2a9d11c310153"
+    },
+    {
+      "firstUnitId": 111,
+      "text": "순우경",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "110-058b378eb5ba.png",
+      "sha256": "058b378eb5bacf398fdf97cd549781616e30ff738a1604b5060259e0bf4c0d14"
+    },
+    {
+      "firstUnitId": 112,
+      "text": "신평",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "111-978fd4e0c5d0.png",
+      "sha256": "978fd4e0c5d0a9d57e2feb90488d6224743dd9e3277b57de821820a67793d098"
+    },
+    {
+      "firstUnitId": 113,
+      "text": "원담",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "112-7edc8b3d3615.png",
+      "sha256": "7edc8b3d3615dd5f289d3f1c84f60cf27cd77c28a1f676f5c72f5b998c2dc343"
+    },
+    {
+      "firstUnitId": 114,
+      "text": "원희",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "113-3d4246f1a278.png",
+      "sha256": "3d4246f1a278ee3f663ecd54a368d61391bfa6623eac6376b0b67b91bfc15096"
+    },
+    {
+      "firstUnitId": 115,
+      "text": "원상",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "114-ea0f5f3396b1.png",
+      "sha256": "ea0f5f3396b1479a2392c56538c58fe66841d5a0de5cfd21245d69d3303d4f79"
+    },
+    {
+      "firstUnitId": 116,
+      "text": "고건",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "115-926ce44d45c3.png",
+      "sha256": "926ce44d45c3aa7b93fd0f0f09161336a1b887fc274909f8b389aea30e671a99"
+    },
+    {
+      "firstUnitId": 117,
+      "text": "신비",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "116-75bc8dbbf29d.png",
+      "sha256": "75bc8dbbf29dbedec6beb7504a9dcc71628337f367f585e199a9e96c9c389930"
+    },
+    {
+      "firstUnitId": 118,
+      "text": "거호",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "117-624b83169e06.png",
+      "sha256": "624b83169e06b21212172a635f701b57d8ae97d62f867987d34a5f460902ce07"
+    },
+    {
+      "firstUnitId": 119,
+      "text": "여포",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "118-fee4218dc9e4.png",
+      "sha256": "fee4218dc9e4433b0ab80c361aaf4e2bebc0c4aee18c77cb10214f733e535a8a"
+    },
+    {
+      "firstUnitId": 120,
+      "text": "위속",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "119-6d893f450188.png",
+      "sha256": "6d893f4501889bfdc9143fc56489bdbfcc5aeab246b7c3593472552d38551e9e"
+    },
+    {
+      "firstUnitId": 121,
+      "text": "송헌",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "120-43e346c2204e.png",
+      "sha256": "43e346c2204e46809fd4035503c640b672b3adc7278abea072c5db91774b40ae"
+    },
+    {
+      "firstUnitId": 122,
+      "text": "고순",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "121-0c14715cf33a.png",
+      "sha256": "0c14715cf33aa7ad1c9cb8ac164f7e985e6607ea9e375afc50670c3707e41d09"
+    },
+    {
+      "firstUnitId": 123,
+      "text": "후성",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "122-5b927c63e3e7.png",
+      "sha256": "5b927c63e3e794272cac4e976b973e38531adc94856abcb3cb42b774b0944008"
+    },
+    {
+      "firstUnitId": 124,
+      "text": "조성",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "123-ae06ad9a6762.png",
+      "sha256": "ae06ad9a67621282328426a0f70adb748ae928e9a1e730a1e39c2762ec6a633b"
+    },
+    {
+      "firstUnitId": 125,
+      "text": "장패",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "124-edb70457572d.png",
+      "sha256": "edb70457572df1186f9ff7e27a4c29f8dd0c73ef48828b5b11a383beaa9516ee"
+    },
+    {
+      "firstUnitId": 126,
+      "text": "진궁",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "125-9cd48ab1ce12.png",
+      "sha256": "9cd48ab1ce121913dd50e5184201280056b4bdaa7ac64d0b2be7327de7ff7218"
+    },
+    {
+      "firstUnitId": 127,
+      "text": "동탁",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "126-e4583fdcda46.png",
+      "sha256": "e4583fdcda4684273754311a4c26b3a5d4f939468568cb534824e8553b2d201b"
+    },
+    {
+      "firstUnitId": 128,
+      "text": "장제",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "127-03708ac6d298.png",
+      "sha256": "03708ac6d298241d955f9308e399dfec2f73728ca5ef799e44bd201a2e325228"
+    },
+    {
+      "firstUnitId": 129,
+      "text": "곽사",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "128-f6112162ee13.png",
+      "sha256": "f6112162ee13ecdff6f8ed4089c0393c1fee7daab93cbbadbb718e4393aaebc4"
+    },
+    {
+      "firstUnitId": 130,
+      "text": "서영",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "129-092007597c83.png",
+      "sha256": "092007597c83596519c4c34400a3d48bded399c50ef1f4e23f55585195c914da"
+    },
+    {
+      "firstUnitId": 131,
+      "text": "이각",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "130-afc3f3d1fcf1.png",
+      "sha256": "afc3f3d1fcf1fd368d4bf5e6e86a4b4ed1180f4631cf82b31a217be865980e01"
+    },
+    {
+      "firstUnitId": 132,
+      "text": "이유",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "131-6d9a9c457602.png",
+      "sha256": "6d9a9c4576027bd97167e8e9cf83331ec7c6f6704a265e87d5b171237aa9ddfb"
+    },
+    {
+      "firstUnitId": 133,
+      "text": "번주",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "132-34307af85ec8.png",
+      "sha256": "34307af85ec8ebe06cf37d5d6a4a90265326c10505772925be6dc782109d71f6"
+    },
+    {
+      "firstUnitId": 134,
+      "text": "화웅",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "133-40050d0193cb.png",
+      "sha256": "40050d0193cbaac637b0c0bc65e0e12268d1a2903e3462fc6f160508be14c4bf"
+    },
+    {
+      "firstUnitId": 135,
+      "text": "이숙",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "134-043d1d82c774.png",
+      "sha256": "043d1d82c77489892f13204c7848efe34e544f10f32591d35994868eb38a767d"
+    },
+    {
+      "firstUnitId": 136,
+      "text": "원술",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "135-3d55aa9c3af8.png",
+      "sha256": "3d55aa9c3af85c1e1d876f7591741d17a8f65084e466c146c69fa6594b536cad"
+    },
+    {
+      "firstUnitId": 137,
+      "text": "기령",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "136-0604c14ca96b.png",
+      "sha256": "0604c14ca96b14612603f06f181927aaa01a61fc06d2578c6bfc382222aa3680"
+    },
+    {
+      "firstUnitId": 138,
+      "text": "마등",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "137-988804468ec5.png",
+      "sha256": "988804468ec524abcce1564f4834643e398e6182ce0da6da6b38f3f238b9269d"
+    },
+    {
+      "firstUnitId": 139,
+      "text": "한수",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "138-82141f9683de.png",
+      "sha256": "82141f9683de1882f084715ab3c6f6e45725418f36864cafa9cdbd35e579df0b"
+    },
+    {
+      "firstUnitId": 140,
+      "text": "장로",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "139-0da3fbc66300.png",
+      "sha256": "0da3fbc663008bf0b85ddbb0f7a0d6ba293b206b808f1c1e8a1930c842e8f8c8"
+    },
+    {
+      "firstUnitId": 141,
+      "text": "장위",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "140-ac970dc622da.png",
+      "sha256": "ac970dc622dac8a5a40a2fe0a13d047406eabf9e26aee590556313dc95a014cb"
+    },
+    {
+      "firstUnitId": 142,
+      "text": "염보",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "141-8f19d5f688b3.png",
+      "sha256": "8f19d5f688b334a82351fd6905e340132974bfcfde2a96e821e7f4b2da23a762"
+    },
+    {
+      "firstUnitId": 143,
+      "text": "장표",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "142-75e5d2e6e36f.png",
+      "sha256": "75e5d2e6e36fb0be2097682ff266d49a383175b46af95a985895e61c9d16c317"
+    },
+    {
+      "firstUnitId": 144,
+      "text": "호차아",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "143-258660129f87.png",
+      "sha256": "258660129f87b1633e865736b713660aa4d47a39caf051b4ddd4cea2e4af28d7"
+    },
+    {
+      "firstUnitId": 145,
+      "text": "도겸",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "144-c9feab25c1e5.png",
+      "sha256": "c9feab25c1e57e6caa567093f22a208a7f432f61a9294b80f37883fb1fe170f6"
+    },
+    {
+      "firstUnitId": 146,
+      "text": "장보",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "145-1c447b84578f.png",
+      "sha256": "1c447b84578f3d6474ef92886ae951987f73c33dbe2df05db169243ae01a7fd7"
+    },
+    {
+      "firstUnitId": 147,
+      "text": "장량",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "146-84ec63fd4089.png",
+      "sha256": "84ec63fd4089e2835cbf78b9f8bd647eb60748d9c3caa2bb72e51d497190bfdf"
+    },
+    {
+      "firstUnitId": 148,
+      "text": "몽매",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "147-e39df4829c8f.png",
+      "sha256": "e39df4829c8fd3fe45e0f0842885a0054d22281aacf6e61a89a756118b59327d"
+    },
+    {
+      "firstUnitId": 149,
+      "text": "황제 바치기",
+      "measureWidth": 165.7019500732422,
+      "rawWidth": 165.7,
+      "rawHeight": 50.4,
+      "nodeWidth": 169.7,
+      "nodeHeight": 54.4,
+      "width": 169,
+      "height": 54,
+      "baseline": [
+        84.85,
+        40.519999999999996
+      ],
+      "file": "148-b5b4d481fc8d.png",
+      "sha256": "b5b4d481fc8d9c968202caef50d38f0b9f49e50ec44c6417934539f5f3ed8ccc"
+    },
+    {
+      "firstUnitId": 150,
+      "text": "양수",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "149-0021f0036c38.png",
+      "sha256": "0021f0036c388e645c91625f316af51514287938915739af7c4ceb6e578e4f9b"
+    },
+    {
+      "firstUnitId": 151,
+      "text": "서서",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "150-cc015fa4b575.png",
+      "sha256": "cc015fa4b5750f481d605778ea0a109a57ab66503ee51ce164ca2c7704f24093"
+    },
+    {
+      "firstUnitId": 152,
+      "text": "서모",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "151-ef9ea0b16ae1.png",
+      "sha256": "ef9ea0b16ae1ec10c9e07900faa23a06d92bc7c9646ca4a32dae7f859f7d5565"
+    },
+    {
+      "firstUnitId": 153,
+      "text": "왕윤",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "152-1d703e1ded0a.png",
+      "sha256": "1d703e1ded0a3060ae2e9bf0871a633d4cf542b960b16e958b4a73a6b8e25520"
+    },
+    {
+      "firstUnitId": 154,
+      "text": "감 부인",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "153-515440c88598.png",
+      "sha256": "515440c88598e05f4dc67c2535de8699dcb72989c2b002a915901ad2e91bd128"
+    },
+    {
+      "firstUnitId": 155,
+      "text": "미 부인",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "154-5635a9804356.png",
+      "sha256": "5635a980435688709e2e6cdec9a81a494a3c4f7156b8963704666eb03cc407cc"
+    },
+    {
+      "firstUnitId": 156,
+      "text": "추부인",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "155-771cf7ce28a8.png",
+      "sha256": "771cf7ce28a834d471bd714e81c4acf00c81ad79ff1cfcfcc3801dae48a78787"
+    },
+    {
+      "firstUnitId": 157,
+      "text": "허자장",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "156-b51be787885e.png",
+      "sha256": "b51be787885e163636135ce1281d33e4896b96b6eaa557a56571d486b1e31d9f"
+    },
+    {
+      "firstUnitId": 158,
+      "text": "조숭",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "157-2b74c7cd1e23.png",
+      "sha256": "2b74c7cd1e23662c6100e36cb6dea46c535673bd8d9da9f8228f2352755322fa"
+    },
+    {
+      "firstUnitId": 159,
+      "text": "조식",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "158-38787daf5ea8.png",
+      "sha256": "38787daf5ea8dc4408ff114cb8bdc8f0466fb2703e300a1f93b89b37ca6b5027"
+    },
+    {
+      "firstUnitId": 160,
+      "text": "유장",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "159-bf59e2b124b3.png",
+      "sha256": "bf59e2b124b339daa86998ab01b5fa57d4fcf8b3a4a0c51b1ce27d362e619172"
+    },
+    {
+      "firstUnitId": 161,
+      "text": "공손찬",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "160-4a0f14f704ef.png",
+      "sha256": "4a0f14f704ef5663146f41e6f22d7f4eeff15c916a78b256f9d7c47e1c452a6d"
+    },
+    {
+      "firstUnitId": 162,
+      "text": "노숙 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "161-b0f401c00039.png",
+      "sha256": "b0f401c00039e4984fcf6a85eb559e3e0ac29d91a4f526d8eb94ea27c7b97468"
+    },
+    {
+      "firstUnitId": 164,
+      "text": "장비 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "162-230186e7e7c8.png",
+      "sha256": "230186e7e7c8d7bccc0555de174bca2170d5f6a5bd8fcd7bdf58d0b0449c18f0"
+    },
+    {
+      "firstUnitId": 165,
+      "text": "주유 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "163-641504813cef.png",
+      "sha256": "641504813cef13b3dc787e60eb049df4b415ff862e39082ad6ccc6ada9d57fca"
+    },
+    {
+      "firstUnitId": 166,
+      "text": "손견 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "164-feb4b2ba69f5.png",
+      "sha256": "feb4b2ba69f58239ee356e126a32219aa7384963aedc02d24d5fbc32d3042e6e"
+    },
+    {
+      "firstUnitId": 167,
+      "text": "손책 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "165-f8b0b47921c3.png",
+      "sha256": "f8b0b47921c3474764959f39bc02a93ef95f459168b42a1a0eb7fac4394a5d14"
+    },
+    {
+      "firstUnitId": 168,
+      "text": "손권 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "166-026cdb69074e.png",
+      "sha256": "026cdb69074eaaf804e65652dc7656bc6b7ccef5abac904fd818127825e89a33"
+    },
+    {
+      "firstUnitId": 169,
+      "text": "여몽 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "167-7aa9119157fb.png",
+      "sha256": "7aa9119157fb426b9508416928075b6a52efa8bb43fdf5e2138e6c71a58e5bd5"
+    },
+    {
+      "firstUnitId": 170,
+      "text": "제갈량 ",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "168-511616e9048c.png",
+      "sha256": "511616e9048c5708e3c1c03038e7b3876760a08f6a1287107412715ef35b8ba6"
+    },
+    {
+      "firstUnitId": 174,
+      "text": "재벌",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "169-ed9723df77a1.png",
+      "sha256": "ed9723df77a1a0cdcc1df26673607bc9724b0a7f5fd08231c4114c45dc3f1f10"
+    },
+    {
+      "firstUnitId": 177,
+      "text": "농민 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "170-ec351b1bf3f5.png",
+      "sha256": "ec351b1bf3f5fa530aeff5100e5af23f6808ce73500146de4906c00e47b23557"
+    },
+    {
+      "firstUnitId": 181,
+      "text": "병사 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "171-f0e55a4bfa9d.png",
+      "sha256": "f0e55a4bfa9dbc32ca65edd30b4ad68a83dabf0f4a92b23a20c79fb8d9c19e54"
+    },
+    {
+      "firstUnitId": 187,
+      "text": "황건군",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "172-7f8677588c39.png",
+      "sha256": "7f8677588c392ea2ef73438d3beacf67703f0e99ae3b37ed7d1dcf98df7c6220"
+    },
+    {
+      "firstUnitId": 189,
+      "text": "시녀 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "173-866882ccd68a.png",
+      "sha256": "866882ccd68aa78109ba1a44289aeded7762c2cf0d9b48417912ca6eba9c3d9a"
+    },
+    {
+      "firstUnitId": 192,
+      "text": "문관",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "174-f791dd7b8e56.png",
+      "sha256": "f791dd7b8e56f01730b4af67253bdc5818f8dc9e558f116887bc199a24c176a1"
+    },
+    {
+      "firstUnitId": 198,
+      "text": "적토마",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "175-01a6488d2a19.png",
+      "sha256": "01a6488d2a19788a1da5d988f2f8de14721c16d265ed9812f62c6180603cee78"
+    },
+    {
+      "firstUnitId": 199,
+      "text": "말",
+      "measureWidth": 31.139999389648438,
+      "rawWidth": 31.14,
+      "rawHeight": 50.4,
+      "nodeWidth": 35.14,
+      "nodeHeight": 54.4,
+      "width": 35,
+      "height": 54,
+      "baseline": [
+        17.57,
+        40.519999999999996
+      ],
+      "file": "176-635b4e304888.png",
+      "sha256": "635b4e3048885dfbafc0d603de17a18a37f2d31e7748725825be57352d16cfff"
+    },
+    {
+      "firstUnitId": 200,
+      "text": "백마",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "177-0518870ed240.png",
+      "sha256": "0518870ed240a1a4cb96eaea0d86d23d020ede147fc9124696cdebf36d9b6fde"
+    },
+    {
+      "firstUnitId": 201,
+      "text": "관우의 목마",
+      "measureWidth": 165.7019500732422,
+      "rawWidth": 165.7,
+      "rawHeight": 50.4,
+      "nodeWidth": 169.7,
+      "nodeHeight": 54.4,
+      "width": 169,
+      "height": 54,
+      "baseline": [
+        84.85,
+        40.519999999999996
+      ],
+      "file": "178-2786bf7236b2.png",
+      "sha256": "2786bf7236b2f3ac4c733b07f01b115dc3d643c745e718dfe0a096ec9993b19d"
+    },
+    {
+      "firstUnitId": 202,
+      "text": "대기",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "179-57a9f363741e.png",
+      "sha256": "57a9f363741e220a3c3c78966e7a4caf6bfd9f3811b84c227950ea8c8e6bb3a8"
+    },
+    {
+      "firstUnitId": 203,
+      "text": "거울 대",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "180-2c72128fe5ec.png",
+      "sha256": "2c72128fe5ecaeb503e7b5391191879a7053fc9fb3ee7aeac285e69f4acf0254"
+    },
+    {
+      "firstUnitId": 204,
+      "text": "상인",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "181-9d965aafe24e.png",
+      "sha256": "9d965aafe24e462d81513e7563a5a2011bb07e3e9eb048a8a2727655817d1e84"
+    },
+    {
+      "firstUnitId": 205,
+      "text": "젊은이",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "182-246c32ef441a.png",
+      "sha256": "246c32ef441a37d9aa5954df4df02680b1f65217e7469f61aa91bad8df302107"
+    },
+    {
+      "firstUnitId": 206,
+      "text": "남자",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "183-6ea506d54bd0.png",
+      "sha256": "6ea506d54bd07518826bc22c838a3fd688e3368a190d645148646014a764ca7c"
+    },
+    {
+      "firstUnitId": 207,
+      "text": "여성",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "184-7f8cfcbbd1c8.png",
+      "sha256": "7f8cfcbbd1c89894c8e832bc3e7a24617295114479260738e44bc8ead5efa24f"
+    },
+    {
+      "firstUnitId": 208,
+      "text": "아이 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "185-27d7e06061e2.png",
+      "sha256": "27d7e06061e2af80ef12454c6219514af666d5731b0b4c5aba50ed01abcd19ee"
+    },
+    {
+      "firstUnitId": 210,
+      "text": "보병 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "186-b5f00435a62c.png",
+      "sha256": "b5f00435a62c63dfcb7616b9931983bce2600ceca01a002d88fe91772ba4e85f"
+    },
+    {
+      "firstUnitId": 234,
+      "text": "궁병",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "187-85360d29a03e.png",
+      "sha256": "85360d29a03e07e77664440e9826a99003ae244461bb7aefb6554bedaaaa7cad"
+    },
+    {
+      "firstUnitId": 258,
+      "text": "기병",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "188-f63ed06969ba.png",
+      "sha256": "f63ed06969ba7fe9f9dfe2b535e61ae219ca2441231a984c27026da31ef2ac61"
+    },
+    {
+      "firstUnitId": 259,
+      "text": "기병 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "189-eb7fb3fc3215.png",
+      "sha256": "eb7fb3fc32158f8f91b2a3bc53a5480bcf7d697ddb0fe04184f98120dda2d90c"
+    },
+    {
+      "firstUnitId": 282,
+      "text": "궁기병",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "190-eab06e92436d.png",
+      "sha256": "eab06e92436d26b3192bb27898b28b4702f3dd5bb6f1dea963bf1e6c3165c723"
+    },
+    {
+      "firstUnitId": 283,
+      "text": "궁병 기병 ",
+      "measureWidth": 144.56390380859375,
+      "rawWidth": 144.56,
+      "rawHeight": 50.4,
+      "nodeWidth": 148.56,
+      "nodeHeight": 54.4,
+      "width": 148,
+      "height": 54,
+      "baseline": [
+        74.28,
+        40.519999999999996
+      ],
+      "file": "191-5b02308fa1ec.png",
+      "sha256": "5b02308fa1ec0811fa96f86bfb782e6a1c47f53d469a247130175ec91da6958b"
+    },
+    {
+      "firstUnitId": 298,
+      "text": "포병 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "192-5d894e31a935.png",
+      "sha256": "5d894e31a935d4edece3a35caddea70f788a4f14f69a87b259196f5d3bb5dc98"
+    },
+    {
+      "firstUnitId": 310,
+      "text": "무술가 ",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "193-06e9e8dc9b73.png",
+      "sha256": "06e9e8dc9b7337f1647c54a7b73ae0ff5ceae0ba94118e77b191980a08792383"
+    },
+    {
+      "firstUnitId": 318,
+      "text": "도적병",
+      "measureWidth": 93.41999816894531,
+      "rawWidth": 93.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 97.42,
+      "nodeHeight": 54.4,
+      "width": 97,
+      "height": 54,
+      "baseline": [
+        48.71,
+        40.519999999999996
+      ],
+      "file": "194-9ba163575782.png",
+      "sha256": "9ba1635757822cb17233d34bac5dbd45f0ebb52e7f76eedb9ba415bba0d62627"
+    },
+    {
+      "firstUnitId": 324,
+      "text": "적군 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "195-b8ad3ff1892f.png",
+      "sha256": "b8ad3ff1892fd49f8f6561b30dd8764598472268ebf51ce1a083eb5af4e6fd29"
+    },
+    {
+      "firstUnitId": 334,
+      "text": "책사 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "196-48e885083dc0.png",
+      "sha256": "48e885083dc0aa554a982752198b44dc803323846ff6fff2bbb378db5d41afb0"
+    },
+    {
+      "firstUnitId": 342,
+      "text": "풍수사 ",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "197-eac61670d2ce.png",
+      "sha256": "eac61670d2cea6c9ea5f50457b173bb4ed49e2571d37aac523735949e7bd5493"
+    },
+    {
+      "firstUnitId": 350,
+      "text": "도사 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "198-39ac7742889e.png",
+      "sha256": "39ac7742889eaf1892aa0d9ca7966c00bed31a5dc8fdc1f9db926c040694a334"
+    },
+    {
+      "firstUnitId": 358,
+      "text": "해적 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "199-9b991b446693.png",
+      "sha256": "9b991b44669322aaec7fd2269cb7e049cb7e782ebab6a1c2584f8a892de46595"
+    },
+    {
+      "firstUnitId": 382,
+      "text": "곰 길들이는 사부",
+      "measureWidth": 237.98390197753906,
+      "rawWidth": 237.98,
+      "rawHeight": 50.4,
+      "nodeWidth": 241.98,
+      "nodeHeight": 54.4,
+      "width": 241,
+      "height": 54,
+      "baseline": [
+        120.99,
+        40.519999999999996
+      ],
+      "file": "200-dba4ea7a93bf.png",
+      "sha256": "dba4ea7a93bfc0796550ba18e2baee3251706a8ea6be833f14a18c2dff998bdc"
+    },
+    {
+      "firstUnitId": 385,
+      "text": "곰 훈련사 ",
+      "measureWidth": 144.56390380859375,
+      "rawWidth": 144.56,
+      "rawHeight": 50.4,
+      "nodeWidth": 148.56,
+      "nodeHeight": 54.4,
+      "width": 148,
+      "height": 54,
+      "baseline": [
+        74.28,
+        40.519999999999996
+      ],
+      "file": "201-6e14c61d7fec.png",
+      "sha256": "6e14c61d7fecbab0f1f5b43403acc6bde0fa5bdd7cee150eee5b93392614ff2e"
+    },
+    {
+      "firstUnitId": 390,
+      "text": "호랑이 길들이는 사부",
+      "measureWidth": 300.263916015625,
+      "rawWidth": 300.26,
+      "rawHeight": 50.4,
+      "nodeWidth": 304.26,
+      "nodeHeight": 54.4,
+      "width": 304,
+      "height": 54,
+      "baseline": [
+        152.13,
+        40.519999999999996
+      ],
+      "file": "202-33b64afb6bae.png",
+      "sha256": "33b64afb6baee01b9850a52de70cc85f52680425fd760fd6a8688009abdc5f83"
+    },
+    {
+      "firstUnitId": 398,
+      "text": "물자 수송대 ",
+      "measureWidth": 175.7039031982422,
+      "rawWidth": 175.7,
+      "rawHeight": 50.4,
+      "nodeWidth": 179.7,
+      "nodeHeight": 54.4,
+      "width": 179,
+      "height": 54,
+      "baseline": [
+        89.85,
+        40.519999999999996
+      ],
+      "file": "203-81d080fe092a.png",
+      "sha256": "81d080fe092a8b386ffb3f864897768923c6e3657a2f96586c846fd1034ce466"
+    },
+    {
+      "firstUnitId": 406,
+      "text": "식량 보급대 ",
+      "measureWidth": 175.7039031982422,
+      "rawWidth": 175.7,
+      "rawHeight": 50.4,
+      "nodeWidth": 179.7,
+      "nodeHeight": 54.4,
+      "width": 179,
+      "height": 54,
+      "baseline": [
+        89.85,
+        40.519999999999996
+      ],
+      "file": "204-d50c40192b2a.png",
+      "sha256": "d50c40192b2a7c3358c982aaf87ca87f662c2d633aa9fa13890e2a34a2b2f609"
+    },
+    {
+      "firstUnitId": 414,
+      "text": "목인",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "205-0611d56af476.png",
+      "sha256": "0611d56af47662e11047fc8c4148dd925de28eb28bf99eb1d0bd79e54cf2dc0e"
+    },
+    {
+      "firstUnitId": 415,
+      "text": "목인 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "206-03a08e42359a.png",
+      "sha256": "03a08e42359a41de5295be27ef9e4a886c7e2aa840a86b1e3ab8ec60c9492b96"
+    },
+    {
+      "firstUnitId": 421,
+      "text": "나무 인형 ",
+      "measureWidth": 144.56390380859375,
+      "rawWidth": 144.56,
+      "rawHeight": 50.4,
+      "nodeWidth": 148.56,
+      "nodeHeight": 54.4,
+      "width": 148,
+      "height": 54,
+      "baseline": [
+        74.28,
+        40.519999999999996
+      ],
+      "file": "207-c14087bec271.png",
+      "sha256": "c14087bec271869968a0a14cba1d3134efa740444b8ff80d9413878796d180a6"
+    },
+    {
+      "firstUnitId": 438,
+      "text": "토우상 ",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "208-b7ff9c6c3f87.png",
+      "sha256": "b7ff9c6c3f87496112108107dc9d9546e80c8e5ed39742829bf57f80fbb8dcbe"
+    },
+    {
+      "firstUnitId": 439,
+      "text": "토우 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "209-6cbb1fde5c44.png",
+      "sha256": "6cbb1fde5c442e206e289baa28363fcc21cd4aa628b9133a840931e4ae3963d3"
+    },
+    {
+      "firstUnitId": 446,
+      "text": "토구 ",
+      "measureWidth": 72.28195190429688,
+      "rawWidth": 72.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 76.28,
+      "nodeHeight": 54.4,
+      "width": 76,
+      "height": 54,
+      "baseline": [
+        38.14,
+        40.519999999999996
+      ],
+      "file": "210-f5c53710614b.png",
+      "sha256": "f5c53710614b20fec6466bcc8dd86d01667b1d8c92adc4fa21887e1b4f12e362"
+    },
+    {
+      "firstUnitId": 462,
+      "text": "서량 기병 ",
+      "measureWidth": 144.56390380859375,
+      "rawWidth": 144.56,
+      "rawHeight": 50.4,
+      "nodeWidth": 148.56,
+      "nodeHeight": 54.4,
+      "width": 148,
+      "height": 54,
+      "baseline": [
+        74.28,
+        40.519999999999996
+      ],
+      "file": "211-93e7e0ffcebd.png",
+      "sha256": "93e7e0ffcebd62a7a9194d16f815e38afc290f140825a12ca6e58cf3e5976f2c"
+    },
+    {
+      "firstUnitId": 476,
+      "text": "황건군 ",
+      "measureWidth": 103.42195129394531,
+      "rawWidth": 103.42,
+      "rawHeight": 50.4,
+      "nodeWidth": 107.42,
+      "nodeHeight": 54.4,
+      "width": 107,
+      "height": 54,
+      "baseline": [
+        53.71,
+        40.519999999999996
+      ],
+      "file": "212-e2f9c50bac75.png",
+      "sha256": "e2f9c50bac7542434f438d0f0335b583fa616e002c40a8aba43d3c1183619a2b"
+    },
+    {
+      "firstUnitId": 504,
+      "text": "백성",
+      "measureWidth": 62.279998779296875,
+      "rawWidth": 62.28,
+      "rawHeight": 50.4,
+      "nodeWidth": 66.28,
+      "nodeHeight": 54.4,
+      "width": 66,
+      "height": 54,
+      "baseline": [
+        33.14,
+        40.519999999999996
+      ],
+      "file": "213-58792adc39af.png",
+      "sha256": "58792adc39afbccf22e16394f2ee9fc8a57d60c07a5286cca42774ed66e696a8"
+    }
+  ]
+}

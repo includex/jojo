@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.application.battle
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.domain.battle.BattleUnit
@@ -116,13 +117,19 @@ internal class BattleUnitProjector(
             direction = unit.direction,
             characterId = unit.characterId,
             battleSlot = unit.battleSlot,
+            equipmentIds = listOf(0 to 0, 2 to 70, 4 to 109).mapNotNull { (index, offset) ->
+                equipmentValues[index].takeIf { it > 1 }?.let { compact ->
+                    val id = compact - 2 + offset
+                    if (id >= 150) id + 105 else id
+                }
+            },
             famous = profile?.famous == true,
             hasAuthoredTileX = unit.authoredX,
             hasAuthoredTileY = unit.authoredY,
-            hitPoints = abilities.passive(persistent[9] ?: battleProfile?.maxHitPoints ?: 100, 52),
-            maxHitPoints = abilities.passive(persistent[9] ?: battleProfile?.maxHitPoints ?: 100, 52),
-            magicPoints = abilities.passive(persistent[10] ?: battleProfile?.maxMagicPoints ?: 0, 53),
-            maxMagicPoints = abilities.passive(persistent[10] ?: battleProfile?.maxMagicPoints ?: 0, 53),
+            hitPoints = abilities.passive(persistent[9] ?: battleProfile?.maxHitPoints ?: 100, SkillEffects.id("healthBonus")),
+            maxHitPoints = abilities.passive(persistent[9] ?: battleProfile?.maxHitPoints ?: 100, SkillEffects.id("healthBonus")),
+            magicPoints = abilities.passive(persistent[10] ?: battleProfile?.maxMagicPoints ?: 0, SkillEffects.id("magicPointsBonus")),
+            maxMagicPoints = abilities.passive(persistent[10] ?: battleProfile?.maxMagicPoints ?: 0, SkillEffects.id("magicPointsBonus")),
             level = battleProfile?.level ?: 1,
             experience = if (unit.faction == ScenarioUnitFaction.MINE) persistent[19] ?: 0 else 0,
             posts = battleProfile?.posts ?: profile?.posts ?: 0,
@@ -149,12 +156,12 @@ internal class BattleUnitProjector(
             terrainMovementCosts = (0 until 30).associateWith { arm?.terrainMoveCost(it) ?: 1 },
             magicHarmRate = arm?.magicHarmRate ?: 100,
             attackOffsets = attackArea?.offsets ?: CARDINAL_OFFSETS,
-            attackEffectOffsets = catalog?.effectAreaOffsets(skills.skillValue(32) ?: 0).orEmpty(),
-            attackEffectAreaId = skills.skillValue(32) ?: 0,
+            attackEffectOffsets = catalog?.effectAreaOffsets(skills.skillValue(SkillEffects.id("earthMagicDamageBonus")) ?: 0).orEmpty(),
+            attackEffectAreaId = skills.skillValue(SkillEffects.id("earthMagicDamageBonus")) ?: 0,
             attackAllScreen = attackArea?.allScreen ?: false,
             magic = BattleUnitMagicProjector(catalog, campaign, skills).project(unit.characterId, battleProfile),
             skills = skills,
-            movement = (battleProfile?.movement ?: 3) + (skills.skillValue(77) ?: 0),
+            movement = (battleProfile?.movement ?: 3) + (skills.skillValue(SkillEffects.id("movementBonus")) ?: 0),
             ai = unit.ai,
             aiTargetCharacterId = unit.aiTargetId,
             aiTargetX = unit.aiTargetX,
@@ -210,14 +217,14 @@ internal class BattleUnitProjector(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val rangeSkill = skills.skillValue(258)
+        val rangeSkill = skills.skillValue(SkillEffects.id("rangedAttack"))
         /**
          * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
         val base = rangeSkill?.let { catalog?.hitAreaProfile(it) } ?: profile?.hitArea
-        return if (skills.skillValue(260) != rangeSkill) {
+        return if (skills.skillValue(SkillEffects.id("rangedPhysicalUpgrade")) != rangeSkill) {
             base?.upgradeId?.let { catalog?.hitAreaProfile(it) } ?: base
         } else base
     }
@@ -294,7 +301,7 @@ private class BattleAbilityProjection(
      */
 
     private fun divineFloor(base: Int, sourceBase: Int): Int {
-        val growth = skills[190]?.and(255)?.takeIf { it != 255 } ?: return base
+        val growth = skills[SkillEffects.id("minimumAbilityGrowth")]?.and(255)?.takeIf { it != 255 } ?: return base
         return maxOf(base, sourceBase + growth * level)
     }
 }

@@ -829,7 +829,7 @@ def scene4():
     stage.setJoinBattle(1, 12, [
         3])
     gvars[4076] = 0
-    gvars[4057] = 48
+    gvars["campaign.current_chapter"] = 48
     stage.setBattlePos([
         [
             6,

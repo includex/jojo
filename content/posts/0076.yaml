@@ -1,0 +1,13 @@
+id: 76
+name: "역사 전장"
+arms: 5
+attack: 6
+defense: 4
+spirit: 3
+critical: 2
+morale: 2
+movement: 5
+range: 8
+type: 1
+upgrades: [0,1,6,7,20,21,22,23]
+intro: ""

@@ -1,0 +1,13 @@
+id: 18
+name: "무술가"
+arms: 5
+attack: 1
+defense: 3
+spirit: 3
+critical: 2
+morale: 5
+movement: 2
+range: 6
+type: 1
+upgrades: [6,7,22,23]
+intro: "무술가 계열 병종 1. 폭발력이 뛰어난 부대입니다. 성공률이 높은 방어와 두 번의 공격이 매력이며, 전략을 펼칠 수도 있습니다."

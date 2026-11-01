@@ -42,11 +42,14 @@ class GameContentCompilerTest {
         Path first = temp.resolve("first"), second = temp.resolve("second");
         GameContentCompiler.compile(content, first);
         GameContentCompiler.compile(content, second);
-        for (String table : List.of("unit", "item", "magic", "defineSkill", "unitPostsSkill", "itemSkills")) {
+        for (String table : List.of("unit", "item", "magic", "defineSkill", "unitPostsSkill", "itemSkills",
+                "arms", "posts", "hitarea", "effarea", "shop", "config", "gameConfig", "Meff")) {
             byte[] output = Files.readAllBytes(first.resolve("data/" + table + ".bin"));
             assertArrayEquals(output, Files.readAllBytes(second.resolve("data/" + table + ".bin")));
             assertTrue(decode(output).substring(32).length() > 2);
         }
+        assertTrue(Files.exists(first.resolve("data/skillEffects.json")));
+        assertTrue(Files.exists(first.resolve("data/magicEffects.json")));
     }
 
     @Test void invalidRecordsFailWithPathAndReason() throws Exception {

@@ -1,0 +1,58 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실행 중 교체하는 Lua 전투 규칙</title><style>*{box-sizing:border-box}body{margin:0;background:#0c1421;color:#dce8f3;font:16px/1.8 system-ui,sans-serif}main{max-width:1150px;margin:auto;padding:50px 28px}h1{font-size:42px;letter-spacing:-1px;line-height:1.3}h2{font-size:26px;margin-top:42px}h3{margin-top:0}p,li{color:#b7cadd}a{color:#7be2d1;text-underline-offset:4px}code{color:#9de9d7;font:13px ui-monospace,monospace;overflow-wrap:anywhere}pre{padding:20px;border:1px solid #354c62;background:#111f30;white-space:pre-wrap;overflow-wrap:anywhere}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{background:#142438;border:1px solid #304b64;border-radius:14px;padding:24px}.eyebrow{font-size:12px;color:#6fddcd;letter-spacing:2px}.notice{padding:20px;border-left:3px solid #efc177;background:#252433}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:14px;text-align:left;border-bottom:1px solid #304b64;vertical-align:top}th{background:#172c43}.table{overflow-x:auto}.route{display:flex;gap:10px;flex-wrap:wrap}.route a{padding:12px 16px;border:1px solid #35566b;border-radius:10px}footer{border-top:1px solid #304b64;margin-top:45px;padding-top:20px;color:#94aec6;font-size:13px}@media(max-width:700px){main{padding:28px 18px}.cards{grid-template-columns:1fr}h1{font-size:32px}}</style></head><body><main><div class="eyebrow">JOJO / RUNTIME LUA RULES V1</div>
+<h1>Lua로 인물·장비 전투 규칙 작성하기</h1>
+<p><a href="index.html">문서 홈</a> · <a href="game-rule-extension-guide.html">규칙 확장 계약</a> · 2026-11-01</p>
+<p>Lua 스크립트와 YAML 연결 정보를 외부 폴더에서 읽습니다. 파일을 고친 뒤 새 전투를 시작하면 규칙 전체를 다시 읽으므로 재빌드가 필요하지 않습니다. 기본 배포 설정의 scripts와 rules는 비어 있어 기존 플레이를 유지합니다.</p>
+<div class="route"><a href="#start">① 예제 실행</a><a href="#bind">② 인물·장비 연결</a><a href="#lua">③ Lua 작성</a><a href="#contract">④ 효과 계약</a></div>
+<h2 id="start">1. 예제 폴더를 복사하고 실행</h2>
+<ol><li><a href="../content/examples/lua/lua-rules.yaml">content/examples/lua/lua-rules.yaml</a>과 같은 폴더의 <code>lua/</code> 디렉터리를 함께 복사합니다.</li><li>YAML의 인물·장비 id를 게임 콘텐츠에 등록된 실제 id로 바꿉니다.</li><li>아래처럼 외부 폴더를 지정하여 시작하고 새 전투에 진입합니다.</li><li>복사한 Lua의 amount 또는 YAML의 parameters를 수정한 뒤 새 전투로 효과를 확인합니다. 진행 중인 전투는 생성 당시 규칙을 계속 사용합니다.</li></ol>
+<pre><code>./gradlew :desktop:run -Pjojo.rules.dir=/absolute/path/to/lua
+
+# 설치된 실행 프로그램은 환경 변수로도 지정할 수 있습니다.
+export JOJO_RULES_DIR=/absolute/path/to/lua
+# JVM을 직접 실행할 때:
+java -Djojo.rules.dir=/absolute/path/to/lua ...</code></pre>
+<p>JVM 속성 <code>jojo.rules.dir</code>이 환경 변수보다 우선합니다. 외부 폴더를 지정하면 패키지 규칙 전체를 대체합니다. 빈 <code>scripts: {}</code>, <code>rules: []</code> 설정도 허용합니다. 외부 지정이 없으면 클래스패스의 <code>rules/lua-rules.yaml</code>을 읽습니다.</p>
+<p>외부 폴더 로더는 java.io.File을 사용하여 Android 최소 API에서도 동작하도록 구성합니다. 현재 앱 안의 폴더 선택 UI는 없으므로 실행 환경에서 접근 가능한 폴더 경로를 지정해야 합니다. 데스크톱 실행 명령은 위 예제를 따릅니다.</p>
+<h2 id="bind">2. YAML에서 이벤트와 소유자를 연결</h2>
+<pre><code>version: 1
+scripts:
+  example.recover: lua/recover.lua
+rules:
+  - id: example.characterRecovery
+    event: TURN_START
+    handler: example.recover
+    priority: 0
+    parameters: {amount: 5}
+    binding: {scope: character, id: 0}</code></pre>
+<p><code>scripts</code>는 핸들러 이름과 상대 Lua 경로의 매핑입니다. <code>rules</code>는 규칙 목록이며 id는 중복될 수 없습니다. handler는 scripts에 존재해야 합니다. priority는 정수이고 기본값은 0입니다. 동일 이벤트에서 priority, id 순으로 실행합니다. parameters는 문자열·숫자·불리언 스칼라만 허용하며 Lua에는 문자열로 전달합니다.</p>
+<div class="table"><table><tr><th>binding</th><th>적용 범위</th></tr><tr><td>생략 또는 <code>{scope: global}</code></td><td>전역 규칙. id를 넣지 않습니다.</td></tr><tr><td><code>{scope: character, id: 0}</code></td><td>해당 인물에게 연결합니다. id는 0 이상의 정수입니다.</td></tr><tr><td><code>{scope: equipment, id: 0}</code></td><td>해당 장비를 착용한 소유자에게 연결합니다. id는 0 이상의 정수입니다.</td></tr></table></div>
+<p>장비 id는 슬롯 번호가 아니라 실제 equipment.id입니다. 예제는 무기 0과 방어구 70을 사용합니다. 이 연결은 별도 YAML 메타데이터입니다. 기존 인물·장비의 바이너리 테이블 형식을 바꾸지 않습니다.</p>
+<h2 id="lua">3. 모듈은 효과 목록을 반환</h2>
+<p><a href="../content/examples/lua/lua/recover.lua">recover.lua</a>는 턴 시작 회복, <a href="../content/examples/lua/lua/power.lua">power.lua</a>는 공격력 증가, <a href="../content/examples/lua/lua/guard.lua">guard.lua</a>는 피격 피해 감소 예제입니다.</p>
+<pre><code>return {
+  evaluate = function(ctx, params)
+    local owner = ctx.owner
+    local amount = math.min(tonumber(params.amount),
+                            owner.maxHitPoints - owner.hitPoints)
+    return {{type = "HpDelta", unitId = owner.id, amount = amount}}
+  end
+}</code></pre>
+<p><code>ctx.actor</code>, <code>ctx.target</code>, <code>ctx.owner</code>는 인물 스냅샷입니다. target은 대상이 있을 때만 제공됩니다. <code>owner.resources["namespace.resource"]</code>로 선언된 자원을 읽습니다. HP/MP, 최대 HP/MP, attack, defense, spirit, level, characterId, equipmentIds, statuses를 조회할 수 있습니다. 스냅샷을 수정해도 실제 게임 상태는 바뀌지 않습니다. 상태 변경은 효과를 반환하여 요청합니다.</p>
+<h3>이번 공격만 공격력 20% 증가</h3><pre><code>return {
+  evaluate = function(ctx)
+    if ctx.phase ~= "POWER" then return {} end
+    return {{type = "AttackPowerModifier",
+             amount = math.floor(ctx.attackPower * 0.2)}}
+  end
+}</code></pre><p>이 스크립트를 ATTACK에 연결하면 공격자, HIT에 연결하면 방어자의 장비·특성이 이번 공격력을 보정합니다. 피격 피해를 줄이려면 DAMAGE 단계에서 DamageModifier를 반환합니다. 예제 등록부에는 TURN_END의 HP 회복도 포함되어 있습니다.</p><h2 id="contract">4. 이벤트와 효과 계약</h2>
+<div class="table"><table><tr><th>이벤트</th><th>용도</th></tr><tr><td>TURN_START / TURN_END</td><td>턴 시작·종료의 회복, 자원·상태 처리</td></tr><tr><td>ATTACK / HIT</td><td>공격자 / 피격자에 연결된 전투 규칙. <code>ctx.phase</code>를 확인합니다.</td></tr><tr><td>ACTION_COMPLETED</td><td>행동 완료 처리</td></tr><tr><td>DAMAGE_CALCULATION</td><td>피해량 계산 규칙</td></tr></table></div>
+<p>ATTACK과 HIT는 POWER, DAMAGE 두 단계에서 호출됩니다. actor는 항상 공격자, target은 피격자이고 owner는 ATTACK에서 공격자, HIT에서 피격자입니다. 인물·장비 연결은 owner를 기준으로 판정합니다. sourceId는 global 또는 character:ID, equipment:ID 형식입니다. 공격력은 물리 공격에서 ATTACK, 마법 공격에서 SPIRIT을 뜻하며 POWER 보정은 지형 계산 전에 적용하고 영구 능력치는 바꾸지 않습니다.</p>
+<p>POWER 단계에서는 <code>{type = "AttackPowerModifier", amount = 10}</code>, DAMAGE 단계에서는 <code>{type = "DamageModifier", amount = -3}</code>을 반환합니다. <code>ctx.attackPower</code>, <code>ctx.baseDamage</code>, <code>ctx.damageKind</code>는 해당 계산에서 제공됩니다. <code>ctx.sourceId</code>는 현재 규칙의 연결 출처이며 제공되는 경우에만 읽습니다. 피해를 줄일 때는 <code>math.min(amount, ctx.baseDamage)</code>으로 감소량을 제한합니다. 같은 이벤트의 규칙들은 같은 시작 값을 보고 가산 보정을 반환하므로, 여러 감소 규칙의 합도 고려해야 합니다. 합산 결과가 음수이거나 32비트 정수 범위를 넘으면 오류입니다.</p>
+<p>일반 상태 효과는 HpDelta, MpDelta, ResourceDelta, StatusAdd, StatusRemove입니다. HpDelta/MpDelta는 <code>unitId</code>와 정수 <code>amount</code>, ResourceDelta는 추가로 <code>resourceId</code>, 상태 효과는 <code>unitId</code>와 <code>statusId</code>를 받습니다. 자원·상태 이름은 네임스페이스를 사용하며 자원은 확장 상태에 먼저 선언해야 합니다.</p>
+<p>물리 공격은 일반·반격·연속·강제·범위 공격의 공유 계산 경로와 특수/고정 피해 경로에 적용합니다. 공격 마법의 HP 피해, 암살·HP 흡수에도 적용합니다. 회복·상태/버프 전용 마법·MP 흡수·반사/반동 피해는 새 HP 공격 이벤트로 처리하지 않습니다. MP 흡수는 POWER 보정만 사용합니다. 최종 피해 계산 순서는 ATTACK, HIT, 기존 DAMAGE_CALCULATION입니다. 물리 공격의 명시적 0 피해(면역) 재정의와 빗나감은 최종 DAMAGE 보정을 건너뛰므로 추가 피해로 면역을 해제하지 않습니다.</p>
+<p>TURN_START/END는 기존 시작/종료 정산이 끝난 뒤 해당 진영 정산에서 살아 있고 화면에 등장한 유닛마다 한 번 처리합니다. 인물·장비 규칙은 각 유닛의 소유자 연결을 확인합니다.</p>
+<h2>5. 실패와 실행 한도</h2>
+<p>각 호출은 새 샌드박스에서 실행합니다. 파일·네트워크·라이브러리 가져오기·실행 사이 전역 상태 보존은 제공하지 않습니다. 난수는 허용된 이벤트에서 <code>ctx.random(bound)</code>로 요청하며 결과는 0부터 bound−1입니다. ATTACK/HIT의 POWER·DAMAGE 및 DAMAGE_CALCULATION에서는 난수를 금지합니다. AI 예측과 실제 계산에서 반복 평가될 수 있으므로 Lua 전역 변수로 호출 횟수를 세거나 상태를 보존하지 않습니다.</p>
+<p>설정은 256 KiB, 각 Lua 소스는 64 KiB, 패키지는 핸들러·규칙 각각 128개까지입니다. 스크립트 실행은 명령 수·재귀 깊이·효과 수 제한을 받습니다. YAML의 중복 키·별칭, 상대 경로의 상위 이동, 패키지 내부 심볼릭 링크, 알려지지 않은 항목·핸들러는 오류로 처리합니다. 오류가 있는 패키지를 일부만 적용하지 않습니다. 오류의 스크립트 경로와 핸들러 이름을 확인해 수정한 뒤 새 전투를 시작합니다.</p>
+<footer>구현: core/infrastructure/rules/LuaRulePackage.kt · LuaRuleHandler.kt · domain/rules/RuleEngine.kt</footer>
+</main></body></html>

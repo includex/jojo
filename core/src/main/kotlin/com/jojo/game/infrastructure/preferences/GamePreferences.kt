@@ -2,6 +2,7 @@
 package com.jojo.game.infrastructure.preferences
 
 import com.badlogic.gdx.Preferences
+import com.jojo.game.infrastructure.data.GamePackage
 
 /** GamePreferenceProvider: JojoGame 한 인스턴스가 사용하는 모든 환경설정 영역을 관리한다. 자동화 실행은 게임 수명 동안의 메모리 저장소를 사용하고, 대화형 실행은 플랫폼 환경설정에 위임한다. */
 internal class GamePreferenceProvider(
@@ -59,12 +60,12 @@ internal object GamePreferenceNamespaces {
      * `CAMPAIGN` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    const val CAMPAIGN = "jojo-game-campaign"
+    val CAMPAIGN get() = GamePackage.load().saveNamespace + "-campaign"
     /**
      * `SETTINGS` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    const val SETTINGS = "jojo-game-settings"
+    val SETTINGS get() = GamePackage.load().saveNamespace + "-settings"
 }
 
 /** InMemoryPreferences: 프로세스 범위의 저장 동작을 제공하는 간단한 환경설정 구현체이다. */

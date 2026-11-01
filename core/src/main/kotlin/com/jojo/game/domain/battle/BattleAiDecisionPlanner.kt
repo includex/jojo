@@ -134,7 +134,7 @@ internal object BattleAiDecisionPlanner {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val effectiveAiFlags = if (aiFlags and 2 != 0 && unit.skills[226]?.and(255)
+        val effectiveAiFlags = if (aiFlags and 2 != 0 && unit.skills[SkillEffects.id("preventCounterAttack")]?.and(255)
                 ?.let { it != 255 } == true
         ) aiFlags and 2.inv() else aiFlags
         points.forEach { (x, y) ->
@@ -358,7 +358,7 @@ internal object BattleAiDecisionPlanner {
                 }
                 targets.asSequence()
                     .filter { target ->
-                        magic.category in setOf(1, 29) || magic.hitArea.allScreen ||
+                        magic.category in setOf(MagicEffects.id("categorySandStorm"), MagicEffects.id("categoryWhiteTiger")) || magic.hitArea.allScreen ||
                                 (target.tileX - attacker.tileX to target.tileY - attacker.tileY) in magic.hitArea.offsets
                     }
                     .map { target ->

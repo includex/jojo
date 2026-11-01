@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.combat
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.jojo.game.domain.battle.*
@@ -56,7 +57,7 @@ fun executeForcedAttack(
          */
 
         val critical = hit && criticalRoll &&
-                !(target.skills[49]?.and(255)?.let { it != 255 } == true && attacker.skills[227]?.and(255)
+                !(target.skills[SkillEffects.id("blockCriticalAttack")]?.and(255)?.let { it != 255 } == true && attacker.skills[SkillEffects.id("ignoreCriticalDefense")]?.and(255)
                     ?.let { it != 255 } != true)
         /**
          * `specialDamage` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -70,7 +71,7 @@ fun executeForcedAttack(
          */
 
         val damage = if (hit) {
-            specialDamage ?: PhysicalDamageCalculator.calculatePhysicalDamage(
+            specialDamage?.let { PhysicalDamageCalculator.modifySpecialDamage(attacker, target, it) } ?: PhysicalDamageCalculator.calculatePhysicalDamage(
                 attacker = attacker,
                 target = target,
                 baseDamage = base,
@@ -87,7 +88,7 @@ fun executeForcedAttack(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val lifeStealHealing = attacker.skills[238]?.and(255)?.takeIf { it != 255 && damage > 0 }
+        val lifeStealHealing = attacker.skills[SkillEffects.id("lifeSteal")]?.and(255)?.takeIf { it != 255 && damage > 0 }
             ?.let { minOf(attacker.maxHitPoints - attacker.hitPoints, it * damage / 100) } ?: 0
         attacker.addHpcur(lifeStealHealing)
         /**

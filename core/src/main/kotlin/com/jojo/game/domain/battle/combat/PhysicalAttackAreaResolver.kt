@@ -1,6 +1,7 @@
 // Battle
 package com.jojo.game.domain.battle.combat
 
+import com.jojo.game.domain.battle.SkillEffects
 import com.jojo.game.domain.battle.*
 
 import com.jojo.game.*
@@ -82,7 +83,7 @@ internal object PhysicalAttackAreaResolver {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val percent = defender.skills[277]?.and(255)?.takeIf { it != 255 } ?: return null
+        val percent = defender.skills[SkillEffects.id("damageTransfer")]?.and(255)?.takeIf { it != 255 } ?: return null
         if (resolvedHarm < defender.level || BattleStatus.CONFUSION in defender.statuses) return null
         /**
          * `candidates` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -136,7 +137,7 @@ internal object PhysicalAttackAreaResolver {
              * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
              */
 
-            val harm = special ?: run {
+            val harm = special?.let { PhysicalDamageCalculator.modifySpecialDamage(attacker, affected, it) } ?: run {
                 /**
                  * `base` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
                  * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
