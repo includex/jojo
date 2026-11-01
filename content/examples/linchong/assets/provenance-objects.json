@@ -1,0 +1,19 @@
+{
+  "id": "objects",
+  "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-41fe8067-ee5b-4887-baf6-ba71f6e335cb.png",
+  "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/objects.png",
+  "prompt": "Use case: stylized-concept. Asset type: transparent tactical RPG object sprite atlas. One square texture divided into exactly 2 equal columns by 2 equal rows, each object completely contained in its cell with generous transparent margins. Same cohesive premium Chinese ink and muted mineral-color hand-painted Song dynasty Water Margin strategy game art. Elevated three-quarter overhead view appropriate for a tactical battlefield, consistent scale and lighting. Top left: wooden covered supply cart with two visible wooden wheels, curved canvas canopy and sacks, no animals. Top right: sturdy wooden supply wagon with grain sacks and bundled spear shafts, two wheels, no animals. Bottom left: neat stack of three substantial wooden provision crates reinforced with dark iron bands. Bottom right: single small waterfront cargo chest, aged dark wood, metal corners, rope handle and slightly damp texture. Objects isolated on genuine fully transparent background, no floor, no scenery, no people, no text, labels, symbols, watermarks, outlines, grid or cell borders. Ensure each entire object including wheels and shafts stays within its own equal square cell.",
+  "tool": "built-in image_gen.imagegen",
+  "intent": "generate",
+  "transparent_background": true,
+  "atlas": {
+    "columns": 2,
+    "rows": 2,
+    "order": [
+      "covered_cart",
+      "supply_wagon",
+      "supply_crates",
+      "cargo_chest"
+    ]
+  }
+}

@@ -1,9 +1,10 @@
-# equipment / stable ID: 200
+# Lin Chong mod / native Jojo content catalog
 id: 200
-name: "여유 49"
-itemType: 0
-specialType: 0
-price: 0
-iconIndex: 0
+name: "약가루"
+itemType: 26
+specialType: 3
+price: 1
+iconIndex: 87
+value: 35
 upgradeValue: 0
-intro: "손전지손전지"
+intro: "HP를 35 회복한다. 사용하면 행동을 마친다."

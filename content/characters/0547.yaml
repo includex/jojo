@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 547
+name: "산적 증원 을"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 26
+defense: 12
+spirit: 26
+critical: 14
+morale: 14
+maxHitPoints: 76
+maxMagicPoints: 11
+posts: 21
+level: 3
+intro: "임충이 유배길에서 만나는 인물. "
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

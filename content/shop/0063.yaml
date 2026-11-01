@@ -1,6 +1,6 @@
+# Lin Chong mod / native Jojo content catalog
 id: 63
-name: "터미널"
-weaponLevel: 26
-armorLevel: 26
-items: [87,88,89,92,93,94,95,96,97,255,255,255,255,255,255,255]
-extras: [79,81,82,84,85]
+name: "주귀의 주점과 수로 탈출 (본편)"
+weaponLevel: 0
+armorLevel: 0
+items: [255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255]

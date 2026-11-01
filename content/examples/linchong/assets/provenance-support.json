@@ -1,0 +1,24 @@
+{
+  "id": "portraits-support",
+  "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-9fc96135-d336-45d4-aac2-935e100faea7.png",
+  "path": "content/examples/linchong/assets/portraits-support.png",
+  "prompt": "Use case: historical-scene. Asset type: supporting character portrait atlas for same Northern Song Water Margin tactical RPG as reference. Reference image: existing main portrait atlas establishes painted ink and mineral-color style, subtle parchment backgrounds and detailed expressive faces. Create a wide landscape image exactly 2:1, divided into exactly 4 equal columns by 2 equal rows, 8 equally sized square cells, no gutters no borders no labels. Each portrait centered head and shoulders, same scale as reference and fully contained in cell. EXACT row-major characters: top row 1 Lin Chong's wife, graceful adult Song Chinese woman blue silk robe elegant black hair bun gentle thoughtful face; 2 Gao Yanei, arrogant handsome young court noble smug expression burgundy gold silk and small official cap; 3 Gao Qiu, powerful older minister severe calculating expression long gray beard tall ceremonial official black hat rich dark crimson robe; 4 servant, plain young Chinese man humble expression brown headcloth simple beige tunic. Bottom row 1 escort officer, stern middle-aged Chinese guard with iron helmet and dark red trim gray armor; 2 pursuit captain, imposing commander red lamellar armor plumed iron helmet sharp eyes short black beard; 3 smuggler boss, weathered middle-aged river pirate graying beard dark teal headwrap rough blue robe scarred cheek; 4 bandit leader, rugged broad scarred Chinese man thick beard messy hair brown fur shoulder dark earth robe. No text numbers letters watermarks or weapons crossing cell boundaries. Match reference medium and visual quality.",
+  "tool": "built-in image_gen.imagegen",
+  "intent": "generate with reference",
+  "reference": "portraits.png",
+  "transparent_background": false,
+  "atlas": {
+    "columns": 4,
+    "rows": 2,
+    "order": [
+      "wife",
+      "gao_yanei",
+      "gao_qiu",
+      "servant",
+      "escort",
+      "pursuit_leader",
+      "smuggler_boss",
+      "bandit_leader"
+    ]
+  }
+}

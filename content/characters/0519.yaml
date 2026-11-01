@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 519
+name: "왕륜"
+face: 607
+mapAvatar: 608
+speechGroup: 0
+attack: 23
+defense: 18
+spirit: 23
+critical: 20
+morale: 20
+maxHitPoints: 130
+maxMagicPoints: 25
+posts: 24
+level: 6
+intro: "양산박 산채를 이끄는 두령. 낯선 방문객의 입산을 경계한다."
+battleAvatar: 304
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

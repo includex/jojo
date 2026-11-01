@@ -1,9 +1,12 @@
-# equipment / stable ID: 141
+# Lin Chong mod / native Jojo content catalog
 id: 141
-name: "여유 공간 20"
-itemType: 26
+name: "호위 허리띠"
+itemType: 61
 specialType: 2
-iconIndex: 1
-value: 6
+price: 0
+iconIndex: 67
+value: 1
+effectValue: 1
 upgradeValue: 255
-intro: "사신 중 하나인 청룡의 힘이 깃든 보옥입니다.\n【보물 효과】적군을 공격할 때, 능력치 중 가장 낮은 항목을 방어력, 폭발력, 사기로 간주합니다."
+treasure: 1
+intro: "보조 장비. 장비 목록에서 장착할 수 있다."

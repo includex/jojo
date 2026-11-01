@@ -1,16 +1,18 @@
-# skills/active / stable ID: 105
+# Lin Chong mod / native Jojo content catalog
 id: 105
-name: "빈칸0105"
-type: 41
-target: 0
-hitArea: 0
+name: "설중정심"
+type: 21
+target: 1
+hitArea: 13
 effectArea: 0
-mpCost: 6
-icon: 44
-intro: "전략 105"
-effect: 0
+mpCost: 0
+icon: 9
+intro: "선택한 아군의 독·마비·혼란을 해제한다. 사용하면 행동을 마친다. 기력 0 소비."
+effect: 28
 power: 28
 harmType: 4
-condition: 0
-aiUse: 12
-category: 0
+condition: 6
+aiUse: 0
+hitRateLimit: 1
+category: 15
+learnLevels: {}

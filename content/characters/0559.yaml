@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 559
+name: "밀수선 두목"
+face: 622
+mapAvatar: 616
+speechGroup: 0
+attack: 37
+defense: 19
+spirit: 37
+critical: 16
+morale: 16
+maxHitPoints: 152
+maxMagicPoints: 26
+posts: 21
+level: 5
+intro: "임충이 유배길에서 만나는 인물. 장도병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

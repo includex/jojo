@@ -1,10 +1,12 @@
-# equipment / stable ID: 137
+# Lin Chong mod / native Jojo content catalog
 id: 137
-name: "-"
-itemType: 59
+name: "오래된 완갑"
+itemType: 61
 specialType: 2
-iconIndex: 124
-value: 1
-effectValue: 50
+price: 0
+iconIndex: 67
+value: 2
+effectValue: 1
 upgradeValue: 255
-intro: "요술사 좌사의 비법서.\n\n【보물 효과】주변 사람이 사용하는 계책을 모방하여 즉시 회복성 전략을 배웁니다."
+treasure: 1
+intro: "보조 장비. 장비 목록에서 장착할 수 있다."

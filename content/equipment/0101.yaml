@@ -1,10 +1,10 @@
-# equipment / stable ID: 101
+# Lin Chong mod / native Jojo content catalog
 id: 101
-name: "여유 공간 12"
-itemType: 0
+name: "산적 가죽갑옷"
+itemType: 20
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 38
+value: 3
 upgradeValue: 0
-intro: "먹으면 반응 속도를 높여주는 신비한 열매입니다. 폭발력도 어느 정도 증가합니다."
-skillEffects: [174]
+intro: "방어력 +3."

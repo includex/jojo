@@ -14,10 +14,43 @@ profiles:
     speakerFont: {}
     background: {}
   battle:
-    layout: {}
-    bodyFont: {}
-    speakerFont: {}
-    background: {}
+    # Battle canvas uses the native 1488.372 x 800 source coordinates.
+    # Identical left/right positions keep narration and character lines stable.
+    followSpeaker: false
+    legacyRaster: false
+    layout:
+      panelLeftX: 40
+      panelRightX: 40
+      panelY: 32
+      panelWidth: 1408
+      panelHeight: 244
+      portraitLeftX: 62
+      portraitRightX: 62
+      portraitOffsetY: 18
+      portraitWidth: 208
+      portraitHeight: 208
+      speakerLeftX: 298
+      speakerRightX: 298
+      speakerOffsetY: 216
+      textLeftX: 298
+      textRightX: 298
+      textOffsetY: 164
+      textWidth: 1116
+    bodyFont:
+      size: 32
+      scaleX: 1
+      scaleY: 1
+      color: "#211B17FF"
+      borderWidth: 0
+    speakerFont:
+      size: 34
+      bold: true
+      scaleX: 1
+      scaleY: 1
+      color: "#723F25FF"
+      borderWidth: 0
+    background:
+      fillColor: "#E4CFABFA"
 # background example:
 #   leftImage: ui/custom-left.png
 #   rightImage: ui/custom-right.png

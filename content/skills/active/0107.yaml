@@ -1,16 +1,18 @@
-# skills/active / stable ID: 107
+# Lin Chong mod / native Jojo content catalog
 id: 107
-name: "빈칸0107"
-type: 40
+name: "비호돌진"
+type: 38
 target: 0
-hitArea: 0
+hitArea: 12
 effectArea: 0
-mpCost: 6
-icon: 43
-intro: "전략 107"
-effect: 0
-power: 28
-harmType: 4
-condition: 0
-aiUse: 13
+mpCost: 12
+icon: 41
+intro: "3칸 이내의 적 하나에게 강한 전술 피해를 준다. 기력 12 소비."
+effect: 22
+power: 95
+harmType: 0
+condition: 6
+aiUse: 4
+hitRateLimit: 90
 category: 0
+learnLevels: {}

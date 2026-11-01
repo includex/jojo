@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 523
+name: "설패"
+face: 611
+mapAvatar: 612
+speechGroup: 0
+attack: 19
+defense: 11
+spirit: 19
+critical: 11
+morale: 11
+maxHitPoints: 62
+maxMagicPoints: 9
+posts: 42
+level: 2
+intro: "동초와 함께 임충의 호송을 맡은 관원."
+battleAvatar: 308
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

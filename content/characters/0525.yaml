@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 525
+name: "부안"
+face: 613
+mapAvatar: 614
+speechGroup: 0
+attack: 30
+defense: 14
+spirit: 30
+critical: 18
+morale: 18
+maxHitPoints: 96
+maxMagicPoints: 18
+posts: 48
+level: 4
+intro: "권세가의 명을 받아 임충을 뒤쫓는 수하."
+battleAvatar: 310
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

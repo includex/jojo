@@ -1,16 +1,18 @@
-# skills/active / stable ID: 109
+# Lin Chong mod / native Jojo content catalog
 id: 109
-name: "빈칸0109"
-type: 42
+name: "연봉"
+type: 38
 target: 0
 hitArea: 0
 effectArea: 0
 mpCost: 6
-icon: 45
-intro: "전략 109"
-effect: 0
-power: 28
-harmType: 4
-condition: 0
-aiUse: 13
+icon: 41
+intro: "인접한 적 하나에게 전술 피해를 준다. 기력 6 소비."
+effect: 22
+power: 80
+harmType: 0
+condition: 6
+aiUse: 4
+hitRateLimit: 90
 category: 0
+learnLevels: {}

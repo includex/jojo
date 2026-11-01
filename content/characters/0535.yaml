@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 535
+name: "도적 을"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 22
+defense: 10
+spirit: 22
+critical: 14
+morale: 14
+maxHitPoints: 67
+maxMagicPoints: 8
+posts: 21
+level: 2
+intro: "임충이 유배길에서 만나는 인물. 도병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

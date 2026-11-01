@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 543
+name: "산적 궁병 갑"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 25
+defense: 10
+spirit: 25
+critical: 18
+morale: 18
+maxHitPoints: 65
+maxMagicPoints: 20
+posts: 6
+level: 3
+intro: "임충이 유배길에서 만나는 인물. 궁병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

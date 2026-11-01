@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 532
+name: "장원 호위"
+face: 614
+mapAvatar: 615
+speechGroup: 0
+attack: 20
+defense: 13
+spirit: 20
+critical: 10
+morale: 10
+maxHitPoints: 74
+maxMagicPoints: 8
+posts: 42
+level: 2
+intro: "임충이 유배길에서 만나는 인물. 창병"
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

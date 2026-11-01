@@ -10,3 +10,499 @@ variables:
     default: 0
     description: Enables the unit feats display when set to one.
     legacyId: 4074
+  linchong.b01_early_loot:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b01_mercy:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b01_pursuit:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b01_rescued:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b01_trap:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b02_duel_completed:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b02_nonlethal:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b02_practice_win:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b02_wood_staff:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_boss_down:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_cart_danger:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_clear:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_convoy_started:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_hu_missed:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_hu_rescued:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_live_gear:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b03_one_cart_lost:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_boss_down:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_early_boots:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_evidence:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_fire_revealed:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_jin_rescued:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_luqian_desperate:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b04_whisper:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_arrived:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_captain_wounded:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_escape_ready:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_guide:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_hidden_waterway:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_lin_dock:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_signal:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_duel_completed:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_duel_resolved:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_endurance_clear:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_hero_low:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_second_phase:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_song_support:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b06_truth_known:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.campaign_complete:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.duel_win:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e06:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e07:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b02_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b02_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b02_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b02_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b02_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b02_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e06:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e07:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e08:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b03_e91:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e06:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e07:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e08:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e09:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b04_e10:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e06:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b05_e07:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e06:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e07:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b06_e08:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex01_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex01_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex01_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex01_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex01_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex02_e00:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex02_e01:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex02_e02:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex02_e03:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex02_e04:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_ex02_e05:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex01_boss_weak:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex01_clear:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex01_started:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex02_boss_down:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex02_bridge_active:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex02_clear:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex02_one_cargo:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex02_song_support:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.ex02_started:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.exit_count:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_hong:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_hu:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_jin:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_lin:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_lu:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_yang:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.gear_initialized_zhu:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.hu_friend_only:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.recruited_hu:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.recruited_jin:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.started:
+    type: int
+    default: 0
+    description: Linchong story progression flag.

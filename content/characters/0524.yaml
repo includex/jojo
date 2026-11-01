@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 524
+name: "육겸"
+face: 612
+mapAvatar: 613
+speechGroup: 0
+attack: 39
+defense: 22
+spirit: 39
+critical: 21
+morale: 21
+maxHitPoints: 158
+maxMagicPoints: 42
+posts: 39
+level: 6
+intro: "한때 임충의 벗이었으나 권세가의 수하가 된 인물."
+battleAvatar: 309
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

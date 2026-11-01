@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 560
+name: "수적 갑"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 31
+defense: 14
+spirit: 31
+critical: 18
+morale: 18
+maxHitPoints: 93
+maxMagicPoints: 14
+posts: 21
+level: 4
+intro: "임충이 유배길에서 만나는 인물. 단도병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

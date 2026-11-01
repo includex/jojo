@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 512
+name: "임충"
+face: 600
+mapAvatar: 601
+speechGroup: 0
+attack: 27
+defense: 15
+spirit: 27
+critical: 17
+morale: 17
+maxHitPoints: 96
+maxMagicPoints: 22
+posts: 42
+level: 1
+intro: "금군 교두였으나 권력자의 모함을 받아 창주로 유배된 창의 명수."
+battleAvatar: 297
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

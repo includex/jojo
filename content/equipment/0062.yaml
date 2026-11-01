@@ -1,10 +1,10 @@
-# equipment / stable ID: 62
+# Lin Chong mod / native Jojo content catalog
 id: 62
-name: "여유 3"
-itemType: 0
+name: "단창"
+itemType: 6
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 10
+value: 0
 upgradeValue: 0
-intro: "무술을 수련하는 사람이 입는 복장으로, 일반적인 포와 달리 몸에 꼭 맞고 소매가 좁아 사람의 움직임이 더욱 편리합니다."
-skillEffects: [44]
+intro: "초기 무기. 추가 공격력은 없다."

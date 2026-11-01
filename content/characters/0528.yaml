@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 528
+name: "자객 갑"
+face: 614
+mapAvatar: 615
+speechGroup: 0
+attack: 18
+defense: 8
+spirit: 18
+critical: 14
+morale: 14
+maxHitPoints: 55
+maxMagicPoints: 8
+posts: 42
+level: 1
+intro: "임충이 유배길에서 만나는 인물. 단도병"
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

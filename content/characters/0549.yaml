@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 549
+name: "방화 자객 을"
+face: 614
+mapAvatar: 615
+speechGroup: 0
+attack: 30
+defense: 16
+spirit: 30
+critical: 15
+morale: 15
+maxHitPoints: 100
+maxMagicPoints: 16
+posts: 42
+level: 4
+intro: "임충이 유배길에서 만나는 인물. 창병"
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

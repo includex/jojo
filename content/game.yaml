@@ -1,12 +1,12 @@
 # Package-wide choices. Scenario and battle pairs are explicit below; modules are validated against scenarios/manifest.json.
-id: jojo
-title: 삼국지 조조전
-startModule: R_00
-startScene: scene0
-resumeScene: scene1
-protagonistId: 0
-saveNamespace: jojo-game
-defaultBattleModule: S_00
+id: "linchong"
+title: "수호전 외전: 임충전"
+startModule: "R_90"
+startScene: "scene0"
+resumeScene: "scene0"
+protagonistId: 512
+saveNamespace: "linchong-native-jojo-v1"
+defaultBattleModule: "S_90"
 battleModules:
   R_00: S_00
   R_01: S_01
@@ -66,3 +66,11 @@ battleModules:
   R_55: S_55
   R_56: S_56
   R_57: S_57
+  R_90: S_90
+  R_91: S_91
+  R_92: S_92
+  R_93: S_93
+  R_94: S_94
+  R_95: S_95
+  R_96: S_96
+  R_97: S_97

@@ -1,0 +1,173 @@
+{
+  "toolMode": "built-in",
+  "assets": [
+    {
+      "id": "B01",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 16x12. Wild Boar Forest rescue. Narrow dirt road spans full width at rows 6-7. Dense olive pine and bamboo forest edges. Bush patches x3-6 y2-4 and x9-12 y8-10; large trees x7 y3-4 and x10-11 y5. Right edge road exit. Soft mist and mossy stones.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-98a87a32-f3ca-4686-9dcf-a5cdbe9ab3c7.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/B01.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "B02",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 14x12. Chai Jin's wealthy Song manor training courtyard by day. Large open warm sand practice court x3-11 y3-9. Safe viewing verandah across x2-12 y1-2, elegant dark tiled roofs and red-brown timber, two weapon racks at x3 y6 and x11 y6. Spacious empty court, ornamental garden edge.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-c096d25e-a92f-420c-9034-207e0ecffc22.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/B02.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "EX01",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 16x12. Chai Jin manor night raid. Enclosed courtyard with horizontal white plaster dark tiled walls x2-14 y2 and y11, gates in center x8. Small supply warehouse and stacked grain crates x6-9 y7-9. Bushes x3-5 y4-6. Lantern at x7 y5. Cool indigo moonlight and warm amber lanterns; open ground.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-12f6bc51-cc18-4f1c-bb76-94ec3286165e.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/EX01.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "B03",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 20x14. Winter Cangzhou supply road. Broad dirt road across x2-18 y6-8. Rocky ridge x13-19 y1-4. Dense scrub x8-12 y10-12. Broken wooden fences x5-7 y5 and x11-12 y9. Do not paint carts or humans; empty playable road for separately rendered objects. Desaturated ochre earth, winter grasses.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-63eccbb3-5169-47e4-93bb-ecb9aeac4707.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/B03.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "B04",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 20x16. Snowstorm mountain shrine. Snow over entire battlefield. Small old mountain shrine x3-7 y3-7 with visible open interior floor x4-6 y4-6 and east entrance x7 y6. Straw grain warehouse x12-17 y4-9 east half, west-facing door x12 y7, small initial fire glowing near x14-15 y5-6. Icy strip x8-11 y11-13. Clear refuge x2-6 y12-15. Snowy pine margins, atmospheric dark blue and vermilion embers.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-24a0affa-246b-4276-b4e5-3c2e5ce33676.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/B04.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "B05",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 20x14. Zhu Gui riverside tavern escape. Teal river occupies rightmost quarter x16-20 entire height. Reeds x4-9 y3-5 and x8-12 y10-12. Small tavern tiled timber building x11-14 y4-7 with west door x11 y6. Stone crossing extends x16-18 y8 to timber ferry dock x18-19 y8-9 and a small moored ferry. Mud trails through reeds, misty Liangshan marsh.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-67f0b85a-216c-4604-a3d7-f047b6e061c1.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/B05.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "EX02",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 18x14. Hidden smuggler boat in misty Liangshan marsh at night. Water covers almost everything. Shore muddy dock road enters from left at x1-8 y7-9; muddy x4-7 y8-9. Large traditional wooden cargo vessel occupies x9-16 y5-10 with open deck, cabin walls near x12 y5-6 and y10, cargo chests x13 and15 y8. Narrow gangplank x8-9 y7. Direct overhead ship deck, usable open deck, reeds around water edges.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-649d1135-83af-407d-a475-fd6d28f77a10.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/EX02.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "B06",
+      "prompt": "Use case: historical-scene. Asset type: tactical RPG battlefield background. Painterly Chinese ink and muted mineral color on textured parchment, Northern Song dynasty Water Margin, cohesive premium hand-painted strategy game art. Strict orthographic directly overhead camera, rectangular 4:3 image, map extends edge to edge. No perspective, no horizon, no people or units, no text, labels, grid, symbols, UI or border. Keep playable open spaces legible. Coordinate guidance refers to an invisible grid, x left-to-right y top-to-bottom. 18x14. Liangshan mountain stronghold entrance test. Mountain path x2-12 y6-8 from left leads to palisade fortress x12-17 y3-10, gate x12 y7. Open dirt sparring clearing x7-12 y6-10. Rocky slope x7-11 y2-5. Wooden spectator platform inside fortress x14-17 y4-6. Pine and dark stone outer margins, winter dusk, restrained snow dusting.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-93d3a8c4-f0b9-4631-969e-2fae65b4e8ea.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/maps/B06.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "portraits",
+      "prompt": "Use case: historical-scene. Asset type: reusable character portrait atlas. Create one square texture divided into exactly 4 equal columns by 4 equal rows, 16 equally sized edge-to-edge square portrait cells, no gutters, no borders, no text. Each character centered within their own cell, head and shoulders, fully contained in cell, consistent scale, subtle warm parchment background. Cohesive hand-painted Chinese ink and muted mineral color tactical RPG portrait art, expressive detailed faces. 16 distinct Chinese Song dynasty male characters in exact row-major order: row1: Lin Chong handsome stern officer age35 narrow mustache dark teal scarf and armored robe; Lu Zhishen burly bald bearded tattooed monk ochre robe; Hu Zheng broad honest shield-bearing laborer brown tunic; Jin Wu agile young swordsman slim navy headband. row2: Zhu Gui lean tavern keeper gray mustache muted purple robe; Hong Jiaotou arrogant martial trainer crimson headwrap thick mustache; Yang Zhi formidable swordsman with conspicuous blue birthmark on left cheek and iron armor; Wang Lun refined suspicious scholarly bandit chief white robe black scholar cap. row3: Chai Jin handsome wealthy noble gold embroidered dark green silk; Song Wan towering stocky bearded bandit blue robe; Dong Chao thin hostile escort officer red-black cap; Xue Ba heavyset hostile escort officer black cap. row4: Lu Qian calculating officer narrow eyes thin beard dark red official robe; Fu An obsequious sly servant brown hat; generic imperial guard iron helmet gray armor red trim; generic mountain bandit ragged dark brown headband beard. No lettering, numbers, watermark, weapons crossing cells.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-86b3cae7-6f73-44ab-abbe-75efaeeb2a32.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/portraits.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false
+    },
+    {
+      "id": "tokens",
+      "prompt": "Use case: stylized-concept. Asset type: transparent tactical RPG miniature token atlas. One square texture, exactly 4 equal columns and 4 equal rows. Each of 16 miniature figures centered precisely in each cell, entirely contained in cell with wide transparent margins. Full body stylized painted Song dynasty miniatures seen from elevated overhead three-quarter view, readable silhouettes, same consistent size. Genuine transparent background throughout, no checkerboard painted, no floor, no tile, no cast shadow outside figure, no labels or grid. Cohesive Chinese ink and muted mineral palette, handcrafted historical game style. 16 distinct Chinese Song dynasty male characters in exact row-major order: row1: Lin Chong handsome stern officer age35 narrow mustache dark teal scarf and armored robe; Lu Zhishen burly bald bearded tattooed monk ochre robe; Hu Zheng broad honest shield-bearing laborer brown tunic; Jin Wu agile young swordsman slim navy headband. row2: Zhu Gui lean tavern keeper gray mustache muted purple robe; Hong Jiaotou arrogant martial trainer crimson headwrap thick mustache; Yang Zhi formidable swordsman with conspicuous blue birthmark on left cheek and iron armor; Wang Lun refined suspicious scholarly bandit chief white robe black scholar cap. row3: Chai Jin handsome wealthy noble gold embroidered dark green silk; Song Wan towering stocky bearded bandit blue robe; Dong Chao thin hostile escort officer red-black cap; Xue Ba heavyset hostile escort officer black cap. row4: Lu Qian calculating officer narrow eyes thin beard dark red official robe; Fu An obsequious sly servant brown hat; generic imperial guard iron helmet gray armor red trim; generic mountain bandit ragged dark brown headband beard. Equip in order spear, monk spade, shield and sword, light sword, short sword, staff, saber, fan, fan, axe, staff, staff, sword, dagger, spear, axe. Do not connect figures or overlap cells.",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-d8be6f88-1684-4825-a9ae-5acc477dfbc8.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/tokens.png",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": true
+    },
+    {
+      "id": "portraits-support",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-9fc96135-d336-45d4-aac2-935e100faea7.png",
+      "path": "content/examples/linchong/assets/portraits-support.png",
+      "prompt": "Use case: historical-scene. Asset type: supporting character portrait atlas for same Northern Song Water Margin tactical RPG as reference. Reference image: existing main portrait atlas establishes painted ink and mineral-color style, subtle parchment backgrounds and detailed expressive faces. Create a wide landscape image exactly 2:1, divided into exactly 4 equal columns by 2 equal rows, 8 equally sized square cells, no gutters no borders no labels. Each portrait centered head and shoulders, same scale as reference and fully contained in cell. EXACT row-major characters: top row 1 Lin Chong's wife, graceful adult Song Chinese woman blue silk robe elegant black hair bun gentle thoughtful face; 2 Gao Yanei, arrogant handsome young court noble smug expression burgundy gold silk and small official cap; 3 Gao Qiu, powerful older minister severe calculating expression long gray beard tall ceremonial official black hat rich dark crimson robe; 4 servant, plain young Chinese man humble expression brown headcloth simple beige tunic. Bottom row 1 escort officer, stern middle-aged Chinese guard with iron helmet and dark red trim gray armor; 2 pursuit captain, imposing commander red lamellar armor plumed iron helmet sharp eyes short black beard; 3 smuggler boss, weathered middle-aged river pirate graying beard dark teal headwrap rough blue robe scarred cheek; 4 bandit leader, rugged broad scarred Chinese man thick beard messy hair brown fur shoulder dark earth robe. No text numbers letters watermarks or weapons crossing cell boundaries. Match reference medium and visual quality.",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate with reference",
+      "reference": "portraits.png",
+      "transparent_background": false,
+      "atlas": {
+        "columns": 4,
+        "rows": 2,
+        "order": [
+          "wife",
+          "gao_yanei",
+          "gao_qiu",
+          "servant",
+          "escort",
+          "pursuit_leader",
+          "smuggler_boss",
+          "bandit_leader"
+        ]
+      }
+    },
+    {
+      "id": "objects",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-41fe8067-ee5b-4887-baf6-ba71f6e335cb.png",
+      "path": "/Users/ain/workspace/jojo/content/examples/linchong/assets/objects.png",
+      "prompt": "Use case: stylized-concept. Asset type: transparent tactical RPG object sprite atlas. One square texture divided into exactly 2 equal columns by 2 equal rows, each object completely contained in its cell with generous transparent margins. Same cohesive premium Chinese ink and muted mineral-color hand-painted Song dynasty Water Margin strategy game art. Elevated three-quarter overhead view appropriate for a tactical battlefield, consistent scale and lighting. Top left: wooden covered supply cart with two visible wooden wheels, curved canvas canopy and sacks, no animals. Top right: sturdy wooden supply wagon with grain sacks and bundled spear shafts, two wheels, no animals. Bottom left: neat stack of three substantial wooden provision crates reinforced with dark iron bands. Bottom right: single small waterfront cargo chest, aged dark wood, metal corners, rope handle and slightly damp texture. Objects isolated on genuine fully transparent background, no floor, no scenery, no people, no text, labels, symbols, watermarks, outlines, grid or cell borders. Ensure each entire object including wheels and shafts stays within its own equal square cell.",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": true,
+      "atlas": {
+        "columns": 2,
+        "rows": 2,
+        "order": [
+          "covered_cart",
+          "supply_wagon",
+          "supply_crates",
+          "cargo_chest"
+        ]
+      }
+    },
+    {
+      "id": "title",
+      "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-05231ccb-5ef0-4f58-b48a-671d7562e106.png",
+      "path": "content/examples/linchong/assets/title.png",
+      "nativePath": "content/assets/maps/ui/title/background.jpg",
+      "prompt": "Use case: historical-scene. Asset type: native tactical RPG title-screen background, landscape 16:10. Create dramatic hand-painted Chinese ink and mineral-color Water Margin Northern Song dynasty key art. Snowy mountain shrine at night, pine trees bending in snowstorm, faint burning granary embers in distance. Lin Chong dominates LEFT third, stern handsome Chinese officer age35 narrow mustache, hair tied high, weathered iron lamellar armor and dark teal scarf blowing in wind, holding long spear diagonally toward left edge; waist-up or knees-up heroic portrait. Same sophisticated painted historical RPG style as main portraits. Title lettering upper center-left across x35%-68%, y12%-48%: exact Korean small line '수호전 외전' and beneath it much larger expressive brush-calligraphy '임충전', light ivory with restrained warm gold edges, highly legible. Spell exact Korean only, no other text. RIGHTMOST 30% from x72%-100%, y15%-85% must remain uncluttered dark blue snowy mist for original game menu buttons overlay. No painted buttons or UI. Keep hero/title away from this right area. Cinematic cold indigo snow and dark teal with ember orange accents, textured ink brushwork, compelling premium strategy game cover, no modern objects no watermark no border.",
+      "tool": "built-in image_gen.imagegen",
+      "intent": "generate",
+      "transparent_background": false,
+      "nativeConversion": "sips JPEG, resize to original 2560x1600; no UI/code modifications"
+    }
+  ],
+  "atlas": {
+    "columns": 4,
+    "rows": 4,
+    "order": [
+      "lin",
+      "lu",
+      "hu",
+      "jin",
+      "zhu",
+      "hong",
+      "yang",
+      "wang",
+      "chai",
+      "song",
+      "dong",
+      "xue",
+      "luqian",
+      "fu_an",
+      "guard",
+      "bandit"
+    ],
+    "origin": "top-left",
+    "regionFormula": "x=(index%4)*width/4; y=floor(index/4)*height/4"
+  }
+}

@@ -1,16 +1,18 @@
-# skills/active / stable ID: 108
+# Lin Chong mod / native Jojo content catalog
 id: 108
-name: "빈칸0108"
-type: 41
+name: "쾌검"
+type: 38
 target: 0
 hitArea: 0
 effectArea: 0
 mpCost: 6
-icon: 44
-intro: "전략 108"
-effect: 0
-power: 28
-harmType: 4
-condition: 0
-aiUse: 13
+icon: 41
+intro: "인접한 적 하나에게 전술 피해를 준다. 기력 6 소비."
+effect: 22
+power: 80
+harmType: 0
+condition: 6
+aiUse: 4
+hitRateLimit: 90
 category: 0
+learnLevels: {}

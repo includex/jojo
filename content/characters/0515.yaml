@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 515
+name: "진오"
+face: 603
+mapAvatar: 604
+speechGroup: 0
+attack: 23
+defense: 12
+spirit: 23
+critical: 22
+morale: 22
+maxHitPoints: 86
+maxMagicPoints: 27
+posts: 48
+level: 3
+intro: "눈보라 속에서 임충에게 초료장의 위험을 알린 민첩한 청년."
+battleAvatar: 300
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

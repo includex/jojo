@@ -1,9 +1,10 @@
-# equipment / stable ID: 217
+# Lin Chong mod / native Jojo content catalog
 id: 217
-name: "여유 66"
-itemType: 0
-specialType: 0
+name: "양산박 입산패"
+itemType: 40
+specialType: 3
 price: 0
-iconIndex: 0
+iconIndex: 43
+value: 0
 upgradeValue: 0
-intro: ""
+intro: "이야기 속에서 얻은 수집용 증표다. 직접 사용하거나 장착할 수 없다."

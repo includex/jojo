@@ -1,10 +1,10 @@
-# equipment / stable ID: 106
+# Lin Chong mod / native Jojo content catalog
 id: 106
-name: "여유 공간 17"
-itemType: 0
+name: "삼베옷"
+itemType: 20
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 38
+value: 0
 upgradeValue: 0
-intro: "폭파통"
-skillEffects: [69, 136]
+intro: "초기 방어구. 추가 방어력은 없다."

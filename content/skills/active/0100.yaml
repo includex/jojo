@@ -1,16 +1,18 @@
-# skills/active / stable ID: 100
+# Lin Chong mod / native Jojo content catalog
 id: 100
-name: "공백0100"
-type: 40
+name: "추풍창"
+type: 38
 target: 0
-hitArea: 0
+hitArea: 5
 effectArea: 0
-mpCost: 6
-icon: 43
-intro: "먹으면 지휘 능력을 높여주는 신비한 열매입니다. 방어력도 어느 정도 상승합니다."
-effect: 0
-power: 28
-harmType: 4
-condition: 0
-aiUse: 13
+mpCost: 4
+icon: 41
+intro: "직선 1~2칸의 적 하나에게 전술 피해를 준다. 기력 4 소비."
+effect: 22
+power: 70
+harmType: 0
+condition: 6
+aiUse: 4
+hitRateLimit: 90
 category: 0
+learnLevels: {}

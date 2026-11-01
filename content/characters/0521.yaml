@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 521
+name: "송만"
+face: 609
+mapAvatar: 610
+speechGroup: 0
+attack: 28
+defense: 23
+spirit: 28
+critical: 12
+morale: 12
+maxHitPoints: 132
+maxMagicPoints: 24
+posts: 21
+level: 5
+intro: "양산박의 물길과 산채를 지키는 호걸."
+battleAvatar: 306
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

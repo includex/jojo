@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 518
+name: "양지"
+face: 606
+mapAvatar: 607
+speechGroup: 0
+attack: 42
+defense: 27
+spirit: 42
+critical: 25
+morale: 25
+maxHitPoints: 182
+maxMagicPoints: 47
+posts: 39
+level: 7
+intro: "청면수라 불리는 검객. 양산박으로 향하는 산길에서 임충과 만난다."
+battleAvatar: 303
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

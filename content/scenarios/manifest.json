@@ -1318,5 +1318,165 @@
       "scene2"
     ],
     "output": "decompiled-python/R_17.py"
+  },
+  "R_90": {
+    "source": "linchong/R_90.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_90.py"
+  },
+  "S_90": {
+    "source": "linchong/S_90.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_90.py"
+  },
+  "R_91": {
+    "source": "linchong/R_91.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_91.py"
+  },
+  "S_91": {
+    "source": "linchong/S_91.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_91.py"
+  },
+  "R_92": {
+    "source": "linchong/R_92.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_92.py"
+  },
+  "S_92": {
+    "source": "linchong/S_92.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_92.py"
+  },
+  "R_93": {
+    "source": "linchong/R_93.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_93.py"
+  },
+  "S_93": {
+    "source": "linchong/S_93.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_93.py"
+  },
+  "R_94": {
+    "source": "linchong/R_94.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_94.py"
+  },
+  "S_94": {
+    "source": "linchong/S_94.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_94.py"
+  },
+  "R_95": {
+    "source": "linchong/R_95.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_95.py"
+  },
+  "S_95": {
+    "source": "linchong/S_95.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_95.py"
+  },
+  "R_96": {
+    "source": "linchong/R_96.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_96.py"
+  },
+  "S_96": {
+    "source": "linchong/S_96.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_96.py"
+  },
+  "R_97": {
+    "source": "linchong/R_97.py",
+    "functions": [
+      "__dispatch__",
+      "scene0"
+    ],
+    "output": "decompiled-python/R_97.py"
+  },
+  "S_97": {
+    "source": "linchong/S_97.py",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "win_condition",
+      "lose_condition"
+    ],
+    "output": "decompiled-python/S_97.py"
   }
 }

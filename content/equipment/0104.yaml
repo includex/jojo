@@ -1,10 +1,10 @@
-# equipment / stable ID: 104
+# Lin Chong mod / native Jojo content catalog
 id: 104
-name: "여유 공간 15"
-itemType: 0
+name: "여행자 옷"
+itemType: 20
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 38
+value: 0
 upgradeValue: 0
-intro: "손전지"
-skillEffects: [75]
+intro: "초기 방어구. 추가 방어력은 없다."

@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 545
+name: "산적 단도병"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 24
+defense: 11
+spirit: 24
+critical: 19
+morale: 19
+maxHitPoints: 70
+maxMagicPoints: 10
+posts: 21
+level: 3
+intro: "임충이 유배길에서 만나는 인물. 단도병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

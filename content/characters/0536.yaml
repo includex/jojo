@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 536
+name: "도적 궁수"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 21
+defense: 8
+spirit: 21
+critical: 17
+morale: 17
+maxHitPoints: 56
+maxMagicPoints: 18
+posts: 6
+level: 2
+intro: "임충이 유배길에서 만나는 인물. 궁병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

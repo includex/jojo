@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 516
+name: "주귀"
+face: 604
+mapAvatar: 605
+speechGroup: 0
+attack: 22
+defense: 15
+spirit: 22
+critical: 22
+morale: 22
+maxHitPoints: 96
+maxMagicPoints: 31
+posts: 21
+level: 4
+intro: "양산박 남쪽 수로의 주점을 운영하며 산채로 향하는 길을 안내한다."
+battleAvatar: 301
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 517
+name: "홍교두"
+face: 605
+mapAvatar: 606
+speechGroup: 0
+attack: 28
+defense: 15
+spirit: 28
+critical: 17
+morale: 17
+maxHitPoints: 120
+maxMagicPoints: 22
+posts: 18
+level: 3
+intro: "시진 장원에서 임충과 봉술을 겨루는 무예 교두."
+battleAvatar: 302
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

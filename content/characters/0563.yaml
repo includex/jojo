@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 563
+name: "수적 방패병"
+face: 615
+mapAvatar: 616
+speechGroup: 0
+attack: 26
+defense: 23
+spirit: 26
+critical: 10
+morale: 10
+maxHitPoints: 118
+maxMagicPoints: 15
+posts: 21
+level: 4
+intro: "임충이 유배길에서 만나는 인물. 방패병"
+battleAvatar: 312
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

@@ -1,0 +1,240 @@
+{
+  "skillParameters": {
+    "wind_spear": {
+      "mpCost": 4,
+      "range": 2,
+      "line": true,
+      "coefficient": 1.0,
+      "mastery": {
+        "4": {
+          "damagePercent": 8
+        },
+        "10": {
+          "range": 3
+        },
+        "18": {
+          "counterDamagePercent": 10
+        }
+      }
+    },
+    "circling_spear": {
+      "mpCost": 8,
+      "range": 1,
+      "targetLimit": 2,
+      "coefficient": 0.75,
+      "mastery": {
+        "4": {
+          "accuracy": 10
+        },
+        "10": {
+          "counterDamagePercent": 15
+        },
+        "18": {
+          "oneTargetMpDamage": 3
+        }
+      }
+    },
+    "staff_smash": {
+      "mpCost": 8,
+      "forwardTiles": 3,
+      "coefficient": 0.9,
+      "mastery": {
+        "4": {
+          "knockback": true
+        },
+        "10": {
+          "ignoreDefensePercent": 10
+        },
+        "18": {
+          "stunChancePercent": 10
+        }
+      }
+    },
+    "iron_guard": {
+      "mpCost": 0,
+      "range": 1,
+      "damageReductionPercent": 15,
+      "usesPerTurn": 2,
+      "mastery": {
+        "4": {
+          "damageReductionPercent": 18
+        },
+        "10": {
+          "counterAfterGuard": true
+        },
+        "18": {
+          "damageReductionPercent": 22
+        }
+      }
+    },
+    "quick_step": {
+      "mpCost": 5,
+      "extraMove": 2,
+      "firstAttackAccuracy": 10,
+      "mastery": {
+        "4": {
+          "evasionAfterMove": 5
+        },
+        "10": {
+          "extraMove": 3
+        },
+        "18": {
+          "firstAttackDamagePercent": 10
+        }
+      }
+    },
+    "snow_resolve": {
+      "mpCost": 0,
+      "ignoreSnowPenalty": true,
+      "mpPerTurn": 2,
+      "mastery": {
+        "4": {
+          "statusResistance": 10
+        },
+        "10": {
+          "mpPerTurn": 3
+        },
+        "18": {
+          "statusResistance": 20
+        }
+      }
+    },
+    "water_stride": {
+      "mpCost": 6,
+      "extraMoveOnWaterMud": 2,
+      "mastery": {
+        "4": {
+          "extraMove": 1
+        },
+        "10": {
+          "evasion": 10
+        },
+        "18": {
+          "firstAttackNoCounter": true
+        }
+      }
+    },
+    "tiger_charge": {
+      "mpCost": 12,
+      "chargeRange": 3,
+      "line": true,
+      "coefficient": 1.4,
+      "mastery": {
+        "4": {
+          "damagePercent": 10
+        },
+        "10": {
+          "mpRestore": 2
+        },
+        "18": {
+          "defensePiercingPercent": 15
+        }
+      }
+    }
+  },
+  "itemParameters": {
+    "healing_powder": {
+      "heal": 35,
+      "actionCost": 1,
+      "maxUsesPerBattle": 2
+    },
+    "old_wrist_guard": {
+      "defense": 2,
+      "bindResistance": 30
+    },
+    "training_staff": {
+      "attack": 3,
+      "nonlethalDuelAccuracy": 10
+    },
+    "guardian_belt": {
+      "adjacentProtectionPercent": 10
+    },
+    "iron_shield": {
+      "defense": 5,
+      "move": -1,
+      "movePenaltyImmuneRole": "방패병"
+    },
+    "snow_boots": {
+      "ignoreSnowPenalty": true
+    },
+    "marsh_token": {
+      "waterMove": 1,
+      "waterBattleAgility": 3
+    },
+    "marsh_compass": {
+      "move": 1,
+      "trapDetection": 1
+    },
+    "leather_vest": {
+      "defense": 3,
+      "agility": 1
+    }
+  },
+  "growth": {
+    "hpPerLevel": 6,
+    "mpPerLevel": 2,
+    "attackPerLevel": 2,
+    "defensePerLevel": 1,
+    "agilityPerEvenLevel": 1,
+    "levelCap": 10,
+    "expBase": 80,
+    "expPerLevel": 30,
+    "masteryThresholds": [
+      4,
+      10,
+      18
+    ],
+    "masteryBattleCap": 5
+  },
+  "unmappedStartingEquipmentPolicy": "Unspecified starting equipment has authored zero modifiers: PRD base stat already includes baseline kit. Explicit collectible modifiers apply as printed; avoid double applying baseline leather_vest/training_staff when hydrating persistent units.",
+  "authoredParameters": {
+    "origin": "Project-authored completion for IDs with no PRD numerical definition",
+    "equipment": {
+      "iron_spear": {
+        "attack": 0
+      },
+      "prison_robe": {
+        "defense": 0
+      },
+      "monk_staff": {
+        "attack": 0
+      },
+      "monk_robe": {
+        "defense": 0
+      },
+      "short_spear": {
+        "attack": 0
+      },
+      "short_blade": {
+        "attack": 0
+      },
+      "traveler_clothes": {
+        "defense": 0
+      },
+      "green_steel_sword": {
+        "attack": 0
+      },
+      "light_armor": {
+        "defense": 0
+      },
+      "linen_robe": {
+        "defense": 0
+      }
+    },
+    "skills": {
+      "swift_blade": {
+        "name": "쾌검",
+        "mpCost": 6,
+        "range": 1,
+        "coefficient": 1.15,
+        "accuracy": 5
+      },
+      "staff_combo": {
+        "name": "연봉",
+        "mpCost": 6,
+        "range": 1,
+        "coefficient": 1.2
+      }
+    }
+  }
+}

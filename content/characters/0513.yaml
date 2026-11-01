@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 513
+name: "노지심"
+face: 601
+mapAvatar: 602
+speechGroup: 0
+attack: 36
+defense: 19
+spirit: 36
+critical: 12
+morale: 12
+maxHitPoints: 144
+maxMagicPoints: 34
+posts: 18
+level: 4
+intro: "불의를 보면 참지 못하는 호방한 승려. 야저림에서 임충의 목숨을 구한다."
+battleAvatar: 298
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

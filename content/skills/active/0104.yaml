@@ -1,16 +1,17 @@
-# skills/active / stable ID: 104
+# Lin Chong mod / native Jojo content catalog
 id: 104
-name: "빈칸0104"
-type: 40
-target: 0
-hitArea: 0
-effectArea: 0
-mpCost: 6
-icon: 43
-intro: "전략 104"
-effect: 0
+name: "연환보"
+type: 13
+target: 1
+hitArea: 13
+effectArea: 1
+mpCost: 5
+icon: 17
+intro: "선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다. 기력 5 소비."
+effect: 15
 power: 28
-harmType: 0
-condition: 0
-aiUse: 15
-category: 0
+harmType: 4
+condition: 6
+aiUse: 5
+category: 17
+learnLevels: {}

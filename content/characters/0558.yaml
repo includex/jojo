@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 558
+name: "후속 추격병 을"
+face: 614
+mapAvatar: 615
+speechGroup: 0
+attack: 31
+defense: 15
+spirit: 31
+critical: 16
+morale: 16
+maxHitPoints: 94
+maxMagicPoints: 14
+posts: 42
+level: 4
+intro: "임충이 유배길에서 만나는 인물. "
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

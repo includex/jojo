@@ -1,9 +1,10 @@
-# equipment / stable ID: 59
+# Lin Chong mod / native Jojo content catalog
 id: 59
-name: "여유"
-itemType: 19
-price: 0
-iconIndex: 0
+name: "연습 목봉"
+itemType: 6
+specialType: 0
+price: 1
+iconIndex: 10
+value: 3
 upgradeValue: 0
-intro: "어린애 비늘 갑옷을 기반으로 하여 좌우 가슴 부분에 후대와 유사한 호신경 대철판이나 강철판이 생기고, 거울처럼 연마되었습니다. 전체가 틈 없이 보호하기 때문에 방어 관통형 공격 무기에 효과가 뛰어납니다."
-skillEffects: [10]
+intro: "공격력 +3."

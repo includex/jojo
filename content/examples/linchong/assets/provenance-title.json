@@ -1,0 +1,11 @@
+{
+  "id": "title",
+  "source": "/Users/ain/.codex/generated_images/01a196c3-da8b-7e23-8602-7a3dceefe1ef/exec-05231ccb-5ef0-4f58-b48a-671d7562e106.png",
+  "path": "content/examples/linchong/assets/title.png",
+  "nativePath": "content/assets/maps/ui/title/background.jpg",
+  "prompt": "Use case: historical-scene. Asset type: native tactical RPG title-screen background, landscape 16:10. Create dramatic hand-painted Chinese ink and mineral-color Water Margin Northern Song dynasty key art. Snowy mountain shrine at night, pine trees bending in snowstorm, faint burning granary embers in distance. Lin Chong dominates LEFT third, stern handsome Chinese officer age35 narrow mustache, hair tied high, weathered iron lamellar armor and dark teal scarf blowing in wind, holding long spear diagonally toward left edge; waist-up or knees-up heroic portrait. Same sophisticated painted historical RPG style as main portraits. Title lettering upper center-left across x35%-68%, y12%-48%: exact Korean small line '수호전 외전' and beneath it much larger expressive brush-calligraphy '임충전', light ivory with restrained warm gold edges, highly legible. Spell exact Korean only, no other text. RIGHTMOST 30% from x72%-100%, y15%-85% must remain uncluttered dark blue snowy mist for original game menu buttons overlay. No painted buttons or UI. Keep hero/title away from this right area. Cinematic cold indigo snow and dark teal with ember orange accents, textured ink brushwork, compelling premium strategy game cover, no modern objects no watermark no border.",
+  "tool": "built-in image_gen.imagegen",
+  "intent": "generate",
+  "transparent_background": false,
+  "nativeConversion": "sips JPEG, resize to original 2560x1600; no UI/code modifications"
+}

@@ -1,10 +1,10 @@
-# equipment / stable ID: 60
+# Lin Chong mod / native Jojo content catalog
 id: 60
-name: "여유 공간 1"
-itemType: 0
+name: "철창"
+itemType: 6
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 10
+value: 0
 upgradeValue: 0
-intro: "민간에서 일상생활에 사용되는 옷입니다. 삼베로 만들어져 제작이 간단하고 가격이 저렴하여 민간에서 보편적으로 착용합니다."
-skillEffects: [45]
+intro: "초기 무기. 추가 공격력은 없다."

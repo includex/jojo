@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 555
+name: "추격 궁병 갑"
+face: 614
+mapAvatar: 615
+speechGroup: 0
+attack: 29
+defense: 12
+spirit: 29
+critical: 20
+morale: 20
+maxHitPoints: 78
+maxMagicPoints: 25
+posts: 6
+level: 4
+intro: "임충이 유배길에서 만나는 인물. 궁병"
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

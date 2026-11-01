@@ -1,10 +1,10 @@
-# equipment / stable ID: 61
+# Lin Chong mod / native Jojo content catalog
 id: 61
-name: "여유 공간 2"
-itemType: 0
+name: "선장"
+itemType: 6
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 10
+value: 0
 upgradeValue: 0
-intro: "짐승 가죽으로 만든 의복. 추위를 막아주는 것 외에도 착용자가 다치지 않도록 보호해 줍니다."
-skillEffects: [52]
+intro: "초기 무기. 추가 공격력은 없다."

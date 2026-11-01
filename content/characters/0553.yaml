@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 553
+name: "추격 창병 갑"
+face: 614
+mapAvatar: 615
+speechGroup: 0
+attack: 30
+defense: 16
+spirit: 30
+critical: 14
+morale: 14
+maxHitPoints: 102
+maxMagicPoints: 14
+posts: 42
+level: 4
+intro: "임충이 유배길에서 만나는 인물. 창병"
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

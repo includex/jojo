@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 520
+name: "시진(柴進)"
+face: 608
+mapAvatar: 609
+speechGroup: 0
+attack: 18
+defense: 17
+spirit: 18
+critical: 17
+morale: 17
+maxHitPoints: 110
+maxMagicPoints: 18
+posts: 0
+level: 5
+intro: "의로운 이들을 후하게 대접하는 장원주."
+battleAvatar: 305
+battleAvatarType: -1
+famous: 1
+retreat: "다시 만날 날을 기다리겠소."

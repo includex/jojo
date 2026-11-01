@@ -1,0 +1,12 @@
+# Lin Chong mod / native Jojo content catalog
+id: 256
+name: "물길 통행패"
+itemType: 61
+specialType: 2
+price: 0
+iconIndex: 67
+value: 1
+effectValue: 1
+upgradeValue: 255
+treasure: 1
+intro: "보조 장비. 장비 목록에서 장착할 수 있다."

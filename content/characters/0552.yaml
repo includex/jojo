@@ -1,0 +1,20 @@
+# Lin Chong mod / native Jojo content catalog
+id: 552
+name: "추격 대장"
+face: 621
+mapAvatar: 615
+speechGroup: 0
+attack: 35
+defense: 19
+spirit: 35
+critical: 15
+morale: 15
+maxHitPoints: 146
+maxMagicPoints: 24
+posts: 42
+level: 5
+intro: "임충이 유배길에서 만나는 인물. 창기병"
+battleAvatar: 311
+battleAvatarType: -1
+famous: 0
+retreat: "다시 만날 날을 기다리겠소."

@@ -1,10 +1,10 @@
-# equipment / stable ID: 64
+# Lin Chong mod / native Jojo content catalog
 id: 64
-name: "여유 5"
-itemType: 0
+name: "청강검"
+itemType: 6
 specialType: 0
-price: 0
-iconIndex: 0
+price: 1
+iconIndex: 10
+value: 0
 upgradeValue: 0
-intro: "양직의 옷은 문양이 섬세하고, 위의 자수 변화가 매우 많아 문사들이 특히 좋아합니다."
-skillEffects: [36]
+intro: "초기 무기. 추가 공격력은 없다."
