@@ -21,6 +21,7 @@ from export_map_assets import decode_uuid
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / 'localization/baseline'
 SIBLING = ROOT.parent / 'jojo_mobile/sgccz-desktop'
+SCENARIOS = ROOT / 'content/scenarios'
 
 
 def read(path):
@@ -88,7 +89,7 @@ def main():
     args = parser.parse_args()
     cache = read(BASE / 'translations.json')
     catalog = read(BASE / 'dialogue-text.json')
-    manifest = read(SIBLING / 'decompiled-python/manifest.json')
+    manifest = read(SCENARIOS / 'manifest.json')
     origins = {item['text']: set(item['sources']) for item in read(SIBLING / 'tools/ko-source-strings.json')}
     translations = load_batches()
     reviews_path = ROOT / 'localization/context-reviews.json'
@@ -204,18 +205,11 @@ def main():
         'table_text_paths': sum(map(len, tables.values())),
     }
     if args.apply:
-        write(ROOT / 'core/src/main/resources/scenarios/dialogue-text.json', catalog)
+        write(SCENARIOS / 'dialogue-text.json', catalog)
         write(ROOT / 'core/src/main/resources/localization/ko-reviewed.json', text_overrides)
         write(ROOT / 'core/src/main/resources/localization/table-reviewed.json', tables)
         for name, text in sources.items():
-            (SIBLING / 'decompiled-python' / name).write_text(text, encoding='utf-8')
-        # The rendering engine/font contract stays fixed; its authored script
-        # digest intentionally changes with this reviewed localization.
-        for name in ('info_label_contract.json', 'street_body_label_contract.json'):
-            path = ROOT / 'tools' / name
-            contract = read(path)
-            contract['sourceSha256']['decompiled-python/R_00.py'] = hashlib.sha256(sources['R_00.py'].encode('utf-8')).hexdigest()
-            write(path, contract)
+            (SCENARIOS / name).write_text(text, encoding='utf-8')
     write(ROOT / 'localization/progress.json', report)
     print(json.dumps({k: v for k, v in report.items() if k not in ('ambiguous_contexts', 'ambiguous_reverse_values')}, ensure_ascii=False))
     print(f'Unresolved scenario contexts: {len(report["ambiguous_contexts"])}; ambiguous global reverse values: {len(report["ambiguous_reverse_values"])} (original table positions used)')

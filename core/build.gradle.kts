@@ -27,7 +27,7 @@ tasks.test {
 
 // Desktop coverage consumes this production-adjacent source inventory from
 // core's build directory; it has no dependency on verification code.
-val restoredScenarioDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/decompiled-python")
+val restoredScenarioDirectory = rootProject.file("content/scenarios")
 val scenarioBranchSurface = layout.buildDirectory.file("reports/scenario-branch-surface.json")
 val auditScenarioBranchSurface = tasks.register<Exec>("auditScenarioBranchSurface") {
     inputs.dir(restoredScenarioDirectory)
@@ -150,7 +150,7 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
     inputs.property("maxRenderedPages", maxRenderedPages)
     environment("JOJO_BODY_LABEL_MAX_PAGES", maxRenderedPages.get())
     inputs.file(rootProject.file("tools/street_body_label_pages.cjs"))
-    inputs.file(rootProject.file("core/src/main/resources/scenarios/dialogue-text.json"))
+    inputs.file(rootProject.file("content/scenarios/dialogue-text.json"))
     dependsOn(exportScenarioAst)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))
@@ -166,7 +166,7 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js"),
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js"),
         cocosAssetsDirectory.parentFile.resolve("recovered-js/modules/ui/DialogueLayer.js"),
-        cocosAssetsDirectory.parentFile.resolve("decompiled-python/R_00.py"),
+        restoredScenarioDirectory.resolve("R_00.py"),
         cocosAssetsDirectory.parentFile.resolve("node_modules/electron/package.json"),
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js"),
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/utils/text-utils.js"),
@@ -185,7 +185,7 @@ val exportStreetBodyLabels = tasks.register<Exec>("exportStreetBodyLabels") {
 }
 val exportInfoLabels = tasks.register<Exec>("exportInfoLabels") {
     inputs.file(rootProject.file("tools/street_body_label_pages.cjs"))
-    inputs.file(rootProject.file("core/src/main/resources/scenarios/dialogue-text.json"))
+    inputs.file(rootProject.file("content/scenarios/dialogue-text.json"))
     dependsOn(exportScenarioAst)
     timeout.set(Duration.ofSeconds(60))
     inputs.file(rootProject.file("tools/export_street_body_labels.cjs"))
@@ -201,7 +201,7 @@ val exportInfoLabels = tasks.register<Exec>("exportInfoLabels") {
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/renderer/gfx/texture-2d.js"),
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/webgl/assemblers/label/2d/ttf.js"),
         cocosAssetsDirectory.parentFile.resolve("recovered-js/modules/ui/InfoLayer.js"),
-        cocosAssetsDirectory.parentFile.resolve("decompiled-python/R_00.py"),
+        restoredScenarioDirectory.resolve("R_00.py"),
         cocosAssetsDirectory.parentFile.resolve("node_modules/electron/package.json"),
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/renderer/utils/label/ttf.js"),
         cocosAssetsDirectory.parentFile.resolve("cocos-engine-web/cocos2d/core/utils/text-utils.js"),
@@ -281,7 +281,7 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
 tasks.processResources {
     dependsOn(exportScenarioAst, exportMapAssets, compileGameContent, exportSourceMapTextures, exportAudioAssets, exportStreetSpeakerLabels, exportStreetBodyLabels, exportInfoLabels, exportTitleLoginReference,
         extractTitleLoadConfirmations, exportScenarioChoiceReference)
-    from(restoredScenarioDirectory) { include("*.py", "manifest.json"); into("scenarios") }
+    from(restoredScenarioDirectory) { include("*.py", "manifest.json", "dialogue-text.json"); into("scenarios") }
     from(generatedAstDirectory) { into("scenario-ast") }
     from(generatedMapAssetsDirectory) {
         exclude(*authoredGameTables.toTypedArray())

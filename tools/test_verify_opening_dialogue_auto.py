@@ -25,14 +25,14 @@ class AutoTimerTest(unittest.TestCase):
 
     def test_dialogue_identity_cannot_change_while_waiting(self):
         import copy
-        from verify_opening_dialogue_auto import assess_game
-        first = dict(speaker='181', revision=1, text='대장님, 서둘러야 해요!', complete=True, playback='DIALOGUE')
+        from verify_opening_dialogue_auto import assess_game, FIRST_TEXT, SECOND_TEXT
+        first = dict(speaker='181', revision=1, text=FIRST_TEXT, complete=True, playback='DIALOGUE')
         second = dict(speaker='0', revision=2, text='', complete=False, playback='DIALOGUE')
         game = dict(contract='natural-opening-dialogue-auto-game/v1', autoCloseSetting=True,
                     persistentSettingsChanged=False, dialogueInputs=0, pixelReadback=False, isolation=False,
                     frames=[dict(first, frame=0, delta=0), dict(first, frame=1, delta=.8),
                             dict(second, frame=2, delta=.8), dict(second, frame=3, delta=.05)])
-        game['frames'][-1]['text'] = '알'
+        game['frames'][-1]['text'] = SECOND_TEXT[:1]
         self.assertTrue(assess_game(game)['matchesSourceRule'])
         for field, value in [('revision', 9), ('text', '잘못된 본문'), ('playback', 'MODAL')]:
             broken = copy.deepcopy(game)

@@ -119,6 +119,8 @@ public final class GameContentCompiler {
         try (Stream<Path> paths = Files.walk(source)) {
             for (Path file : paths.filter(Files::isRegularFile).toList()) {
                 String relative = source.relativize(file).toString().replace('\\', '/');
+                // Scenario sources belong to the separate Python AST resource pipeline.
+                if (relative.startsWith("scenarios/")) continue;
                 if (relative.equals("schema.json") || relative.equals("README.md")) continue;
                 if (!relative.endsWith(".yaml") && !relative.endsWith(".yml")) throw problem(file, "unexpected content file");
                 boolean known = TABLES.keySet().stream().anyMatch(category -> relative.startsWith(category + "/"));

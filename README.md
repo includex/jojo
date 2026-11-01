@@ -11,6 +11,8 @@ Kotlin과 LibGDX로 개발하는 독립 데스크톱·Android 전략 게임이�
 - `B`를 누르면 대응하는 원본 S 전투 스크립트의 실제 유닛 배치를 전술 화면으로 표시
 - 키보드와 마우스 입력, 한국어 글꼴, 자동 실행 검증 제공
 
+처음 참여하는 개발자는 [단계별 개발·YAML 실습](docs/developer-onboarding.html)부터 시작한다. [현재 구현 현황](docs/implementation-status.html)에서 지원 범위와 검증 기록을 확인할 수 있다.
+
 ## 코드 구조
 
 - `engine`: 범용 경로 탐색·스크립트 실행·글자 공개·렌더링 연산

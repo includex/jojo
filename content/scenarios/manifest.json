@@ -1,0 +1,1322 @@
+{
+  "common": {
+    "source": "assets/main/native/d6/d646fc58-ed27-42d8-86c7-3f48c8d1bcf8.8360b.bin",
+    "functions": [
+      "__dispatch__",
+      "registerCheck",
+      "register",
+      "gold",
+      "pushItem",
+      "unitJoin",
+      "buy"
+    ],
+    "output": "decompiled-python/common.py"
+  },
+  "S_02": {
+    "source": "assets/Game/native/00/00582602-933c-4d29-a86a-17713c9032a2.3f1d5.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_02.py"
+  },
+  "S_35": {
+    "source": "assets/Game/native/05/053eabbf-b311-41ab-b137-7728bdec6662.fe54d.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_35.py"
+  },
+  "S_31": {
+    "source": "assets/Game/native/05/05547305-ed1f-4ae0-8f2d-968a0eae0eaf.1e040.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_31.py"
+  },
+  "R_23": {
+    "source": "assets/Game/native/07/07004cce-00c6-4f8b-8ab0-d06545f402dc.2d34b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_23.py"
+  },
+  "R_19": {
+    "source": "assets/Game/native/07/0716f9fd-8df2-444e-9d1b-7662d4caac79.b987b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_19.py"
+  },
+  "R_05": {
+    "source": "assets/Game/native/0a/0abb7edc-b7c3-426a-a298-f5d86231d8a4.17eba.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7"
+    ],
+    "output": "decompiled-python/R_05.py"
+  },
+  "S_52": {
+    "source": "assets/Game/native/0b/0b4623ed-2679-424a-b914-77487f4c27bd.c18a0.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_52.py"
+  },
+  "S_23": {
+    "source": "assets/Game/native/0b/0ba32fc6-fb37-483a-9c3f-a80327f68a82.ba11b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_23.py"
+  },
+  "R_22": {
+    "source": "assets/Game/native/0b/0bda63a5-18f1-4074-9cc0-029117eb3c97.108b3.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6"
+    ],
+    "output": "decompiled-python/R_22.py"
+  },
+  "R_33": {
+    "source": "assets/Game/native/0f/0f2ead4c-b7e3-4ece-b989-2060bb5c485f.b6c16.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5"
+    ],
+    "output": "decompiled-python/R_33.py"
+  },
+  "R_58": {
+    "source": "assets/Game/native/10/1073bea3-5e06-44d7-9808-630efe39c06c.b8418.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_58.py"
+  },
+  "S_49": {
+    "source": "assets/Game/native/11/11474968-9c87-4ceb-a246-4518a8dca25f.27d4f.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_49.py"
+  },
+  "R_49": {
+    "source": "assets/Game/native/13/13bd14eb-a347-478b-a2e7-8635900be039.8b683.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5"
+    ],
+    "output": "decompiled-python/R_49.py"
+  },
+  "R_41": {
+    "source": "assets/Game/native/16/1620653e-d1c4-482f-a19b-e7de3d23787f.6293c.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_41.py"
+  },
+  "S_46": {
+    "source": "assets/Game/native/18/1844e9cd-d27d-4427-ab85-cd749bc07870.32e1d.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_46.py"
+  },
+  "S_42": {
+    "source": "assets/Game/native/18/18c3ccfc-316e-46a0-bdb2-fc114d5bb41b.c3d0a.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_42.py"
+  },
+  "S_51": {
+    "source": "assets/Game/native/19/19aaf42b-2ff0-48b4-bc63-8d225fcdb391.aad55.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_51.py"
+  },
+  "R_04": {
+    "source": "assets/Game/native/1a/1a405e60-0eae-4a0a-a618-a39a3dec3464.ff4dd.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8",
+      "scene9",
+      "scene10",
+      "scene11"
+    ],
+    "output": "decompiled-python/R_04.py"
+  },
+  "S_34": {
+    "source": "assets/Game/native/21/21106a1b-7ad2-4146-868c-385f75473a56.2f0e6.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_34.py"
+  },
+  "R_45": {
+    "source": "assets/Game/native/21/21d15452-a52c-4152-9eb8-63d0c1d8bdbe.e4ad1.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_45.py"
+  },
+  "train": {
+    "source": "assets/Game/native/25/256d3196-90d0-4229-a467-c3f2c63ac681.307ac.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/train.py"
+  },
+  "R_11": {
+    "source": "assets/Game/native/28/28a40e72-1977-40cb-8c32-57263911436b.e7ead.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_11.py"
+  },
+  "S_20": {
+    "source": "assets/Game/native/29/294bfe49-f7fb-44a4-be3f-bb359e45febf.af3dd.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_20.py"
+  },
+  "S_55": {
+    "source": "assets/Game/native/2b/2b7f8854-7170-4cf9-ae60-c4b59c50635d.76dc0.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_55.py"
+  },
+  "S_05": {
+    "source": "assets/Game/native/2b/2ba37aae-4b3e-4a3a-9d09-a442ccf44b87.f1cc5.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_05.py"
+  },
+  "S_33": {
+    "source": "assets/Game/native/2d/2d482674-c768-4787-a73f-023005287e70.1dc9c.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_33.py"
+  },
+  "R_51": {
+    "source": "assets/Game/native/2d/2ddde3ec-d7c1-4001-b79c-891b0f58f180.3e044.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_51.py"
+  },
+  "R_55": {
+    "source": "assets/Game/native/33/33b5aff1-182e-4700-ae98-91f5dc0f6b62.7f36e.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_55.py"
+  },
+  "S_56": {
+    "source": "assets/Game/native/35/35de73f8-2c4d-4543-83ac-74b51d627d49.709c8.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_56.py"
+  },
+  "R_25": {
+    "source": "assets/Game/native/36/36d56717-d5e0-4283-8e24-158afe39d965.689eb.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8"
+    ],
+    "output": "decompiled-python/R_25.py"
+  },
+  "S_07": {
+    "source": "assets/Game/native/38/38975ed9-25a3-4f34-91c2-1fe4436d32f1.ff103.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_07.py"
+  },
+  "S_11": {
+    "source": "assets/Game/native/3b/3bb374bc-9e06-484c-93e2-66c629f01fca.5440b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_11.py"
+  },
+  "S_00": {
+    "source": "assets/Game/native/42/42e68281-5ff8-47d9-8265-5526928a9ec9.c92b0.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_00.py"
+  },
+  "S_06": {
+    "source": "assets/Game/native/47/4726f475-7c4d-4b62-904c-2994ea3fb648.4c726.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_06.py"
+  },
+  "S_24": {
+    "source": "assets/Game/native/47/47cb6d67-a83b-4a2e-91c1-830dd6148fc4.53459.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_24.py"
+  },
+  "S_38": {
+    "source": "assets/Game/native/4e/4e9ce44c-9ada-4371-a340-3fc0ff862bcf.cd5a3.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_38.py"
+  },
+  "R_40": {
+    "source": "assets/Game/native/53/538883ed-ac45-44d7-a41a-610f9be8a4b5.2c078.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_40.py"
+  },
+  "R_48": {
+    "source": "assets/Game/native/54/542ceb8d-15f8-48b7-83d3-0764cca946ad.e6594.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5"
+    ],
+    "output": "decompiled-python/R_48.py"
+  },
+  "S_09": {
+    "source": "assets/Game/native/54/5439a162-922b-4c60-a000-91366670ad7b.b5233.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_09.py"
+  },
+  "S_10": {
+    "source": "assets/Game/native/54/54dec09a-d7b1-4bee-bc39-ea9828c9c8fd.cf172.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_10.py"
+  },
+  "S_03": {
+    "source": "assets/Game/native/58/58ca8303-2155-4aeb-84c2-ddadede96a73.90877.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_03.py"
+  },
+  "R_24": {
+    "source": "assets/Game/native/5c/5c715543-fb28-41c0-a55a-42a18634fd48.8fa54.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_24.py"
+  },
+  "R_36": {
+    "source": "assets/Game/native/5c/5c7ece1a-12bb-414f-a7f6-44d106479807.fc4e0.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_36.py"
+  },
+  "R_30": {
+    "source": "assets/Game/native/5e/5eda06f9-d4ce-46e6-9df6-1e3c600ff218.dfc25.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_30.py"
+  },
+  "R_29": {
+    "source": "assets/Game/native/5f/5f01de19-d2d2-41b3-a870-550710840335.4da29.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_29.py"
+  },
+  "R_32": {
+    "source": "assets/Game/native/5f/5fc0849c-6f69-4e77-a7eb-80bfe05c9269.c0582.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_32.py"
+  },
+  "S_36": {
+    "source": "assets/Game/native/64/64491e72-2515-4440-80aa-0ba7df32ef15.d32cf.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_36.py"
+  },
+  "S_43": {
+    "source": "assets/Game/native/66/66a618f1-8233-41c8-850d-9c0bdf41da99.606c8.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_43.py"
+  },
+  "R_26": {
+    "source": "assets/Game/native/67/670cfa0e-168e-4d0e-8285-e0834ad41752.03327.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_26.py"
+  },
+  "R_47": {
+    "source": "assets/Game/native/6a/6abf9d9f-e27e-4c26-9007-7e2f8f683d25.fdce1.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_47.py"
+  },
+  "S_12": {
+    "source": "assets/Game/native/6d/6d7782d8-8244-4b13-bbe4-1ebf4a0d22e9.3d23c.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_12.py"
+  },
+  "S_15": {
+    "source": "assets/Game/native/6e/6e002472-bb25-4a2b-a343-1c252c4a5fc3.63831.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_15.py"
+  },
+  "S_39": {
+    "source": "assets/Game/native/70/708112c4-ded7-446e-b7d2-4038becf1626.a32c7.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_39.py"
+  },
+  "S_44": {
+    "source": "assets/Game/native/70/70cbf14d-34f7-461d-a89f-092cc46fe7c6.d3309.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_44.py"
+  },
+  "S_30": {
+    "source": "assets/Game/native/74/74f6f902-193b-40ed-ad44-93c5c75fa6ac.be4c9.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_30.py"
+  },
+  "R_06": {
+    "source": "assets/Game/native/79/792d67bb-f2bf-47aa-be1a-d682f5f621ae.2e533.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_06.py"
+  },
+  "S_57": {
+    "source": "assets/Game/native/7b/7bdfbc2c-b6bd-420b-aee8-d9f0f236c184.e96cd.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_57.py"
+  },
+  "S_32": {
+    "source": "assets/Game/native/7d/7d96f727-638e-48c6-ba11-a0a806deb6fd.5c5de.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_32.py"
+  },
+  "R_43": {
+    "source": "assets/Game/native/80/8090b77e-5064-4cc2-9d84-9b465746f34c.b4f38.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_43.py"
+  },
+  "S_54": {
+    "source": "assets/Game/native/82/8292a6a7-187b-4081-9951-041bf0ee5084.dc051.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_54.py"
+  },
+  "S_29": {
+    "source": "assets/Game/native/82/82ba692f-2933-4628-aac3-9d3b138915bd.d6d83.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_29.py"
+  },
+  "R_16": {
+    "source": "assets/Game/native/82/82fcc890-56b0-47d1-b956-94827016719f.b3d2a.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8",
+      "scene9",
+      "scene10"
+    ],
+    "output": "decompiled-python/R_16.py"
+  },
+  "R_42": {
+    "source": "assets/Game/native/86/867b8a8a-1419-4d10-9d1c-bf631cd4531a.78f00.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_42.py"
+  },
+  "R_37": {
+    "source": "assets/Game/native/88/88e11dbb-f886-4be2-99c7-3aee78a0fed4.d705e.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_37.py"
+  },
+  "R_52": {
+    "source": "assets/Game/native/8b/8b494fce-6496-4a88-8d41-90a1d971c684.28465.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_52.py"
+  },
+  "S_47": {
+    "source": "assets/Game/native/90/9052a9fb-93c1-4f59-884f-63ba1bca0797.f5222.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_47.py"
+  },
+  "R_38": {
+    "source": "assets/Game/native/90/90d65dda-83d2-49bd-80a8-73bcbc09e787.e4557.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5"
+    ],
+    "output": "decompiled-python/R_38.py"
+  },
+  "R_14": {
+    "source": "assets/Game/native/93/938dfe35-9a9e-4c68-b3eb-0a6db174b373.705db.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_14.py"
+  },
+  "R_21": {
+    "source": "assets/Game/native/93/9396c729-658b-4b0e-8ed3-e3b084cbfb5b.f9441.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_21.py"
+  },
+  "R_03": {
+    "source": "assets/Game/native/95/9512bb30-38e6-4f9a-a8ae-f207fa3dea79.48858.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4"
+    ],
+    "output": "decompiled-python/R_03.py"
+  },
+  "R_46": {
+    "source": "assets/Game/native/95/9530e140-e0a9-485d-8b41-5e553723123a.4f8a4.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8",
+      "scene9",
+      "scene10",
+      "scene11",
+      "scene12",
+      "scene13",
+      "scene14",
+      "scene15"
+    ],
+    "output": "decompiled-python/R_46.py"
+  },
+  "S_48": {
+    "source": "assets/Game/native/96/96eb5477-dab8-4e58-b9b2-5873925a0197.90aaf.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_48.py"
+  },
+  "R_44": {
+    "source": "assets/Game/native/97/97134efa-9c87-4264-8bac-2a2bec52070f.5a283.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_44.py"
+  },
+  "S_17": {
+    "source": "assets/Game/native/9d/9d1b3257-57b2-4c00-84ac-e6ce8647e8f0.3250b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_17.py"
+  },
+  "R_56": {
+    "source": "assets/Game/native/9d/9df4a54f-33a6-4a8d-bc40-d3a7e6f540c1.885d9.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_56.py"
+  },
+  "S_25": {
+    "source": "assets/Game/native/9f/9f4983f8-913d-437c-8598-583c597943fc.04646.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_25.py"
+  },
+  "S_37": {
+    "source": "assets/Game/native/a2/a208997e-cca0-4d89-8233-2f6df50c1c79.17384.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_37.py"
+  },
+  "R_00": {
+    "source": "assets/Game/native/a2/a2dbaef6-5c58-440d-aa42-f97c076bf97e.1ea40.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_00.py"
+  },
+  "S_04": {
+    "source": "assets/Game/native/a9/a9e4612c-168c-4419-b4cd-4a0c74f7fdbc.cab9d.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_04.py"
+  },
+  "R_01": {
+    "source": "assets/Game/native/aa/aad319e0-6944-4e9a-9237-fac0e8df092d.4d100.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8"
+    ],
+    "output": "decompiled-python/R_01.py"
+  },
+  "R_57": {
+    "source": "assets/Game/native/ad/ade5a326-040c-4a66-a060-752dd5c0dc01.661bb.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_57.py"
+  },
+  "R_20": {
+    "source": "assets/Game/native/b4/b41178a7-da78-442f-9350-29f88779f2fd.7125a.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_20.py"
+  },
+  "R_34": {
+    "source": "assets/Game/native/b7/b74da4af-dd23-44d3-8805-a9e37115c731.f665a.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_34.py"
+  },
+  "S_27": {
+    "source": "assets/Game/native/b7/b77be2e5-22b1-4b8b-9faa-8cba1acfba2a.ff8c7.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_27.py"
+  },
+  "R_18": {
+    "source": "assets/Game/native/bd/bd776697-5443-40b1-b0ec-f7630119a414.48366.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8"
+    ],
+    "output": "decompiled-python/R_18.py"
+  },
+  "S_21": {
+    "source": "assets/Game/native/c3/c3fe3fb4-c9a9-4d56-968d-a39969e96f40.181c8.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_21.py"
+  },
+  "R_50": {
+    "source": "assets/Game/native/c4/c4b5d49d-4fbe-46e8-8fed-795581ef1f06.bd14f.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_50.py"
+  },
+  "S_26": {
+    "source": "assets/Game/native/c4/c4f33208-dfcf-4db1-bc17-a49103a5c300.5357c.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_26.py"
+  },
+  "R_35": {
+    "source": "assets/Game/native/c6/c6a5dcc5-01e9-497f-a199-4f0982f04d39.65b48.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5"
+    ],
+    "output": "decompiled-python/R_35.py"
+  },
+  "S_18": {
+    "source": "assets/Game/native/c7/c78a9bf2-9b8c-4fd7-8fca-a967021229a6.e9e18.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_18.py"
+  },
+  "R_02": {
+    "source": "assets/Game/native/c8/c818d9db-85f1-45fa-b8fc-860ccf96b63e.d0cca.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_02.py"
+  },
+  "R_31": {
+    "source": "assets/Game/native/cb/cb42a84e-ee37-4e9f-bf27-832e02127524.a0f0b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6"
+    ],
+    "output": "decompiled-python/R_31.py"
+  },
+  "S_22": {
+    "source": "assets/Game/native/cc/cc56a1a7-246a-4c5c-ad05-6e0a7b81119b.889e5.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_22.py"
+  },
+  "R_13": {
+    "source": "assets/Game/native/cc/cc83b68f-e354-42e4-8bed-85f4ac494e8a.37c7e.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5"
+    ],
+    "output": "decompiled-python/R_13.py"
+  },
+  "R_27": {
+    "source": "assets/Game/native/d0/d04090a6-c3a6-4519-a70d-c3019a71358c.7b18d.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6"
+    ],
+    "output": "decompiled-python/R_27.py"
+  },
+  "R_09": {
+    "source": "assets/Game/native/d1/d1c90b73-ae29-44ad-b215-e99fc57ea3e4.645f5.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6"
+    ],
+    "output": "decompiled-python/R_09.py"
+  },
+  "S_50": {
+    "source": "assets/Game/native/d1/d1d16490-b8b5-44f8-be92-60320b4a9f8d.4dc66.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_50.py"
+  },
+  "R_12": {
+    "source": "assets/Game/native/d2/d286b277-1919-489e-8a5f-38a97f0261d2.26210.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_12.py"
+  },
+  "S_13": {
+    "source": "assets/Game/native/d3/d38e7372-3997-4393-9144-0de670499a51.6e7d3.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_13.py"
+  },
+  "R_08": {
+    "source": "assets/Game/native/d4/d4b01ff1-c57a-442a-9578-88eebb8756fb.82edb.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7"
+    ],
+    "output": "decompiled-python/R_08.py"
+  },
+  "S_14": {
+    "source": "assets/Game/native/d6/d615a460-06cf-41bc-8eba-86a169a96456.ff8cb.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_14.py"
+  },
+  "S_01": {
+    "source": "assets/Game/native/d7/d71e1a11-f6b9-4488-9599-a784c7eb3328.48a4a.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_01.py"
+  },
+  "S_40": {
+    "source": "assets/Game/native/da/da060a11-d7aa-45d8-8a51-72ecd8c296e3.f1837.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_40.py"
+  },
+  "R_15": {
+    "source": "assets/Game/native/da/da62b095-3b55-4a2d-ade2-7293ee4636c0.2acaa.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8",
+      "scene9",
+      "scene10"
+    ],
+    "output": "decompiled-python/R_15.py"
+  },
+  "S_53": {
+    "source": "assets/Game/native/db/db23ce28-9daf-4b11-8f2d-6cc59b6e1389.963da.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_53.py"
+  },
+  "R_28": {
+    "source": "assets/Game/native/de/de452a63-402f-4fc4-be03-0dd002cbf863.01b28.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_28.py"
+  },
+  "R_10": {
+    "source": "assets/Game/native/df/df72fa79-0143-445d-b892-063e4b691db4.641ed.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7",
+      "scene8",
+      "scene9",
+      "scene10"
+    ],
+    "output": "decompiled-python/R_10.py"
+  },
+  "S_08": {
+    "source": "assets/Game/native/df/df9ade46-c64d-4be2-b4f0-370039933f6b.d1558.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_08.py"
+  },
+  "R_07": {
+    "source": "assets/Game/native/df/dfae7eea-0951-42f0-ac64-9c803296c938.ad6be.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3"
+    ],
+    "output": "decompiled-python/R_07.py"
+  },
+  "S_41": {
+    "source": "assets/Game/native/e1/e1ed5090-f70a-4b43-97cf-a84ee4f025bf.3c6f2.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_41.py"
+  },
+  "S_45": {
+    "source": "assets/Game/native/e6/e6532d5f-0202-4951-8d17-0bae1674c480.2a199.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_45.py"
+  },
+  "R_53": {
+    "source": "assets/Game/native/ea/eadb9e26-69f8-4324-820a-72f311c60b05.73d10.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_53.py"
+  },
+  "S_28": {
+    "source": "assets/Game/native/ec/ec10bbb8-f59c-47df-b74b-666aa1290a14.e24d0.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_28.py"
+  },
+  "R_39": {
+    "source": "assets/Game/native/ef/efe06208-51ae-4043-be74-7794995695bf.b335a.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2",
+      "scene3",
+      "scene4",
+      "scene5",
+      "scene6",
+      "scene7"
+    ],
+    "output": "decompiled-python/R_39.py"
+  },
+  "S_16": {
+    "source": "assets/Game/native/ef/effe33d8-9b0d-40c1-80f8-94d3007527d6.99c32.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_16.py"
+  },
+  "R_54": {
+    "source": "assets/Game/native/f3/f3c3ce71-29ef-40ec-858b-0110089880cc.51673.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1"
+    ],
+    "output": "decompiled-python/R_54.py"
+  },
+  "S_19": {
+    "source": "assets/Game/native/fc/fc514fdd-3d10-48c8-acc9-205782deaa2a.75c9b.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/S_19.py"
+  },
+  "R_17": {
+    "source": "assets/Game/native/fc/fcd3d9b0-507e-4d84-adf4-b3c0aa04e706.ce0f2.bin",
+    "functions": [
+      "__dispatch__",
+      "scene0",
+      "scene1",
+      "scene2"
+    ],
+    "output": "decompiled-python/R_17.py"
+  }
+}

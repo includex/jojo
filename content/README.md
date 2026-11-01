@@ -26,7 +26,7 @@
 ./gradlew :verification:verifyAllHeadless
 ```
 
-일반 빌드의 `:core:processResources`도 자동으로 컴파일한다. 출력은 `core/build/generated/game-content/data/*.bin`이고 번들에서는 `maps/data/`가 된다. 생성물은 편집하지 않는다. 기존 외부 프로젝트의 같은 여섯 테이블은 번들에서 제외하므로 YAML이 실제 실행 데이터의 원본이다. 다른 병종·지형·상점·이미지·음원 및 Python 시나리오는 아직 기존 외부 입력을 사용한다.
+일반 빌드의 `:core:processResources`도 자동으로 컴파일한다. 출력은 `core/build/generated/game-content/data/*.bin`이고 번들에서는 `maps/data/`가 된다. 생성물은 편집하지 않는다. 기존 외부 프로젝트의 같은 여섯 테이블은 번들에서 제외하므로 YAML이 실제 실행 데이터의 원본이다. Python 시나리오·manifest·대사는 content/scenarios에서 관리한다. 다른 병종·지형·상점·이미지·음원은 아직 기존 외부 입력을 사용한다.
 
 ## 예시
 
@@ -79,6 +79,7 @@ learnLevels:
 ## 값의 의미와 현재 제약
 
 - 인물 능력치 필드 이름은 현재 `UnitProfile`의 이름을 따른다. `speechGroup`은 치명타 대사 그룹이며 `criticalTexts`로 개별 대사 목록을 정의할 수 있다.
+- `skillEffects`는 해당 파일 ID를 키로 하는 효과 그룹을 정의한다. 게임은 특수 장비의 `specialType`, 보조구의 `itemType`으로 그룹을 조회한다. 예를 들어 장비 90은 specialType 26 → equipment/0026.yaml의 그룹 → 효과 106 → 패시브 146으로 연결된다. 해당 파일 장비에 직접 부착하는 목록으로 해석하면 안 된다.
 - `equipment`는 소비 아이템까지 포함한 기존 item 테이블 전체다. `iconIndex`는 원본 인덱스이며 현재 화면용 프로필은 여기에 1을 더한다. `upgradeValue`는 기존 8번 필드로 성장/병과 호환 경로에서 사용된다.
 - 현재 소비 아이템 판별의 `150..254`, 255의 미지정 표식, 장비의 compact ID 변환 등은 기존 게임 규칙이다. YAML로 옮겼다고 이 제한을 제거한 것은 아니다. 새 ID의 기능을 확인하고 필요하면 core 규칙과 세이브 호환성을 함께 확장한다.
 - `itemType`, `category`, `phase`, `incrementType`, `argument` 등은 기존 규칙의 숫자 코드다. 새 효과 종류는 데이터와 core의 해석 코드를 함께 추가해야 한다. 새 인물·아이템의 이미지도 별도로 준비해야 한다.
@@ -86,3 +87,16 @@ learnLevels:
 - 엔진은 YAML이나 게임 ID를 알지 않는다. YAML 파싱과 테이블 생성은 `buildSrc`에서만 수행하며 Android/desktop 실행 의존성에는 YAML 파서를 넣지 않는다.
 
 [기능별 이용 가이드](../docs/engine-core-feature-guide.html) · [스키마](schema.json)
+
+처음 시작한다면 [단계별 YAML 실습](../docs/developer-onboarding.html)을 따른다.
+
+## 시나리오
+
+`scenarios/`는 Python 시나리오 119개, `manifest.json`, `dialogue-text.json`을 소유한다. R_XX는 시나리오, S_XX는 전투이며 common/train 모듈도 함께 번들한다. 파일과 줄 번호를 그대로 이전해 기존 대사 키를 유지했다.
+
+```sh
+./gradlew :core:exportScenarioAst :core:processResources
+./gradlew :desktop:run --args="--scenario=R_01"
+```
+
+새 모듈은 Python 파일뿐 아니라 manifest에도 등록한다. stage.say 대사는 생성 AST의 `@dialogue:모듈:함수:줄번호` 키와 dialogue-text.json의 entries를 맞춘다. AST 생성은 원본 바이트코드의 잘못 복원된 분기를 보정하기 위해 아직 외부 assets를 참조한다. 원본 비교용 도구는 별도 외부 원본을 유지할 수 있으며, 실행용 시나리오 작성 위치는 이 디렉토리다. YAML 컴파일러는 scenarios를 처리하지 않고 별도 AST 빌드가 담당한다.

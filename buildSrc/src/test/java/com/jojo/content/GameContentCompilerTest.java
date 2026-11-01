@@ -16,6 +16,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class GameContentCompilerTest {
     @TempDir Path temp;
 
+    @Test void scenarioSourcesAreOwnedByTheSeparateAstPipeline() throws Exception {
+        Path content = fixture();
+        Files.createDirectories(content.resolve("scenarios"));
+        Files.writeString(content.resolve("scenarios/R_00.py"), "def scene0(): pass\n");
+        Files.writeString(content.resolve("scenarios/dialogue-text.json"), "{}");
+        GameContentCompiler.compile(content, temp.resolve("compiled"));
+        assertTrue(Files.exists(temp.resolve("compiled/data/unit.bin")));
+        Files.writeString(content.resolve("unexpected.py"), "pass");
+        assertThrows(IllegalArgumentException.class,
+                () -> GameContentCompiler.compile(content, temp.resolve("bad")));
+    }
+
     @Test void encodingMatchesRuntimeRotationAndDigest() throws Exception {
         String json = "[{\"0\":\"조조\\n\\\"test\\\"\"}]";
         byte[] encoded = GameContentCompiler.encode(json);

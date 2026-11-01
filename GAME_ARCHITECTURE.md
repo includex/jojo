@@ -50,7 +50,7 @@ verification ───────────┘
 
 `content/characters`, `content/equipment`, `content/skills/{active,passive,assignments,equipment}`에서 각 요소를 YAML 파일 하나로 정의한다. `content/schema.json`이 이름 있는 필드와 기존 런타임 테이블의 대응을 명시한다. `:core:compileGameContent`는 빌드 시 YAML·ID·필드 타입과 주요 스킬 참조를 검증하고 여섯 테이블을 `core/build/generated/game-content/data`에 생성한다. `processResources`는 이 테이블만 번들하며 외부 원본의 동일한 테이블은 제외한다. 화자 이름 라벨 생성도 YAML에서 컴파일한 인물 표를 읽는다.
 
-인덱스형 런타임과 저장 호환성을 유지하기 위해 기존 ID를 보존한다. 다른 병종·지형·상점·이미지·시나리오 입력은 아직 기존 경로를 사용한다. YAML 파서는 buildSrc에만 있으며 engine/core 런타임 의존을 늘리지 않는다. 편집 방법과 ID 제약은 [콘텐츠 안내](content/README.md)를 따른다.
+인덱스형 런타임과 저장 호환성을 유지하기 위해 기존 ID를 보존한다. Python 시나리오·manifest·대사는 content/scenarios에서 관리하며, 다른 병종·지형·상점·이미지 입력은 아직 기존 외부 경로를 사용한다. YAML 파서는 buildSrc에만 있으며 engine/core 런타임 의존을 늘리지 않는다. 편집 방법과 ID 제약은 [콘텐츠 안내](content/README.md)를 따른다.
 
 ## 경계를 유지하는 방법
 

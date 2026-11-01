@@ -487,10 +487,8 @@ val verifyUnitListInfoPairwise=tasks.register<Exec>("verifyUnitListInfoPairwise"
 // Resource packaging belongs to core.  Keep this legacy declaration disabled
 // here while the trace catalog is hosted by verification.
 if (false) {
-// Candidate-only read-only source input.  The copied project lives below
-// `.verification-work`, so the central project's relative source path is no
-// longer its sibling.
-val restoredScenarioDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/decompiled-python")
+// Candidate-only read-only authored scenario input.
+val restoredScenarioDirectory = rootProject.file("content/scenarios")
 val generatedAstDirectory = layout.buildDirectory.dir("generated/scenario-ast")
 val scenarioBranchSurface = layout.buildDirectory.file("reports/scenario-branch-surface.json")
 val cocosAssetsDirectory = file("/Users/ain/workspace/jojo_mobile/sgccz-desktop/assets")
@@ -555,12 +553,15 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
 
 val exportScenarioAst = tasks.register<Exec>("exportScenarioAst") {
     inputs.dir(restoredScenarioDirectory)
+    inputs.dir(cocosAssetsDirectory)
     inputs.file(rootProject.file("tools/export_python_ast.py"))
+    inputs.file(rootProject.file("tools/repair_scenario_branch_nesting.py"))
     outputs.dir(generatedAstDirectory)
     commandLine(
         "python3",
         rootProject.file("tools/export_python_ast.py").absolutePath,
         restoredScenarioDirectory.absolutePath,
+        cocosAssetsDirectory.absolutePath,
         generatedAstDirectory.get().asFile.absolutePath
     )
 }

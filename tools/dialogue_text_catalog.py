@@ -1,10 +1,10 @@
-"""Load canonical dialogue text catalogs from core game resources."""
+"""Load the canonical dialogue text catalog from authored scenario content."""
 import json
 from pathlib import Path
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_CATALOG_PATH = _REPO_ROOT / "core/src/main/resources/scenarios/dialogue-text.json"
+_CATALOG_PATH = _REPO_ROOT / "content/scenarios/dialogue-text.json"
 _DOCUMENT = json.loads(_CATALOG_PATH.read_text(encoding="utf-8"))
 _CATALOG = {**_DOCUMENT["entries"], **_DOCUMENT["aliases"]}
 

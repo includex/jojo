@@ -59,7 +59,7 @@ c.sort(); print(json.dumps([v for _,v in c[:1]],ensure_ascii=False))`;
 function astJsonInput(value) {
   const calls=[];
   const dialogueEntries = labelStyle === 'info' ? null : JSON.parse(fs.readFileSync(
-    path.resolve(__dirname, '../core/src/main/resources/scenarios/dialogue-text.json'), 'utf8')).entries;
+    path.resolve(__dirname, '../content/scenarios/dialogue-text.json'), 'utf8')).entries;
   function walk(node, inScene1=false) {
     if (Array.isArray(node)) return node.forEach(x=>walk(x,inScene1));
     if (!node || typeof node !== 'object') return;
