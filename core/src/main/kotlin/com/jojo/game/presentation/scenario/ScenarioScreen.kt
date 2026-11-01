@@ -1,6 +1,8 @@
 // Scenario
 package com.jojo.game.presentation.scenario
 
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
+
 import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.infrastructure.data.GameDataCatalog
 import com.jojo.game.infrastructure.data.ScenarioCatalog
@@ -177,6 +179,7 @@ class ScenarioScreen(
             append(gameDataCatalog.allUnitNames().joinToString(separator = ""))
             append(gameDataCatalog.allEquipmentProfiles().joinToString(separator = "") { it.name })
             append(Gdx.files.internal("scenarios/$moduleName.py").readString("UTF-8"))
+            append(ScenarioDialogueTextCatalog.fontCharacters)
         }
     }
     private var submittedHallUnitReadinessToken: Long? = null

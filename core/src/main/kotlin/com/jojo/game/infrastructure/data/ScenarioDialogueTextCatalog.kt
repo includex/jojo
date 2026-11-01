@@ -35,6 +35,14 @@ object ScenarioDialogueTextCatalog {
         catalog.entries.size
     }
 
+    /** Glyphs for authored dialogue, including aliases, independent of the script language or module. */
+    val fontCharacters: String by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        buildSet<Char> {
+            catalog.entries.values.forEach { addAll(it.toList()) }
+            catalog.aliases.values.forEach { addAll(it.toList()) }
+        }.sorted().joinToString("")
+    }
+
     /** Returns a dialogue by source key or a named alias using the in-memory catalog. */
     fun text(key: String): String = catalog.entries[key]
         ?: catalog.legacyKeys[key]?.let(catalog.entries::get)

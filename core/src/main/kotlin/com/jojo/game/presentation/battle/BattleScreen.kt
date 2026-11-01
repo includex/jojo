@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle
 
+import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
+
 import com.jojo.game.presentation.i18n.SystemMessage
 
 import com.badlogic.gdx.Gdx
@@ -1483,6 +1485,7 @@ void main() {
             terrainLayerView()
                 .select(TerrainLayer.Tab.RISE).rows.firstOrNull()?.values?.joinToString { it.armName } ?: "")
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
+        append(ScenarioDialogueTextCatalog.fontCharacters)
         Gdx.files.internal("scenarios/R_00.py").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
         append(SystemMessage.S_555C05543A)
         append(SystemMessage.S_CF2C285BC5)
@@ -1595,6 +1598,7 @@ void main() {
     private val dialogueFont: BitmapFont = KoreanFont.create(36, buildString {
         append(gameDataCatalog.allUnitNames().joinToString())
         append(Gdx.files.internal("scenarios/$sourceScenario.py").readString("UTF-8"))
+        append(ScenarioDialogueTextCatalog.fontCharacters)
         // 시나리오 대사에 없는 글자를 쓰는 화면 문구는 따로 넣어야 한다. 빠지면 해당 글자가
         // 통째로 사라져 "다시 플레이하시겠습니까?"가 "다시 이하시겠습니까?"로 보인다.
         append(BATTLE_UI_GLYPHS)
