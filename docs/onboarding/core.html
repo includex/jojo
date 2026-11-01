@@ -1,0 +1,55 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kotlin 규칙 확장하기 | 게임 제작 교실</title><link rel="stylesheet" href="course.css"></head><body><a class="skip" href="#main">본문으로 건너뛰기</a><aside class="sidebar"><a class="brand" href="../index.html">JOJO · CREATOR GUIDE</a><div class="navtitle">게임 제작 교실</div><a class="home" href="../developer-onboarding.html">← 학습 과정으로</a><nav class="task-index" aria-label="전체 과제"><h3>시작 준비</h3><a class="" href="setup.html"><small>00</small>원본 게임 한 번 실행하기</a><h3>초급 · 하나씩 바꾸기</h3><a class="" href="yaml.html"><small>01</small>YAML로 장수 이름 바꾸기</a><a class="" href="assets.html"><small>02</small>초상화 한 장 바꾸기</a><a class="" href="dialogue.html"><small>03</small>대사 한 줄 고치기</a><a class="" href="deployment.html"><small>04</small>아군·적군 위치 바꾸기</a><h3>중급 · 요소 연결하기</h3><a class="" href="character.html"><small>01</small>새 동료 한 명 연결하기</a><a class="" href="equipment.html"><small>02</small>장비를 만들고 착용시키기</a><a class="" href="skills.html"><small>03</small>스킬을 배우게 만들기</a><a class="" href="story.html"><small>04</small>선택을 기억하는 이야기</a><h3>고급 · 규칙 확장하기</h3><a class="" href="lua.html"><small>01</small>Lua로 공격 특성 만들기</a><a class="" href="package.html"><small>02</small>다른 세계관으로 구성하기</a><a class="current" href="core.html" aria-current="page"><small>03</small>Kotlin 규칙 확장하기</a></nav><div class="progressbox"><p data-course-progress></p><p>완료 체크는 이 브라우저에만 저장됩니다.</p><button type="button" data-reset>체크 초기화</button></div></aside><div class="shell"><header class="topbar"><span>처음 만드는 사람을 위한 과제형 학습 · 2026-11-01 구현 기준</span><button type="button" data-print>인쇄 / PDF</button></header><div class="page-hero"><div class="breadcrumb"><a href="../developer-onboarding.html">학습 과정</a> / 고급 03</div><h1>Kotlin 규칙 확장하기</h1><p>새 핸들러를 만들고 조립 지점과 YAML을 연결합니다.</p><div class="topic-overview"><div><b>이번에 편집할 곳</b><code>새 TrainingRules.kt · BattleScenarioAssembler.kt · game-rules.yaml · 테스트</code></div><div><b>배울 것</b>content·core·engine의 책임을 구분하며 확장합니다.</div></div></div><main id="main" class="content topic-body"><section class="lesson"><h2>이번 과제</h2><p><b>상태 이상이 없는 유닛만 턴 종료에 MP를 회복</b>하는 Kotlin 핸들러를 추가합니다. 같은 행동은 Lua로도 표현할 수 있지만, 이 과제에서는 core 확장과 등록·검증의 흐름을 배웁니다. Kotlin 파일 편집과 테스트 실행이 가능한 개발자용입니다.</p><div class="pipeline"><div><b>핸들러 작성</b><span>상태 → 효과 목록</span></div><i>→</i><div><b>모듈 등록</b><span>조립 지점에 전달</span></div><i>→</i><div><b>YAML 연결</b><span>이벤트·인자 지정</span></div></div><h2>1. 핸들러와 모듈 작성</h2><p><code>core/src/main/kotlin/com/jojo/game/domain/rules/TrainingRules.kt</code>를 만들고 다음 코드를 작성합니다. 기존 파일의 다른 핸들러는 수정하지 않습니다.</p></section><div class="code"><div class="codebar"><span>TrainingRules.kt 전체 예제 · kotlin</span><button class="copy" type="button">복사</button></div><pre><code>package com.jojo.game.domain.rules
+
+object ClearMindHandler : RuleHandler {
+    override val id = &quot;tutorial.clearMind&quot;
+    override val supportedEvents = setOf(RuleEvent.TURN_END)
+
+    override fun validate(parameters: Map&lt;String, String&gt;) {
+        require(parameters.keys == setOf(&quot;amount&quot;))
+        val amount = requireNotNull(parameters[&quot;amount&quot;]?.toIntOrNull())
+        require(amount &gt;= 0)
+    }
+
+    override fun evaluate(
+        context: RuleContext,
+        parameters: Map&lt;String, String&gt;,
+        random: RuleRandom,
+    ): List&lt;RuleEffect&gt; {
+        val unit = context.units.getValue(context.actorId)
+        if (unit.statuses.isNotEmpty()) return emptyList()
+        val amount = minOf(parameters.getValue(&quot;amount&quot;).toInt(),
+            unit.maxMagicPoints - unit.magicPoints)
+        return listOf(RuleEffect.MpDelta(unit.id, amount))
+    }
+}
+
+object TrainingRules : RuleModule {
+    override val handlers: List&lt;RuleHandler&gt; = listOf(ClearMindHandler)
+}</code></pre></div><section class="lesson"><h2>2. 전투 조립 지점에 모듈 전달</h2><p><a href="../../core/src/main/kotlin/com/jojo/game/application/battle/BattleScenarioAssembler.kt">BattleScenarioAssembler.kt</a>에 아래 import를 추가합니다. <code>ruleConfig.createEngine</code> 호출의 모듈 목록도 수정합니다.</p><div class="code"><div class="codebar"><span>부분 수정 · createEngine 호출 전체를 교체하지 않음 · kotlin</span><button class="copy" type="button">복사</button></div><pre><code>import com.jojo.game.domain.rules.TrainingRules
+
+// createEngine의 모듈 목록 인자만 다음으로 바꾸기
+request.ruleModules + luaRules.module + TrainingRules</code></pre></div><p>모듈 등록은 실제로 핸들러를 쓸 수 있게 하는 단계입니다. YAML의 handler 문자열만 적는다고 Kotlin 클래스를 자동 탐색하지 않습니다.</p><h2>3. 설정에서 활성화</h2><p><a href="../../content/rules/game-rules.yaml">content/rules/game-rules.yaml</a>의 rules가 <code>[]</code>이면 아래 목록으로 교체합니다. 기존 규칙이 있으면 항목을 추가하고 version·resources는 유지합니다.</p><div class="code"><div class="codebar"><span>game-rules.yaml의 rules 부분 · yaml</span><button class="copy" type="button">복사</button></div><pre><code>rules:
+  - id: tutorial.endRecovery
+    event: TURN_END
+    handler: tutorial.clearMind
+    parameters: {amount: 2}</code></pre></div><h2>4. 두 조건과 상한을 검증</h2><p>새 테스트 파일 <code>core/src/test/kotlin/com/jojo/game/domain/rules/TrainingRulesTest.kt</code>를 만듭니다.</p><div class="code"><div class="codebar"><span>새 테스트 파일 · kotlin</span><button class="copy" type="button">복사</button></div><pre><code>package com.jojo.game.domain.rules
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class TrainingRulesTest {
+    @Test fun recoveryRespectsStatusesAndMaximum() {
+        val engine = RuleEngine(TrainingRules.handlers, RuleRandom { 0 })
+        val rules = listOf(RuleDefinition(&quot;test.end&quot;, RuleEvent.TURN_END,
+            ClearMindHandler.id, parameters = mapOf(&quot;amount&quot; to &quot;2&quot;)))
+        val unit = RuleUnitSnapshot(&quot;hero&quot;, 10, 10, 9, 10)
+        val context = RuleContext(RuleEvent.TURN_END, &quot;hero&quot;,
+            mapOf(&quot;hero&quot; to unit))
+        assertEquals(listOf(RuleEffect.MpDelta(&quot;hero&quot;, 1)),
+            engine.execute(rules, context).effects)
+        val afflicted = context.copy(units = mapOf(&quot;hero&quot; to
+            unit.copy(statuses = setOf(&quot;core.poison&quot;))))
+        assertEquals(emptyList(), engine.execute(rules, afflicted).effects)
+    }
+}</code></pre></div><div class="code"><div class="codebar"><span>핸들러 검증과 통합 컴파일 · sh</span><button class="copy" type="button">복사</button></div><pre><code>./gradlew :core:test --tests &#x27;*TrainingRulesTest&#x27;
+./gradlew :engine:test :core:test :desktop:classes</code></pre></div><div class="result"><b>성공하면 이렇게 보입니다</b><p>상태 이상이 없고 MP가 부족한 유닛은 자신의 진영 턴 종료에 최대 2 MP를 회복합니다. 상태 이상이 있으면 회복하지 않고 최대 MP를 넘기지 않습니다. 실제 전투에서도 두 조건을 시험합니다.</p></div><aside class="note"><strong>engine에 넣지 않는 이유</strong><p>이 핸들러는 전투 상태와 MP 효과를 아는 게임 규칙입니다. core에 두고 조립 지점에서 등록합니다. 범용 경로 탐색이나 글자 공개 기능인 engine에 게임 이름·장비 ID 분기를 넣지 않습니다.</p></aside><h2>실습 정리</h2><p>실습만 되돌리려면 YAML의 tutorial.endRecovery 항목, 조립 지점의 TrainingRules 추가와 import, 새 Kotlin·테스트 파일을 함께 되돌립니다. 일반 게임용으로 유지하려면 이름·효과 계약·저장 영향과 사용자 문서도 정리합니다.</p><p>더 자세한 책임 경계는 <a href="../engine-game-architecture.html">엔진과 게임 구조</a>, 효과 계약은 <a href="../game-rule-extension-guide.html">규칙 확장 가이드</a>를 참고하세요.</p></section><label class="checkpoint"><input type="checkbox" data-lesson-check="core"><span><b>과제 완료</b>새 핸들러의 조건·상한 테스트와 실제 턴 종료 동작을 확인했습니다.</span></label><nav class="lesson-nav" aria-label="이전 다음 과제"><a href="package.html"><span>이전</span>다른 세계관으로 구성하기</a><a class="next" href="../developer-onboarding.html"><span>과정 돌아보기</span>학습 과정으로</a></nav></main><footer><a href="../developer-onboarding.html">학습 과정</a> · <a href="../index.html">문서 홈</a><p>게임 파일은 문서에서 자동 변경되지 않습니다. 예제와 과제는 현재 구현의 필드·API·제약을 기준으로 작성했습니다.</p></footer></div><script src="course.js"></script></body></html>
