@@ -611,12 +611,12 @@ def scene0():
     stage.draw()
     stage.bgSound(5)
     stage.unit(131).setAction(5)
-    stage.say('&131\n점쟁이 할멈이 하늘의 말씀을 전했다.\n이 이각이 천하를 얻으려면 황제의 지지가 필요하다고!\n&131\n쫓아라, 추격하라! 헌제를 놓치지 마라!')
+    stage.say('@dialogue:S_09.scene0.dialogue0001')
     stage.unit(131).setAction(0)
-    stage.say('&149\n짐은 저들에게 붙잡힐 수 없다.\n허수아비가 되어 후세의 비웃음을 받느니\n차라리 죽는 편이 낫다.\n&129\n천명을 아는 자는 하늘도 남도 원망하지 않는 법입니다.\n얌전히 계시고 달아나지 않으시면 어떻겠습니까?\n&129\n이런, 천자를 모시는 말치고는 불경했습니까?\n하하하.\n&13\n(황제를 붙잡으면 도리에 어긋나지만\n놓아주면 역적이라는 오명을 뒤집어쓴다!)\n가엾기는 해도 놓아줄 수는 없다!')
+    stage.say('@dialogue:S_09.scene0.dialogue0002')
     stage.unit(5).setDir(stage.countDir(5, 149))
     stage.unit(0).setDir(stage.countDir(0, 149))
-    stage.say('&5\n헌제를 뒤쫓는 자들은\n동탁의 잔당인 이각과 곽사 일당인 듯합니다.\n&0\n음, 행군을 서둘러라! 헌제를 구출한다!\n적에게 빼앗길 수는 없다. 서둘러라!')
+    stage.say('@dialogue:S_09.scene0.dialogue0003')
     stage.setWinCondition('승리 조건\n1. 헌제가 북동쪽 끝에 도착한다.\n2. 모든 적을 섬멸한다.\n\n패배 조건\n1. 헌제가 적에게 붙잡힌다.\n2. 조조가 사망한다.\n3. 20턴을 초과한다.')
     stage.showWinCondition('헌제가 탈출한다!')
     stage.unit(149).heightLight()
@@ -658,21 +658,21 @@ def scene1():
         stage.getItem(150, 0, True, 1025)
         vars[22] = 1
     if not vars[30] and stage.isInRect(149, 16, 0, 19, 0):
-        stage.say('&149\n마침내 위험에서 벗어났구나…….')
+        stage.say('@dialogue:S_09.scene1.dialogue0001')
         stage.unit(149).setDir(stage.countDir(149, 0))
         if vars[2]:
-            stage.say('&149\n조조는 참으로 훌륭히 싸웠구나!\n싸움을 위해 태어난 듯하도다!\n&149\n짐을 구한 것도 출전할 구실에 불과했을지 모르지…….\n&149\n허나 짐을 구한 것 또한 사실이니…\n감사를 표해야겠구나…….\n성자의 보검을 내리도록 하자.')
+            stage.say('@dialogue:S_09.scene1.dialogue0002')
             stage.unit(0).setDir(stage.countDir(0, 149))
             stage.getItem(52, 0)
             stage.setRectUnitHide(0, 0, 19, 19, 1)
-            stage.say('&0\n헌제께서 무사히 위기를 벗어나셨으니\n이제 싸움에만 전념할 수 있겠군.')
+            stage.say('@dialogue:S_09.scene1.dialogue0003')
         if not vars[2]:
             stage.resumeCtrl()
-            stage.say('&149\n모두 조조의 공이로군…\n후한 상을 내려야겠다.\n황금갑옷을 내리도록 하라.')
+            stage.say('@dialogue:S_09.scene1.dialogue0004')
             stage.getItem(80, 0)
             stage.setRectUnitHide(0, 0, 19, 19, 1)
             stage.unit(0).setAction(5)
-            stage.say('&0\n헌제께서 무사히 위기를 벗어나셨다…\n좋다. 적의 잔병은 내버려 두어라.\n전군 퇴각하라!')
+            stage.say('@dialogue:S_09.scene1.dialogue0005')
             stage.unit(0).setAction(0)
             stage.reward()
             stage.end()
@@ -684,15 +684,15 @@ def scene1():
     if not vars[40] and stage.isNear(0, 149, True):
         stage.unit(0).setDir(stage.countDir(0, 149))
         stage.unit(149).setDir(stage.countDir(149, 0))
-        stage.say('&0\n폐하, 옥체는 무사하십니까?\n앞으로는 신이 지켜 드릴 것이니 안심하십시오.\n&149\n오, 그대가 조조인가?\n위급한 순간에 짐을 구해 주었으니,\n경의 충심에 참으로 감사하오.\n&0\n(음, 이제 어찌해야 할까…….)')
+        stage.say('@dialogue:S_09.scene1.dialogue0006')
         sel = stage.choice('헌제 일행을 호위한다\n모든 적을 섬멸한다', -1)
         if sel == 1:
-            stage.say('&0\n앞으로는 신이 폐하를 지키겠나이다.\n자, 이쪽으로 드시옵소서!\n&149\n수고가 많구나, 경.\n&0\n신의 영광이옵니다.')
+            stage.say('@dialogue:S_09.scene1.dialogue0007')
         elif sel == 2:
             stage.unit(0).setAction(5)
-            stage.say('&0\n이제 적을 모조리 섬멸한다.\n전군 돌격하라!')
+            stage.say('@dialogue:S_09.scene1.dialogue0008')
             stage.unit(0).setAction(0)
-            stage.say('&149\n지, 짐은 어찌하면 좋겠는가?\n&0\n염려 마시옵소서. 적 한 놈도 놓치지 않겠사오니\n폐하께서는 천천히 가시옵소서.\n&149\n…….')
+            stage.say('@dialogue:S_09.scene1.dialogue0009')
             stage.setWinCondition('승리 조건\n1. 모든 적을 섬멸한다.\n\n패배 조건\n1. 헌제가 적군에게 붙잡힌다.\n2. 조조가 사망한다.\n3. 20턴을 초과한다.')
             stage.showWinCondition('모든 적을 섬멸하라!')
             vars[2] = 1
@@ -700,20 +700,20 @@ def scene1():
     if not vars[41] and stage.isNear(0, 129, True):
         stage.unit(129).setDir(stage.countDir(129, 0))
         stage.unit(0).setDir(stage.countDir(0, 129))
-        stage.say('&129\n드디어 다시 만났구나!\n사수관의 원수를 갚겠다!\n&0\n나는 황명을 받들어 천자를 구하러 온 관군이다.\n참된 역적은 바로 너희다!\n순순히 항복하면 목숨만은 살려 주겠다.\n&129\n헛소리 마라! 너나 나나 한통속이다.')
+        stage.say('@dialogue:S_09.scene1.dialogue0010')
         vars[41] = 1
     if not vars[42] and stage.isNear(0, 131, True):
         stage.unit(131).setDir(stage.countDir(131, 0))
         stage.unit(0).setDir(stage.countDir(0, 131))
-        stage.say('&131\n내 천자……내 천하……!\n조조! 순순히 황제를 내놓으면\n네 하찮은 목숨만은 살려 주마.\n&0\n천자를 빼앗으면 천하를 독차지할 수 있을 줄 아느냐?\n그 짧은 안목이 네 목숨을 앗아갈 것이다.\n&131\n가증스러운 놈!')
+        stage.say('@dialogue:S_09.scene1.dialogue0011')
         vars[42] = 1
     if not vars[43] and stage.isNear(0, 13, True):
         stage.unit(0).setDir(stage.countDir(0, 13))
         stage.unit(13).setDir(stage.countDir(13, 0))
-        stage.say('&0\n천자를 호위하는 것도 참 고된 일이겠군.\n하하하!\n&13\n입 다물어라!\n어찌 너처럼……\n속셈이 음흉한 자에게 천자를 넘기겠느냐.\n&0\n사리사욕밖에 모르는 너희가\n천자를 어찌 모셔야 하는지 알 리 없지!\n&0\n내가 천자를 모시면 천하 백성을 이롭게 할 수 있다.\n순순히 물러가거라!\n&13\n네 그럴듯한 거짓말에는 속지 않는다.')
+        stage.say('@dialogue:S_09.scene1.dialogue0012')
         vars[43] = 1
     if not vars[50] and stage.unitStateTest(149, 7, 0, 2):
-        stage.say('&149\n아…… 짐이 또 난을 당하는 것인가……?')
+        stage.say('@dialogue:S_09.scene1.dialogue0013')
         vars[50] = 1
         stage.info('조조는 헌제를 구하지 못했다.')
         stage.end()
@@ -721,27 +721,27 @@ def scene1():
         vars[1] = 1
         return True
     if not vars[51] and stage.unitStateTest(13, 7, 0, 2):
-        stage.say('&13\n조조만은 이각과 곽사처럼\n천자를 업신여기지 않았으면 좋겠군…….\n퇴각하라!')
+        stage.say('@dialogue:S_09.scene1.dialogue0014')
         stage.unit(13).hide(1)
         vars[51] = 1
     if not vars[52] and stage.unitStateTest(131, 7, 0, 2):
-        stage.say('&131\n퇴, 퇴각하라!\n분하다! 천자를 놓치면 제후들을 통제할 수 없다.\n이대로 끝이란 말인가?')
+        stage.say('@dialogue:S_09.scene1.dialogue0015')
         stage.unit(131).hide(1)
         vars[52] = 1
     if not vars[53] and stage.unitStateTest(129, 7, 0, 2):
-        stage.say('&129\n삼십육계 줄행랑이 상책이지.\n장안으로 돌아가 전열을 정비하자.')
+        stage.say('@dialogue:S_09.scene1.dialogue0016')
         stage.unit(129).hide(1)
         vars[53] = 1
     if not vars[0] and stage.winTest():
         stage.resumeCtrl()
-        stage.say('&0\n좋다, 마침내 적을 섬멸했다!\n우리의 승리다!')
+        stage.say('@dialogue:S_09.scene1.dialogue0017')
         if not vars[30]:
-            stage.say('&149\n겨우 위험에서 벗어났구나…….')
+            stage.say('@dialogue:S_09.scene1.dialogue0018')
             if vars[2]:
-                stage.say('&149\n조조는 참으로 훌륭하게 싸웠구나!\n싸움을 위해 태어난 듯하군!\n&149\n짐을 구한다는 것도 출전할 구실이었을지 모르지…….\n&149\n하지만 짐을 구한 것 또한 사실이니…\n후한 상을 내려야겠다…….\n성자의 보검을 내리도록 하라.')
+                stage.say('@dialogue:S_09.scene1.dialogue0019')
                 stage.getItem(52, 0)
             if not vars[2]:
-                stage.say('&149\n모두 조조의 공이로군…\n후한 상을 내려야겠다.\n황금갑옷을 내리도록 하라.')
+                stage.say('@dialogue:S_09.scene1.dialogue0020')
                 stage.getItem(80, 0)
             vars[30] = 1
         stage.reward()

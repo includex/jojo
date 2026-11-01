@@ -319,6 +319,8 @@ class ScenarioInterpreter internal constructor(
         onSetState = { state = it },
         resolveStageUnitReference = ::resolveStageUnitReference,
     )
+    /** Language-neutral game commands for a scenario runner. */
+    val hostApi: ScenarioHostApi get() = callCoordinator.hostApi
     /** setBattleContext: 전투 시나리오 조건식이 읽을 라운드·진영·배치 정보를 교체한다. */
     fun setBattleContext(context: ScenarioBattleScriptContext) {
         battleContext = context

@@ -244,27 +244,27 @@ def scene1():
     stage.unitsMove([[stage.unit(181), 40, 45, 2], [stage.unit(0), 40, 35, 2], [stage.unit(182), 40, 25, 2], [stage.unit(157), 54, 65, 0]])
     stage.delay(3)
     stage.unit(181).setAction(0, 0)
-    stage.say('&181\n주군, 서두르셔야 합니다!\n&0\n알고 있다!')
+    stage.say('@dialogue:R_00.scene1.dialogue0001')
     stage.unitsMove([[stage.unit(181), 40, 60, 2], [stage.unit(0), 40, 50, 2], [stage.unit(182), 40, 40, 2], [stage.unit(157), 54, 50, 0]])
     stage.unit(0).setAction(0)
     stage.unit(181).setAction(0)
     stage.unit(182).setAction(0)
     stage.delay(3)
     stage.unit(157).setAction(0, 3)
-    stage.say('&157\n잠시 걸음을 멈춰 주시겠습니까!')
+    stage.say('@dialogue:R_00.scene1.dialogue0002')
     stage.unit(181).setAction(0, 1)
-    stage.say('&181\n누구냐! 감히 관군의 앞길을 막으려는 것이냐!')
-    stage.say('&0\n잠깐 기다려라.')
+    stage.say('@dialogue:R_00.scene1.dialogue0003')
+    stage.say('@dialogue:R_00.scene1.dialogue0004')
     stage.unit(0).setAction(0, 1)
-    stage.say('&0\n어르신, 내게 무슨 볼일이 있으시오?\n나는 관군의 기병대장이오.\n성은 조, 이름은 조이며 자는 맹덕이라 하오.')
+    stage.say('@dialogue:R_00.scene1.dialogue0005')
     stage.unit(157).setAction(6)
-    stage.say('&157\n실은 나리의 상이 범상치 않기에\n저도 모르게 불러 세우고 말았습니다.')
+    stage.say('@dialogue:R_00.scene1.dialogue0006')
     stage.unit(157).setAction(0)
-    stage.say('&181\n이보시오, 감히 주군께 무례를 범하지 마시오!')
+    stage.say('@dialogue:R_00.scene1.dialogue0007')
     stage.unit(0).setAction(0, 2)
-    stage.say('&0\n그만, 나서지 마라!')
+    stage.say('@dialogue:R_00.scene1.dialogue0008')
     stage.unit(0).setAction(0, 1)
-    stage.say('&0\n어르신은 관상을 볼 줄 아시오?\n&157\n그렇습니다.\n&0\n그거 흥미롭구려!\n내 관상은 어떠하오?\n&157\n나리는 치세의 능신이십니다.\n허나 훗날 세상 사람들은 나리를 간웅이라 부를 것입니다.\n&181\n무, 무슨 망발이오!\n&0\n잠깐 기다려라.\n&0\n어르신, 천하에 큰 난리가 일어난다는 말씀이오?\n&157\n허허, 이 늙은이는 그런 말을 한 적이 없습니다.\n&0\n숨기실 것 없소.\n허나 간웅이라…….')
+    stage.say('@dialogue:R_00.scene1.dialogue0009')
     stage.effectSound(201, 255)
     stage.delay(3)
     stage.bgSound(11)
@@ -278,9 +278,9 @@ def scene1():
         stage.effectSound(201, 0)
         stage.delay(3)
         stage.unit(0).setAction(3)
-        stage.say('&0\n사내로 태어난 이상,\n난세의 간웅이 되는 것이야말로 내 뜻이오.')
+        stage.say('@dialogue:R_00.scene1.dialogue0010')
         stage.unit(0).setAction(0)
-        stage.say('&157\n그러셨군요. 실은 이 늙은이가 그저 허튼소리를 한 것입니다.\n부디 허물치 말아 주십시오.\n&157\n그럼 이만 물러가겠습니다. 장군의 승전을 기원하지요.')
+        stage.say('@dialogue:R_00.scene1.dialogue0011')
         stage.unit(157).setAction(0)
     elif sel == 2:
         vars[300] = 0
@@ -289,11 +289,11 @@ def scene1():
         stage.delay(3)
         stage.effectSound(201, 0)
         stage.delay(3)
-        stage.say('&0\n……간웅이라?\n지금 단정하기에는 너무 이르지 않소.')
+        stage.say('@dialogue:R_00.scene1.dialogue0012')
         stage.unit(157).setAction(6)
-        stage.say('&157\n그러셨군요. 실은 이 늙은이가 그저 허튼소리를 한 것입니다.\n부디 허물치 말아 주십시오.\n&157\n그럼 이만 물러가겠습니다. 장군의 승전을 기원하지요.')
+        stage.say('@dialogue:R_00.scene1.dialogue0013')
         stage.unit(157).setAction(0)
-    stage.say('&157\n떠나시기 전에 나리의 취향과 성향을\n몇 가지 여쭙고자 합니다.')
+    stage.say('@dialogue:R_00.scene1.dialogue0014')
     label('lab327')
     sel = stage.choice('[C28고전 모드]\n[C97확장 모드]\n[C3A자유 선택 모드]\n모드 설명', 0)
     if sel == 1:
@@ -531,20 +531,20 @@ def scene1():
             label('lab665')
             sel = stage.choice('모드 및 난이도\n명중 방식\n처치 보너스\n[C3A돌아가기]', 157)
             if sel == 1:
-                stage.say('&157\n[C97열매 육성 모드]는 고전 모드입니다.\n[C26슈퍼 열매 육성]을 선택하면 [C28적군 성장]이 활성화됩니다.\n[C26슈퍼 열매 육성]에서는 장비 판매 시 [C28열매를 3배] 얻습니다.\n&157\n[C3A공훈 모드]를 선택하면 [C28적군 성장]이 활성화됩니다.\n[C3A공훈 모드]에서는 [C28장비 자동 레벨업]도 활성화됩니다.\n&157\n세 모드 모두 능력치 상한은 [C28110]입니다.\n[C28능력치 재계산]과 [C28100 초과 보너스]도 모두 활성화됩니다.\n&157\n난이도는 네 단계로 나뉘며,\n난이도에 따라 [C28적군 성장 계수]가 달라집니다.\n[C3A백분율]은 난이도별 [C28적군 능력치 보너스]를 뜻합니다.')
+                stage.say('@dialogue:R_00.scene1.dialogue0015')
                 goto('lab665')
             if sel == 2:
-                stage.say('&157\n[C97고전 확률 방식:] 저장과 불러오기를 반복하여\n명중과 방어 결과를 바꿀 수 있습니다.\n&157\n[C97보정 방식:] 저장과 불러오기만으로는\n명중과 방어 결과를 [C28바꿀 수 없습니다].\n[C28부대의 행동 순서]를 바꾸면 결과에 영향을 줄 수 있습니다.\n&157\n명중률이 [C2885%를 넘으면 반드시 명중]하며,\n[C3A30% 미만이면 반드시 방어당합니다].\n&157\n[C97확률 누적 방식:] 확률에 따른 기댓값을 누적합니다.\n효과가 발동하지 않으면 기댓값이 계속 쌓이고,\n누적치가 100%에 이르면 반드시 발동합니다.\n&157\n쉽게 말해 치명타나 연속 공격 확률이 [C2850%]라면\n[C282]회 공격할 때마다 반드시 한 번 발동합니다.\n이 방식에는 무작위 요소가 없습니다.')
+                stage.say('@dialogue:R_00.scene1.dialogue0016')
                 goto('lab665')
             if sel == 3:
-                stage.say('&157\n쓰러뜨린 적의 수가 기록되며\n무장 능력 화면에서 확인할 수 있습니다.\n&157\n적 [C2830]명 처치마다 [C97모든 능력치가 1%] 증가합니다.\n적 [C2815]명 처치마다 [C97최대 HP와 MP가 1%] 증가합니다.\n처치 수가 [C28100]명에 도달하면 [C97이동력이 영구적으로 +1] 증가합니다. ([C3A한 번만 적용])')
+                stage.say('@dialogue:R_00.scene1.dialogue0017')
                 goto('lab665')
             if sel == 4:
                 goto('lab509')
         if sel == 6:
             pass
     elif sel == 3:
-        stage.say('&157\n[C28무작위 요소]를 너무 많이 켜면 게임의 재미를 해칠 수 있습니다.')
+        stage.say('@dialogue:R_00.scene1.dialogue0018')
         vars[1002] = 1
         gvars[4035] = 1
         gvars[4063] = 1
@@ -794,19 +794,19 @@ def scene1():
                 label('lab1031')
                 sel = stage.choice('모드와 난이도\n병종과 보물\n특기 설명\n명중 방식\n적 격파 보너스\n[C3A설정으로 돌아가기]', 157)
                 if sel == 1:
-                    stage.say('&157\n[C97열매 육성 모드]는 고전 모드입니다.\n[C26슈퍼 열매 육성]을 선택하면 [C28적군 성장]이 활성화됩니다.\n[C26슈퍼 열매 육성]에서는 장비 판매 시 [C28열매를 3배] 얻습니다.\n&157\n[C3A공훈 모드]를 선택하면 [C28적군 성장]이 활성화됩니다.\n[C3A공훈 모드]에서는 [C28장비 자동 레벨업]도 활성화됩니다.\n&157\n세 모드 모두 능력치 상한은 [C28110]입니다.\n[C28능력치 재계산]과 [C28100 초과 보너스]도 모두 활성화됩니다.\n&157\n난이도는 네 단계로 나뉘며,\n난이도에 따라 [C28적군 성장 계수]가 달라집니다.\n[C3A백분율]은 난이도별 [C28적군 능력치 보너스]를 뜻합니다.')
+                    stage.say('@dialogue:R_00.scene1.dialogue0019')
                     goto('lab1031')
                 if sel == 2:
-                    stage.say('&157\n[C97기본 병종:] 아군과 적군의 병종 능력 등급이 그대로 유지됩니다.\n[C97확장 병종:] 기존 병종에 더해 아군과 적군에 [C28새 병종]이 등장합니다.\n[C97무작위 병종:] 아군과 적장의 병종이 [C28무작위로 결정됩니다].\n&157\n[C97기본 보물:] 보물의 효과가 그대로 유지됩니다.\n[C97확장 보물:] 보물에 [C28새로운 효과]가 적용됩니다.\n[C97무작위 효과:] 보물의 효과가 [C28무작위로 생성됩니다].')
+                    stage.say('@dialogue:R_00.scene1.dialogue0020')
                     goto('lab1031')
                 if sel == 3:
-                    stage.say('&157\n[C97확장 인물 특기:] 인물마다 [C28미리 정해진] 특기를 사용합니다.\n[C97인물 무작위:] 아군과 적장이 [C28무작위로] 특기를 얻습니다.\n&157\n[C97확장 병종 특기:] 병종마다 [C28미리 정해진] 특기를 사용합니다.\n[C97병종 무작위:] 각 병종이 [C28무작위로] 특기를 얻습니다.')
+                    stage.say('@dialogue:R_00.scene1.dialogue0021')
                     goto('lab1031')
                 if sel == 4:
-                    stage.say('&157\n[C97고전 확률 방식:] 저장과 불러오기를 반복하여\n명중과 방어 결과를 바꿀 수 있습니다.\n&157\n[C97보정 방식:] 저장과 불러오기만으로는\n명중과 방어 결과를 [C28바꿀 수 없습니다].\n[C28부대의 행동 순서]를 바꾸면 결과에 영향을 줄 수 있습니다.\n&157\n명중률이 [C2885%를 넘으면 반드시 명중]하며,\n[C3A30% 미만이면 반드시 방어당합니다].\n&157\n[C97확률 누적 방식:] 확률에 따른 기댓값을 누적합니다.\n효과가 발동하지 않으면 기댓값이 계속 쌓이고,\n누적치가 100%에 이르면 반드시 발동합니다.\n&157\n쉽게 말해 치명타나 연속 공격 확률이 [C2850%]라면\n[C282]회 공격할 때마다 반드시 한 번 발동합니다.\n이 방식에는 무작위 요소가 없습니다.')
+                    stage.say('@dialogue:R_00.scene1.dialogue0022')
                     goto('lab1031')
                 if sel == 5:
-                    stage.say('&157\n쓰러뜨린 적의 수가 기록되며\n무장 능력 화면에서 확인할 수 있습니다.\n&157\n적 [C2830]명 처치마다 [C97모든 능력치가 1%] 증가합니다.\n적 [C2815]명 처치마다 [C97최대 HP와 MP가 1%] 증가합니다.\n처치 수가 [C28100]명에 도달하면 [C97이동력이 영구적으로 +1] 증가합니다. ([C3A한 번만 적용])')
+                    stage.say('@dialogue:R_00.scene1.dialogue0023')
                     goto('lab1031')
                 if sel == 6:
                     goto('lab911')
@@ -823,11 +823,11 @@ def scene1():
                 if vars[1042]:
                     gvars[10] += 1
                 if gvars[10] >= 2:
-                    stage.say('&157\n[C28무작위 항목]을 너무 많이 켜면 게임의 재미가 떨어질 수 있습니다.\n현재 설정으로 계속하시겠습니까?')
+                    stage.say('@dialogue:R_00.scene1.dialogue0024')
                     if stage.ask() == 0:
                         goto('lab744')
     elif sel == 4:
-        stage.say('&157\n[C28고전 모드]: 원작을 최대한 충실하게 재현합니다.\n&157\n[C3A확장 모드]: 인물의 병종과 보물 효과가 완전히 바뀝니다.\n인물 특기와 병종 특기가 추가되며, 레벨 상승 시 능력치가 자동 재계산됩니다.\n능력 성장률은 [C285]단계가 되는 등 여러 요소가 달라집니다.\n&157\n[C3A자유 선택 모드]: 게임 내용을 자유롭게 설정할 수 있습니다.\r[C97새 병종], [C97새 보물] 등을 추가하고\n다양한 [C97무작위 항목]도 자유롭게 선택할 수 있습니다.\n&157\n보물 설명의 [C28확장 효과]는 [C97확장 모드]에서만 적용됩니다.\n다른 모드의 효과는 표시된 [C28특수 효과명]을 기준으로 합니다.\n&157\n[C28고전 모드]와 [C3A확장 모드]는\n모든 면에서 크게 다르므로\n서로 완전히 다른 게임이라 할 수 있습니다!')
+        stage.say('@dialogue:R_00.scene1.dialogue0025')
         goto('lab327')
     if vars[1042]:
         gvars[4076] = 1
@@ -2470,24 +2470,24 @@ def scene1():
         stage.getItem(160, 4)
     model.unitJoin(0, 0, 2)
     stage.setJoinEquip(0, 33, 0, 0, 0, 0)
-    stage.say('&0\n……음.\n그럼 이만 가 보겠소, 어르신.')
+    stage.say('@dialogue:R_00.scene1.dialogue0026')
     stage.unit(0).setAction(0, 2)
     stage.delay(3)
     stage.unit(0).setAction(17)
-    stage.say('&0\n출발하라!\n격전이 벌어지는 영천으로 향한다!')
+    stage.say('@dialogue:R_00.scene1.dialogue0027')
     stage.unit(0).setAction(0)
     stage.delay(3)
     stage.unit(181).setAction(0, 0)
-    stage.say('&181\n예!')
+    stage.say('@dialogue:R_00.scene1.dialogue0028')
     stage.unit(182).setAction(0, 2)
-    stage.say('&182\n예!')
+    stage.say('@dialogue:R_00.scene1.dialogue0029')
     stage.unitsMove([[stage.unit(0), 40, 80, 2], [stage.unit(181), 40, 98, 2], [stage.unit(182), 40, 70, 2], [stage.unit(157), 54, 20, 0]])
     stage.delay(3)
     stage.unit(157).setAction(0, 2)
     if vars[300]:
-        stage.say('&157\n스스로 간웅이 되고자 한다니!\n좋습니다, 조 나리……\n그 뜻을 향해 힘껏 나아가 보십시오.\n&157\n허, 허, 허!!')
+        stage.say('@dialogue:R_00.scene1.dialogue0030')
     if not vars[300]:
-        stage.say('&157\n저 젊은이의 상은\n정녕 난세의 간웅이요, 치세의 능신이로다.\n&157\n장차 어떤 인물이 될 것인가……?\n어디 두고 보자꾸나.\n&157\n허, 허, 허.')
+        stage.say('@dialogue:R_00.scene1.dialogue0031')
     stage.unitsMove([[stage.unit(0), 40, 98, 2], [stage.unit(182), 40, 98, 2], [stage.unit(157), 54, 5, 0]])
     stage.delay(3)
     stage.effectSound(201, 255)

@@ -11,6 +11,7 @@ import ast
 import hashlib
 import json
 from pathlib import Path
+from dialogue_text_catalog import dialogue_text
 
 # Only non-dialogue calls observed in the current straight-line source prefix.
 # Unknown calls may hide control flow or dialogue and must not be skipped.
@@ -36,6 +37,8 @@ def source_pages(source):
             assert name in PREFIX_CALLS, f"unsupported call in opening prefix: {name}"
             continue
         raw = ast.literal_eval(call.args[0])
+        if raw.startswith('@dialogue:'):
+            raw = dialogue_text(raw[len('@dialogue:'):])
         speaker, lines = None, []
         for line in raw.split("\n") + ["&END"]:
             if line.startswith("&"):

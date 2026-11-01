@@ -6,6 +6,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -49,21 +50,27 @@ def encode(value: Any, dialogue_keys: dict[int, str] | None = None) -> Any:
     raise TypeError(f"Unsupported AST value: {type(value)!r}")
 
 
-def collect_dialogue_texts(tree: ast.Module, module_name: str) -> tuple[dict[int, str], dict[str, str]]:
-    call_keys: dict[int, str] = {}
-    entries: dict[str, str] = {}
+def collect_dialogue_texts(tree: ast.Module, module_name: str, catalog: dict[str, str]) -> set[str]:
+    """Validate authored references without deriving identity from source locations."""
+    seen: set[str] = set()
     for function in (node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))):
         for node in ast.walk(function):
             if not isinstance(node, ast.Call) or ast.unparse(node.func) != "stage.say":
                 continue
             if not node.args or not isinstance(node.args[0], ast.Constant) or not isinstance(node.args[0].value, str):
-                raise ValueError(f"{module_name}:{node.lineno} stage.say requires a literal string")
-            key = f"{module_name}:{function.name}:{node.lineno}"
-            if key in entries:
-                raise ValueError(f"duplicate scenario dialogue key: {key}")
-            call_keys[id(node)] = key
-            entries[key] = node.args[0].value
-    return call_keys, entries
+                raise ValueError(f"{module_name}:{node.lineno} stage.say requires a @dialogue:ID string")
+            value = node.args[0].value
+            if not value.startswith("@dialogue:"):
+                raise ValueError(f"{module_name}:{node.lineno} stage.say needs an explicit @dialogue:ID; add its text to dialogue-text.json")
+            key = value.removeprefix("@dialogue:")
+            if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", key):
+                raise ValueError(f"{module_name}:{node.lineno} malformed dialogue ID: {key}")
+            if key in seen:
+                raise ValueError(f"duplicate scenario dialogue ID: {key}")
+            if key not in catalog:
+                raise ValueError(f"{module_name}:{node.lineno} dialogue ID missing from catalog: {key}")
+            seen.add(key)
+    return seen
 
 
 def main() -> None:
@@ -82,25 +89,36 @@ def main() -> None:
 
     exported = 0
     repaired = 0
-    dialogue_entries: dict[str, str] = {}
+    catalog_path = source_dir / "dialogue-text.json"
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))["entries"]
+    seen_dialogue_ids: set[str] = set()
     for source_path in sorted(source_dir.glob("*.py")):
         tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path), feature_version=(3, 9))
+        module_dialogue_ids = collect_dialogue_texts(tree, source_path.stem, catalog)
         functions = containers.get(source_path.stem)
         if functions and REPAIR.repair_module(tree, functions):
             repaired += 1
-        dialogue_keys, module_dialogue_entries = collect_dialogue_texts(tree, source_path.stem)
-        dialogue_entries.update(module_dialogue_entries)
+        repaired_ids = collect_dialogue_texts(tree, source_path.stem, catalog)
+        if not repaired_ids <= module_dialogue_ids:
+            raise ValueError(f"branch repair introduced unknown dialogue IDs in {source_path.name}")
+        overlap = seen_dialogue_ids & module_dialogue_ids
+        if overlap:
+            raise ValueError(f"duplicate scenario dialogue IDs: {sorted(overlap)}")
+        seen_dialogue_ids.update(module_dialogue_ids)
         payload = {
             "format": "jojo-python-ast/v1",
             "module": source_path.stem,
             "source": source_path.name,
-            "ast": encode(tree, dialogue_keys),
+            "ast": encode(tree),
         }
         (output_dir / f"{source_path.stem}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
         )
         exported += 1
-    print(f"Exported {exported} Python AST files with {len(dialogue_entries)} dialogue references to {output_dir}; re-nested branches in {repaired}")
+    unused = set(catalog) - seen_dialogue_ids
+    if unused:
+        raise ValueError(f"dialogue catalog has {len(unused)} unreferenced IDs (first: {sorted(unused)[0]})")
+    print(f"Exported {exported} Python AST files with {len(seen_dialogue_ids)} dialogue references to {output_dir}; re-nested branches in {repaired}")
 
 
 if __name__ == "__main__":

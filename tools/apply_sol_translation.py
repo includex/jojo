@@ -33,6 +33,29 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
+def restore_dialogue_references(text, module, legacy_keys):
+    """Keep authored IDs when replaying translated baseline Python sources."""
+    lines = text.splitlines(keepends=True)
+    edits = []
+    tree = ast.parse(text, filename=module)
+    for function in (node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))):
+        for node in ast.walk(function):
+            if not isinstance(node, ast.Call) or ast.unparse(node.func) != 'stage.say':
+                continue
+            old_key = f'{module}:{function.name}:{node.lineno}'
+            key = legacy_keys.get(old_key)
+            if key is None:
+                raise ValueError(f'No stable dialogue ID for {old_key}')
+            arg = node.args[0]
+            if not isinstance(arg, ast.Constant) or not isinstance(arg.value, str) or arg.lineno != arg.end_lineno:
+                raise ValueError(f'Expected single-line dialogue literal at {old_key}')
+            edits.append((arg.lineno, arg.col_offset, arg.end_col_offset, repr('@dialogue:' + key).encode()))
+    for line, start, end, replacement in sorted(edits, reverse=True):
+        data = lines[line - 1].encode('utf-8')
+        lines[line - 1] = (data[:start] + replacement + data[end:]).decode('utf-8')
+    return ''.join(lines)
+
+
 def load_batches():
     merged = {}
     for path in sorted((ROOT / 'localization/sol').rglob('batch*.json')):
@@ -88,7 +111,10 @@ def main():
     parser.add_argument('--apply', action='store_true', help='Write catalog and restored Python sources')
     args = parser.parse_args()
     cache = read(BASE / 'translations.json')
-    catalog = read(BASE / 'dialogue-text.json')
+    baseline_catalog = read(BASE / 'dialogue-text.json')
+    current_catalog = read(SCENARIOS / 'dialogue-text.json')
+    legacy_keys = current_catalog['legacyKeys']
+    catalog = {**current_catalog, 'entries': dict(current_catalog['entries']), 'aliases': dict(current_catalog['aliases'])}
     manifest = read(SCENARIOS / 'manifest.json')
     origins = {item['text']: set(item['sources']) for item in read(SIBLING / 'tools/ko-source-strings.json')}
     translations = load_batches()
@@ -127,8 +153,8 @@ def main():
             changed.add((module, old))
         return new
 
-    for key, old in catalog['entries'].items():
-        catalog['entries'][key] = replace(old, key.split(':')[0])
+    for old_key, old in baseline_catalog['entries'].items():
+        catalog['entries'][legacy_keys[old_key]] = replace(old, old_key.split(':')[0])
     # Aliases identify individual pages of a multi-speaker Chinese original.
     pages = {
         'opening_scene1_page1': ('R_00:scene1:247', 1),
@@ -136,7 +162,7 @@ def main():
         'opening_scene1_page3': ('R_00:scene1:254', 1),
     }
     for alias, (key, line) in pages.items():
-        catalog['aliases'][alias] = catalog['entries'][key].split('\n')[line]
+        catalog['aliases'][alias] = catalog['entries'][legacy_keys[key]].split('\n')[line]
     catalog['aliases']['yingchuan_round2_followup_speaker32'] = replace(
         catalog['aliases']['yingchuan_round2_followup_speaker32'])
 
@@ -184,7 +210,7 @@ def main():
                 new_shape = ast.dump(new_tree)
                 assert old_shape == new_shape, f'Non-text program change in {name}'
                 assert [n.lineno for n in ast.walk(old_tree) if hasattr(n, 'lineno')] == [n.lineno for n in ast.walk(new_tree) if hasattr(n, 'lineno')], name
-            sources[name] = text
+            sources[name] = restore_dialogue_references(text, Path(name).stem, legacy_keys)
 
     text_overrides = dict(translations)
     for old in reverse:
@@ -197,7 +223,7 @@ def main():
     report = {
         'translated_originals': len(translations),
         'reference_originals': len(cache),
-        'catalog_entries_changed': sum(catalog['entries'][k] != v for k, v in read(BASE / 'dialogue-text.json')['entries'].items()),
+        'catalog_entries_changed': sum(catalog['entries'][legacy_keys[k]] != v for k, v in baseline_catalog['entries'].items()),
         'changed_text_contexts': len(changed),
         'ambiguous_contexts': [{'module': m, 'old': o, 'originals': list(c)} for m, o, c in sorted(unresolved) if m],
         'ambiguous_reverse_values': [{'old': o, 'originals': list(c)} for m, o, c in sorted(unresolved) if not m],

@@ -92,11 +92,13 @@ learnLevels:
 
 ## 시나리오
 
-`scenarios/`는 Python 시나리오 119개, `manifest.json`, `dialogue-text.json`을 소유한다. R_XX는 시나리오, S_XX는 전투이며 common/train 모듈도 함께 번들한다. 파일과 줄 번호를 그대로 이전해 기존 대사 키를 유지했다.
+`scenarios/`는 Python 시나리오 119개, `manifest.json`, `dialogue-text.json`을 소유한다. R_XX는 시나리오, S_XX는 전투이며 common/train 모듈도 함께 번들한다. 대사 ID는 소스 줄 번호와 독립적이다. 이전 줄 번호 키는 `dialogue-text.json`의 `legacyKeys`에 보관한다.
 
 ```sh
 ./gradlew :core:exportScenarioAst :core:processResources
 ./gradlew :desktop:run --args="--scenario=R_01"
 ```
 
-새 모듈은 Python 파일뿐 아니라 manifest에도 등록한다. stage.say 대사는 생성 AST의 `@dialogue:모듈:함수:줄번호` 키와 dialogue-text.json의 entries를 맞춘다. AST 생성은 원본 바이트코드의 잘못 복원된 분기를 보정하기 위해 아직 외부 assets를 참조한다. 원본 비교용 도구는 별도 외부 원본을 유지할 수 있으며, 실행용 시나리오 작성 위치는 이 디렉토리다. YAML 컴파일러는 scenarios를 처리하지 않고 별도 AST 빌드가 담당한다.
+새 모듈은 Python 파일뿐 아니라 manifest에도 등록한다. `stage.say('@dialogue:R_00.scene1.dialogue0001')`처럼 대사 ID를 소스에 명시하고, 해당 ID의 한국어 텍스트를 `dialogue-text.json`의 `entries`에 추가한다. 기존 ID는 대사를 이동하거나 앞에 줄을 삽입해도 바꾸지 않는다. AST 내보내기는 누락되거나 중복된 ID와 직접 입력한 대사를 거부한다. AST 생성은 원본 바이트코드의 잘못 복원된 분기를 보정하기 위해 아직 외부 assets를 참조한다. 원본 비교용 도구는 별도 외부 원본을 유지할 수 있으며, 실행용 시나리오 작성 위치는 이 디렉토리다. YAML 컴파일러는 scenarios를 처리하지 않고 별도 AST 빌드가 담당한다.
+
+고정 ID 작성 절차와 API 계약은 [시나리오 플랫폼 가이드](../docs/scenario-platform-guide.html)를 참고한다.

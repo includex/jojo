@@ -62,7 +62,7 @@ val generatedTitleLoadConfirmationDirectory = layout.buildDirectory.dir("generat
 val generatedReferenceFramebuffersDirectory = layout.buildDirectory.dir("generated/reference-framebuffers")
 // The exporter also re-nests branches the decompiler mis-attached, using the
 // original bytecode in `cocosAssetsDirectory` as the authority.  The restored
-// `.py` files stay exactly as recovered; only the executed AST is corrected.
+// authored `.py` control flow is preserved; only the executed AST is corrected.
 val exportScenarioAst = tasks.register<Exec>("exportScenarioAst") {
     inputs.dir(restoredScenarioDirectory)
     inputs.dir(cocosAssetsDirectory)

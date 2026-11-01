@@ -27,9 +27,9 @@
 <div class="topline"><span>ARCHITECTURE / ENGINE &amp; GAME</span><span><span class="status-dot"></span>Kotlin · LibGDX · JVM 17</span></div>
 <header class="hero">
 <div class="eyebrow">A clear boundary, a shared execution.</div>
-<h1>엔진은 <em>실행 방법</em>을,<br>게임은 <em style="color:var(--game)">규칙과 의미</em>를 맡습니다.</h1>
+<h1>엔진은 <em>실행 방법</em>을,<br>게임은 <em style="color:var(--game)">규칙과 의미</em>를 맡습니다.</h1><p class="docs-current" style="font-size:13px;line-height:1.8"><a href="index.html">문서 홈</a> · <a href="implementation-status.html">현재 구현 현황</a> · 기준: 2026-11-01 작업 트리</p>
 <p class="lead">같은 경로 탐색기라도 어떤 지도를 읽고, 어디를 위험한 길로 볼지는 게임이 정합니다. 이 문서는 현재 조조전 코드에서 그 결정이 어디에 있고, 실행이 어떤 경계를 오가는지 설명합니다.</p>
-<div class="hero-footer"><span class="pill green">:core → :engine</span><span class="pill">독립 엔진 모듈</span><span class="pill">테스트 1,175개 통과</span><a href="#flows">실행 예시부터 살펴보기 ↓</a></div>
+<div class="hero-footer"><span class="pill green">:core → :engine</span><span class="pill">독립 엔진 모듈</span><span class="pill">엔진·게임 회귀 검증</span><a href="#flows">실행 예시부터 살펴보기 ↓</a></div>
 </header>
 <div class="principle"><article><span class="tag engine">ENGINE / :engine</span><h3>게임 이름을 몰라도 동작하는 기능</h3><p>AST 실행, 가중 경로 탐색, 글자 공개, 정점·투영·이미지 배치 계산. 데이터와 정책을 입력으로 받아 처리합니다.</p></article><article><span class="tag game">GAME / :core</span><h3>조조전의 세계를 결정하는 코드</h3><p>전투·성장·장비 규칙, 시나리오·대사, 입력과 화면 전환, 저장·번역·자산 로딩. 엔진에 구체적인 의미를 연결합니다.</p></article></div>
 
@@ -101,7 +101,7 @@ statementExecutor.runUntilYield(
 </div>
 <div class="flow-panel" id="flow-text" role="tabpanel" aria-labelledby="tab-text" hidden>
 <p class="flow-intro">예: “주군, 서두르셔야 합니다!”라는 문장을 누가 선택하고 누가 한 글자씩 공개할까요?</p><div class="flow-grid"><div class="steps">
-<div class="step game"><span class="dot">1</span><div><strong>게임이 대사·번역·화자를 정합니다.</strong><p><code>ScenarioDialogueTextCatalog</code>가 대사 키를 해석합니다. 게임은 화자 이름, 초상화, 대화창 위치를 정합니다.</p></div></div>
+<div class="step game"><span class="dot">1</span><div><strong>게임이 대사·번역·화자를 정합니다.</strong><p><code>ScenarioDialogueTextCatalog</code>가 줄 번호와 독립적인 고정 대사 ID를 해석합니다. 게임은 화자 이름, 초상화, 대화창 위치를 정합니다.</p></div></div>
 <div class="step engine"><span class="dot">2</span><div><strong>엔진이 시간에 따라 공개 범위를 진행합니다.</strong><p><code>TextReveal</code>은 원문과 시간을 받고 <code>visibleText</code>·<code>isComplete</code>를 제공합니다. 태그도 한 공개 단위로 처리하고 표시 문자열에서는 제거합니다.</p></div></div>
 <div class="step game"><span class="dot">3</span><div><strong>게임이 클릭과 자동 진행의 의미를 정합니다.</strong><p>전투·거리·궁전 모두 <code>RuntimeDialogueSessionAdapter</code>가 스크립트 상태를 변환하고, 하나의 <code>DialogueSession</code>이 첫 입력의 즉시 공개, 다음 입력의 대사 진행, 선택·모달·자동 닫기를 관리합니다. 전투는 시간 누적 방식과 공개 후 1초 자동 진행을, 시나리오는 콜백 타이머 방식을 사용합니다. 배치·자산은 장면별 설정으로 유지합니다.</p></div></div>
 <div class="step game"><span class="dot">4</span><div><strong>게임이 자산과 모델을 렌더러에 넘깁니다.</strong><p>한국어 글꼴 생성, <code>JOJO_FONT_PATH</code>, 번역 테이블과 자산의 해제 시점은 게임이 소유합니다.</p></div></div>
@@ -144,9 +144,9 @@ statementExecutor.runUntilYield(
 </section>
 
 <section id="verification">
-<div class="section-head"><span class="section-no">06</span><div><h2>검증된 범위와 현재의 한계</h2><p>아래는 엔진 분리와 미사용 코드 정리 후 실행한 검증 결과입니다. 문서의 수치는 이후 변경에 따라 다시 확인해야 하는 작업 트리의 스냅샷입니다.</p></div></div>
+<div class="section-head"><span class="section-no">06</span><div><h2>검증된 범위와 현재의 한계</h2><p>아래 수치는 엔진 분리 당시의 검증 기록입니다. 이후 고정 대사 ID·호스트 API 변경의 검증 범위와 현재 제약은 <a href="implementation-status.html">구현 현황</a>에서 확인하세요.</p></div></div>
 <div class="validation"><div class="metric"><b>24</b><span>엔진 단위 테스트 통과</span></div><div class="metric"><b>1,151</b><span>게임 회귀 테스트 통과</span></div><div class="metric"><b>59</b><span>R 시나리오 기동·분기 진행</span></div><div class="metric"><b>58</b><span>S 전투 초기화·1턴 이벤트</span></div></div>
-<div class="check-list"><div><span class="check">✓</span>데스크톱·Android·검증 모듈 컴파일</div><div><span class="check">✓</span>엔진 의존 경계 검사</div><div><span class="check">✓</span>영천 진행 경로·전투 데이터 적합성</div><div><span class="check">✓</span>헤드리스 검사에서 AST API 누락 없음</div></div>
+<div class="check-list"><div><span class="check">✓</span>데스크톱·Android·검증 모듈 컴파일</div><div><span class="check">✓</span>엔진 의존 경계 검사</div><div><span class="check">✓</span>영천 진행 경로·전투 데이터 적합성</div><div><span class="check">✓</span>검증된 헤드리스 경로에서 AST API 누락 없음</div></div>
 <div class="code-box"><div class="code-label">검증 명령</div><pre><code>./gradlew :engine:test :core:test :desktop:classes \
   :android:compileDebugKotlin :verification:compileKotlin \
   :verification:verifyAllHeadless</code></pre></div>
@@ -156,7 +156,7 @@ statementExecutor.runUntilYield(
 </section>
 <footer class="footer"><div>JOJO · Engine / Game Architecture<br>저장소의 현재 코드와 검증 결과를 기준으로 작성한 오프라인 문서</div><div><a href="engine-core-feature-guide.html">신규 기능 추가 가이드 ↗</a> · <a href="../GAME_ARCHITECTURE.md">구조 원문 ↗</a><a href="../README.md">프로젝트 README ↗</a><a href="#main">맨 위로 ↑</a></div></footer>
 <noscript><p class="noscript">JavaScript가 꺼져 있어 검색·흐름 탭·경로 데모를 조작할 수 없습니다. 인쇄 화면에서는 모든 실행 흐름이 표시됩니다.</p></noscript>
-</main></div>
+<section><h2>시나리오 플랫폼 준비</h2><p>대사 7,617개를 고정 ID로 전환하고 say·delay·choice를 ScenarioHostApi v1으로 분리했습니다. 선택지 대입·ask 분기는 AST 어댑터가 계속 처리합니다. 나머지 전투 API 분리와 Lua 실행기는 후속 범위입니다. <a href="scenario-platform-guide.html">고정 ID 작성 절차와 API 계약</a>을 참고하세요.</p></section></main></div>
 <script>
 'use strict';
 const moduleInfo={

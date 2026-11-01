@@ -10,6 +10,7 @@ object ScenarioDialogueTextCatalog {
     private data class Catalog(
         val entries: Map<String, String>,
         val aliases: Map<String, String>,
+        val legacyKeys: Map<String, String>,
     )
 
     private val catalog: Catalog by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -20,10 +21,13 @@ object ScenarioDialogueTextCatalog {
         check(root.getString("format") == "jojo-scenario-dialogue-text/v1") {
             "Unsupported scenario dialogue text catalog format."
         }
-        Catalog(
-            entries = readStrings(checkNotNull(root.get("entries"))),
-            aliases = readStrings(checkNotNull(root.get("aliases"))),
-        )
+        val entries = readStrings(checkNotNull(root.get("entries")))
+        val aliases = readStrings(checkNotNull(root.get("aliases")))
+        val legacyKeys = root.get("legacyKeys")?.let(::readStrings).orEmpty()
+        require(legacyKeys.values.all(entries::containsKey)) {
+            "Scenario dialogue legacy key points to an unknown stable ID."
+        }
+        Catalog(entries, aliases, legacyKeys)
     }
 
     /** Eagerly loads the catalog during application startup. Repeated calls are cheap. */
@@ -32,7 +36,9 @@ object ScenarioDialogueTextCatalog {
     }
 
     /** Returns a dialogue by source key or a named alias using the in-memory catalog. */
-    fun text(key: String): String = catalog.entries[key] ?: catalog.aliases[key]
+    fun text(key: String): String = catalog.entries[key]
+        ?: catalog.legacyKeys[key]?.let(catalog.entries::get)
+        ?: catalog.aliases[key]
         ?: error("Unknown scenario dialogue text key: $key")
 
     private fun readStrings(objectValue: JsonValue): Map<String, String> = buildMap {

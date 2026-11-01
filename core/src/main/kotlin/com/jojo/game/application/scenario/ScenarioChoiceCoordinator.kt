@@ -53,11 +53,14 @@ internal class ScenarioChoiceCoordinator(
 
     var chosenOption: String? = null
         private set
+    var lastChoiceResult: Int? = null
+        private set
     /**
      * `currentChoiceFunction` (String?): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
     private var currentChoiceFunction: String? = null
+    private var currentChoiceModule: String? = null
     /**
      * `currentChoiceLine` (Int?): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -110,7 +113,9 @@ internal class ScenarioChoiceCoordinator(
         selectedChoice = 0
         isAskChoice = false
         chosenOption = null
+        lastChoiceResult = null
         currentChoiceFunction = null
+        currentChoiceModule = null
         currentChoiceLine = null
         choiceTrace.clear()
         pendingChoiceTarget = null
@@ -169,9 +174,15 @@ internal class ScenarioChoiceCoordinator(
      */
 
     fun setChoiceSource(node: JsonValue, frame: ScriptFrame, moduleName: String) {
-        currentChoiceFunction = frame.sourceFunction
-        currentChoiceLine = node.get("location")?.getInt("line", -1)?.takeIf { it > 0 }
+        val line = node.get("location")?.getInt("line", -1)?.takeIf { it > 0 }
             ?: error("$moduleName ${frame.function.name} choice has no source line")
+        setChoiceSource(ScenarioCallSite(moduleName, frame.sourceFunction, line))
+    }
+
+    fun setChoiceSource(site: ScenarioCallSite) {
+        currentChoiceModule = site.module
+        currentChoiceFunction = site.function
+        currentChoiceLine = site.line
     }
 
     /** Consume game-specific choice/ask syntax before the generic engine executes it. */
@@ -217,9 +228,21 @@ internal class ScenarioChoiceCoordinator(
         target: JsonValue? = null,
     ) {
         currentChoice = choice
+        lastChoiceResult = null
         selectedChoice = 0
         setChoiceSource(node, frame, moduleName)
         pendingChoiceTarget = target
+        onStateChange(PlaybackState.CHOICE)
+    }
+
+    /** Entry point for a scenario language adapter with no AST or frame dependency. */
+    fun startChoice(choice: Choice, site: ScenarioCallSite) {
+        currentChoice = choice
+        lastChoiceResult = null
+        selectedChoice = 0
+        isAskChoice = false
+        setChoiceSource(site)
+        pendingChoiceTarget = null
         onStateChange(PlaybackState.CHOICE)
     }
 
@@ -264,13 +287,14 @@ internal class ScenarioChoiceCoordinator(
 
         val choice = requireNotNull(currentChoice)
         choiceTrace += ScenarioChoiceTrace(
-            module = moduleName,
+            module = currentChoiceModule ?: moduleName,
             function = requireNotNull(currentChoiceFunction) { "choice source function is missing" },
             line = requireNotNull(currentChoiceLine) { "choice source line is missing" },
             option = selectedChoice,
             optionCount = choice.options.size,
         )
         chosenOption = choice.options[selectedChoice]
+        lastChoiceResult = selectedChoice + 1
         pendingAskStatement?.let { statement ->
             /**
              * `sourceFrame` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.

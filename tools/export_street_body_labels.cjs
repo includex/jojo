@@ -54,7 +54,14 @@ c.sort(); print(json.dumps([v for _,v in c[:1]],ensure_ascii=False))`;
   const script = `import ast,json,sys\np=sys.argv[1]\nt=ast.parse(open(p,encoding='utf8').read())\nf=next(n for n in t.body if isinstance(n,ast.FunctionDef) and n.name=='scene1')\nc=[]\nfor n in ast.walk(f):\n if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='say': c.append((n.lineno,n.args[0].value if n.args and isinstance(n.args[0],ast.Constant) and isinstance(n.args[0].value,str) else None))\nc.sort(); print(json.dumps([v for _,v in c],ensure_ascii=False))`;
   const result = spawnSync('python3', ['-c', script, sourceFile], {encoding:'utf8', timeout:5000});
   if (result.status !== 0) throw Error(`R_00 AST extraction failed: ${result.stderr}`);
-  return pageInput(JSON.parse(result.stdout));
+  const dialogueEntries = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../content/scenarios/dialogue-text.json'), 'utf8')).entries;
+  const calls = JSON.parse(result.stdout).map(text => {
+    if (!text?.startsWith('@dialogue:')) return text;
+    const key = text.slice('@dialogue:'.length);
+    if (!Object.prototype.hasOwnProperty.call(dialogueEntries, key)) throw Error(`dialogue catalog has no ${key}`);
+    return dialogueEntries[key];
+  });
+  return pageInput(calls);
 }
 function astJsonInput(value) {
   const calls=[];

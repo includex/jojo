@@ -589,13 +589,13 @@ def scene0():
     stage.unit(37).show()
     stage.unit(37).move(10, 32, 0)
     stage.unit(50).setAction(9)
-    stage.say('&50\n후우, 겨우 조조군보다 먼저 왔군.')
+    stage.say('@dialogue:S_55.scene0.dialogue0001')
     stage.unit(37).setDir(stage.countDir(37, 50))
-    stage.say('&37\n하지만 마초와 남만군은 아직 도착하지 않았다.')
+    stage.say('@dialogue:S_55.scene0.dialogue0002')
     stage.unit(50).setDir(stage.countDir(50, 37))
-    stage.say('&50\n걱정 없다. 양평관에서 적을 맞으라고 전해 두었으니\n조만간 도착할 것이다.')
+    stage.say('@dialogue:S_55.scene0.dialogue0003')
     stage.unit(37).setDir(2)
-    stage.say('&37\n조조군의 진군이 늦어지면\n우리에게 유리해진다.')
+    stage.say('@dialogue:S_55.scene0.dialogue0004')
     stage.unit(50).move(9, 27, 0)
     stage.unit(37).move(10, 27, 0)
     stage.unit(50).setDir(stage.countDir(50, 45))
@@ -603,7 +603,7 @@ def scene0():
     stage.unit(65).setDir(stage.countDir(65, 50))
     stage.unit(55).setDir(stage.countDir(55, 50))
     stage.unit(56).setDir(stage.countDir(56, 50))
-    stage.say('&50\n전군은 내 지시대로 자리를 잡았겠지?\n이제 조금 마음을 놓아도 되겠군.\n&45\n명하신 대로 양평관에서 대기하고 있소.\n&65\n(공명이라는 애송이도 모자라\n마속 같은 풋내기까지 쓰다니.\n촉도 이제 끝이 머지않았군. 쯧!)\n&55\n적을 오장원 가까이에만 오지 못하게 하면 됩니다.\n전력을 다해 지키면 방도가 있을 것입니다.\n&56\n지금은 공명 선생을 믿고\n이곳을 사수할 뿐입니다.')
+    stage.say('@dialogue:S_55.scene0.dialogue0005')
     stage.unit(50).move(9, 22, 0)
     stage.unit(37).move(10, 22, 0)
     stage.unit(3, 1).show()
@@ -637,15 +637,15 @@ def scene0():
     stage.unit(14, 1).show()
     stage.unit(14, 1).move(11, 34, 0)
     stage.unit(0).setDir(stage.countDir(0, 50))
-    stage.say('&0\n수비가 이토록 굳건하다는 것은\n공명이 향하는 곳도 이 앞이라는 뜻이다.')
+    stage.say('@dialogue:S_55.scene0.dialogue0006')
     stage.unit(37).setDir(stage.countDir(37, 0))
-    stage.say('&37\n쳇, 벌써 왔나?')
+    stage.say('@dialogue:S_55.scene0.dialogue0007')
     stage.unit(50).move(9, 17, 0)
     stage.unit(37).move(10, 17, 0)
     stage.unit(50).setDir(stage.countDir(50, 36))
     stage.unit(36).setDir(stage.countDir(36, 50))
     stage.unit(34).setDir(stage.countDir(34, 50))
-    stage.say('&50\n조운, 황충 두 장군께서는 양익에서 공격하십시오.\n&36\n염려 말게. 양익은 우리에게 맡겨 주게!\n&34\n이 조운도 힘껏 싸우겠소!')
+    stage.say('@dialogue:S_55.scene0.dialogue0008')
     stage.bgSound(5)
     stage.setWinCondition('승리 조건\n1. 모든 적을 섬멸한다.\n\n패배 조건\n1. 조조가 사망한다.\n2. 30턴을 초과한다.')
     stage.showWinCondition('모든 적을 섬멸하라!')
@@ -668,27 +668,27 @@ def scene1():
         stage.unit(468).show()
         stage.unit(469).show()
         stage.unit(58).setDir(stage.countDir(58, 0))
-        stage.say('&58\n으음, 벌써 싸움이 시작되었나?\n산길을 넘느라 너무 늦었군.')
+        stage.say('@dialogue:S_55.scene1.dialogue0001')
         if not vars[50]:
             stage.unit(50).setDir(stage.countDir(50, 58))
-            stage.say('&50\n오, 마초와 마대로군!\n겨우 때를 맞추었구나.')
+            stage.say('@dialogue:S_55.scene1.dialogue0002')
         stage.unit(57).setDir(stage.countDir(57, 0))
-        stage.say('&57\n조조 역적, 달아나지 마라!\n네가 세상 끝으로 달아나도\n반드시 선친의 원수를 갚겠다!')
+        stage.say('@dialogue:S_55.scene1.dialogue0003')
         stage.unit(0).setDir(stage.countDir(0, 57))
-        stage.say('&0\n참으로 끈질긴 놈이군.\n어찌할까, 여기서도 돌파 전술을 써야 하나?')
+        stage.say('@dialogue:S_55.scene1.dialogue0004')
         sel = stage.choice('양평관을 돌파한다\n적군을 섬멸한다', -1)
         if sel == 1:
-            stage.say('&0\n우선은 돌파에 힘쓰자.\n적의 포위를 뚫은 뒤 공명을 추격한다!')
+            stage.say('@dialogue:S_55.scene1.dialogue0005')
             stage.unit(57).setAction(5)
-            stage.say('&57\n흥! 어림없다!\n돌격하라! 놈들을 모조리 무찔러라!')
+            stage.say('@dialogue:S_55.scene1.dialogue0006')
             stage.unit(57).setAction(0)
             if not vars[31]:
                 if not vars[53]:
                     stage.unit(36).setDir(stage.countDir(36, 0))
-                    stage.say('&36\n조조, 어디로 가느냐!\n우리도 추격하자!')
+                    stage.say('@dialogue:S_55.scene1.dialogue0007')
                 if not vars[52]:
                     stage.unit(34).setDir(stage.countDir(34, 0))
-                    stage.say('&34\n나도 출전하겠다.')
+                    stage.say('@dialogue:S_55.scene1.dialogue0008')
                 stage.setAI(14, 8, 23, 17, 2, 1)
                 vars[31] = 1
             stage.setWinCondition('승리 조건\n1. 조조가 북서쪽 끝에 도착한다.\n\n패배 조건\n1. 조조가 사망한다.\n2. 30턴을 초과한다.')
@@ -696,7 +696,7 @@ def scene1():
             stage.heightLight(0, 0, 1, 3)
             vars[2] = 1
         elif sel == 2:
-            stage.say('&0\n안 된다. 먼저 이곳의 적을 섬멸해\n후환을 없애야 한다.\n&57\n좋습니다, 공격하라!')
+            stage.say('@dialogue:S_55.scene1.dialogue0009')
         vars[11] = 1
     if not vars[12] and not vars[754] and stage.round() == 5 and stage.curCamp() == 2:
         stage.unit(57).show()
@@ -706,13 +706,13 @@ def scene1():
         stage.unit(464).show()
         stage.unit(465).show()
         stage.unit(58).setDir(stage.countDir(58, 0))
-        stage.say('&58\n으음, 벌써 싸움이 시작되었나?\n산길을 넘느라 너무 늦었군.')
+        stage.say('@dialogue:S_55.scene1.dialogue0010')
         if not vars[50]:
             stage.unit(50).setDir(stage.countDir(50, 58))
-            stage.say('&50\n오, 마초와 마대로군!\n겨우 때를 맞추었구나.')
-        stage.say('&57\n조조 역적, 달아나지 마라!\n네가 세상 끝으로 달아나도\n반드시 선친의 원수를 갚겠다!')
+            stage.say('@dialogue:S_55.scene1.dialogue0011')
+        stage.say('@dialogue:S_55.scene1.dialogue0012')
         stage.unit(0).setDir(stage.countDir(0, 57))
-        stage.say('&0\n참으로 끈질기게 달라붙는 놈이군.')
+        stage.say('@dialogue:S_55.scene1.dialogue0013')
         vars[12] = 1
     if vars[754] and not vars[13] and stage.round() == 7 and stage.curCamp() == 2:
         stage.unit(72).show()
@@ -726,33 +726,33 @@ def scene1():
         stage.unit(383).show()
         stage.unit(384).show()
         stage.unit(71).setDir(stage.countDir(71, 0))
-        stage.say('&71\n이런, 늦었군.\n북쪽 산길은 도무지 익숙해지지 않아\n그만 길을 잃었지 뭔가. 하! 하! 하!')
+        stage.say('@dialogue:S_55.scene1.dialogue0014')
         if not vars[50]:
             stage.unit(50).setDir(stage.countDir(50, 71))
-            stage.say('&50\n잘 왔다!\n이제 성을 지킬 수 있겠군.')
+            stage.say('@dialogue:S_55.scene1.dialogue0015')
         stage.unit(72).setDir(stage.countDir(72, 0))
         stage.unit(72).setAction(5)
-        stage.say('&72\n자, 모두 함께 쳐들어가자!\n늦은 만큼 더 큰 공을 세우는 거야!')
+        stage.say('@dialogue:S_55.scene1.dialogue0016')
         stage.unit(72).setAction(0)
-        stage.say('&73\n조금 쉬고 싶구나……')
+        stage.say('@dialogue:S_55.scene1.dialogue0017')
         stage.unit(0).setDir(stage.countDir(0, 72))
-        stage.say('&0\n남만군까지 추격해 올 줄이야.')
+        stage.say('@dialogue:S_55.scene1.dialogue0018')
         if not vars[2]:
-            stage.say('&0\n더는 지체할 수 없다.\n어찌할까, 우리도 돌파 전술을 써야겠는가?')
+            stage.say('@dialogue:S_55.scene1.dialogue0019')
             sel = stage.choice('양평관을 돌파한다\n적군을 섬멸한다', -1)
             if sel == 1:
-                stage.say('&0\n더는 지체할 수 없다.\n적의 포위망을 돌파한 뒤 공명을 추격한다!')
+                stage.say('@dialogue:S_55.scene1.dialogue0020')
                 stage.unit(71).setDir(stage.countDir(71, 0))
                 stage.unit(71).setAction(5)
-                stage.say('&71\n하하하, 쉽게 달아날 수 있을 줄 알았느냐!\n모두 덤벼라!')
+                stage.say('@dialogue:S_55.scene1.dialogue0021')
                 stage.unit(71).setAction(0)
                 if not vars[31]:
                     if not vars[53]:
                         stage.unit(36).setDir(stage.countDir(36, 0))
-                        stage.say('&36\n조조를 놓치지 마라!\n이 늙은이도 뒤쫓아 가겠다!')
+                        stage.say('@dialogue:S_55.scene1.dialogue0022')
                     if not vars[52]:
                         stage.unit(34).setDir(stage.countDir(34, 0))
-                        stage.say('&34\n나도 출전하겠다.')
+                        stage.say('@dialogue:S_55.scene1.dialogue0023')
                     stage.setAI(14, 8, 23, 17, 2, 1)
                     vars[31] = 1
                 stage.setWinCondition('승리 조건\n1. 조조가 북서쪽 끝에 도착한다.\n\n패배 조건\n1. 조조가 사망한다.\n2. 30턴을 초과한다.')
@@ -760,7 +760,7 @@ def scene1():
                 stage.heightLight(0, 0, 1, 3)
                 vars[2] = 1
             elif sel == 2:
-                stage.say('&0\n안 된다. 이곳의 적부터 섬멸하여\n후환을 없애야 한다.\n&72\n하하하!\n과연 네 뜻대로 될까?\n하하하!')
+                stage.say('@dialogue:S_55.scene1.dialogue0024')
         vars[13] = 1
     if not vars[14] and not vars[754] and stage.round() == 7 and stage.curCamp() == 2:
         stage.unit(72).show()
@@ -770,15 +770,15 @@ def scene1():
         stage.unit(71).show()
         stage.unit(382).show()
         stage.unit(71).setDir(stage.countDir(71, 0))
-        stage.say('&71\n이런, 늦었군.\n내가 다치지만 않았어도……')
+        stage.say('@dialogue:S_55.scene1.dialogue0025')
         if not vars[50]:
             stage.unit(50).setDir(stage.countDir(50, 71))
-            stage.say('&50\n잘 왔다!\n이제 성을 지킬 수 있겠군.')
+            stage.say('@dialogue:S_55.scene1.dialogue0026')
         stage.unit(72).setDir(stage.countDir(72, 0))
         stage.unit(72).setAction(5)
-        stage.say('&72\n자, 모두 함께 쳐들어가자!\n늦은 만큼 더 큰 공을 세우는 거야!')
+        stage.say('@dialogue:S_55.scene1.dialogue0027')
         stage.unit(72).setAction(0)
-        stage.say('&73\n조금 쉬고 싶구나……')
+        stage.say('@dialogue:S_55.scene1.dialogue0028')
         vars[14] = 1
     if not vars[20] and stage.isInPos(1025, 19, 11):
         stage.getItem(152, -1, True, 1025)
@@ -810,41 +810,41 @@ def scene1():
     if not vars[30] and stage.isInRect(1025, 6, 19, 13, 29):
         if not vars[61]:
             stage.unit(45).setDir(stage.countDir(45, 0))
-            stage.say('&45\n마침내 쳐들어왔군.')
+            stage.say('@dialogue:S_55.scene1.dialogue0029')
         if not vars[62]:
             stage.unit(65).setDir(stage.countDir(65, 0))
-            stage.say('&65\n모두 기운을 내라!')
+            stage.say('@dialogue:S_55.scene1.dialogue0030')
         if not vars[59]:
             stage.unit(55).setDir(stage.countDir(55, 0))
-            stage.say('&55\n조조군을 이곳에 통과시켜서는 안 된다.\n어떻게든 막아야 한다.')
+            stage.say('@dialogue:S_55.scene1.dialogue0031')
         if not vars[60]:
             stage.unit(56).setDir(stage.countDir(56, 0))
-            stage.say('&56\n공격이 최선의 방어다.\n우리가 먼저 나가 조조군을 물리치자!')
+            stage.say('@dialogue:S_55.scene1.dialogue0032')
         stage.setAI(6, 19, 13, 29, 2, 1)
         vars[30] = 1
     if not vars[31] and stage.curCamp() == 2 and stage.isInRect(1025, 14, 8, 23, 17):
         if not vars[53]:
             stage.unit(36).setDir(stage.countDir(36, 0))
-            stage.say('&36\n이번 한 번에 승패가 달렸다.\n공격하라!')
+            stage.say('@dialogue:S_55.scene1.dialogue0033')
         if not vars[52]:
             stage.unit(34).setDir(stage.countDir(34, 0))
-            stage.say('&34\n조조군을 살아 돌아가게 두지 않겠다.')
+            stage.say('@dialogue:S_55.scene1.dialogue0034')
         stage.setAI(14, 8, 23, 17, 2, 1)
         vars[31] = 1
     if not vars[32] and stage.curCamp() == 2 and stage.isInRect(1025, 0, 0, 8, 11):
         if not vars[50] and stage.isInPos(50, 3, 6):
             stage.unit(50).setDir(stage.countDir(50, 0))
-            stage.say('&50\n결국 조조군이 여기까지 왔군.\n과연 조조야.\n탄복할 만하군!')
+            stage.say('@dialogue:S_55.scene1.dialogue0035')
         if not vars[51] and stage.isInPos(37, 4, 7):
             stage.unit(37).setDir(stage.countDir(37, 0))
-            stage.say('&37\n참으로 끈질긴 놈이군.\n내가 상대해 주마.')
+            stage.say('@dialogue:S_55.scene1.dialogue0036')
         if not vars[31]:
             if not vars[53]:
                 stage.unit(36).setDir(stage.countDir(36, 0))
-                stage.say('&36\n조조가 달아난다!\n어서 쫓아라!')
+                stage.say('@dialogue:S_55.scene1.dialogue0037')
             if not vars[52]:
                 stage.unit(34).setDir(stage.countDir(34, 0))
-                stage.say('&34\n적의 측면을 공격하라!\n전군 출동하라!')
+                stage.say('@dialogue:S_55.scene1.dialogue0038')
             vars[31] = 1
         stage.setAI(0, 0, 23, 35, 2, 1)
         vars[32] = 1
@@ -852,25 +852,25 @@ def scene1():
         stage.resumeCtrl()
         if not vars[50]:
             stage.unit(50).setDir(stage.countDir(50, 0))
-            stage.say('&50\n이, 이런!\n지난번에는 검각을 내주었는데\n이번에는 눈앞에서 양평관마저 돌파당하다니.\n&50\n으음, 무슨 낯으로 공명 대감을 뵙겠는가?\n차라리 숨어야겠다.')
+            stage.say('@dialogue:S_55.scene1.dialogue0039')
             stage.unit(50).hide()
         if not vars[51]:
             stage.unit(37).setDir(stage.countDir(37, 0))
-            stage.say('&37\n쯧, 또 패했군.\n오장원으로 물러나라!')
+            stage.say('@dialogue:S_55.scene1.dialogue0040')
         if not vars[54]:
             stage.unit(57).setDir(stage.countDir(57, 0))
             stage.unit(57).setAction(5)
-            stage.say('&57\n어쩔 수 없다.\n우선 군을 물린다.\n오장원으로 우회한 뒤 조조군에 맞서 싸우자!')
+            stage.say('@dialogue:S_55.scene1.dialogue0041')
             stage.unit(57).setAction(0)
         if not vars[56]:
             stage.unit(71).setDir(stage.countDir(71, 0))
-            stage.say('&71\n달아났군?\n그럼 우리는 어디로 가면 좋을까?')
+            stage.say('@dialogue:S_55.scene1.dialogue0042')
         if not vars[52]:
             stage.unit(34).setDir(stage.countDir(34, 0))
-            stage.say('&34\n남은 병력을 모아\n군사의 영채로 물러나자.\n서둘러라!')
+            stage.say('@dialogue:S_55.scene1.dialogue0043')
         stage.setRectUnitHide(0, 0, 23, 35, 2)
         vars[33] = 1
-        stage.say('&0\n우리가 양평관을 돌파하자마자 물러난 까닭이 무엇이지?\n음, 밀정을 보내 알아보도록 하라.\n퇴각한 촉군은 틀림없이 공명이 있는 곳으로 향할 것이다.\n&0\n전군은 계속 북상하라.\n군사들은 그동안 제단의 위치를 알아내도록 하라.\n&0\n이제 우리에게 남은 시간은 많지 않다.\n모든 수단을 동원해서라도\n반드시 공명을 찾아 죽여야 한다.')
+        stage.say('@dialogue:S_55.scene1.dialogue0044')
         stage.reward(0, [
             145,
             -1])
@@ -882,7 +882,7 @@ def scene1():
     if not vars[40] and stage.isNear(3, 34, False):
         stage.unit(34).setDir(stage.countDir(34, 3))
         stage.unit(3).setDir(stage.countDir(3, 34))
-        stage.say('&3\n자룡.\n&34\n천하의 관우가 촉을 배신하고 위에 항복하다니.\n오시오. 승부를 겨룹시다!')
+        stage.say('@dialogue:S_55.scene1.dialogue0045')
         fight = stage.startFight(3, 34, 5)
         fight.showUnit(True, '자룡, 잠시만!\n이것은 단순한 두 나라의 싸움이 아니네.\n내 말을 자세히 들어 보게.', 6)
         fight.showUnit(False, '좋다.\n무슨 변명을 하는지 들어 보자.', 0)
@@ -951,68 +951,68 @@ def scene1():
     if not vars[41] and stage.isNear(0, 50, True):
         stage.unit(50).setDir(stage.countDir(50, 0))
         stage.unit(0).setDir(stage.countDir(0, 50))
-        stage.say('&0\n앞을 막은 장수는 속히 물러가라!\n&50\n나는 공명 선생의 명을 받아 이 관문을 지키고 있다.\n누구도 쉽게 지나가게 두지 않겠다.\n&0\n그렇다면 이 조조, 강행 돌파할 수밖에 없겠군.\n&50\n쯧, 쯧, 쯧!\n감히 공명의 수제자인 나를 얕보느냐?\n곧 호된 맛을 보게 될 것이다!')
+        stage.say('@dialogue:S_55.scene1.dialogue0046')
         vars[41] = 1
     if not vars[43] and stage.isNear(19, 37, True):
         stage.unit(37).setDir(stage.countDir(37, 19))
         stage.unit(19).setDir(stage.countDir(19, 37))
-        stage.say('&37\n네가 조조군의 군사로군.\n목을 베어 상을 받아야겠다!\n&19\n공명의 부하로군.\n아쉽지만 나는 그대와 싸울 뜻이 없네.\n&37\n부하라니!?\n헛소리 마라. 나는 촉의 대장이다.\n그놈의 부하가 아니야!\n&19\n공명을 위해 시간을 벌고 있지 않은가?\n그것이 부하와 무엇이 다른가?\n&37\n마지막 제단을 짓는다더니\n핑계를 대고 숨어 버렸단 말이다.\n같은 편이라도 분통이 터지는군!\n&19\n(마지막 제단이라고?\n이곳은 세 번째 제단일 텐데……\n설마 허도의 제단이 이미 완성되었나!?)\n&19\n그렇다면 불러내면 될 것 아닌가.\n&37\n어떻게 부르느냐? 벌써 오장……\n이놈, 보통내기가 아니군.\n그리 쉽게 내 입을 열 수는 없다!')
+        stage.say('@dialogue:S_55.scene1.dialogue0047')
         vars[43] = 1
     if not vars[50] and stage.unitStateTest(50, 7, 0, 2):
-        stage.say('&50\n으아!\n이 마속이 이런 곳에서 죽다니.')
+        stage.say('@dialogue:S_55.scene1.dialogue0048')
         stage.unit(50).hide(2)
         vars[50] = 1
     if not vars[51] and stage.unitStateTest(37, 7, 0, 2):
-        stage.say('&37\n공명을 위해 헛되이 죽을 수는 없다.\n어서 퇴각하라!')
+        stage.say('@dialogue:S_55.scene1.dialogue0049')
         stage.unit(37).hide(1)
         vars[51] = 1
     if not vars[52] and stage.unitStateTest(34, 7, 0, 2):
-        stage.say('&34\n우선 군을 물리자.')
+        stage.say('@dialogue:S_55.scene1.dialogue0050')
         stage.unit(34).hide(1)
         vars[52] = 1
     if not vars[53] and stage.unitStateTest(36, 7, 0, 2):
-        stage.say('&36\n노부도 정말 늙은 것인가?\n퇴각하자!')
+        stage.say('@dialogue:S_55.scene1.dialogue0051')
         stage.unit(36).hide(1)
         vars[53] = 1
     if not vars[54] and stage.unitStateTest(57, 7, 0, 2):
-        stage.say('&57\n또 패했군……\n퇴각하라!')
+        stage.say('@dialogue:S_55.scene1.dialogue0052')
         stage.unit(57).hide(1)
         vars[54] = 1
     if not vars[55] and stage.unitStateTest(58, 7, 0, 2):
-        stage.say('&58\n안 되겠다!\n어서 물러나라! 물러나라!')
+        stage.say('@dialogue:S_55.scene1.dialogue0053')
         stage.unit(58).hide(1)
         vars[55] = 1
     if not vars[56] and stage.unitStateTest(71, 7, 0, 2):
-        stage.say('&71\n으윽!\n아직 끈기가 부족한 모양이군. 군을 물리자!\n다만 이번에는 길잡이를 구해야겠다.')
+        stage.say('@dialogue:S_55.scene1.dialogue0054')
         stage.unit(71).hide(1)
         vars[56] = 1
     if not vars[57] and stage.unitStateTest(73, 7, 0, 2):
-        stage.say('&71\n퇴각하자………\n참, 어디로 퇴각해야 하지?\n모르겠다. 우선 떠나자!')
+        stage.say('@dialogue:S_55.scene1.dialogue0055')
         stage.unit(73).hide(1)
         vars[57] = 1
     if not vars[58] and stage.unitStateTest(72, 7, 0, 2):
-        stage.say('&72\n아!\n아녀자에게 이리 거칠게 굴다니.\n어쨌든 충분히 싸웠으니\n이만 가겠소!')
+        stage.say('@dialogue:S_55.scene1.dialogue0056')
         stage.unit(72).hide(1)
         vars[58] = 1
     if not vars[59] and stage.unitStateTest(55, 7, 0, 2):
-        stage.say('&55\n끝내 지키지 못했구나…… 으윽!')
+        stage.say('@dialogue:S_55.scene1.dialogue0057')
         stage.unit(55).hide(2)
         vars[59] = 1
     if not vars[60] and stage.unitStateTest(56, 7, 0, 2):
-        stage.say('&56\n내 목숨도 여기까지인가…… 으윽!')
+        stage.say('@dialogue:S_55.scene1.dialogue0058')
         stage.unit(56).hide(2)
         vars[60] = 1
     if not vars[61] and stage.unitStateTest(45, 7, 0, 2):
-        stage.say('&45\n의부님, 소자도 이제 죽습니다………')
+        stage.say('@dialogue:S_55.scene1.dialogue0059')
         stage.unit(45).hide(2)
         vars[61] = 1
     if not vars[62] and stage.unitStateTest(65, 7, 0, 2):
-        stage.say('&65\n이런!\n마속의 계책을 믿는 게 아니었는데……\n너무도 분하구나………')
+        stage.say('@dialogue:S_55.scene1.dialogue0060')
         stage.unit(65).hide(2)
         vars[62] = 1
     if not vars[0] and stage.winTest():
         stage.resumeCtrl()
-        stage.say('&0\n좋다. 이제 뒤를 걱정할 필요는 없겠군.\n남은 일은 공명을 찾아내는 것뿐이다.\n밀정을 보내 그들이 퇴각한 곳을 알아내라!\n&0\n전군은 계속 북상한다.\n군사들은 그동안 제단의 위치를 찾아내도록 하라.\n&0\n시간이 얼마 없다.\n무슨 수를 써서라도\n반드시 공명을 찾아 죽여야 한다.')
+        stage.say('@dialogue:S_55.scene1.dialogue0061')
         stage.reward(0, [
             145,
             -1])

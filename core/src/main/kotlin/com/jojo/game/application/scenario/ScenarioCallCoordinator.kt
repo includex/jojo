@@ -4,7 +4,6 @@ package com.jojo.game.application.scenario
 import com.jojo.engine.script.*
 
 import com.jojo.game.*
-import com.jojo.game.infrastructure.data.ScenarioDialogueTextCatalog
 
 import com.jojo.game.domain.scenario.*
 import com.jojo.game.domain.campaign.*
@@ -130,6 +129,12 @@ internal class ScenarioCallCoordinator(
 
     private val resolveStageUnitReference: (Int, Int) -> ScenarioUnitReference?,
 ) {
+    val hostApi: ScenarioHostApi = ScenarioHostCommands(
+        dialogue = dialogueCoordinator,
+        choices = choiceCoordinator,
+        delayAction = delayCoordinator::suspendForStageDelay,
+        infoAction = { modalController.suspendForInfo(it, ScenarioModalKind.INFO) },
+    )
     /**
      * `expressionEnvironment` (ExpressionEnvironment): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -265,6 +270,7 @@ internal class ScenarioCallCoordinator(
         pendingAskResult = choiceCoordinator.pendingAskResult,
         suspendFor = delayCoordinator::suspendFor,
         suspendForStageDelay = delayCoordinator::suspendForStageDelay,
+        hostApi = hostApi,
         suspendForBattleBackgroundLoad = delayCoordinator::suspendForBattleBackgroundLoad,
         suspendForInfo = modalController::suspendForInfo,
         suspendForAmbition = modalController::suspendForAmbition,
@@ -303,18 +309,7 @@ internal class ScenarioCallCoordinator(
         if (stageCall != null) return stageCall.value
         when (path) {
             "stage.say" -> {
-                val encodedText = args.firstOrNull().asText()
-                val sourceText = if (encodedText.startsWith(ScenarioDialogueTextCatalog.REFERENCE_PREFIX)) {
-                    ScenarioDialogueTextCatalog.text(encodedText.removePrefix(ScenarioDialogueTextCatalog.REFERENCE_PREFIX))
-                } else {
-                    encodedText
-                }
-                if (!sourceText.startsWith("&")) {
-                    dialogueCoordinator.reset()
-                    modalController.suspendForInfo(sourceText, ScenarioModalKind.INFO)
-                    return null
-                }
-                dialogueCoordinator.startSay(sourceText)
+                hostApi.say(args.firstOrNull().asText())
                 return null
             }
 
@@ -329,15 +324,12 @@ internal class ScenarioCallCoordinator(
             }
 
             "stage.choice" -> {
-                choiceCoordinator.startChoice(
-                    choice = Choice(
-                        args.firstOrNull().asText().lineSequence().map(String::trim).filter(String::isNotEmpty)
-                            .toList(),
-                        args.getOrNull(1)?.asInt()?.takeIf { it >= 0 },
-                    ),
-                    node = node,
-                    frame = frame,
-                    moduleName = moduleName,
+                val line = node.get("location")?.getInt("line", -1)?.takeIf { it > 0 }
+                    ?: error("$moduleName ${frame.function.name} choice has no source line")
+                hostApi.choice(
+                    args.firstOrNull().asText().lineSequence().map(String::trim).filter(String::isNotEmpty).toList(),
+                    args.getOrNull(1)?.asInt()?.takeIf { it >= 0 },
+                    ScenarioCallSite(moduleName, frame.sourceFunction, line),
                 )
                 return null
             }

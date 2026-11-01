@@ -533,13 +533,13 @@ def scene0():
     stage.draw()
     stage.bgSound(5)
     stage.unit(140).setDir(stage.countDir(140, 0))
-    stage.say('&140\n마침내 조조군이 왔군.')
+    stage.say('@dialogue:S_32.scene0.dialogue0001')
     stage.unit(142).setDir(stage.countDir(142, 140))
-    stage.say('&142\n교주님, 안심하십시오.\n이곳은 지키기는 쉽고 공격하기는 어려운 지형입니다.\n&142\n관문만 지키면\n조조군도 어쩌지 못할 것입니다.')
+    stage.say('@dialogue:S_32.scene0.dialogue0002')
     stage.unit(141).setDir(stage.countDir(141, 0))
-    stage.say('&141\n형님,\n이 장위에게 관문 수비를 맡겨 주십시오.\n&15\n소문보다 더 험한 곳이군요.\n&0\n(촉을 멸하려면\n반드시 차지해야 할 전략적 요충지다.\n장로가 이곳을 바쳐 준다면…….)\n&0\n전군에 전하라. 장로를 죽이지 마라.\n장로를 사로잡아 내게 데려오라.')
+    stage.say('@dialogue:S_32.scene0.dialogue0003')
     stage.unit(0).setAction(5)
-    stage.say('&0\n이곳은 한중으로 통하는 전략적 요충지다.\n먼저 관문을 점령해야 한다.\n전군 공격을 개시하라!')
+    stage.say('@dialogue:S_32.scene0.dialogue0004')
     stage.unit(0).setAction(0)
     stage.setWinCondition('승리 조건\n1. 장로를 사로잡는다.\n\n패배 조건\n1. 조조가 사망한다.\n2. 25턴을 초과한다.')
     stage.showWinCondition('장로를 사로잡아라!')
@@ -562,7 +562,7 @@ def scene1():
         stage.unit(9).setDir(stage.countDir(9, 140))
         stage.unit(142).setDir(stage.countDir(142, 9))
         stage.unit(140).setDir(stage.countDir(140, 9))
-        stage.say('&9\n늦었습니다.\n즉시 조조군을 섬멸하러 가겠습니다!\n&140\n장군과 아무 상관도 없는 이 다툼에\n휘말리게 하려니 차마 마음이 편치 않소.\n허나 이제 그대에게 의지할 수밖에 없구려.\n&9\n장로 대인, 이 방덕은 은혜를 알면 반드시 갚습니다.\n목숨을 버려서라도 조조군을 무찌르겠습니다.\n&142\n방덕 장군,\n부디 이 나라를 구해 주십시오.')
+        stage.say('@dialogue:S_32.scene1.dialogue0001')
         stage.unit(318).setAI(1)
         stage.unit(390).setAI(1)
         stage.unit(391).setAI(1)
@@ -605,16 +605,16 @@ def scene1():
     if not vars[32] and not vars[50] and not vars[51] and stage.curCamp() == 2 and stage.isInRect(1025, 9, 0, 27, 19):
         stage.unit(140).setDir(stage.countDir(140, 0))
         stage.unit(140).setAction(4)
-        stage.say('&140\n조조군이 관문을 돌파했군.\n이제 돌이킬 수 없는 것인가……?')
+        stage.say('@dialogue:S_32.scene1.dialogue0002')
         stage.unit(142).setDir(stage.countDir(142, 140))
-        stage.say('&142\n교주님, 방덕 장군께 출전을 청하시지요!\n병 때문에 마초와 헤어져\n이곳에서 요양 중인 방 장군께 부탁드린다면…….\n&140\n방덕 장군의 용맹은 한중에서도 이름이 높지.\n이제는 그의 힘을 빌릴 수밖에 없겠군.\n서둘러라! 방덕 장군을 모셔라!\n&142\n예!')
+        stage.say('@dialogue:S_32.scene1.dialogue0003')
         vars[32] = 1
     if not vars[33] and stage.curCamp() == 2 and stage.isInRect(1025, 11, 0, 27, 19):
         stage.unit(141).setDir(stage.countDir(141, 140))
-        stage.say('&141\n으윽, 이대로라면 형님께서 위험하시다!')
+        stage.say('@dialogue:S_32.scene1.dialogue0004')
         if stage.totalRectUnit(2, 0, 14, 6, 19) >= 2:
             stage.unit(141).setAction(5)
-            stage.say('&141\n전군은 조조군의 배후를 공격하라!\n관문을 나가 맞아 싸워라!')
+            stage.say('@dialogue:S_32.scene1.dialogue0005')
             stage.unit(141).setAction(0)
         stage.unit(141).setAI(1)
         stage.unit(214).setAI(1)
@@ -627,7 +627,7 @@ def scene1():
     if not vars[34] and stage.curCamp() == 2 and stage.isInRect(1025, 21, 13, 27, 19):
         stage.unit(140).setDir(stage.countDir(140, 0))
         stage.unit(140).setAction(5)
-        stage.say('&140\n조조군을 성 안에 들이지 마라.\n무슨 일이 있어도 막아라.')
+        stage.say('@dialogue:S_32.scene1.dialogue0006')
         stage.unit(140).setAction(0)
         stage.unit(142).setAI(1)
         stage.unit(210).setAI(1)
@@ -645,16 +645,16 @@ def scene1():
         stage.resumeCtrl()
         stage.unit(0).setDir(stage.countDir(0, 140))
         stage.unit(140).setDir(stage.countDir(140, 0))
-        stage.say('&0\n오두미교의 교주 장로여!\n우리가 그대의 나라를 멸하러 왔다고 여긴다면\n그것은 잘못된 생각이오.\n&0\n지금 한중이 번영하려면\n먼저 온 나라가 하나가 되어야 하오.\n우리 군에 귀순하시오!\n&140\n안정된 질서에는 백성들의 지지가 필요하오.\n다스리기만 한다고 인심이 안정되지는 않소.\n&0\n나라를 잃는다고 신앙까지 사라지는 것은 아니오.\n한중도 내가 다스리는 다른 땅들과 마찬가지로\n백성들이 평온하게 살아갈 수 있을 것이오.\n&140\n자유롭게 포교해도 된다는 말씀이오?\n알겠소. 장졸들을 헛되이 희생시키느니\n그대에게 귀순하겠소.')
+        stage.say('@dialogue:S_32.scene1.dialogue0007')
         if not vars[51]:
             stage.unit(142).setDir(stage.countDir(142, 140))
-            stage.say('&142\n그렇다면 굳이 싸울 필요가 없겠군요.\n앞으로 잘 부탁드립니다.')
+            stage.say('@dialogue:S_32.scene1.dialogue0008')
             vars[51] = 1
         if not vars[52]:
             stage.unit(141).setDir(stage.countDir(141, 140))
-            stage.say('&141\n형님께서 그렇게 결심하셨다면\n저도 따르겠습니다.')
+            stage.say('@dialogue:S_32.scene1.dialogue0009')
             vars[52] = 1
-        stage.say('&140\n집안에 대대로 전해지는 보물입니다.\n안정된 질서를 세우는 데 써 주십시오.')
+        stage.say('@dialogue:S_32.scene1.dialogue0010')
         stage.getItem(52, -1)
         vars[50] = 1
         vars[40] = 1
@@ -667,7 +667,7 @@ def scene1():
     if not vars[41] and stage.isNear(15, 9, False):
         stage.unit(15).setDir(stage.countDir(15, 9))
         stage.unit(9).setDir(stage.countDir(9, 15))
-        stage.say('&15\n음!? 마초의 부장이 아니냐?\n어쩌다 장로의 부하가 되었지?\n&9\n나는 장로 대인의 부하가 아니다.\n그저 도우러 왔을 뿐이지.\n승부를 겨루자!')
+        stage.say('@dialogue:S_32.scene1.dialogue0011')
         fight = stage.startFight(15, 9, 5)
         fight.showUnit(False, '나는 방덕, 자는 영명이다.\n오너라!', 9)
         fight.showUnit(True, '그 차림이 무겁지도 않느냐?\n됐다. 어차피 어떻게 싸워도 상관없다.', 0)
@@ -716,26 +716,26 @@ def scene1():
     if not vars[42] and stage.isNear(15, 141, True):
         stage.unit(15).setDir(stage.countDir(15, 141))
         stage.unit(141).setDir(stage.countDir(141, 15))
-        stage.say('&15\n네가 장위냐!\n나와 승부를 겨룰 배짱은 있느냐?\n&141\n나는 한중을 지켜야 한다.\n네 도발에 넘어갈 것 같으냐.')
+        stage.say('@dialogue:S_32.scene1.dialogue0012')
         vars[42] = 1
     if not vars[43] and stage.isNear(0, 142, True):
         stage.unit(0).setDir(stage.countDir(0, 142))
         stage.unit(142).setDir(stage.countDir(142, 0))
-        stage.say('&0\n그대가 장로의 군사인가?\n장로를 만나게 해 주게.\n그를 해칠 생각은 없네.\n&142\n그대 뜻대로 되지는 않을 것이오!\n우리는 목숨을 걸고 교주님을 지킬 것이오.')
+        stage.say('@dialogue:S_32.scene1.dialogue0013')
         vars[43] = 1
     if not vars[50] and stage.unitStateTest(140, 7, 0, 2):
         stage.resumeCtrl()
-        stage.say('&140\n으윽, 내 목숨도 여기까지인가……\n&0\n좋다. 장로를 붙잡았느냐?')
+        stage.say('@dialogue:S_32.scene1.dialogue0014')
         stage.unit(0).setDir(stage.countDir(0, 140))
         stage.unit(140).setDir(stage.countDir(140, 0))
-        stage.say('&0\n오두미교의 교주 장로여!\n우리가 그대의 나라를 멸하러 왔다고 여긴다면\n그것은 잘못된 생각이오.\n&0\n지금 한중이 번영하려면\n먼저 온 나라가 하나가 되어야 하오.\n우리 군에 귀순하시오!\n&140\n안정된 질서에는 백성들의 지지가 필요하오.\n다스리기만 한다고 인심이 안정되지는 않소.\n&0\n나라를 잃는다고 신앙까지 사라지는 것은 아니오.\n한중도 내가 다스리는 다른 땅들과 마찬가지로\n백성들이 평온하게 살아갈 수 있을 것이오.\n&140\n자유롭게 포교해도 된다는 말씀이오?\n알겠소. 장졸들을 헛되이 희생시키느니\n그대에게 귀순하겠소.')
+        stage.say('@dialogue:S_32.scene1.dialogue0015')
         if not vars[51]:
             stage.unit(142).setDir(stage.countDir(142, 140))
-            stage.say('&142\n그렇다면 굳이 싸울 필요가 없겠군요.\n앞으로 잘 부탁드립니다.')
+            stage.say('@dialogue:S_32.scene1.dialogue0016')
             vars[51] = 1
         if not vars[52]:
             stage.unit(141).setDir(stage.countDir(141, 140))
-            stage.say('&141\n형님께서 그렇게 결심하셨다면\n저도 따르겠습니다.')
+            stage.say('@dialogue:S_32.scene1.dialogue0017')
             vars[52] = 1
         vars[50] = 1
         stage.reward()
@@ -745,18 +745,18 @@ def scene1():
         vars[632] = 1
         return True
     if not vars[51] and stage.unitStateTest(142, 7, 0, 2):
-        stage.say('&142\n더 저항해도 소용없겠군.\n나를 데려가시오.')
+        stage.say('@dialogue:S_32.scene1.dialogue0018')
         stage.unit(142).hide(1)
         stage.getItem(96, -1, True, 1027)
         vars[51] = 1
     if not vars[52] and stage.unitStateTest(141, 7, 0, 2):
-        stage.say('&141\n으윽, 형님……\n죄송합니다……\n으윽!')
+        stage.say('@dialogue:S_32.scene1.dialogue0019')
         stage.unit(141).hide(2)
         vars[52] = 1
     if not vars[53] and stage.unitStateTest(9, 7, 0, 2):
         stage.unit(9).setDir(stage.countDir(9, 0))
         stage.unit(0).setDir(stage.countDir(0, 9))
-        stage.say('&9\n으윽, 내 목숨도 여기까지인가……\n죽이든 살리든 마음대로 해라!\n&0\n방덕, 자네는 참으로 훌륭한 장수로군.\n용맹이 뛰어나고 의리까지 깊으니\n이대로 죽이기는 너무도 아깝네.\n&9\n흥! 어차피 그대에게 패한 몸이니\n위로하는 말은 그만하시오.\n&0\n좋다! 데려가라!\n&9\n조 대인, 조금이라도 인의가 남아 있다면\n이 방덕의 말 몇 마디를 들어 주시오.\n&0\n무슨 말인가? 해 보게.\n&9\n오늘 죽어도 후회는 없으나\n장로 장군의 은혜에 보답하지 못한 것이 한이오.\n&9\n장로 장군은 그대를 해친 적도 없고\n천하에 야심을 품지도 않았소.\n부디 그분만은 놓아주지 않겠소?\n&0\n본래 그럴 생각이었으니\n염려 말게.\n&9\n감사하기 그지없소.\n이제 죽어도 여한이 없구려!\n나를 데려가 참수하시오.\n&0\n(장로를 만나지 못하면\n방덕을 설득하기는 어렵겠군.)')
+        stage.say('@dialogue:S_32.scene1.dialogue0020')
         stage.unit(9).hide(1)
         stage.setWinCondition('승리 조건\n1. 장로를 사로잡는다.\n2. 조조가 장로와 인접한다.\n\n패배 조건\n1. 조조가 사망한다.\n2. 25턴을 초과한다.')
         stage.showWinCondition('장로를 설득하라!')
@@ -765,7 +765,7 @@ def scene1():
         vars[53] = 1
     if vars[100] and not vars[0] and stage.winTest():
         stage.resumeCtrl()
-        stage.say('&0\n좋다, 마침내 적군을 몰아냈다!\n우리의 승리다!')
+        stage.say('@dialogue:S_32.scene1.dialogue0021')
         stage.reward()
         stage.end()
         vars[0] = 1

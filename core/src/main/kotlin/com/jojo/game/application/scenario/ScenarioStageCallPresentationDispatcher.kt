@@ -52,7 +52,11 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
                 0
             }
 
-            "stage.delay" -> { env.suspendForStageDelay(args.firstOrNull().asInt()); 0 }
+            "stage.delay" -> {
+                val ticks = args.firstOrNull().asInt()
+                if (env.hostApi != null) env.hostApi.delay(ticks) else env.suspendForStageDelay(ticks)
+                0
+            }
             "stage.draw" -> { stage.drawBattle(); 0 }
             "stage.info" -> {
                 /**
