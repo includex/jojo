@@ -11,6 +11,7 @@ import com.jojo.game.presentation.battle.overlay.ForcesListLayer
 internal class BattleForcesOverlayController {
     /** 부대 목록에서 탭 전환과 닫기 동작을 전달하는 포인터 입력이다. */
     sealed interface Intent {
+        data object Dismiss : Intent
         /**
          * `PointerDown`: 관련 상태와 동작을 묶는 class다.
          * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -213,6 +214,11 @@ internal class BattleForcesOverlayController {
     fun dispatch(intent: Intent): DispatchResult {
         val visible = state as? State.Visible ?: return DispatchResult(consumed = false)
         return when (intent) {
+            Intent.Dismiss -> {
+                visible.layer.onClose(ForcesListLayer.TOUCH_END)
+                state = State.Hidden
+                DispatchResult(consumed = true, effect = Effect.Closed, uiSound = UiSound.CANCEL)
+            }
             is Intent.PointerDown -> {
                 state = visible.copy(press = pressAt(visible.layer, intent.x, intent.y))
                 DispatchResult(consumed = true)

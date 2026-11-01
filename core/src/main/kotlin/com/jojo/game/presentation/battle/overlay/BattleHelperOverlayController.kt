@@ -40,6 +40,7 @@ internal class BattleHelperOverlayController {
 
     /** 도움말 오버레이의 확인 버튼 좌표를 전달하는 포인터 입력이다. */
     sealed interface Intent {
+        data object Dismiss : Intent
         /**
          * `PointerDown`: 관련 상태와 동작을 묶는 class다.
          * 패키지의 책임에 맞는 입력·상태·결과 계약을 제공한다.
@@ -92,6 +93,10 @@ internal class BattleHelperOverlayController {
     fun dispatch(intent: Intent): Boolean {
         val visible = state as? State.Visible ?: return false
         when (intent) {
+            Intent.Dismiss -> {
+                visible.layer.onButtonTouch(HelperLayer.TOUCH_END)
+                state = State.Hidden
+            }
             is Intent.PointerDown -> {
                 state = visible.copy(confirmPressed = intent.isConfirmButton())
             }
@@ -116,6 +121,7 @@ internal class BattleHelperOverlayController {
      */
 
     private fun Intent.isConfirmButton(): Boolean = when (this) {
+        Intent.Dismiss -> false
         is Intent.PointerDown -> x in CONFIRM_LEFT..CONFIRM_RIGHT && y in CONFIRM_BOTTOM..CONFIRM_TOP
         is Intent.PointerUp -> x in CONFIRM_LEFT..CONFIRM_RIGHT && y in CONFIRM_BOTTOM..CONFIRM_TOP
     }

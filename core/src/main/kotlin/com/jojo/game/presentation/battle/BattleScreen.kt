@@ -4431,7 +4431,66 @@ void main() {
              * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
              */
 
+            private fun cancelCurrentInput() {
+                // Use pointer/modal ordering so Escape dismisses only the top surface.
+                when (inputSurface().pointerCapture()) {
+                    BattleInputCapture.SETTLEMENT_INFO -> closeSettlementInfo2()
+                    BattleInputCapture.COMMAND -> dispatchBattleCommand(6)
+                    BattleInputCapture.USE_PROPERTY_DETAIL -> usePropertyDetail = null
+                    BattleInputCapture.USE_PROPERTY -> {
+                        usePropertyLayer?.closeTouchEnd()
+                        usePropertyLayer = null
+                    }
+                    BattleInputCapture.MAGIC_INFO -> {
+                        magickInfoLayer?.close(MagicUiList.TOUCH_END)
+                        magickInfoLayer = null
+                    }
+                    BattleInputCapture.MAGIC_LIST -> {
+                        magickListLayer?.cancel(MagicUiList.TOUCH_END)
+                        magickListLayer = null
+                        if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCancelled()
+                    }
+                    BattleInputCapture.JIQI -> {
+                        jiqiLayer?.onCancel(JiQiLayer.TOUCH_END)
+                        jiqiLayer = null
+                    }
+                    BattleInputCapture.SCRIPT_WIN_CONDITIONS -> scriptWinConditions?.cancel(WinConditionsLayer.TOUCH_END)
+                    BattleInputCapture.UNIT_INFO -> unitInfoOverlay.dispatch(BattleUnitInfoOverlayController.Intent.Dismiss)
+                    BattleInputCapture.FORCES -> forcesOverlay.dispatch(BattleForcesOverlayController.Intent.Dismiss)
+                    BattleInputCapture.HELPER -> helperOverlay.dispatch(BattleHelperOverlayController.Intent.Dismiss)
+                    BattleInputCapture.SETTING -> settingsOverlay.dispatch(BattleSettingsOverlayController.Intent.Close)
+                    BattleInputCapture.SAVE, BattleInputCapture.LOAD -> handleSaveLoadEffect(
+                        saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Cancel).effect
+                    )
+                    BattleInputCapture.TREASURE, BattleInputCapture.PROPERTY, BattleInputCapture.TERRAIN ->
+                        informationOverlay.dispatch(BattleInformationOverlayController.Intent.Close)
+                    BattleInputCapture.WIN_CONDITION -> winConditionLayer?.onButtonTouch(WinConBoxLayer.TOUCH_END)
+                    BattleInputCapture.AUTO_PROMPT -> {
+                        if (returnToTitlePromptOpen) returnToTitlePromptOpen = false else answerAutoBattle(1)
+                    }
+                    BattleInputCapture.AUTO_TUOGUAN -> autoBattleFlow.cancelTuoGuan(AutoBattleFlow.TOUCH_END)
+                    BattleInputCapture.BATTLE_MENU -> closeBattleMenu()
+                    BattleInputCapture.MAP -> when {
+                        returnToTitlePromptOpen -> returnToTitlePromptOpen = false
+                        battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION -> {
+                            magicMode = false
+                            propertyMode = false
+                            battleCommandFlow.childCancelled()
+                        }
+                        magicMode || propertyMode -> { magicMode = false; propertyMode = false }
+                        selectedUnitId != null -> selectedUnitId = null
+                        else -> openBattleMenu()
+                    }
+                    // Dialogue, choices, animation and scripted results retain their input ownership.
+                    else -> Unit
+                }
+            }
+
             override fun keyDown(keycode: Int): Boolean {
+                if (keycode == Input.Keys.ESCAPE) {
+                    cancelCurrentInput()
+                    return true
+                }
                 val keyboardIntent = battleInputRouter.keyDown(keycode, inputSurface())
                 if (keyboardIntent.capture == BattleInputCapture.DIALOGUE) {
                     if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) advanceBattleDialogue()
@@ -4551,15 +4610,6 @@ void main() {
                 }
                 if (keyboardIntent.capture == BattleInputCapture.SCRIPT_PAUSED) return true
                 when (keycode) {
-                    Input.Keys.ESCAPE -> if (usePropertyDetail != null) {
-                        usePropertyDetail = null
-                        return true
-                    } else if (usePropertyLayer != null) {
-                        usePropertyLayer?.closeTouchEnd()
-                        usePropertyLayer = null
-                        return true
-                    } else game.showScenario(returnScenario)
-
                     Input.Keys.T, Input.Keys.SPACE, Input.Keys.ENTER -> {
                         if (battle.outcome() == null) requestEndRound() else outcomePresentation.continueAfterOutcome()
                     }

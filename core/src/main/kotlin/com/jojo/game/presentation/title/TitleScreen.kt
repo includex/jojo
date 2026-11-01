@@ -190,7 +190,6 @@ class TitleScreen(
         override fun keyDown(keycode: Int): Boolean {
             if (registrationCheck.loading != null) return true
             when {
-                keycode == Input.Keys.ESCAPE && mode == TitleMode.LOGIN -> Gdx.app.exit()
                 keycode == Input.Keys.ESCAPE && mode == TitleMode.LOAD && loadLayer.pendingSlot() != null ->
                     loadLayer.onConfirm(1)
 
