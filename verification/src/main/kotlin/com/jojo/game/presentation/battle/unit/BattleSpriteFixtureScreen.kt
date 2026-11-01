@@ -69,7 +69,9 @@ class BattleSpriteFixtureScreen(
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 0f); Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         viewport.apply(); batch.projectionMatrix = viewport.camera.combined
-        val size = 384f; val sourceY = if (frame.sourceY + frame.sourceHeight > texture.height) 0 else frame.sourceY
+        // Match production's shared pixel scale: 64px attack is 4/3 of
+        // 48px movement. Equal destination sizes hide cross-atlas size jumps.
+        val size = frame.sourceWidth * 6f; val sourceY = if (frame.sourceY + frame.sourceHeight > texture.height) 0 else frame.sourceY
         batch.begin()
         batch.draw(texture, (1280f - size) / 2 + frame.offsetX, (688f - size) / 2 + frame.offsetY, size, size, 0, sourceY, frame.sourceWidth, frame.sourceHeight, frame.flipX, false)
         batch.end(); game.captureFrameIfRequested()

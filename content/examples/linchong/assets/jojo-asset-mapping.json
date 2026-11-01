@@ -1,102 +1,34 @@
 {
   "format": "jojo-existing-assets-v2",
+  "authoredSpriteDirectory": "sprites-v3",
   "description": "Authored 28-frame character sheets packed into original Jojo atlas slots. Runtime timeline and engine remain unchanged.",
   "sourceHashes": {
     "tokens.png": "2bb5943a41fa619fb8f6688d5e54bebe1c18bc31c4c9304067b48360f3e8ebd3",
     "portraits.png": "97264a8692c0083b5edbc06b05b9fcb5e820d5c8856f656eb03823a3648a828c",
     "portraits-support.png": "f94686416d591fb152f917bf136320d3a36c0e98afbba9d33f97bfc6045d6c7e",
-    "sprites-v2/frame-adjustments.json": "8dfe928bfc51f6211654271b505bca4819edc22e89214efef9ac764dbd278799",
-    "sprites-v2/lin.png": "0b87f8b3313f0d4c076ffd75d5e3df5104504977d02826f6c1ad6f31fad19d67",
-    "sprites-v2/lu.png": "4714ee25a43f752c72aa19cda80da00d744084586f40e8ce23adc9fb7cccb6d9",
-    "sprites-v2/hu.png": "8558c23417390650bb36785df755efab067fcccbdc18a0c0ae75a24fd328282b",
-    "sprites-v2/jin.png": "711b2399b4a58763bb917a77777cc78eb2f9c921eed868afe2bd983feb99c85e",
-    "sprites-v2/zhu.png": "6deff73900bfe57266fd719a9e74b2924525865c89657eed4463bbc156af6184",
-    "sprites-v2/hong.png": "3e8f36456e79cac1e09b03315f5e64e94d0ba963a94d195ede88135c1641fea1",
-    "sprites-v2/yang.png": "dc354111de142238bf115b6e282ee33d8e17b174a3cfc26bf1a97f78c6bea927",
-    "sprites-v2/wang.png": "eb39caa2d55e2331719a2d0121855cde7dc82c688c951d2d50b8a5daeff65737",
-    "sprites-v2/chai.png": "937036dc2df41b6cb3d94e752da203f10ad9e95b2add38f06a6ecfe529f36986",
-    "sprites-v2/song.png": "82268ec3b91343b681aab50941468ba5ce8cd07acb62564c8c8327387f325821",
-    "sprites-v2/dong.png": "b6ab662f1d5dc6612e97c05ff9ec361eed98671d6e4f43b0ca3a57eba38cb0f5",
-    "sprites-v2/xue.png": "279514752cfdef68f62c5ab5689b8bf0f98c94a1bd423857272942734bdc5161",
-    "sprites-v2/luk.png": "f54faa3b2923d671d9098b1ef1aa929703d20a453071db9038543c3d54191393",
-    "sprites-v2/fu.png": "f771d61969e713309ab96be42dca1a7e35eaf9274256c6e04bfea56b492f8529",
-    "sprites-v2/guard.png": "c4183ea2bbb65f614187b1d9fc0f9253dfecf57953fbc9daacc229ad43a0d38a",
-    "sprites-v2/bandit.png": "63bc6edee481ecacc2eebada09ca7c7beefffa92795cf633883167e7f4bea620",
+    "sprites-v3/framing.json": "4784ee9003faa9d61836cf96bd80312a5bd207c1f99bf9fe1e3c4f5f793322d1",
+    "sprites-v3/frame-adjustments.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "sprites-v3/lin.png": "0c0bd704ac35c6c51b5a3f228bd5daf6298a643319d0201f59a832933b9ba1fc",
+    "sprites-v3/lu.png": "d4db2c6981529addae9a92b0f8ccedbd50c1f1a777b74e4ef28b92ad23753d1c",
+    "sprites-v3/hu.png": "254c5b4aa873107c5c5cdf44a7d3503c0944aa9e0338c5f1537518a9e0d38b65",
+    "sprites-v3/jin.png": "d7d536734a4a0eac12eecbf9e2b43a6c56ed1d743a0dabb33d3f6c9baf02cf70",
+    "sprites-v3/zhu.png": "3dddeaae595af4033968c0ebc6f93dae1647769a82871878280e1742e9e5b345",
+    "sprites-v3/hong.png": "68ef3f51971bd49840540e2cdf76324266735f026775a3cd9f934235ca48df92",
+    "sprites-v3/yang.png": "eb93584f50b5512ca9d48cd2012e8bbce1b8efc76a728147c223ad120f7dcea2",
+    "sprites-v3/wang.png": "8d06399c2cc1c6ad41127e20c87aca2bfc474bbda3ccaf8b3fb17c8a2cc3bb01",
+    "sprites-v3/chai.png": "e0fd40e43a2710e6bbf53f3d58e698618a4c5913d9f593deb50ee5d9801b3496",
+    "sprites-v3/song.png": "1eedf8167c5f8c166a79b175099e9530df25dece1e4b230f68944d68b4a7c3de",
+    "sprites-v3/dong.png": "1ba753da3786d5b58d46719effdd0c914463845268b76bbef6ad4f6cb8ef8c20",
+    "sprites-v3/xue.png": "ba182681004530580b200a76fed20a463844e9e4b6f18f9fc89c0ae1d7448c09",
+    "sprites-v3/luk.png": "270b0d65c77a088660776da11a13dd16db5793b00639259cfde814ff6072b9ae",
+    "sprites-v3/fu.png": "c830dd50d4371f2170f6c24cea45d797cfc1b3bf82a4cef189c4b0e849d09f24",
+    "sprites-v3/guard.png": "a5cec3abcb8f490a5b5c5b7d290ee4ccf26dc91ebf1a4699fa17c6dae2fbbf29",
+    "sprites-v3/bandit.png": "54c48cfd33e3627cab6063fc47fde41efc01249b6659110522ca2abea3a3d89e",
     "objects.png": "e1c88923554939025451ff9de36d74b36ac22449f9ca0e69c8f8ee2ef67cdbfe"
   },
-  "frameAdjustments": {
-    "lin": [
-      16,
-      17
-    ],
-    "guard": [
-      17
-    ],
-    "bandit": [
-      17
-    ],
-    "chai": [
-      8,
-      9,
-      10,
-      11,
-      16,
-      17,
-      20,
-      25
-    ],
-    "dong": [
-      8,
-      9,
-      10,
-      11,
-      16,
-      17,
-      20,
-      25
-    ],
-    "fu": [
-      8,
-      9,
-      10,
-      11,
-      16,
-      17,
-      20,
-      25
-    ],
-    "luk": [
-      8,
-      9,
-      10,
-      11,
-      16,
-      17,
-      20,
-      25
-    ],
-    "song": [
-      8,
-      9,
-      10,
-      11,
-      16,
-      17,
-      20,
-      25
-    ],
-    "xue": [
-      8,
-      9,
-      10,
-      11,
-      16,
-      17,
-      20,
-      25
-    ]
-  },
+  "frameAdjustments": {},
   "animationTimelineSha256": "f52dc46f4b615ffd01264226e121e9d44999d52d7f2bab951e4b57559c45da24",
+  "framingSha256": "4784ee9003faa9d61836cf96bd80312a5bd207c1f99bf9fe1e3c4f5f793322d1",
   "atlasFrameCounts": {
     "atk2": 12,
     "mov2": 11,
@@ -110,7 +42,7 @@
       "battleAvatarType": -1,
       "face": 600,
       "headTextureId": 608,
-      "sourceSpriteSheet": "sprites-v2/lin.png",
+      "sourceSpriteSheet": "sprites-v3/lin.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -139,7 +71,7 @@
       "battleAvatarType": -1,
       "face": 601,
       "headTextureId": 609,
-      "sourceSpriteSheet": "sprites-v2/lu.png",
+      "sourceSpriteSheet": "sprites-v3/lu.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -168,7 +100,7 @@
       "battleAvatarType": -1,
       "face": 602,
       "headTextureId": 610,
-      "sourceSpriteSheet": "sprites-v2/hu.png",
+      "sourceSpriteSheet": "sprites-v3/hu.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -197,7 +129,7 @@
       "battleAvatarType": -1,
       "face": 603,
       "headTextureId": 611,
-      "sourceSpriteSheet": "sprites-v2/jin.png",
+      "sourceSpriteSheet": "sprites-v3/jin.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -226,7 +158,7 @@
       "battleAvatarType": -1,
       "face": 604,
       "headTextureId": 612,
-      "sourceSpriteSheet": "sprites-v2/zhu.png",
+      "sourceSpriteSheet": "sprites-v3/zhu.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -255,7 +187,7 @@
       "battleAvatarType": -1,
       "face": 605,
       "headTextureId": 613,
-      "sourceSpriteSheet": "sprites-v2/hong.png",
+      "sourceSpriteSheet": "sprites-v3/hong.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -284,7 +216,7 @@
       "battleAvatarType": -1,
       "face": 606,
       "headTextureId": 614,
-      "sourceSpriteSheet": "sprites-v2/yang.png",
+      "sourceSpriteSheet": "sprites-v3/yang.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -313,7 +245,7 @@
       "battleAvatarType": -1,
       "face": 607,
       "headTextureId": 615,
-      "sourceSpriteSheet": "sprites-v2/wang.png",
+      "sourceSpriteSheet": "sprites-v3/wang.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -342,7 +274,7 @@
       "battleAvatarType": -1,
       "face": 608,
       "headTextureId": 616,
-      "sourceSpriteSheet": "sprites-v2/chai.png",
+      "sourceSpriteSheet": "sprites-v3/chai.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -371,7 +303,7 @@
       "battleAvatarType": -1,
       "face": 609,
       "headTextureId": 617,
-      "sourceSpriteSheet": "sprites-v2/song.png",
+      "sourceSpriteSheet": "sprites-v3/song.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -400,7 +332,7 @@
       "battleAvatarType": -1,
       "face": 610,
       "headTextureId": 618,
-      "sourceSpriteSheet": "sprites-v2/dong.png",
+      "sourceSpriteSheet": "sprites-v3/dong.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -429,7 +361,7 @@
       "battleAvatarType": -1,
       "face": 611,
       "headTextureId": 619,
-      "sourceSpriteSheet": "sprites-v2/xue.png",
+      "sourceSpriteSheet": "sprites-v3/xue.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -458,7 +390,7 @@
       "battleAvatarType": -1,
       "face": 612,
       "headTextureId": 620,
-      "sourceSpriteSheet": "sprites-v2/luk.png",
+      "sourceSpriteSheet": "sprites-v3/luk.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -487,7 +419,7 @@
       "battleAvatarType": -1,
       "face": 613,
       "headTextureId": 621,
-      "sourceSpriteSheet": "sprites-v2/fu.png",
+      "sourceSpriteSheet": "sprites-v3/fu.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -516,7 +448,7 @@
       "battleAvatarType": -1,
       "face": 614,
       "headTextureId": 622,
-      "sourceSpriteSheet": "sprites-v2/guard.png",
+      "sourceSpriteSheet": "sprites-v3/guard.png",
       "sourceFrameLayout": {
         "attack": [
           0,
@@ -545,7 +477,7 @@
       "battleAvatarType": -1,
       "face": 615,
       "headTextureId": 623,
-      "sourceSpriteSheet": "sprites-v2/bandit.png",
+      "sourceSpriteSheet": "sprites-v3/bandit.png",
       "sourceFrameLayout": {
         "attack": [
           0,

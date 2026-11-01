@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Pack authored sprite sheets into the unmodified Jojo renderer's atlas ABI.
 
-This performs alpha-gutter extraction, common category framing, nearest-neighbor
+This performs alpha-gutter extraction, explicit source pivots and scale, nearest-neighbor
 reduction, and transparent row padding. It never synthesizes poses. Source sheets
-remain in sprites-v2/.
+remain in the explicitly selected sprite directory.
 """
 from __future__ import annotations
 import argparse
@@ -170,6 +170,39 @@ def sheet_frames(path: Path) -> list[Image.Image]:
     return frames
 
 
+def framed_frames(path: Path, mirrors: list[int]) -> list[Image.Image]:
+    """Apply reviewed source-pixel pivots and one scale to all three atlases.
+
+    Coordinates refer to sheet_frames' isolated square cells, before mirroring.
+    Native pivots are centered on x=24/32; attack feet at y=56 compensate
+    for the renderer's centered 64px canvas around its 48px movement canvas.
+    """
+    frames = sheet_frames(path)
+    metadata_path = path.parent / 'framing.json'
+    metadata = json.loads(metadata_path.read_text())['characters'][path.stem]
+    if len(metadata.get('frames', [])) != 28 or metadata.get('sourcePixelScale', 0) <= 0:
+        raise ValueError(f'{metadata_path}: {path.stem} needs 28 explicit pivots and a positive scale')
+    if metadata.get('sourceSpriteSha256') and metadata['sourceSpriteSha256'] != digest(path):
+        raise ValueError(f'{metadata_path}: {path.stem} changed since framing review')
+    result = []
+    for index, frame in enumerate(frames):
+        scale = metadata['frames'][index].get('sourcePixelScale', metadata['sourcePixelScale'])
+        size = 64 if index < 12 else 48
+        pivot = metadata['frames'][index]['pivot']
+        target = metadata['frames'][index]['target']
+        reduced = frame.resize((round(frame.width * scale), round(frame.height * scale)), Image.Resampling.NEAREST)
+        native = Image.new('RGBA', (size, size))
+        origin = (round(target[0] - pivot[0] * scale), round(target[1] - pivot[1] * scale))
+        bounds = reduced.getchannel('A').getbbox()
+        if bounds and (bounds[0] + origin[0] < 0 or bounds[1] + origin[1] < 0 or bounds[2] + origin[0] > size or bounds[3] + origin[1] > size):
+            raise ValueError(f'{path}: framing clips authored alpha in frame {index}; review framing.json')
+        native.paste(reduced, origin)
+        if index in mirrors:
+            native = native.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        result.append(native)
+    return result
+
+
 def load_adjustments(sheet_dir: Path) -> dict[str, list[int]]:
     path = sheet_dir / 'frame-adjustments.json'
     if not path.exists():
@@ -190,7 +223,7 @@ def adjusted_frames(path: Path, mirrors: list[int]) -> list[Image.Image]:
     return frames
 
 
-def package(source: Path, destination: Path, manifest_path: Path) -> dict:
+def package(source: Path, destination: Path, manifest_path: Path, sprite_dir: str = 'sprites-v3') -> dict:
     source = source.resolve()
     destination = destination.resolve()
     timeline_path = ROOT / 'content/assets/maps/battle-anime.json'
@@ -198,13 +231,15 @@ def package(source: Path, destination: Path, manifest_path: Path) -> dict:
     token_source = source / 'tokens.png'
     portrait_source = source / 'portraits.png'
     support_source = source / 'portraits-support.png'
-    sheet_dir = source / 'sprites-v2'
+    sheet_dir = source / sprite_dir
+    if Path(sprite_dir).is_absolute() or '..' in Path(sprite_dir).parts:
+        raise ValueError('sprite_dir must be a relative directory within source')
     # The v2 contract is atomic. A partial directory must fail rather than
     # quietly shipping static token frames for characters whose art is missing.
     if sheet_dir.exists():
         missing = [name for name in CHARACTERS if not (sheet_dir / f'{name}.png').is_file()]
         if missing:
-            raise FileNotFoundError(f'Incomplete sprites-v2: missing {", ".join(missing)}')
+            raise FileNotFoundError(f'Incomplete {sprite_dir}: missing {", ".join(missing)}')
     else:
         raise FileNotFoundError(f'Required 28-frame sprite sheets missing: {sheet_dir}')
     if counts != {0: 12, 1: 11, 2: 5}:
@@ -212,20 +247,23 @@ def package(source: Path, destination: Path, manifest_path: Path) -> dict:
     adjustments = load_adjustments(sheet_dir)
     manifest = {
         'format': 'jojo-existing-assets-v2',
+        'authoredSpriteDirectory': sprite_dir,
         'description': 'Authored 28-frame character sheets packed into original Jojo atlas slots. Runtime timeline and engine remain unchanged.',
         'sourceHashes': {p.name: digest(p) for p in (token_source, portrait_source, support_source)},
         'frameAdjustments': adjustments,
         'animationTimelineSha256': digest(timeline_path),
+        'framingSha256': digest(sheet_dir / 'framing.json'),
         'atlasFrameCounts': {ATLAS[k][0]: v for k, v in counts.items()},
         'characters': {}, 'objects': {}, 'maps': {}, 'generatedFiles': [],
     }
+    manifest['sourceHashes'][f'{sprite_dir}/framing.json'] = digest(sheet_dir / 'framing.json')
     if (sheet_dir / 'frame-adjustments.json').exists():
-        manifest['sourceHashes']['sprites-v2/frame-adjustments.json'] = digest(sheet_dir / 'frame-adjustments.json')
+        manifest['sourceHashes'][f'{sprite_dir}/frame-adjustments.json'] = digest(sheet_dir / 'frame-adjustments.json')
     for slot, character_id in enumerate(CHARACTERS):
             avatar_id = 601 + slot
             sheet_path = sheet_dir / f'{character_id}.png'
-            frames = adjusted_frames(sheet_path, adjustments.get(character_id, []))
-            manifest['sourceHashes'][f'sprites-v2/{character_id}.png'] = digest(sheet_path)
+            frames = framed_frames(sheet_path, adjustments.get(character_id, []))
+            manifest['sourceHashes'][f'{sprite_dir}/{character_id}.png'] = digest(sheet_path)
             paths = {}
             for ordinal, (kind, size) in ATLAS.items():
                 start, count = SHEET_LAYOUT[ordinal]
@@ -238,7 +276,7 @@ def package(source: Path, destination: Path, manifest_path: Path) -> dict:
                 manifest['generatedFiles'].append(str(relative))
             manifest['characters'][character_id] = {
                 'characterId': 512 + slot, 'avatarId': avatar_id, 'battleAvatar': avatar_id - 304, 'battleAvatarType': -1, 'face': 600 + slot,
-                'headTextureId': 608 + slot, 'sourceSpriteSheet': f'sprites-v2/{character_id}.png',
+                'headTextureId': 608 + slot, 'sourceSpriteSheet': f'{sprite_dir}/{character_id}.png',
                 'sourceFrameLayout': {'attack': [0, 12], 'movement': [12, 11], 'special': [23, 5]},
                 'movement': paths['mov2'], 'attack': paths['atk2'], 'special': paths['spc2'],
             }
@@ -339,7 +377,7 @@ def verify(destination: Path, manifest: dict, source: Path) -> None:
                         assert not image.crop((0, y, size, y + 1)).getbbox()
                         assert not image.crop((0, y + 1 + size, size, y + 2 + size)).getbbox()
             source_path = source / entry['sourceSpriteSheet']
-            authored = adjusted_frames(source_path, manifest['frameAdjustments'].get(source_path.stem, []))
+            authored = framed_frames(source_path, manifest['frameAdjustments'].get(source_path.stem, []))
             hashes = [hashlib.sha256(frame.tobytes()).hexdigest() for frame in authored]
             if len(set(hashes)) != 28:
                 raise AssertionError(f'{source_path}: expected 28 distinct authored frames')
@@ -367,9 +405,10 @@ def verify(destination: Path, manifest: dict, source: Path) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, default=ROOT / 'content/examples/linchong/assets')
+    parser.add_argument('--sprite-dir', default='sprites-v3', help='Relative authored-sheet directory inside --source (for example sprites-v3)')
     parser.add_argument('--output', type=Path, default=ROOT / 'content/assets')
     parser.add_argument('--manifest', type=Path, default=ROOT / 'content/examples/linchong/assets/jojo-asset-mapping.json')
     args = parser.parse_args()
-    result = package(args.source, args.output, args.manifest)
+    result = package(args.source, args.output, args.manifest, args.sprite_dir)
     verify(args.output, result, args.source)
     print(f"Packaged and verified {len(result['generatedFiles'])} textures: {len(result['maps'])} maps, 24 portraits, {len(result['characters'])} characters and {len(result['objects'])} object mappings")

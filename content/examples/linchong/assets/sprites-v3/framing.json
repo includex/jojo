@@ -1,0 +1,4733 @@
+{
+  "version": 1,
+  "coordinateSystem": "Source pivots in sheet_frames isolated squares before mirroring; target anchors in native atlas pixels. Attack feet56, movement/special48. One body scale per character; isolated fallen/victory containment exceptions explicit.",
+  "characters": {
+    "lin": {
+      "sourcePixelScale": 0.2360248447204969,
+      "sourceBodyHeightEstimate": 161,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            115.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            225
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            229
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            229
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            229
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            229
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            25.496894409937887,
+            48
+          ],
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            23.12459671042081,
+            48
+          ],
+          "sourcePixelScale": 0.21566177433837605,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": -1
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            26.559006211180126,
+            48
+          ],
+          "horizontalContainmentPixels": 3
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.2000411696365784,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "0c0bd704ac35c6c51b5a3f228bd5daf6298a643319d0201f59a832933b9ba1fc"
+    },
+    "lu": {
+      "sourcePixelScale": 0.24378391931266621,
+      "sourceBodyHeightEstimate": 149,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            128.5,
+            257
+          ],
+          "target": [
+            26.154058416917728,
+            48
+          ],
+          "sourcePixelScale": 0.20353352853632473,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 2
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            31.935693429959272,
+            48
+          ],
+          "horizontalContainmentPixels": 8
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            25.62255822332557,
+            48
+          ],
+          "sourcePixelScale": 0.2261263986513402,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 2
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20353352853632473,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 36.32,
+      "sourceSpriteSha256": "d4db2c6981529addae9a92b0f8ccedbd50c1f1a777b74e4ef28b92ad23753d1c"
+    },
+    "hu": {
+      "sourcePixelScale": 0.2261904761904762,
+      "sourceBodyHeightEstimate": 168,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            121.5,
+            243
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.5,
+            243
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.0,
+            226
+          ],
+          "target": [
+            25.17804472172619,
+            48
+          ],
+          "sourcePixelScale": 0.22281455505952383,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            106.0,
+            212
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            106.0,
+            212
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            106.0,
+            212
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            106.0,
+            212
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            106.0,
+            212
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "254c5b4aa873107c5c5cdf44a7d3503c0944aa9e0338c5f1537518a9e0d38b65"
+    },
+    "jin": {
+      "sourcePixelScale": 0.24358974358974358,
+      "sourceBodyHeightEstimate": 156,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            238
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            237
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            237
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            26.134615384615383,
+            48
+          ],
+          "horizontalContainmentPixels": 2
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            23.196995527762763,
+            48
+          ],
+          "sourcePixelScale": 0.21815580543517543,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": -1
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            28.378205128205128,
+            48
+          ],
+          "horizontalContainmentPixels": 4
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            21.378205128205128,
+            48
+          ],
+          "horizontalContainmentPixels": -3
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20749019656931522,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "d7d536734a4a0eac12eecbf9e2b43a6c56ed1d743a0dabb33d3f6c9baf02cf70"
+    },
+    "zhu": {
+      "sourcePixelScale": 0.2360248447204969,
+      "sourceBodyHeightEstimate": 161,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            238
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            237
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            235
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.0,
+            232
+          ],
+          "target": [
+            22.171187959006975,
+            48
+          ],
+          "sourcePixelScale": 0.22561368930178427,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": -2
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20718476637201352,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "3dddeaae595af4033968c0ebc6f93dae1647769a82871878280e1742e9e5b345"
+    },
+    "hong": {
+      "sourcePixelScale": 0.2261904761904762,
+      "sourceBodyHeightEstimate": 168,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            114.0,
+            227
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            226
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            227
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            226
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            226
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            226
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            227
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20564248773890567,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            26.69047619047619,
+            48
+          ],
+          "horizontalContainmentPixels": 3
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.217299616999206,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "68ef3f51971bd49840540e2cdf76324266735f026775a3cd9f934235ca48df92"
+    },
+    "yang": {
+      "sourcePixelScale": 0.2389937106918239,
+      "sourceBodyHeightEstimate": 159,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            127.0,
+            254
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            254
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            254
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            254
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            254
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            253
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            253
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            253
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            252
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            254
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            253
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            127.0,
+            252
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.5,
+            237
+          ],
+          "target": [
+            25.236880994831942,
+            48
+          ],
+          "sourcePixelScale": 0.21296945987199953,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.2045982785930481,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "eb93584f50b5512ca9d48cd2012e8bbce1b8efc76a728147c223ad120f7dcea2"
+    },
+    "song": {
+      "sourcePixelScale": 0.2261904761904762,
+      "sourceBodyHeightEstimate": 168,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            120.0,
+            238
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.217299616999206,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.21192118053233663,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "1eedf8167c5f8c166a79b175099e9530df25dece1e4b230f68944d68b4a7c3de"
+    },
+    "dong": {
+      "sourcePixelScale": 0.24750625,
+      "sourceBodyHeightEstimate": 152,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            120.0,
+            238
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            239
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.0,
+            238
+          ],
+          "target": [
+            24.71388136909345,
+            48
+          ],
+          "sourcePixelScale": 0.2076796753705332,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            26.576996875000003,
+            48
+          ],
+          "horizontalContainmentPixels": 3
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            25.576996875000003,
+            48
+          ],
+          "horizontalContainmentPixels": 2
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            119.5,
+            239
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20253934445386826,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 37.62,
+      "sourceSpriteSha256": "1ba753da3786d5b58d46719effdd0c914463845268b76bbef6ad4f6cb8ef8c20"
+    },
+    "xue": {
+      "sourcePixelScale": 0.2275449101796407,
+      "sourceBodyHeightEstimate": 167,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            110.5,
+            218
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            219
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            215
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            219
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            221
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            221
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            221
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            221
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            221
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            219
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            220
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            110.5,
+            218
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            120.0,
+            240
+          ],
+          "target": [
+            25.200993564805493,
+            48
+          ],
+          "sourcePixelScale": 0.21000827970671246,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            122.5,
+            245
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.5,
+            245
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.5,
+            245
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.5,
+            245
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.5,
+            245
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.19774858581269392,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "ba182681004530580b200a76fed20a463844e9e4b6f18f9fc89c0ae1d7448c09"
+    },
+    "luk": {
+      "sourcePixelScale": 0.24358974358974358,
+      "sourceBodyHeightEstimate": 156,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            247
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            123.5,
+            246
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            27.57051282051282,
+            48
+          ],
+          "horizontalContainmentPixels": 4
+        },
+        {
+          "pivot": [
+            125.5,
+            251
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.19635929778976297,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            116.5,
+            233
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20749019656931522,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "270b0d65c77a088660776da11a13dd16db5793b00639259cfde814ff6072b9ae"
+    },
+    "fu": {
+      "sourcePixelScale": 0.21965317919075145,
+      "sourceBodyHeightEstimate": 173,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            224
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            223
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            222
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            222
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            112.0,
+            222
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            114.0,
+            228
+          ],
+          "target": [
+            24.666730395953753,
+            48
+          ],
+          "sourcePixelScale": 0.21637482803468205,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.2099641848415449,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0,
+      "sourceSpriteSha256": "c830dd50d4371f2170f6c24cea45d797cfc1b3bf82a4cef189c4b0e849d09f24"
+    },
+    "wang": {
+      "sourceSpriteSha256": "8d06399c2cc1c6ad41127e20c87aca2bfc474bbda3ccaf8b3fb17c8a2cc3bb01",
+      "sourcePixelScale": 0.2159090909090909,
+      "sourceBodyHeightEstimate": 176,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            121.0,
+            241
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            241
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            241
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            241
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            240
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            241
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            241
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            113.5,
+            227
+          ],
+          "target": [
+            24.50568181818182,
+            48
+          ],
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            109.0,
+            218
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            109.0,
+            218
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            109.0,
+            218
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            109.0,
+            218
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            109.0,
+            218
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0
+    },
+    "chai": {
+      "sourceSpriteSha256": "e0fd40e43a2710e6bbf53f3d58e698618a4c5913d9f593deb50ee5d9801b3496",
+      "sourcePixelScale": 0.25,
+      "sourceBodyHeightEstimate": 152,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            30.75,
+            56
+          ],
+          "horizontalContainmentPixels": -1
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            262
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            259
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            131.0,
+            260
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            27.5,
+            48
+          ],
+          "horizontalContainmentPixels": 3
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            30.5,
+            48
+          ],
+          "horizontalContainmentPixels": 6
+        },
+        {
+          "pivot": [
+            122.0,
+            244
+          ],
+          "target": [
+            24.720806649550426,
+            48
+          ],
+          "sourcePixelScale": 0.2108262840127084,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": 1
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.0,
+            230
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.2108262840127084,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0
+    },
+    "guard": {
+      "sourceSpriteSha256": "a5cec3abcb8f490a5b5c5b7d290ee4ccf26dc91ebf1a4699fa17c6dae2fbbf29",
+      "sourcePixelScale": 0.2389937106918239,
+      "sourceBodyHeightEstimate": 159,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            105.0,
+            208
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            210
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            208
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            208
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            209
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            209
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            209
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            209
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            207
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            208
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            209
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            105.0,
+            209
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            28.91823899371069,
+            48
+          ],
+          "horizontalContainmentPixels": 5
+        },
+        {
+          "pivot": [
+            121.0,
+            242
+          ],
+          "target": [
+            23.15974206479679,
+            48
+          ],
+          "sourcePixelScale": 0.21619621541154374,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose.",
+          "horizontalContainmentPixels": -1
+        },
+        {
+          "pivot": [
+            108.5,
+            217
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            108.5,
+            217
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            108.5,
+            217
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            108.5,
+            217
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            108.5,
+            217
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.22279713545776966,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0
+    },
+    "bandit": {
+      "sourceSpriteSha256": "54c48cfd33e3627cab6063fc47fde41efc01249b6659110522ca2abea3a3d89e",
+      "sourcePixelScale": 0.2261904761904762,
+      "sourceBodyHeightEstimate": 168,
+      "targetBodyHeight": 38,
+      "bodyMeasurement": "Front-neutral frame18 narrow central head-to-foot silhouette, excluding lateral weapon; visually reviewed against original avatar1.",
+      "frames": [
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            235
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            32.0,
+            56
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            118.0,
+            236
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20875823042274394,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ]
+        },
+        {
+          "pivot": [
+            115.5,
+            231
+          ],
+          "target": [
+            24.0,
+            48
+          ],
+          "sourcePixelScale": 0.20980726675652658,
+          "reason": "Explicit full-alpha containment for horizontal fallen or raised victory pose."
+        }
+      ],
+      "achievedBodyHeightEstimate": 38.0
+    }
+  }
+}
