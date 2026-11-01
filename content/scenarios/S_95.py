@@ -51,6 +51,10 @@ def scene0():
     gvars['linchong.event_b05_e00'] = 1
     gvars['linchong.duel_win'] = 0
     gvars['linchong.exit_count'] = 0
+    stage.showWinCondition('임충을 포함한 아군 두 명을 선착장으로 이동시키고 주귀를 보호하십시오.')
+    stage.heightLight(18, 7, 18, 8)
+    stage.center(3, 6)
+    gvars['linchong.b05_guide_round'] = 1
     stage.startOper()
     return False
 
@@ -152,6 +156,9 @@ def scene1():
             stage.jumpScene(193)
         stage.end()
         return True
+    if stage.curCamp() == 0 and stage.round() > gvars['linchong.b05_guide_round']:
+        gvars['linchong.b05_guide_round'] = stage.round()
+        stage.heightLight(18, 7, 18, 8)
     return False
 
 def win_condition():

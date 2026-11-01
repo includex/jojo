@@ -45,6 +45,10 @@ def scene0():
     gvars['linchong.event_ex02_e00'] = 1
     gvars['linchong.duel_win'] = 0
     gvars['linchong.exit_count'] = 0
+    stage.showWinCondition('임충을 상자 가까이 이동시켜 하나 이상 확보하고 밀수선 두목을 격퇴하십시오.')
+    stage.heightLight(12, 7, 12, 7)
+    stage.heightLight(14, 7, 14, 7)
+    stage.center(2, 6)
     stage.startOper()
     return False
 

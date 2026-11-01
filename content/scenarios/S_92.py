@@ -26,6 +26,9 @@ def scene0():
     gvars['linchong.event_ex01_e00'] = 1
     gvars['linchong.duel_win'] = 0
     gvars['linchong.exit_count'] = 0
+    stage.showWinCondition('이 창고 상자를 지키며 도적 두목을 격퇴하십시오.')
+    stage.heightLight(7, 7, 7, 7)
+    stage.center(5, 7)
     stage.startOper()
     return False
 

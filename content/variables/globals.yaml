@@ -14,6 +14,10 @@ variables:
     type: int
     default: 0
     description: Linchong story progression flag.
+  linchong.b01_guide_round:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
   linchong.b01_mercy:
     type: int
     default: 0
@@ -119,6 +123,10 @@ variables:
     default: 0
     description: Linchong story progression flag.
   linchong.b05_guide:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.b05_guide_round:
     type: int
     default: 0
     description: Linchong story progression flag.

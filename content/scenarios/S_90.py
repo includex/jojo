@@ -40,6 +40,10 @@ def scene0():
     gvars['linchong.duel_win'] = 0
     gvars['linchong.exit_count'] = 0
     stage.setUnitStatus([{'unit':stage.unit(512),'hp':-35}])
+    stage.showWinCondition('노지심의 구원을 기다린 뒤 임충을 동쪽 탈출 지점으로 이동시키십시오.')
+    stage.heightLight(14, 5, 14, 6)
+    stage.center(3, 5)
+    gvars['linchong.b01_guide_round'] = 1
     stage.startOper()
     return False
 
@@ -77,6 +81,8 @@ def scene1():
         # Existing-engine adaptation: codex:lu:COMMANDABLE_TEMP
         gvars['linchong.b01_rescued'] = 1
         # Existing-engine adaptation: play_fx:staff_strike
+        stage.showWinCondition('탈출할 수 있습니다. 임충을 동쪽 탈출 지점으로 이동시키십시오.')
+        stage.heightLight(14, 5, 14, 6)
     if not gvars['linchong.event_b01_e04'] and stage.isInRect(512, 10, 4, 15, 7):
         gvars['linchong.event_b01_e04'] = 1
         stage.say('@dialogue:S_90.B01_E04.line001')
@@ -125,6 +131,9 @@ def scene1():
         stage.reward()
         stage.end()
         return True
+    if stage.curCamp() == 0 and stage.round() > gvars['linchong.b01_guide_round'] and gvars['linchong.b01_rescued']:
+        gvars['linchong.b01_guide_round'] = stage.round()
+        stage.heightLight(14, 5, 14, 6)
     return False
 
 def win_condition():

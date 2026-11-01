@@ -88,6 +88,9 @@ def scene1():
         # Existing-engine adaptation: remove_status:all_enemies:HIDDEN
         gvars['linchong.b04_fire_revealed'] = 1
         # Existing-engine adaptation: play_fx:warehouse_fire
+        stage.showWinCondition('진오를 구출할 위치와 증거를 조사할 위치를 확인하십시오.')
+        stage.heightLight(8, 8, 8, 8)
+        stage.heightLight(14, 7, 14, 7)
     if not gvars['linchong.event_b04_e04'] and ((stage.isNear(512, 515, True) or stage.isNear(514, 515, True)) and stage.round() >= 3):
         gvars['linchong.event_b04_e04'] = 1
         stage.say('@dialogue:S_94.B04_E04.line001')

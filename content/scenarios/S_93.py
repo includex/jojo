@@ -40,6 +40,10 @@ def scene0():
     gvars['linchong.duel_win'] = 0
     gvars['linchong.exit_count'] = 0
     stage.setUnitStatus([{'unit':stage.unit(514),'hp':-35}])
+    stage.showWinCondition('수레 두 대 중 적어도 한 대를 지키며 산적두목을 격퇴하십시오.')
+    stage.heightLight(5, 6, 5, 6)
+    stage.heightLight(7, 6, 7, 6)
+    stage.center(3, 7)
     stage.startOper()
     return False
 
@@ -73,6 +77,8 @@ def scene1():
         stage.createEnemy([{'id': 546, 'i': 9, 'idx': 9, 'x': 17, 'y': 5, 'lv': 2, 'dir': 2, 'ai': 3, 'targetId': 566}])
         stage.createEnemy([{'id': 547, 'i': 10, 'idx': 10, 'x': 17, 'y': 8, 'lv': 2, 'dir': 2, 'ai': 3, 'targetId': 566}])
         # Existing-engine adaptation: enable_interact:hu
+        stage.showWinCondition('허정 가까이 다가가 구출하십시오.')
+        stage.heightLight(10, 9, 10, 9)
     if not gvars['linchong.event_b03_e08'] and stage.unitStateTest(543, 7, 0, 2):
         gvars['linchong.event_b03_e08'] = 1
         stage.say('@dialogue:S_93.B03_E08.line001')

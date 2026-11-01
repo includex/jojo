@@ -5,23 +5,26 @@ import com.jojo.game.application.scenario.ScenarioInterpreter
 import com.jojo.game.domain.battle.BattleOutcome
 import com.jojo.game.domain.campaign.CampaignState
 import com.jojo.game.domain.scenario.PlaybackState
+import com.jojo.game.domain.scenario.ScenarioScriptPresentationRequest
 import kotlin.test.*
 
 /** Branch fixtures exercise production Python-AST scripts; they do not claim combat playability. */
 class LinchongNativeScenarioTest {
     private data class Fixture(val campaign: CampaignState, val script: ScenarioInterpreter)
-    private fun settle(r:ScenarioInterpreter,choice:Int=0) {
+    private fun settle(r:ScenarioInterpreter,choice:Int=0): List<ScenarioScriptPresentationRequest> {
+        val presentations = mutableListOf<ScenarioScriptPresentationRequest>()
         var steps=0
         while(r.state!=PlaybackState.COMPLETE) {
             check(steps++<4000){"Native mod script did not settle: ${r.state}"}
             when(r.state) {
                 PlaybackState.DIALOGUE->r.advanceDialogue()
                 PlaybackState.CHOICE->{r.selectChoice(choice);r.confirmChoice()}
-                PlaybackState.DELAY->r.skipDelay()
+                PlaybackState.DELAY->{presentations += r.stage.consumeScriptPresentationRequests();r.skipDelay()}
                 PlaybackState.MODAL->r.resumeModal()
                 PlaybackState.COMPLETE->Unit
             }
         }
+        return presentations
     }
     private fun chapter(index:Int):Fixture {
         val campaign=CampaignState().also{it.reset()}
@@ -30,17 +33,28 @@ class LinchongNativeScenarioTest {
         r.start("scene0");settle(r)
         return Fixture(campaign,r)
     }
-    private fun tick(f:Fixture,round:Int=1,camp:Int=0,hp:Map<Int,Int> = emptyMap(),positions:Map<Int,Pair<Int,Int>> = emptyMap(),choice:Int=0) {
+    private fun tick(f:Fixture,round:Int=1,camp:Int=0,hp:Map<Int,Int> = emptyMap(),positions:Map<Int,Pair<Int,Int>> = emptyMap(),choice:Int=0): List<ScenarioScriptPresentationRequest> {
         val units=f.script.stage.battleUnits.values.toList()
         val points=units.associate{it.characterId to (it.x to it.y)}+positions
         val attrs=(512..574).associateWith{mapOf(7 to (hp[it]?:100))}
         f.script.setBattleContext(ScenarioBattleScriptContext(round,camp,positions=points,activeCharacterIds=points.keys,attributes=attrs))
-        f.script.start("scene1");settle(f.script,choice)
+        f.script.start("scene1");return settle(f.script,choice)
     }
     private fun won(f:Fixture) {
         assertTrue(f.script.stage.battleEndedByScript)
         assertNotEquals(BattleOutcome.ENEMY_VICTORY,f.script.stage.scriptedBattleOutcome)
         assertNotNull(f.script.stage.rewardRequest)
+    }
+    @Test fun `dock marker runs once per player round and never during enemy phase`() {
+        val f=chapter(5)
+        f.script.enableExternalBattlePresentation()
+        fun markers(round:Int,camp:Int=0) = tick(f,round=round,camp=camp)
+            .filterIsInstance<ScenarioScriptPresentationRequest.RectangleHighlight>()
+        assertTrue(markers(1).isEmpty()) // Opening already showed the objective.
+        assertTrue(markers(2,2).isEmpty())
+        assertEquals(listOf(ScenarioScriptPresentationRequest.RectangleHighlight(18,7,18,8)),markers(2))
+        assertTrue(markers(2).isEmpty()) // Moving a unit must not replay the guide.
+        assertEquals(1,markers(3).size)
     }
     @Test fun `R90 grants compact native starting gear once and preserves later equipment`() {
         val c=CampaignState().also{it.reset()}

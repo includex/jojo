@@ -103,6 +103,32 @@ def condition(b,tr):
 def onexit(b,who,obj):
  ps=next(o['positions'] for o in b['objects'] if o['id']==obj)
  return '('+' or '.join(f'stage.isInPos({unit(who)}, {p["x"]-1}, {p["y"]-1})' for p in ps)+')'
+
+# Presentation only: authored positions remain the source for both exit checks
+# and markers. Emit individual cells so irregular regions never include gaps.
+OBJECTIVE_GUIDES = {
+ 'B01': ('노지심의 구원을 기다린 뒤 임충을 동쪽 탈출 지점으로 이동시키십시오.', ['exit']),
+ 'EX01': ('이 창고 상자를 지키며 도적 두목을 격퇴하십시오.', ['supply']),
+ 'B03': ('수레 두 대 중 적어도 한 대를 지키며 산적두목을 격퇴하십시오.', ['cart_a', 'cart_b']),
+ 'B05': ('임충을 포함한 아군 두 명을 선착장으로 이동시키고 주귀를 보호하십시오.', ['dock']),
+ 'EX02': ('임충을 상자 가까이 이동시켜 하나 이상 확보하고 밀수선 두목을 격퇴하십시오.', ['cargo1', 'cargo2']),
+}
+EVENT_GUIDES = {
+ 'B01_E02': ('탈출할 수 있습니다. 임충을 동쪽 탈출 지점으로 이동시키십시오.', ['exit']),
+ 'B03_E02': ('허정 가까이 다가가 구출하십시오.', ['hostage']),
+ 'B04_E03': ('진오를 구출할 위치와 증거를 조사할 위치를 확인하십시오.', ['jin_trap', 'charred_letter']),
+}
+def guide(b, object_ids, text=None, indent='    '):
+ out=[indent+f'stage.showWinCondition({text!r})'] if text else []
+ for key in object_ids:
+  ps=next(o['positions'] for o in b['objects'] if o['id']==key)
+  xs=[p['x']-1 for p in ps];ys=[p['y']-1 for p in ps]
+  if len(set(zip(xs,ys))) == (max(xs)-min(xs)+1)*(max(ys)-min(ys)+1):
+   rects=[(min(xs),min(ys),max(xs),max(ys))]
+  else:rects=[(x,y,x,y) for x,y in zip(xs,ys)]
+  out += [indent+f'stage.heightLight({x1}, {y1}, {x2}, {y2})' for x1,y1,x2,y2 in rects]
+ return out
+
 def actions(b,acts,indent='        '):
  out=[indent+'pass']
  for a in acts:
@@ -190,6 +216,13 @@ for bi,b in enumerate(c['battles']):
  init.append('    '+F('exit_count')+' = 0')
  for u in b['units']:
   if u['hp']<u['maxHp']:init.append(f"    stage.setUnitStatus([{{'unit':stage.unit({unit(u['id'])}),'hp':{u['hp']-u['maxHp']}}}])")
+ if b['id'] in OBJECTIVE_GUIDES:
+  text,targets=OBJECTIVE_GUIDES[b['id']]
+  init+=guide(b,targets,text)
+  hero=next(u for u in b['units'] if u['id']=='lin')
+  init.append(f'    stage.center({hero["x"]-1}, {hero["y"]-1})')
+ if b['id'] in ['B01','B05']:
+  init.append('    '+F(b['id']+'_guide_round')+' = 1')
  init+=['    stage.startOper()','    return False','']
  code=init+['def scene1():']
  # Losing the hero always takes priority over chapter victory.
@@ -210,6 +243,9 @@ for bi,b in enumerate(c['battles']):
    if variant['eventId']==e['id']:
     code+=['        if '+whenexpr(variant['when'])+':'];code+=say(variant['dialogue'],mod+'.'+e['id']+'.'+variant['condition'],'            ')
   code+=actions(b,e['actions'])
+  if e['id'] in EVENT_GUIDES:
+   text,targets=EVENT_GUIDES[e['id']]
+   code+=guide(b,targets,text,'        ')
  code+=['    if win_condition():']
  for e in b['events']:
   if e['trigger']=='WIN_CONDITIONS_MET':
@@ -226,7 +262,14 @@ for bi,b in enumerate(c['battles']):
  if b['id']=='B02':code += ["        sel = stage.choice('장원 야습에 맞선다\\n창주로 향한다', -1)",'        if sel == 2:','            stage.end()','            stage.jumpScene(185)']
  if b['id']=='B05':code += ['        if '+F('B05_HIDDEN_WATERWAY')+':',"            sel = stage.choice('밀수선을 조사한다\\n양산박으로 향한다', -1)",'            if sel == 2:','                stage.end()','                stage.jumpScene(193)','        else:','            stage.end()','            stage.jumpScene(193)']
  if b['id']=='B06':code+=say(c['interludes']['EPILOGUE'],mod+'.epilogue','        ')
- code+=['        stage.end()','        return True','    return False','']
+ code+=['        stage.end()','        return True']
+ if b['id'] in ['B01','B05']:
+  last=F(b['id']+'_guide_round')
+  active=' and '+F('B01_RESCUED') if b['id']=='B01' else ''
+  code+=['    if stage.curCamp() == 0 and stage.round() > '+last+active+':',
+         '        '+last+' = stage.round()']
+  code+=guide(b,OBJECTIVE_GUIDES[b['id']][1],indent='        ')
+ code+=['    return False','']
  bid=b['id'];alive='not '+dead('lin')
  wins={
  'B01':f'({onexit(b,"lin","exit")} and {F("B01_RESCUED")})' if bid=='B01' else '',
