@@ -66,6 +66,12 @@ internal class RuntimeDialogueSessionAdapter(
     /** 화면 입력을 공용 대화 입력 전이로 변환한다. */
     fun dispatch(input: DialogueSessionInput): DialogueSessionTransition = session.dispatch(input)
 
+    /** 다음 대사까지 실행한 뒤 한 번에 표시를 교체한다. 실제 연출 대기·종료는 그대로 닫는다. */
+    fun advanceDialogue(runtime: ScenarioInterpreter) {
+        runtime.advanceDialogue()
+        synchronize(runtime)
+    }
+
     /** 대사 표시 진행을 초기화해 다음 스크립트 대사를 처음부터 공개하게 한다. */
     fun resetDialogueReveal() = session.clear()
 

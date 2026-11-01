@@ -12304,8 +12304,7 @@ void main() {
     private fun advanceBattleDialogue() {
         dialogueSessionAdapter.synchronize(scriptRuntime)
         if (dialogueSessionAdapter.dispatch(DialogueSessionInput.Confirm) != DialogueSessionTransition.AdvanceDialogue) return
-        scriptRuntime.advanceDialogue(deferCloseCallbackFrame = true)
-        dialogueSessionAdapter.resetDialogueReveal()
+        dialogueSessionAdapter.advanceDialogue(scriptRuntime)
         syncScriptedUnits()
         syncDialogueSpeakerPresentation()
         completeTurnScriptIfReady()
@@ -12313,8 +12312,7 @@ void main() {
 
     /** 캡처 대사 진행: 원본 캡처 경로처럼 대사를 즉시 넘기고 화면 유닛 상태만 동기화한다. */
     private fun advanceCaptureFixtureDialogue() {
-        scriptRuntime.advanceDialogue()
-        dialogueSessionAdapter.resetDialogueReveal()
+        dialogueSessionAdapter.advanceDialogue(scriptRuntime)
         syncScriptedUnits()
     }
 

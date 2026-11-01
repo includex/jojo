@@ -94,8 +94,7 @@ internal class ScenarioPlaybackController(
         when (playback.state) {
             PlaybackState.DIALOGUE -> {
                 if (dialogueSession.dispatch(DialogueSessionInput.Confirm) == DialogueSessionTransition.TextRevealed) return
-                playback.advanceDialogue()
-                dialogueSession.resetDialogueReveal()
+                dialogueSession.advanceDialogue(playback)
             }
 
             PlaybackState.CHOICE -> onConfirmChoice()

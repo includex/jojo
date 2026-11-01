@@ -22,7 +22,18 @@ object LinchongModSmokeLauncher {
         var checkedRescue = false
         var attackSamples = 0
         var nextAttackSample = 0f
+        var previousConfirmedDialogue: String? = null
+        var continuousDialogueTransitions = 0
         val driver = RuntimeBattleDriver { frame, probe ->
+            previousConfirmedDialogue?.let { previous ->
+                check(probe.playback == PlaybackState.DIALOGUE && probe.dialogueText != null) {
+                    "Dialogue panel disappeared between consecutive opening lines"
+                }
+                check(probe.dialogueText != previous) { "Dialogue confirmation did not advance the line" }
+                continuousDialogueTransitions++
+                previousConfirmedDialogue = null
+                println("CONTINUOUS_DIALOGUE_TRANSITION $continuousDialogueTransitions")
+            }
             if (probe.activeActionSourceAction in setOf(6, 7, 25, 48) &&
                 attackSamples < 8 && frame.elapsed >= nextAttackSample) {
                 capture("$output-combat-${attackSamples.toString().padStart(2, '0')}.png")
@@ -41,6 +52,12 @@ object LinchongModSmokeLauncher {
                 capturedDialogue = true
             }
             if (frame.elapsed >= nextTap && (probe.playback == PlaybackState.DIALOGUE || probe.playback == PlaybackState.MODAL || probe.winConditionsOpen)) {
+                // S90 opens with consecutive say calls: the very next rendered
+                // frame must already contain the next line, without a blank delay.
+                if (scenario == "S_90" && continuousDialogueTransitions < 3 &&
+                    probe.playback == PlaybackState.DIALOGUE && probe.dialogueTextComplete) {
+                    previousConfirmedDialogue = probe.dialogueText
+                }
                 val (x,y) = if (probe.winConditionsOpen) probe.winConditionButtonScreenX to probe.winConditionButtonScreenY
                     else probe.battleMenuButtonScreenX to probe.battleMenuButtonScreenY + 200
                 Gdx.input.inputProcessor?.let { it.touchDown(x,y,0,Input.Buttons.LEFT); it.touchUp(x,y,0,Input.Buttons.LEFT) }
@@ -58,6 +75,7 @@ object LinchongModSmokeLauncher {
                         return@RuntimeBattleDriver listOf(RuntimeBattleCommand.EndTurn)
                     }
                     if (scenario == "S_90") {
+                        check(continuousDialogueTransitions == 3) { "Dialogue continuity checks were not exercised" }
                         check(units.any { it.characterId == 513 && it.visible }) { "First enemy phase did not spawn Lu Zhishen" }
                         capture("$output-rescue.png")
                     }

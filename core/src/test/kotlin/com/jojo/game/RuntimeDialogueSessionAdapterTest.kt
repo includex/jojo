@@ -20,6 +20,52 @@ class RuntimeDialogueSessionAdapterTest {
         state = PlaybackState.DIALOGUE
     }
 
+    @Test fun `consecutive scenario say calls replace dialogue without a blank callback frame`() {
+        val runtime = ScenarioInterpreter.load("S_90")
+        runtime.start("scene0")
+        val adapter = RuntimeDialogueSessionAdapter()
+        adapter.synchronize(runtime)
+        repeat(3) {
+            val revision = runtime.dialogueRevision
+            adapter.dispatch(DialogueSessionInput.RevealAll)
+            adapter.advanceDialogue(runtime)
+            assertEquals(PlaybackState.DIALOGUE, runtime.state)
+            assertEquals(DialogueSessionMode.DIALOGUE, adapter.view.mode)
+            assertTrue(runtime.dialogueRevision > revision)
+            assertEquals(runtime.currentDialogue?.speakerId, adapter.view.dialogue?.speakerId)
+            assertEquals(runtime.currentDialogue?.text, adapter.view.dialogue?.text)
+            assertEquals("", adapter.view.dialogueVisibleText)
+            assertFalse(adapter.view.textComplete)
+            runtime.update(1f / 60f)
+            adapter.synchronize(runtime)
+            assertEquals(DialogueSessionMode.DIALOGUE, adapter.view.mode)
+        }
+    }
+
+    @Test fun `speaker replacement stays visible and final dialogue closes immediately`() {
+        val runtime = runtime()
+        runtime.dialogueCoordinator.startSay("&1\n첫 대사\n&2\n다음 대사")
+        val adapter = RuntimeDialogueSessionAdapter()
+        adapter.synchronize(runtime)
+        adapter.advanceDialogue(runtime)
+        assertEquals(DialogueSessionMode.DIALOGUE, adapter.view.mode)
+        assertEquals("2", adapter.view.dialogue?.speakerId)
+        assertEquals("다음 대사", adapter.view.dialogue?.text)
+        adapter.advanceDialogue(runtime)
+        assertEquals(PlaybackState.COMPLETE, runtime.state)
+        assertEquals(DialogueSessionMode.IDLE, adapter.view.mode)
+    }
+
+    @Test fun `external dialogue returning to a real delay does not leave a stale panel`() {
+        val runtime = runtime().apply { state = PlaybackState.DELAY }
+        runtime.dialogueCoordinator.presentExternalBattleDialogue(Dialogue("1", "이동하라"), runtime.state)
+        val adapter = RuntimeDialogueSessionAdapter()
+        adapter.synchronize(runtime)
+        adapter.advanceDialogue(runtime)
+        assertEquals(PlaybackState.DELAY, runtime.state)
+        assertEquals(DialogueSessionMode.IDLE, adapter.view.mode)
+    }
+
     @Test fun `battle renders and confirms the same reveal state and resets identical next lines`() {
         val runtime = runtime().apply { say("주군, 서두르셔야 합니다.") }
         val adapter = RuntimeDialogueSessionAdapter()

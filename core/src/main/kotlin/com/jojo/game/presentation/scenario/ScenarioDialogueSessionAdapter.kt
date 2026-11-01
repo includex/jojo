@@ -40,6 +40,8 @@ internal class ScenarioDialogueSessionAdapter(
 
     fun synchronize(playback: ScenarioInterpreter) = adapter.synchronize(playback)
 
+    fun advanceDialogue(playback: ScenarioInterpreter) = adapter.advanceDialogue(playback)
+
     fun update(deltaSeconds: Float, autoAdvanceEnabled: Boolean): DialogueSessionTransition =
         adapter.update(deltaSeconds, autoAdvanceEnabled)
 
