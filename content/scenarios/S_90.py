@@ -14,7 +14,7 @@ def scene0():
     stage.infoTransfer(4, '100\n1\n512\nwind_spear')
     stage.loadBg(58)
     stage.draw()
-    stage.setWinCondition('승리 조건\n임충 생존; 임충이 탈출칸 (15,6) 또는 (15,7) 도달; 노지심 등장 이벤트 완료\n\n패배 조건\n임충 HP 0; 8턴 종료 시 미탈출')
+    stage.setWinCondition('승리 조건\n임충 생존; 임충이 탈출칸 (15,6) 또는 (15,7) 도달; 노지심 등장 이벤트 완료\n\n패배 조건\n임충 HP 0; 9턴 종료 시 미탈출')
     stage.say('@dialogue:S_90.prologue.line001')
     stage.say('@dialogue:S_90.prologue.line002')
     stage.say('@dialogue:S_90.prologue.line003')
@@ -43,12 +43,11 @@ def scene0():
     stage.showWinCondition('노지심의 구원을 기다린 뒤 임충을 동쪽 탈출 지점으로 이동시키십시오.')
     stage.heightLight(14, 5, 14, 6)
     stage.center(3, 5)
-    gvars['linchong.b01_guide_round'] = 1
     stage.startOper()
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 9):
         stage.say('@dialogue:S_90.B01_E99.line001')
         stage.end()
         stage.lose()
@@ -131,16 +130,13 @@ def scene1():
         stage.reward()
         stage.end()
         return True
-    if stage.curCamp() == 0 and stage.round() > gvars['linchong.b01_guide_round'] and gvars['linchong.b01_rescued']:
-        gvars['linchong.b01_guide_round'] = stage.round()
-        stage.heightLight(14, 5, 14, 6)
     return False
 
 def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and ((stage.isInPos(512, 14, 5) or stage.isInPos(512, 14, 6)) and gvars['linchong.b01_rescued'])
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 9
 
 def scene2():
     return False

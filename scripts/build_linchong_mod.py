@@ -174,6 +174,8 @@ def actions(b,acts,indent='        '):
 
 for bi,b in enumerate(c['battles']):
  bcontext=b['id'];num=90+bi;mod=f'S_{num}';flags=[]
+ # Preserve the displayed limit, and use it inclusively for both text and failure.
+ turn_limit=b['map']['turnLimit']+1
  # Original Jojo progression/presentation, no parallel runtime.
  r=['# 임충전: existing Jojo scenario route.','def scene0():']
  if bi==0:r += ['    model.unitJoin(512, 0, 0)','    '+F('started')+' = 1']+gear('lin')
@@ -181,7 +183,7 @@ for bi,b in enumerate(c['battles']):
  if bi!=7:r+=['    stage.end()']
  r += ['','def __dispatch__():','    scene0()']
  (D/f'scenarios/R_{num}.py').write_text('\n'.join(r)+'\n')
- init=['# 임충전 — generated from source PRD, original Jojo BattleScreen APIs.','def scene0():','    stage.initFight()',f'    stage.setGlobalData({b["map"]["turnLimit"]+1}, 0, -1, 512, 1, 1)']
+ init=['# 임충전 — generated from source PRD, original Jojo BattleScreen APIs.','def scene0():','    stage.initFight()',f'    stage.setGlobalData({turn_limit}, 0, -1, 512, 1, 1)']
  for u in b['units']:init+=gear(u['id'])
  for side,method in [('ALLY','createMine'),('ENEMY','createEnemy'),('NEUTRAL','createFriend')]:
   for i,u in enumerate(b['units']):
@@ -196,7 +198,9 @@ for bi,b in enumerate(c['battles']):
  for o in b['objects']:
   if o['id'] in O:
    p=o['positions'][0];pl={'id':O[o['id']],'i':len(b['units'])+list(O).index(o['id']),'x':p['x']-1,'y':p['y']-1,'ai':2,'lv':0};init.append('    stage.createFriend(['+repr(pl)+'])')
- wintext='승리 조건\n'+b['victory']+'\n\n패배 조건\n'+b['defeat']
+ defeat=re.sub(r'\d+턴 시작(?: 전)?', f'{turn_limit}턴 종료 시', b['defeat'])
+ defeat=re.sub(r'\d+턴', f'{turn_limit}턴', defeat)
+ wintext='승리 조건\n'+b['victory']+'\n\n패배 조건\n'+defeat
  for loadout in c['startingLoadouts']:
   if any(u['id']==loadout['unitId'] for u in b['units']):
    sid=ids['skillIds'].get(loadout['skills']);payload=str(sid)+'\n1\n'+str(unit(loadout['unitId']))+'\n'+loadout['skills']
@@ -221,8 +225,6 @@ for bi,b in enumerate(c['battles']):
   init+=guide(b,targets,text)
   hero=next(u for u in b['units'] if u['id']=='lin')
   init.append(f'    stage.center({hero["x"]-1}, {hero["y"]-1})')
- if b['id'] in ['B01','B05']:
-  init.append('    '+F(b['id']+'_guide_round')+' = 1')
  init+=['    stage.startOper()','    return False','']
  code=init+['def scene1():']
  # Losing the hero always takes priority over chapter victory.
@@ -263,12 +265,6 @@ for bi,b in enumerate(c['battles']):
  if b['id']=='B05':code += ['        if '+F('B05_HIDDEN_WATERWAY')+':',"            sel = stage.choice('밀수선을 조사한다\\n양산박으로 향한다', -1)",'            if sel == 2:','                stage.end()','                stage.jumpScene(193)','        else:','            stage.end()','            stage.jumpScene(193)']
  if b['id']=='B06':code+=say(c['interludes']['EPILOGUE'],mod+'.epilogue','        ')
  code+=['        stage.end()','        return True']
- if b['id'] in ['B01','B05']:
-  last=F(b['id']+'_guide_round')
-  active=' and '+F('B01_RESCUED') if b['id']=='B01' else ''
-  code+=['    if stage.curCamp() == 0 and stage.round() > '+last+active+':',
-         '        '+last+' = stage.round()']
-  code+=guide(b,OBJECTIVE_GUIDES[b['id']][1],indent='        ')
  code+=['    return False','']
  bid=b['id'];alive='not '+dead('lin')
  wins={
@@ -280,7 +276,7 @@ for bi,b in enumerate(c['battles']):
  'B05':f'({F("exit_count")} >= 2 and {F("B05_LIN_DOCK")} and not {dead("zhu")})',
  'EX02':f'({dead("smug_boss")} and {F("EX02_ONE_CARGO")})',
  'B06':f'({F("DUEL_WIN")} or stage.unitStateTest(518, 7, 64, 1) or stage.round() >= 7)'}
- lose=dead('lin')+f' or stage.round() > {b["map"]["turnLimit"]}'
+ lose=dead('lin')+f' or stage.round() > {turn_limit}'
  if bid=='EX01':lose+=' or '+dead('supply')
  if bid=='B03':lose+=' or ('+dead('cart_a')+' and '+dead('cart_b')+')'
  if bid=='B05':lose+=' or '+dead('zhu')

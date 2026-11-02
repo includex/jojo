@@ -23,7 +23,7 @@ def scene0():
     stage.infoTransfer(4, '103\n1\n514\niron_guard')
     stage.loadBg(61)
     stage.draw()
-    stage.setWinCondition('승리 조건\n산적두목 격퇴; 수레 2대 중 1대 이상 생존; 임충 생존\n\n패배 조건\n임충 HP 0; 두 수레 HP 0; 10턴 종료')
+    stage.setWinCondition('승리 조건\n산적두목 격퇴; 수레 2대 중 1대 이상 생존; 임충 생존\n\n패배 조건\n임충 HP 0; 두 수레 HP 0; 11턴 종료')
     stage.say('@dialogue:S_93.interlude.line001')
     stage.say('@dialogue:S_93.interlude.line002')
     stage.say('@dialogue:S_93.interlude.line003')
@@ -48,7 +48,7 @@ def scene0():
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 10 or (stage.unitStateTest(566, 7, 0, 2) and stage.unitStateTest(567, 7, 0, 2))):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 11 or (stage.unitStateTest(566, 7, 0, 2) and stage.unitStateTest(567, 7, 0, 2))):
         stage.say('@dialogue:S_93.B03_E99.line001')
         stage.say('@dialogue:S_93.B03_E99.line002')
         stage.end()
@@ -162,7 +162,7 @@ def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and (stage.unitStateTest(540, 7, 0, 2) and (not stage.unitStateTest(566, 7, 0, 2) or not stage.unitStateTest(567, 7, 0, 2)))
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 10 or (stage.unitStateTest(566, 7, 0, 2) and stage.unitStateTest(567, 7, 0, 2))
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 11 or (stage.unitStateTest(566, 7, 0, 2) and stage.unitStateTest(567, 7, 0, 2))
 
 def scene2():
     return False

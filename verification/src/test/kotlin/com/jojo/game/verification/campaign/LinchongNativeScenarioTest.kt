@@ -10,7 +10,7 @@ import kotlin.test.*
 
 /** Branch fixtures exercise production Python-AST scripts; they do not claim combat playability. */
 class LinchongNativeScenarioTest {
-    private data class Fixture(val campaign: CampaignState, val script: ScenarioInterpreter)
+    private data class Fixture(val campaign: CampaignState, val script: ScenarioInterpreter, val opening: List<ScenarioScriptPresentationRequest>)
     private fun settle(r:ScenarioInterpreter,choice:Int=0): List<ScenarioScriptPresentationRequest> {
         val presentations = mutableListOf<ScenarioScriptPresentationRequest>()
         var steps=0
@@ -26,12 +26,13 @@ class LinchongNativeScenarioTest {
         }
         return presentations
     }
-    private fun chapter(index:Int):Fixture {
+    private fun chapter(index:Int, external:Boolean=false):Fixture {
         val campaign=CampaignState().also{it.reset()}
         val route=ScenarioInterpreter.load("R_90",campaign);route.start("scene0");settle(route)
         val r=ScenarioInterpreter.load("S_${90+index}",campaign)
-        r.start("scene0");settle(r)
-        return Fixture(campaign,r)
+        if (external) r.enableExternalBattlePresentation()
+        r.start("scene0");if (external) r.completeBattleBackgroundLoad();val opening=settle(r)
+        return Fixture(campaign,r,opening)
     }
     private fun tick(f:Fixture,round:Int=1,camp:Int=0,hp:Map<Int,Int> = emptyMap(),positions:Map<Int,Pair<Int,Int>> = emptyMap(),choice:Int=0): List<ScenarioScriptPresentationRequest> {
         val units=f.script.stage.battleUnits.values.toList()
@@ -45,16 +46,39 @@ class LinchongNativeScenarioTest {
         assertNotEquals(BattleOutcome.ENEMY_VICTORY,f.script.stage.scriptedBattleOutcome)
         assertNotNull(f.script.stage.rewardRequest)
     }
-    @Test fun `dock marker runs once per player round and never during enemy phase`() {
-        val f=chapter(5)
-        f.script.enableExternalBattlePresentation()
-        fun markers(round:Int,camp:Int=0) = tick(f,round=round,camp=camp)
-            .filterIsInstance<ScenarioScriptPresentationRequest.RectangleHighlight>()
-        assertTrue(markers(1).isEmpty()) // Opening already showed the objective.
-        assertTrue(markers(2,2).isEmpty())
-        assertEquals(listOf(ScenarioScriptPresentationRequest.RectangleHighlight(18,7,18,8)),markers(2))
-        assertTrue(markers(2).isEmpty()) // Moving a unit must not replay the guide.
-        assertEquals(1,markers(3).size)
+    @Test fun `dock marker appears with opening objective and does not repeat on turns`() {
+        val f=chapter(5,external=true)
+        assertTrue(ScenarioScriptPresentationRequest.RectangleHighlight(18,7,18,8) in f.opening)
+        for (round in 1..3) for (camp in listOf(0,2)) {
+            val requests=tick(f,round=round,camp=camp)
+            assertTrue(requests.filterIsInstance<ScenarioScriptPresentationRequest.RectangleHighlight>().isEmpty())
+        }
+    }
+    @Test fun `rescue announces exit once without repeating on later player turns`() {
+        val f=chapter(0,external=true)
+        val exit=ScenarioScriptPresentationRequest.RectangleHighlight(14,5,14,6)
+        assertTrue(exit in f.opening)
+        assertTrue(exit in tick(f,camp=2))
+        for (round in 2..3) {
+            val requests=tick(f,round=round)
+            assertTrue(requests.filterIsInstance<ScenarioScriptPresentationRequest.RectangleHighlight>().isEmpty())
+        }
+    }
+    @Test fun `displayed final round remains playable until next round and permits last turn victory`() {
+        val f=chapter(0)
+        val limit=f.script.stage.battleMaxRounds
+        assertEquals(9,limit)
+        tick(f,camp=2)
+        for (camp in listOf(0,1,2)) {
+            tick(f,round=limit,camp=camp)
+            assertFalse(f.script.stage.battleEndedByScript)
+        }
+        tick(f,round=limit+1)
+        assertEquals(BattleOutcome.ENEMY_VICTORY,f.script.stage.scriptedBattleOutcome)
+        val lastTurnWin=chapter(0)
+        tick(lastTurnWin,camp=2)
+        tick(lastTurnWin,round=limit,positions=mapOf(512 to (14 to 5)))
+        won(lastTurnWin)
     }
     @Test fun `R90 grants compact native starting gear once and preserves later equipment`() {
         val c=CampaignState().also{it.reset()}

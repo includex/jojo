@@ -29,7 +29,7 @@ def scene0():
     stage.infoTransfer(4, '108\n1\n518\nswift_blade')
     stage.loadBg(65)
     stage.draw()
-    stage.setWinCondition('승리 조건\n양지 HP 35% 이하(비살상) 또는 정식 일기토 승리 또는 7턴까지 임충 생존; 임충 생존; 양지 생존\n\n패배 조건\n임충 HP 0; 양지가 사망 처리됨; 8턴 시작 전 결투 미종결')
+    stage.setWinCondition('승리 조건\n양지 HP 35% 이하(비살상) 또는 정식 일기토 승리 또는 7턴까지 임충 생존; 임충 생존; 양지 생존\n\n패배 조건\n임충 HP 0; 양지가 사망 처리됨; 8턴 종료 시 결투 미종결')
     stage.say('@dialogue:S_97.interlude.line001')
     stage.say('@dialogue:S_97.interlude.line002')
     stage.say('@dialogue:S_97.interlude.line003')
@@ -55,7 +55,7 @@ def scene0():
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 7):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8):
         stage.say('@dialogue:S_97.B06_E99.line001')
         stage.end()
         stage.lose()
@@ -168,7 +168,7 @@ def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and (gvars['linchong.duel_win'] or stage.unitStateTest(518, 7, 64, 1) or stage.round() >= 7)
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 7
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8
 
 def scene2():
     return False

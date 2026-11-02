@@ -34,7 +34,7 @@ def scene0():
     stage.infoTransfer(4, '106\n1\n516\nwater_stride')
     stage.loadBg(64)
     stage.draw()
-    stage.setWinCondition('승리 조건\n장물 상자 2개 중 1개 이상 확보; 밀수선 두목 격퇴; 임충 생존\n\n패배 조건\n임충 HP 0; 모든 장물 상자 파괴; 8턴 종료')
+    stage.setWinCondition('승리 조건\n장물 상자 2개 중 1개 이상 확보; 밀수선 두목 격퇴; 임충 생존\n\n패배 조건\n임충 HP 0; 모든 장물 상자 파괴; 9턴 종료')
     stage.say('@dialogue:S_96.EX02_E00.line001')
     if gvars['linchong.recruited_jin']:
         stage.say('@dialogue:S_96.EX02_E00.line002')
@@ -53,7 +53,7 @@ def scene0():
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8 or (stage.unitStateTest(569, 7, 0, 2) and stage.unitStateTest(570, 7, 0, 2))):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 9 or (stage.unitStateTest(569, 7, 0, 2) and stage.unitStateTest(570, 7, 0, 2))):
         stage.say('@dialogue:S_96.EX02_E99.line001')
         stage.end()
         stage.lose()
@@ -118,7 +118,7 @@ def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and (stage.unitStateTest(559, 7, 0, 2) and gvars['linchong.ex02_one_cargo'])
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8 or (stage.unitStateTest(569, 7, 0, 2) and stage.unitStateTest(570, 7, 0, 2))
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 9 or (stage.unitStateTest(569, 7, 0, 2) and stage.unitStateTest(570, 7, 0, 2))
 
 def scene2():
     return False

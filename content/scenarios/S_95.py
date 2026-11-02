@@ -32,7 +32,7 @@ def scene0():
     stage.infoTransfer(4, '106\n1\n516\nwater_stride')
     stage.loadBg(63)
     stage.draw()
-    stage.setWinCondition('승리 조건\n임충을 포함한 아군 2명 선착장 도착; 주귀 생존\n\n패배 조건\n임충 HP 0; 주귀 HP 0; 9턴 종료 시 미탈출')
+    stage.setWinCondition('승리 조건\n임충을 포함한 아군 2명 선착장 도착; 주귀 생존\n\n패배 조건\n임충 HP 0; 주귀 HP 0; 10턴 종료 시 미탈출')
     stage.say('@dialogue:S_95.interlude.line001')
     stage.say('@dialogue:S_95.interlude.line002')
     if gvars['linchong.recruited_jin']:
@@ -54,12 +54,11 @@ def scene0():
     stage.showWinCondition('임충을 포함한 아군 두 명을 선착장으로 이동시키고 주귀를 보호하십시오.')
     stage.heightLight(18, 7, 18, 8)
     stage.center(3, 6)
-    gvars['linchong.b05_guide_round'] = 1
     stage.startOper()
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 9 or stage.unitStateTest(516, 7, 0, 2)):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 10 or stage.unitStateTest(516, 7, 0, 2)):
         stage.say('@dialogue:S_95.B05_E99.line001')
         stage.end()
         stage.lose()
@@ -156,16 +155,13 @@ def scene1():
             stage.jumpScene(193)
         stage.end()
         return True
-    if stage.curCamp() == 0 and stage.round() > gvars['linchong.b05_guide_round']:
-        gvars['linchong.b05_guide_round'] = stage.round()
-        stage.heightLight(18, 7, 18, 8)
     return False
 
 def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and (gvars['linchong.exit_count'] >= 2 and gvars['linchong.b05_lin_dock'] and not stage.unitStateTest(516, 7, 0, 2))
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 9 or stage.unitStateTest(516, 7, 0, 2)
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 10 or stage.unitStateTest(516, 7, 0, 2)
 
 def scene2():
     return False

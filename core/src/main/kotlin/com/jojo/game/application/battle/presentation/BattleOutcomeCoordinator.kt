@@ -62,7 +62,7 @@ internal class BattleOutcomeCoordinator(
         val playerRemaining = units().any { it.effectiveFaction().isPlayerSide() }
         val enemyRemaining = units().any { it.effectiveFaction().isEnemySide() }
         return when {
-            getRound() >= maxRounds -> BattleOutcome.ENEMY_VICTORY
+            getRound() > maxRounds -> BattleOutcome.ENEMY_VICTORY
             !enemyRemaining && playerRemaining -> BattleOutcome.PLAYER_VICTORY
             !playerRemaining && enemyRemaining -> BattleOutcome.ENEMY_VICTORY
             else -> null

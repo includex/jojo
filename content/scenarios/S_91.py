@@ -15,7 +15,7 @@ def scene0():
     stage.infoTransfer(4, '109\n1\n517\nstaff_combo')
     stage.loadBg(59)
     stage.draw()
-    stage.setWinCondition('승리 조건\n홍교두의 HP를 35% 이하로 만들거나 정식 일기토 승리; 임충 생존\n\n패배 조건\n임충 HP 0(대련 패배); 7턴 종료 시 무승부')
+    stage.setWinCondition('승리 조건\n홍교두의 HP를 35% 이하로 만들거나 정식 일기토 승리; 임충 생존\n\n패배 조건\n임충 HP 0(대련 패배); 8턴 종료 시 무승부')
     stage.say('@dialogue:S_91.interlude.line001')
     stage.say('@dialogue:S_91.interlude.line002')
     stage.say('@dialogue:S_91.interlude.line003')
@@ -39,7 +39,7 @@ def scene0():
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 7):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8):
         stage.say('@dialogue:S_91.B02_E99.line001')
         stage.say('@dialogue:S_91.B02_E99.line002')
         stage.end()
@@ -116,7 +116,7 @@ def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and (gvars['linchong.duel_win'] or stage.unitStateTest(517, 7, 43, 1))
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 7
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 8
 
 def scene2():
     return False

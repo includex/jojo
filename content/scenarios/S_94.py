@@ -52,7 +52,7 @@ def scene0():
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 10):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 11):
         stage.say('@dialogue:S_94.B04_E99.line001')
         stage.end()
         stage.lose()
@@ -192,7 +192,7 @@ def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and stage.unitStateTest(524, 7, 0, 2)
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 10
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 11
 
 def scene2():
     return False

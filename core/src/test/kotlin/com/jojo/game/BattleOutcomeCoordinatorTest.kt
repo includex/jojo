@@ -62,6 +62,10 @@ class BattleOutcomeCoordinatorTest {
 
         // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.
         round = 10
+        assertEquals(BattleOutcome.PLAYER_VICTORY, coordinator.outcome())
+        units.add(enemyUnit)
+        assertNull(coordinator.outcome()) // The final displayed round remains playable.
+        round = 11
         assertEquals(BattleOutcome.ENEMY_VICTORY, coordinator.outcome())
 
         // 테스트 근거: 원본 구현의 처리 순서와 경계 조건을 검증한다.

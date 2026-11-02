@@ -16,7 +16,7 @@ def scene0():
     stage.infoTransfer(4, '100\n1\n512\nwind_spear')
     stage.loadBg(60)
     stage.draw()
-    stage.setWinCondition('승리 조건\n6턴까지 창고 상자 HP가 1 이상; 도적 두목 처치; 임충 생존\n\n패배 조건\n임충 HP 0; 창고 상자 HP 0; 7턴 시작')
+    stage.setWinCondition('승리 조건\n6턴까지 창고 상자 HP가 1 이상; 도적 두목 처치; 임충 생존\n\n패배 조건\n임충 HP 0; 창고 상자 HP 0; 7턴 종료 시')
     stage.say('@dialogue:S_92.EX01_E00.line001')
     stage.say('@dialogue:S_92.EX01_E00.line002')
     stage.say('@dialogue:S_92.EX01_E00.line003')
@@ -33,7 +33,7 @@ def scene0():
     return False
 
 def scene1():
-    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 6 or stage.unitStateTest(568, 7, 0, 2)):
+    if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 7 or stage.unitStateTest(568, 7, 0, 2)):
         stage.say('@dialogue:S_92.EX01_E99.line001')
         stage.say('@dialogue:S_92.EX01_E99.line002')
         stage.end()
@@ -86,7 +86,7 @@ def win_condition():
     return not stage.unitStateTest(512, 7, 0, 2) and (stage.unitStateTest(533, 7, 0, 2) and not stage.unitStateTest(568, 7, 0, 2))
 
 def lose_condition():
-    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 6 or stage.unitStateTest(568, 7, 0, 2)
+    return stage.unitStateTest(512, 7, 0, 2) or stage.round() > 7 or stage.unitStateTest(568, 7, 0, 2)
 
 def scene2():
     return False
