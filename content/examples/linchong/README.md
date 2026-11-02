@@ -59,7 +59,7 @@ python3 tools/export_python_ast.py content/scenarios /tmp/linchong-native-ast
 
 `engine/`, `core/`, `desktop/` 및 콘텐츠 컴파일러를 수정하지 않습니다. 실행 내용은 기존 `content/characters`, `equipment`, `skills/active`, `scenarios`, `assets`, `ui/dialogue.yaml`, `game.yaml`에 있습니다. 이 폴더는 원안·생성 원본·변환 기록을 보관하는 제작 자료이며 별도 게임 실행기가 아닙니다.
 
-현재 전투 캐릭터는 `assets/release-sprites/selection.json`에 배정한 사용자 제공 배포 에셋을 사용합니다. 공격 64×792(12프레임), 이동 48×550(11프레임), 특수 48×250(5프레임) PNG를 아바타 601–616에 바이트 그대로 복사합니다. 선정 기준·원본 파일·재적용 명령은 [배포 이미지 가이드](assets/release-sprites/README.md)에 기록했습니다. 검토 페이지는 `docs/linchong-sprite-review.html`이며, 617–620번 물체는 정적 아틀라스를 유지합니다.
+현재 전투 캐릭터는 `assets/release-sprites/selection.json`에 배정한 사용자 제공 배포 에셋을 사용합니다. 공격 64×792(12프레임), 이동 48×550(11프레임), 특수 48×250(5프레임) PNG를 아바타 601–616 및 자객 전용 621에 바이트 그대로 복사합니다. 선정 기준·원본 파일·재적용 명령은 [배포 이미지 가이드](assets/release-sprites/README.md)에 기록했습니다. 검토 페이지는 `docs/linchong-sprite-review.html`이며, 617–620번 물체는 정적 아틀라스를 유지합니다.
 
 검증 명령:
 
@@ -77,3 +77,5 @@ python3 scripts/smoke_linchong.py
 3차 시트는 사용자가 제공한 조조전 화면(`../../../docs/assets/jojo-style-reference.png`)을 작화 기준으로 삼았습니다. 작은 머리와 약 3~3.5등신 비율, 절제된 색, 얇은 윤곽선을 공통으로 사용합니다. `style-prompt.txt`와 `provenance-*.json`에 생성 프롬프트와 원본 경로를 보존합니다. 2·3차 생성 시트는 제작 이력으로만 보관하며 현재 런타임에서는 사용자 제공 release 세트를 사용합니다.
 
 턴 제한은 현재 게임 화면의 표시값을 포함하는 기준입니다. 예를 들어 9턴 제한이면 9턴의 모든 진영 행동까지 진행하고, 10턴으로 넘어갈 때 시간 초과 패배로 판정합니다. 시나리오 생성기는 표시값·패배 조건 문구·판정에 같은 값을 사용합니다. 원안 PRD의 턴수는 제작 자료에 그대로 보존합니다.
+
+1장 시작 배치는 `runtime_rules.json`의 `B01.initialPlacement`에서 조정합니다(좌표는 1부터 시작). 설패(5,6)–임충(6,6)–동초(7,6)는 동쪽을 바라보고, 자객 갑·을은 서쪽을 바라봅니다. 원안 배치와 구분해 보관하며 시나리오를 재생성해도 유지됩니다.

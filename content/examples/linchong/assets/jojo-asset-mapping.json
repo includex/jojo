@@ -6,13 +6,13 @@
     "tokens.png": "2bb5943a41fa619fb8f6688d5e54bebe1c18bc31c4c9304067b48360f3e8ebd3",
     "portraits.png": "97264a8692c0083b5edbc06b05b9fcb5e820d5c8856f656eb03823a3648a828c",
     "portraits-support.png": "f94686416d591fb152f917bf136320d3a36c0e98afbba9d33f97bfc6045d6c7e",
-    "release-sprites/selection.json": "68a22c1dd3392effab26b455ca2303da1359e7986db10168803ed4b64377c139",
+    "release-sprites/selection.json": "8d7dc282d174d5a28b61f5fb46f784d1693237db5562f4368646b2af630ea461",
     "release-sprites/atk/set_5fa8a797cabdb3c647e7.png": "f3a0d9f5089ac16b5c864063b2f8ebc8537722bc6b05b4af93f0aa3215ea8934",
     "release-sprites/mov/set_5fa8a797cabdb3c647e7.png": "835a0643054abb81919cd0c4d4b80ace84c9157a5d87b69cc95a64b3bb30ee14",
     "release-sprites/spc/set_5fa8a797cabdb3c647e7.png": "75de5d9fb5fc3ce1b06e9e0bac66e42d6a86c1c1c37cb6b81e2e2a080696cd98",
-    "release-sprites/atk/set_b782ee65c555db321396.png": "8db67b341aeaedd36497a6b41e0bb3c365497485efb8191eaa167813e601c6d7",
-    "release-sprites/mov/set_b782ee65c555db321396.png": "16523c3eb3eec143aa3fd83d5cb4779667c6d1c3a15662d88d89c57c8a9059d5",
-    "release-sprites/spc/set_b782ee65c555db321396.png": "f1e5f26ff5d24cfbe9b7cd9f87750616643c398f12df760a396bee908c209992",
+    "release-sprites/atk/set_0efbc9502952f8b80e69.png": "df4d716e63bc2d678e3f1c9244edede287b6b920a07448a5cd2dde89ed36d951",
+    "release-sprites/mov/set_0efbc9502952f8b80e69.png": "2034ea71830b6d7f21f47f836978d4207960c2a5c0867bcbb5ed98f23ffd7429",
+    "release-sprites/spc/set_0efbc9502952f8b80e69.png": "67e03d913592f9e5e98acfc38f8f79fa9f5db50850cb54b9766c4faaa4a09242",
     "release-sprites/atk/set_ac90025cdd64cef7547c.png": "af9de411a2bb804fbd5f7f9ffc61f72007326ea4be5610ea55a12ae5f81a5114",
     "release-sprites/mov/set_ac90025cdd64cef7547c.png": "9ab051429dffe736c25b8974e61a6efe2fd183ba7987600f3bc6e37c843c7676",
     "release-sprites/spc/set_ac90025cdd64cef7547c.png": "187012845c953b56364464dc535cd780d8314274bb8dc5f38e78b9ada33621ce",
@@ -37,12 +37,9 @@
     "release-sprites/atk/set_f44d2fdb988dfdf80fb9.png": "33d34fe4c7e1f2c5499f50aba19491430a4f6850a4479006691f165d795af95d",
     "release-sprites/mov/set_f44d2fdb988dfdf80fb9.png": "b478f0050a21eb8028eea49204f93fda7da4e96f1a43d9f12a53cc2466355cdb",
     "release-sprites/spc/set_f44d2fdb988dfdf80fb9.png": "4bc6f059d4538575e74fcbe3c4d48334bb3594cf57a818d6dd2cded9fffe344b",
-    "release-sprites/atk/set_3e085928d0e944a5db83.png": "24adbaba861580e1a62442652a017569c7434b903a8a08dd31746db4c0da2dcb",
-    "release-sprites/mov/set_3e085928d0e944a5db83.png": "d25c4dcbd851938cd8ee00b0964d6ce40e434dda37c2b2b15ad7272ce524a629",
-    "release-sprites/spc/set_3e085928d0e944a5db83.png": "066967a8ef0d17f387a89769fd950a35f4ccfc44702ca74fce060ad6810bb4d4",
-    "release-sprites/atk/set_b95290f8294d7ec0f1e7.png": "130983f3f8ccd7e88dcf68aeb245cdc0147bf67d7163f0600548516c04f3b1b7",
-    "release-sprites/mov/set_b95290f8294d7ec0f1e7.png": "019ea02350973ccbdedb6642c8f5ab459f5591d01b64d93990f9ac956e7c4f43",
-    "release-sprites/spc/set_b95290f8294d7ec0f1e7.png": "96121c8703268e45d511798736a518f13f71c4378f47a601219575ea40eed8d1",
+    "release-sprites/atk/set_a712234b89b5e25f8284.png": "10569bed018f410a0c866c7e8bbe61101167c567228b3166040177b4fc807d17",
+    "release-sprites/mov/set_a712234b89b5e25f8284.png": "b948b33207a4ba1d92715c7737bbce1f6163dd0a8299046ec76f46e5249139c2",
+    "release-sprites/spc/set_a712234b89b5e25f8284.png": "3b2d2aff52da2f09b33055411afca3f7c0f51ce03628a7169fc13abff65e5aae",
     "release-sprites/atk/article179924_variant04.png": "ad118b1b8c7ce380ea97c95991ab1d90b26d51d936d7788f14e58948a7c044b9",
     "release-sprites/mov/article179924_variant04.png": "6bab20f34ba8c8eeb9d704bc9b275685e7f80be174af70378a6317be3cb1f3af",
     "release-sprites/spc/article179924_variant04.png": "208a815032e408f6535361fdc6d2d6480d6eb286c192d99b3ac05e440e8766f1",
@@ -55,7 +52,10 @@
     "release-sprites/atk/set_bf4957c56fc5155b3ae0.png": "528c2f63a551b09e2b24d32acdc11b4c8fe131a8e2a0eefc0c4d358deba7cd85",
     "release-sprites/mov/set_bf4957c56fc5155b3ae0.png": "f6864f81b6f300dffd50ce26d13a73b8fdb9022710bd1c2cfa19a8adeddb3644",
     "release-sprites/spc/set_bf4957c56fc5155b3ae0.png": "431760ee10d41d6321431f434e703cb4e826aaaed393eb8c105985db71cd2b15",
-    "objects.png": "e1c88923554939025451ff9de36d74b36ac22449f9ca0e69c8f8ee2ef67cdbfe"
+    "objects.png": "e1c88923554939025451ff9de36d74b36ac22449f9ca0e69c8f8ee2ef67cdbfe",
+    "release-sprites/atk/set_fade73eb82b71422ff6c.png": "1f4baf52aa1bb2bb842428c7c5857eaf8c10e6963d54481214966030902227a4",
+    "release-sprites/mov/set_fade73eb82b71422ff6c.png": "a4aae8c9c768cbfc50c3cb2397fef3981b9b470c4534395b7fee0b5ffb4731e8",
+    "release-sprites/spc/set_fade73eb82b71422ff6c.png": "b4966a79b6b1133d20647ebcc274761566e7a30e1787e2518d0297c79d54a035"
   },
   "animationTimelineSha256": "f52dc46f4b615ffd01264226e121e9d44999d52d7f2bab951e4b57559c45da24",
   "atlasFrameCounts": {
@@ -110,23 +110,23 @@
       "attack": "maps/units/atk2/602.png",
       "special": "maps/units/spc2/602.png",
       "sourceRelease": {
-        "setId": "set_b782ee65c555db321396",
+        "setId": "set_0efbc9502952f8b80e69",
         "name": "노지심",
-        "reason": "노지심 전용 선장·승복 조형.",
-        "sourceTitle": "[중국자료] 수호지 화화상 노지심 전투 조형",
-        "description": "도포 또는 이펙트가 돋보이는 술사 계열 캐릭터. 갈색·주황·빨강 계열의 작은 SD 도트 표현.",
+        "reason": "사용자 지정 노지심 전투 조형.",
+        "sourceTitle": "[자작] 호돈(답돈), 검, 적병/보병",
+        "description": "주황·갈색 계열 배색. 주먹을 내세운 맨손 격투형 캐릭터.",
         "files": {
           "atk": {
-            "path": "release-sprites/atk/set_b782ee65c555db321396.png",
-            "sha256": "8db67b341aeaedd36497a6b41e0bb3c365497485efb8191eaa167813e601c6d7"
+            "path": "release-sprites/atk/set_0efbc9502952f8b80e69.png",
+            "sha256": "df4d716e63bc2d678e3f1c9244edede287b6b920a07448a5cd2dde89ed36d951"
           },
           "mov": {
-            "path": "release-sprites/mov/set_b782ee65c555db321396.png",
-            "sha256": "16523c3eb3eec143aa3fd83d5cb4779667c6d1c3a15662d88d89c57c8a9059d5"
+            "path": "release-sprites/mov/set_0efbc9502952f8b80e69.png",
+            "sha256": "2034ea71830b6d7f21f47f836978d4207960c2a5c0867bcbb5ed98f23ffd7429"
           },
           "spc": {
-            "path": "release-sprites/spc/set_b782ee65c555db321396.png",
-            "sha256": "f1e5f26ff5d24cfbe9b7cd9f87750616643c398f12df760a396bee908c209992"
+            "path": "release-sprites/spc/set_0efbc9502952f8b80e69.png",
+            "sha256": "67e03d913592f9e5e98acfc38f8f79fa9f5db50850cb54b9766c4faaa4a09242"
           }
         }
       },
@@ -425,23 +425,23 @@
       "attack": "maps/units/atk2/611.png",
       "special": "maps/units/spc2/611.png",
       "sourceRelease": {
-        "setId": "set_3e085928d0e944a5db83",
+        "setId": "set_a712234b89b5e25f8284",
         "name": "동초",
-        "reason": "청색 투구와 방패를 갖춘 호송 관원.",
-        "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
-        "description": "주황·갈색 계열 배색. 두꺼운 갑옷 또는 방패를 갖춘 방어형 캐릭터.",
+        "reason": "사용자 지정: 동초·설패 공통 전투 조형.",
+        "sourceTitle": "[중국자료] 성영걸전 S조형 (원본 추출 자료)",
+        "description": "주황·갈색 계열 배색. 긴 자루 무기를 든 근접 전투형 캐릭터.",
         "files": {
           "atk": {
-            "path": "release-sprites/atk/set_3e085928d0e944a5db83.png",
-            "sha256": "24adbaba861580e1a62442652a017569c7434b903a8a08dd31746db4c0da2dcb"
+            "path": "release-sprites/atk/set_a712234b89b5e25f8284.png",
+            "sha256": "10569bed018f410a0c866c7e8bbe61101167c567228b3166040177b4fc807d17"
           },
           "mov": {
-            "path": "release-sprites/mov/set_3e085928d0e944a5db83.png",
-            "sha256": "d25c4dcbd851938cd8ee00b0964d6ce40e434dda37c2b2b15ad7272ce524a629"
+            "path": "release-sprites/mov/set_a712234b89b5e25f8284.png",
+            "sha256": "b948b33207a4ba1d92715c7737bbce1f6163dd0a8299046ec76f46e5249139c2"
           },
           "spc": {
-            "path": "release-sprites/spc/set_3e085928d0e944a5db83.png",
-            "sha256": "066967a8ef0d17f387a89769fd950a35f4ccfc44702ca74fce060ad6810bb4d4"
+            "path": "release-sprites/spc/set_a712234b89b5e25f8284.png",
+            "sha256": "3b2d2aff52da2f09b33055411afca3f7c0f51ce03628a7169fc13abff65e5aae"
           }
         }
       },
@@ -460,23 +460,23 @@
       "attack": "maps/units/atk2/612.png",
       "special": "maps/units/spc2/612.png",
       "sourceRelease": {
-        "setId": "set_b95290f8294d7ec0f1e7",
+        "setId": "set_a712234b89b5e25f8284",
         "name": "설패",
-        "reason": "동초와 같은 계열의 붉은색 호송 관원.",
-        "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
-        "description": "주황·갈색 계열 배색. 두꺼운 갑옷 또는 방패를 갖춘 방어형 캐릭터.",
+        "reason": "사용자 지정: 동초·설패 공통 전투 조형.",
+        "sourceTitle": "[중국자료] 성영걸전 S조형 (원본 추출 자료)",
+        "description": "주황·갈색 계열 배색. 긴 자루 무기를 든 근접 전투형 캐릭터.",
         "files": {
           "atk": {
-            "path": "release-sprites/atk/set_b95290f8294d7ec0f1e7.png",
-            "sha256": "130983f3f8ccd7e88dcf68aeb245cdc0147bf67d7163f0600548516c04f3b1b7"
+            "path": "release-sprites/atk/set_a712234b89b5e25f8284.png",
+            "sha256": "10569bed018f410a0c866c7e8bbe61101167c567228b3166040177b4fc807d17"
           },
           "mov": {
-            "path": "release-sprites/mov/set_b95290f8294d7ec0f1e7.png",
-            "sha256": "019ea02350973ccbdedb6642c8f5ab459f5591d01b64d93990f9ac956e7c4f43"
+            "path": "release-sprites/mov/set_a712234b89b5e25f8284.png",
+            "sha256": "b948b33207a4ba1d92715c7737bbce1f6163dd0a8299046ec76f46e5249139c2"
           },
           "spc": {
-            "path": "release-sprites/spc/set_b95290f8294d7ec0f1e7.png",
-            "sha256": "96121c8703268e45d511798736a518f13f71c4378f47a601219575ea40eed8d1"
+            "path": "release-sprites/spc/set_a712234b89b5e25f8284.png",
+            "sha256": "3b2d2aff52da2f09b33055411afca3f7c0f51ce03628a7169fc13abff65e5aae"
           }
         }
       },
@@ -687,6 +687,41 @@
       "portrait": "maps/heads/631.png",
       "sourcePortraitAtlas": "portraits-support.png",
       "sourcePortraitCell": 7
+    },
+    "assassin": {
+      "characterId": 528,
+      "avatarId": 621,
+      "battleAvatar": 317,
+      "battleAvatarType": -1,
+      "face": 614,
+      "headTextureId": 622,
+      "movement": "maps/units/mov2/621.png",
+      "attack": "maps/units/atk2/621.png",
+      "special": "maps/units/spc2/621.png",
+      "sourceRelease": {
+        "setId": "set_fade73eb82b71422ff6c",
+        "name": "자객 갑·을",
+        "reason": "사용자 지정 자객 조형. 일반 관군과 분리된 아바타 621 사용.",
+        "sourceTitle": "[수호지] 시천(&#26102;&#36801;) 1,2 단계, 검, 보병",
+        "description": "갈색·주황색 계열이 눈에 띄는 날붙이를 활용하는 검객형 캐릭터.",
+        "files": {
+          "atk": {
+            "path": "release-sprites/atk/set_fade73eb82b71422ff6c.png",
+            "sha256": "1f4baf52aa1bb2bb842428c7c5857eaf8c10e6963d54481214966030902227a4"
+          },
+          "mov": {
+            "path": "release-sprites/mov/set_fade73eb82b71422ff6c.png",
+            "sha256": "a4aae8c9c768cbfc50c3cb2397fef3981b9b470c4534395b7fee0b5ffb4731e8"
+          },
+          "spc": {
+            "path": "release-sprites/spc/set_fade73eb82b71422ff6c.png",
+            "sha256": "b4966a79b6b1133d20647ebcc274761566e7a30e1787e2518d0297c79d54a035"
+          }
+        }
+      },
+      "portrait": "maps/heads/622.png",
+      "sourcePortraitAtlas": "portraits.png",
+      "sourcePortraitCell": 14
     }
   },
   "objects": {
@@ -873,6 +908,9 @@
     "maps/heads/629.png",
     "maps/heads/630.png",
     "maps/heads/631.png",
+    "maps/units/atk2/621.png",
+    "maps/units/mov2/621.png",
+    "maps/units/spc2/621.png",
     "maps/battle-maps/59.png",
     "maps/battle-maps/60.png",
     "maps/battle-maps/61.png",

@@ -58,6 +58,7 @@ def main():
             slot=primary.index(archetype);avatar=601+slot;posts=roles[archetype]
             if unit.get('ai')=='ranged' or '궁' in unit.get('role',''):posts=6
             if key in portraits:slot=portraits[key]
+        if key in ('knife1','knife2'):avatar=621
         name=unit.get('name',cast.get(key,{}).get('name',speaker_names.get(key,key)))
         max_hp=unit.get('maxHp',unit.get('hp',100))
         if key in ids.get('objectIds',{}):

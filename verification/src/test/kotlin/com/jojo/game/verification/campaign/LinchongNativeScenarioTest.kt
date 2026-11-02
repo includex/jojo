@@ -80,6 +80,15 @@ class LinchongNativeScenarioTest {
         tick(lastTurnWin,round=limit,positions=mapOf(512 to (14 to 5)))
         won(lastTurnWin)
     }
+    @Test fun `B01 opens with east facing Lin between escorts and west facing assassins`() {
+        val f=chapter(0)
+        val units=f.script.stage.battleUnits.values.associateBy { it.characterId }
+        assertEquals(5 to 5, units.getValue(512).let { it.x to it.y })
+        assertEquals(4 to 5, units.getValue(523).let { it.x to it.y })
+        assertEquals(6 to 5, units.getValue(522).let { it.x to it.y })
+        assertEquals(1, units.getValue(512).direction)
+        for (id in listOf(528,529)) assertEquals(3,units.getValue(id).direction)
+    }
     @Test fun `R90 grants compact native starting gear once and preserves later equipment`() {
         val c=CampaignState().also{it.reset()}
         val first=ScenarioInterpreter.load("R_90",c);first.start("scene0");settle(first)

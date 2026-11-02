@@ -23,23 +23,23 @@
       }
     },
     "lu": {
-      "setId": "set_b782ee65c555db321396",
+      "setId": "set_0efbc9502952f8b80e69",
       "name": "노지심",
-      "reason": "노지심 전용 선장·승복 조형.",
-      "sourceTitle": "[중국자료] 수호지 화화상 노지심 전투 조형",
-      "description": "도포 또는 이펙트가 돋보이는 술사 계열 캐릭터. 갈색·주황·빨강 계열의 작은 SD 도트 표현.",
+      "reason": "사용자 지정 노지심 전투 조형.",
+      "sourceTitle": "[자작] 호돈(답돈), 검, 적병/보병",
+      "description": "주황·갈색 계열 배색. 주먹을 내세운 맨손 격투형 캐릭터.",
       "files": {
         "atk": {
-          "path": "release-sprites/atk/set_b782ee65c555db321396.png",
-          "sha256": "8db67b341aeaedd36497a6b41e0bb3c365497485efb8191eaa167813e601c6d7"
+          "path": "release-sprites/atk/set_0efbc9502952f8b80e69.png",
+          "sha256": "df4d716e63bc2d678e3f1c9244edede287b6b920a07448a5cd2dde89ed36d951"
         },
         "mov": {
-          "path": "release-sprites/mov/set_b782ee65c555db321396.png",
-          "sha256": "16523c3eb3eec143aa3fd83d5cb4779667c6d1c3a15662d88d89c57c8a9059d5"
+          "path": "release-sprites/mov/set_0efbc9502952f8b80e69.png",
+          "sha256": "2034ea71830b6d7f21f47f836978d4207960c2a5c0867bcbb5ed98f23ffd7429"
         },
         "spc": {
-          "path": "release-sprites/spc/set_b782ee65c555db321396.png",
-          "sha256": "f1e5f26ff5d24cfbe9b7cd9f87750616643c398f12df760a396bee908c209992"
+          "path": "release-sprites/spc/set_0efbc9502952f8b80e69.png",
+          "sha256": "67e03d913592f9e5e98acfc38f8f79fa9f5db50850cb54b9766c4faaa4a09242"
         }
       }
     },
@@ -212,44 +212,44 @@
       }
     },
     "dong": {
-      "setId": "set_3e085928d0e944a5db83",
+      "setId": "set_a712234b89b5e25f8284",
       "name": "동초",
-      "reason": "청색 투구와 방패를 갖춘 호송 관원.",
-      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
-      "description": "주황·갈색 계열 배색. 두꺼운 갑옷 또는 방패를 갖춘 방어형 캐릭터.",
+      "reason": "사용자 지정: 동초·설패 공통 전투 조형.",
+      "sourceTitle": "[중국자료] 성영걸전 S조형 (원본 추출 자료)",
+      "description": "주황·갈색 계열 배색. 긴 자루 무기를 든 근접 전투형 캐릭터.",
       "files": {
         "atk": {
-          "path": "release-sprites/atk/set_3e085928d0e944a5db83.png",
-          "sha256": "24adbaba861580e1a62442652a017569c7434b903a8a08dd31746db4c0da2dcb"
+          "path": "release-sprites/atk/set_a712234b89b5e25f8284.png",
+          "sha256": "10569bed018f410a0c866c7e8bbe61101167c567228b3166040177b4fc807d17"
         },
         "mov": {
-          "path": "release-sprites/mov/set_3e085928d0e944a5db83.png",
-          "sha256": "d25c4dcbd851938cd8ee00b0964d6ce40e434dda37c2b2b15ad7272ce524a629"
+          "path": "release-sprites/mov/set_a712234b89b5e25f8284.png",
+          "sha256": "b948b33207a4ba1d92715c7737bbce1f6163dd0a8299046ec76f46e5249139c2"
         },
         "spc": {
-          "path": "release-sprites/spc/set_3e085928d0e944a5db83.png",
-          "sha256": "066967a8ef0d17f387a89769fd950a35f4ccfc44702ca74fce060ad6810bb4d4"
+          "path": "release-sprites/spc/set_a712234b89b5e25f8284.png",
+          "sha256": "3b2d2aff52da2f09b33055411afca3f7c0f51ce03628a7169fc13abff65e5aae"
         }
       }
     },
     "xue": {
-      "setId": "set_b95290f8294d7ec0f1e7",
+      "setId": "set_a712234b89b5e25f8284",
       "name": "설패",
-      "reason": "동초와 같은 계열의 붉은색 호송 관원.",
-      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
-      "description": "주황·갈색 계열 배색. 두꺼운 갑옷 또는 방패를 갖춘 방어형 캐릭터.",
+      "reason": "사용자 지정: 동초·설패 공통 전투 조형.",
+      "sourceTitle": "[중국자료] 성영걸전 S조형 (원본 추출 자료)",
+      "description": "주황·갈색 계열 배색. 긴 자루 무기를 든 근접 전투형 캐릭터.",
       "files": {
         "atk": {
-          "path": "release-sprites/atk/set_b95290f8294d7ec0f1e7.png",
-          "sha256": "130983f3f8ccd7e88dcf68aeb245cdc0147bf67d7163f0600548516c04f3b1b7"
+          "path": "release-sprites/atk/set_a712234b89b5e25f8284.png",
+          "sha256": "10569bed018f410a0c866c7e8bbe61101167c567228b3166040177b4fc807d17"
         },
         "mov": {
-          "path": "release-sprites/mov/set_b95290f8294d7ec0f1e7.png",
-          "sha256": "019ea02350973ccbdedb6642c8f5ab459f5591d01b64d93990f9ac956e7c4f43"
+          "path": "release-sprites/mov/set_a712234b89b5e25f8284.png",
+          "sha256": "b948b33207a4ba1d92715c7737bbce1f6163dd0a8299046ec76f46e5249139c2"
         },
         "spc": {
-          "path": "release-sprites/spc/set_b95290f8294d7ec0f1e7.png",
-          "sha256": "96121c8703268e45d511798736a518f13f71c4378f47a601219575ea40eed8d1"
+          "path": "release-sprites/spc/set_a712234b89b5e25f8284.png",
+          "sha256": "3b2d2aff52da2f09b33055411afca3f7c0f51ce03628a7169fc13abff65e5aae"
         }
       }
     },
@@ -334,6 +334,27 @@
         "spc": {
           "path": "release-sprites/spc/set_bf4957c56fc5155b3ae0.png",
           "sha256": "431760ee10d41d6321431f434e703cb4e826aaaed393eb8c105985db71cd2b15"
+        }
+      }
+    },
+    "assassin": {
+      "setId": "set_fade73eb82b71422ff6c",
+      "name": "자객 갑·을",
+      "reason": "사용자 지정 자객 조형. 일반 관군과 분리된 아바타 621 사용.",
+      "sourceTitle": "[수호지] 시천(&#26102;&#36801;) 1,2 단계, 검, 보병",
+      "description": "갈색·주황색 계열이 눈에 띄는 날붙이를 활용하는 검객형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_fade73eb82b71422ff6c.png",
+          "sha256": "1f4baf52aa1bb2bb842428c7c5857eaf8c10e6963d54481214966030902227a4"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_fade73eb82b71422ff6c.png",
+          "sha256": "a4aae8c9c768cbfc50c3cb2397fef3981b9b470c4534395b7fee0b5ffb4731e8"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_fade73eb82b71422ff6c.png",
+          "sha256": "b4966a79b6b1133d20647ebcc274761566e7a30e1787e2518d0297c79d54a035"
         }
       }
     }

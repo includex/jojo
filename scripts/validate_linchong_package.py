@@ -38,7 +38,14 @@ def validate():
         actual = {int(p.stem) for p in (CONTENT / 'assets/maps' / category).iterdir() if p.is_file()}
         assert actual == ids, f'{category}: unexpected/missing assets {actual ^ ids}'
     for family in ('atk2', 'mov2', 'spc2'):
-        assert {int(p.stem) for p in (CONTENT / 'assets/maps/units' / family).glob('*.png')} == set(range(601, 621))
+        assert {int(p.stem) for p in (CONTENT / 'assets/maps/units' / family).glob('*.png')} == set(range(601, 622))
+    selection = json.loads((CONTENT / 'examples/linchong/assets/release-sprites/selection.json').read_text())
+    for character_id, role, avatar in [(513, 'lu', 602), (522, 'dong', 611), (523, 'xue', 612), (528, 'assassin', 621), (529, 'assassin', 621)]:
+        row = read_yaml(CONTENT / 'characters' / f'{character_id:04}.yaml')
+        assert row['mapAvatar'] == avatar and row['battleAvatar'] == avatar - 304
+        for family in ('atk', 'mov', 'spc'):
+            source = CONTENT / 'examples/linchong/assets' / selection['characters'][role]['files'][family]['path']
+            assert source.read_bytes() == (CONTENT / 'assets/maps/units' / (family + '2') / f'{avatar}.png').read_bytes()
     assert not list((CONTENT / 'assets/maps').glob('*.jpg'))
     assert not (CONTENT / 'resources/localization').exists()
     assert not (CONTENT / 'resources/maps').exists()

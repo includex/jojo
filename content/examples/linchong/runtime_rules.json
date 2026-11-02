@@ -160,7 +160,30 @@
         ],
         "evasionBonus": 10
       }
-    ]
+    ],
+    "initialPlacement": {
+      "lin": {
+        "x": 6,
+        "y": 6,
+        "facing": "east"
+      },
+      "dong": {
+        "x": 7,
+        "y": 6,
+        "facing": "east"
+      },
+      "xue": {
+        "x": 5,
+        "y": 6,
+        "facing": "east"
+      },
+      "knife1": {
+        "facing": "west"
+      },
+      "knife2": {
+        "facing": "west"
+      }
+    }
   },
   "B02": {
     "win": {

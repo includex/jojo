@@ -57,8 +57,8 @@ def load_release_selection(source: Path) -> dict | None:
         return None
     selection = json.loads(selection_path.read_text(encoding='utf-8'))
     characters = selection.get('characters')
-    if not isinstance(characters, dict) or set(characters) != set(CHARACTERS):
-        raise ValueError(f'{selection_path}: selection must contain exactly {CHARACTERS}')
+    if not isinstance(characters, dict) or set(characters) != set(CHARACTERS + ['assassin']):
+        raise ValueError(f'{selection_path}: selection must contain base characters and assassin')
     for character_id, entry in characters.items():
         if not isinstance(entry, dict) or not all(entry.get(key) for key in ('setId', 'name', 'reason', 'sourceTitle')):
             raise ValueError(f'{selection_path}: incomplete selection for {character_id}')
@@ -373,6 +373,19 @@ def package(source: Path, destination: Path, manifest_path: Path, sprite_dir: st
                 entry.update({'portrait': str(relative), 'sourcePortraitAtlas': portrait_path.name,
                               'sourcePortraitCell': index})
                 manifest['generatedFiles'].append(str(relative))
+    if release:
+        # Assassins share the existing guard portrait, but have their own battle atlas.
+        selected = release['characters']['assassin']
+        entry = dict(manifest['characters']['guard'])
+        entry.update(characterId=528, avatarId=621, battleAvatar=317, sourceRelease=selected)
+        for kind, field in [('atk', 'attack'), ('mov', 'movement'), ('spc', 'special')]:
+            selected_file = selected['files'][kind]
+            relative = Path('maps/units') / (kind + '2') / '621.png'
+            shutil.copyfile(source / selected_file['path'], destination / relative)
+            entry[field] = str(relative)
+            manifest['sourceHashes'][selected_file['path']] = selected_file['sha256']
+            manifest['generatedFiles'].append(str(relative))
+        manifest['characters']['assassin'] = entry
     for index, battle_id in enumerate(BATTLES):
         original = source / 'maps' / f'{battle_id}.png'
         relative = Path('maps/battle-maps') / f'{index + 59}.png'

@@ -57,7 +57,7 @@ def gear(uid,indent='    '):
  flag=F('gear_initialized_'+uid)
  return [indent+'if not '+flag+':',indent+f"    stage.setJoinEquip({unit(uid)}, {ids['itemIds'][l['weapon']]+2}, 1, {ids['itemIds'][l['armor']]-68}, 1, 0)",indent+'    '+flag+' = 1']
 
-def placement(u,i):
+def placement(b,u,i):
  d=dict(id=unit(u['id']),i=i,idx=i,x=u['x']-1,y=u['y']-1,lv=max(0,u['level']-1),dir=2,ai=1 if u['side']=='ENEMY' else 2)
  if u['ai'] in ('idle','captive','flee'):d['ai']=2
  if u['ai']=='guard_cargo':d['ai']=0
@@ -65,6 +65,10 @@ def placement(u,i):
  if u['id']=='lin' or (u['id'] in ('hu','jin') and u['side']=='ALLY'):d['lv']=0
  if 'HIDDEN' in u.get('notes',''):d['hide']=1
  if u['ai'] in ['rush_cart','rush_object']:d['ai']=3;d['targetId']=O.get('supply' if bcontext=='EX01' else 'cart_a',512)
+ override=b['runtime'].get('initialPlacement',{}).get(u['id'],{})
+ for axis in ('x','y'):
+  if axis in override:d[axis]=override[axis]-1
+ if 'facing' in override:d['dir']={'north':0,'east':1,'south':2,'west':3}[override['facing']]
  return d
 
 def condition(b,tr):
@@ -139,7 +143,7 @@ def actions(b,acts,indent='        '):
   elif cmd=='spawn':
    u=next(u for u in b['spawns'] if u['id']==x);method='createMine' if u['side']=='ALLY' else 'createEnemy';i=next(j for j,z in enumerate(b['spawns']) if z['id']==x)+len(b['units'])
    out+=gear(x,indent)
-   out.append(indent+f'stage.{method}([{placement(u,i)!r}])')
+   out.append(indent+f'stage.{method}([{placement(b,u,i)!r}])')
    loadout=next((l for l in c['startingLoadouts'] if l['unitId']==x),None)
    if loadout:
     payload=str(ids['skillIds'][loadout['skills']])+'\n1\n'+str(unit(x))+'\n'+loadout['skills'];out.append(indent+f'stage.infoTransfer(4, {payload!r})')
@@ -148,7 +152,7 @@ def actions(b,acts,indent='        '):
    out.append(indent+f'stage.infoTransfer(4, {payload!r})')
   elif cmd=='heal':out.append(indent+f"stage.setUnitStatus([{{'unit':stage.unit({unit(x)}),'hp':{v[1]}}}])")
   elif cmd=='set_side' and v[1]=='ALLY':
-   u=next(u for u in b['units'] if u['id']==x);out.append(indent+f'stage.unit({unit(x)}).hide(1)');out.append(indent+f'stage.createMine([{placement(u,2 if x=="hu" else 3 if x=="jin" else 4)!r}])')
+   u=next(u for u in b['units'] if u['id']==x);out.append(indent+f'stage.unit({unit(x)}).hide(1)');out.append(indent+f'stage.createMine([{placement(b,u,2 if x=="hu" else 3 if x=="jin" else 4)!r}])')
   elif cmd=='recruit_permanent':out += [indent+F('RECRUITED_'+x)+' = 1',indent+f'model.unitJoin({unit(x)}, 0, 0)']
   elif cmd=='disable_ai':out.append(indent+f'stage.unit({unit(x)}).setAI(2)')
   elif cmd=='enable_ai':out += [indent+f'stage.unit({unit(x)}).show()',indent+f'stage.unit({unit(x)}).setAI(1, 512)']
@@ -188,7 +192,7 @@ for bi,b in enumerate(c['battles']):
  for side,method in [('ALLY','createMine'),('ENEMY','createEnemy'),('NEUTRAL','createFriend')]:
   for i,u in enumerate(b['units']):
    if u['side']!=side:continue
-   pl=placement(u,i)
+   pl=placement(b,u,i)
    actualmethod='createFriend' if bcontext=='B06' and u['id'] in ['hu','jin'] else method
    if u.get('condition'):init += ['    if '+F('RECRUITED_'+u['id'])+':','        stage.'+actualmethod+'(['+repr(pl)+'])']
    else:init.append('    stage.'+actualmethod+'(['+repr(pl)+'])')
@@ -223,8 +227,8 @@ for bi,b in enumerate(c['battles']):
  if b['id'] in OBJECTIVE_GUIDES:
   text,targets=OBJECTIVE_GUIDES[b['id']]
   init+=guide(b,targets,text)
-  hero=next(u for u in b['units'] if u['id']=='lin')
-  init.append(f'    stage.center({hero["x"]-1}, {hero["y"]-1})')
+  hero=placement(b,next(u for u in b['units'] if u['id']=='lin'),0)
+  init.append(f'    stage.center({hero["x"]}, {hero["y"]})')
  init+=['    stage.startOper()','    return False','']
  code=init+['def scene1():']
  # Losing the hero always takes priority over chapter victory.
