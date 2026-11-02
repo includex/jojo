@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Pack authored sprite sheets into the unmodified Jojo renderer's atlas ABI.
+"""Package selected native atlases or authored sheets for Jojo's atlas ABI.
 
-This performs alpha-gutter extraction, explicit source pivots and scale, nearest-neighbor
-reduction, and transparent row padding. It never synthesizes poses. Source sheets
-remain in the explicitly selected sprite directory.
+Selected release atlases are copied unchanged. The legacy sheet path performs
+alpha-gutter extraction, explicit source pivots and scale, nearest-neighbor
+reduction, and transparent row padding. Neither path synthesizes poses.
 """
 from __future__ import annotations
 import argparse
@@ -49,6 +49,32 @@ def frame_counts(timeline: dict) -> dict[int, int]:
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_release_selection(source: Path) -> dict | None:
+    selection_path = source / 'release-sprites/selection.json'
+    if not selection_path.is_file():
+        return None
+    selection = json.loads(selection_path.read_text(encoding='utf-8'))
+    characters = selection.get('characters')
+    if not isinstance(characters, dict) or set(characters) != set(CHARACTERS):
+        raise ValueError(f'{selection_path}: selection must contain exactly {CHARACTERS}')
+    for character_id, entry in characters.items():
+        if not isinstance(entry, dict) or not all(entry.get(key) for key in ('setId', 'name', 'reason', 'sourceTitle')):
+            raise ValueError(f'{selection_path}: incomplete selection for {character_id}')
+        files = entry.get('files')
+        if not isinstance(files, dict) or set(files) != {'atk', 'mov', 'spc'}:
+            raise ValueError(f'{selection_path}: {character_id} requires atk, mov, spc files')
+        for kind, selected in files.items():
+            if not isinstance(selected, dict) or not isinstance(selected.get('path'), str) or not isinstance(selected.get('sha256'), str):
+                raise ValueError(f'{selection_path}: invalid {character_id}/{kind} file')
+            relative = Path(selected['path'])
+            if relative.is_absolute() or '..' in relative.parts or relative.parts[:1] != ('release-sprites',):
+                raise ValueError(f'{selection_path}: invalid source path {relative}')
+            path = source / relative
+            if not path.is_file() or digest(path) != selected['sha256']:
+                raise ValueError(f'{selection_path}: missing or hash mismatch for {relative}')
+    return selection
 
 
 def pack_atlas(frames: list[Image.Image], size: int) -> Image.Image:
@@ -231,55 +257,73 @@ def package(source: Path, destination: Path, manifest_path: Path, sprite_dir: st
     token_source = source / 'tokens.png'
     portrait_source = source / 'portraits.png'
     support_source = source / 'portraits-support.png'
+    release = load_release_selection(source)
     sheet_dir = source / sprite_dir
-    if Path(sprite_dir).is_absolute() or '..' in Path(sprite_dir).parts:
-        raise ValueError('sprite_dir must be a relative directory within source')
-    # The v2 contract is atomic. A partial directory must fail rather than
-    # quietly shipping static token frames for characters whose art is missing.
-    if sheet_dir.exists():
-        missing = [name for name in CHARACTERS if not (sheet_dir / f'{name}.png').is_file()]
-        if missing:
-            raise FileNotFoundError(f'Incomplete {sprite_dir}: missing {", ".join(missing)}')
-    else:
-        raise FileNotFoundError(f'Required 28-frame sprite sheets missing: {sheet_dir}')
+    if release is None:
+        if Path(sprite_dir).is_absolute() or '..' in Path(sprite_dir).parts:
+            raise ValueError('sprite_dir must be a relative directory within source')
+        # A partial directory must fail rather than ship static token frames.
+        if sheet_dir.exists():
+            missing = [name for name in CHARACTERS if not (sheet_dir / f'{name}.png').is_file()]
+            if missing:
+                raise FileNotFoundError(f'Incomplete {sprite_dir}: missing {", ".join(missing)}')
+        else:
+            raise FileNotFoundError(f'Required 28-frame sprite sheets missing: {sheet_dir}')
     if counts != {0: 12, 1: 11, 2: 5}:
         raise ValueError(f'Runtime atlas frame contract changed: {counts}')
-    adjustments = load_adjustments(sheet_dir)
+    adjustments = {} if release else load_adjustments(sheet_dir)
     manifest = {
         'format': 'jojo-existing-assets-v2',
-        'authoredSpriteDirectory': sprite_dir,
-        'description': 'Authored 28-frame character sheets packed into original Jojo atlas slots. Runtime timeline and engine remain unchanged.',
+        'authoredSpriteDirectory': 'release-sprites' if release else sprite_dir,
+        'description': ('Selected native character atlases copied unchanged into original Jojo atlas slots. Runtime timeline and engine remain unchanged.'
+                        if release else 'Authored 28-frame character sheets packed into original Jojo atlas slots. Runtime timeline and engine remain unchanged.'),
         'sourceHashes': {p.name: digest(p) for p in (token_source, portrait_source, support_source)},
-        'frameAdjustments': adjustments,
         'animationTimelineSha256': digest(timeline_path),
-        'framingSha256': digest(sheet_dir / 'framing.json'),
         'atlasFrameCounts': {ATLAS[k][0]: v for k, v in counts.items()},
         'characters': {}, 'objects': {}, 'maps': {}, 'generatedFiles': [],
     }
-    manifest['sourceHashes'][f'{sprite_dir}/framing.json'] = digest(sheet_dir / 'framing.json')
-    if (sheet_dir / 'frame-adjustments.json').exists():
-        manifest['sourceHashes'][f'{sprite_dir}/frame-adjustments.json'] = digest(sheet_dir / 'frame-adjustments.json')
+    if release:
+        manifest['sourceHashes']['release-sprites/selection.json'] = digest(source / 'release-sprites/selection.json')
+    else:
+        manifest['frameAdjustments'] = adjustments
+        manifest['framingSha256'] = digest(sheet_dir / 'framing.json')
+        manifest['sourceHashes'][f'{sprite_dir}/framing.json'] = digest(sheet_dir / 'framing.json')
+        if (sheet_dir / 'frame-adjustments.json').exists():
+            manifest['sourceHashes'][f'{sprite_dir}/frame-adjustments.json'] = digest(sheet_dir / 'frame-adjustments.json')
     for slot, character_id in enumerate(CHARACTERS):
             avatar_id = 601 + slot
-            sheet_path = sheet_dir / f'{character_id}.png'
-            frames = framed_frames(sheet_path, adjustments.get(character_id, []))
-            manifest['sourceHashes'][f'{sprite_dir}/{character_id}.png'] = digest(sheet_path)
             paths = {}
+            if release:
+                selected = release['characters'][character_id]
+            else:
+                sheet_path = sheet_dir / f'{character_id}.png'
+                frames = framed_frames(sheet_path, adjustments.get(character_id, []))
+                manifest['sourceHashes'][f'{sprite_dir}/{character_id}.png'] = digest(sheet_path)
             for ordinal, (kind, size) in ATLAS.items():
-                start, count = SHEET_LAYOUT[ordinal]
-                atlas = pack_atlas(frames[start:start + count], size)
                 relative = Path('maps/units') / kind / f'{avatar_id}.png'
                 output = destination / relative
                 output.parent.mkdir(parents=True, exist_ok=True)
-                atlas.save(output, optimize=True)
+                if release:
+                    source_file = selected['files'][('atk', 'mov', 'spc')[ordinal]]
+                    shutil.copyfile(source / source_file['path'], output)
+                    manifest['sourceHashes'][source_file['path']] = source_file['sha256']
+                else:
+                    start, count = SHEET_LAYOUT[ordinal]
+                    atlas = pack_atlas(frames[start:start + count], size)
+                    atlas.save(output, optimize=True)
                 paths[kind] = str(relative)
                 manifest['generatedFiles'].append(str(relative))
-            manifest['characters'][character_id] = {
+            entry = {
                 'characterId': 512 + slot, 'avatarId': avatar_id, 'battleAvatar': avatar_id - 304, 'battleAvatarType': -1, 'face': 600 + slot,
-                'headTextureId': 608 + slot, 'sourceSpriteSheet': f'{sprite_dir}/{character_id}.png',
-                'sourceFrameLayout': {'attack': [0, 12], 'movement': [12, 11], 'special': [23, 5]},
+                'headTextureId': 608 + slot,
                 'movement': paths['mov2'], 'attack': paths['atk2'], 'special': paths['spc2'],
             }
+            if release:
+                entry['sourceRelease'] = selected
+            else:
+                entry['sourceSpriteSheet'] = f'{sprite_dir}/{character_id}.png'
+                entry['sourceFrameLayout'] = {'attack': [0, 12], 'movement': [12, 11], 'special': [23, 5]}
+            manifest['characters'][character_id] = entry
     object_source = source / 'objects.png'
     if object_source.exists():
         manifest['sourceHashes'][object_source.name] = digest(object_source)
@@ -376,6 +420,14 @@ def verify(destination: Path, manifest: dict, source: Path) -> None:
                         assert frame.getchannel('A').getbbox(), f'{entry["avatarId"]}/{kind}/{index}: empty'
                         assert not image.crop((0, y, size, y + 1)).getbbox()
                         assert not image.crop((0, y + 1 + size, size, y + 2 + size)).getbbox()
+            if 'sourceRelease' in entry:
+                for ordinal, (kind, size) in ATLAS.items():
+                    selected = entry['sourceRelease']['files'][('atk', 'mov', 'spc')[ordinal]]
+                    source_path = source / selected['path']
+                    atlas_path = destination / entry[{'mov2': 'movement', 'atk2': 'attack', 'spc2': 'special'}[kind]]
+                    if digest(source_path) != selected['sha256'] or source_path.read_bytes() != atlas_path.read_bytes():
+                        raise AssertionError(f'{atlas_path}: differs from selected native atlas {source_path}')
+                continue
             source_path = source / entry['sourceSpriteSheet']
             authored = framed_frames(source_path, manifest['frameAdjustments'].get(source_path.stem, []))
             hashes = [hashlib.sha256(frame.tobytes()).hexdigest() for frame in authored]
@@ -405,7 +457,7 @@ def verify(destination: Path, manifest: dict, source: Path) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, default=ROOT / 'content/examples/linchong/assets')
-    parser.add_argument('--sprite-dir', default='sprites-v3', help='Relative authored-sheet directory inside --source (for example sprites-v3)')
+    parser.add_argument('--sprite-dir', default='sprites-v3', help='Legacy authored-sheet directory inside --source; ignored when release-sprites/selection.json exists')
     parser.add_argument('--output', type=Path, default=ROOT / 'content/assets')
     parser.add_argument('--manifest', type=Path, default=ROOT / 'content/examples/linchong/assets/jojo-asset-mapping.json')
     args = parser.parse_args()

@@ -1,0 +1,343 @@
+{
+  "format": "linchong-release-selection/v1",
+  "characters": {
+    "lin": {
+      "setId": "set_5fa8a797cabdb3c647e7",
+      "name": "임충",
+      "reason": "원본 게시글이 임충으로 지정한 전용 조형. 고유 복장과 방향별 동작을 한 세트로 사용.",
+      "sourceTitle": "천웅성(天雄星) 표자두 임충",
+      "description": "도포와 관모를 갖춘 문관·책사 계열 캐릭터. 갈색·주황·짙은 회색 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_5fa8a797cabdb3c647e7.png",
+          "sha256": "f3a0d9f5089ac16b5c864063b2f8ebc8537722bc6b05b4af93f0aa3215ea8934"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_5fa8a797cabdb3c647e7.png",
+          "sha256": "835a0643054abb81919cd0c4d4b80ace84c9157a5d87b69cc95a64b3bb30ee14"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_5fa8a797cabdb3c647e7.png",
+          "sha256": "75de5d9fb5fc3ce1b06e9e0bac66e42d6a86c1c1c37cb6b81e2e2a080696cd98"
+        }
+      }
+    },
+    "lu": {
+      "setId": "set_b782ee65c555db321396",
+      "name": "노지심",
+      "reason": "노지심 전용 선장·승복 조형.",
+      "sourceTitle": "[중국자료] 수호지 화화상 노지심 전투 조형",
+      "description": "도포 또는 이펙트가 돋보이는 술사 계열 캐릭터. 갈색·주황·빨강 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_b782ee65c555db321396.png",
+          "sha256": "8db67b341aeaedd36497a6b41e0bb3c365497485efb8191eaa167813e601c6d7"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_b782ee65c555db321396.png",
+          "sha256": "16523c3eb3eec143aa3fd83d5cb4779667c6d1c3a15662d88d89c57c8a9059d5"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_b782ee65c555db321396.png",
+          "sha256": "f1e5f26ff5d24cfbe9b7cd9f87750616643c398f12df760a396bee908c209992"
+        }
+      }
+    },
+    "hu": {
+      "setId": "set_ac90025cdd64cef7547c",
+      "name": "허정",
+      "reason": "수수한 갈색 평민 복장으로 보급 인부 역할 표현.",
+      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
+      "description": "주황·갈색 계열 배색. 주먹을 내세운 맨손 격투형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_ac90025cdd64cef7547c.png",
+          "sha256": "af9de411a2bb804fbd5f7f9ffc61f72007326ea4be5610ea55a12ae5f81a5114"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_ac90025cdd64cef7547c.png",
+          "sha256": "9ab051429dffe736c25b8974e61a6efe2fd183ba7987600f3bc6e37c843c7676"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_ac90025cdd64cef7547c.png",
+          "sha256": "187012845c953b56364464dc535cd780d8314274bb8dc5f38e78b9ada33621ce"
+        }
+      }
+    },
+    "jin": {
+      "setId": "set_1321c283632d9ee6301e",
+      "name": "진오",
+      "reason": "가벼운 청색 복장의 청년 보병.",
+      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
+      "description": "청록색 계열 배색. 관복과 긴 옷자락이 특징인 문관·책사형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_1321c283632d9ee6301e.png",
+          "sha256": "db7fbd9369f8dd83d1c71f48fd912297d698302f36e9f688f29bcfa335daa3af"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_1321c283632d9ee6301e.png",
+          "sha256": "e4794ad66807460eb81a44655a98bae32eede4eb670b628bc3690e1f1bf4bd82"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_1321c283632d9ee6301e.png",
+          "sha256": "95997e0469f8587388e5a34307876ea194ac71be0c5ed5295abab4b42a066af3"
+        }
+      }
+    },
+    "zhu": {
+      "setId": "set_c13873bc5f8784f57695",
+      "name": "주귀",
+      "reason": "두건과 가벼운 무장으로 수로의 호걸 표현.",
+      "sourceTitle": "[중국자료] 수호지 전조 모음",
+      "description": "주황·갈색 계열 배색. 갑옷과 전투 복장을 갖춘 무장형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_c13873bc5f8784f57695.png",
+          "sha256": "4425dc951312823286ce3628cd08b893a872f9d22ea66f2208c46a1bf0cfa2d8"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_c13873bc5f8784f57695.png",
+          "sha256": "f752708b4a6247957da88f18b843c9f9cda28e22deafa4c449195a54246bd5bf"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_c13873bc5f8784f57695.png",
+          "sha256": "7bf5eaae14ba4f806c09811d1149f421afc11268bd3ceee0d4786a6749c433ef"
+        }
+      }
+    },
+    "hong": {
+      "setId": "set_6f4dd90db9ef4d0f2626",
+      "name": "홍교두",
+      "reason": "긴 무기와 무인 복장으로 무예 교두 표현.",
+      "sourceTitle": "[중국자료] 수호지 전조 모음",
+      "description": "주황·갈색 계열 배색. 갑옷과 전투 복장을 갖춘 무장형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_6f4dd90db9ef4d0f2626.png",
+          "sha256": "5179cda790b8c5896cbba1e94d4cee65fc8022dd72f82cd94b905b1f90c0fb11"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_6f4dd90db9ef4d0f2626.png",
+          "sha256": "0d00526fffff21ae438fa8d109a68358f34681848cfc1459b71d23d93223cb72"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_6f4dd90db9ef4d0f2626.png",
+          "sha256": "5f69f76b9a93ae6dcd173470791e5d95aa218920e59825a640963315d00f9207"
+        }
+      }
+    },
+    "yang": {
+      "setId": "set_6615d2c0cefbd2d6852a",
+      "name": "양지",
+      "reason": "양지 전용 보병 조형.",
+      "sourceTitle": "[중국자료] 수호지 청면수 양지 보병 조형",
+      "description": "붉은색 계열 배색. 갑옷과 전투 복장을 갖춘 무장형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_6615d2c0cefbd2d6852a.png",
+          "sha256": "bf825e68f49bc3b0e34d4073b3e696eb9e033c9686cf56ac342bb66927d646a2"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_6615d2c0cefbd2d6852a.png",
+          "sha256": "00a02c83bf4a96e01ef213b687f9363a4c6c365a4d41a76da36d33c3be46e7a7"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_6615d2c0cefbd2d6852a.png",
+          "sha256": "af123989d119df36acd9d1427ce311936e634955e4ad8387a53a6a8b435b3f48"
+        }
+      }
+    },
+    "wang": {
+      "setId": "set_ef97c41d7e33d382d877",
+      "name": "왕륜",
+      "reason": "문무를 겸한 산채 두령의 관모·장포 복장.",
+      "sourceTitle": "[자작 전조] 수호지 -주무- 삼12제갈각",
+      "description": "도포와 관모를 갖춘 문관·책사 계열 캐릭터. 파랑·갈색·주황 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_ef97c41d7e33d382d877.png",
+          "sha256": "83224e2eb36ffcd001d07433985d746fb9e45f842d8625828a857f86984f2a91"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_ef97c41d7e33d382d877.png",
+          "sha256": "16c24d9fc3f626217c994eeea8cc3561ef902f76af4531d49d442dc2b8b60778"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_ef97c41d7e33d382d877.png",
+          "sha256": "9e23a1fe22775487d0fa057d7aece2aba16d158e45c758d5c508a016800401df"
+        }
+      }
+    },
+    "chai": {
+      "setId": "set_5eb567e9446dcbe538ab",
+      "name": "시진",
+      "reason": "시진 전용 조형.",
+      "sourceTitle": "수호지 소선풍 시진 전조.",
+      "description": "도포와 관모를 갖춘 문관·책사 계열 캐릭터. 흰색·회색·갈색·주황 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_5eb567e9446dcbe538ab.png",
+          "sha256": "9acd91b461fb0c5afc13dc9b33aaa83ab09a2df88642cb598010874203041470"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_5eb567e9446dcbe538ab.png",
+          "sha256": "314af0841a50b0baa24fb06561cfef0da270c3ebbc0fe98d98451cacce83510f"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_5eb567e9446dcbe538ab.png",
+          "sha256": "64adf57b81faa86c5512fdb9d997c946f5994445bde096c4773cac3a554c5aad"
+        }
+      }
+    },
+    "song": {
+      "setId": "set_f44d2fdb988dfdf80fb9",
+      "name": "송만",
+      "reason": "수호지 호걸 조형을 산채 무장에 배정.",
+      "sourceTitle": "[중국자료] 수호지 전조 모음",
+      "description": "주황·갈색 계열 배색. 갑옷과 전투 복장을 갖춘 무장형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_f44d2fdb988dfdf80fb9.png",
+          "sha256": "33d34fe4c7e1f2c5499f50aba19491430a4f6850a4479006691f165d795af95d"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_f44d2fdb988dfdf80fb9.png",
+          "sha256": "b478f0050a21eb8028eea49204f93fda7da4e96f1a43d9f12a53cc2466355cdb"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_f44d2fdb988dfdf80fb9.png",
+          "sha256": "4bc6f059d4538575e74fcbe3c4d48334bb3594cf57a818d6dd2cded9fffe344b"
+        }
+      }
+    },
+    "dong": {
+      "setId": "set_3e085928d0e944a5db83",
+      "name": "동초",
+      "reason": "청색 투구와 방패를 갖춘 호송 관원.",
+      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
+      "description": "주황·갈색 계열 배색. 두꺼운 갑옷 또는 방패를 갖춘 방어형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_3e085928d0e944a5db83.png",
+          "sha256": "24adbaba861580e1a62442652a017569c7434b903a8a08dd31746db4c0da2dcb"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_3e085928d0e944a5db83.png",
+          "sha256": "d25c4dcbd851938cd8ee00b0964d6ce40e434dda37c2b2b15ad7272ce524a629"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_3e085928d0e944a5db83.png",
+          "sha256": "066967a8ef0d17f387a89769fd950a35f4ccfc44702ca74fce060ad6810bb4d4"
+        }
+      }
+    },
+    "xue": {
+      "setId": "set_b95290f8294d7ec0f1e7",
+      "name": "설패",
+      "reason": "동초와 같은 계열의 붉은색 호송 관원.",
+      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
+      "description": "주황·갈색 계열 배색. 두꺼운 갑옷 또는 방패를 갖춘 방어형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_b95290f8294d7ec0f1e7.png",
+          "sha256": "130983f3f8ccd7e88dcf68aeb245cdc0147bf67d7163f0600548516c04f3b1b7"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_b95290f8294d7ec0f1e7.png",
+          "sha256": "019ea02350973ccbdedb6642c8f5ab459f5591d01b64d93990f9ac956e7c4f43"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_b95290f8294d7ec0f1e7.png",
+          "sha256": "96121c8703268e45d511798736a518f13f71c4378f47a601219575ea40eed8d1"
+        }
+      }
+    },
+    "luk": {
+      "setId": "article179924_variant04",
+      "name": "육겸",
+      "reason": "갑주와 검을 갖춘 관군 무장.",
+      "sourceTitle": "[수정자료] 일반/졸병전조, 기병, 검, 군주, 장군, 도기병 ",
+      "description": "갑주와 머리 장식을 갖춘 전투형 캐릭터. 갈색·주황·노랑·금색 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/article179924_variant04.png",
+          "sha256": "ad118b1b8c7ce380ea97c95991ab1d90b26d51d936d7788f14e58948a7c044b9"
+        },
+        "mov": {
+          "path": "release-sprites/mov/article179924_variant04.png",
+          "sha256": "6bab20f34ba8c8eeb9d704bc9b275685e7f80be174af70378a6317be3cb1f3af"
+        },
+        "spc": {
+          "path": "release-sprites/spc/article179924_variant04.png",
+          "sha256": "208a815032e408f6535361fdc6d2d6480d6eb286c192d99b3ac05e440e8766f1"
+        }
+      }
+    },
+    "fu": {
+      "setId": "set_20c866cc244b07858d09",
+      "name": "부안",
+      "reason": "붉은 경장 보병으로 추격 수하 표현.",
+      "sourceTitle": "자작중국, 병사편 - 철기 백성 식량 풍사 지사 중기",
+      "description": "붉은색 계열 배색. 관복과 긴 옷자락이 특징인 문관·책사형 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_20c866cc244b07858d09.png",
+          "sha256": "1be13930b38ae8d6f36d65656683fc2bcc8027312a5e8220dac263bfa2821cd4"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_20c866cc244b07858d09.png",
+          "sha256": "809c13b908427f1b537c54b522953aebaa44f04e581c042bdb7af69fb698d2ed"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_20c866cc244b07858d09.png",
+          "sha256": "fb9dd89ce02a598c4934ede48d51a7bc576813c6d0404c449507e7c14f81c02a"
+        }
+      }
+    },
+    "guard": {
+      "setId": "article179924_variant01",
+      "name": "관군",
+      "reason": "일반 관군용 갑주·방패 보병.",
+      "sourceTitle": "[수정자료] 일반/졸병전조, 기병, 검, 군주, 장군, 도기병 ",
+      "description": "갑주와 머리 장식을 갖춘 전투형 캐릭터. 갈색·주황·빨강 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/article179924_variant01.png",
+          "sha256": "0f121b996e0ec66b0ffcc99a072ecec0950fb6bce5bffbf4d5f8d2a1a754dd63"
+        },
+        "mov": {
+          "path": "release-sprites/mov/article179924_variant01.png",
+          "sha256": "57942f7ba9eb43b4dd4f402f97e3b471f73ec7d456e8a001f840b2bc07eca1d9"
+        },
+        "spc": {
+          "path": "release-sprites/spc/article179924_variant01.png",
+          "sha256": "b472f09375c0a3d2eec30dee1b1a0447c35fa87b59895c6052b218846c83c9ea"
+        }
+      }
+    },
+    "bandit": {
+      "setId": "set_bf4957c56fc5155b3ae0",
+      "name": "산적",
+      "reason": "산적 전용 두건·검 보병 1단계.",
+      "sourceTitle": "[신무장]산적, 검, 보병 1,2,3단",
+      "description": "갈색·주황색 계열이 눈에 띄는 도보 전투 계열의 무장 캐릭터.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_bf4957c56fc5155b3ae0.png",
+          "sha256": "528c2f63a551b09e2b24d32acdc11b4c8fe131a8e2a0eefc0c4d358deba7cd85"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_bf4957c56fc5155b3ae0.png",
+          "sha256": "f6864f81b6f300dffd50ce26d13a73b8fdb9022710bd1c2cfa19a8adeddb3644"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_bf4957c56fc5155b3ae0.png",
+          "sha256": "431760ee10d41d6321431f434e703cb4e826aaaed393eb8c105985db71cd2b15"
+        }
+      }
+    }
+  },
+  "sourceCatalog": "release_character_descriptions.csv",
+  "sourceCatalogSha256": "7c4122a7fc22cac22e2b5275c3aa502e4c63b68a2a6d2b749908431fc0b2fe24"
+}

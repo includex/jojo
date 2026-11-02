@@ -54,7 +54,7 @@ def main() -> None:
     args = parser.parse_args()
     manifest = json.loads((ROOT / 'content/examples/linchong/assets/jojo-asset-mapping.json').read_text())
     if manifest.get('format') != 'jojo-existing-assets-v2':
-        raise ValueError('Package v2 sheets before building the sprite review')
+        raise ValueError('Package character atlases before building the sprite review')
     timeline = json.loads((args.assets / 'maps/battle-anime.json').read_text())
     images = {}
     metrics = {}
@@ -66,7 +66,9 @@ def main() -> None:
         images[avatar] = [data_url(args.assets / 'maps/units' / kind / f'{avatar}.png') for kind in KINDS]
         metrics[name] = [frame_metrics(args.assets / 'maps/units' / kind / f'{avatar}.png', size, count)
                          for kind, size, count in zip(KINDS, SIZES, COUNTS)]
-        edges[name] = edge_contacts(ROOT / 'content/examples/linchong/assets' / entry['sourceSpriteSheet'])
+        edges[name] = (None if 'sourceRelease' in entry else
+                       edge_contacts(ROOT / 'content/examples/linchong/assets' / entry['sourceSpriteSheet']))
+    release_mode = all('sourceRelease' in entry for entry in manifest['characters'].values() if 'avatarId' in entry)
     payload = json.dumps({'timeline': timeline, 'images': images, 'metrics': metrics, 'edges': edges,
                           'characters': {k: str(v['avatarId'])
                           for k, v in manifest['characters'].items() if 'avatarId' in v}}, ensure_ascii=False)
@@ -99,8 +101,20 @@ function contact(){const box=document.querySelector('#contact');box.replaceChild
 for(let n=0;n<28;n++){const type=n<12?0:n<23?1:2,idx=n-(type===0?0:type===1?12:23);const div=document.createElement('div');div.className='cell';const canvas=document.createElement('canvas');canvas.width=canvas.height=96;
 const label=document.createElement('small');label.textContent=n+' · '+['공격','이동','특수'][type]+' '+idx;div.append(canvas,label);box.append(div);const im=loaded[id][type];const paint=()=>{const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;const s=sizes[type];const scale=1.5,origin=(96-s*scale)/2;ctx.drawImage(im,0,idx*(s+2)+1,s,s,origin,origin,s*scale,s*scale)};if(im.complete&&im.naturalWidth)paint();else im.addEventListener('load',paint,{once:true})}
 const m=DATA.metrics[ch.value];
-document.querySelector('#metrics').textContent='중앙값 가시 폭×높이(프레임 대비): 공격 '+m[0].join(' × ')+', 이동 '+m[1].join(' × ')+', 특수 '+m[2].join(' × ')+'. 원본 셀 경계 접촉: '+(DATA.edges[ch.value].join(', ')||'없음')}
+document.querySelector('#metrics').textContent='중앙값 가시 폭×높이(프레임 대비): 공격 '+m[0].join(' × ')+', 이동 '+m[1].join(' × ')+', 특수 '+m[2].join(' × ')+(DATA.edges[ch.value]===null?'':'. 원본 셀 경계 접촉: '+(DATA.edges[ch.value].join(', ')||'없음'))}
 ch.onchange=contact;act.onchange=()=>start=performance.now();contact();requestAnimationFrame(update);</script></html>'''
+    if release_mode:
+        page = page.replace('제작 시트 → 원본 규격 아틀라스.', '선정한 릴리스 원본 아틀라스.')
+        start = page.index('<main><section class="panel"><h2>검증 결과')
+        end = page.index('</section><br><label>인물', start)
+        page = (page[:start] + '<main><section class="panel"><h2>릴리스 원본 아틀라스 검토</h2>'
+                '<p>선정한 캐릭터별 공격 12칸, 이동 11칸, 특수 5칸의 원본 PNG를 그대로 적용했습니다. '
+                '아래에서 원본 타임라인과 셀 크기, 투명 여백, 동작 전환을 확인하세요.</p>'
+                '<p>이 페이지는 선정한 파일의 재생 미리보기입니다. 캐릭터별 출처와 선정 이유는 '
+                '<a href="../content/examples/linchong/assets/release-sprites/selection.json">선정 기록</a>에 있습니다.</p>'
+                + page[end:])
+        page = page.replace('<h2>신규 스프라이트</h2>', '<h2>선정한 릴리스 스프라이트</h2>')
+        page = page.replace('<h2>원본 규격 28프레임</h2>', '<h2>릴리스 원본 아틀라스 28슬롯</h2>')
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(page.replace('__PAYLOAD__', payload), encoding='utf-8')
     print(f'Wrote {args.output} ({args.output.stat().st_size:,} bytes)')
