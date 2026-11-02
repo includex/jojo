@@ -251,6 +251,12 @@ enum class SettlementStateChangeKind { ADD, REMOVE, ROUND_UPDATE, LIFT }
  * 입력 상태를 받아 도메인·화면 흐름에서 재사용할 수 있는 책임을 제공한다.
  */
 
+object SettlementInfoTiming {
+    private fun speed(kind: SettlementInfoKind) = if (kind == SettlementInfoKind.HP) 1.5f else 1f
+    fun tickSeconds(kind: SettlementInfoKind): Float = .2f / speed(kind)
+    fun barTweenSeconds(kind: SettlementInfoKind): Float = 1f / speed(kind)
+}
+
 data class SettlementInfoDelta(
     val kind: SettlementInfoKind,
     val before: Int,
@@ -267,7 +273,7 @@ data class SettlementInfoDelta(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val tickSeconds: Float get() = tickCount * .2f
+    val tickSeconds: Float get() = tickCount * SettlementInfoTiming.tickSeconds(kind)
 }
 
 /**

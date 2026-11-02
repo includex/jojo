@@ -22,17 +22,17 @@ class BattleSettlementPresentationControllerTest {
         val grant = SettlementGrowthGrant(
             SettlementGrowthKind.UNIT_EXP, 5, CampaignExperienceResult(5, 1, 5, false),
         )
-        for (panel in listOf(SettlementInfoPanel.OTHER, SettlementInfoPanel.MINE)) {
+        for (panel in listOf(SettlementInfoPanel.OTHER, SettlementInfoPanel.MINE)) for (healing in listOf(false, true)) {
             val controller = BattleSettlementPresentationController()
             val unit = SettlementUnitPlan(
                 "u", Faction.FRIEND, Faction.FRIEND, Faction.FRIEND, panel,
-                listOf(SettlementInfoDelta(SettlementInfoKind.HP, 119, 104)), emptyList(),
+                listOf(SettlementInfoDelta(SettlementInfoKind.HP, if (healing) 104 else 119, if (healing) 119 else 104)), emptyList(),
             )
             controller.start(plan(), listOf(TurnSettlementOp.UnitInfo(unit, listOf(grant))), local = true)
             controller.tick(0f) { true }
             val mine = panel == SettlementInfoPanel.MINE
             assertEquals(if (mine) listOf(grant) else emptyList(), controller.infoView()?.grants)
-            val barrier = if (mine) 2.4f else 1.4f
+            val barrier = if (mine) 2.067f else 1.067f
             assertTrue(controller.tick(barrier - .01f) { true }.isEmpty())
             assertIs<BattleSettlementPresentationController.Effect.Finished>(controller.tick(barrier + .001f) { true }.single())
             assertEquals(5, grant.unitResult?.gained, "filtering display rows does not change awarded experience")

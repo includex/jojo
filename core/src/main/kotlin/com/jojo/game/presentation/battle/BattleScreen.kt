@@ -83,6 +83,7 @@ import com.jojo.game.presentation.battle.unit.*
 import com.jojo.engine.graphics.SlicedPatch
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationCoordinator
 import com.jojo.game.presentation.battle.verification.BattleScreenVerificationInput
+import com.jojo.game.domain.battle.settlement.SettlementInfoTiming
 import com.jojo.game.presentation.shared.InfoBaseValueAnimation
 import com.jojo.game.presentation.shared.KoreanFont
 import com.jojo.game.presentation.shared.overlay.TerrainLayerChromeRenderContract
@@ -8475,7 +8476,7 @@ void main() {
      * `settlementAnimationFrame`: 지금 시각에 해당하는 숫자와 막대 길이를 계산한다.
      *
      * 원본은 `_kvs`를 하나씩 꺼내 숫자를 0.2초 간격으로 갱신하고, 그 항목이 끝나야 다음
-     * 항목으로 넘어간다. 그래서 각 항목의 시작 시각은 앞선 항목들의 단계 수 x 0.2초다.
+     * 항목으로 넘어간다. HP는 1.5배속이며 각 항목의 시작 시각에 그 시간을 반영한다.
      * `SettlementUnitPlan.preInfoDelaySeconds`(0.1초)만큼 늦게 창이 열리므로 그만큼 뺀다.
      */
     private fun settlementAnimationFrame(overlay: SettlementInfoView): SettlementAnimationFrame {
@@ -8488,16 +8489,18 @@ void main() {
             val steps = InfoBaseValueAnimation.steps(value)
             if (steps.isEmpty()) return@forEach
             val since = elapsed - startedAt
+            val kind = if (value.index == 0) SettlementInfoKind.HP else SettlementInfoKind.MP
+            val tickSeconds = SettlementInfoTiming.tickSeconds(kind)
             if (since > 0f) {
-                // 숫자: 0.2초마다 한 단계. 첫 콜백도 0.2초 뒤에 온다.
-                val step = (since / SETTLEMENT_INFO_TICK_SECONDS).toInt()
+                // 숫자와 막대는 같은 HP 배속을 사용한다.
+                val step = (since / tickSeconds).toInt()
                 if (step >= 1) numbers[value.index] = steps[(step - 1).coerceAtMost(steps.lastIndex)]
-                // 막대: 항목이 시작한 순간부터 1초 동안 끊김 없이 채워진다.
-                val progress = (since / SETTLEMENT_BAR_TWEEN_SECONDS).coerceIn(0f, 1f)
+                // 막대는 해당 항목의 재생 시간 동안 연속해서 변화한다.
+                val progress = (since / SettlementInfoTiming.barTweenSeconds(kind)).coerceIn(0f, 1f)
                 val from = value.progress(value.source)
                 ratios[value.index] = from + (value.progress(value.destination) - from) * progress
             }
-            startedAt += steps.size * SETTLEMENT_INFO_TICK_SECONDS
+            startedAt += steps.size * tickSeconds
         }
         return SettlementAnimationFrame(numbers, ratios)
     }
@@ -13176,9 +13179,3 @@ private const val SETTLEMENT_EQUIP_EXP_FALLBACK_LIMIT = 100
  * 카메라를 옮긴 뒤 `MineUnitInfoLayer`를 붙이기까지 두는 시간이다.
  */
 private const val SETTLEMENT_INFO_OPEN_DELAY = .1f
-
-/** 원본 `InfoBaseLayer._next`의 `schedule(_callback, .2, REPEAT_FOREVER, .2)` 간격이다. */
-private const val SETTLEMENT_INFO_TICK_SECONDS = .2f
-
-/** 원본 `InfoBaseLayer._next`의 `cc.tween(bar).to(1, {progress})` 길이다. */
-private const val SETTLEMENT_BAR_TWEEN_SECONDS = 1f
