@@ -107,6 +107,12 @@ class LinchongNativeScenarioTest {
     @Test fun `first enemy phase rescues Lin and reaching east exit clears B01`() {
         val f=chapter(0);tick(f,camp=2)
         assertTrue(f.script.stage.battleUnits.values.any{it.characterId==513})
+        assertEquals(1,f.script.stage.battleUnits.values.first{it.characterId==513}.direction)
+        assertEquals(4,f.campaign.inventory.unitItemCount(513,216))
+        assertEquals(listOf(6,7,6,0),f.script.stage.scriptedUnitActions.filter { it.unitId==513 }.map { it.action })
+        assertEquals(0,f.campaign.inventory.unitItemCount(512,216))
+        tick(f,camp=2)
+        assertEquals(4,f.campaign.inventory.unitItemCount(513,216),"Rescue must not grant medicine twice")
         assertEquals(1,(f.campaign.globalVariables["linchong.b01_rescued"] as Number).toInt())
         tick(f,round=2,positions=mapOf(512 to (14 to 5)));won(f)
         assertEquals(2,f.campaign.inventory.items[200]);assertTrue(137 in f.campaign.inventory.items)

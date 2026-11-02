@@ -54,6 +54,7 @@ class Battle(
     infantryOffsets: Set<Pair<Int, Int>> = setOf(0 to 1, 1 to 0, -1 to 0, 0 to -1),
     propertyItems: Map<Int, BattlePropertyItem> = emptyMap(),
     consumeProperty: (Int) -> Boolean = { false },
+    consumePropertyForUnit: ((BattleUnit, Int) -> Boolean)? = null,
     /** zdsyGlobalValue: 전투 규칙에서 참조하는 전역 시나리오 값이다. */
     zdsyGlobalValue: Int = 0,
     /** consumeAutomaticProperty: 자동 발동한 속성 아이템을 저장소에서 차감하는 콜백이다. */
@@ -93,7 +94,7 @@ class Battle(
         events, terrain, enemyMasterUnitId, weatherSchedule, weatherOffset, terrainMagicFlags,
         terrainResumeRates, terrainResumeMp, enabledFeatures, skillTempResetTypes,
         statusRoundFor, attributeStatusRoundFor, movementOffsets, infantryOffsets, propertyItems,
-        consumeProperty, zdsyGlobalValue, consumeAutomaticProperty, onPermanentProperty, onUnitDefeated,
+        consumeProperty, consumePropertyForUnit, zdsyGlobalValue, consumeAutomaticProperty, onPermanentProperty, onUnitDefeated,
         onBattleExperience, experienceLimit, levelLimit, onBattleLevelUp, onPhysicalDamage,
         onEquipmentExperienceAward, onEquipmentExperience, onRestoreUnitExperience,
         onRestoreEquipmentExperience, random, sourceRandomStreams, onUnitRetreat,

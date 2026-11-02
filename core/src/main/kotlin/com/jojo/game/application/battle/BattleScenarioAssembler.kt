@@ -86,6 +86,9 @@ internal object BattleScenarioAssembler {
                 .map { BattlePropertyItem(it.id, it.name, it.itemType, it.value) }
                 .associateBy { it.id },
             consumeProperty = campaign?.let { state -> { itemId: Int -> state.inventory.consumeItem(itemId) } } ?: { false },
+            consumePropertyForUnit = campaign?.let { state ->
+                { unit: BattleUnit, itemId: Int -> state.inventory.consumeBattleItem(unit.characterId, itemId) }
+            },
             zdsyGlobalValue = (campaign?.globalVariables?.get(4035) as? Number)?.toInt() ?: 0,
             consumeAutomaticProperty = campaign?.let { state ->
                 { itemId: Int -> state.inventory.consumeItem(itemId); Unit }

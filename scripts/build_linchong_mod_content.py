@@ -8,7 +8,7 @@ import re
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'content/examples/linchong'
-ITEM_IDS={'healing_powder':200,'old_wrist_guard':137,'manual_circling_spear':202,'training_staff':59,'guardian_belt':141,'manual_guard_palm':205,'iron_shield':100,'manual_iron_guard':207,'manual_snow_resolve':208,'snow_boots':149,'burned_secret_letter':210,'marsh_token':256,'waterway_map':212,'marsh_compass':257,'manual_water_stride':214,'manual_tiger_charge':215,'leather_vest':101,'campaign_clear_token':217,'iron_spear':60,'prison_robe':102,'monk_staff':61,'monk_robe':103,'short_spear':62,'short_blade':63,'traveler_clothes':104,'green_steel_sword':64,'light_armor':105,'linen_robe':106}
+ITEM_IDS={'advanced_wound_medicine':216,'healing_powder':200,'old_wrist_guard':137,'manual_circling_spear':202,'training_staff':59,'guardian_belt':141,'manual_guard_palm':205,'iron_shield':100,'manual_iron_guard':207,'manual_snow_resolve':208,'snow_boots':149,'burned_secret_letter':210,'marsh_token':256,'waterway_map':212,'marsh_compass':257,'manual_water_stride':214,'manual_tiger_charge':215,'leather_vest':101,'campaign_clear_token':217,'iron_spear':60,'prison_robe':102,'monk_staff':61,'monk_robe':103,'short_spear':62,'short_blade':63,'traveler_clothes':104,'green_steel_sword':64,'light_armor':105,'linen_robe':106}
 SKILL_IDS=dict(zip(['wind_spear','circling_spear','staff_smash','iron_guard','quick_step','snow_resolve','water_stride','tiger_charge','swift_blade','staff_combo'],range(100,110)))
 
 def read_yaml(path):
@@ -77,6 +77,7 @@ def main():
     for key,item_id in ITEM_IDS.items():
         item=items.get(key,{});name=item.get('name',loadout_names.get(key,key));description='보조 장비. 장비 목록에서 장착할 수 있다.' if key in treasures else '초기 장비. 별도의 추가 능력치는 없다.'
         if key=='healing_powder':row={'id':item_id,'name':name,'itemType':26,'specialType':3,'price':1,'iconIndex':87,'value':35,'upgradeValue':0,'intro':'HP를 35 회복한다. 사용하면 행동을 마친다.'}
+        elif key=='advanced_wound_medicine':row={'id':item_id,'name':'고급 금창약','itemType':26,'specialType':3,'price':1,'iconIndex':87,'value':100,'upgradeValue':0,'intro':'체력을 100 회복한다. 최대 체력을 넘지 않으며, 사용하면 행동을 마친다.'}
         elif key in weapons:row={'id':item_id,'name':name,'itemType':6,'specialType':0,'price':1,'iconIndex':10,'value':3 if key=='training_staff' else 0,'upgradeValue':0,'intro':'공격력 +3.' if key=='training_staff' else '초기 무기. 추가 공격력은 없다.'}
         elif key in armors:row={'id':item_id,'name':name,'itemType':20,'specialType':0,'price':1,'iconIndex':38,'value':5 if key=='iron_shield' else 3 if key=='leather_vest' else 0,'upgradeValue':0,'intro':'방어력 +5.' if key=='iron_shield' else '방어력 +3.' if key=='leather_vest' else '초기 방어구. 추가 방어력은 없다.'}
         elif key in treasures:row={'id':item_id,'name':name,'itemType':61,'specialType':2,'price':0,'iconIndex':67,'value':2 if key=='old_wrist_guard' else 1,'effectValue':1,'upgradeValue':255,'treasure':1,'intro':description}

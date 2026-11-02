@@ -62,17 +62,24 @@ def scene1():
     if not gvars['linchong.event_b01_e02'] and (stage.round() >= 1 and stage.curCamp() == 2):
         gvars['linchong.event_b01_e02'] = 1
         stage.say('@dialogue:S_90.B01_E02.line001')
+        pass
+        if not gvars['linchong.gear_initialized_lu']:
+            stage.setJoinEquip(513, 63, 1, 35, 1, 0)
+            gvars['linchong.gear_initialized_lu'] = 1
+        stage.createMine([{'id': 513, 'i': 5, 'idx': 5, 'x': 1, 'y': 7, 'lv': 3, 'dir': 1, 'ai': 2}])
+        stage.infoTransfer(4, '102\n1\n513\nstaff_smash')
+        stage.giveUnitItem(513, 216, 4)
+        stage.center(1, 7)
         stage.say('@dialogue:S_90.B01_E02.line002')
+        stage.unit(513).setAction(6, 1, False)
+        stage.unit(513).setAction(7, 1, False)
+        stage.unit(513).setAction(6, 1, False)
+        stage.unit(513).setAction(0, 1, False)
         stage.say('@dialogue:S_90.B01_E02.line003')
         stage.say('@dialogue:S_90.B01_E02.line004')
         stage.say('@dialogue:S_90.B01_E02.line005')
         stage.say('@dialogue:S_90.B01_E02.line006')
         pass
-        if not gvars['linchong.gear_initialized_lu']:
-            stage.setJoinEquip(513, 63, 1, 35, 1, 0)
-            gvars['linchong.gear_initialized_lu'] = 1
-        stage.createMine([{'id': 513, 'i': 5, 'idx': 5, 'x': 1, 'y': 7, 'lv': 3, 'dir': 2, 'ai': 2}])
-        stage.infoTransfer(4, '102\n1\n513\nstaff_smash')
         # Existing-engine adaptation: remove_status:lin:BOUND
         # Existing-engine adaptation: remove_status:lin:DISARMED
         stage.setUnitStatus([{'unit':stage.unit(512),'hp':18}])

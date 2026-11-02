@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>개인 소지품과 교환</title>
+<style>body{margin:0;background:#171b22;color:#eee8db;font:16px/1.7 system-ui,sans-serif}main{max-width:960px;margin:40px auto;padding:24px}a{color:#e6c078}h1,h2{color:#e6c078}.flow{display:flex;gap:16px;flex-wrap:wrap}.card{background:#242b35;border:1px solid #59616d;border-radius:12px;padding:18px;flex:1;min-width:180px}pre{background:#10151c;padding:20px;overflow:auto}code{color:#f1d495}small{color:#b6c1d0}</style>
+<main><a href="content-package.html">← 현재 게임 콘텐츠</a><h1>개인 소지품과 교환</h1><p>공용 가방과 인물의 소지품을 구분합니다. 노지심에게 지급한 고급 금창약은 노지심이 가지고 있으며, 임충에게 전달하면 임충의 소지품이 됩니다.</p>
+<div class="flow"><div class="card"><h2>① 가까이 이동</h2>노지심과 임충을 상하좌우로 인접하게 배치합니다. 대각선은 전달 범위가 아닙니다.</div><div class="card"><h2>② 교환 선택</h2>노지심의 교환 명령에서 고급 금창약을 선택하고 임충을 선택합니다. 한 번에 한 개를 전달하며 노지심의 행동이 끝납니다.</div><div class="card"><h2>③ 전달받은 약 사용</h2>임충의 물품 목록에 약이 나타납니다. 사용하면 체력 100을 회복하며 최대 체력을 넘지 않습니다. 약 한 개를 소비하고 행동을 마칩니다.</div></div>
+<p>선택 중 ESC로 취소할 수 있습니다. 공용 가방의 약은 누구나 사용할 수 있지만, 특정 인물에게 배정된 약은 다른 인물의 사용 목록에 나타나지 않습니다. 소지자와 수량은 저장 데이터에 포함됩니다.</p>
+<h2>시나리오에서 지급하기</h2><pre>stage.giveUnitItem(513, 216, 4)
+# 인물 ID, 소모품 ID, 수량(생략 시 1)
+# 이 호출은 별도의 획득 대화 없이 해당 인물에게 지급합니다.</pre><p>수량은 양의 정수이며 현재 개인 소지품은 기존 소모품 ID 범위 150–254를 사용합니다. 반복 실행되는 이벤트에서는 지급 전에 이벤트 실행 여부를 검사해야 합니다. 임충전의 노지심 등장 이벤트는 1회 실행 플래그로 중복 지급을 막습니다.</p>
+<h2>회복 아이템 정의</h2><pre># content/equipment/0216.yaml
+id: 216
+name: "고급 금창약"
+itemType: 26
+specialType: 3
+iconIndex: 87
+value: 100
+upgradeValue: 0</pre><p><code>itemType: 26</code>은 현재 게임의 체력 회복 소모품 유형입니다. <code>value</code>는 회복량이며 <code>upgradeValue: 0</code>이므로 추가 비율 회복은 없습니다.</p>
+<h2>피해 없는 등장 연출</h2><pre>stage.unit(513).setAction(6, 1, False)
+stage.unit(513).setAction(7, 1, False)
+stage.unit(513).setAction(6, 1, False)
+stage.unit(513).setAction(0, 1, False)</pre><p>방향 <code>1</code>은 동쪽입니다. 각 공격 동작을 끝까지 재생한 후 대기로 돌아옵니다. <code>setAction</code>은 표시 동작만 바꾸며 실제 전투 피해를 계산하지 않습니다. 등장시킨 유닛에 호출해야 합니다.</p></main></html>

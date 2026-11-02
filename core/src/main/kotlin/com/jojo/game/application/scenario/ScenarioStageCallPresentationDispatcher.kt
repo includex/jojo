@@ -99,6 +99,10 @@ internal object ScenarioStageCallPresentationDispatcher : ScenarioStageCallFamil
             "stage.end" -> { stage.endBattle(); 0 }
             "stage.jumpScene" -> { stage.jumpScene(args.intAt(0)); env.onEnd(); 0 }
             "stage.itemVars" -> { stage.addItemVariables(args.getOrNull(0).asList(), args.getOrNull(1).asList()); 0 }
+            "stage.giveUnitItem" -> {
+                stage.giveUnitItem(args.intAt(0), args.intAt(1), args.getOrNull(2)?.asInt() ?: 1)
+                0
+            }
             "stage.getItem" -> {
                 /**
                  * `itemId` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.

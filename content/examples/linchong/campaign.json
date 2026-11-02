@@ -1488,6 +1488,9 @@
           },
           "knife2": {
             "facing": "west"
+          },
+          "lu": {
+            "facing": "east"
           }
         }
       },

@@ -66,6 +66,14 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
                 repeat((count - levels.size).coerceAtLeast(0)) { state.inventory.addItem(itemId) }
             }
         }
+        root.get("unitItems")?.children()?.forEach { unit ->
+            val unitId = unit.name.toIntOrNull() ?: return@forEach
+            unit.intEntries().forEach { (itemId, count) ->
+                if (count > 0 && itemId in 150..254 && state.inventory.sharedItemCount(itemId) >= count) {
+                    state.inventory.assignUnitItem(unitId, itemId, count)
+                }
+            }
+        }
         state.roster.restoreBattleRoster(root.get("roster").children().map { it.asInt() }.asIterable())
         root.get("equipment").children().forEach { entry ->
             val values = entry.children().map { it.asInt() }.toList()
@@ -170,6 +178,9 @@ internal class CampaignRuntimeStateCodec(private val state: CampaignState) {
         }).append(']')
         append(",\"formations\":[").append(state.formationTalents.joinToString(",") { quote(it) }).append(']')
         append(",\"items\":").append(intMap(state.inventory.items))
+        append(",\"unitItems\":{").append(state.inventory.unitItems.entries.joinToString(",") { (unitId, items) ->
+            "${quote(unitId.toString())}:${intMap(items)}"
+        }).append('}')
         append(",\"treasures\":[").append(state.inventory.discoveredTreasures.joinToString(",")).append(']')
         append(",\"itemLevels\":{").append(state.inventory.items.keys.filter { it !in 150..254 }.joinToString(",") { itemId ->
             "${quote(itemId.toString())}:[${state.inventory.itemLevels(itemId).joinToString(",")}]"

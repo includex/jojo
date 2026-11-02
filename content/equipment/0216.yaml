@@ -1,0 +1,10 @@
+# Lin Chong mod / native Jojo content catalog
+id: 216
+name: "고급 금창약"
+itemType: 26
+specialType: 3
+price: 1
+iconIndex: 87
+value: 100
+upgradeValue: 0
+intro: "체력을 100 회복한다. 최대 체력을 넘지 않으며, 사용하면 행동을 마친다."

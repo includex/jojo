@@ -23,6 +23,42 @@ class CampaignInventory internal constructor(
      */
 
     private val itemStore = CampaignInventoryItemStore()
+    /** Consumables reserved for a particular character. Counts are also included in [items]. */
+    private val carriedItems = linkedMapOf<Int, MutableMap<Int, Int>>()
+
+    val unitItems: Map<Int, Map<Int, Int>> get() = carriedItems.mapValues { it.value.toMap() }
+
+    fun unitItemCount(unitId: Int, itemId: Int): Int = carriedItems[unitId]?.get(itemId) ?: 0
+
+    /** Unassigned stock remains available to legacy shared-inventory actions. */
+    fun sharedItemCount(itemId: Int): Int = (items[itemId] ?: 0) - carriedItems.values.sumOf { it[itemId] ?: 0 }
+
+    fun addUnitItem(unitId: Int, itemId: Int, count: Int = 1) {
+        require(unitId >= 0 && itemId in 150..254 && count > 0)
+        itemStore.add(itemId, count)
+        assignUnitItem(unitId, itemId, count)
+    }
+
+    internal fun assignUnitItem(unitId: Int, itemId: Int, count: Int) {
+        require(unitId >= 0 && itemId in 150..254 && count > 0 && sharedItemCount(itemId) >= count)
+        val stock = carriedItems.getOrPut(unitId) { linkedMapOf() }
+        stock[itemId] = (stock[itemId] ?: 0) + count
+    }
+
+    fun transferUnitItem(fromUnitId: Int, toUnitId: Int, itemId: Int, count: Int = 1): Boolean {
+        if (fromUnitId == toUnitId || count <= 0 || unitItemCount(fromUnitId, itemId) < count) return false
+        removeCarried(fromUnitId, itemId, count)
+        val stock = carriedItems.getOrPut(toUnitId) { linkedMapOf() }
+        stock[itemId] = (stock[itemId] ?: 0) + count
+        return true
+    }
+
+    private fun removeCarried(unitId: Int, itemId: Int, count: Int) {
+        val stock = carriedItems.getValue(unitId)
+        val remaining = stock.getValue(itemId) - count
+        if (remaining == 0) stock.remove(itemId) else stock[itemId] = remaining
+        if (stock.isEmpty()) carriedItems.remove(unitId)
+    }
     /**
      * `equipmentManager` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -55,6 +91,7 @@ class CampaignInventory internal constructor(
 
     internal fun reset() {
         itemStore.reset()
+        carriedItems.clear()
         equipmentManager.reset()
     }
 
@@ -78,10 +115,24 @@ class CampaignInventory internal constructor(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun consumeItem(itemId: Int): Boolean = itemStore.consume(itemId)
+    fun consumeItem(itemId: Int): Boolean = sharedItemCount(itemId) > 0 && itemStore.consume(itemId)
+
+    /** Battle use consumes the actor's carried stock first, then shared stock. */
+    fun consumeBattleItem(unitId: Int?, itemId: Int): Boolean {
+        if (unitId != null && unitItemCount(unitId, itemId) > 0) {
+            if (!itemStore.consume(itemId)) return false
+            removeCarried(unitId, itemId, 1)
+            return true
+        }
+        return consumeItem(itemId)
+    }
 
     /** removeItemStack: 전투 편성에서 사용한 특정 아이템의 모든 보유 인스턴스를 제거한다. */
-    internal fun removeItemStack(itemId: Int) = itemStore.removeStack(itemId)
+    internal fun removeItemStack(itemId: Int) {
+        itemStore.removeStack(itemId)
+        carriedItems.values.forEach { it.remove(itemId) }
+        carriedItems.entries.removeIf { it.value.isEmpty() }
+    }
 
     /** restoreDiscoveredTreasures: 저장 데이터의 보물 식별자 순서로 발견 목록을 되살린다. */
     internal fun restoreDiscoveredTreasures(itemIds: Iterable<Int>) = itemStore.restoreDiscoveries(itemIds)

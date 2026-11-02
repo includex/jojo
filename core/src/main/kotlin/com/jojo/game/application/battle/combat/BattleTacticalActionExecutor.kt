@@ -29,7 +29,7 @@ internal data class BattleTacticalActionEnvironment(
     val areAllied: (BattleUnit, BattleUnit) -> Boolean,
     val movementOffsets: Set<Pair<Int, Int>>,
     val propertyItems: Map<Int, BattlePropertyItem>,
-    val consumeSelectedProperty: (Int) -> Boolean,
+    val consumeSelectedProperty: (BattleUnit, Int) -> Boolean,
     val notifyPermanentProperty: (BattlePropertyItem, BattleUnit) -> Unit,
     val physicalCombatEnvironment: () -> PhysicalCombatEnvironment,
     val magicEnvironment: () -> MagicEnvironment,
@@ -151,7 +151,7 @@ internal object BattleTacticalActionExecutor {
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        val applied = applyProperty(item, target, { env.consumeSelectedProperty(itemId) }, env.notifyPermanentProperty)
+        val applied = applyProperty(item, target, { env.consumeSelectedProperty(user, itemId) }, env.notifyPermanentProperty)
             ?: return TacticalActionResult.Rejected(SystemMessage.S_CEF693F5A0)
         user.markActionComplete()
         return applied

@@ -9,6 +9,9 @@ import com.badlogic.gdx.utils.ScreenUtils
 import com.jojo.game.JojoGame
 import com.jojo.game.application.runtime.*
 import com.jojo.game.domain.scenario.PlaybackState
+import com.jojo.game.application.battle.Battle
+import com.jojo.game.domain.campaign.CampaignState
+import com.jojo.game.presentation.battle.overlay.UsePropertyLayer
 
 /** Exercises the mod through the unmodified production screen and input contracts. */
 object LinchongModSmokeLauncher {
@@ -94,6 +97,7 @@ object LinchongModSmokeLauncher {
                         check(continuousDialogueTransitions == 3) { "Dialogue continuity checks were not exercised" }
                         check(units.any { it.characterId == 513 && it.visible }) { "First enemy phase did not spawn Lu Zhishen" }
                         capture("$output-rescue.png")
+                        verifyExchangeTransfer()
                     }
                     Gdx.files.absolute("$output.txt").writeString("PASS $scenario original BattleScreen ready; units=${units.size}\n" + units.joinToString("\n") { "${it.characterId} (${it.x},${it.y}) hp=${it.hitPoints} ${it.faction}" }, false)
                     println("LINCHONG_SMOKE_PASS $scenario units=${units.size}")
@@ -142,6 +146,50 @@ object LinchongModSmokeLauncher {
         escape()
         check(!flag("magicMode") && !flag("battleMenuOpen")) { "Escape failed to cancel targeting" }
         println("LINCHONG_ESCAPE_PASS menu,return-prompt,save,load,settings,forces,property,terrain,treasure,target")
+    }
+
+    /** Drive the production command, picker, Escape and battlefield target handlers. */
+    private fun verifyExchangeTransfer() {
+        val screen = (Gdx.app.applicationListener as JojoGame).screen
+        fun field(name: String) = screen.javaClass.getDeclaredField(name).also { it.isAccessible = true }
+        fun method(name: String, vararg types: Class<*>) =
+            screen.javaClass.getDeclaredMethod(name, *types).also { it.isAccessible = true }
+        val campaign = field("campaign").get(screen) as CampaignState
+        val battle = field("battle").get(screen) as Battle
+        val lu = battle.units.values.single { it.characterId == 513 }
+        val lin = battle.units.values.single { it.characterId == 512 }
+        check(campaign.inventory.unitItemCount(513, 216) == 4)
+        // The authored rescue spawns Lu far from Lin. Place him on an unoccupied adjacent tile
+        // so the smoke can exercise the transfer input route without replaying movement rounds.
+        val neighbor = listOf(0 to 1, 1 to 0, 0 to -1, -1 to 0)
+            .map { lin.tileX + it.first to lin.tileY + it.second }
+            .first { (x, y) -> battle.unitAt(x, y) == null }
+        lu.tileX = neighbor.first
+        lu.tileY = neighbor.second
+        lu.hasActed = false
+        val tile = method("handleTileClick", Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!)
+        val command = method("dispatchBattleCommand", Int::class.javaPrimitiveType!!)
+        tile.invoke(screen, lu.tileX, lu.tileY)
+        tile.invoke(screen, lu.tileX, lu.tileY)
+        command.invoke(screen, 3)
+        check((field("usePropertyLayer").get(screen) as UsePropertyLayer).rows.single().id == 216)
+        Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)
+        check(!field("transferMode").getBoolean(screen)) { "Escape left transfer targeting active" }
+        command.invoke(screen, 3)
+        val picker = field("usePropertyLayer").get(screen) as UsePropertyLayer
+        picker.touchStart(0)
+        picker.touchEnd(0)
+        check(!picker.attached)
+        // The pointer wrapper releases a detached picker before the next map click.
+        field("usePropertyLayer").set(screen, null)
+        check(field("transferMode").getBoolean(screen)) { "Exchange did not enter target mode" }
+        tile.invoke(screen, lin.tileX, lin.tileY)
+        check(campaign.inventory.unitItemCount(513, 216) == 3)
+        check(campaign.inventory.unitItemCount(512, 216) == 1)
+        check(campaign.inventory.items[216] == 4) { "Transfer changed total stock" }
+        check(lu.hasActed) { "Exchange did not consume Lu's action" }
+        check(!field("transferMode").getBoolean(screen)) { "Transfer target mode persisted" }
+        println("LINCHONG_EXCHANGE_PASS Lu=3 Lin=1 total=4 Escape=cancel action=consumed")
     }
 
     private fun capture(path: String) {

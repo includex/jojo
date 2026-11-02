@@ -30,8 +30,11 @@ internal object BattleCombatEnvironmentAssembler {
         areAllied = battle::areAllied,
         movementOffsets = battle.configuration.movementOffsets,
         propertyItems = battle.configuration.propertyItems,
-            consumeSelectedProperty = { itemId ->
-                battle.experience.consumeSelectedProperty(itemId, battle.configuration.consumeProperty)
+            consumeSelectedProperty = { unit, itemId ->
+                battle.experience.consumeSelectedProperty(itemId) { id ->
+                    battle.configuration.consumePropertyForUnit?.invoke(unit, id)
+                        ?: battle.configuration.consumeProperty(id)
+                }
             },
             notifyPermanentProperty = { item, target ->
                 battle.experience.notifyPermanentProperty(item, target, battle.configuration.onPermanentProperty)

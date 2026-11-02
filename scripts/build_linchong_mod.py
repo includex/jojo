@@ -23,6 +23,7 @@ def whenexpr(w):
 # Preserve the PRD verbatim in source.md/campaign.json; in-game instructions
 # describe the native implementation rather than promising PRD-only mechanics.
 NATIVE_HELP = {
+ 'S_90.B01_E02.line006': '은혜 따질 때가 아니다! 고급 금창약 네 개를 가져왔으니, 내 곁에서 교환으로 받아 상처부터 돌보게.',
  'S_90.B01_E01.line001': '자객에게 포위되었다. 임충을 살려 두고 구원의 손길을 기다리자.',
  'S_90.B01_E03.line002': '무공은 기존 전투 메뉴에서 사용할 수 있다. 필요한 기력을 확인하고 공격과 회복을 나누어 사용하자.',
  'S_91.B02_E01.line001': '홍교두의 체력을 충분히 낮추면 대련이 끝난다. 가까이 다가가면 일기토 장면이 발생한다. 임충의 체력도 주의하자.',
@@ -244,11 +245,25 @@ for bi,b in enumerate(c['battles']):
   if e['trigger'] in ['BATTLE_START','LOSE_CONDITIONS_MET','WIN_CONDITIONS_MET']:continue
   flag=F('event_'+e['id']);cond=condition(b,e['trigger'])
   if e['id']=='B04_E04':cond='('+cond+' and stage.round() >= 3)'
-  code+=['    if not '+flag+' and '+cond+':','        '+flag+' = 1'];code+=say(e['dialogue'],mod+'.'+e['id'],'        ')
+  code+=['    if not '+flag+' and '+cond+':','        '+flag+' = 1']
+  event_actions=e['actions']
+  dialogue=say(e['dialogue'],mod+'.'+e['id'],'        ')
+  if e['id']=='B01_E02':
+   spawn=[a for a in event_actions if a['command']=='spawn' and a['args'][0]=='lu']
+   event_actions=[a for a in event_actions if a not in spawn]
+   code+=dialogue[:1]+actions(b,spawn)
+   code+=['        stage.giveUnitItem(513, 216, 4)', '        stage.center(1, 7)']
+   code+=dialogue[1:2]
+   code+=['        stage.unit(513).setAction(6, 1, False)',
+          '        stage.unit(513).setAction(7, 1, False)',
+          '        stage.unit(513).setAction(6, 1, False)',
+          '        stage.unit(513).setAction(0, 1, False)']
+   code+=dialogue[2:]
+  else:code+=dialogue
   for variant in b['conditionalDialogue']:
    if variant['eventId']==e['id']:
     code+=['        if '+whenexpr(variant['when'])+':'];code+=say(variant['dialogue'],mod+'.'+e['id']+'.'+variant['condition'],'            ')
-  code+=actions(b,e['actions'])
+  code+=actions(b,event_actions)
   if e['id'] in EVENT_GUIDES:
    text,targets=EVENT_GUIDES[e['id']]
    code+=guide(b,targets,text,'        ')

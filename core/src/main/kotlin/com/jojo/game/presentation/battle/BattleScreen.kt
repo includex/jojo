@@ -3723,6 +3723,9 @@ void main() {
      */
 
     private var propertyMode = false
+    /** Exchange selects one carried item, then an adjacent allied recipient. */
+    private var transferMode = false
+    private var selectedTransferItemId: Int? = null
 
     /**
      * `selectedPropertyIndex` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -4476,9 +4479,16 @@ void main() {
                         battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION -> {
                             magicMode = false
                             propertyMode = false
+                            transferMode = false
+                            selectedTransferItemId = null
                             battleCommandFlow.childCancelled()
                         }
-                        magicMode || propertyMode -> { magicMode = false; propertyMode = false }
+                        magicMode || propertyMode || transferMode -> {
+                            magicMode = false
+                            propertyMode = false
+                            transferMode = false
+                            selectedTransferItemId = null
+                        }
                         selectedUnitId != null -> selectedUnitId = null
                         else -> openBattleMenu()
                     }
@@ -7848,6 +7858,7 @@ void main() {
                 )
                 selectedMagicIndex = 0
                 propertyMode = false
+                transferMode = false
                 eventMessage = "${clicked.name} 선택 · 빈 칸으로 이동, 인접 적을 공격"
             }
             return
@@ -7870,14 +7881,30 @@ void main() {
             return
         }
         when {
+            transferMode && clicked != null && clicked.visible && clicked.hitPoints > 0 && clicked.id != selected.id && unitsAreAllied(selected, clicked) &&
+                kotlin.math.abs(clicked.tileX - selected.tileX) + kotlin.math.abs(clicked.tileY - selected.tileY) == 1 -> {
+                val itemId = selectedTransferItemId
+                val fromId = selected.characterId
+                val toId = clicked.characterId
+                if (itemId != null && fromId != null && toId != null && campaign.inventory.transferUnitItem(fromId, toId, itemId)) {
+                    transferMode = false
+                    selectedTransferItemId = null
+                    battleCommandFlow.childCompleted(true)
+                    selected.markActionComplete()
+                    selectedUnitId = null
+                    eventMessage = "${selected.name} → ${clicked.name}: ${gameDataCatalog.equipmentProfile(itemId)?.name ?: "아이템 $itemId"} 전달"
+                } else eventMessage = "전달할 수 없습니다"
+            }
+            transferMode -> eventMessage = "인접한 아군을 선택하세요"
             propertyMode && clicked != null && unitsAreAllied(
                 selected,
                 clicked
             ) && kotlin.math.abs(clicked.tileX - selected.tileX) + kotlin.math.abs(clicked.tileY - selected.tileY) <= 1 -> {
                 val healthBeforeAction = battle.units.mapValues { it.value.hitPoints }
                 propertyMode = false
-                val result = usableProperties().getOrNull(selectedPropertyIndex)
-                    ?.let { battle.presentation.useProperty(selected.id, clicked.id, it.id) }
+                val usedItemId = usableProperties(selected).getOrNull(selectedPropertyIndex)?.id
+                val result = usedItemId
+                    ?.let { battle.presentation.useProperty(selected.id, clicked.id, it) }
                     ?: TacticalActionResult.Rejected(SystemMessage.S_CA6C5A2257)
                 applyAction(
                     result, selected.name, selected.id, targetId = clicked.id, healthBeforeAction = healthBeforeAction
@@ -7932,10 +7959,10 @@ void main() {
             }) mask = mask or BattleCommandFlow.ATTACK_BIT
         if (unit.magic.isNotEmpty() && BattleStatus.SILENCE !in unit.statuses) mask =
             mask or BattleCommandFlow.MAGICK_BIT
-        if (usableProperties().isNotEmpty()) mask = mask or BattleCommandFlow.PROPERTY_BIT
+        if (usableProperties(unit).isNotEmpty()) mask = mask or BattleCommandFlow.PROPERTY_BIT
         if (BattleCommandFlow.canSwap(
                 unit, battle.units.values, gameDataCatalog.hitAreaProfile(1)?.offsets.orEmpty(),
-            )) mask = mask or BattleCommandFlow.SWAP_BIT
+            ) || unit.characterId?.let { campaign.inventory.unitItems[it]?.isNotEmpty() } == true) mask = mask or BattleCommandFlow.SWAP_BIT
         return mask
     }
 
@@ -8086,7 +8113,7 @@ void main() {
                 BattleCommandFlow.Command.MAGICK -> openMagickList(selected)
                 BattleCommandFlow.Command.PROPERTY -> openUsePropertyLayer()
                 BattleCommandFlow.Command.ATTACK -> eventMessage = SystemMessage.S_14E9E7E054
-                BattleCommandFlow.Command.SWAP -> eventMessage = SystemMessage.S_FD293C8169
+                BattleCommandFlow.Command.SWAP -> openTransferItemLayer(selected)
                 BattleCommandFlow.Command.SIEGE -> eventMessage = SystemMessage.S_30B3504918
                 else -> Unit
             }
@@ -8378,9 +8405,10 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun usableProperties(): List<BattlePropertyItem> = campaign.inventory.items.keys.mapNotNull { itemId ->
+    private fun usableProperties(unit: BattleUnit? = selectedUnitId?.let(battle.units::get)): List<BattlePropertyItem> = campaign.inventory.items.keys.mapNotNull { itemId ->
+        val available = campaign.inventory.sharedItemCount(itemId) + (unit?.characterId?.let { campaign.inventory.unitItemCount(it, itemId) } ?: 0)
         gameDataCatalog.equipmentProfile(itemId)
-            ?.takeIf { (it.itemType in 26..37 || it.itemType in 42..43) && (campaign.inventory.items[itemId] ?: 0) > 0 }
+            ?.takeIf { (it.itemType in 26..37 || it.itemType in 42..43) && available > 0 }
             ?.let { BattlePropertyItem(it.id, it.name, it.itemType, it.value) }
     }
 
@@ -11367,7 +11395,7 @@ void main() {
                 profile.id,
                 profile.name,
                 propertyEffectName(profile),
-                campaign.inventory.items[profile.id] ?: 0,
+                campaign.inventory.sharedItemCount(profile.id) + (selectedUnitId?.let(battle.units::get)?.characterId?.let { campaign.inventory.unitItemCount(it, profile.id) } ?: 0),
                 profile.icon
             )
         }
@@ -11396,6 +11424,43 @@ void main() {
                     if (battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) battleCommandFlow.childCancelled()
                     propertyMode = false
                     eventMessage = SystemMessage.S_A7202337A7
+                }
+            },
+            onInspect = { selected ->
+                usePropertyDetail = selected
+                usePropertyDetailSuppressRelease = true
+            },
+        )
+        usePropertyPressedRow = null
+        usePropertyCancelPressed = false
+        usePropertyPanelPressed = false
+    }
+
+    private fun openTransferItemLayer(unit: BattleUnit) {
+        val characterId = unit.characterId
+        val rows = characterId?.let { campaign.inventory.unitItems[it] }.orEmpty().mapNotNull { (itemId, count) ->
+            gameDataCatalog.equipmentProfile(itemId)?.let { profile ->
+                UsePropertyLayer.Property(profile.id, profile.name, propertyEffectName(profile), count, profile.icon)
+            }
+        }
+        if (rows.isEmpty()) {
+            battleCommandFlow.childCancelled()
+            eventMessage = "전달할 소지품이 없습니다"
+            return
+        }
+        usePropertyDetail = null
+        usePropertyLayer = UsePropertyLayer(
+            rows,
+            onSelect = { selected ->
+                if (selected == null) {
+                    battleCommandFlow.childCancelled()
+                    transferMode = false
+                    selectedTransferItemId = null
+                    eventMessage = SystemMessage.S_A7202337A7
+                } else {
+                    selectedTransferItemId = selected.id
+                    transferMode = true
+                    eventMessage = "${selected.name} 전달 · 인접한 아군을 선택"
                 }
             },
             onInspect = { selected ->
