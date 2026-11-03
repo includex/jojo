@@ -24,7 +24,7 @@ object LuaDuelSmokeLauncher {
             val runtime=field("scriptRuntime") as ScenarioInterpreter
             val campaign=field("campaign") as CampaignState
             check(runtime.scriptLanguage=="lua")
-            if((campaign.globalVariables["linchong.duel_win"] as? Number)?.toInt()==1) {
+            if((campaign.globalVariables["linchong.duel_win"] as? Number)?.toInt()==1 && runtime.state==PlaybackState.COMPLETE) {
                 check((campaign.globalVariables["linchong.b02_duel_completed"] as? Number)?.toInt()==1)
                 println("LUA_DUEL_SMOKE_PASS S_91 Lua start/showStart/attack1/attack1/end completed; continuation flags set")
                 Gdx.app.exit()
@@ -33,6 +33,9 @@ object LuaDuelSmokeLauncher {
             if(runtime.stage.activeFightId != null && !started) {
                 started=true
                 println("LUA_DUEL_PRESENTATION_STARTED")
+            }
+            if(probe.playback==PlaybackState.CHOICE && frame.elapsed>=nextTap) {
+                runtime.selectChoice(0);runtime.confirmChoice();nextTap=frame.elapsed+.2f
             }
             if(frame.elapsed>=nextTap && (probe.playback==PlaybackState.DIALOGUE || probe.playback==PlaybackState.MODAL || probe.winConditionsOpen)) {
                 val (x,y)=if(probe.winConditionsOpen) probe.winConditionButtonScreenX to probe.winConditionButtonScreenY
