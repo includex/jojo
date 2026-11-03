@@ -12,17 +12,25 @@ class ScenarioHostApiTest {
     private fun emptyInterpreter() = ScenarioInterpreter("HOST_TEST", emptyMap(), CampaignState())
 
     @Test
-    fun `host dialogue works without an AST frame and resolves stable and legacy keys`() {
+    fun `host dialogue works without an AST frame and resolves explicit catalog references`() {
         val runtime = emptyInterpreter()
         runtime.hostApi.say("&0\nHost dialogue")
         assertEquals(PlaybackState.DIALOGUE, runtime.state)
         assertEquals("Host dialogue", runtime.currentDialogue?.text)
 
-        val stable = ScenarioDialogueTextCatalog.text("R_00.scene1.dialogue0001")
-        assertEquals(stable, ScenarioDialogueTextCatalog.text("R_00:scene1:247"))
-        runtime.hostApi.say("@dialogue:R_00.scene1.dialogue0001")
+        val stable = ScenarioDialogueTextCatalog.text("S_90.B01_E02.line002")
+        runtime.hostApi.say("@dialogue:S_90.B01_E02.line002")
         assertEquals(stable, runtime.currentDialogueSourceText)
         assertFailsWith<IllegalStateException> { runtime.hostApi.say("@dialogue:unknown.stable.id") }
+    }
+
+    @Test
+    fun `unprefixed dialogue remains literal even when it contains a reference`() {
+        val runtime = emptyInterpreter()
+        val literal = "&512\nS_90.B01_E02.line002 · @dialogue:unknown.id"
+        runtime.hostApi.say(literal)
+        assertEquals(literal, runtime.currentDialogueSourceText)
+        assertEquals("S_90.B01_E02.line002 · @dialogue:unknown.id", runtime.currentDialogue?.text)
     }
 
     @Test

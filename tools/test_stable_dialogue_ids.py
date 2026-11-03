@@ -37,9 +37,16 @@ class StableDialogueIdsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'duplicate scenario dialogue ID'):
             self.collect("def scene1():\n stage.say('@dialogue:R_00.scene1.dialogue0001')\n stage.say('@dialogue:R_00.scene1.dialogue0001')\n")
 
-    def test_raw_dialogue_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, 'explicit @dialogue:ID'):
-            self.collect("def scene1():\n stage.say('&0\\nRaw')\n")
+    def test_raw_dialogue_is_preserved(self):
+        from tools.export_python_ast import encode
+        source = "def scene1():\n stage.say('&512\\n있는 그대로 @dialogue:본문')\n"
+        tree = ast.parse(source)
+        self.assertEqual(collect_dialogue_texts(tree, 'S_90', self.CATALOG), set())
+        encoded = encode(tree.body[0].body[0].value)
+        self.assertEqual(encoded['fields']['args'][0]['fields']['value'], '&512\n있는 그대로 @dialogue:본문')
+
+    def test_computed_text_is_resolved_at_runtime(self):
+        self.assertEqual(self.collect("def scene1():\n stage.say(message)\n"), set())
 
 
 if __name__ == '__main__':

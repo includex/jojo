@@ -57,11 +57,14 @@ def collect_dialogue_texts(tree: ast.Module, module_name: str, catalog: dict[str
         for node in ast.walk(function):
             if not isinstance(node, ast.Call) or ast.unparse(node.func) != "stage.say":
                 continue
-            if not node.args or not isinstance(node.args[0], ast.Constant) or not isinstance(node.args[0].value, str):
-                raise ValueError(f"{module_name}:{node.lineno} stage.say requires a @dialogue:ID string")
+            if not node.args:
+                raise ValueError(f"{module_name}:{node.lineno} stage.say requires a text argument")
+            # Computed strings are resolved by the same host API at runtime.
+            if not isinstance(node.args[0], ast.Constant) or not isinstance(node.args[0].value, str):
+                continue
             value = node.args[0].value
             if not value.startswith("@dialogue:"):
-                raise ValueError(f"{module_name}:{node.lineno} stage.say needs an explicit @dialogue:ID; add its text to dialogue-text.json")
+                continue
             key = value.removeprefix("@dialogue:")
             if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", key):
                 raise ValueError(f"{module_name}:{node.lineno} malformed dialogue ID: {key}")
