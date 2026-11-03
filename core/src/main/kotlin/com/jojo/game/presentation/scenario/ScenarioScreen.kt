@@ -851,7 +851,7 @@ class ScenarioScreen(
                 viewport.unproject(com.badlogic.gdx.math.Vector3(screenX.toFloat(), screenY.toFloat(), 0f)).let { it.x to it.y }
             },
         )
-        Gdx.app.log("JojoGame", "Loaded $moduleName Python AST runtime")
+        Gdx.app.log("JojoGame", "Loaded $moduleName ${playback.scriptLanguage} scenario runtime")
     }
     /**
      * `render`: 화면 표시 상태를 렌더링한다.

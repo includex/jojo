@@ -290,8 +290,10 @@ internal class ScenarioCallCoordinator(
      * 반환값이 있으면 계산 결과를 돌려주고, 없으면 상태 변경 또는 외부 전달로 효과를 남긴다.
      */
 
-    fun invokeCall(node: JsonValue, frame: ScriptFrame): Any? {
-        val path = node.field("func").expressionPath()
+    fun invokeCall(node: JsonValue, frame: ScriptFrame): Any? = invokeLanguageCall(node, frame, null)
+
+    fun invokeLanguageCall(node: JsonValue, frame: ScriptFrame, pathOverride: String?): Any? {
+        val path = pathOverride ?: node.field("func").expressionPath()
         val args = evalArguments(node.field("args"), frame)
         if (path != null && ScenarioFightDispatcher.dispatchFightCall(
                 path,

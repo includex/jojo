@@ -28,6 +28,7 @@ class ScenarioInterpreter internal constructor(
      */
 
     private val campaign: CampaignState,
+    private val luaSource: String? = null,
 ) {
     /** externalBattlePresentation: 전투 화면이 대화와 이동 연출을 자체적으로 표시하는 실행 모드다. */
     private var externalBattlePresentation = false
@@ -282,7 +283,7 @@ class ScenarioInterpreter internal constructor(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val functionNames: Set<String> get() = functions.keys
+    val functionNames: Set<String> get() = luaRunner?.functionNames ?: functions.keys
     /** unhandledCalls: 아직 구현하지 않은 원본 스크립트 호출과 발생 횟수를 누적한다. */
     val unhandledCalls = linkedMapOf<String, Int>()
     /**
@@ -319,6 +320,17 @@ class ScenarioInterpreter internal constructor(
         onSetState = { state = it },
         resolveStageUnitReference = ::resolveStageUnitReference,
     )
+    private val luaRunner: LuaScenarioRunner? by lazy {
+        luaSource?.let { source -> LuaScenarioRunner(moduleName, source,
+            { node, frame, path ->
+                val before=unhandledCalls.values.sum()
+                val result=callCoordinator.invokeLanguageCall(node,frame,path)
+                check(unhandledCalls.values.sum()==before) { "$moduleName: unknown scenario host API ${path ?: node}" }
+                result
+            }, { state }, { ended }, { choiceCoordinator.lastChoiceResult },
+            mapOf("vars" to vars,"gvars" to gvars,"pvars" to pvars)) }
+    }
+    val scriptLanguage: String get() = if(luaSource == null) "python" else "lua"
     /** Language-neutral game commands for a scenario runner. */
     val hostApi: ScenarioHostApi get() = callCoordinator.hostApi
     /** setBattleContext: 전투 시나리오 조건식이 읽을 라운드·진영·배치 정보를 교체한다. */
@@ -378,7 +390,8 @@ class ScenarioInterpreter internal constructor(
         choiceCoordinator.reset()
         randomGenerator.reset(retainTraceStop = true)
         randomTrace.clear()
-        callCoordinator.pushFunction(functionName, label)
+        if(luaRunner != null) { require(label == null) { "Lua uses named entry functions" };luaRunner!!.start(functionName) }
+        else callCoordinator.pushFunction(functionName, label)
         runUntilInput()
     }
     /** advanceDialogue: 현재 대사를 닫고 필요하면 닫기 콜백을 한 프레임 뒤에 실행하며 스크립트를 재개한다. */
@@ -518,6 +531,7 @@ class ScenarioInterpreter internal constructor(
     /** runUntilInput: 대화·선택·시간 지연·모달 같은 다음 중단 지점에 닿을 때까지 문장을 연속 실행한다. */
     private fun runUntilInput() {
         state = PlaybackState.COMPLETE
+        if(luaRunner != null) { luaRunner!!.resume(); return }
         statementExecutor.runUntilYield(
             callStack = callStack,
             isEnded = { ended },

@@ -5,7 +5,7 @@
 | 디렉토리 | 요소 | 기존 테이블 | 현재 개수 |
 | --- | --- | --- | ---: |
 | `characters/` | 인물 | unit | 64 |
-| `equipment/` | 장비 및 소비 아이템 | item | 28 |
+| `equipment/` | 장비 및 소비 아이템 | item | 29 |
 | `skills/active/` | 능동 책략 | magic | 10 |
 | `skills/passive/` | 패시브 효과 정의 | defineSkill | 125 |
 | `skills/assignments/` | 인물·병종 스킬 배정 | unitPostsSkill | 0 |
@@ -136,3 +136,5 @@ learnLevels:
 [Lua 작성·장수/장비 연결·실행 가이드](../docs/lua-rules-guide.html)를 참고한다.
 
 대사 문자열이 `@dialogue:`로 시작하면 대사 카탈로그의 ID로 해석합니다. 그 외 문자열은 카탈로그 조회 없이 그대로 전달합니다. 예: `stage.say("@dialogue:S_90.B01_E02.line002")`, `stage.say("&513\n임 형제, 내가 왔네!")`. `&513`은 기존 화자 지정 문법이며 표시 문구에는 포함되지 않습니다.
+
+시나리오 실행 원본은 `scenarios/*.lua`이며 [Lua 작성 가이드](../docs/lua-scenarios.html)를 참고한다. Lua는 원본 그대로 리소스에 포함되고, 같은 이름의 Python 모듈보다 우선한다. Python AST 생성은 Python 호환 모듈이 존재할 때만 필요하다.

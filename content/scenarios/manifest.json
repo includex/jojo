@@ -1,14 +1,16 @@
 {
   "R_90": {
-    "source": "linchong/R_90.py",
+    "source": "linchong/R_90.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_90.py"
+    "output": "lua/R_90.lua"
   },
   "S_90": {
-    "source": "linchong/S_90.py",
+    "source": "linchong/S_90.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -17,18 +19,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_90.py"
+    "output": "lua/S_90.lua"
   },
   "R_91": {
-    "source": "linchong/R_91.py",
+    "source": "linchong/R_91.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_91.py"
+    "output": "lua/R_91.lua"
   },
   "S_91": {
-    "source": "linchong/S_91.py",
+    "source": "linchong/S_91.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -37,18 +41,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_91.py"
+    "output": "lua/S_91.lua"
   },
   "R_92": {
-    "source": "linchong/R_92.py",
+    "source": "linchong/R_92.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_92.py"
+    "output": "lua/R_92.lua"
   },
   "S_92": {
-    "source": "linchong/S_92.py",
+    "source": "linchong/S_92.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -57,18 +63,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_92.py"
+    "output": "lua/S_92.lua"
   },
   "R_93": {
-    "source": "linchong/R_93.py",
+    "source": "linchong/R_93.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_93.py"
+    "output": "lua/R_93.lua"
   },
   "S_93": {
-    "source": "linchong/S_93.py",
+    "source": "linchong/S_93.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -77,18 +85,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_93.py"
+    "output": "lua/S_93.lua"
   },
   "R_94": {
-    "source": "linchong/R_94.py",
+    "source": "linchong/R_94.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_94.py"
+    "output": "lua/R_94.lua"
   },
   "S_94": {
-    "source": "linchong/S_94.py",
+    "source": "linchong/S_94.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -97,18 +107,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_94.py"
+    "output": "lua/S_94.lua"
   },
   "R_95": {
-    "source": "linchong/R_95.py",
+    "source": "linchong/R_95.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_95.py"
+    "output": "lua/R_95.lua"
   },
   "S_95": {
-    "source": "linchong/S_95.py",
+    "source": "linchong/S_95.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -117,18 +129,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_95.py"
+    "output": "lua/S_95.lua"
   },
   "R_96": {
-    "source": "linchong/R_96.py",
+    "source": "linchong/R_96.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_96.py"
+    "output": "lua/R_96.lua"
   },
   "S_96": {
-    "source": "linchong/S_96.py",
+    "source": "linchong/S_96.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -137,18 +151,20 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_96.py"
+    "output": "lua/S_96.lua"
   },
   "R_97": {
-    "source": "linchong/R_97.py",
+    "source": "linchong/R_97.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0"
     ],
-    "output": "decompiled-python/R_97.py"
+    "output": "lua/R_97.lua"
   },
   "S_97": {
-    "source": "linchong/S_97.py",
+    "source": "linchong/S_97.lua",
+    "language": "lua",
     "functions": [
       "__dispatch__",
       "scene0",
@@ -157,6 +173,6 @@
       "win_condition",
       "lose_condition"
     ],
-    "output": "decompiled-python/S_97.py"
+    "output": "lua/S_97.lua"
   }
 }

@@ -122,6 +122,12 @@ def main() -> None:
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
         )
         exported += 1
+    # Lua modules are executed directly, but share the same stable text catalog.
+    for lua_path in source_dir.glob("*.lua"):
+        for key in re.findall(r"@dialogue:([A-Za-z0-9][A-Za-z0-9_.-]*)", lua_path.read_text(encoding="utf-8")):
+            if key not in catalog:
+                raise ValueError(f"{lua_path.name} dialogue ID missing from catalog: {key}")
+            seen_dialogue_ids.add(key)
     unused = set(catalog) - seen_dialogue_ids
     if unused:
         raise ValueError(f"dialogue catalog has {len(unused)} unreferenced IDs (first: {sorted(unused)[0]})")

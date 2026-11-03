@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """Compile authored PRD into the existing Jojo Python-AST scenario contract."""
 import json,re,pathlib
+from scenario_python_to_lua import convert as convert_lua
+
+def write_scenario(path, source):
+ # Python is retained temporarily as a parity fixture during the Lua migration.
+ path.write_text(source)
+ path.with_suffix(".lua").write_text(convert_lua(source))
+
 ROOT=pathlib.Path(__file__).resolve().parents[1];D=ROOT/'content';c=json.loads((D/'examples/linchong/campaign.json').read_text());ids=json.loads((D/'examples/linchong/mod-ids.json').read_text());U=ids['unitIds'];O=ids['objectIds'];entries={};globals=set();adapt=[]
 def g(k):k=k.lower();globals.add(k);return 'gvars['+repr('linchong.'+k)+']'
 def F(k):return g(k)
@@ -187,7 +194,7 @@ for bi,b in enumerate(c['battles']):
  if bi==7:r += ['    if '+F('CAMPAIGN_COMPLETE')+':',"        stage.setStageName('수호전 외전: 임충전 완료')",'        stage.loadBg(3, 990)','        stage.ending(1)','        stage.setMenuVisible(True)','    else:','        stage.end()']
  if bi!=7:r+=['    stage.end()']
  r += ['','def __dispatch__():','    scene0()']
- (D/f'scenarios/R_{num}.py').write_text('\n'.join(r)+'\n')
+ write_scenario(D/f'scenarios/R_{num}.py', '\n'.join(r)+'\n')
  init=['# 임충전 — generated from source PRD, original Jojo BattleScreen APIs.','def scene0():','    stage.initFight()',f'    stage.setGlobalData({turn_limit}, 0, -1, 512, 1, 1)']
  for u in b['units']:init+=gear(u['id'])
  for side,method in [('ALLY','createMine'),('ENEMY','createEnemy'),('NEUTRAL','createFriend')]:
@@ -304,7 +311,7 @@ for bi,b in enumerate(c['battles']):
  source='\n'.join(code)+'\n'
  source=re.sub(r'(?<!def )win_condition\(\)', '('+alive+' and '+wins[bid]+')', source)
  source=re.sub(r'(?<!def )lose_condition\(\)', '('+lose+')', source)
- (D/f'scenarios/{mod}.py').write_text(source)
+ write_scenario(D/f'scenarios/{mod}.py', source)
  grid=[[0]*b['map']['width'] for _ in range(b['map']['height'])]
  for p in b['runtime']['blocked']:grid[p['y']-1][p['x']-1]=5
  (D/f'assets/maps/hexmaps/{58+bi}.json').write_text(json.dumps({'width':b['map']['width'],'height':b['map']['height'],'data':grid},separators=(',',':'))+'\n')
@@ -313,7 +320,7 @@ p=D/'scenarios/dialogue-text.json';catalog={'format':'jojo-scenario-dialogue-tex
 p=D/'scenarios/manifest.json';manifest={}
 for i in range(90,98):
  for prefix in ['R','S']:
-  name=f'{prefix}_{i}';manifest[name]={'source':f'linchong/{name}.py','functions':['__dispatch__','scene0']+(['scene1','scene2','win_condition','lose_condition'] if prefix=='S' else []),'output':f'decompiled-python/{name}.py'}
+  name=f'{prefix}_{i}';manifest[name]={'source':f'linchong/{name}.lua','language':'lua','functions':['__dispatch__','scene0']+(['scene1','scene2','win_condition','lose_condition'] if prefix=='S' else []),'output':f'lua/{name}.lua'}
 p.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
 p=D/'variables/globals.yaml';base=p.read_text();base=base.split('  linchong.')[0].rstrip()+'\n'
 for flag in sorted(globals):base+='  linchong.'+flag+':\n    type: int\n    default: 0\n    description: Linchong story progression flag.\n'

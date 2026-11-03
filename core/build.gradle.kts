@@ -294,10 +294,12 @@ val exportScenarioChoiceReference = tasks.register<Sync>("exportScenarioChoiceRe
     into(generatedReferenceFramebuffersDirectory)
 }
 tasks.processResources {
-    dependsOn(exportScenarioAst, compileGameContent, packageContentAssets, verifyContentEffectBindings)
+    dependsOn(compileGameContent, packageContentAssets, verifyContentEffectBindings)
+    val hasPythonScenarios = restoredScenarioDirectory.listFiles()?.any { it.extension == "py" } == true
+    if (hasPythonScenarios) dependsOn(exportScenarioAst)
     duplicatesStrategy = DuplicatesStrategy.FAIL
-    from(restoredScenarioDirectory) { include("*.py", "manifest.json", "dialogue-text.json"); into("scenarios") }
-    from(generatedAstDirectory) { into("scenario-ast") }
+    from(restoredScenarioDirectory) { include("*.lua", "*.py", "manifest.json", "dialogue-text.json"); into("scenarios") }
+    if (hasPythonScenarios) from(generatedAstDirectory) { into("scenario-ast") }
     from(rootProject.file("content/resources"))
     from(rootProject.file("content/ui")) { include("dialogue.yaml"); into("ui") }
     from(rootProject.file("content/rules")) { include("lua-rules.yaml", "lua/**"); into("rules") }

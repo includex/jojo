@@ -25,6 +25,13 @@ internal object ScenarioLoader {
      */
 
     fun load(moduleName: String, campaign: CampaignState = CampaignState()): ScenarioInterpreter {
+        val lua = ScenarioInterpreter::class.java.classLoader.getResourceAsStream("scenarios/$moduleName.lua")
+            ?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+        if(lua != null) return ScenarioInterpreter(moduleName, emptyMap(), campaign, lua)
+        return loadPython(moduleName,campaign)
+    }
+
+    internal fun loadPython(moduleName: String, campaign: CampaignState = CampaignState()): ScenarioInterpreter {
         val resourceName = "scenario-ast/$moduleName.json"
         val payloadText = ScenarioInterpreter::class.java.classLoader.getResourceAsStream(resourceName)
             ?.use { it.reader(Charsets.UTF_8).readText() }

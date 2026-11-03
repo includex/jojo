@@ -22,7 +22,9 @@ def validate():
         actual = {read_yaml(p)['id'] for p in (CONTENT / category).glob('*.yaml')}
         assert actual == ids, f'{category}: unexpected/missing IDs {actual ^ ids}'
     modules = {f'{prefix}_{i}' for prefix in ('R', 'S') for i in range(90, 98)}
-    assert {p.stem for p in (CONTENT / 'scenarios').glob('*.py')} == modules
+    assert {p.stem for p in (CONTENT / 'scenarios').glob('*.lua')} == modules
+    python_modules = {p.stem for p in (CONTENT / 'scenarios').glob('*.py')}
+    assert python_modules <= modules, 'Unexpected legacy Python module'
     manifest = json.loads((CONTENT / 'scenarios/manifest.json').read_text())
     assert set(manifest) == modules
     dialogue = json.loads((CONTENT / 'scenarios/dialogue-text.json').read_text())
@@ -50,7 +52,7 @@ def validate():
     assert not (CONTENT / 'resources/localization').exists()
     assert not (CONTENT / 'resources/maps').exists()
     for module in modules:
-        source = (CONTENT / 'scenarios' / f'{module}.py').read_text()
+        source = (CONTENT / 'scenarios' / f'{module}.lua').read_text()
         for reference in __import__('re').findall(r'@dialogue:([^\'\"]+)', source):
             assert reference in dialogue['entries'], reference
     print(f'Linchong package OK: {len(modules)} scenarios, 64 characters, {len(ITEM_IDS)} items, 10 techniques, 8 battles; no original campaign assets.')
