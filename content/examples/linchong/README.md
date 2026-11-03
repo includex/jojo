@@ -85,3 +85,11 @@ python3 scripts/smoke_linchong.py
 개인 소지품의 지급 API, 전투 중 교환 절차, 회복 아이템 정의와 공격 연출 예제는 [개인 소지품 가이드](../../../docs/battle-carried-items.html)를 참고하세요.
 
 첫 전투 B01의 임충만 사용자 지정 `set_c8d494089713ced35ae8` 세트(아바타 622)를 사용합니다. `runtime_rules.json`의 `B01.initialPlacement.lin.avatarId`가 해당 전투 인스턴스에만 적용되므로, 다른 전투의 임충은 기존 아바타 601을 유지합니다.
+
+## 도입부 장면
+
+`opening-scenes.json`이 첫 시작의 다섯 비전투 장면과 40개 대사를 정의합니다. 초가집의 부부 → 고태위 저택의 음모 → 백호당의 소환 → 병사 여섯 명의 포위·체포 → 유배 선고 순으로 진행한 뒤 여섯 번째 장면인 `S_90.lua` 야저림 구출 전투로 이어집니다. `scripts/build_linchong_mod.py`를 실행하면 `R_90.lua`와 대사 카탈로그에 반영됩니다.
+
+배경은 `assets/opening/991.png`~`994.png`에 보관하며 출처 기록은 같은 경로의 `provenance.json`입니다. 캐릭터 조형은 `jojo_asset/release`에서 가져온 `assets/hall-sprites/` 원본을 사용하고 `scripts/package_linchong_assets.py`에서 거점용 아틀라스를 생성합니다. 포위 장면은 기존 거점 유닛 표시 API, 선고 장면은 원본의 몸을 낮춘 자세를 활용합니다.
+
+도입부 배경은 조조전 계열의 위에서 내려다보는 타일·도트 구도와 제한된 흙빛 팔레트를 기준으로 제작했습니다. 배경을 확대할 때는 최근접 필터를 사용해 도트 경계를 유지합니다. 실사·회화풍 배경은 현재 패키지에 사용하지 않습니다.

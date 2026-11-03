@@ -37,7 +37,7 @@ def main():
     primary=['lin','lu','hu','jin','zhu','hong','yang','wang','chai','song','dong','xue','luk','fu','guard','bandit']
     roles={'lin':42,'lu':18,'hu':3,'jin':48,'zhu':21,'hong':18,'yang':39,'wang':24,'chai':0,'song':21,'dong':42,'xue':42,'luk':39,'fu':48,'guard':42,'bandit':21}
     portraits={'wife':16,'gaoyanei':17,'gaoqiu':18,'gao_yanei':17,'gao_qiu':18,'servant':19,'escort':20,'pursue_boss':21,'smug_boss':22,'bandit_boss':23}
-    speaker_names={'wife':'임충의 아내','gaoyanei':'고아내','gaoqiu':'고태위','gao_yanei':'고아내','gao_qiu':'고태위','servant':'하인'}
+    speaker_names={'wife':'임충의 아내','gaoyanei':'고아내','gaoqiu':'고태위','gao_yanei':'고아내','gao_qiu':'고태위','servant':'고태위의 관리'}
     stories={'lin':'금군 교두였으나 권력자의 모함을 받아 창주로 유배된 창의 명수.','lu':'불의를 보면 참지 못하는 호방한 승려. 야저림에서 임충의 목숨을 구한다.','hu':'창주에서 보급 수레를 돌보던 인부. 위기에 처한 사람을 지키고자 한다.','jin':'눈보라 속에서 임충에게 초료장의 위험을 알린 민첩한 청년.','zhu':'양산박 남쪽 수로의 주점을 운영하며 산채로 향하는 길을 안내한다.','hong':'시진 장원에서 임충과 봉술을 겨루는 무예 교두.','yang':'청면수라 불리는 검객. 양산박으로 향하는 산길에서 임충과 만난다.','wang':'양산박 산채를 이끄는 두령. 낯선 방문객의 입산을 경계한다.','chai':'의로운 이들을 후하게 대접하는 장원주.','song':'양산박의 물길과 산채를 지키는 호걸.','dong':'임충의 유배길을 호송하는 관원.','xue':'동초와 함께 임충의 호송을 맡은 관원.','luk':'한때 임충의 벗이었으나 권세가의 수하가 된 인물.','fu':'권세가의 명을 받아 임충을 뒤쫓는 수하.'}
     written=[]
     seen=set()
@@ -51,7 +51,7 @@ def main():
         elif key.startswith(('bandit','raid','smug')):archetype='bandit'
         else:archetype='guard'
         if key in ('wife','gaoyanei','gaoqiu','gao_yanei','gao_qiu','servant'):
-            slot=portraits[key];avatar=615;posts=73
+            slot=portraits[key];avatar={'wife':623,'gaoyanei':624,'gao_yanei':624,'gaoqiu':625,'gao_qiu':625,'servant':626}[key];posts=73
         elif key in ids.get('objectIds',{}):
             a=artwork['objects'][key];slot=14;avatar=a['avatarId'];posts=73
         else:

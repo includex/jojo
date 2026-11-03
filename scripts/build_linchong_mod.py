@@ -45,7 +45,7 @@ NATIVE_HELP = {
 def say(lines,key,indent='    '):
  out=[]
  for i,l in enumerate(lines):
-  sid=f'{key}.line{i+1:03d}';speaker=l['speaker'];num={'아내':571,'고아내':572,'고태위':573,'하인':574,'관영 호위병':539,'호송관':526,'산적두목':540,'도적두목':533,'추격 대장':552,'밀수선 두목':559,'내레이션':575,'시스템':575}.get(speaker) or next((U[x['id']] for x in c['characters'] if x['name'].split('(')[0]==speaker and x['id'] in U),None)
+  sid=f'{key}.line{i+1:03d}';speaker=l['speaker'];num={'아내':571,'고아내':572,'고태위':573,'하인':574,'관영 호위병':539,'호송관':526,'산적두목':540,'도적두목':533,'추격 대장':552,'밀수선 두목':559,'내레이션':575,'시스템':575,'관리':574,'군사':526}.get(speaker) or next((U[x['id']] for x in c['characters'] if x['name'].split('(')[0]==speaker and x['id'] in U),None)
   text=f'&{num or 575}\n'+(speaker+'\n' if num is None else '')+NATIVE_HELP.get(sid,l['text']);entries[sid]=text
   line=f"stage.say('@dialogue:{sid}')"
   if l.get('when'):
@@ -185,13 +185,30 @@ def actions(b,acts,indent='        '):
   else:out.append(indent+'# Existing-engine adaptation: '+raw)
  return out
 
+def opening_scenes():
+ authored=json.loads((D/'examples/linchong/opening-scenes.json').read_text())
+ out=[]
+ for scene in authored['scenes']:
+  out += ['    stage.clsUnit()',f"    stage.loadBg(3, {scene['background']})",f"    stage.setStageName({scene['title']!r})"]
+  for shot in scene['shots']:
+   if shot.get('clear'):out.append('    stage.clsUnit()')
+   for key in ('units','appear'):
+    if key in shot:out.append(f"    stage.showUnits({shot[key]!r})")
+   if 'move' in shot:
+    uid,x,y,direction=shot['move'];out.append(f'    stage.unit({uid}).move({x}, {y}, {direction})')
+   if 'action' in shot:
+    uid,action,direction,loop=shot['action'];out.append(f'    stage.unit({uid}).setAction({action}, {direction}, {loop})')
+   if 'delay' in shot:out.append(f"    stage.delay({shot['delay']})")
+   if 'dialogue' in shot:out+=say(shot['dialogue'],'R_90.opening.'+scene['id']+('.'+shot['id'] if 'id' in shot else ''))
+ return out
+
 for bi,b in enumerate(c['battles']):
  bcontext=b['id'];num=90+bi;mod=f'S_{num}';flags=[]
  # Preserve the displayed limit, and use it inclusively for both text and failure.
  turn_limit=b['map']['turnLimit']+1
  # Original Jojo progression/presentation, no parallel runtime.
  r=['# 임충전: existing Jojo scenario route.','def scene0():']
- if bi==0:r += ['    model.unitJoin(512, 0, 0)','    '+F('started')+' = 1']+gear('lin')
+ if bi==0:r += ['    model.unitJoin(512, 0, 0)','    '+F('started')+' = 1']+gear('lin')+opening_scenes()
  if bi==7:r += ['    if '+F('CAMPAIGN_COMPLETE')+':',"        stage.setStageName('수호전 외전: 임충전 완료')",'        stage.loadBg(3, 990)','        stage.ending(1)','        stage.setMenuVisible(True)','    else:','        stage.end()']
  if bi!=7:r+=['    stage.end()']
  r += ['','def __dispatch__():','    scene0()']
@@ -219,7 +236,6 @@ for bi,b in enumerate(c['battles']):
    sid=ids['skillIds'].get(loadout['skills']);payload=str(sid)+'\n1\n'+str(unit(loadout['unitId']))+'\n'+loadout['skills']
    init.append(f'    stage.infoTransfer(4, {payload!r})')
  init += [f'    stage.loadBg({58+bi})','    stage.draw()',f'    stage.setWinCondition({wintext!r})']
- if bi==0:init+=say(c['interludes']['PROLOGUE'],mod+'.prologue')
  interlude=b['runtime'].get('interludeBefore') or {'B02':'B01_TO_B02','B04':'B03_TO_B04','B05':'B04_TO_B05'}.get(b['id'])
  if interlude:init+=say(c['interludes'][interlude],mod+'.interlude')
  for e in b['events']:

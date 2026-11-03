@@ -1,0 +1,138 @@
+{
+  "format": "linchong-hall-native-poses/v1",
+  "description": "Native release frames reused without redrawing. Dialogue portraits are unchanged.",
+  "characters": {
+    "lin": {
+      "avatarId": 601,
+      "setId": "set_c8d494089713ced35ae8",
+      "reason": "임충: 첫 전투와 같은 도보 조형",
+      "sourceTitle": "중국포럼에서 발견한 창병능틍",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_c8d494089713ced35ae8.png",
+          "sha256": "a4afdce94e9a789792bfc177a43f0b44cb9dc9f90c0b6d3aef81f117cb1aabd5"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_c8d494089713ced35ae8.png",
+          "sha256": "b23bf6ba464e3f41fb81e78ce9ad3f50a6e70911b383cccbc34367cc325369e2"
+        }
+      },
+      "subduedPose": {
+        "family": "mov",
+        "index": 8
+      }
+    },
+    "lu": {
+      "avatarId": 602,
+      "setId": "set_0efbc9502952f8b80e69",
+      "reason": "노지심",
+      "sourceTitle": "[자작] 호돈(답돈), 검, 적병/보병",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_0efbc9502952f8b80e69.png",
+          "sha256": "2034ea71830b6d7f21f47f836978d4207960c2a5c0867bcbb5ed98f23ffd7429"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_0efbc9502952f8b80e69.png",
+          "sha256": "67e03d913592f9e5e98acfc38f8f79fa9f5db50850cb54b9766c4faaa4a09242"
+        }
+      }
+    },
+    "escort": {
+      "avatarId": 611,
+      "setId": "set_a712234b89b5e25f8284",
+      "reason": "호송관·경비병",
+      "sourceTitle": "[중국자료] 성영걸전 S조형 (원본 추출 자료)",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_a712234b89b5e25f8284.png",
+          "sha256": "b948b33207a4ba1d92715c7737bbce1f6163dd0a8299046ec76f46e5249139c2"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_a712234b89b5e25f8284.png",
+          "sha256": "3b2d2aff52da2f09b33055411afca3f7c0f51ce03628a7169fc13abff65e5aae"
+        }
+      }
+    },
+    "guard": {
+      "avatarId": 615,
+      "setId": "article179924_variant01",
+      "reason": "일반 병사",
+      "sourceTitle": "[수정자료] 일반/졸병전조, 기병, 검, 군주, 장군, 도기병 ",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/article179924_variant01.png",
+          "sha256": "57942f7ba9eb43b4dd4f402f97e3b471f73ec7d456e8a001f840b2bc07eca1d9"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/article179924_variant01.png",
+          "sha256": "b472f09375c0a3d2eec30dee1b1a0447c35fa87b59895c6052b218846c83c9ea"
+        }
+      }
+    },
+    "wife": {
+      "avatarId": 623,
+      "setId": "set_aa500d4978c32a46efcc",
+      "reason": "임충의 아내: 흰색·분홍 치마의 중국풍 여성",
+      "sourceTitle": "[자작자료] 삼국지12 초선, 무희, 여성",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_aa500d4978c32a46efcc.png",
+          "sha256": "429f41a446a68d1a9cf8a7fc7d55289e6f470c9b512fd4b675b56d59b7b819dd"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_aa500d4978c32a46efcc.png",
+          "sha256": "3eaf66da5a645ba2936436b07b893f3f5dc0d5329ea43833b032ac4616bf8d6e"
+        }
+      }
+    },
+    "son": {
+      "avatarId": 624,
+      "setId": "set_c661e44826b239a6a334",
+      "reason": "고아내: 청색 문관복과 관모",
+      "sourceTitle": "원윤 / 문관 / 보검 / 삼국지12",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_c661e44826b239a6a334.png",
+          "sha256": "4e8cecd4f657c2838657a1ab455149d96e74269dc10e423a2639b8791b12f7ff"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_c661e44826b239a6a334.png",
+          "sha256": "ed6fec0dec6a14418057d452309076823a82345ae08ae2957472b886ff3e1ea5"
+        }
+      }
+    },
+    "gao": {
+      "avatarId": 625,
+      "setId": "set_6857a8b617e0fe9e57bd",
+      "reason": "고태위: 검은 관모와 관복",
+      "sourceTitle": "황호 / 문관 / 부채 / 삼국지13",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_6857a8b617e0fe9e57bd.png",
+          "sha256": "ed3da72bfc2d4bf8613fc3b655e687367eb638d136d0ce6a3833488f79fc7027"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_6857a8b617e0fe9e57bd.png",
+          "sha256": "1f9fb804f2c6a200b1b91e33dc769ae4b02d29a5d52aca18df28a79ec78ff3d9"
+        }
+      }
+    },
+    "clerk": {
+      "avatarId": 626,
+      "setId": "set_12013dab7169970178d7",
+      "reason": "재촉하는 관리: 푸른 평복의 관리 조형",
+      "sourceTitle": "[삼국사기 제천록] 통일신라 관리 전조. (보병, 천옷, 책사)",
+      "files": {
+        "mov": {
+          "path": "hall-sprites/mov/set_12013dab7169970178d7.png",
+          "sha256": "79b869a418f9d858a2ab0c7b98eead1928ce56613c18763580188745d7ecf143"
+        },
+        "spc": {
+          "path": "hall-sprites/spc/set_12013dab7169970178d7.png",
+          "sha256": "09e519920953103cecae0c7116f08f7a893cbe68f61c32bc19fe753393ae54b6"
+        }
+      }
+    }
+  }
+}

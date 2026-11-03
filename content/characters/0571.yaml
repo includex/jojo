@@ -2,7 +2,7 @@
 id: 571
 name: "임충의 아내"
 face: 616
-mapAvatar: 615
+mapAvatar: 623
 speechGroup: 0
 attack: 24
 defense: 14
@@ -14,7 +14,7 @@ maxMagicPoints: 20
 posts: 73
 level: 1
 intro: "임충이 유배길에서 만나는 인물. "
-battleAvatar: 311
+battleAvatar: 319
 battleAvatarType: -1
 famous: 0
 retreat: "다시 만날 날을 기다리겠소."

@@ -14,6 +14,11 @@ import statistics
 from pathlib import Path
 from PIL import Image
 
+try:
+    from .package_linchong_hall_assets import package_hall
+except ImportError:
+    from package_linchong_hall_assets import package_hall
+
 ROOT = Path(__file__).resolve().parents[1]
 CHARACTERS = ['lin', 'lu', 'hu', 'jin', 'zhu', 'hong', 'yang', 'wang',
               'chai', 'song', 'dong', 'xue', 'luk', 'fu', 'guard', 'bandit']
@@ -410,6 +415,16 @@ def package(source: Path, destination: Path, manifest_path: Path, sprite_dir: st
     shutil.copyfile(source / 'maps/B06.png', terminal_output)
     manifest['terminalBackground'] = {'loadBgArguments': [3, 990], 'texture': str(terminal_background)}
     manifest['generatedFiles'].append(str(terminal_background))
+    opening = source / 'opening'
+    for image in sorted(opening.glob('*.png')):
+        relative = Path('source-map-textures') / image.name
+        shutil.copyfile(image, destination / relative)
+        manifest['sourceHashes']['opening/' + image.name] = digest(image)
+        manifest['generatedFiles'].append(str(relative))
+    manifest['openingBackgrounds'] = {str(i): 'source-map-textures/' + str(i) + '.png' for i in range(991, 995)}
+    hall = package_hall(source, destination)
+    manifest['hallSprites'] = hall
+    manifest['generatedFiles'].extend(hall['generatedFiles'])
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
     return manifest

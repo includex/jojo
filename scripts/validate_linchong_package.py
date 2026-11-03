@@ -55,6 +55,14 @@ def validate():
     for family in ('atk', 'mov', 'spc'):
         selected = selection['characters']['lin_b01']['files'][family]
         assert (CONTENT / 'examples/linchong/assets' / selected['path']).read_bytes() == (CONTENT / 'assets/maps/units' / (family + '2') / '622.png').read_bytes()
+    for variant in range(991, 995):
+        assert (CONTENT / 'assets/source-map-textures' / f'{variant}.png').is_file()
+    opening = json.loads((CONTENT / 'examples/linchong/opening-scenes.json').read_text())
+    opening_units = {row[0] for scene in opening['scenes'] for shot in scene['shots'] for key in ('units','appear') for row in shot.get(key, [])}
+    avatars = {read_yaml(CONTENT / 'characters' / f'{unit:04}.yaml')['mapAvatar'] for unit in opening_units}
+    for avatar in avatars:
+        for direction in (1, 2):
+            assert (CONTENT / 'assets/maps/hall-units' / f'{avatar * 2 + direction}.png').is_file()
     assert not list((CONTENT / 'assets/maps').glob('*.jpg'))
     assert not (CONTENT / 'resources/localization').exists()
     assert not (CONTENT / 'resources/maps').exists()
