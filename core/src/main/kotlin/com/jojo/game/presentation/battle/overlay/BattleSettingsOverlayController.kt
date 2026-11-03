@@ -349,13 +349,13 @@ internal class BattleSettingsOverlayController(private val layer: SettingLayer) 
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val BACKGROUND_BOTTOM = 81f
+        const val BACKGROUND_BOTTOM = 120f
         /**
          * `BACKGROUND_TOP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val BACKGROUND_TOP = 170f
+        const val BACKGROUND_TOP = 185f
         /**
          * `BACKGROUND_STEP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

@@ -12,8 +12,9 @@ import com.jojo.game.domain.battle.settlement.SettlementAuthoredSubflowPlan
 import com.jojo.game.domain.battle.settlement.SettlementAuraStep
 import com.jojo.game.domain.battle.settlement.SettlementGrowthStep
 import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
-import com.jojo.game.domain.battle.settlement.SettlementInfoKind
 import com.jojo.game.domain.battle.settlement.SettlementInfoPanel
+import com.jojo.game.domain.battle.settlement.SettlementInfoTiming
+import com.jojo.game.domain.battle.settlement.SettlementInfoKind
 import com.jojo.game.domain.battle.settlement.SettlementUnitPlan
 import com.jojo.game.application.battle.BattleSettlementPlanningAdapter
 import com.jojo.game.domain.campaign.CampaignEquipmentSlot
@@ -254,14 +255,10 @@ internal class BattleSettlementOperationCoordinator {
             is TurnSettlementOp.Actions -> operation.actionIds.sumOf { actionId ->
                 port.presentationUnit(operation.unitId)?.let { unit -> port.actionDuration(actionId, unit.direction).toDouble() } ?: 0.0
             }
-            is TurnSettlementOp.UnitInfo -> operation.plan.infoBarrierSeconds.toDouble()
-            is TurnSettlementOp.GrowthInfo -> {
-                val ticks = operation.grants.sumOf { grant ->
-                    val delta = grant.unitResult?.gained ?: grant.equipmentResult?.gained ?: 0
-                    minOf(kotlin.math.abs(delta), 5)
-                }
-                (.1f + ticks * .2f + .3f).toDouble()
-            }
+            is TurnSettlementOp.UnitInfo -> SettlementInfoTiming.presentationSeconds(
+                operation.plan, if (operation.plan.infoPanel == SettlementInfoPanel.OTHER) emptyList() else operation.grants,
+            ).toDouble()
+            is TurnSettlementOp.GrowthInfo -> (.1f + SettlementInfoTiming.animationSeconds(emptyList(), operation.grants) + .3f).toDouble()
             is TurnSettlementOp.Meff -> port.meffDuration(operation.effectId)?.toDouble() ?: 0.0
             is TurnSettlementOp.Info2 -> if (port.autoCloseInfo2(operation.text)) operation.text.length * .04 + 1.0 else Double.POSITIVE_INFINITY
             is TurnSettlementOp.ItemUpgrade -> Double.POSITIVE_INFINITY

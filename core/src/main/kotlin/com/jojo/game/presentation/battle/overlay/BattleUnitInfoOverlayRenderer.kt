@@ -39,6 +39,7 @@ data class BattleUnitInfoUnitView(
     val skillIntro: String = "",
     /** 무장 소개다. 원본 `_ref0`의 `bg3/label`이다. */
     val unitIntro: String = "",
+    val characterId: Int = 0,
 )
 
 /** 전투 유닛 정보 표시 정보: 선택 탭, 버튼 활성 상태, 마법 행과 유닛 능력치를 정의한다. */
@@ -47,6 +48,9 @@ data class BattleUnitInfoOverlayView(
     val unit: BattleUnitInfoUnitView,
     val buttons: List<Boolean>,
     val magicRows: List<String>,
+    val portrait: Texture? = null,
+    val equipmentRows: List<String> = emptyList(),
+    val rateRows: List<Int> = emptyList(),
 )
 
 /** 전투 유닛 정보 자산: 인물 창의 타일·패널·얼굴·게이지·버튼 표식을 보관한다. */
@@ -74,6 +78,7 @@ class BattleUnitInfoOverlayRenderer(
     private val font: BitmapFont,
     /** `assets` (BattleUnitInfoOverlayAssets): 객체가 유지하는 구성·진행 상태이며 후속 흐름의 입력으로 사용된다. */
     private val assets: BattleUnitInfoOverlayAssets,
+    private val baseFontScale: Float = 1f,
 ) {
     /**
      * `draw`: 화면 표시 상태를 렌더링한다.
@@ -81,99 +86,133 @@ class BattleUnitInfoOverlayRenderer(
      */
 
     fun draw(view: BattleUnitInfoOverlayView) {
+        val oldScaleX = font.data.scaleX
+        val oldScaleY = font.data.scaleY
+        val oldColor = Color(font.color)
         shapes.projectionMatrix = batch.projectionMatrix
-        // SpriteBatch.end()가 GL_BLEND를 끄므로 반투명 배경 전에 다시 켠다.
-        if (!Gdx.gl.glIsEnabled(GL20.GL_BLEND)) Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color = Color(0f, 0f, 0f, .88f)
+        shapes.color = Color(0f, 0f, 0f, .64f)
         shapes.rect(0f, 0f, 1488.3721f, 800f)
-        shapes.color = Color(.16f, .11f, .055f, 1f)
-        shapes.rect(197.186f, 12f, 1094f, 776f)
-        shapes.color = Color(.07f, .05f, .03f, 1f)
-        shapes.rect(821.986f, 71.95f, 457f, 580.5f)
+        shapes.color = Color(.16f, .115f, .07f, 1f)
+        shapes.rect(80f,24f,1328f,752f)
+        shapes.color=Color(.88f,.82f,.68f,1f)
+        shapes.rect(96f,104f,632f,532f)
+        shapes.rect(748f,104f,644f,532f)
+        shapes.color=Color(.68f,.58f,.4f,1f)
+        shapes.rect(106f,310f,228f,282f)
+        val buttonRects=BattleUnitInfoLayout.tabs + listOf(BattleUnitInfoLayout.close,BattleUnitInfoLayout.previous,BattleUnitInfoLayout.next) +
+            if(view.buttons.getOrElse(9){false}) listOf(BattleUnitInfoLayout.rates) else emptyList()
+        buttonRects.forEach { rect ->
+            shapes.color=if(BattleUnitInfoLayout.tabs.getOrNull(view.tab)==rect) Color(.88f,.7f,.35f,1f) else Color(.77f,.69f,.52f,1f)
+            shapes.rect(rect.x,rect.y,rect.width,rect.height)
+        }
         shapes.end()
-
         batch.begin()
         batch.color = Color.WHITE
-        for (ty in 0..8) for (tx in 0..11) batch.draw(assets.logo, 197.186f + tx * 96f, 12f + ty * 96f, 96f, 96f)
-        patch(assets.box1, 821.986f, 71.95f, 457f, 580.5f)
-        patch(assets.box1, 831.486f, 431.2f, 438f, 197f)
-        patch(assets.background, 845.841f, 606.745f, 163.9f, 41.2f, 5, 5, 5, 5)
-        batch.draw(assets.verticalLine, 821.986f, 317.36f, 457f, 2f)
-        batch.draw(assets.verticalLine, 821.986f, 203.52f, 457f, 2f)
-        batch.draw(assets.face, 230.186f, 490.956f, 192f, 240f)
-        when (view.tab) {
-            1 -> patch(assets.box1, 760f, 130f, 456f, 581.4f)
-            2 -> patch(assets.box1, 760f, 130f, 456f, 571.5f)
-            3 -> patch(assets.box2, 760f, 130f, 457f, 576f)
-            4 -> patch(assets.box2, 760f, 130f, 458.5f, 576.5f)
+        patch(assets.box1,80f,24f,1328f,752f)
+        patch(assets.box2,96f,104f,632f,532f)
+        patch(assets.box2,748f,104f,644f,532f)
+        text("인물 정보",112f,754f,900f,1.23f,Color(.94f,.84f,.6f,1f))
+        BattleUnitInfoLayout.tabs.forEachIndexed { index, rect ->
+            button(rect,TAB_LABELS[index],index==view.tab)
         }
-        batch.draw(assets.progress, 315f, 455f, 254f, 24f)
-        batch.draw(assets.progress, 315f, 397f, 254f, 24f)
-        batch.draw(assets.mark6, 300f, 463f, 16f, 16f)
-        batch.draw(assets.mark3, 300f, 405f, 16f, 16f)
-        batch.draw(assets.mark2, 570f, 405f, 16f, 16f)
-        TAB_BOXES.forEach { (x, y) -> patch(assets.box3, x, y, 130f, 60f, 9, 9, 7, 11) }
-        if (view.buttons.getOrElse(9) { false }) patch(assets.box3, 700.71f, 17.207f, 110f, 50f, 9, 9, 7, 11)
-
-        val u = view.unit
-        font.color = Color.WHITE
-        // 제목과 인물 요약은 초상화(230.186, 490.956, 192x240) 오른쪽에 둔다. 예전에는 왼쪽
-        // 좁은 자리에 겹쳐 찍혀 초상화와 서로 가렸다.
-        font.data.setScale(.85f)
-        font.draw(batch, SystemMessage.S_757535E6BD, 230f, 762f)
-        font.draw(batch, "${u.name}  ${u.post}  Lv${u.level}", 440f, 700f)
-        font.draw(batch, "HP ${u.hp}/${u.maxHp}", 440f, 655f)
-        font.draw(batch, "MP ${u.mp}/${u.maxMp}", 440f, 610f)
-        // 다섯 능력치는 오른쪽 `기본 능력` 상자가 이미 보여 준다. 여기서 또 찍으면 같은 값이
-        // 이름만 바꿔 두 번 나온다.
-        TAB_LABELS.forEachIndexed { index, label ->
-            // 탭 상자는 밝은 판이라 흰 글씨가 묻힌다. 오른쪽 패널 문구와 같은 검은색을 쓰고
-            // 선택된 탭만 더 진하게 둔다.
-            font.color = if (index == view.tab) Color.BLACK else Color(.35f, .35f, .35f, 1f)
-            val (x, y) = TAB_BOXES[index]
-            font.draw(batch, label, x, y + 38f, 130f, Align.center, false)
+        val u=view.unit
+        val portrait=BattleUnitInfoLayout.portrait
+        patch(assets.box1,portrait.x-6,portrait.y-6,portrait.width+12,portrait.height+12)
+        view.portrait?.let { texture ->
+            val scale=minOf(portrait.width/texture.width,portrait.height/texture.height)
+            val w=texture.width*scale;val h=texture.height*scale
+            batch.color=Color.WHITE
+            batch.draw(texture,portrait.x+(portrait.width-w)/2,portrait.y+(portrait.height-h)/2,w,h)
         }
-        font.color = Color.WHITE
-        view.magicRows.forEachIndexed { i, magic -> font.draw(batch, magic, 790f, 680f - i * 50f) }
-        font.draw(batch, SystemMessage.S_B38CAAEF34, 980f, 75f)
-        font.draw(batch, SystemMessage.S_D4B491F164, 1140f, 75f)
-        font.draw(batch, SystemMessage.S_468266D639, 785f, 75f)
-        if (view.buttons.getOrElse(9) { false }) font.draw(batch, SystemMessage.S_0011209CB1, 707f, 54f)
-        font.data.setScale(1f)
-        batch.end()
-        if (view.tab == 0) drawBaseLabels(view.unit)
-    }
-
-    /**
-     * `drawBaseLabels`: 화면 표시 상태를 렌더링한다.
-     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
-
-    private fun drawBaseLabels(unit: BattleUnitInfoUnitView) {
-        val labels = baseLabels(unit)
-        batch.begin()
-        font.data.setScale(40f / 26f)
-        font.color = Color.BLACK
-        labels.forEach { (text, position) -> font.draw(batch, text, position.first - 220f, position.second + 20f, 440f, Align.center, false) }
-        // 소개문은 제목과 같은 크기로 찍으면 제목 위에 겹친다. 원본도 본문은 작은 글씨로
-        // 구역(가로선 317.36 / 203.52 사이)을 채운다. 제목 아래 남는 높이에 줄바꿈해 넣는다.
-        font.data.setScale(1f)
-        introBlock(unit.unitIntro, 376f)
-        introBlock(unit.skillIntro, 262f)
-        font.data.setScale(1f)
+        text(u.name,352f,588f,344f,1.3f,Color.BLACK)
+        text("${u.post}  ·  Lv ${u.level}",352f,542f,344f,.8f,Color(.3f,.23f,.15f,1f))
+        meter("체력",u.hp,u.maxHp,352f,470f,Color(.75f,.19f,.15f,1f))
+        meter("기력",u.mp,u.maxMp,352f,396f,Color(.18f,.4f,.67f,1f))
+        text(if(u.mine) "아군" else "적군",112f,276f,584f,.78f,Color(.3f,.23f,.15f,1f))
+        text(if(u.mine) "출진 ${u.battleCount}회  ·  퇴각 ${u.retreatCount}회" else "전장 부대 정보",112f,234f,584f,.75f,Color.BLACK)
+        text("전투 능력",112f,182f,584f,.78f,Color.BLACK)
+        text("공격 ${u.attack}   방어 ${u.defense}   정신 ${u.spirit}",112f,144f,584f,.72f,Color.BLACK)
+        when(view.tab) {
+            0 -> {
+                heading("인물 소개",780f,600f)
+                paragraph(u.unitIntro.ifBlank { "등록된 인물 소개가 없습니다." },780f,548f,580f,5)
+                heading("특기",780f,350f)
+                paragraph(u.skillIntro.ifBlank { "등록된 특기가 없습니다." },780f,302f,580f,4)
+            }
+            1 -> {
+                heading("기본 능력",780f,600f)
+                listOf("공격력" to u.attack,"정신력" to u.spirit,"방어력" to u.defense,"순발력" to u.critical,"사기" to u.morale).forEachIndexed { i,(label,value) ->
+                    text(label,792f,530f-i*68f,340f,.9f,Color.BLACK)
+                    text(value.toString(),1160f,530f-i*68f,172f,.95f,Color.BLACK,Align.right)
+                }
+            }
+            2 -> {
+                heading("장비",780f,600f)
+                listOf("무기","방어구","보조 장비").forEachIndexed { i,label ->
+                    text(label,792f,528f-i*116f,540f,.8f,Color(.34f,.26f,.16f,1f))
+                    paragraph(view.equipmentRows.getOrNull(i) ?: "장착하지 않음",792f,484f-i*116f,540f,2)
+                }
+            }
+            3 -> {
+                heading("전략",780f,600f)
+                if(view.magicRows.isEmpty()) paragraph("사용 가능한 전략이 없습니다.",792f,530f,540f,2)
+                view.magicRows.take(7).forEachIndexed { i,value -> text(value,792f,534f-i*54f,540f,.85f,Color.BLACK) }
+            }
+            else -> {
+                heading("특기",780f,600f)
+                paragraph(u.skillIntro.ifBlank { "등록된 특기가 없습니다." },792f,538f,540f,8)
+            }
+        }
+        button(BattleUnitInfoLayout.close,"닫기",false)
+        button(BattleUnitInfoLayout.previous,"이전 인물",false,view.buttons.getOrElse(5){false})
+        button(BattleUnitInfoLayout.next,"다음 인물",false,view.buttons.getOrElse(6){false})
+        if(view.buttons.getOrElse(9){false}) button(BattleUnitInfoLayout.rates,"기치",false)
+        font.data.setScale(oldScaleX,oldScaleY)
+        font.color=oldColor
+        batch.color=Color.WHITE
         batch.end()
     }
 
-    /** `introBlock`: 소개 본문을 제목 아래 구역에 줄바꿈해 그린다. */
-    private fun introBlock(text: String, top: Float) {
-        font.draw(batch, text.ifBlank { SystemMessage.S_D58FA73ADC }, 830.486f, top, 440f, Align.left, true)
+    private fun button(rect: BattleUnitInfoLayout.Rect,label:String,selected:Boolean,enabled:Boolean=true) {
+        batch.color=if(selected) Color(1f,.85f,.48f,1f) else if(enabled) Color.WHITE else Color(.6f,.6f,.6f,1f)
+        patch(assets.box3,rect.x,rect.y,rect.width,rect.height,9,9,7,11)
+        batch.color=Color.WHITE
+        text(label,rect.x+8,rect.y+rect.height/2+13,rect.width-16,.8f,if(enabled) Color.BLACK else Color(.45f,.45f,.45f,1f),Align.center)
     }
-
-    /**
-     * `patch`: 타입의 핵심 동작을 수행한다.
-     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
+    private fun heading(value:String,x:Float,y:Float)=text(value,x,y,580f,1.08f,Color(.28f,.18f,.07f,1f))
+    private fun paragraph(value:String,x:Float,y:Float,width:Float,maxLines:Int) {
+        font.data.setScale(.95f * baseFontScale)
+        font.color=Color.BLACK
+        val layout=com.badlogic.gdx.graphics.g2d.GlyphLayout()
+        // Ellipsis constrains long introductions to their own panel instead of overlapping the next section.
+        layout.setText(font,value,font.color,width,Align.left,true)
+        val lineHeight=font.lineHeight
+        if(layout.height<=lineHeight*maxLines) font.draw(batch,layout,x,y)
+        else {
+            var limit=value.length
+            while(limit>0) {
+                limit--
+                layout.setText(font,value.take(limit)+"…",font.color,width,Align.left,true)
+                if(layout.height<=lineHeight*maxLines) break
+            }
+            font.draw(batch,layout,x,y)
+        }
+    }
+    private fun text(value:String,x:Float,y:Float,width:Float,scale:Float,color:Color,align:Int=Align.left) {
+        font.data.setScale(scale * baseFontScale);font.color=color
+        val layout=com.badlogic.gdx.graphics.g2d.GlyphLayout()
+        layout.setText(font,value,0,value.length,color,width,align,false,"…")
+        font.draw(batch,layout,x,y)
+    }
+    private fun meter(label:String,value:Int,max:Int,x:Float,y:Float,color:Color) {
+        text("$label  $value / $max",x,y+30,344f,.78f,Color.BLACK)
+        batch.color=Color(.22f,.18f,.12f,1f);batch.draw(assets.progress,x,y-12,344f,18f)
+        batch.color=color;batch.draw(assets.progress,x,y-12,344f*(value.toFloat()/max.coerceAtLeast(1)).coerceIn(0f,1f),18f)
+        batch.color=Color.WHITE
+    }
 
     companion object {
         /**
@@ -206,10 +245,7 @@ class BattleUnitInfoOverlayRenderer(
 
 
         /** 탭 버튼 다섯 개의 원본 좌표다. */
-        val TAB_BOXES = listOf(
-            175.737f to 342.65f, 366.522f to 342.65f,
-            147.295f to 281.471f, 277.258f to 281.471f, 407.258f to 281.471f,
-        ).map { (x, y) -> (640f + x - 65f) to (400f + y - 30f) }
+        val TAB_BOXES = BattleUnitInfoLayout.tabs.map { it.x to it.y }
 
         /** 탭 버튼 문구다. 예전에는 상자만 그리고 문구는 왼쪽에 한 줄로 몰아 찍었다. */
         val TAB_LABELS = listOf(SystemMessage.S_7F1D8C413D, SystemMessage.S_8F2A423094, SystemMessage.S_E17B206052, SystemMessage.S_913A74B987, SystemMessage.S_D3901EE454)

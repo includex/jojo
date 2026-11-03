@@ -135,7 +135,7 @@ internal class BattleUnitInfoOverlayController(
         return BattleUnitInfoOverlayView(
             tab = source.tab,
             unit = BattleUnitInfoUnitView(
-                name = unit.name, post = unit.post, level = unit.level, hp = unit.hp, maxHp = unit.maxHp,
+                characterId = unit.id, name = unit.name, post = unit.post, level = unit.level, hp = unit.hp, maxHp = unit.maxHp,
                 mp = unit.mp, maxMp = unit.maxMp, attack = unit.attack, defense = unit.defense,
                 spirit = unit.spirit, critical = unit.critical, morale = unit.morale,
                 mine = unit.mine, battleCount = unit.battleCount, retreatCount = unit.retreatCount,
@@ -143,6 +143,8 @@ internal class BattleUnitInfoOverlayController(
             ),
             buttons = source.buttons.toList(),
             magicRows = source.magicRows.toList(),
+            equipmentRows = unit.equipment.map { it?.name ?: "장착하지 않음" },
+            rateRows = unit.rates,
         )
     }
 
@@ -218,14 +220,7 @@ internal class BattleUnitInfoOverlayController(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun buttonAt(x: Float, y: Float): Int? = when {
-        x in JIQI_LEFT..JIQI_RIGHT && y in JIQI_BOTTOM..JIQI_TOP -> JIQI_BUTTON
-        x in PREVIOUS_LEFT..PREVIOUS_RIGHT && y in NAV_BOTTOM..NAV_TOP -> 5
-        x in NEXT_LEFT..NEXT_RIGHT && y in NAV_BOTTOM..NAV_TOP -> 6
-        x in CLOSE_LEFT..CLOSE_RIGHT && y in NAV_BOTTOM..NAV_TOP -> 7
-        x in TAB_LEFT..TAB_RIGHT && y in TAB_BOTTOM..TAB_TOP -> ((x - TAB_LEFT) / TAB_WIDTH).toInt()
-        else -> null
-    }
+    private fun buttonAt(x: Float, y: Float): Int? = BattleUnitInfoLayout.buttonAt(x,y)
 
     companion object {
         /**
@@ -247,25 +242,25 @@ internal class BattleUnitInfoOverlayController(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val JIQI_LEFT = 700.71f
+        const val JIQI_LEFT = 112f
         /**
          * `JIQI_RIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val JIQI_RIGHT = 810.71f
+        const val JIQI_RIGHT = 292f
         /**
          * `JIQI_BOTTOM` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val JIQI_BOTTOM = 17.207f
+        const val JIQI_BOTTOM = 40f
         /**
          * `JIQI_TOP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val JIQI_TOP = 67.207f
+        const val JIQI_TOP = 88f
         /**
          * `PREVIOUS_LEFT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -277,7 +272,7 @@ internal class BattleUnitInfoOverlayController(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val PREVIOUS_RIGHT = 1140f
+        const val PREVIOUS_RIGHT = 1130f
         /**
          * `NEXT_LEFT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -289,7 +284,7 @@ internal class BattleUnitInfoOverlayController(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val NEXT_RIGHT = 1280f
+        const val NEXT_RIGHT = 1300f
         /**
          * `CLOSE_LEFT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -301,48 +296,48 @@ internal class BattleUnitInfoOverlayController(
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val CLOSE_RIGHT = 870f
+        const val CLOSE_RIGHT = 920f
         /**
          * `NAV_BOTTOM` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val NAV_BOTTOM = 35f
+        const val NAV_BOTTOM = 40f
         /**
          * `NAV_TOP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val NAV_TOP = 95f
+        const val NAV_TOP = 88f
         /**
          * `TAB_LEFT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val TAB_LEFT = 80f
+        const val TAB_LEFT = 112f
         /**
          * `TAB_RIGHT` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val TAB_RIGHT = 850f
+        const val TAB_RIGHT = 1316f
         /**
          * `TAB_BOTTOM` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val TAB_BOTTOM = 650f
+        const val TAB_BOTTOM = 656f
         /**
          * `TAB_TOP` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val TAB_TOP = 720f
+        const val TAB_TOP = 712f
         /**
          * `TAB_WIDTH` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
          */
 
-        const val TAB_WIDTH = 150f
+        const val TAB_WIDTH = 244f
     }
 }

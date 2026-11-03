@@ -4,6 +4,7 @@ package com.jojo.game.presentation.battle.settlement
 import com.jojo.game.domain.battle.settlement.BattleSettlementPlan
 import com.jojo.game.domain.battle.settlement.SettlementGrowthGrant
 import com.jojo.game.domain.battle.settlement.SettlementInfoDelta
+import com.jojo.game.domain.battle.settlement.SettlementInfoTiming
 import com.jojo.game.domain.battle.settlement.SettlementInfoPanel
 
 /** SettlementInfoView: 정산 Info 표시 정보이며, 화면에 필요한 전투 정보를 만들고 표시한다. */
@@ -281,23 +282,17 @@ internal class BattleSettlementPresentationController {
                     // OtherUnitInfoLayer only animates HP/MP; experience rows belong to Mine.
                     val panel = operation.plan.infoPanel ?: SettlementInfoPanel.MINE
                     val displayedGrants = if (panel == SettlementInfoPanel.MINE) operation.grants else emptyList()
-                    val growthTicks = displayedGrants.sumOf { grant ->
-                        kotlin.math.abs(grant.unitResult?.gained ?: grant.equipmentResult?.gained ?: 0).coerceAtMost(5)
-                    }
                     info = SettlementInfoView(
                         operation.plan.unitId, panel, now, operation.plan.infoDeltas, displayedGrants, title = "",
                     )
                     effects += Effect.UnitInfo(operation.plan, now)
-                    val barrier =
-                        if (operation.plan.infoDeltas.isEmpty()) .1f + growthTicks * .2f + .3f
-                        else operation.plan.infoBarrierSeconds + growthTicks * .2f
+                    val barrier = SettlementInfoTiming.presentationSeconds(operation.plan, displayedGrants)
                     state.waiting = Waiting.Timed(now + barrier)
                 }
                 is TurnSettlementOp.GrowthInfo -> {
                     info = SettlementInfoView(operation.unitId, SettlementInfoPanel.MINE, now, grants = operation.grants, title = "")
                     effects += Effect.GrowthInfo(operation.unitId, operation.grants, now)
-                    val ticks = operation.grants.sumOf { kotlin.math.abs(it.unitResult?.gained ?: it.equipmentResult?.gained ?: 0).coerceAtMost(5) }
-                    state.waiting = Waiting.Timed(now + .1f + ticks * .2f + .3f)
+                    state.waiting = Waiting.Timed(now + .1f + SettlementInfoTiming.animationSeconds(emptyList(), operation.grants) + .3f)
                 }
                 is TurnSettlementOp.Meff -> { effects += Effect.Meff(operation.effectId, operation.targetIds); state.waiting = Waiting.Meff }
                 is TurnSettlementOp.ItemUpgrade -> { effects += Effect.ItemUpgrade(operation.result); state.waiting = Waiting.ItemUpgrade }

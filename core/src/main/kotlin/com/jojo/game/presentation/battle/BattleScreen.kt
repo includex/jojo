@@ -1496,7 +1496,7 @@ void main() {
         append(SystemMessage.S_CBDCD710AB)
     }
 
-    private val font: BitmapFont = KoreanFont.create(26, battleFontCharacters)
+    private val font: BitmapFont = KoreanFont.create(26, battleFontCharacters + BattleOverlayPaper.UI_GLYPHS + SystemMessage.Key.entries.joinToString("") { SystemMessage.text(it) } + "인물 정보 체력 기력 아군 적군 전장 부대 전투 능력 인물 소개 등록된 없습니다 특기 기본 능력 공격력 정신력 방어력 순발력 사기 장비 무기 방어구 보조 장비 장착하지 않음 전략 사용 가능한 전략이 없습니다 닫기 이전 인물 다음 인물 기치 출진 횟수 퇴각")
 
     /**
      * 정산 상태창 라벨의 글자색이다. 값은 `SettlementInfoRenderContract.LABEL_COLOR`
@@ -1671,7 +1671,7 @@ void main() {
      */
 
     private val itemUpgradeFont: BitmapFont =
-        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString(""))
+        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString("") + ScenarioDialogueTextCatalog.fontCharacters + "인물 정보 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 맑음 흐림 바람 비 눈 제한 남음 부대 명령")
 
     /**
      * `battleRewardOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -4380,7 +4380,7 @@ void main() {
                 resultPrompt = outcomePresentation.winPromptActive,
                 modalInfo = scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO,
                 loseScene = outcomePresentation.loseSceneActive,
-                command = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND,
+                command = commandMenuVisible(),
                 usePropertyDetail = usePropertyDetail != null,
                 useProperty = usePropertyLayer != null,
                 magicInfo = magickInfoLayer != null,
@@ -4651,6 +4651,13 @@ void main() {
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 val pointerIntent = battleInputRouter.pointerDown(world.x, world.y, inputSurface())
+                if (pointerIntent.capture in setOf(BattleInputCapture.MAP, BattleInputCapture.MINI_MAP, BattleInputCapture.MINI_MAP_SURFACE, BattleInputCapture.MENU_HUD, BattleInputCapture.COMMAND) &&
+                    scriptRuntime.state == PlaybackState.COMPLETE && !battleMenuOpen && (battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND || battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight) == BattleHudPanelController.Action.TOGGLE) &&
+                    battleHudPanel.contains(world.x, world.y, viewport.worldWidth, viewport.worldHeight)) {
+                    hudPanelPressed = true
+                    hudPressedAction = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
+                    return true
+                }
                 if (pointerIntent.capture == BattleInputCapture.DIALOGUE) {
                     advanceBattleDialogue()
                     return true
@@ -4686,7 +4693,7 @@ void main() {
                         if (flow.state == LoseSceneFlow.State.PROMPT) loseAnswerAt(world.x, world.y) else null
                     return true
                 }
-                if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) {
+                if (commandMenuVisible()) {
                     battleCommandPressedTag = battleCommandTagAt(world.x, world.y)
                     return true
                 }
@@ -4810,6 +4817,7 @@ void main() {
              */
 
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+                if (hudPanelPressed) return true
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 if (battleInputRouter.draggingMiniMapSurface()) {
                     battleInputRouter.pointerDragged(world.x, world.y, inputSurface())
@@ -4830,6 +4838,20 @@ void main() {
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 val pointerIntent = battleInputRouter.pointerUp(world.x, world.y, inputSurface())
+                if (hudPanelPressed) {
+                    hudPanelPressed = false
+                    val action = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
+                    if (action == hudPressedAction) when(action) {
+                        BattleHudPanelController.Action.MENU -> openBattleMenu()
+                        BattleHudPanelController.Action.RECORD -> openForcesListLayer()
+                        BattleHudPanelController.Action.MAP -> miniMapLayer.touch(MiniMapLayer.TOUCH_END)
+                        BattleHudPanelController.Action.END_TURN -> requestEndRound()
+                        BattleHudPanelController.Action.TOGGLE -> battleHudPanel.toggle()
+                        null -> Unit
+                    }
+                    hudPressedAction = null
+                    return true
+                }
                 val mapTouchPending = pointerIntent.pressedCapture == BattleInputCapture.MAP
                 val mapTouchMoved = pointerIntent.moved
                 if (activeRoundLayer != null) return true
@@ -4873,7 +4895,7 @@ void main() {
                     losePressedAnswer = null
                     return true
                 }
-                if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) {
+                if (commandMenuVisible()) {
                     val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                     val released = battleCommandTagAt(world.x, world.y)
                     if (released != null && released == battleCommandPressedTag) dispatchBattleCommand(released)
@@ -5591,14 +5613,14 @@ void main() {
             }
             unitInfoOverlay.view()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
-                battleUnitInfoOverlayRenderer.draw(view)
+                battleUnitInfoOverlayRenderer.draw(view.copy(portrait = gameDataCatalog.unitProfile(view.unit.characterId)?.face?.plus(8)?.let(dynamicTextures::head)))
             }
             if (jiqiLayer != null) drawJiqiLayer()
             if (magickListLayer != null) drawMagickListLayer()
             if (magickInfoLayer != null) drawBattleMagicInfoLayer()
             if (usePropertyLayer != null) drawUsePropertyLayer()
             if (usePropertyDetail != null) drawUsePropertyDetail()
-            if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) drawBattleCommandLayer()
+            if (commandMenuVisible()) drawBattleCommandLayer()
             activeRoundLayer?.let(::drawRoundLayer)
             activeWeatherLayer?.let(::drawWeatherLayer)
             if (verification.usesTutorialBattle) drawHud()
@@ -5974,7 +5996,7 @@ void main() {
                 magicMode,
                 projectWorldPointAt(waitCommandCenter.first, waitCommandCenter.second),
                 projectWorldPointAt(15.13372f + 8f * 88f + 44f, 160.29f),
-                projectWorldPointAt(1383.9535f, 38f),
+                BattleHudPanelLayout.buttons(viewport.worldWidth, viewport.worldHeight, battleHudPanel.expanded).let { buttons -> (buttons.firstOrNull { it.action == BattleHudPanelController.Action.MENU } ?: buttons.first()).rect }.let { r -> projectWorldPointAt(r.x + r.width/2, r.y + r.height/2) },
                 projectWorldPointAt(579.4365f, 295.197f),
                 projectWorldPointAt(autoBattleConfirmCenter.first, autoBattleConfirmCenter.second),
                 // 승리 조건 안내를 닫는 버튼의 중심이다. 터치 판정 영역과 같은 값을 쓴다.
@@ -8113,6 +8135,7 @@ void main() {
                 BattleCommandFlow.Command.MAGICK -> openMagickList(selected)
                 BattleCommandFlow.Command.PROPERTY -> openUsePropertyLayer()
                 BattleCommandFlow.Command.ATTACK -> eventMessage = SystemMessage.S_14E9E7E054
+                BattleCommandFlow.Command.INFO -> { selected.characterId?.let(::openUnitInfoLayer); battleCommandFlow.childCancelled() }
                 BattleCommandFlow.Command.SWAP -> openTransferItemLayer(selected)
                 BattleCommandFlow.Command.SIEGE -> eventMessage = SystemMessage.S_30B3504918
                 else -> Unit
@@ -8500,42 +8523,13 @@ void main() {
         }
     }
 
-    /**
-     * `settlementAnimationFrame`: 지금 시각에 해당하는 숫자와 막대 길이를 계산한다.
-     *
-     * 원본은 `_kvs`를 하나씩 꺼내 숫자를 0.2초 간격으로 갱신하고, 그 항목이 끝나야 다음
-     * 항목으로 넘어간다. HP는 1.5배속이며 각 항목의 시작 시각에 그 시간을 반영한다.
-     * `SettlementUnitPlan.preInfoDelaySeconds`(0.1초)만큼 늦게 창이 열리므로 그만큼 뺀다.
-     */
+    /** Values in one settlement animate together; HP retains its 1.5x speed. */
     private fun settlementAnimationFrame(overlay: SettlementInfoView): SettlementAnimationFrame {
-        val values = settlementAnimationValues(overlay)
-        val numbers = values.associate { it.index to it.source }.toMutableMap()
-        val ratios = values.associate { it.index to it.progress(it.source) }.toMutableMap()
-        val elapsed = animationClock() - overlay.startedAt - SETTLEMENT_INFO_OPEN_DELAY
-        var startedAt = 0f
-        values.forEach { value ->
-            val steps = InfoBaseValueAnimation.steps(value)
-            if (steps.isEmpty()) return@forEach
-            val since = elapsed - startedAt
-            val kind = if (value.index == 0) SettlementInfoKind.HP else SettlementInfoKind.MP
-            val tickSeconds = SettlementInfoTiming.tickSeconds(kind)
-            if (since > 0f) {
-                // 숫자와 막대는 같은 HP 배속을 사용한다.
-                val step = (since / tickSeconds).toInt()
-                if (step >= 1) numbers[value.index] = steps[(step - 1).coerceAtMost(steps.lastIndex)]
-                // 막대는 해당 항목의 재생 시간 동안 연속해서 변화한다.
-                val progress = (since / SettlementInfoTiming.barTweenSeconds(kind)).coerceIn(0f, 1f)
-                val from = value.progress(value.source)
-                ratios[value.index] = from + (value.progress(value.destination) - from) * progress
-            }
-            startedAt += steps.size * tickSeconds
-        }
-        return SettlementAnimationFrame(numbers, ratios)
+        val frame = SettlementValueAnimation.frame(
+            settlementAnimationValues(overlay), animationClock() - overlay.startedAt - SETTLEMENT_INFO_OPEN_DELAY,
+        )
+        return SettlementAnimationFrame(frame.numbers, frame.ratios)
     }
-
-    /** `progress`: 원본 `ProgressBar.progress`와 같은 0~1 비율이다. */
-    private fun InfoBaseValueAnimation.Value.progress(amount: Int): Float =
-        (amount.coerceAtLeast(0).toFloat() / max.coerceAtLeast(1)).coerceIn(0f, 1f)
 
     /**
      * `SettlementBarSlot`: 정산 상태창의 한 줄이 쓰는 원본 좌표다.
@@ -10084,6 +10078,7 @@ void main() {
             return emptyList()
         }
         val selected = selectedUnitId?.let(battle.units::get) ?: return emptyList()
+        if (movementAnimation != null || pendingBattleCommandUnit != null) return emptyList()
         return when {
             attackTargetSelectionActive() -> attackTargetTiles(selected)
 
@@ -10111,7 +10106,7 @@ void main() {
 
             else -> {
                 val moveFrame = if (selected.type() == Faction.PLAYER) SelectAreaFrame.BLUE else SelectAreaFrame.GREEN
-                val moveTiles = battle.movement.reachableTiles(selected.id).keys.map { (x, y) ->
+                val moveTiles = (if (battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND) emptySet() else battle.movement.reachableTiles(selected.id).keys).map { (x, y) ->
                     SelectAreaTile(x, y, moveFrame)
                 }
                 val attackTiles = if (selected.attackAllScreen) {
@@ -10244,20 +10239,16 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    private val battleHudPanel = BattleHudPanelController()
+    private var hudPanelPressed = false
+    private var hudPressedAction: BattleHudPanelController.Action? = null
+    private val hudPanelRenderer by lazy { BattleHudPanelRenderer(batch, shapes, itemUpgradeFont) }
     private fun drawBattleHudChrome() {
         batch.projectionMatrix = viewport.camera.combined
+        if (!battleDialogueBlendRoute) hudPanelRenderer.draw(battleHudPanel, viewport.worldWidth, viewport.worldHeight,
+            gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
+            when(battle.weather) { BattleWeather.CLEAR -> "맑음"; BattleWeather.CLOUDY -> "흐림"; BattleWeather.WINDY -> "바람"; BattleWeather.HEAVY_RAIN -> "비"; BattleWeather.SNOW -> "눈" }, battle.round, scenarioMaxRound())
         batch.begin()
-        batch.color = Color.WHITE
-        hudAssets.battleEndTurnTexture?.let { batch.draw(it, 1353.9535f, 8f, 60f, 60f) }
-        if (battleDialogueBlendRoute) {
-            batch.end()
-            return
-        }
-        hudAssets.battleButtonBackgroundPatch?.draw(batch, 0.843f, 0.731f, 68f, 68f)
-        hudAssets.battleRecordTexture?.let { batch.draw(it, 0.043f, -0.069f, 69.6f, 69.6f) }
-        val miniButtonX = if (miniMapLayer.shown) 1174.3721f else 1418.3721f
-        hudAssets.battleButtonBackgroundPatch?.draw(batch, miniButtonX, 730f, 70f, 70f)
-        hudAssets.battleMenuTexture?.let { batch.draw(it, miniButtonX + .2f, 730.2f, 69.6f, 69.6f) }
         battleGridMapSurfaceRenderer.drawOverlay(battleGridMapSurfaceView())
         batch.end()
     }
@@ -10325,10 +10316,14 @@ void main() {
             // 원본 노드 변환을 유지한다.
             hudAssets.menuToolTextures[index]?.let {
                 batch.draw(
-                    it, x + 8f, WeatherTransitionLayout.TOOL_Y,
-                    WeatherTransitionLayout.TOOL_SIZE, WeatherTransitionLayout.TOOL_SIZE
+                    it, x + 24f, WeatherTransitionLayout.BUTTON_Y + 36f,
+                    40f, 40f
                 )
             }
+            font.color = Color(0.18f,0.12f,0.06f,1f)
+            font.data.setScale(20f/26f)
+            font.draw(batch, BattleMenuButtonLabels.labels[index], x, WeatherTransitionLayout.BUTTON_Y+25f, 88f, Align.center, false)
+            font.data.setScale(1f)
         }
         hudAssets.menuButtonPatch?.draw(
             batch, WeatherTransitionLayout.HELP_BUTTON_X, WeatherTransitionLayout.BUTTON_Y,
@@ -10785,7 +10780,7 @@ void main() {
                 else -> -1
             }
             return ForcesListLayer.Unit(
-                id = unit.characterId ?: 0, name = unit.name, post = SystemMessage.S_F0D2E9FDE8, level = unit.level,
+                id = unit.characterId ?: 0, name = unit.name, post = gameDataCatalog.postsName(unit.posts), level = unit.level,
                 hp = unit.hitPoints, maxHp = unit.maxHitPoints, mp = unit.magicPoints, maxMp = unit.maxMagicPoints,
                 attack = unit.attack, defense = unit.defense, spirit = unit.spirit, critical = unit.critical,
                 morale = unit.morale, famous = unit.famous,
@@ -10871,7 +10866,7 @@ void main() {
         fun row(u: BattleUnit) = UnitInfoLayer.Unit(
             u.characterId ?: 0,
             u.name,
-            SystemMessage.S_F0D2E9FDE8,
+            gameDataCatalog.postsName(u.posts),
             u.level,
             u.hitPoints,
             u.maxHitPoints,
@@ -10896,6 +10891,9 @@ void main() {
             }.orEmpty(),
             // 원본은 전투를 차릴 때 유닛마다 뽑아 둔 여덟 확률을 기치 창에 그대로 보여 준다.
             rates = (0..7).map { u.rateAccumulators[it] ?: 0 },
+            equipment = u.characterId?.let { campaign.inventory.equipmentFor(it) }?.let { e ->
+                listOf(e.weapon,e.armor,e.auxiliary).map { id -> gameDataCatalog.equipmentProfile(id)?.let { UnitInfoLayer.Equipment(it.name) } }
+            } ?: listOf(null,null,null),
         )
 
         val rows = source.map(::row)
@@ -11017,84 +11015,18 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    private fun commandMenuVisible(): Boolean = battleCommandFlow.phase == BattleCommandFlow.Phase.COMMAND &&
+        scriptRuntime.state == PlaybackState.COMPLETE && !battleMenuOpen && !unitInfoOverlay.isVisible() &&
+        settingsOverlay.view() == null && forcesOverlay.view() == null && helperOverlay.view() == null &&
+        saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) == null &&
+        saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) == null &&
+        informationOverlay.propertyView() == null && informationOverlay.treasureView() == null &&
+        informationOverlay.terrainView() == null && autoBattleFlow.view().overlay == AutoBattleFlow.Overlay.NONE
+
+    private val commandMenuRenderer by lazy { BattleCommandMenuRenderer(batch, shapes, itemUpgradeFont, hudAssets.battleCommandIcons) }
     private fun drawBattleCommandLayer() {
-        shapes.projectionMatrix = viewport.camera.combined
-        beginFilledShapes()
-        shapes.color = Color(0f, 0f, 0f, BattleCommandRenderModel.DISMISS_DIM_OPACITY); shapes.rect(
-            0f, 0f, 1488.372f, 800f
-        )
-        shapes.end()
-        val previousTransform = batch.transformMatrix.cpy()
-        val previousShader = batch.shader
-        val commandOffset = currentBattleCommandPlacementOffset()
-        batch.transformMatrix = previousTransform.cpy().translate(commandOffset.first, commandOffset.second, 0f)
-        try {
-            batch.projectionMatrix = viewport.camera.combined; batch.begin()
-            batch.color = Color(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
-            for (ty in 0..3) for (tx in 0..4) {
-                val width = minOf(96f, BattleCommandRenderModel.PANEL_WIDTH - tx * 96f)
-                val height = minOf(96f, BattleCommandRenderModel.PANEL_HEIGHT - ty * 96f)
-                if (width > 0f && height > 0f) batch.draw(
-                    unitInfoAssets.unitInfoLogo,
-                    BattleCommandRenderModel.PANEL_LEFT + tx * 96f,
-                    BattleCommandRenderModel.PANEL_BOTTOM + ty * 96f,
-                    width,
-                    height,
-                )
-            }
-            batch.setColor(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY); NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-                batch,
-                BattleCommandRenderModel.PANEL_LEFT,
-                BattleCommandRenderModel.PANEL_BOTTOM,
-                BattleCommandRenderModel.PANEL_WIDTH,
-                BattleCommandRenderModel.PANEL_HEIGHT,
-            )
-            // itemUpgradeFont는 36px로 굽는다. 26px 기준 배율을 그대로 쓰면 55px로 커져
-            // 문구가 버튼 밖으로 넘친다.
-            itemUpgradeFont.data.setScale(40f / 36f)
-            battleCommandFlow.view().forEachIndexed { index, button ->
-                val visual = BattleCommandRenderModel.visuals[index]
-                NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-                    batch, visual.x, visual.y, visual.width, visual.height
-                )
-                itemUpgradeFont.color = if (button.interactable) Color(0f, 0f, 0f, BattleCommandRenderModel.PANEL_OPACITY) else Color(
-                    BattleCommandRenderModel.DISABLED_COMPONENT,
-                    BattleCommandRenderModel.DISABLED_COMPONENT,
-                    BattleCommandRenderModel.DISABLED_COMPONENT,
-                    BattleCommandRenderModel.PANEL_OPACITY
-                )
-                // `포위 공격`만 두 어절이라 한 줄에 안 들어간다. 원본 버튼도 정사각형이라
-                // 줄바꿈으로 받는다. 한 어절짜리 문구는 줄바꿈 여부와 무관하게 같은 자리다.
-                itemUpgradeFont.draw(
-                    batch, BATTLE_COMMAND_LABELS[index], visual.labelX, visual.labelY + 40f,
-                    100f, Align.center, true,
-                )
-                // Source CommandLayer replaces disabled icon materials with builtin-2d-gray-sprite.
-                // Its 160/255 label color is independent of the white-tinted icon material.
-                batch.shader = if (button.interactable) previousShader else cocosGraySampler.value
-                visual.icons.forEach { icon ->
-                    val iconIndex = icon.asset.removePrefix("command").toInt()
-                    batch.setColor(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
-                    batch.draw(
-                        hudAssets.battleCommandIcons.getValue(iconIndex),
-                        icon.x, icon.y, icon.width, icon.height,
-                    )
-                }
-                batch.shader = previousShader
-                batch.setColor(1f, 1f, 1f, BattleCommandRenderModel.PANEL_OPACITY)
-            }
-            batch.end()
-        } finally {
-            try {
-                if (batch.isDrawing) batch.end()
-            } finally {
-                itemUpgradeFont.data.setScale(1f)
-                itemUpgradeFont.color = Color.WHITE
-                batch.color = Color.WHITE
-                batch.shader = previousShader
-                batch.transformMatrix = previousTransform
-            }
-        }
+        batch.projectionMatrix = viewport.camera.combined
+        commandMenuRenderer.draw(battleCommandFlow.view(), currentBattleCommandPlacementOffset(), selectedUnitId?.let(battle.units::get)?.name ?: "부대 명령")
     }
 
     /** 명령 화면 증거: 현재 자동 실행 경로를 전용 기록기에 전달한다. */
@@ -11339,10 +11271,14 @@ void main() {
             )
             hudAssets.menuToolTextures[index]?.let {
                 batch.draw(
-                    it, x + 8f, WeatherTransitionLayout.TOOL_Y,
-                    WeatherTransitionLayout.TOOL_SIZE, WeatherTransitionLayout.TOOL_SIZE
+                    it, x + 24f, WeatherTransitionLayout.BUTTON_Y + 36f,
+                    40f, 40f
                 )
             }
+            font.color = Color(0.18f,0.12f,0.06f,1f)
+            font.data.setScale(20f/26f)
+            font.draw(batch, BattleMenuButtonLabels.labels[index], x, WeatherTransitionLayout.BUTTON_Y+25f, 88f, Align.center, false)
+            font.data.setScale(1f)
         }
         hudAssets.menuButtonPatch?.draw(
             batch, WeatherTransitionLayout.HELP_BUTTON_X, WeatherTransitionLayout.BUTTON_Y,
@@ -11575,37 +11511,34 @@ void main() {
 
     private fun drawUsePropertyLayer() {
         val layer = usePropertyLayer ?: return
-        shapes.projectionMatrix = viewport.camera.combined
-        beginFilledShapes()
-        shapes.color = Color(0f, 0f, 0f, 40f / 255f)
-        shapes.rect(0f, 0f, 1488.372f, 800f)
-        shapes.end()
-        batch.projectionMatrix = viewport.camera.combined
-        batch.begin(); batch.color = Color.WHITE
         val commandChild = battleCommandRouteState == RuntimeBattleRoute.COMMAND_PROPERTY
         val ox = if (commandChild) -59.536f else 0f
         val oy = if (commandChild) -294f else 0f
-        for (ty in 0..4) for (tx in 0..5) batch.draw(
-            unitInfoAssets.unitInfoLogo, 795.536f + ox + tx * 96f, 390f + oy + ty * 96f, 96f, 96f
-        )
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 795.536f + ox, 390f + oy, 491f, 410f)
-        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 799.536f + ox, 448f + oy, 483f, 348f)
-        font.data.setScale(40f / 26f); font.color = Color.BLACK
-        layer.rows.take(3).forEachIndexed { index, item ->
-            val y = 681f + oy - index * 112f
-            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 803.536f + ox, y, 475f, 110f)
-            NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 809.55f + ox, y + 5f, 100f, 100f)
-            dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it, 814.55f + ox, y + 10f, 90f, 90f) }
-            font.draw(batch, item.name, 912.036f + ox, y + 99f)
-            font.draw(batch, SystemMessage.S_DF988D7025, 912.036f + ox, y + 47f)
-            font.draw(batch, item.typeName, 1015.631f + ox, y + 47f)
-            font.draw(batch, SystemMessage.S_F83EB3F89C, 1108.272f + ox, y + 99f)
-            font.draw(batch, item.count.toString(), 1249.503f + ox, y + 99f)
+        shapes.projectionMatrix=viewport.camera.combined
+        beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.5f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.color=Color.valueOf("b99b61");shapes.rect(795.536f+ox,390f+oy,491f,410f)
+        shapes.color=Color.valueOf("dbc8a5");shapes.rect(797.536f+ox,392f+oy,487f,406f)
+        layer.rows.take(3).forEachIndexed { index,_ ->
+            shapes.color=Color.valueOf("eadbbd");shapes.rect(803.536f+ox,681f+oy-index*112f,475f,110f)
         }
-        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 1131.145f + ox, 394.896f + oy, 150f, 50f)
-        font.draw(batch, SystemMessage.S_19B2D19BC1, 1156.145f + ox, 442f + oy)
-        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+        shapes.color=Color.valueOf("493b24");shapes.rect(1131.145f+ox,394.896f+oy,150f,50f)
+        shapes.end()
+        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        layer.rows.take(3).forEachIndexed { index,item ->
+            val y=681f+oy-index*112f
+            dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it,820f+ox,y+27f,56f,56f) }
+            font.data.setScale(26f/26f);font.color=Color.valueOf("322719")
+            font.draw(batch,item.name,894f+ox,y+82f,0,item.name.length,272f,Align.left,false,"...")
+            font.draw(batch,"×${item.count}",1183f+ox,y+82f,78f,Align.right,false)
+            font.data.setScale(22f/26f);font.color=Color.valueOf("746247")
+            font.draw(batch,item.typeName,894f+ox,y+39f,360f,Align.left,false)
+        }
+        font.data.setScale(24f/26f);font.color=Color.valueOf("eee2c6")
+        font.draw(batch,SystemMessage.S_19B2D19BC1,1131.145f+ox,428f+oy,150f,Align.center,false)
+        font.data.setScale(1f);font.color=Color.WHITE;batch.end()
     }
+
 
     /**
      * `drawUsePropertyDetail`: 화면 표시 상태를 렌더링한다.
@@ -11613,43 +11546,29 @@ void main() {
      */
 
     private fun drawUsePropertyDetail() {
-        val item = usePropertyDetail ?: return
-        val profile = gameDataCatalog.equipmentProfile(item.id) ?: return
-        shapes.projectionMatrix = viewport.camera.combined
-        beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(
-            0f, 0f, 1488.372f, 800f
-        ); shapes.end()
-        batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
-        for (ty in 0..6) for (tx in 0..10) batch.draw(
-            unitInfoAssets.unitInfoLogo, 253.186f + tx * 96f, 80f + ty * 96f, 96f, 96f
-        )
-        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 253.186f, 80f, 982f, 640f)
-        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 265.778f, 564.802f, 144f, 144f)
-        dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it, 273.778f, 572.802f, 128f, 128f) }
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 420.536f, 498.55f, 343.5f, 100.9f)
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 261.686f, 92.5f, 501f, 377f)
-        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 770.186f, 157.5f, 448f, 247f)
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 770.186f, 427f, 448f, 260f)
-        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 1065.827f, 97.824f, 150f, 50f)
-        drawUsePropertyDetailHeadbands()
-        drawUsePropertyDetailPostsRows()
-        font.data.setScale(40f / 26f); font.color = Color.BLACK
-        listOf(
-            item.name to (420.186f to 701f),
-            SystemMessage.S_991BD0CC20 to (432.137f to 591f),
-            SystemMessage.S_B62250FE8D to (522.525f to 591f),
-            SystemMessage.S_C61005675A to (432.137f to 546f),
-            gameDataCatalog.purchasePrice(profile).toString() to (522.525f to 546f),
-            SystemMessage.S_CE49DECB68 to (477.586f to 485f),
-            item.typeName to (265.686f to 432f),
-            SystemMessage.S_841964364C to (953.586f to 421f),
-            profile.intro to (774.186f to 376f),
-            SystemMessage.S_1CC0D0F805 to (804.516f to 704f),
-            SystemMessage.S_468266D639 to (1090.827f to 147f)
-        ).forEach { (text, pos) -> font.draw(batch, text, pos.first, pos.second) }
-        drawUsePropertyDetailPostsNames(profile)
-        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+        val item=usePropertyDetail ?: return
+        val profile=gameDataCatalog.equipmentProfile(item.id) ?: return
+        shapes.projectionMatrix=viewport.camera.combined;beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.6f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.color=Color.valueOf("b99b61");shapes.rect(253.186f,80f,982f,640f)
+        shapes.color=Color.valueOf("dbc8a5");shapes.rect(255.186f,82f,978f,636f)
+        shapes.color=Color.valueOf("eadbbd");shapes.rect(277f,215f,934f,330f)
+        shapes.color=Color.valueOf("493b24");shapes.rect(1065.827f,97.824f,150f,50f)
+        shapes.end()
+        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it,285f,586f,96f,96f) }
+        font.color=Color.valueOf("322719");font.data.setScale(32f/26f)
+        font.draw(batch,item.name,405f,677f,770f,Align.left,false)
+        font.data.setScale(24f/26f)
+        font.draw(batch,"${SystemMessage.S_991BD0CC20.trimEnd(':', '：', ' ')}: ${item.typeName}",405f,624f,770f,Align.left,false)
+        font.draw(batch,"${SystemMessage.S_C61005675A.trimEnd(':', '：', ' ')}: ${gameDataCatalog.purchasePrice(profile)}",405f,582f,770f,Align.left,false)
+        font.data.setScale(26f/26f)
+        font.draw(batch,profile.intro,301f,512f,886f,Align.left,true)
+        font.data.setScale(24f/26f);font.color=Color.valueOf("eee2c6")
+        font.draw(batch,SystemMessage.S_468266D639,1065.827f,132f,150f,Align.center,false)
+        font.data.setScale(1f);font.color=Color.WHITE;batch.end()
     }
+
 
     /**
      * `drawUsePropertyDetailHeadbands`: 상세 창의 세 머리띠를 그린다.
@@ -11733,12 +11652,9 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun magickRowAt(x: Float, y: Float): Int? {
-        if (x !in 480.186f..1006.186f || y !in 0f..645.5f) return null
-        val line = ((645.5f - y) / 142f).toInt().coerceAtLeast(0)
-        val column = if (x < 743.186f) 0 else 1
-        return (line * 2 + column).takeIf { it in 0 until (magickListLayer?.rows?.size ?: 0) }
-    }
+    private fun magickRowAt(x: Float, y: Float): Int? =
+        com.jojo.game.presentation.battle.overlay.BattlePickerGeometry.magicAt(x,y,magickListLayer?.rows?.size ?: 0)
+
 
     /**
      * `fixtureMagics`: 타입의 핵심 동작을 수행한다.
@@ -11767,61 +11683,40 @@ void main() {
      */
 
     private fun drawMagickListLayer() {
-        val layer = magickListLayer ?: return
-        shapes.projectionMatrix = viewport.camera.combined; beginFilledShapes()
-        shapes.color = Color(0f, 0f, 0f, 40f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
-        batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
-        for (ty in 0..6) for (tx in 0..5) batch.draw(
-            unitInfoAssets.unitInfoLogo, 474.186f + tx * 96f, 90.5f + ty * 96f, 96f, 96f
-        )
-        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 474.186f, 90.5f, 540f, 619f)
-        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 478.186f, 150.5f, 532f, 499f)
-        NinePatch(unitInfoAssets.unitInfoProgress, 3, 3, 3, 3).draw(batch, 741.186f, 661.207f, 204f, 24f)
-        shapes.projectionMatrix = viewport.camera.combined
-        val mpFraction = layer.mp.toFloat() / layer.maxMp.coerceAtLeast(1)
-        val previewFraction = if (layer.preview == 0f) mpFraction else layer.preview
-        dynamicTextures.battleDialog(BattleUiAssets.MP_CURRENT_MARK)
-            ?.let { batch.draw(it, 743.186f, 663.207f, 200f * mpFraction, 20f) }
-        dynamicTextures.battleDialog(BattleUiAssets.MP_MAX_MARK)
-            ?.let { batch.draw(it, 743.186f, 663.207f, 200f * previewFraction, 20f) }
-        font.data.setScale(40f / 26f); font.color = Color.BLACK
-        font.draw(batch, selectedUnitId?.let(battle.units::get)?.name ?: SystemMessage.S_F8BE692B65, 495.586f, 695f); font.draw(
-            batch, "MP", 681.186f, 695f
-        )
-        font.draw(batch, "${layer.mp}/${layer.maxMp}", 793.136f, 696f)
-        layer.rows.take(10).forEachIndexed { index, magic ->
-            val col = index % 2
-            val line = index / 2
-            val x = 480.186f + col * 264f
-            val y = 505.5f - line * 142f
-            NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, x, y, 262f, 140f)
-            BattleDialogRenderContract.magicListIcon(magic, x, y).let { icon ->
-                dynamicTextures.battleDialog(icon.path)?.let { batch.draw(it, icon.x, icon.y, icon.width, icon.height) }
-            }
-            // 색은 증거 기록기와 같은 계약에서 온다. 원본 `MagickListLayer.js:64-68`의 `_dis`는
-            // 이름·위력만 회색으로 바꾸고 비용은 MP 부족일 때 따로 붉은 색을 준다.
-            val enabled = layer.enabled(index)
-            val cardColor = Color.valueOf(
-                "${if (enabled) BattleDialogRenderContract.CARD_LABEL_COLOR else BattleDialogRenderContract.CARD_DISABLED_COLOR}ff"
-            )
-            val costColor = Color.valueOf(
-                "${if (enabled) BattleDialogRenderContract.CARD_LABEL_COLOR else BattleDialogRenderContract.CARD_SHORT_MP_COLOR}ff"
-            )
-            val fixedColor = Color.valueOf("${BattleDialogRenderContract.CARD_LABEL_COLOR}ff")
-            font.color = cardColor
-            font.draw(batch, magic.name, x + 92f, y + 129f)
-            font.color = fixedColor; font.draw(batch, "MP：", x + 92f, y + 88f)
-            font.color = costColor; font.draw(batch, magic.cost.toString(), x + 176f, y + 88f)
-            font.color = fixedColor; font.draw(batch, SystemMessage.S_63314575EA, x + 2f, y + 47f)
-            font.color = cardColor
-            // 원본 `MagickListLayer.js:147-148`의 문구 규칙은 증거와 같은 계약이 든다.
-            font.draw(batch, BattleDialogRenderContract.damageCoefficientText(magic.power), x + 180f, y + 47f)
+        val layer=magickListLayer ?: return
+        shapes.projectionMatrix=viewport.camera.combined;beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.5f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.color=Color.valueOf("b99b61");shapes.rect(474.186f,90.5f,540f,619f)
+        shapes.color=Color.valueOf("dbc8a5");shapes.rect(476.186f,92.5f,536f,615f)
+        layer.rows.take(10).forEachIndexed { index,_ ->
+            val card=com.jojo.game.presentation.battle.overlay.BattlePickerGeometry.magicCard(index)
+            shapes.color=Color.valueOf("eadbbd");shapes.rect(card.x,card.y,card.width,card.height)
         }
-        font.color = Color.BLACK; NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(
-            batch, 775.892f, 97.683f, 180f, 50f
-        )
-        font.draw(batch, SystemMessage.S_19B2D19BC1, 815.892f, 145f); font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+        shapes.color=Color.valueOf("493b24");shapes.rect(775.892f,97.683f,180f,50f)
+        shapes.end()
+        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        font.data.setScale(26f/26f);font.color=Color.valueOf("322719")
+        val name=selectedUnitId?.let(battle.units::get)?.name ?: SystemMessage.S_F8BE692B65
+        font.draw(batch,name,494f,688f,250f,Align.left,false)
+        font.data.setScale(23f/26f)
+        font.draw(batch,"MP ${layer.mp}/${layer.maxMp}",750f,686f,240f,Align.right,false)
+        layer.rows.take(10).forEachIndexed { index,magic ->
+            val card=com.jojo.game.presentation.battle.overlay.BattlePickerGeometry.magicCard(index)
+            val x=card.x;val y=card.y
+            dynamicTextures.battleDialog(BattleUiAssets.magicIcon(magic.icon))?.let { batch.draw(it,x+12f,y+24f,40f,40f) }
+            val enabled=layer.enabled(index)
+            font.data.setScale(24f/26f);font.color=Color.valueOf(if(enabled)"322719" else "93836c")
+            font.draw(batch,magic.name,x+63f,y+65f,0,magic.name.length,189f,Align.left,false,"...")
+            font.data.setScale(21f/26f);font.color=Color.valueOf(if(enabled)"746247" else "8b2121")
+            font.draw(batch,"MP ${magic.cost}",x+63f,y+29f,95f,Align.left,false)
+            font.color=Color.valueOf("746247")
+            font.draw(batch,"${magic.power ?: 0}%",x+159f,y+29f,91f,Align.right,false)
+        }
+        font.data.setScale(24f/26f);font.color=Color.valueOf("eee2c6")
+        font.draw(batch,SystemMessage.S_19B2D19BC1,775.892f,132f,180f,Align.center,false)
+        font.data.setScale(1f);font.color=Color.WHITE;batch.end()
     }
+
 
     /**
      * `drawBattleMagicInfoLayer`: 화면 표시 상태를 렌더링한다.
@@ -11829,37 +11724,34 @@ void main() {
      */
 
     private fun drawBattleMagicInfoLayer() {
-        val magic = magickInfoLayer?.magic ?: return
-        shapes.projectionMatrix = viewport.camera.combined; beginFilledShapes()
-        shapes.color = Color(0f, 0f, 0f, 100f / 255f); shapes.rect(0f, 0f, 1488.372f, 800f); shapes.end()
-        batch.projectionMatrix = viewport.camera.combined; batch.begin(); batch.color = Color.WHITE
-        for (ty in 0..5) for (tx in 0..6) batch.draw(
-            unitInfoAssets.unitInfoLogo, 452.686f + tx * 96f, 130f + ty * 96f, 96f, 96f
-        )
-        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 452.686f, 130f, 583f, 540f)
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 465.636f, 434f, 340.3f, 100f)
-        NinePatch(unitInfoAssets.unitInfoBox2, 3, 3, 3, 3).draw(batch, 465.636f, 147f, 340.3f, 274f)
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 814.213f, 436.061f, 200f, 200f)
-        NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 814.213f, 204.673f, 200f, 200f)
-        NinePatch(unitInfoAssets.unitInfoBox3, 9, 9, 7, 11).draw(batch, 874.764f, 144.022f, 147.6f, 50f)
+        val magic=magickInfoLayer?.magic ?: return
+        shapes.projectionMatrix=viewport.camera.combined;beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.6f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.color=Color.valueOf("b99b61");shapes.rect(452.686f,130f,583f,540f)
+        shapes.color=Color.valueOf("dbc8a5");shapes.rect(454.686f,132f,579f,536f)
+        shapes.color=Color.valueOf("eadbbd");shapes.rect(465.636f,147f,340.3f,274f)
+        shapes.rect(814.213f,436.061f,200f,200f);shapes.rect(814.213f,204.673f,200f,200f)
+        shapes.color=Color.valueOf("493b24");shapes.rect(874.764f,144.022f,147.6f,50f)
+        shapes.end()
+        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
         BattleDialogRenderContract.magicDetailSprites(magic).forEach { sprite ->
-            dynamicTextures.battleDialog(sprite.path)
-                ?.let { batch.draw(it, sprite.x, sprite.y, sprite.width, sprite.height) }
+            dynamicTextures.battleDialog(sprite.path)?.let { batch.draw(it,sprite.x,sprite.y,sprite.width,sprite.height) }
         }
-        font.data.setScale(40f / 26f); font.color = Color.BLACK
-        listOf(
-            magic.name to (577.509f to 646f),
-            SystemMessage.S_169487DB3A to (476.336f to 522f),
-            "${magic.power ?: 0}%" to (566.719f to 522f),
-            SystemMessage.S_5FC06645C6 to (470.776f to 479f),
-            magic.cost.toString() to (627.053f to 479f),
-            magic.intro to (470.786f to 415f),
-            SystemMessage.S_AF99A26F2C to (839.654f to 653f),
-            SystemMessage.S_368A5F6FF8 to (839.654f to 424f),
-            SystemMessage.S_468266D639 to (898.564f to 192f)
-        ).forEach { (t, p) -> font.draw(batch, t, p.first, p.second) }
-        font.data.setScale(1f); font.color = Color.WHITE; batch.end()
+        font.data.setScale(28f/26f);font.color=Color.valueOf("322719")
+        font.draw(batch,magic.name,570f,618f,230f,Align.left,true)
+        font.data.setScale(24f/26f)
+        font.draw(batch,"MP ${magic.cost}",478f,510f,310f,Align.left,false)
+        font.draw(batch,"${SystemMessage.S_169487DB3A.trimEnd(':', '：', ' ')}: ${magic.power ?: 0}%",478f,467f,310f,Align.left,false)
+        font.data.setScale(23f/26f)
+        font.draw(batch,magic.intro,480f,396f,310f,Align.left,true)
+        font.data.setScale(21f/26f)
+        font.draw(batch,SystemMessage.S_AF99A26F2C,814.213f,658f,200f,Align.center,false)
+        font.draw(batch,SystemMessage.S_368A5F6FF8,814.213f,426f,200f,Align.center,false)
+        font.color=Color.valueOf("eee2c6");font.data.setScale(23f/26f)
+        font.draw(batch,SystemMessage.S_468266D639,874.764f,178f,147.6f,Align.center,false)
+        font.data.setScale(1f);font.color=Color.WHITE;batch.end()
     }
+
 
     /**
      * `installJiqiRouteFixture`: 타입의 핵심 동작을 수행한다.
@@ -13130,6 +13022,7 @@ void main() {
      */
 
     override fun dispose() {
+        BattleOverlayPaper.dispose()
         if (battleDialogueRendererAdapterDelegate.isInitialized()) battleDialogueRendererAdapter.dispose()
         unitPresentationStore.clear()
         audio.dispose()

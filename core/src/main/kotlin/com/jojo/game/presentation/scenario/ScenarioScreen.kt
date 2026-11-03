@@ -112,6 +112,14 @@ class ScenarioScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    private val hallCharacterAssets = lazy { com.jojo.game.presentation.battle.assets.BattleUnitInfoAssets() }
+    private val hallCharacterRenderer by lazy {
+        val a=hallCharacterAssets.value
+        com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayRenderer(batch,shapes,bodyFont,
+            com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayAssets(
+                a.unitInfoLogo,a.unitInfoBox1,a.unitInfoBox2,a.unitInfoBox3,a.unitInfoBg,a.unitInfoVline2,
+                a.unitInfoFace,a.unitInfoProgress,a.unitInfoMark2,a.unitInfoMark3,a.unitInfoMark6),26f/34f)
+    }
     private val shapes = ShapeRenderer()
     /**
      * `batch` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -1011,7 +1019,10 @@ class ScenarioScreen(
 
     /** renderScenarioFrame: 현재 재생 상태를 읽어 장면·대사·오버레이를 한 프레임에 렌더링한다. */
     private fun renderScenarioFrame(): ScenarioRenderPhaseResult {
-        sceneFrameTarget.render { drawScenarioFrameContents() }
+        sceneFrameTarget.render {
+            drawScenarioFrameContents()
+            drawHallUnitInfoSheet()
+        }
         return ScenarioRenderPhaseResult.CONTINUE
     }
 
@@ -1078,10 +1089,12 @@ class ScenarioScreen(
      */
 
     override fun dispose() {
+        com.jojo.game.presentation.battle.overlay.BattleOverlayPaper.dispose()
         playbackController.dispose()
         if (dialogueScene2dStage.isInitialized()) dialogueScene2dStage.value.dispose()
         if (dialogueScene2dSkin.isInitialized()) dialogueScene2dSkin.value.dispose()
         scenarioOverlayRenderer.dispose()
+        if(hallCharacterAssets.isInitialized()) hallCharacterAssets.value.dispose()
         sceneAssets.dispose()
         sceneFrameTarget.dispose()
         batch.dispose()
@@ -1317,6 +1330,22 @@ class ScenarioScreen(
                 }
         } else drawCompletion()
         batch.end()
+    }
+
+    private fun drawHallUnitInfoSheet() {
+        if(hallFeatsLayer==null && hallMagicLayer==null) hallUnitInfoLayer?.let { layer ->
+            val sheet=layer.ref();val u=sheet.unit
+            val profile=gameDataCatalog.unitProfile(u.id)
+            val view=com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayView(sheet.tab,
+                com.jojo.game.presentation.battle.overlay.BattleUnitInfoUnitView(
+                    u.name,u.post,u.level,u.hp,u.maxHp,u.mp,u.maxMp,u.attack,u.defense,u.spirit,u.critical,u.morale,
+                    u.mine,u.battleCount,u.retreatCount,u.skillIntro,u.unitIntro,u.id),
+                sheet.buttons,sheet.magicRows,profile?.face?.plus(8)?.let(::portraitTexture),
+                u.equipment.map { it?.name ?: "장착하지 않음" },u.rates)
+            batch.projectionMatrix=com.badlogic.gdx.math.Matrix4(viewport.camera.combined).scale(1280f/1488.3721f,688f/800f,1f)
+            hallCharacterRenderer.draw(view)
+            batch.projectionMatrix=viewport.camera.combined
+        }
     }
 
     /**

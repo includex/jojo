@@ -32,7 +32,7 @@ class BattleSettlementPresentationControllerTest {
             controller.tick(0f) { true }
             val mine = panel == SettlementInfoPanel.MINE
             assertEquals(if (mine) listOf(grant) else emptyList(), controller.infoView()?.grants)
-            val barrier = if (mine) 2.067f else 1.067f
+            val barrier = if (mine) 1.4f else 1.067f
             assertTrue(controller.tick(barrier - .01f) { true }.isEmpty())
             assertIs<BattleSettlementPresentationController.Effect.Finished>(controller.tick(barrier + .001f) { true }.single())
             assertEquals(5, grant.unitResult?.gained, "filtering display rows does not change awarded experience")

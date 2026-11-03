@@ -78,7 +78,7 @@ class BattleSettlementPlannerTest {
         assertEquals(listOf(5, 1), firstPlan.infoDeltas.map { it.tickCount })
         assertEquals(.1f, firstPlan.preInfoDelaySeconds)
         assertEquals(.3f, firstPlan.infoCloseSeconds)
-        assertEquals(1.267f, firstPlan.infoBarrierSeconds)
+        assertEquals(1.4f, firstPlan.infoBarrierSeconds)
         assertEquals(
             listOf(13, 7, 0),
             firstPlan.stateChanges.map { it.sourceStatusIndex },

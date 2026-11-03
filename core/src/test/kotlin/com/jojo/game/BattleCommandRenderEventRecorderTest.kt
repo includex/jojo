@@ -41,12 +41,12 @@ class BattleCommandRenderEventRecorderTest {
 
     /** 기본 명령 경로: 여섯 명령과 취소 버튼의 이중 아이콘을 기록한다. */
     @Test
-    fun `initial command keeps all command buttons and dual icons`() {
+    fun `initial command records eight cards and one icon per action`() {
         val rows = rows(RuntimeBattleRoute.COMMAND_INITIAL)
 
-        assertEquals(30, rows.size)
+        assertEquals(25, rows.size)
         assertOrdered(rows.joinToString("\n"), "button0/Background", "\"text\":\"공격\"", "button5/Background", "\"text\":\"대기\"", "button6/Background")
-        assertEquals(2, rows.count { it.contains("button0/Background/img") && it.contains("command1") })
+        assertEquals(1, rows.count { it.contains("button0/Background/img") && it.contains("command1") })
         assertTrue(rows.all { it.contains("\"phase\":\"battle-command-initial\"") })
     }
 
@@ -68,7 +68,7 @@ class BattleCommandRenderEventRecorderTest {
                     "$route left a row without colour; the comparison would skip it",
                 )
                 assertEquals(
-                    emptySet(), colours.toSet() - setOf("#ffffff", "#000000", "#a0a0a0"),
+                    emptySet(), colours.toSet() - setOf("#ffffff", "#000000", "#93836c", "#eee2c6", "#21190f", "#493b24", "#352919", "#282219", "#6b737a"),
                     "$route invented a colour with no source node behind it",
                 )
             }
@@ -84,13 +84,13 @@ class BattleCommandRenderEventRecorderTest {
     fun `disabled command greys only the label and leaves icon nodes white`() {
         val rows = rows(RuntimeBattleRoute.COMMAND_DISABLED, buttons(disabled = setOf(2)))
 
-        assertEquals("#a0a0a0", colourOf(rows.single { it.contains("button2/Background/Label") }))
-        assertEquals("#000000", colourOf(rows.single { it.contains("button0/Background/Label") }))
+        assertEquals("#93836c", colourOf(rows.single { it.contains("button2/Background/Label") }))
+        assertEquals("#eee2c6", colourOf(rows.single { it.contains("button0/Background/Label") }))
         rows.filter { it.contains("button2/Background/img") }.also { icons ->
-            assertEquals(2, icons.size)
-            icons.forEach { assertEquals("#ffffff", colourOf(it)) }
+            assertEquals(1, icons.size)
+            icons.forEach { assertEquals("#6b737a", colourOf(it)) }
         }
-        assertEquals("#ffffff", colourOf(rows.single { it.contains("button2/Background\",") }))
+        assertEquals("#282219", colourOf(rows.single { it.contains("button2/Background\",") }))
     }
 
     /** 흐림막: 원본 Panel_cancel 노드는 검정이고 투명도만 다르다. 색에 투명도를 섞지 않는다. */

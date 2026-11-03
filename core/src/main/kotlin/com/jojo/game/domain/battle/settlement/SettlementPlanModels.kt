@@ -255,6 +255,24 @@ object SettlementInfoTiming {
     private fun speed(kind: SettlementInfoKind) = if (kind == SettlementInfoKind.HP) 1.5f else 1f
     fun tickSeconds(kind: SettlementInfoKind): Float = .2f / speed(kind)
     fun barTweenSeconds(kind: SettlementInfoKind): Float = 1f / speed(kind)
+
+    fun rowSeconds(kind: SettlementInfoKind, tickCount: Int): Float =
+        if (tickCount == 0) 0f else maxOf(tickCount * tickSeconds(kind), barTweenSeconds(kind))
+
+    fun animationSeconds(deltas: List<SettlementInfoDelta>, grants: List<SettlementGrowthGrant> = emptyList()): Float = maxOf(
+        deltas.maxOfOrNull { rowSeconds(it.kind, it.tickCount) } ?: 0f,
+        grants.maxOfOrNull { grant ->
+            rowSeconds(SettlementInfoKind.MP, kotlin.math.abs(grant.unitResult?.gained ?: grant.equipmentResult?.gained ?: 0).coerceAtMost(5))
+        } ?: 0f,
+    )
+
+    fun presentationSeconds(plan: SettlementUnitPlan, grants: List<SettlementGrowthGrant>): Float = rounded(
+        (if (plan.infoDeltas.isEmpty()) .1f else plan.preInfoDelaySeconds) +
+            animationSeconds(plan.infoDeltas, grants) +
+            (if (plan.infoDeltas.isEmpty()) .3f else plan.infoCloseSeconds)
+    )
+
+    fun rounded(seconds: Float): Float = (kotlin.math.round(seconds.toDouble() * 1000) / 1000).toFloat()
 }
 
 data class SettlementInfoDelta(
@@ -324,10 +342,9 @@ data class SettlementUnitPlan(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val infoBarrierSeconds: Float get() = (
-        kotlin.math.round((preInfoDelaySeconds.toDouble() + infoDeltas.sumOf { it.tickSeconds.toDouble() } + infoCloseSeconds) * 1_000) /
-            1_000.0
-        ).toFloat()
+    val infoBarrierSeconds: Float get() = SettlementInfoTiming.rounded(
+        preInfoDelaySeconds + SettlementInfoTiming.animationSeconds(infoDeltas) + infoCloseSeconds
+    )
 }
 
 /**

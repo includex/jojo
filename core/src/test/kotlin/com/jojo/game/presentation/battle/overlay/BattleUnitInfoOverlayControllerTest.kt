@@ -29,8 +29,10 @@ class BattleUnitInfoOverlayControllerTest {
         val controller = BattleUnitInfoOverlayController()
         controller.open(listOf(unit(10, "관우")), index = 0)
 
-        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(750f, 50f))
-        val result = controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(750f, 50f))
+        val rect=BattleUnitInfoLayout.rates
+        val x=rect.x+rect.width/2;val y=rect.y+rect.height/2
+        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(x,y))
+        val result = controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(x,y))
 
         val jiqi = assertIs<BattleUnitInfoOverlayController.Effect.JiqiOpened>(result.effect)
         assertEquals(8, jiqi.layer.rates.size)

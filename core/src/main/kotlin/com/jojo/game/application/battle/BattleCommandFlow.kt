@@ -62,7 +62,7 @@ class BattleCommandFlow {
      */
 
     enum class Command(val tag: Int) {
-        ATTACK(0), MAGICK(1), PROPERTY(2), SWAP(3), SIEGE(4), WAIT(5), CANCEL(6);
+        ATTACK(0), MAGICK(1), PROPERTY(2), SWAP(3), SIEGE(4), WAIT(5), CANCEL(6), INFO(7);
 
         companion object {
 
@@ -334,7 +334,7 @@ object BattleCommandRenderModel {
      * `PANEL_OPACITY` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
 
-    const val PANEL_OPACITY = 200f / 255f
+    const val PANEL_OPACITY = 1f
     /**
      * `DISMISS_DIM_OPACITY` (상태 값): 현재 객체가 유지하는 구성·진행 상태를 보관한다.
      */
@@ -348,8 +348,8 @@ object BattleCommandRenderModel {
 
     const val PANEL_LEFT = 736f
     const val PANEL_BOTTOM = 96f
-    const val PANEL_WIDTH = 397.2f
-    const val PANEL_HEIGHT = 322.5f
+    const val PANEL_WIDTH = 400f
+    const val PANEL_HEIGHT = 326f
     private const val SOURCE_ADJACENT_OFFSET = 48f
     private const val SOURCE_FLIP_GAP = 96f
 
@@ -358,11 +358,12 @@ object BattleCommandRenderModel {
      * bottom/right edge flips and upper clamp. The result translates authored prefab coordinates.
      */
     fun placementOffset(nodeX: Float, nodeY: Float, viewportWidth: Float, viewportHeight: Float): Pair<Float, Float> {
-        var left = nodeX + SOURCE_ADJACENT_OFFSET
-        var bottom = nodeY + SOURCE_ADJACENT_OFFSET - PANEL_HEIGHT
-        if (bottom < 0f) bottom += PANEL_HEIGHT - SOURCE_FLIP_GAP
-        if (left + PANEL_WIDTH > viewportWidth) left -= PANEL_WIDTH + SOURCE_FLIP_GAP
-        bottom = minOf(bottom, viewportHeight - PANEL_HEIGHT)
+        val margin = 12f
+        val left = (if (nodeX + SOURCE_ADJACENT_OFFSET + PANEL_WIDTH <= viewportWidth - margin)
+            nodeX + SOURCE_ADJACENT_OFFSET else nodeX - SOURCE_ADJACENT_OFFSET - PANEL_WIDTH)
+            .coerceIn(margin, maxOf(margin, viewportWidth - PANEL_WIDTH - margin))
+        val bottom = (nodeY - PANEL_HEIGHT / 2f)
+            .coerceIn(margin, maxOf(margin, viewportHeight - PANEL_HEIGHT - margin))
         return left - PANEL_LEFT to bottom - PANEL_BOTTOM
     }
 
@@ -505,70 +506,22 @@ object BattleCommandRenderModel {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    private fun button(column: Int, row: Int, asset: Int?): ButtonVisual {
+        val x = PANEL_LEFT + 14f + column * 192f
+        val y = PANEL_BOTTOM + PANEL_HEIGHT - 106f - row * 64f
+        return ButtonVisual(x, y, 180f, 54f, x + 50f, y + 27f,
+            asset?.let { listOf(Icon("command$it", x + 12f, y + 13f, 28f, 28f)) }.orEmpty())
+    }
+
+    /** Indexed by stable command tag. Geometry is shared by drawing and pointer input. */
     val visuals: List<ButtonVisual> = listOf(
-        ButtonVisual(
-            743.6f,
-            291.175f,
-            120f,
-            120f,
-            753.6f,
-            334.175f,
-            listOf(Icon("command1", 749.6f, 373.175f, 32f, 32f), Icon("command1", 825.6f, 297.175f, 32f, 32f))
-        ),
-        ButtonVisual(
-            871.6f,
-            291.175f,
-            120f,
-            120f,
-            881.6f,
-            334.175f,
-            listOf(Icon("command2", 875.6f, 375.175f, 32f, 32f), Icon("command2", 953.6f, 297.175f, 32f, 32f))
-        ),
-        ButtonVisual(
-            1000.6f,
-            291.175f,
-            120f,
-            120f,
-            1010.6f,
-            334.175f,
-            listOf(Icon("command3", 1004.6f, 377.175f, 30f, 30f), Icon("command3", 1084.6f, 297.175f, 30f, 30f))
-        ),
-        ButtonVisual(
-            743.6f,
-            165.42f,
-            120f,
-            120f,
-            753.6f,
-            208.42f,
-            listOf(Icon("command5", 747.6f, 253.42f, 32f, 28f), Icon("command5", 825.6f, 171.42f, 32f, 28f))
-        ),
-        ButtonVisual(
-            871.6f,
-            165.42f,
-            120f,
-            120f,
-            881.6f,
-            208.42f,
-            listOf(Icon("command6", 875.6f, 249.42f, 32f, 32f), Icon("command6", 953.6f, 171.42f, 32f, 32f))
-        ),
-        ButtonVisual(
-            1000.6f,
-            165.42f,
-            120f,
-            120f,
-            1010.6f,
-            208.42f,
-            listOf(Icon("command4", 1004.6f, 249.42f, 32f, 32f), Icon("command4", 1082.6f, 171.42f, 32f, 32f))
-        ),
-        ButtonVisual(842.65f, 106.491f, 181.9f, 50f, 883.6f, 114.491f, emptyList()),
+        button(0, 0, 1), button(1, 0, 2),
+        button(0, 1, 3), button(1, 1, 5),
+        button(0, 2, 6), button(1, 2, 4),
+        button(1, 3, null), button(0, 3, null),
     )
 
-    /**
-     * `labels`: 명령 버튼 일곱 개의 문구이며 `visuals`와 같은 순서다.
-     *
-     * 그리기 쪽 `drawBattleCommandLayer`와 증거 쪽 `BattleCommandRenderEventRecorder`가 같은
-     * 목록을 읽는다. 앞서는 두 곳이 문구와 좌표를 각자 적어 두어, 한쪽만 틀려도 게이트가
-     * 초록일 수 있었다.
-     */
-    val labels: List<String> = listOf(SystemMessage.S_2A9C189A93, SystemMessage.S_9D41799D25, SystemMessage.S_B62250FE8D, SystemMessage.S_D7F1F76848, SystemMessage.S_3961E081B0, SystemMessage.S_DF72A8753D, SystemMessage.S_19B2D19BC1)
+    val labels: List<String> = listOf(SystemMessage.S_2A9C189A93, SystemMessage.S_9D41799D25,
+        SystemMessage.S_B62250FE8D, SystemMessage.S_D7F1F76848, SystemMessage.S_3961E081B0,
+        SystemMessage.S_DF72A8753D, SystemMessage.S_19B2D19BC1, "인물 정보")
 }

@@ -45,16 +45,16 @@ class BattleHelperOverlayRenderer(
         drawTiledBackground()
         assets.header?.draw(batch, 147.686f, 715.5f, 1193f, 60f)
         assets.scroll?.draw(batch, 163.686f, 99f, 1161f, 616f)
-        font.color = Color(0.56f, 0f, 0.62f, 1f)
-        font.data.setScale(40f / 26f)
-        font.draw(batch, SystemMessage.S_625FE3A123, 160f, 760f)
-        drawRichText(view.richText, 165.686f, 690f, 1157f)
+        font.color = Color(.36f,.25f,.1f,1f)
+        font.data.setScale(28f / 26f)
+        font.draw(batch, if(view.richText.isBlank()) "도움말" else SystemMessage.S_625FE3A123, 160f, 760f)
+        drawRichText(view.richText.ifBlank { BattleOverlayPaper.HELP_TEXT }, 185.686f, 680f, 1117f)
         batch.end()
 
         batch.begin()
         assets.header?.draw(batch, 1172.451f, 33.187f, 147.6f, 56f)
         font.color = Color.BLACK
-        font.data.setScale(40f / 26f)
+        font.data.setScale(28f / 26f)
         font.draw(batch, view.buttonText, 1204f, 71f)
         font.data.setScale(1f)
         font.color = Color.WHITE
@@ -110,7 +110,7 @@ class BattleHelperOverlayRenderer(
         }
         append(richText.substring(cursor))
 
-        font.data.setScale(40f / 26f)
+        font.data.setScale(28f / 26f)
         /**
          * `lineHeight` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -153,16 +153,6 @@ class BattleHelperOverlayRenderer(
      */
 
     private fun drawTiledBackground() {
-        assets.background?.let { texture ->
-            var y = 24.5f
-            while (y < 775.5f) {
-                var x = 147.686f
-                while (x < 1340.686f) {
-                    batch.draw(texture, x, y, minOf(96f, 1340.686f - x), minOf(96f, 775.5f - y))
-                    x += 96f
-                }
-                y += 96f
-            }
-        }
+        BattleOverlayPaper.frame(batch,147.686f,24.5f,1193f,751f)
     }
 }

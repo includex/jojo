@@ -102,40 +102,20 @@ internal object BattleCommandRenderEventRecorder {
             "명령 색 기록에는 ${BattleCommandRenderModel.visuals.size}개 버튼 상태가 필요하다: ${buttons.size}"
         }
         draw("HallLayer", "Canvas/Layer/Panel_cancel", "sprite", 0f, 0f, 1488.372f, 800f, "default_sprite_splash", 10f / 255f, color = DIM_BLACK)
-        draw("CommandLayer", "Canvas/Layer/bg", "tiled-sprite", 736f, 96f, 397.2f, 322.5f, "Logo_9-1", 200f / 255f)
-        draw("CommandLayer", "Canvas/Layer/bg/box3", "sliced-sprite", 736f, 96f, 397.2f, 322.5f, "box3")
-        // 좌표·문구는 그리기 쪽 `drawBattleCommandLayer`가 읽는 것과 **같은 계약**에서 꺼낸다.
-        // 앞서는 같은 숫자 마흔두 개를 여기에 손으로 옮겨 적어 두었고, 그리기만 틀려도 두 값이
-        // 각자 맞아 게이트가 초록일 수 있었다. 취소(index 6)는 아이콘이 없어 아래에서 따로 적는다.
-        BattleCommandRenderModel.visuals.dropLast(1).forEachIndexed { index, visual ->
-            val button = "Canvas/Layer/bg/button$index/Background"
-            draw("CommandLayer", button, "sliced-sprite", visual.x, visual.y, visual.width, visual.height, "box3")
-            // 원본 CommandLayer.js:60은 비활성 버튼에서만 Label 노드 색을 cc.color(10526880)
-            // = (160,160,160)으로 바꾼다. 아이콘은 노드 색을 그대로 둔 채 회색조 material만
-            // 갈아끼우므로(같은 줄 62) 하네스가 읽는 node.color는 흰색으로 남는다.
-            val labelColor = if (buttons[index].interactable) LABEL_BLACK else DISABLED_LABEL
-            draw(
-                "CommandLayer", "$button/Label", "label", visual.labelX, visual.labelY, 100f, 40f,
-                text = BattleCommandRenderModel.labels[index], color = labelColor,
-            )
-            visual.icons.forEachIndexed { slot, icon ->
-                draw(
-                    "CommandLayer", "$button/img$slot", "sprite",
-                    icon.x, icon.y, icon.width, icon.height, icon.asset,
-                )
+        val model=BattleCommandRenderModel
+        draw("CommandLayer", "Canvas/Layer/bg", "solid", model.PANEL_LEFT, model.PANEL_BOTTOM,
+            model.PANEL_WIDTH, model.PANEL_HEIGHT, color="#21190f")
+        model.visuals.forEachIndexed { tag, visual ->
+            val path="Canvas/Layer/bg/button$tag/Background"
+            draw("CommandLayer",path,"solid",visual.x,visual.y,visual.width,visual.height,
+                color=if(tag==7) "#493b24" else if(buttons[tag].interactable) "#352919" else "#282219")
+            draw("CommandLayer","$path/Label","label",visual.labelX,visual.labelY,124f,30f,
+                text=model.labels[tag],color=if(buttons[tag].interactable) "#eee2c6" else DISABLED_LABEL)
+            visual.icons.forEachIndexed { slot,icon ->
+                draw("CommandLayer","$path/img$slot","sprite",icon.x,icon.y,icon.width,icon.height,icon.asset,
+                    color=if(buttons[tag].interactable) NODE_WHITE else "#6b737a")
             }
         }
-        val cancel = BattleCommandRenderModel.visuals.last()
-        draw(
-            "CommandLayer", "Canvas/Layer/bg/button6/Background", "sliced-sprite",
-            cancel.x, cancel.y, cancel.width, cancel.height, "box3",
-        )
-        // 취소(tag 6)는 원본 루프가 `a < 5`로 건너뛰므로 언제나 활성, 곧 검은 문구다.
-        draw(
-            "CommandLayer", "Canvas/Layer/bg/button6/Background/Label", "label",
-            cancel.labelX, cancel.labelY, 100f, 40f,
-            text = BattleCommandRenderModel.labels.last(), color = LABEL_BLACK,
-        )
     }
 
     /** 전장 흐림막: 원본 Panel_cancel 노드 색은 검정이고 투명도만 10/40으로 달라진다. */
@@ -145,9 +125,7 @@ internal object BattleCommandRenderEventRecorder {
     internal const val LABEL_BLACK = "#000000"
 
     /** 비활성 문구 색: 그리기 코드와 같은 `DISABLED_COMPONENT`에서 뽑아 두 값이 갈라지지 않게 한다. */
-    internal val DISABLED_LABEL: String =
-        "#" + ((BattleCommandRenderModel.DISABLED_COMPONENT * 255f).roundToInt()
-            .coerceIn(0, 255).toString(16).padStart(2, '0')).repeat(3)
+    internal const val DISABLED_LABEL: String = "#93836c"
 
     /** 기본 노드 색: 나머지 노드는 prefab이 `_color`를 주지 않아 엔진 기본 흰색이다. */
     internal const val NODE_WHITE = "#ffffff"

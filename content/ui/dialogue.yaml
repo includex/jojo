@@ -9,10 +9,46 @@
 version: 1
 profiles:
   scenario:
-    layout: {}
-    bodyFont: {}
-    speakerFont: {}
-    background: {}
+    followSpeaker: false
+    legacyRaster: false
+    layout:
+      panelLeftX: 34.4
+      panelRightX: 34.4
+      panelY: 27.52
+      topOffsetY: 0
+      panelWidth: 1210.88
+      panelHeight: 209.84
+      portraitLeftX: 53.32
+      portraitRightX: 53.32
+      portraitOffsetY: 15.48
+      portraitWidth: 178.88
+      portraitHeight: 178.88
+      speakerLeftX: 256.28
+      speakerRightX: 256.28
+      speakerOffsetY: 185.76
+      textLeftX: 256.28
+      textRightX: 256.28
+      textOffsetY: 141.04
+      textWidth: 959.76
+    bodyFont:
+      size: 32
+      scaleX: 0.86
+      scaleY: 0.86
+      color: "#211B17FF"
+      borderWidth: 0
+    speakerFont:
+      size: 34
+      bold: true
+      scaleX: 0.86
+      scaleY: 0.86
+      color: "#723F25FF"
+      borderWidth: 0
+    background:
+      fillColor: "#E4CFABFF"
+      leftImage: maps/ui/unit-info/box3.png
+      rightImage: maps/ui/unit-info/box3.png
+      tint: "#B99B61FF"
+      ninePatch: { enabled: true, left: 5, right: 5, top: 5, bottom: 5 }
   battle:
     # Battle canvas uses the native 1488.372 x 800 source coordinates.
     # Identical left/right positions keep narration and character lines stable.
@@ -50,7 +86,11 @@ profiles:
       color: "#723F25FF"
       borderWidth: 0
     background:
-      fillColor: "#E4CFABFA"
+      fillColor: "#E4CFABFF"
+      leftImage: maps/ui/unit-info/box3.png
+      rightImage: maps/ui/unit-info/box3.png
+      tint: "#B99B61FF"
+      ninePatch: { enabled: true, left: 5, right: 5, top: 5, bottom: 5 }
 # background example:
 #   leftImage: ui/custom-left.png
 #   rightImage: ui/custom-right.png

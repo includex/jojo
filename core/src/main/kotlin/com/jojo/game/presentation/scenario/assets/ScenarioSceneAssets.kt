@@ -21,7 +21,11 @@ internal class ScenarioSceneAssets(
     private val requiredGlyphsProvider: () -> String,
 ) {
     /** 장면별로 필요한 문자만 포함해 글꼴 생성 비용을 줄이는 글리프 집합이다. */
-    private val requiredGlyphs by lazy(requiredGlyphsProvider)
+    private val requiredGlyphs by lazy {
+        requiredGlyphsProvider() + com.jojo.game.presentation.i18n.SystemMessage.Key.entries.joinToString("") {
+            com.jojo.game.presentation.i18n.SystemMessage.text(it)
+        } + com.jojo.game.presentation.battle.overlay.BattleOverlayPaper.UI_GLYPHS
+    }
     private val streetBodyLabels = StreetBodyLabels()
     fun bodyLabels(text: String) = streetBodyLabels.get(text)
     private val streetSpeakerLabels = StreetSpeakerLabels()

@@ -81,20 +81,23 @@ class BattleSaveLoadOverlayRenderer(
         drawTiledBackground(x, y, w, h)
         assets.panel?.draw(batch, 287f, 173f, 912f, 428f)
         font.color = Color.BLACK
-        font.data.setScale(40f / 26f)
+        font.data.setScale(30f / 26f)
         font.draw(batch, SystemMessage.S_158191141D, 288f, 703f)
         font.draw(batch, SystemMessage.S_591250DCC4, 288f, 651f)
+        font.data.setScale(1f)
         drawRows(view.rows, view.firstRow, 8, y + 505f)
-        font.draw(batch, SystemMessage.S_E1864601EE, 130f, 143f)
+        drawText(SystemMessage.S_E1864601EE,296f,144f,720f)
         assets.panel?.draw(batch, 1046f, 104f, 148f, 56f)
         font.draw(batch, SystemMessage.S_19B2D19BC1, 1080f, 132f)
         if (view.pendingSave) {
-            font.draw(batch, view.saveConfirmation ?: SystemMessage.S_DDA4595886, 500f, 430f)
+            drawConfirmationPanel()
+            drawPrompt(view.saveConfirmation ?: SystemMessage.S_DDA4595886)
             font.draw(batch, SystemMessage.S_1F1712ACFF, 620f, 320f)
             font.draw(batch, SystemMessage.S_2DD57A2739, 820f, 320f)
         }
         if (view.saveCompletionTip) {
-            font.draw(batch, SystemMessage.S_5AB5BF64DD, 680f, 430f)
+            drawConfirmationPanel()
+            drawPrompt(SystemMessage.S_5AB5BF64DD)
             font.draw(batch, SystemMessage.S_468266D639, 620f, 320f)
         }
     }
@@ -112,9 +115,10 @@ class BattleSaveLoadOverlayRenderer(
         drawTiledBackground(x, y, w, h)
         assets.panel?.draw(batch, 287f, 174f, 912f, 428f)
         font.color = Color.BLACK
-        font.data.setScale(40f / 26f)
+        font.data.setScale(30f / 26f)
         font.draw(batch, SystemMessage.S_8FB0968760, 288f, 688f)
         font.draw(batch, SystemMessage.S_B53B4895CF, 288f, 640f)
+        font.data.setScale(1f)
         drawRows(view.rows, view.firstRow, 8, 574f)
         assets.panel?.draw(batch, 1051f, 110f, 148f, 60f)
         font.draw(batch, SystemMessage.S_19B2D19BC1, 1082f, 148f)
@@ -123,8 +127,9 @@ class BattleSaveLoadOverlayRenderer(
             font.draw(batch, it, 500f, 240f)
         }
         view.loadConfirmation?.let {
+            drawConfirmationPanel()
             font.color = Color.BLACK
-            font.draw(batch, it, 500f, 430f)
+            drawPrompt(it)
             font.draw(batch, SystemMessage.S_F01A5A5229, 590f, 320f)
             font.draw(batch, SystemMessage.S_19B2D19BC1, 820f, 320f)
         }
@@ -140,9 +145,9 @@ class BattleSaveLoadOverlayRenderer(
             val rowY = firstBaseline - index * 52f
             (if (index % 2 == 0) assets.rowEven else assets.rowOdd)?.draw(batch, 289f, rowY - 42f, 908f, 52f)
             font.color = Color.BLACK
-            font.draw(batch, row.number, 295f, rowY)
-            font.draw(batch, row.stage, 478f, rowY)
-            font.draw(batch, row.name, 578f, rowY)
+            drawText(row.number, 308f, rowY, 130f)
+            drawText(row.stage, 470f, rowY, 290f)
+            drawText(row.name, 786f, rowY, 385f)
         }
     }
 
@@ -151,17 +156,27 @@ class BattleSaveLoadOverlayRenderer(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun drawTiledBackground(x: Float, y: Float, width: Float, height: Float) {
-        assets.background?.let { texture ->
-            var ty = y
-            while (ty < y + height) {
-                var tx = x
-                while (tx < x + width) {
-                    batch.draw(texture, tx, ty, minOf(96f, x + width - tx), minOf(96f, y + height - ty))
-                    tx += 96f
-                }
-                ty += 96f
-            }
+    private fun drawText(text:String,x:Float,y:Float,width:Float) {
+        val layout=com.badlogic.gdx.graphics.g2d.GlyphLayout()
+        layout.setText(font,text,0,text.length,font.color,width,com.badlogic.gdx.utils.Align.left,false,"…")
+        font.draw(batch,layout,x,y)
+    }
+    private fun drawPrompt(text:String) {
+        val layout=com.badlogic.gdx.graphics.g2d.GlyphLayout()
+        var value=text
+        layout.setText(font,value,font.color,570f,com.badlogic.gdx.utils.Align.center,true)
+        while(layout.height>font.lineHeight*3 && value.isNotEmpty()) {
+            value=value.dropLast(1)
+            layout.setText(font,value+"…",font.color,570f,com.badlogic.gdx.utils.Align.center,true)
         }
+        font.draw(batch,layout,460f,450f)
+    }
+    private fun drawConfirmationPanel() {
+        drawTiledBackground(430f,260f,640f,240f)
+        assets.panel?.draw(batch,430f,260f,640f,240f)
+    }
+
+    private fun drawTiledBackground(x: Float,y: Float,width: Float,height: Float) {
+        BattleOverlayPaper.frame(batch,x,y,width,height)
     }
 }

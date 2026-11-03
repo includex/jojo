@@ -46,12 +46,11 @@ class BattleSettingsOverlayRenderer(
         drawTiledBackground()
         assets.panel?.draw(batch, 204f, 110f, 1081f, 596f)
         assets.panel?.draw(batch, 793f, 520f, 480f, 100f)
-        assets.panel?.draw(batch, 793f, 388f, 480f, 100f)
         assets.panel?.draw(batch, 793f, 256f, 480f, 100f)
-        assets.panel?.draw(batch, 793f, 81f, 480f, 142f)
+        BattleOverlayPaper.frame(batch,793f,120f,480f,103f)
 
         font.color = Color.BLACK
-        font.data.setScale(40f / 26f)
+        font.data.setScale(1f)
         font.draw(batch, SystemMessage.S_B6D9331463, 201f, 748f)
         font.draw(batch, SystemMessage.S_8277D3ABFB, 205f, 690f)
         val options = listOf(
@@ -63,29 +62,31 @@ class BattleSettingsOverlayRenderer(
         )
         options.forEachIndexed { index, (label, bit) ->
             val enabled = view.flags and (1 shl bit) != 0
-            font.color = if (enabled) Color(0.1f, .85f, .2f, 1f) else Color.DARK_GRAY
-            font.draw(batch, if (enabled) "✓" else "■", 224f, 643f - index * 65f)
+            font.color = if (enabled) Color(.28f,.42f,.29f,1f) else Color.DARK_GRAY
+            val boxY=621f-index*65f
+            BattleOverlayPaper.frame(batch,224f,boxY,24f,24f)
+            if(enabled) {
+                BattleOverlayPaper.line(batch,229f,boxY+12f,234f,boxY+6f,Color(.28f,.42f,.29f,1f))
+                BattleOverlayPaper.line(batch,234f,boxY+6f,244f,boxY+20f,Color(.28f,.42f,.29f,1f))
+            }
             font.color = Color.BLACK
             font.draw(batch, label, 261f, 643f - index * 65f)
         }
         drawRadios(SystemMessage.S_0BF12D107C, listOf(SystemMessage.S_D7A0CB68D6, SystemMessage.S_C7E54FE959, SystemMessage.S_F8FC3619DB), view.msgSpeed, 574f)
         drawRadios(SystemMessage.S_B80EE3CF4F, listOf(SystemMessage.S_744C6C3F65, SystemMessage.S_2179DA2CFF, SystemMessage.S_3EA27A4D42), view.notifyLevel, 310f)
         font.color = Color.BLACK
-        font.draw(batch, SystemMessage.S_09584A936A, 846f, 198f)
+        font.draw(batch, SystemMessage.S_09584A936A, 816f, 211f)
         val swatchColors = listOf(
             Color(1f, 1f, 1f, 1f), Color(.85f, .85f, .85f, 1f),
             Color(.73f, .73f, .78f, 1f), Color(.88f, .84f, .72f, 1f),
         )
         swatchColors.forEachIndexed { index, tint ->
             val x = 816f + index * 105f
-            assets.panel?.draw(batch, x, 91f, 96f, 72f)
-            assets.background?.let {
-                batch.color = tint
-                batch.draw(it, x + 5f, 96f, 86f, 62f)
-                batch.color = Color.WHITE
+            BattleOverlayPaper.frame(batch,x,130f,96f,48f,tint)
+            if(view.background==index) {
+                BattleOverlayPaper.frame(batch,x-3f,127f,102f,54f,Color(.58f,.43f,.2f,1f))
+                BattleOverlayPaper.fill(batch,x+3f,133f,90f,42f,tint)
             }
-            font.color = if (view.background == index) Color(.08f, .45f, .95f, 1f) else Color.DARK_GRAY
-            font.draw(batch, if (view.background == index) "●" else "○", x + 36f, 108f)
         }
         assets.panel?.draw(batch, 1130f, 47f, 156f, 56f)
         font.color = Color.BLACK
@@ -106,7 +107,7 @@ class BattleSettingsOverlayRenderer(
         font.draw(batch, title, 822f, baseY + 45f)
         labels.forEachIndexed { index, label ->
             val active = selected == index
-            font.color = if (active) Color(0.05f, .48f, .94f, 1f) else Color.DARK_GRAY
+            font.color = if (active) Color(.48f,.33f,.12f,1f) else Color.DARK_GRAY
             font.draw(batch, if (active) "●" else "○", 816f + index * 145f, baseY)
             font.color = Color.BLACK
             font.draw(batch, label, 846f + index * 145f, baseY)
@@ -119,16 +120,6 @@ class BattleSettingsOverlayRenderer(
      */
 
     private fun drawTiledBackground() {
-        assets.background?.let { texture ->
-            var y = 41f
-            while (y < 759f) {
-                var x = 196f
-                while (x < 1293f) {
-                    batch.draw(texture, x, y, minOf(96f, 1293f - x), minOf(96f, 759f - y))
-                    x += 96f
-                }
-                y += 96f
-            }
-        }
+        BattleOverlayPaper.frame(batch,196f,41f,1097f,718f)
     }
 }

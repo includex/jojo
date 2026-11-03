@@ -60,7 +60,7 @@ class BattleCommandFlowTest {
         flow.movementCompleted(after, BattleCommandFlow.ATTACK_BIT or BattleCommandFlow.PROPERTY_BIT)
 
         val buttons = flow.view()
-        assertEquals(7, buttons.size)
+        assertEquals(8, buttons.size)
         assertTrue(buttons[0].interactable)
         assertFalse(buttons[1].interactable)
         assertTrue(buttons[2].interactable)
@@ -138,28 +138,38 @@ class BattleCommandFlowTest {
     }
 
     @Test
-    fun `command renderer preserves authored dual icons and trimmed source extents`() {
-        assertEquals(200f / 255f, BattleCommandRenderModel.PANEL_OPACITY)
-        assertEquals(10f / 255f, BattleCommandRenderModel.DISMISS_DIM_OPACITY)
-        assertEquals(160f / 255f, BattleCommandRenderModel.DISABLED_COMPONENT)
-
-        val attack = BattleCommandRenderModel.visuals[0]
-        assertEquals(listOf("command1", "command1"), attack.icons.map { it.asset })
-        assertEquals(749.6f, attack.icons[0].x)
-        assertEquals(825.6f, attack.icons[1].x)
-
-        val item = BattleCommandRenderModel.visuals[2]
-        assertEquals(listOf(30f, 30f), item.icons.map { it.width })
-        val swap = BattleCommandRenderModel.visuals[3]
-        assertEquals(listOf(28f, 28f), swap.icons.map { it.height })
-        assertTrue(BattleCommandRenderModel.visuals[6].icons.isEmpty())
+    fun `command cards have one bounded icon and distinct info hit target`() {
+        assertEquals(8, BattleCommandRenderModel.visuals.size)
+        BattleCommandRenderModel.visuals.forEachIndexed { tag, visual ->
+            assertTrue(visual.icons.size <= 1)
+            visual.icons.forEach { icon ->
+                assertTrue(icon.x >= visual.x && icon.x + icon.width < visual.labelX)
+                assertTrue(icon.y >= visual.y && icon.y + icon.height <= visual.y + visual.height)
+            }
+            val center=BattleCommandRenderModel.buttonCenter(tag,0f to 0f)
+            assertEquals(tag,BattleCommandRenderModel.tagAt(center.first,center.second))
+        }
     }
     @Test
-    fun `command panel placement follows source edge flips and upper clamp`() {
-        assertEquals(112f to 29.5f, BattleCommandRenderModel.placementOffset(800f, 400f, 1488.372f, 800f))
-        assertEquals(268.8f, BattleCommandRenderModel.placementOffset(1450f, 400f, 1488.372f, 800f).first, .0001f)
-        assertEquals(-112f, BattleCommandRenderModel.placementOffset(800f, 32f, 1488.372f, 800f).second, .0001f)
-        assertEquals(381.5f, BattleCommandRenderModel.placementOffset(800f, 780f, 1488.372f, 800f).second, .0001f)
+    fun `command panel stays inside viewport at each corner`() {
+        for (x in listOf(0f,1488f)) for(y in listOf(0f,800f)) {
+            val offset=BattleCommandRenderModel.placementOffset(x,y,1488f,800f)
+            val left=BattleCommandRenderModel.PANEL_LEFT+offset.first
+            val bottom=BattleCommandRenderModel.PANEL_BOTTOM+offset.second
+            assertTrue(left>=0f && bottom>=0f)
+            assertTrue(left+BattleCommandRenderModel.PANEL_WIDTH<=1488f)
+            assertTrue(bottom+BattleCommandRenderModel.PANEL_HEIGHT<=800f)
+        }
+    }
+    @Test
+    fun `viewing info preserves pending move and returns to command`() {
+        val flow=BattleCommandFlow()
+        flow.beginMove("lin",before)
+        flow.movementCompleted(after,0)
+        assertEquals(BattleCommandFlow.Result.OpenChild(BattleCommandFlow.Command.INFO),flow.touch(7,BattleCommandFlow.TOUCH_END))
+        flow.childCancelled()
+        assertEquals(BattleCommandFlow.Phase.COMMAND,flow.phase)
+        assertEquals(before,assertIs<BattleCommandFlow.Result.Rollback>(flow.touch(6,BattleCommandFlow.TOUCH_END)).pose)
     }
 
     @Test
@@ -171,18 +181,6 @@ class BattleCommandFlowTest {
         assertEquals(0, BattleCommandRenderModel.tagAt(attack.first, attack.second, offset))
         assertEquals(5, BattleCommandRenderModel.tagAt(wait.first, wait.second, offset))
         assertNull(BattleCommandRenderModel.tagAt(attack.first, attack.second))
-    }
-
-    @Test
-    fun `Yingchuan command matches observed source panel and attack button`() {
-        // Actual CommandLayer after character 0 moves to (11,5): unit world center (1104,656).
-        val offset = BattleCommandRenderModel.placementOffset(1104f, 656f, 1488.372f, 800f)
-        assertEquals(658.8f, BattleCommandRenderModel.PANEL_LEFT + offset.first, .001f)
-        assertEquals(381.5f, BattleCommandRenderModel.PANEL_BOTTOM + offset.second, .001f)
-        val attack = BattleCommandRenderModel.buttonCenter(0, offset)
-        assertEquals(726.4f, attack.first, .001f)
-        assertEquals(636.675f, attack.second, .001f)
-        assertEquals(0, BattleCommandRenderModel.tagAt(attack.first, attack.second, offset))
     }
 
 }

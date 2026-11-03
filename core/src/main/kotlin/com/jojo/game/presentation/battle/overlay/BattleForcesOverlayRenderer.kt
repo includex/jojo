@@ -49,7 +49,7 @@ class BattleForcesOverlayRenderer(
         val y = 79.5f
         val w = 1157f
         val h = 641f
-        val scale = 40f / 26f
+        val scale = 1f
         val offsets = listOf(25f, 160f, 325f, 405f, 555f, 665f, 760f, 855f, 950f, 1045f)
         batch.begin()
         batch.color = Color.WHITE
@@ -58,7 +58,7 @@ class BattleForcesOverlayRenderer(
         font.color = Color.BLACK
         font.data.setScale(scale)
         font.draw(batch, SystemMessage.S_8767F1CDA5, x + 455f, 706f)
-        listOf(SystemMessage.S_CAA3F84FF8, SystemMessage.S_F407A5EA8C, SystemMessage.S_453D0D2DF5, SystemMessage.S_A45EA58EBC, SystemMessage.S_A45EA58EBC, SystemMessage.S_2A9C189A93, SystemMessage.S_2A87C14E4A, SystemMessage.S_C90D66734C, SystemMessage.S_AF51A96858, SystemMessage.S_C91E618B9A)
+        listOf("이름","병종","레벨","체력","기력","공격","방어","정신","순발력","사기")
             .forEachIndexed { index, label -> font.draw(batch, label, x + offsets[index], 646f) }
         listOf(130f, 285f, 390f, 540f, 645f, 745f, 840f, 935f, 1030f)
             .forEach { assets.verticalLine?.draw(batch, x + it, 139.5f, 6f, 527f) }
@@ -68,14 +68,14 @@ class BattleForcesOverlayRenderer(
             font.color = Color.BLACK
             font.data.setScale(scale)
             row.values.take(offsets.size).forEachIndexed { column, value ->
-                font.draw(batch, value, x + offsets[column], rowY + 10f)
+                drawCell(value,x+offsets[column],rowY+10f,if(column+1<offsets.size) offsets[column+1]-offsets[column]-12f else 90f)
             }
         }
         if (view.tabsVisible) {
-            font.data.setScale(.7f)
-            font.color = if (view.selectedTab == 0) Color(0.05f, .48f, .94f, 1f) else Color.DARK_GRAY
+            font.data.setScale(.9f)
+            font.color = if (view.selectedTab == 0) Color(.28f,.42f,.29f,1f) else Color.DARK_GRAY
             font.draw(batch, if (view.selectedTab == 0) SystemMessage.S_C66E599032 else SystemMessage.S_1FC67EAEB1, x + 72f, y + 28f)
-            font.color = if (view.selectedTab == 1) Color(0.05f, .48f, .94f, 1f) else Color.DARK_GRAY
+            font.color = if (view.selectedTab == 1) Color(.28f,.42f,.29f,1f) else Color.DARK_GRAY
             font.draw(batch, if (view.selectedTab == 1) SystemMessage.S_AC5814F977 else SystemMessage.S_AB9FC6A986, x + 220f, y + 28f)
         }
         assets.panel?.draw(batch, x + w - 185f, y + 10f, 170f, 55f)
@@ -91,17 +91,13 @@ class BattleForcesOverlayRenderer(
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
-    private fun drawTiledBackground(x: Float, y: Float, width: Float, height: Float) {
-        assets.background?.let { texture ->
-            var ty = y
-            while (ty < y + height) {
-                var tx = x
-                while (tx < x + width) {
-                    batch.draw(texture, tx, ty, minOf(96f, x + width - tx), minOf(96f, y + height - ty))
-                    tx += 96f
-                }
-                ty += 96f
-            }
-        }
+    private fun drawCell(text:String,x:Float,y:Float,width:Float) {
+        val layout=com.badlogic.gdx.graphics.g2d.GlyphLayout()
+        layout.setText(font,text,0,text.length,font.color,width,com.badlogic.gdx.utils.Align.left,false,"…")
+        font.draw(batch,layout,x,y)
+    }
+
+    private fun drawTiledBackground(x: Float,y: Float,width: Float,height: Float) {
+        BattleOverlayPaper.frame(batch,x,y,width,height)
     }
 }

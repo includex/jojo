@@ -197,6 +197,13 @@ internal class HallInformationCoordinator(
                 battle?.maxMagicPoints ?: unit.maxMagicPoints, battle?.maxMagicPoints ?: unit.maxMagicPoints,
                 battle?.attack ?: unit.attack, battle?.defense ?: unit.defense, battle?.spirit ?: unit.spirit,
                 battle?.critical ?: unit.critical, battle?.morale ?: unit.morale,
+                unitIntro=catalog.unitIntro(id),
+                skillIntro=catalog.skillIntro(id,campaign.unitAttribute(id,17,unit.posts),campaign,mode=3),
+                equipment=campaign.inventory.equipmentFor(id)?.let { equipment ->
+                    listOf(equipment.weapon,equipment.armor,equipment.auxiliary).map { item ->
+                        catalog.equipmentProfile(item)?.let { UnitInfoLayer.Equipment(it.name) }
+                    }
+                } ?: listOf(null,null,null),
             )
         }
         if (rows.isEmpty()) return
@@ -211,11 +218,13 @@ internal class HallInformationCoordinator(
 
     fun handleUnitInfoTap(x: Float, y: Float): UiSound? {
         val layer = unitInfoLayer ?: return null
-        // 원본 `UnitInfoLayer`는 단추가 깃발 1, 뒤쪽 막이 깃발 2다.
-        val sound = when (overlayInput.unitInfoTap(x, y)) {
-            HallLayerTapIntent.PRIMARY -> { openFeatsFromUnitInfo(); UiSound.CLICK }
-            HallLayerTapIntent.CLOSE -> { layer.onCancel(UnitInfoLayer.TOUCH_END); UiSound.CANCEL }
-            else -> null
+        val button=com.jojo.game.presentation.battle.overlay.BattleUnitInfoLayout.buttonAt(x*1488.3721f/1280f,y*800f/688f)
+        val sound=when(button) {
+            9 -> { openFeatsFromUnitInfo(); UiSound.CLICK }
+            null -> null
+            else -> if(layer.onButton(button,UnitInfoLayer.TOUCH_END)) {
+                if(button==7) UiSound.CANCEL else UiSound.CLICK
+            } else null
         }
         if (!layer.ref().attached) unitInfoLayer = null
         return sound

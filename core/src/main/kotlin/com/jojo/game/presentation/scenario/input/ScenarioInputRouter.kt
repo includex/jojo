@@ -124,7 +124,7 @@ object ScenarioInputRouter {
      */
 
     fun hallTouch(state: HallState, x: Float, y: Float): Touch {
-        if (!state.completeMenu) return Touch.None
+        if (!state.completeMenu && !state.unitInfo) return Touch.None
         when {
             state.feats -> return Touch.Hall(HallLayer.FEATS)
             state.unitInfo -> return Touch.Hall(HallLayer.UNIT_INFO)
