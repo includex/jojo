@@ -475,7 +475,8 @@
     "S_CE49DECB68": "효과",
     "S_8F62514DB8": "효과음 듣기",
     "S_DF988D7025": "효능: ",
-    "S_887F182653": "흐림"
+    "S_887F182653": "흐림",
+    "CONFIRM_NO": "아니요"
   },
   "en": {
     "ITEM_PURCHASE": "Purchase {0}",
@@ -567,6 +568,7 @@
     "S_80A04709E3": "Current Turn:",
     "S_487C122B9A": "Edit Battlefield",
     "S_D58FA73ADC": "None",
-    "S_DAA1EDD590": "Undiscovered"
+    "S_DAA1EDD590": "Undiscovered",
+    "CONFIRM_NO": "No"
   }
 }

@@ -257,7 +257,7 @@ internal class ScenarioChoiceCoordinator(
         frame: ScriptFrame,
         moduleName: String,
     ) {
-        currentChoice = Choice(listOf(SystemMessage.S_A842629AFD, SystemMessage.S_D3B0E1A367), null)
+        currentChoice = Choice(listOf(SystemMessage.S_A842629AFD, SystemMessage.CONFIRM_NO), null)
         selectedChoice = 0
         isAskChoice = true
         setChoiceSource(ask, frame, moduleName)

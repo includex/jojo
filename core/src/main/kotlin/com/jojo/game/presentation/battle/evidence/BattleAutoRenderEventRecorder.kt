@@ -59,12 +59,12 @@ internal object BattleAutoRenderEventRecorder {
         )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/button1/Background", "sliced-sprite", 674.536f, 270.197f, 150f, 50f, "box3")
         draw(
-            "MsgBox4", "Canvas/Layer/bg0/btns/button1/Background/Label", "label", 699.536f, 278.042f, 100f, 40f,
-            text = "비", color = NO_RED, outline = NO_OUTLINE_PINK,
+            "MsgBox4", "Canvas/Layer/bg0/btns/button1/Background/Label", "label", 674.536f, 278.042f, 150f, 40f,
+            text = "아니요", color = NO_RED, outline = NO_OUTLINE_PINK,
         )
         draw("MsgBox4", "Canvas/Layer/bg0/btns/button0/Background", "sliced-sprite", 844.536f, 270.197f, 150f, 50f, "box3")
         draw(
-            "MsgBox4", "Canvas/Layer/bg0/btns/button0/Background/Label", "label", 869.536f, 278.042f, 100f, 40f,
+            "MsgBox4", "Canvas/Layer/bg0/btns/button0/Background/Label", "label", 844.536f, 278.042f, 150f, 40f,
             text = "예", color = YES_GREEN, outline = YES_OUTLINE_MINT,
         )
     }

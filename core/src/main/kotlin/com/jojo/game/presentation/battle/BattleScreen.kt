@@ -228,7 +228,7 @@ class BattleScreen(
         borderColor = Color(91f / 255f, 222f / 255f, 1f, 1f), fillColor = Color(0f, 4f / 255f, 196f / 255f, 1f),
     )
     private val plainMsgBoxNoFont = KoreanFont.create(
-        40, SystemMessage.S_D3B0E1A367, borderWidth = 2f, borderColor = Color(1f, 171f / 255f, 171f / 255f, 1f), fillColor = Color.RED,
+        40, SystemMessage.CONFIRM_NO, borderWidth = 2f, borderColor = Color(1f, 171f / 255f, 171f / 255f, 1f), fillColor = Color.RED,
     )
     private val plainMsgBoxYesFont = KoreanFont.create(
         40, SystemMessage.S_A842629AFD, borderWidth = 2f, borderColor = Color(121f / 255f, 214f / 255f, 78f / 255f, 1f), fillColor = Color(10f / 255f, 105f / 255f, 0f, 1f),

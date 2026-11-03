@@ -24,7 +24,7 @@ internal object HallEquipOverlayRenderer {
         draw.text(SystemMessage.S_468266D639, x, y + height - 11f, width, centered = true)
         draw.text(SystemMessage.S_A9A59D5FE3, x + 14f, y + 86f, width - 28f, centered = true)
         draw.button(SystemMessage.S_A842629AFD, x + 18f, y + 16f, 184f, 43f, 31f)
-        draw.button(SystemMessage.S_D3B0E1A367, x + 236f, y + 16f, 184f, 43f, 31f)
+        draw.button(SystemMessage.CONFIRM_NO, x + 236f, y + 16f, 184f, 43f, 31f)
         draw.resetColor()
     }
 }

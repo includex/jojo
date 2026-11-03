@@ -138,7 +138,7 @@ internal object HallItemRenderer {
             rect(view.buttonTexture, 426.686f, 252f, 635f, 296f)
             label(SystemMessage.format(SystemMessage.Key.ITEM_DROP_CONFIRM, view.itemName), 573.686f, 335f, 463f)
             rect(view.buttonTexture, 554.186f, 271.285f, 180f, 50f)
-            label(SystemMessage.S_D3B0E1A367, 557.336f, 279.085f, 168.1f, true)
+            label(SystemMessage.CONFIRM_NO, 557.336f, 279.085f, 168.1f, true)
             rect(view.buttonTexture, 754.186f, 271.285f, 180f, 50f)
             label(SystemMessage.S_A842629AFD, 757.586f, 279.085f, 169.4f, true)
         }

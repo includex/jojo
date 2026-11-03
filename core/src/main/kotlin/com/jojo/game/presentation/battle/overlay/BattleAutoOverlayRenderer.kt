@@ -130,9 +130,9 @@ class BattleAutoOverlayRenderer(
         // tuoguan/label 노드 (567.257, 267.997) 73.2×54.4; 단추 Label 노드 (699.536/869.536, 278.042) 100×40.
         val toggleFont = fonts?.toggle ?: labelFont
         toggleFont.draw(batch, SystemMessage.S_3DD968413B, 567.257f, 267.997f + 27.2f + toggleFont.capHeight / 2f, 73.2f, Align.center, false)
-        listOf(Triple(674.536f, SystemMessage.S_D3B0E1A367, fonts?.no ?: labelFont), Triple(844.536f, SystemMessage.S_A842629AFD, fonts?.yes ?: labelFont)).forEach { (x, label, font) ->
+        listOf(Triple(674.536f, SystemMessage.CONFIRM_NO, fonts?.no ?: labelFont), Triple(844.536f, SystemMessage.S_A842629AFD, fonts?.yes ?: labelFont)).forEach { (x, label, font) ->
             batch.draw(assets.unitInfoBox, x, 270.197f, 150f, 50f)
-            font.draw(batch, label, x + 25f, 278.042f + 20f + font.capHeight / 2f, 100f, Align.center, false)
+            font.draw(batch, label, x, 278.042f + 20f + font.capHeight / 2f, 150f, Align.center, false)
         }
     }
 
@@ -155,7 +155,7 @@ class BattleAutoOverlayRenderer(
         )
         fonts.message.draw(batch, message, 573.686f, 335f + 95f + layout.height / 2f, 463f, Align.left, true)
         listOf(
-            Triple(554.186f, SystemMessage.S_D3B0E1A367, fonts.no),
+            Triple(554.186f, SystemMessage.CONFIRM_NO, fonts.no),
             Triple(754.186f, SystemMessage.S_A842629AFD, fonts.yes),
         ).forEach { (x, label, font) ->
             assets.plainBox?.draw(batch, x, 271.285f, 180f, 50f)

@@ -6,12 +6,15 @@ import com.jojo.game.infrastructure.data.ReviewedKoreanText
 
 /** Central catalog for statically authored system and UI messages. */
 object SystemMessage {
+    val CONFIRM_NO: String get() = text(Key.CONFIRM_NO)
+
     enum class Language { KOREAN, ENGLISH }
 
     @Volatile
     var language: Language = Language.KOREAN
 
     enum class Key {
+        CONFIRM_NO,
         ITEM_PURCHASE,
         ITEM_SALE,
         ITEM_DISCARDED,

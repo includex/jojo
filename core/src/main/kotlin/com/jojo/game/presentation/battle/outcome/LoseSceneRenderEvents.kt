@@ -11,7 +11,7 @@ object LoseSceneRenderEvents {
      */
 
     const val PHASE = "battle-lose-restart-prompt"
-    const val NO_LABEL = "비"
+    const val NO_LABEL = "아니요"
     const val YES_LABEL = "예"
     const val WHITE_HEX = "#ffffff"
     const val PROMPT_HEX = "#0004c4"
