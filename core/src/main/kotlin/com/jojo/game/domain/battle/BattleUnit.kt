@@ -88,6 +88,8 @@ data class BattleUnit(
     var direction: Int = 2,
     /** characterId: 원본 캐릭터 데이터와 연결하는 인물 식별자이다. */
     val characterId: Int? = null,
+    /** Sprite atlas override authored for this battle instance only. */
+    val avatarId: Int? = null,
     /** famous: 이름 있는 주요 인물인지 나타내며, 표현과 시나리오 규칙에 사용한다. */
     val famous: Boolean = false,
     /** hasAuthoredTileX: 원본 시나리오가 X 좌표를 명시했는지 나타낸다. */

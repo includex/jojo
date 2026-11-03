@@ -6,7 +6,7 @@
     "tokens.png": "2bb5943a41fa619fb8f6688d5e54bebe1c18bc31c4c9304067b48360f3e8ebd3",
     "portraits.png": "97264a8692c0083b5edbc06b05b9fcb5e820d5c8856f656eb03823a3648a828c",
     "portraits-support.png": "f94686416d591fb152f917bf136320d3a36c0e98afbba9d33f97bfc6045d6c7e",
-    "release-sprites/selection.json": "8d7dc282d174d5a28b61f5fb46f784d1693237db5562f4368646b2af630ea461",
+    "release-sprites/selection.json": "b3987b45144eeb2671675748e50cd84c54dad34463bb864e0f1022d5870e1fe0",
     "release-sprites/atk/set_5fa8a797cabdb3c647e7.png": "f3a0d9f5089ac16b5c864063b2f8ebc8537722bc6b05b4af93f0aa3215ea8934",
     "release-sprites/mov/set_5fa8a797cabdb3c647e7.png": "835a0643054abb81919cd0c4d4b80ace84c9157a5d87b69cc95a64b3bb30ee14",
     "release-sprites/spc/set_5fa8a797cabdb3c647e7.png": "75de5d9fb5fc3ce1b06e9e0bac66e42d6a86c1c1c37cb6b81e2e2a080696cd98",
@@ -55,7 +55,10 @@
     "objects.png": "e1c88923554939025451ff9de36d74b36ac22449f9ca0e69c8f8ee2ef67cdbfe",
     "release-sprites/atk/set_fade73eb82b71422ff6c.png": "1f4baf52aa1bb2bb842428c7c5857eaf8c10e6963d54481214966030902227a4",
     "release-sprites/mov/set_fade73eb82b71422ff6c.png": "a4aae8c9c768cbfc50c3cb2397fef3981b9b470c4534395b7fee0b5ffb4731e8",
-    "release-sprites/spc/set_fade73eb82b71422ff6c.png": "b4966a79b6b1133d20647ebcc274761566e7a30e1787e2518d0297c79d54a035"
+    "release-sprites/spc/set_fade73eb82b71422ff6c.png": "b4966a79b6b1133d20647ebcc274761566e7a30e1787e2518d0297c79d54a035",
+    "release-sprites/atk/set_c8d494089713ced35ae8.png": "aab3eb64b14684340501a175e6ecca9c625194f3c6c156367ce32ebf087dfaf6",
+    "release-sprites/mov/set_c8d494089713ced35ae8.png": "a4afdce94e9a789792bfc177a43f0b44cb9dc9f90c0b6d3aef81f117cb1aabd5",
+    "release-sprites/spc/set_c8d494089713ced35ae8.png": "b23bf6ba464e3f41fb81e78ce9ad3f50a6e70911b383cccbc34367cc325369e2"
   },
   "animationTimelineSha256": "f52dc46f4b615ffd01264226e121e9d44999d52d7f2bab951e4b57559c45da24",
   "atlasFrameCounts": {
@@ -722,6 +725,41 @@
       "portrait": "maps/heads/622.png",
       "sourcePortraitAtlas": "portraits.png",
       "sourcePortraitCell": 14
+    },
+    "lin_b01": {
+      "characterId": 512,
+      "avatarId": 622,
+      "battleAvatar": 318,
+      "battleAvatarType": -1,
+      "face": 600,
+      "headTextureId": 608,
+      "movement": "maps/units/mov2/622.png",
+      "attack": "maps/units/atk2/622.png",
+      "special": "maps/units/spc2/622.png",
+      "sourceRelease": {
+        "setId": "set_c8d494089713ced35ae8",
+        "name": "임충 (첫 전투)",
+        "reason": "사용자 지정. 첫 전투 B01에서만 사용하는 전투 이미지.",
+        "sourceTitle": "중국포럼에서 발견한 창병능틍",
+        "description": "긴 자루 무기를 든 근접 전투형 캐릭터. 빨강·갈색·주황 계열의 작은 SD 도트 표현.",
+        "files": {
+          "atk": {
+            "path": "release-sprites/atk/set_c8d494089713ced35ae8.png",
+            "sha256": "aab3eb64b14684340501a175e6ecca9c625194f3c6c156367ce32ebf087dfaf6"
+          },
+          "mov": {
+            "path": "release-sprites/mov/set_c8d494089713ced35ae8.png",
+            "sha256": "a4afdce94e9a789792bfc177a43f0b44cb9dc9f90c0b6d3aef81f117cb1aabd5"
+          },
+          "spc": {
+            "path": "release-sprites/spc/set_c8d494089713ced35ae8.png",
+            "sha256": "b23bf6ba464e3f41fb81e78ce9ad3f50a6e70911b383cccbc34367cc325369e2"
+          }
+        }
+      },
+      "portrait": "maps/heads/608.png",
+      "sourcePortraitAtlas": "portraits.png",
+      "sourcePortraitCell": 0
     }
   },
   "objects": {
@@ -911,6 +949,9 @@
     "maps/units/atk2/621.png",
     "maps/units/mov2/621.png",
     "maps/units/spc2/621.png",
+    "maps/units/atk2/622.png",
+    "maps/units/mov2/622.png",
+    "maps/units/spc2/622.png",
     "maps/battle-maps/59.png",
     "maps/battle-maps/60.png",
     "maps/battle-maps/61.png",

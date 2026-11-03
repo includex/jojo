@@ -25,6 +25,8 @@ data class ScenarioBattleUnit(
     val authoredX: Boolean = true,
     val authoredY: Boolean = true,
     val direction: Int = 2,
+    /** Optional battle-only sprite atlas; does not change the character catalog. */
+    val avatarId: Int? = null,
     val level: Int = 0,
     val reinforcement: Boolean = false,
     var hidden: Boolean = false,

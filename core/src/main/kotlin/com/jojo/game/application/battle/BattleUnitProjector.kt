@@ -115,6 +115,7 @@ internal class BattleUnitProjector(
             tileY = unit.y,
             visible = !unit.hidden,
             direction = unit.direction,
+            avatarId = unit.avatarId,
             characterId = unit.characterId,
             battleSlot = unit.battleSlot,
             equipmentIds = listOf(0 to 0, 2 to 70, 4 to 109).mapNotNull { (index, offset) ->

@@ -165,7 +165,8 @@
       "lin": {
         "x": 6,
         "y": 6,
-        "facing": "east"
+        "facing": "east",
+        "avatarId": 622
       },
       "dong": {
         "x": 7,

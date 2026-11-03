@@ -357,6 +357,27 @@
           "sha256": "b4966a79b6b1133d20647ebcc274761566e7a30e1787e2518d0297c79d54a035"
         }
       }
+    },
+    "lin_b01": {
+      "setId": "set_c8d494089713ced35ae8",
+      "name": "임충 (첫 전투)",
+      "reason": "사용자 지정. 첫 전투 B01에서만 사용하는 전투 이미지.",
+      "sourceTitle": "중국포럼에서 발견한 창병능틍",
+      "description": "긴 자루 무기를 든 근접 전투형 캐릭터. 빨강·갈색·주황 계열의 작은 SD 도트 표현.",
+      "files": {
+        "atk": {
+          "path": "release-sprites/atk/set_c8d494089713ced35ae8.png",
+          "sha256": "aab3eb64b14684340501a175e6ecca9c625194f3c6c156367ce32ebf087dfaf6"
+        },
+        "mov": {
+          "path": "release-sprites/mov/set_c8d494089713ced35ae8.png",
+          "sha256": "a4afdce94e9a789792bfc177a43f0b44cb9dc9f90c0b6d3aef81f117cb1aabd5"
+        },
+        "spc": {
+          "path": "release-sprites/spc/set_c8d494089713ced35ae8.png",
+          "sha256": "b23bf6ba464e3f41fb81e78ce9ad3f50a6e70911b383cccbc34367cc325369e2"
+        }
+      }
     }
   },
   "sourceCatalog": "release_character_descriptions.csv",

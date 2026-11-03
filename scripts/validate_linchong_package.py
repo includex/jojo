@@ -40,7 +40,7 @@ def validate():
         actual = {int(p.stem) for p in (CONTENT / 'assets/maps' / category).iterdir() if p.is_file()}
         assert actual == ids, f'{category}: unexpected/missing assets {actual ^ ids}'
     for family in ('atk2', 'mov2', 'spc2'):
-        assert {int(p.stem) for p in (CONTENT / 'assets/maps/units' / family).glob('*.png')} == set(range(601, 622))
+        assert {int(p.stem) for p in (CONTENT / 'assets/maps/units' / family).glob('*.png')} == set(range(601, 623))
     selection = json.loads((CONTENT / 'examples/linchong/assets/release-sprites/selection.json').read_text())
     for character_id, role, avatar in [(513, 'lu', 602), (522, 'dong', 611), (523, 'xue', 612), (528, 'assassin', 621), (529, 'assassin', 621)]:
         row = read_yaml(CONTENT / 'characters' / f'{character_id:04}.yaml')
@@ -48,6 +48,13 @@ def validate():
         for family in ('atk', 'mov', 'spc'):
             source = CONTENT / 'examples/linchong/assets' / selection['characters'][role]['files'][family]['path']
             assert source.read_bytes() == (CONTENT / 'assets/maps/units' / (family + '2') / f'{avatar}.png').read_bytes()
+    first_battle = (CONTENT / 'scenarios/S_90.lua').read_text()
+    assert '["avatarId"] = 622' in first_battle
+    for index in range(91, 98):
+        assert '["avatarId"] = 622' not in (CONTENT / 'scenarios' / f'S_{index}.lua').read_text()
+    for family in ('atk', 'mov', 'spc'):
+        selected = selection['characters']['lin_b01']['files'][family]
+        assert (CONTENT / 'examples/linchong/assets' / selected['path']).read_bytes() == (CONTENT / 'assets/maps/units' / (family + '2') / '622.png').read_bytes()
     assert not list((CONTENT / 'assets/maps').glob('*.jpg'))
     assert not (CONTENT / 'resources/localization').exists()
     assert not (CONTENT / 'resources/maps').exists()

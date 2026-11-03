@@ -5,7 +5,7 @@ def scene0():
     if not gvars['linchong.gear_initialized_lin']:
         stage.setJoinEquip(512, 62, 1, 34, 1, 0)
         gvars['linchong.gear_initialized_lin'] = 1
-    stage.createMine([{'id': 512, 'i': 0, 'idx': 0, 'x': 5, 'y': 5, 'lv': 0, 'dir': 1, 'ai': 2}])
+    stage.createMine([{'id': 512, 'i': 0, 'idx': 0, 'x': 5, 'y': 5, 'lv': 0, 'dir': 1, 'ai': 2, 'avatarId': 622}])
     stage.createEnemy([{'id': 522, 'i': 1, 'idx': 1, 'x': 6, 'y': 5, 'lv': 1, 'dir': 1, 'ai': 3, 'targetId': 512}])
     stage.createEnemy([{'id': 523, 'i': 2, 'idx': 2, 'x': 4, 'y': 5, 'lv': 1, 'dir': 1, 'ai': 3, 'targetId': 512}])
     stage.createEnemy([{'id': 528, 'i': 3, 'idx': 3, 'x': 9, 'y': 5, 'lv': 0, 'dir': 3, 'ai': 1}])

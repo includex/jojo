@@ -83,3 +83,5 @@ python3 scripts/smoke_linchong.py
 1장 노지심은 동쪽을 바라보며 등장하고, 호통 직후 공격 동작을 세 번 재생합니다. 이 동작은 연출용이며 실제 피해를 주지 않습니다. 등장 이벤트에서 `stage.giveUnitItem(513, 216, 4)`로 노지심 개인 소지품에 고급 금창약 4개를 지급합니다. `content/equipment/0216.yaml`의 `value: 100`이 회복량이며 최대 체력을 넘지 않습니다. 공용 가방 지급과 구분되며 등장 이벤트는 한 번만 실행됩니다.
 
 개인 소지품의 지급 API, 전투 중 교환 절차, 회복 아이템 정의와 공격 연출 예제는 [개인 소지품 가이드](../../../docs/battle-carried-items.html)를 참고하세요.
+
+첫 전투 B01의 임충만 사용자 지정 `set_c8d494089713ced35ae8` 세트(아바타 622)를 사용합니다. `runtime_rules.json`의 `B01.initialPlacement.lin.avatarId`가 해당 전투 인스턴스에만 적용되므로, 다른 전투의 임충은 기존 아바타 601을 유지합니다.

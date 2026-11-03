@@ -12982,6 +12982,7 @@ void main() {
      */
 
     private fun battleAvatarId(unit: BattleUnit): Int? {
+        unit.avatarId?.let { return it }
         loadedBattleAvatarIds[unit.id]?.let { return it }
         val characterId = unit.characterId ?: return null
         return BattleAvatarResolver.resolve(gameDataCatalog, characterId, unit.posts, unit.armId, unit.type())

@@ -23,6 +23,8 @@
 
 | 자객 갑·을 | 621 | `set_fade73eb82b71422ff6c` | 사용자 지정. 일반 관군과 전투 이미지를 분리. |
 
+| 임충 (첫 전투만) | 622 | `set_c8d494089713ced35ae8` | B01 인스턴스에만 적용. 이후 전투는 기존 601 사용. |
+
 ## 신규 캐릭터 추가 원칙
 
 전투 캐릭터 이미지는 직접 생성하지 않고 `jojo_asset/release`의 완전한 공격·이동·특수 세트를 사용합니다. `release_character_descriptions.csv`와 실제 프레임을 함께 확인해 선정하고 출처와 해시를 기록합니다. 개별 동작에 다른 캐릭터의 세트를 섞지 않습니다. 대화 초상화는 이 교체 정책의 대상이 아닙니다.
@@ -44,3 +46,5 @@ python3 scripts/import_linchong_release_sprites.py --source-root /Users/ain/work
 ```
 
 `release`에는 전투용 세트만 있으므로 대화 초상화와 지도, 수레·상자 이미지는 기존 자료를 유지합니다. 엔진/core, 타임라인, 캐릭터 ID, 능력치와 전투 규칙은 변경하지 않습니다.
+
+전투별 외형은 `runtime_rules.json`의 `initialPlacement.<인물>.avatarId`로 지정합니다. 배치 행에 `avatarId`가 있으면 해당 전투 인스턴스에서만 그 아틀라스를 사용하며 인물 YAML은 바뀌지 않습니다.

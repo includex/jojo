@@ -91,6 +91,7 @@ internal class ScenarioStageBattleUnitFactory {
                 authoredX = "x" in entry,
                 authoredY = "y" in entry,
                 direction = entry["dir"].asIntOr(2),
+                avatarId = entry["avatarId"]?.asIntOr(-1)?.takeIf { it >= 0 },
                 level = entry["lv"].asIntOr(0),
                 reinforcement = faction == ScenarioUnitFaction.ENEMY && entry["yj"].asIntOr(0) != 0,
                 hidden = hidden,

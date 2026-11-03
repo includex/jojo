@@ -76,6 +76,7 @@ def placement(b,u,i):
  override=b['runtime'].get('initialPlacement',{}).get(u['id'],{})
  for axis in ('x','y'):
   if axis in override:d[axis]=override[axis]-1
+ if 'avatarId' in override:d['avatarId']=override['avatarId']
  if 'facing' in override:d['dir']={'north':0,'east':1,'south':2,'west':3}[override['facing']]
  return d
 
