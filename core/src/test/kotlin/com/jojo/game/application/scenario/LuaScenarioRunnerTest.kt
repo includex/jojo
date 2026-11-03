@@ -27,6 +27,31 @@ class LuaScenarioRunnerTest {
         assertEquals("Result 42",r.currentDialogue?.text)
         r.advanceDialogue();assertEquals(PlaybackState.COMPLETE,r.state)
     }
+    @Test fun `Lua duel reference resumes through all presentation callbacks`() {
+        val r=runner("""
+            function scene0()
+                local fight = stage.startFight(512, 517, 5)
+                fight.showStart()
+                fight.attack1(true, 1, false)
+                fight.attack1(false, 1, false)
+                fight["end"]()
+                stage.say('&512\nDuel complete')
+            end
+        """.trimIndent())
+        r.enableExternalFightPresentation()
+        r.start("scene0")
+        var commands=0
+        while(r.state==PlaybackState.DELAY) {
+            check(++commands <= 5)
+            assertEquals(1,r.stage.consumeFightCommands().size)
+            r.resumeExternalDelay()
+        }
+        assertEquals(4,commands)
+        assertIs<com.jojo.game.domain.scenario.ScenarioFightCommand.End>(r.stage.consumeFightCommands().single())
+        assertEquals("Duel complete",r.currentDialogue?.text)
+        r.advanceDialogue()
+        assertEquals(PlaybackState.COMPLETE,r.state)
+    }
     @Test fun `Lua rejects unknown host calls and bounds infinite loops`() {
         assertFails { runner("function scene0() stage.missingApi() end").start("scene0") }
         val failure=assertFails { runner("function scene0() while true do end end").start("scene0") }

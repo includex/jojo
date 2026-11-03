@@ -103,6 +103,9 @@ internal class LuaScenarioRunner(
         is com.jojo.game.application.scenario.ScenarioUnitReference -> LuaValue.userdataOf(value,LuaTable().also { meta ->
             meta.set("__index",fn { args -> api("stage.unit()",value).get(args.arg(2)) })
         })
+        is ScenarioFightReference -> LuaValue.userdataOf(value,LuaTable().also { meta ->
+            meta.set("__index",fn { args -> api("fight",value).get(args.arg(2)) })
+        })
         else -> LuaValue.userdataOf(value)
     }
     private fun fromLua(value: LuaValue): Any? = when {
