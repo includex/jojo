@@ -10,7 +10,7 @@ import kotlin.math.sqrt
 /** A shared solid surface for readable retro panels; no raster decoration under text. */
 object BattleOverlayPaper {
     const val HELP_TEXT="전투 도움말\n\n부대를 선택한 뒤 이동할 칸을 선택하세요.\n명령에서 공격, 전략, 물품, 교환을 사용할 수 있습니다.\n교환은 상하좌우로 인접한 아군에게 소지품 한 개를 전달합니다.\nESC로 선택을 취소하거나 열린 창을 닫을 수 있습니다.\n목표 임무는 전투 메뉴의 승리 조건에서 확인하세요."
-    const val UI_GLYPHS=HELP_TEXT+"인물 정보 등록된 인물 소개가 없습니다. 특기 등록된 특기가 없습니다. 장착하지 않음 사용 가능한 전략이 없습니다. 아군 적군 전장 부대 정보 기본 능력 출진 퇴각 공격 방어 정신 순발력 사기 닫기 이전 인물 다음 인물 무기 방어구 보조 장비 체력 기력 레벨 이름 병종 Lv 회 … / ·"
+    const val UI_GLYPHS=HELP_TEXT+"장수 정보 기본 정보 능력치 특기 책략 열전 경험치 정상 인물 정보 등록된 인물 소개가 없습니다. 특기 등록된 특기가 없습니다. 장착하지 않음 사용 가능한 전략이 없습니다. 아군 적군 전장 부대 정보 기본 능력 출진 퇴각 공격 방어 정신 순발력 사기 닫기 이전 인물 다음 인물 무기 방어구 보조 장비 체력 기력 레벨 이름 병종 Lv 회 … / ·"
 
     private var pixel: Texture? = null
     val paper = Color(.88f,.82f,.68f,1f)

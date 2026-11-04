@@ -5,240 +5,210 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
 
-/** Read-only facts for the unit and tile under the pointer. Values come from battle state. */
+/** Facts are supplied by the live battle; the renderer never invents combat values. */
 data class BattleHudContextView(
-    val unit: BattleHudUnitView? = null,
-    val terrain: BattleHudTerrainView? = null,
-    val objective: String = "",
-    val defeat: String = "",
-    val weatherIcon: Texture? = null,
+    val unit:BattleHudUnitView?=null,val terrain:BattleHudTerrainView?=null,
+    val objective:String="",val defeat:String="",val weatherIcon:Texture?=null,
+    val pointerX:Float?=null,val pointerY:Float?=null,
+    val enabledActions:Set<BattleHudPanelController.Action>?=null,
+    val weatherSymbol:TextureRegion?=null,val chapterEmblem:TextureRegion?=null,
 )
 data class BattleHudUnitView(
-    val name:String,val post:String,val level:Int,
-    val hp:Int,val maxHp:Int,val mp:Int,val maxMp:Int,
-    val portrait:Texture? = null,
+    val name:String,val post:String,val level:Int,val hp:Int,val maxHp:Int,val mp:Int,val maxMp:Int,
+    val portrait:Texture?=null,val faction:String="",val statuses:List<BattleHudStatusView> = emptyList(),
 )
+data class BattleHudStatusView(val label:String,val icon:TextureRegion?=null)
 data class BattleHudTerrainView(
-    val name:String,val coordinates:String,val effect:String,val movementCost:String,val basis:String = "",
-    val thumbnail:TextureRegion? = null,
+    val name:String,val coordinates:String,val effect:String,val movementCost:String,val basis:String="",
+    val thumbnail:TextureRegion?=null,
 )
 
-/** Persistent status HUD. Expanding it does not capture battlefield input outside the panel. */
 class BattleHudPanelController {
-    enum class Action(val label: String) {
-        MENU("작전"), RECORD("부대"), MAP("지도"), SETTINGS("환경"), END_TURN("턴 종료"), TOGGLE("접기")
+    enum class Action(val label:String) {
+        MENU("작전"),RECORD("부대"),MAP("지도"),SETTINGS("환경"),END_TURN("턴 종료"),TOGGLE("접기"),
+        UNIT_INFO("장수 정보"),MAGIC("책략"),WAIT("대기"),HELP("도움말")
     }
-    var expanded: Boolean = true
+    var expanded:Boolean=true
         private set
-    fun toggle() { expanded = !expanded }
-    fun buttonAt(x: Float, y: Float, width: Float, height: Float): Action? =
-        BattleHudPanelLayout.buttons(width,height,expanded).firstOrNull { it.contains(x,y) }?.action
-    fun contains(x: Float, y: Float, width: Float, height: Float): Boolean {
-        val panel=BattleHudPanelLayout.panel(width,height,expanded)
-        return x in panel.x..panel.x+panel.width && y in panel.y..panel.y+panel.height
+    fun toggle(){expanded=!expanded}
+    fun buttonAt(x:Float,y:Float,width:Float,height:Float):Action?=
+        BattleHudPanelLayout.buttons(width,height,expanded).firstOrNull{it.contains(x,y)}?.action
+    fun contains(x:Float,y:Float,width:Float,height:Float,context:BattleHudContextView?=null):Boolean {
+        val layout=BattleHudPanelLayout
+        return layout.panel(width,height,expanded).contains(x,y) || layout.weather(width,height).contains(x,y) ||
+            (expanded && layout.mission(width,height).contains(x,y)) ||
+            layout.buttons(width,height,expanded).any{it.contains(x,y)} ||
+            (context?.terrain!=null && layout.terrain(width,height).contains(x,y)) ||
+            layout.hoverCard(width,height,context)?.contains(x,y)==true
     }
 }
 
+/** Reference composition: compact upper corners, lower terrain/shortcuts and a floating unit card. */
 object BattleHudPanelLayout {
-    data class Rect(val x:Float,val y:Float,val width:Float,val height:Float)
+    data class Rect(val x:Float,val y:Float,val width:Float,val height:Float) {
+        fun contains(px:Float,py:Float)=px in x..x+width && py in y..y+height
+    }
     data class Button(val action:BattleHudPanelController.Action,val rect:Rect) {
-        fun contains(x:Float,y:Float)=x in rect.x..rect.x+rect.width && y in rect.y..rect.y+rect.height
+        fun contains(x:Float,y:Float)=rect.contains(x,y)
     }
-    fun panel(width:Float,height:Float,expanded:Boolean):Rect {
-        val panelWidth = if(expanded) width-24f else minOf(width-24f,360f)
-        val panelHeight = if(expanded) 156f else 40f
-        return Rect(12f,height-panelHeight-12f,panelWidth,panelHeight)
-    }
+    fun panel(width:Float,height:Float,expanded:Boolean)=Rect(8f,height-52f,minOf(544f,width*.43f),44f)
+    fun weather(width:Float,height:Float)=Rect(width-244f,height-60f,236f,52f)
+    fun mission(width:Float,height:Float)=Rect(8f,height-124f,minOf(544f,width*.43f),66f)
+    fun terrain(width:Float,height:Float)=Rect(8f,8f,minOf(560f,width*.42f),44f)
     fun buttons(width:Float,height:Float,expanded:Boolean):List<Button> {
-        val panel=panel(width,height,expanded)
-        val toggle=Button(BattleHudPanelController.Action.TOGGLE,
-            Rect(panel.x+panel.width-86f,panel.y+panel.height-36f,76f,28f))
-        if(!expanded)return listOf(toggle)
-        val buttonWidths=listOf(76f,76f,76f,76f,96f)
-        var x=toggle.rect.x-8f-buttonWidths.sum()-8f*4f
-        return BattleHudPanelController.Action.entries.dropLast(1).mapIndexed { i,action ->
-            Button(action,Rect(x,panel.y+panel.height-36f,buttonWidths[i],28f)).also { x+=buttonWidths[i]+8f }
-        }+toggle
-    }
-    /** Weather / unit / terrain / mission; geometry stays below the 44px header. */
-    fun contextColumns(width:Float,height:Float):List<Rect> {
-        val p=panel(width,height,true)
-        val contentWidth=p.width-24f
-        var x=p.x+12f
-        return listOf(.12f,.34f,.23f,.31f).map { fraction ->
-            val width=contentWidth*fraction
-            Rect(x,p.y+8f,width-10f,96f).also { x+=width }
+        val header=panel(width,height,expanded);val weather=weather(width,height)
+        val sizes=listOf(146f,112f,112f,142f);var x=width-sizes.sum()-24f-8f
+        val bottom=listOf(BattleHudPanelController.Action.UNIT_INFO,BattleHudPanelController.Action.MAGIC,
+            BattleHudPanelController.Action.WAIT,BattleHudPanelController.Action.END_TURN).mapIndexed{i,a->
+            Button(a,Rect(x,8f,sizes[i],44f)).also{x+=sizes[i]+8f}
         }
+        return bottom+listOf(
+            Button(BattleHudPanelController.Action.MENU,Rect(header.x,header.y,header.width-34f,header.height)),
+            Button(BattleHudPanelController.Action.TOGGLE,Rect(header.x+header.width-30f,header.y+8f,24f,28f)),
+            Button(BattleHudPanelController.Action.HELP,Rect(weather.x+weather.width-42f,weather.y+10f,32f,32f)),
+        )
     }
-
+    /** Anchor beside the current cursor and flip left at the edge; leave corner HUD panels clear. */
+    fun hoverCard(width:Float,height:Float,context:BattleHudContextView?):Rect? {
+        if(context?.unit==null)return null
+        val w=minOf(400f,width-32f);val h=210f
+        val px=context.pointerX ?: width*.4f;val py=context.pointerY ?: height*.45f
+        val x=(if(px+26f+w<=width-12f)px+26f else px-w-26f).coerceIn(12f,maxOf(12f,width-w-12f))
+        val y=(py-18f).coerceIn(64f,maxOf(64f,height-h-132f))
+        return Rect(x,y,w,h)
+    }
+    /** Compatibility for callers inspecting corner geometry. These are not one full-width strip. */
+    fun contextColumns(width:Float,height:Float)=listOf(panel(width,height,true),weather(width,height),terrain(width,height),mission(width,height))
 }
 
-/** Slightly translucent black status strip, with immediate pointer inspection below. */
-class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:ShapeRenderer,private val font:BitmapFont,skin:Texture? = null) {
-    private val frame=skin?.let { NinePatch(it,64,64,64,64).apply { scale(14f/64f,14f/64f) } }
+class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:ShapeRenderer,private val font:BitmapFont,skin:Texture?=null) {
+    private val frame=skin?.let{NinePatch(it,64,64,64,64).apply{scale(14f/64f,14f/64f)}}
     fun draw(controller:BattleHudPanelController,width:Float,height:Float,name:String,weather:String,round:Int,limit:Int,
-             context:BattleHudContextView = BattleHudContextView()) {
-        val panel=BattleHudPanelLayout.panel(width,height,controller.expanded)
-        val buttons=BattleHudPanelLayout.buttons(width,height,controller.expanded)
-        val columns=BattleHudPanelLayout.contextColumns(width,height)
+             context:BattleHudContextView=BattleHudContextView()) {
+        val layout=BattleHudPanelLayout;val header=layout.panel(width,height,controller.expanded)
+        val weatherRect=layout.weather(width,height);val mission=layout.mission(width,height)
+        val terrain=context.terrain?.let{layout.terrain(width,height)};val card=layout.hoverCard(width,height,context)
+        val buttons=layout.buttons(width,height,controller.expanded)
+        val panels=listOfNotNull(header,weatherRect,terrain,card)+(if(controller.expanded)listOf(mission)else emptyList())
         shapes.projectionMatrix=batch.projectionMatrix
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA,GL20.GL_ONE_MINUS_SRC_ALPHA)
+        Gdx.gl.glEnable(GL20.GL_BLEND);Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA,GL20.GL_ONE_MINUS_SRC_ALPHA)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color=NAVY;shapes.rect(panel.x,panel.y,panel.width,panel.height)
-        shapes.color=DIVIDER
-        shapes.rect(panel.x,panel.y,panel.width,1f);shapes.rect(panel.x,panel.y+panel.height-1f,panel.width,1f)
-        shapes.rect(panel.x,panel.y,1f,panel.height);shapes.rect(panel.x+panel.width-1f,panel.y,1f,panel.height)
-        if(controller.expanded) {
-            shapes.color=DIVIDER;shapes.rect(panel.x+1f,panel.y+111f,panel.width-2f,1f)
-            columns.drop(1).forEach { shapes.rect(it.x-6f,it.y,1f,it.height) }
-            if(context.unit==null) { val r=columns[1];shapes.color=EMPTY;shapes.rect(r.x+2f,r.y+2f,72f,90f) }
-            val terrainRect=columns[2]
-            shapes.color=if(context.terrain==null) EMPTY else PORTRAIT_BG
-            shapes.rect(terrainRect.x+4f,terrainRect.y+12f,72f,72f)
-            context.unit?.let { unit ->
-                val r=columns[1]
-                shapes.color=PORTRAIT_BG;shapes.rect(r.x+2f,r.y+2f,72f,90f)
-                val tx=r.x+88f;val valueX=r.x+r.width-104f
-                val barX=tx+34f;val barWidth=(valueX-barX-8f).coerceAtLeast(40f)
-                for((value,maxValue,y,fill) in listOf(
-                    StatBar(unit.hp,unit.maxHp,r.y+31f,HP),StatBar(unit.mp,unit.maxMp,r.y+10f,MP))) {
-                    shapes.color=BAR_BORDER;shapes.rect(barX,y,barWidth,10f)
-                    shapes.color=TRACK;shapes.rect(barX+1f,y+1f,barWidth-2f,8f)
-                    shapes.color=fill;shapes.rect(barX+1f,y+1f,(barWidth-2f)*(value.toFloat()/maxValue.coerceAtLeast(1)).coerceIn(0f,1f),8f)
+        panels.filter{it!=header}.forEach{panel(it)}
+        titlePanel(header)
+        buttons.filter{it.action in shortcutActions}.forEach{panel(it.rect)}
+        card?.let{r->
+            shapes.color=PORTRAIT;shapes.rect(r.x+8f,r.y+66f,106f,132f)
+            shapes.color=LINE;shapes.rect(r.x+8f,r.y+62f,r.width-16f,1f)
+            context.unit?.let{u->
+                val x=r.x+158f;val barWidth=(r.width-216f)/2f
+                statBar(x,r.y+82f,barWidth,u.hp,u.maxHp,HP)
+                statBar(r.x+r.width-barWidth-8f,r.y+82f,barWidth,u.mp,u.maxMp,MP)
+                u.statuses.take(5).forEachIndexed{i,_->
+                    shapes.color=ICON_BG;shapes.rect(r.x+52f+i*58f,r.y+12f,40f,40f)
                 }
             }
         }
-        buttons.forEach { b ->
-            shapes.color=if(b.action==BattleHudPanelController.Action.END_TURN) END_BUTTON else BUTTON
-            shapes.rect(b.rect.x,b.rect.y,b.rect.width,b.rect.height)
-        }
         shapes.end()
-        val scaleX=font.data.scaleX;val scaleY=font.data.scaleY;val color=Color(font.color)
+        val sx=font.data.scaleX;val sy=font.data.scaleY;val fc=Color(font.color);val bc=Color(batch.color)
         batch.begin()
-        try {
+        try{
             batch.color=Color.WHITE
-            frame?.draw(batch,panel.x,panel.y,panel.width,panel.height)
-            font.data.setScale(22f/36f);font.color=IVORY
-            val baseline=panel.y+panel.height-22f+font.capHeight/2f
-            if(controller.expanded) {
-                val textRight=buttons.first().rect.x-16f
-                val statusWidth=264f
-                ellipsis(name,panel.x+14f,baseline,(textRight-panel.x-28f-statusWidth).coerceAtLeast(120f))
-                font.color=MUTED;font.data.setScale(20f/36f)
-                font.draw(batch,"현재 $round 턴  ·  남은 ${(limit-round).coerceAtLeast(0)} 턴",textRight-statusWidth,baseline,statusWidth,Align.right,false)
-            } else {
-                font.draw(batch,"$weather  ·  $round / $limit 턴",panel.x+14f,baseline,panel.width-112f,Align.left,false)
+            panels.filter{it!=mission && it!=header}.forEach{frame?.draw(batch,it.x,it.y,it.width,it.height)}
+            buttons.filter{it.action in shortcutActions}.forEach{frame?.draw(batch,it.rect.x,it.rect.y,it.rect.width,it.rect.height)}
+            context.chapterEmblem?.let{drawRegionFit(it,header.x+8f,header.y+5f,42f,34f)}
+                ?: text("◆",header.x+10f,header.y+29f,24f,GOLD)
+            font.data.setScale(24f/36f);font.color=IVORY
+            ellipsis(name,header.x+54f,header.y+30f,header.width-249f)
+            font.data.setScale(21f/36f)
+            font.draw(batch,"$round 턴 / $limit 턴",header.x+header.width-190f,header.y+29f,150f,Align.center,false)
+            text(if(controller.expanded)"−"else"+",header.x+header.width-24f,header.y+29f,24f,GOLD)
+            context.weatherSymbol?.let{drawRegionFit(it,weatherRect.x+15f,weatherRect.y+7f,48f,38f)}
+                ?: context.weatherIcon?.let{t->val scale=minOf(48f/t.width,34f/t.height);batch.draw(t,weatherRect.x+18f,weatherRect.y+9f,t.width*scale,t.height*scale)}
+            text(weather,weatherRect.x+78f,weatherRect.y+34f,24f,IVORY)
+            text("?",weatherRect.x+weatherRect.width-32f,weatherRect.y+34f,24f,GOLD)
+            if(controller.expanded){
+                text("◆ 승리 조건",mission.x+8f,mission.y+47f,18f,GOLD)
+                font.data.setScale(18f/36f);font.color=IVORY;ellipsis(context.objective,mission.x+108f,mission.y+47f,mission.width-118f)
+                text("◆ 패배 조건",mission.x+8f,mission.y+20f,18f,GOLD)
+                font.data.setScale(18f/36f);font.color=IVORY;ellipsis(context.defeat,mission.x+108f,mission.y+20f,mission.width-118f)
             }
-            font.color=IVORY
-            buttons.forEach { b ->
-                font.data.setScale((if(b.action==BattleHudPanelController.Action.TOGGLE) 19f else 21f)/36f)
-                val label=if(b.action==BattleHudPanelController.Action.TOGGLE) if(controller.expanded) "접기" else "펼치기" else b.action.label
-                font.draw(batch,label,b.rect.x,b.rect.y+b.rect.height/2f+font.capHeight/2f,b.rect.width,Align.center,false)
+            terrain?.let{r->context.terrain?.let{t->
+                t.thumbnail?.let{batch.draw(it,r.x+12f,r.y+8f,32f,28f)}
+                text(t.name,r.x+54f,r.y+29f,23f,IVORY)
+                font.data.setScale(18f/36f);font.color=MUTED
+                val extra="이동 비용 ${t.movementCost}  |  지형 효과 ${t.effect}"
+                ellipsis(extra,r.x+145f,r.y+28f,r.width-157f)
+            }}
+            buttons.filter{it.action in shortcutActions}.forEach{b->
+                val enabled=context.enabledActions?.contains(b.action) ?: true
+                val hotkey=when(b.action){BattleHudPanelController.Action.UNIT_INFO->"Z";BattleHudPanelController.Action.MAGIC->"X";BattleHudPanelController.Action.WAIT->"C";else->"V"}
+                font.color=if(enabled)GOLD else MUTED;font.data.setScale(23f/36f)
+                font.draw(batch,hotkey,b.rect.x+10f,b.rect.y+30f,26f,Align.center,false)
+                font.color=if(enabled)IVORY else MUTED;font.data.setScale(20f/36f)
+                font.draw(batch,b.action.label,b.rect.x+40f,b.rect.y+29f,b.rect.width-45f,Align.center,false)
             }
-            if(controller.expanded) drawContext(context,columns,weather)
-        } finally {
-            font.data.setScale(scaleX,scaleY);font.color=color;batch.color=Color.WHITE;batch.end()
+            card?.let{drawUnitCard(it,context.unit!!)}
+        }finally{font.data.setScale(sx,sy);font.color=fc;batch.color=bc;batch.end()}
+    }
+    private fun drawUnitCard(r:BattleHudPanelLayout.Rect,u:BattleHudUnitView){
+        u.portrait?.let{t->val scale=minOf(102f/t.width,128f/t.height);val w=t.width*scale;val h=t.height*scale;batch.color=Color.WHITE;batch.draw(t,r.x+10f+(102f-w)/2f,r.y+68f+(128f-h)/2f,w,h)}
+        font.data.setScale(26f/36f);font.color=GOLD;ellipsis(u.name,r.x+128f,r.y+180f,r.width-228f)
+        text("Lv.${u.level}",r.x+r.width-90f,r.y+179f,21f,IVORY)
+        font.data.setScale(19f/36f);font.color=IVORY;ellipsis(listOf(u.faction,u.post).filter{it.isNotBlank()}.joinToString("  "),r.x+128f,r.y+142f,r.width-145f)
+        text("HP",r.x+127f,r.y+108f,18f,IVORY);text("기력",r.x+r.width-136f,r.y+108f,18f,IVORY)
+        font.data.setScale(17f/36f);font.color=IVORY
+        val barWidth=(r.width-216f)/2f
+        font.draw(batch,"${u.hp}/${u.maxHp}",r.x+158f,r.y+108f,barWidth,Align.center,false)
+        font.draw(batch,"${u.mp}/${u.maxMp}",r.x+r.width-barWidth-8f,r.y+108f,barWidth,Align.center,false)
+        u.statuses.take(5).forEachIndexed{i,status->
+            val x=r.x+52f+i*58f
+            status.icon?.let{batch.draw(it,x-2f,r.y+10f,44f,44f)} ?: run{font.data.setScale(13f/36f);font.color=IVORY;ellipsis(status.label,x+3f,r.y+37f,34f)}
         }
     }
-    private fun drawContext(context:BattleHudContextView,columns:List<BattleHudPanelLayout.Rect>,weather:String) {
-        val w=columns[0]
-        text("날씨",w.x+6f,w.y+83f,20f,GOLD)
-        context.weatherIcon?.let { texture ->
-            val scale=minOf((w.width-12f)/texture.width,30f/texture.height)
-            batch.color=Color.WHITE
-            batch.draw(texture,w.x+6f,w.y+32f,texture.width*scale,texture.height*scale)
-        }
-        text(weather,w.x+6f,w.y+18f,22f,IVORY)
-        val unit=context.unit;val u=columns[1]
-        if(unit!=null) {
-            unit.portrait?.let { portrait ->
-                val scale=minOf(68f/portrait.width,86f/portrait.height)
-                val w=portrait.width*scale;val h=portrait.height*scale
-                batch.color=Color.WHITE;batch.draw(portrait,u.x+4f+(68f-w)/2f,u.y+4f+(86f-h)/2f,w,h)
-            }
-            val tx=u.x+88f
-            font.data.setScale(23f/36f);font.color=IVORY
-            ellipsis(unit.name,tx,u.y+84f,u.width-96f)
-            font.data.setScale(18f/36f);font.color=MUTED
-            ellipsis("Lv ${unit.level} · ${unit.post}",tx,u.y+62f,u.width-96f)
-            text("HP",tx,u.y+42f,18f,IVORY);text("MP",tx,u.y+21f,18f,IVORY)
-            font.draw(batch,"${unit.hp}/${unit.maxHp}",u.x+u.width-104f,u.y+42f,100f,Align.right,false)
-            font.draw(batch,"${unit.mp}/${unit.maxMp}",u.x+u.width-104f,u.y+21f,100f,Align.right,false)
-        }
-        val terrain=context.terrain;val t=columns[2]
-        if(terrain!=null) {
-            terrain.thumbnail?.let { thumbnail ->
-                val scale=minOf(70f/thumbnail.regionWidth,70f/thumbnail.regionHeight)
-                val w=thumbnail.regionWidth*scale;val h=thumbnail.regionHeight*scale
-                batch.color=Color.WHITE
-                batch.draw(thumbnail,t.x+5f+(70f-w)/2f,t.y+13f+(70f-h)/2f,w,h)
-            }
-            val tx=t.x+88f
-            val textWidth=t.width-96f
-            font.data.setScale(20f/36f);font.color=IVORY
-            ellipsis("${terrain.name}  ${terrain.coordinates}",tx,t.y+83f,textWidth)
-            font.data.setScale(18f/36f)
-            ellipsis("지형 효과 ${terrain.effect}",tx,t.y+61f,textWidth)
-            ellipsis("이동 비용 ${terrain.movementCost}",tx,t.y+39f,textWidth)
-            font.data.setScale(16f/36f);font.color=MUTED
-            ellipsis(terrain.basis,tx,t.y+17f,textWidth)
-        }
-        val m=columns[3]
-        text("임무",m.x+6f,m.y+83f,21f,GOLD)
-        text("승리",m.x+6f,m.y+59f,18f,IVORY)
-        clippedLines(context.objective.ifBlank { "—" },m.x+51f,m.y+59f,m.width-59f,1,18f)
-        text("패배",m.x+6f,m.y+23f,18f,MUTED)
-        clippedLines(context.defeat.ifBlank { "—" },m.x+51f,m.y+23f,m.width-59f,1,17f)
+    private fun drawRegionFit(region:TextureRegion,x:Float,y:Float,width:Float,height:Float){
+        val scale=minOf(width/region.regionWidth,height/region.regionHeight)
+        val w=region.regionWidth*scale;val h=region.regionHeight*scale
+        batch.draw(region,x+(width-w)/2f,y+(height-h)/2f,w,h)
     }
-    private fun text(value:String,x:Float,y:Float,size:Float,color:Color) {
-        font.data.setScale(size/36f);font.color=color;font.draw(batch,value,x,y)
+    /** A restrained bevel echoes the chapter banner without obscuring the battlefield. */
+    private fun titlePanel(r:BattleHudPanelLayout.Rect){
+        val bevel=12f
+        shapes.color=BACKGROUND
+        shapes.rect(r.x,r.y,r.width-bevel,r.height)
+        shapes.triangle(r.x+r.width-bevel,r.y,r.x+r.width-bevel,r.y+r.height,r.x+r.width,r.y+r.height)
+        shapes.color=GOLD
+        shapes.rect(r.x,r.y,r.width-bevel,1f)
+        shapes.rect(r.x,r.y+r.height-1f,r.width,1f)
+        shapes.rect(r.x,r.y,1f,r.height)
+        shapes.rectLine(r.x+r.width-bevel,r.y,r.x+r.width,r.y+r.height,1f)
     }
-    private fun ellipsis(value:String,x:Float,y:Float,width:Float) {
-        font.draw(batch,value,x,y,0,value.length,width,Align.left,false,"...")
-    }
-    private fun clippedLines(value:String,x:Float,y:Float,width:Float,maxLines:Int,size:Float) {
-        font.data.setScale(size/36f);font.color=MUTED
-        val normalized=value.replace('\n',' ').trim()
-        val layout=GlyphLayout();val lines=mutableListOf<String>();var remaining=normalized
-        repeat(maxLines) { index ->
-            if(remaining.isBlank())return@repeat
-            if(index==maxLines-1) { lines+=remaining;remaining="" }
-            else {
-                var end=remaining.length
-                while(end>1) { layout.setText(font,remaining.substring(0,end));if(layout.width<=width)break;end-- }
-                lines+=remaining.substring(0,end).trimEnd();remaining=remaining.substring(end).trimStart()
-            }
-        }
-        lines.forEachIndexed { index,line -> ellipsis(line,x,y-index*(size+2f),width) }
-    }
-    private data class StatBar(val value:Int,val maxValue:Int,val y:Float,val color:Color)
-    companion object {
-        const val UI_GLYPHS="작전 환경 현재 남은 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 장수 장수 위에 커서를 올리세요 지형 지형 위에 커서를 올리세요 지형 효과 이동 비용 선택 장수 기준 미표시 통행불가 기준 없음 임무 승리 패배 아군 적군 우군 중립 HP MP Lv — · % / : , 0123456789"
-        private val NAVY=Color(.015f,.015f,.015f,.94f)
-        private val EMPTY=Color.valueOf("282a2d")
+    private fun panel(r:BattleHudPanelLayout.Rect){shapes.color=BACKGROUND;shapes.rect(r.x,r.y,r.width,r.height);shapes.color=GOLD;outline(r)}
+    private fun outline(r:BattleHudPanelLayout.Rect){shapes.rect(r.x,r.y,r.width,1f);shapes.rect(r.x,r.y+r.height-1f,r.width,1f);shapes.rect(r.x,r.y,1f,r.height);shapes.rect(r.x+r.width-1f,r.y,1f,r.height)}
+    private fun statBar(x:Float,y:Float,w:Float,value:Int,max:Int,fill:Color){shapes.color=LINE;shapes.rect(x,y,w,9f);shapes.color=TRACK;shapes.rect(x+1f,y+1f,w-2f,7f);shapes.color=fill;shapes.rect(x+1f,y+1f,(w-2f)*(value.toFloat()/max.coerceAtLeast(1)).coerceIn(0f,1f),7f)}
+    private fun text(value:String,x:Float,y:Float,size:Float,color:Color){font.data.setScale(size/36f);font.color=color;font.draw(batch,value,x,y)}
+    private fun ellipsis(value:String,x:Float,y:Float,width:Float){font.draw(batch,value,x,y,0,value.length,width.coerceAtLeast(1f),Align.left,false,"...")}
+    companion object{
+        const val UI_GLYPHS="작전 환경 현재 남은 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 장수 정보 책략 대기 도움말 지형 효과 이동 비용 선택 장수 기준 통행불가 임무 승리 조건 패배 조건 아군 적군 우군 중립 기력 HP MP Lv Z X C V ◆ − + ? — · % / : , . | 0123456789"
+        private val shortcutActions=setOf(BattleHudPanelController.Action.UNIT_INFO,BattleHudPanelController.Action.MAGIC,BattleHudPanelController.Action.WAIT,BattleHudPanelController.Action.END_TURN)
+        private val BACKGROUND=Color(.025f,.03f,.04f,.94f)
         private val GOLD=Color.valueOf("bfa265")
         private val IVORY=Color.valueOf("f3ebd8")
-        private val MUTED=Color.valueOf("b4bdca")
-        private val DIVIDER=Color.valueOf("55514a")
-        private val PORTRAIT_BG=Color.valueOf("202225")
+        private val MUTED=Color.valueOf("aeb4bc")
+        private val PORTRAIT=Color.valueOf("202225")
+        private val ICON_BG=Color.valueOf("171b23")
+        private val LINE=Color.valueOf("8c826d")
         private val TRACK=Color.valueOf("33363a")
-        private val BAR_BORDER=Color.valueOf("8c826d")
         private val HP=Color.valueOf("7ca44c")
         private val MP=Color.valueOf("5a94bc")
-        private val BUTTON=Color.valueOf("303237")
-        private val END_BUTTON=Color.valueOf("695735")
     }
 }
 
-/** Labels for the existing full battle menu's stable command indices. */
-object BattleMenuButtonLabels {
+object BattleMenuButtonLabels{
     val labels=listOf("종료","저장","불러오기","설정","아군","적군","지형","보물","턴 종료","승리 조건","지도","미행동","편집","도움말")
 }

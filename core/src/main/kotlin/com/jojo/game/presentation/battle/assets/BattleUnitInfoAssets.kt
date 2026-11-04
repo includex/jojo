@@ -10,6 +10,8 @@ import com.badlogic.gdx.utils.Disposable
  */
 
 internal class BattleUnitInfoAssets : Disposable {
+    private val referenceFrame = lazy { Texture(Gdx.files.internal("maps/ui/generated/reference-frame.png")) }
+    val unitInfoReferenceFrame get() = referenceFrame.value
     /**
      * `bg` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -163,7 +165,7 @@ internal class BattleUnitInfoAssets : Disposable {
      */
 
     override fun dispose() {
-        listOf(bg, box1, box2, box3, progress, mark2, mark3, mark6, logo, face, vline2)
+        listOf(bg, box1, box2, box3, progress, mark2, mark3, mark6, logo, face, vline2, referenceFrame)
             .filter { it.isInitialized() }
             .forEach { it.value.dispose() }
     }

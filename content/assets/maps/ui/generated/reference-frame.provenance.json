@@ -1,0 +1,6 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "prompt": "Production UI skin for a premium East Asian historical tactical RPG. One empty rectangular panel frame, square canvas 1024x1024, aligned to all four canvas edges, transparent center and transparent background. Elegant rounded clipped corners with a fine double champagne-gold metal bevel and tiny restrained scrolling Asian corner filigree, darker blackened outer outline, inner warm gold hairline, like the portrait popup panels of a polished modern Romance of Three Kingdoms strategy game. Borders confined to outer 24 pixels and corner art confined to outer 64 pixels, perfectly straight uniform middle edges for nine-patch stretching. Subtle handcrafted metallic highlights, refined not chunky, no emblems, no text, no glyphs, no portrait, no icons, no scenery, no shadows outside frame, no interior fill, no checkerboard. Flat orthographic 2D production asset, not a mockup.",
+  "transparent_background": true,
+  "asset": "reference-frame.png"
+}

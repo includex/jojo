@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "prompt": "Production game UI sprite atlas, exactly 4 columns and 2 rows of equally sized square cells, 1536x768 canvas. Each cell contains one centered icon, identical size with generous transparent margins, no overlap. Transparent background. Premium historical tactical RPG jewel status icons, thin beveled champagne gold square frame, dark glass interior, bright readable magical symbol like refined fantasy strategy games. Row 1 left to right: gold upward arrow (buff); red downward arrow (debuff); amber lightning bolt (paralysis); pale cyan crossed-out speech bubble (silence). Row 2 left to right: purple spiral (confusion); emerald green poison droplet (poison); gray broken eye (lost awareness); blue shield (defense buff). Crisp polished painted 2D game art readable at 32 pixels, no lettering, no words, no labels, no landscape, no characters, no extra icons. Strict evenly spaced 4 by 2 grid for runtime TextureRegion slicing.",
+  "transparent_background": true,
+  "asset": "status-icons.png",
+  "columns": 4,
+  "rows": 2
+}

@@ -118,7 +118,7 @@ class ScenarioScreen(
         com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayRenderer(batch,shapes,bodyFont,
             com.jojo.game.presentation.battle.overlay.BattleUnitInfoOverlayAssets(
                 a.unitInfoLogo,a.unitInfoBox1,a.unitInfoBox2,a.unitInfoBox3,a.unitInfoBg,a.unitInfoVline2,
-                a.unitInfoFace,a.unitInfoProgress,a.unitInfoMark2,a.unitInfoMark3,a.unitInfoMark6),26f/34f)
+                a.unitInfoFace,a.unitInfoProgress,a.unitInfoMark2,a.unitInfoMark3,a.unitInfoMark6,a.unitInfoReferenceFrame),26f/34f)
     }
     private val shapes = ShapeRenderer()
     /**
@@ -1341,7 +1341,10 @@ class ScenarioScreen(
                     u.name,u.post,u.level,u.hp,u.maxHp,u.mp,u.maxMp,u.attack,u.defense,u.spirit,u.critical,u.morale,
                     u.mine,u.battleCount,u.retreatCount,u.skillIntro,u.unitIntro,u.id),
                 sheet.buttons,sheet.magicRows,profile?.face?.plus(8)?.let(::portraitTexture),
-                u.equipment.map { it?.name ?: "장착하지 않음" },u.rates)
+                u.equipment.map { it?.name ?: "장착하지 않음" },u.rates,
+                // Persistent unit field 19 is EXP, shared with BattleUnitProjector's campaign binding.
+                experience=campaign.unitAttribute(u.id,19,0),
+                experienceLimit=gameDataCatalog.unitExperienceLimit(u.level))
             batch.projectionMatrix=com.badlogic.gdx.math.Matrix4(viewport.camera.combined).scale(1280f/1488.3721f,688f/800f,1f)
             hallCharacterRenderer.draw(view)
             batch.projectionMatrix=viewport.camera.combined

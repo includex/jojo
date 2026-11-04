@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "prompt": "Production sprite atlas for refined East Asian strategy game UI. Exactly 3 columns by 2 rows equally spaced square cells on 1536x1024 transparent canvas. One centered small symbol per cell, generous transparent margins, no frames, no text. Row1 left to right: radiant golden sun with short rays (clear weather), silver-gray cloud (cloudy weather), pale turquoise curved wind gust (wind). Row2 left to right: gray cloud with blue rain drops (rain), icy white-blue snowflake (snow), elegant gold dragon head in side silhouette facing right (chapter emblem). Polished hand-painted 2D UI glyphs with restrained metallic highlights, highly legible at 32px, consistent scale. No letters, no numbers, no background scene, no border, no additional symbols. Strict regular 3x2 atlas for programmatic TextureRegion slicing.",
+  "transparent_background": true,
+  "asset": "weather-icons.png",
+  "columns": 3,
+  "rows": 2
+}

@@ -14,12 +14,14 @@ class BattleUnitInfoOverlayControllerTest {
         val controller = BattleUnitInfoOverlayController()
         controller.open(listOf(unit(10, "관우"), unit(20, "장비")), index = 0)
 
-        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(1150f, 60f))
-        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(1150f, 60f))
+        val next = BattleUnitInfoLayout.next
+        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(next.x + next.width/2, next.y + next.height/2))
+        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(next.x + next.width/2, next.y + next.height/2))
         assertEquals("장비", controller.view()?.unit?.name)
 
-        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(850f, 80f))
-        val close = controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(850f, 80f))
+        val closeRect = BattleUnitInfoLayout.close
+        controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerDown(closeRect.x + closeRect.width/2, closeRect.y + closeRect.height/2))
+        val close = controller.dispatch(BattleUnitInfoOverlayController.Intent.PointerUp(closeRect.x + closeRect.width/2, closeRect.y + closeRect.height/2))
         assertEquals(BattleUnitInfoOverlayController.Effect.Closed, close.effect)
         assertNull(controller.view())
     }

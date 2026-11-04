@@ -4,6 +4,7 @@ package com.jojo.game.presentation.battle.assets
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.NinePatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.Disposable
 /**
  * `BattleHudAssets`: 관련 상태와 동작을 묶는 class다.
@@ -17,6 +18,25 @@ internal class BattleHudAssets : Disposable {
      */
 
     val dialoguePanelTexture = linearOptional("maps/ui/dialogue-panel.png")
+    private val hudWeatherIconTexture = linearOptional("maps/ui/generated/weather-icons.png")
+    val hudWeatherIcons: List<TextureRegion> = hudWeatherIconTexture?.let { texture ->
+        (0 until 6).map { index ->
+            val cellW=texture.width/3;val cellH=texture.height/2
+            val w=(cellW*.75f).toInt();val h=(cellH*.75f).toInt()
+            TextureRegion(texture,index%3*cellW+(cellW-w)/2,index/3*cellH+(cellH-h)/2,w,h)
+        }
+    }.orEmpty()
+    /** Generated four-column, two-row HUD atlas; regions share this one owned texture. */
+    private val hudStatusIconTexture = linearOptional("maps/ui/generated/status-icons.png")
+    val hudStatusIcons: List<TextureRegion> = hudStatusIconTexture?.let { texture ->
+        (0 until 8).map { index ->
+            val x = index % 4 * texture.width / 4
+            val y = index / 4 * texture.height / 2
+            TextureRegion(texture, x, y,
+                (index % 4 + 1) * texture.width / 4 - x,
+                (index / 4 + 1) * texture.height / 2 - y)
+        }
+    }.orEmpty()
     /**
      * `fightSpeechLeftTexture` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
@@ -108,7 +128,7 @@ internal class BattleHudAssets : Disposable {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    val statusFrameTexture = linearOptional("maps/ui/generated/hud-frame.png")
+    val statusFrameTexture = linearOptional("maps/ui/generated/reference-frame.png")
     val naturalWeatherTexture = linearOptional("maps/ui/battle-menu/weather_0.png")
 
     /**
@@ -400,7 +420,7 @@ internal class BattleHudAssets : Disposable {
 
     override fun dispose() {
         listOf(
-            dialoguePanelTexture, fightSpeechLeftTexture, fightIntroTileTexture,
+            dialoguePanelTexture, hudStatusIconTexture, hudWeatherIconTexture, fightSpeechLeftTexture, fightIntroTileTexture,
             yingchuan477BodyTexture, yingchuan477SpeakerTexture,
             battleMenuTexture, battleButtonBackgroundTexture,
             battleRecordTexture, battleEndTurnTexture, naturalMiniMapTexture, naturalWeatherTexture, statusFrameTexture,

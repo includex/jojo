@@ -48,7 +48,7 @@ object BattleUiSmokeLauncher {
     fun overlay()=screen.javaClass.getDeclaredField("unitInfoOverlay").also{it.isAccessible=true}.get(screen) as Any
     if (++phaseFrames % 3 != 0) return@RuntimeBattleDriver emptyList()
     when(phase++) {
-     0->{ val lin=probe.battle.snapshot.units.single{it.characterId==512};invoke("handleTileClick",lin.x,lin.y);invoke("handleTileClick",lin.x,lin.y) }
+     0->{ val live=battle().units.values.single{it.characterId==512};live.statuses[com.jojo.game.domain.battle.BattleStatus.CONFUSION]=2;live.attributeLifts[com.jojo.game.domain.battle.BattleAttribute.DEFENSE]=1;live.attributeLiftRounds[com.jojo.game.domain.battle.BattleAttribute.DEFENSE]=3;val lin=probe.battle.snapshot.units.single{it.characterId==512};invoke("handleTileClick",lin.x,lin.y);invoke("handleTileClick",lin.x,lin.y) }
      1->{capture("command");invoke("dispatchBattleCommand",7)}
      2->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.unit?.characterId==512);capture("info-base");val r=BattleUnitInfoLayout.tabs[2]; val vp=screen.javaClass.getDeclaredField("viewport").also{it.isAccessible=true}.get(screen) as com.badlogic.gdx.utils.viewport.Viewport;val point=vp.project(com.badlogic.gdx.math.Vector2(r.x+r.width/2,r.y+r.height/2));val x=point.x.toInt();val y=(Gdx.graphics.height-point.y).toInt();Gdx.input.inputProcessor?.let{it.touchDown(x,y,0,Input.Buttons.LEFT);it.touchUp(x,y,0,Input.Buttons.LEFT)}}
      3->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.tab==2) { "Equipment tab input failed" };capture("info-equipment");Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)}
@@ -61,12 +61,12 @@ object BattleUiSmokeLauncher {
      10->{capture("help");Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)}
      11->{
       invoke("dispatchBattleCommand",6)
-      val settings=BattleHudPanelLayout.buttons(vp.worldWidth,vp.worldHeight,true).single{it.action==BattleHudPanelController.Action.SETTINGS}.rect
+      val settings=BattleHudPanelLayout.buttons(vp.worldWidth,vp.worldHeight,true).single{it.action==BattleHudPanelController.Action.HELP}.rect
       val point=vp.project(com.badlogic.gdx.math.Vector2(settings.x+settings.width/2,settings.y+settings.height/2))
       val px=point.x.toInt();val py=(Gdx.graphics.height-point.y).toInt()
       Gdx.input.inputProcessor?.let{it.touchDown(px,py,0,Input.Buttons.LEFT);it.touchUp(px,py,0,Input.Buttons.LEFT)}
-      val settingsOverlay=screen.javaClass.getDeclaredMethod("getSettingsOverlay").also{it.isAccessible=true}.invoke(screen)
-      check(settingsOverlay.javaClass.getMethod("view").invoke(settingsOverlay)!=null) { "Top HUD environment button did not open settings" }
+      val settingsOverlay=field("helperOverlay").get(screen)
+      check(settingsOverlay.javaClass.getMethod("view").invoke(settingsOverlay)!=null) { "Weather help button did not open help" }
       Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)
       val lin=battle().units.values.single{it.characterId==512}
       invoke("handleTileClick",lin.tileX,lin.tileY)
@@ -77,6 +77,7 @@ object BattleUiSmokeLauncher {
       check(hud().unit?.name==battle().units.values.single{it.characterId==512}.displayName) { "Hovering Lin did not show Lin in HUD: ${hud()}" }
       check(hud().unit?.portrait!=null) { "Hovered protagonist portrait missing" }
       check(hud().terrain!=null)
+      check(hud().unit!!.statuses.size>=2) { "Actual buff and confusion icons missing" }
       capture("hud-hover-unit")
       val enemy=battle().units.values.single{it.characterId==522}
       pointerTile(enemy.tileX,enemy.tileY)
@@ -116,7 +117,7 @@ object BattleUiSmokeLauncher {
       (field("battleHudPanel").get(screen) as BattleHudPanelController).toggle()
       println("BATTLE_HUD_HOVER_PASS Lin -> Dong -> empty terrain; portrait present; HUD clears context; modal freezes context")
      }
-     17->{capture("hud-collapsed");invoke("dispatchBattleCommand",6)
+     17->{battle().units.values.single{it.characterId==512}.statuses.clear();capture("hud-collapsed");invoke("dispatchBattleCommand",6)
       val campaign=screen.javaClass.getDeclaredField("campaign").also{it.isAccessible=true}.get(screen) as com.jojo.game.domain.campaign.CampaignState
       campaign.inventory.addUnitItem(512,216,1)
       val lin=probe.battle.snapshot.units.single{it.characterId==512};invoke("handleTileClick",lin.x,lin.y);invoke("handleTileClick",lin.x,lin.y);invoke("dispatchBattleCommand",2)}

@@ -1672,7 +1672,7 @@ void main() {
      */
 
     private val itemUpgradeFont: BitmapFont =
-        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString("") + ScenarioDialogueTextCatalog.fontCharacters + battleFontCharacters + BattleHudPanelRenderer.UI_GLYPHS + "선택 장수 기준 장수 기준 선택 후 확인 통행 불가 지형 효과 이동 비용 좌표 병종 승리 패배 임무 인물 정보 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 맑음 흐림 바람 비 눈 제한 남음 부대 명령")
+        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString("") + ScenarioDialogueTextCatalog.fontCharacters + battleFontCharacters + BattleHudPanelRenderer.UI_GLYPHS + "장수 정보 기본 정보 능력치 특기 책략 열전 경험치 정상 상승 하락 우군 선택 장수 기준 장수 기준 선택 후 확인 통행 불가 지형 효과 이동 비용 좌표 병종 승리 패배 임무 인물 정보 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 맑음 흐림 바람 비 눈 제한 남음 부대 명령")
 
     /**
      * `battleRewardOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -1786,6 +1786,7 @@ void main() {
                 mark2 = unitInfoAssets.unitInfoMark2,
                 mark3 = unitInfoAssets.unitInfoMark3,
                 mark6 = unitInfoAssets.unitInfoMark6,
+                frame = hudAssets.statusFrameTexture,
             ),
         )
     }
@@ -4621,6 +4622,17 @@ void main() {
                     return true
                 }
                 if (keyboardIntent.capture == BattleInputCapture.SCRIPT_PAUSED) return true
+                val hudShortcut = when (keycode) {
+                    Input.Keys.Z -> BattleHudPanelController.Action.UNIT_INFO
+                    Input.Keys.X -> BattleHudPanelController.Action.MAGIC
+                    Input.Keys.C -> BattleHudPanelController.Action.WAIT
+                    Input.Keys.V -> BattleHudPanelController.Action.END_TURN
+                    else -> null
+                }
+                if (hudShortcut != null) {
+                    dispatchHudAction(hudShortcut)
+                    return true
+                }
                 when (keycode) {
                     Input.Keys.T, Input.Keys.SPACE, Input.Keys.ENTER -> {
                         if (battle.outcome() == null) requestEndRound() else outcomePresentation.continueAfterOutcome()
@@ -4654,10 +4666,10 @@ void main() {
                 val pointerIntent = battleInputRouter.pointerDown(world.x, world.y, inputSurface())
                 if (pointerIntent.capture in setOf(BattleInputCapture.MAP, BattleInputCapture.MINI_MAP, BattleInputCapture.MINI_MAP_SURFACE, BattleInputCapture.MENU_HUD, BattleInputCapture.COMMAND) &&
                     scriptRuntime.state == PlaybackState.COMPLETE && !battleMenuOpen &&
-                    battleHudPanel.contains(world.x, world.y, viewport.worldWidth, viewport.worldHeight)) {
+                    hudContains(world.x, world.y)) {
                     hudPanelPressed = true
                     hudPressedAction = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
-                        ?.takeIf { battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND || it == BattleHudPanelController.Action.TOGGLE }
+
                     return true
                 }
                 if (pointerIntent.capture == BattleInputCapture.DIALOGUE) {
@@ -4843,15 +4855,7 @@ void main() {
                 if (hudPanelPressed) {
                     hudPanelPressed = false
                     val action = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
-                    if (action == hudPressedAction) when(action) {
-                        BattleHudPanelController.Action.MENU -> openBattleMenu()
-                        BattleHudPanelController.Action.RECORD -> openForcesListLayer()
-                        BattleHudPanelController.Action.MAP -> miniMapLayer.touch(MiniMapLayer.TOUCH_END)
-                        BattleHudPanelController.Action.SETTINGS -> { openBattleMenu(); handleBattleMenuTap(3) }
-                        BattleHudPanelController.Action.END_TURN -> requestEndRound()
-                        BattleHudPanelController.Action.TOGGLE -> battleHudPanel.toggle()
-                        null -> Unit
-                    }
+                    if (action != null && action == hudPressedAction) dispatchHudAction(action)
                     hudPressedAction = null
                     return true
                 }
@@ -5616,7 +5620,12 @@ void main() {
             }
             unitInfoOverlay.view()?.let { view ->
                 batch.projectionMatrix = viewport.camera.combined
-                battleUnitInfoOverlayRenderer.draw(view.copy(portrait = gameDataCatalog.unitProfile(view.unit.characterId)?.face?.plus(8)?.let(dynamicTextures::head)))
+                val unit = battle.units.values.firstOrNull { it.characterId == view.unit.characterId }
+                battleUnitInfoOverlayRenderer.draw(view.copy(
+                    portrait = gameDataCatalog.unitProfile(view.unit.characterId)?.face?.plus(8)?.let(dynamicTextures::head),
+                    experience = unit?.experience,
+                    experienceLimit = gameDataCatalog.unitExperienceLimit(unit?.level ?: view.unit.level),
+                    statuses = unit?.let(::hudStatuses).orEmpty()))
             }
             if (jiqiLayer != null) drawJiqiLayer()
             if (magickListLayer != null) drawMagickListLayer()
@@ -10251,6 +10260,71 @@ void main() {
             ?.let { BattleHudMissions.parse(it.readString("UTF-8"))[sourceScenario] }
     }
     private var lastHudInspection: BattleHudContextView? = null
+    private var hudInspectedUnitId: String? = null
+
+    private fun hudContains(x: Float, y: Float): Boolean =
+        battleHudPanel.contains(x, y, viewport.worldWidth, viewport.worldHeight, lastHudInspection) ||
+            BattleHudPanelLayout.hoverCard(viewport.worldWidth, viewport.worldHeight,
+                lastHudInspection ?: BattleHudContextView())?.contains(x, y) == true
+
+    /** HUD buttons and keyboard shortcuts share the same battle-state checks and command flow. */
+    private fun hudActionsReady(): Boolean {
+        if (!turnController.canEndPlayerTurn() || scriptRuntime.state != PlaybackState.COMPLETE ||
+            combatPresentationBusy() || battleMenuOpen || unitInfoOverlay.isVisible() ||
+            settingsOverlay.view() != null || forcesOverlay.isVisible() || helperOverlay.view() != null ||
+            saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null ||
+            saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null ||
+            informationOverlay.propertyView() != null || informationOverlay.treasureView() != null ||
+            informationOverlay.terrainView() != null || usePropertyLayer != null || magickListLayer != null ||
+            jiqiLayer != null || winConditionOpen || activeRoundLayer != null ||
+            autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE ||
+            battleCommandFlow.phase == BattleCommandFlow.Phase.CHILD_ACTION) return false
+        return true
+    }
+
+    private fun hudEnabledActions(): Set<BattleHudPanelController.Action> {
+        if (!hudActionsReady()) return emptySet()
+        val selected = selectedUnitId?.let(battle.units::get)
+        val operable = selected?.takeIf { it.visible && it.hitPoints > 0 && !it.hasActed && it.type() == battle.activeFaction }
+        return buildSet {
+            addAll(listOf(BattleHudPanelController.Action.MENU, BattleHudPanelController.Action.RECORD,
+                BattleHudPanelController.Action.MAP, BattleHudPanelController.Action.SETTINGS,
+                BattleHudPanelController.Action.HELP, BattleHudPanelController.Action.TOGGLE,
+                BattleHudPanelController.Action.END_TURN))
+            if ((selected ?: hudInspectedUnitId?.let(battle.units::get))?.let { it.visible && it.hitPoints > 0 && it.characterId != null } == true)
+                add(BattleHudPanelController.Action.UNIT_INFO)
+            if (operable != null) {
+                add(BattleHudPanelController.Action.WAIT)
+                if (operable.magic.isNotEmpty() && BattleStatus.SILENCE !in operable.statuses)
+                    add(BattleHudPanelController.Action.MAGIC)
+            }
+        }
+    }
+
+    private fun dispatchHudAction(action: BattleHudPanelController.Action) {
+        if (action !in hudEnabledActions()) return
+        val selected = selectedUnitId?.let(battle.units::get)
+        when (action) {
+            BattleHudPanelController.Action.UNIT_INFO ->
+                (selected ?: hudInspectedUnitId?.let(battle.units::get))
+                    ?.takeIf { it.visible && it.hitPoints > 0 }?.characterId?.let(::openUnitInfoLayer)
+            BattleHudPanelController.Action.MAGIC, BattleHudPanelController.Action.WAIT -> {
+                val unit = selected?.takeIf { it.visible && it.hitPoints > 0 && !it.hasActed &&
+                    it.type() == battle.activeFaction } ?: return
+                if (action == BattleHudPanelController.Action.MAGIC &&
+                    (unit.magic.isEmpty() || BattleStatus.SILENCE in unit.statuses)) return
+                openBattleCommand(unit)
+                dispatchBattleCommand(if (action == BattleHudPanelController.Action.MAGIC) 1 else 5)
+            }
+            BattleHudPanelController.Action.END_TURN -> requestEndRound()
+            BattleHudPanelController.Action.MENU -> openBattleMenu()
+            BattleHudPanelController.Action.RECORD -> openForcesListLayer()
+            BattleHudPanelController.Action.MAP -> miniMapLayer.touch(MiniMapLayer.TOUCH_END)
+            BattleHudPanelController.Action.SETTINGS -> { openBattleMenu(); handleBattleMenuTap(3) }
+            BattleHudPanelController.Action.HELP -> openHelperLayer()
+            BattleHudPanelController.Action.TOGGLE -> battleHudPanel.toggle()
+        }
+    }
     private val hudPanelRenderer by lazy { BattleHudPanelRenderer(batch, shapes, itemUpgradeFont, hudAssets.statusFrameTexture) }
     /** Resolve the current screen pointer every frame so camera panning also refreshes inspection. */
     private fun battleHudView(): BattleHudContextView {
@@ -10262,8 +10336,17 @@ void main() {
             .removePrefix("패배 조건").trim().replace(Regex("\\s+"), " ") else ""
         val weatherIcon = hudAssets.menuWeatherTextures[WeatherTransitionLayout.sheet(battle.weather)]
             ?.getOrNull(MenuLayer.weatherFrameAt(elapsed))
-        fun empty() = BattleHudContextView(objective = objective, defeat = defeat, weatherIcon = weatherIcon).also { lastHudInspection = it }
-        fun retained() = lastHudInspection?.copy(objective = objective, defeat = defeat, weatherIcon = weatherIcon) ?: empty()
+        val weatherSymbol = hudAssets.hudWeatherIcons.getOrNull(when(battle.weather) {
+            BattleWeather.CLEAR -> 0; BattleWeather.CLOUDY -> 1; BattleWeather.WINDY -> 2
+            BattleWeather.HEAVY_RAIN -> 3; BattleWeather.SNOW -> 4 })
+        val chapterEmblem = hudAssets.hudWeatherIcons.getOrNull(5)
+        fun empty() = BattleHudContextView(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem,
+            enabledActions = hudEnabledActions()).also {
+            hudInspectedUnitId = null
+            lastHudInspection = it
+        }
+        fun retained() = lastHudInspection?.copy(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem,
+            enabledActions = hudEnabledActions()) ?: empty()
         if (scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
             settingsOverlay.view() != null || forcesOverlay.view() != null || helperOverlay.view() != null ||
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null ||
@@ -10275,6 +10358,15 @@ void main() {
         val sy = Gdx.input.y
         if (sx !in 0 until Gdx.graphics.width || sy !in 0 until Gdx.graphics.height) return empty()
         val world = viewport.unproject(Vector2(sx.toFloat(), sy.toFloat()))
+        if (BattleHudPanelLayout.hoverCard(viewport.worldWidth, viewport.worldHeight,
+                lastHudInspection ?: BattleHudContextView())?.contains(world.x, world.y) == true) {
+            // Another actor under the card wins hover inspection; card clicks still cannot reach the map.
+            val pointerTile = BattleTileInput.tileAt(world.x, world.y, boardLeft, boardBottom, boardTile, terrainGrid.height)
+            val otherUnit = battle.unitAt(pointerTile.x, pointerTile.y)?.takeIf { it.visible && it.hitPoints > 0 }
+            if (otherUnit == null || otherUnit.id == hudInspectedUnitId) return retained()
+        }
+        if (lastHudInspection?.terrain != null && BattleHudPanelLayout.terrain(viewport.worldWidth, viewport.worldHeight).contains(world.x, world.y))
+            return retained().copy(unit = null).also { lastHudInspection = it }
         if (battleHudPanel.contains(world.x, world.y, viewport.worldWidth, viewport.worldHeight)) return empty()
         // Check the real board bounds before the legacy tile conversion (which truncates negatives).
         val mapBottom = boardBottom - boardMaxY * boardTile
@@ -10283,6 +10375,7 @@ void main() {
         val tile = BattleTileInput.tileAt(world.x, world.y, boardLeft, boardBottom, boardTile, terrainGrid.height)
         if (tile.x !in 0..boardMaxX || tile.y !in 0..boardMaxY) return empty()
         val unit = battle.unitAt(tile.x, tile.y)?.takeIf { it.visible && it.hitPoints > 0 }
+        hudInspectedUnitId = unit?.id
         val terrain = terrainGrid.terrainAt(tile.x, tile.y)
         val basis = unit ?: selectedUnitId?.let { battle.units[it] }?.takeIf { it.visible && it.hitPoints > 0 }
         val cost = basis?.terrainMovementCosts?.get(terrain)
@@ -10290,7 +10383,9 @@ void main() {
             unit = unit?.let {
                 BattleHudUnitView(it.displayName, gameDataCatalog.postsName(it.posts), it.level,
                     it.hitPoints, it.maxHitPoints, it.magicPoints, it.maxMagicPoints,
-                    it.characterId?.let(gameDataCatalog::unitProfile)?.face?.plus(8)?.let(dynamicTextures::head))
+                    it.characterId?.let(gameDataCatalog::unitProfile)?.face?.plus(8)?.let(dynamicTextures::head),
+                    faction = when(it.type()) { Faction.PLAYER -> "아군"; Faction.FRIEND -> "우군"; else -> "적군" },
+                    statuses = hudStatuses(it))
             },
             terrain = BattleHudTerrainView(
                 name = gameDataCatalog.terrainRows().getOrNull(terrain)?.name ?: "지형 $terrain",
@@ -10307,7 +10402,32 @@ void main() {
                 },
             ),
             objective = objective, defeat = defeat, weatherIcon = weatherIcon,
+            weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem,
+            pointerX = world.x, pointerY = world.y, enabledActions = hudEnabledActions(),
         ).also { lastHudInspection = it }
+    }
+
+    private fun hudStatuses(unit: BattleUnit): List<BattleHudStatusView> = buildList {
+        unit.statuses.forEach { (status, rounds) ->
+            val index = when (status) {
+                BattleStatus.PARALYSIS -> 2
+                BattleStatus.SILENCE -> 3
+                BattleStatus.CONFUSION -> 4
+                BattleStatus.POISON -> 5
+                BattleStatus.LOST -> 6
+            }
+            val label = status.label() + if (rounds > 0) " · ${rounds}턴" else ""
+            add(BattleHudStatusView(label, hudAssets.hudStatusIcons.getOrNull(index)))
+        }
+        unit.attributeLifts.forEach { (attribute, lift) ->
+            if (lift != 0) {
+                val rounds = unit.attributeLiftRounds[attribute] ?: 0
+                val label = attribute.label() + (if (lift > 0) " 상승 +$lift" else " 하락 $lift") +
+                    if (rounds > 0) " · ${rounds}턴" else ""
+                val index = if (lift < 0) 1 else if (attribute == BattleAttribute.DEFENSE) 7 else 0
+                add(BattleHudStatusView(label, hudAssets.hudStatusIcons.getOrNull(index)))
+            }
+        }
     }
 
     private fun drawBattleHudChrome() {

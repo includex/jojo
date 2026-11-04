@@ -5,13 +5,13 @@ object BattleUnitInfoLayout {
     data class Rect(val x: Float, val y: Float, val width: Float, val height: Float) {
         fun contains(px: Float, py: Float) = px >= x && px < x + width && py >= y && py < y + height
     }
-    val panel = Rect(80f, 24f, 1328f, 752f)
-    val portrait = Rect(112f, 316f, 216f, 270f)
-    val tabs = List(5) { Rect(112f + it * 244f, 656f, 228f, 56f) }
-    val previous = Rect(970f, 40f, 160f, 48f)
-    val next = Rect(1140f, 40f, 160f, 48f)
-    val close = Rect(760f, 40f, 160f, 48f)
-    val rates = Rect(112f, 40f, 180f, 48f)
+    val panel = Rect(160f, 80f, 1168f, 640f)
+    val portrait = Rect(176f, 96f, 360f, 568f)
+    val tabs = List(5) { Rect(560f + it * 148f, 628f, 140f, 44f) }
+    val previous = Rect(956f, 96f, 160f, 44f)
+    val next = Rect(1132f, 96f, 160f, 44f)
+    val close = Rect(1260f, 674f, 48f, 36f)
+    val rates = Rect(560f, 96f, 160f, 44f)
     fun buttonAt(x: Float, y: Float): Int? = when {
         rates.contains(x, y) -> 9
         previous.contains(x, y) -> 5
