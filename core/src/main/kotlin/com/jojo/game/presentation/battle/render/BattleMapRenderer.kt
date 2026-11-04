@@ -1,6 +1,9 @@
 // Battle
 package com.jojo.game.presentation.battle.render
 
+import com.badlogic.gdx.Gdx
+import com.jojo.game.presentation.battle.overlay.BattleOverlayPaper
+import kotlin.math.sin
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -143,7 +146,6 @@ class BattleMapRenderer(
                 )
             }
         }
-        drawCursor(view)
         batch.color = Color.WHITE
     }
 
@@ -187,23 +189,57 @@ class BattleMapRenderer(
         harmFont.color = Color.WHITE
     }
 
-    /**
-     * `drawCursor`: 화면 표시 상태를 렌더링한다.
-     * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
-     */
+    private var selectionTime = 0f
 
-    private fun drawCursor(view: BattleMapView) {
+    /** Draw after actors so the selected unit remains identifiable on busy terrain. */
+    fun drawSelectedUnit(view: BattleMapView) {
         val cursor = view.cursor ?: return
-        assets.cursorTexture?.let { texture ->
-            batch.color = Color.WHITE
-            batch.draw(
-                texture,
-                view.boardLeft + cursor.x * view.tileSize,
-                tileBottom(view, cursor.y),
-                view.tileSize,
-                view.tileSize
-            )
+        selectionTime = (selectionTime + Gdx.graphics.deltaTime.coerceIn(0f, .1f)) % 4f
+        val size = view.tileSize
+        val x = view.boardLeft + cursor.x * size
+        val y = tileBottom(view, cursor.y)
+        val stroke = (size / 24f).coerceAtLeast(2f)
+        val length = size * .23f
+        val inset = stroke * .5f
+        val dark = Color(.22f, .14f, .025f, 1f)
+        val gold = Color(1f, .73f, .08f, 1f)
+        val light = Color(1f, .94f, .48f, 1f)
+        // Four open corners leave the sprite and the movement/attack tile readable.
+        fun segment(left: Float, bottom: Float, width: Float, height: Float) {
+            BattleOverlayPaper.fill(batch, left - 1f, bottom - 1f, width + 2f, height + 2f, dark)
+            BattleOverlayPaper.fill(batch, left, bottom, width, height, gold)
+            BattleOverlayPaper.fill(batch, left, bottom + height - 1f, width, 1f, light)
         }
+        val left = x + inset
+        val right = x + size - inset - stroke
+        val bottom = y + inset
+        val top = y + size - inset - stroke
+        segment(left, bottom, length, stroke)
+        segment(left, bottom, stroke, length)
+        segment(right - length + stroke, bottom, length, stroke)
+        segment(right, bottom, stroke, length)
+        segment(left, top, length, stroke)
+        segment(left, top - length + stroke, stroke, length)
+        segment(right - length + stroke, top, length, stroke)
+        segment(right, top - length + stroke, stroke, length)
+
+        // Pixel-stepped downward arrow, gently bobbing above the selected tile.
+        val pixel = (size / 32f).coerceAtLeast(2f)
+        val arrowBottom = y + size + pixel * (2f + sin(selectionTime * Math.PI.toFloat()) * 1.2f)
+        val center = x + size / 2f
+        for (row in 0..4) {
+            val width = pixel * (row * 2 + 1)
+            BattleOverlayPaper.fill(batch, center - width / 2f - 1f,
+                arrowBottom + row * pixel - 1f, width + 2f, pixel + 2f, dark)
+        }
+        for (row in 0..4) {
+            val width = pixel * (row * 2 + 1)
+            BattleOverlayPaper.fill(batch, center - width / 2f,
+                arrowBottom + row * pixel, width, pixel, gold)
+        }
+        BattleOverlayPaper.fill(batch, center - pixel * 4.5f,
+            arrowBottom + pixel * 4f, pixel * 9f, 1f, light)
+        batch.color = Color.WHITE
     }
 
     /**

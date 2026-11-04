@@ -1475,6 +1475,7 @@ void main() {
 
     private val battleFontCharacters: String = buildString {
         append("전술 전투 원본 맵 라운드 아군 적군 단계 턴 최종 종료 증원군 도착 조조 병사 황건적 시나리오로 돌아가기 일대일 대결 대화 아이템 ${scriptRuntime.stage.stageName}")
+        Gdx.files.internal("ui/battle-hud.yaml").takeIf { it.exists() }?.let { append(it.readString("UTF-8")) }
         append(gameDataCatalog.allBattleNames().joinToString())
         // 대화 화자에는 공병처럼 데이터 카탈로그의 일반 병종명도 포함된다.
         append(gameDataCatalog.allUnitNames().joinToString())
@@ -1671,7 +1672,7 @@ void main() {
      */
 
     private val itemUpgradeFont: BitmapFont =
-        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString("") + ScenarioDialogueTextCatalog.fontCharacters + "인물 정보 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 맑음 흐림 바람 비 눈 제한 남음 부대 명령")
+        KoreanFont.create(36, SystemMessage.S_B3940E2B50 + BATTLE_COMMAND_LABELS.joinToString("") + ScenarioDialogueTextCatalog.fontCharacters + battleFontCharacters + BattleHudPanelRenderer.UI_GLYPHS + "선택 장수 기준 장수 기준 선택 후 확인 통행 불가 지형 효과 이동 비용 좌표 병종 승리 패배 임무 인물 정보 메뉴 부대 지도 턴 종료 접기 펼치기 날씨 맑음 흐림 바람 비 눈 제한 남음 부대 명령")
 
     /**
      * `battleRewardOverlayRenderer` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -4652,10 +4653,11 @@ void main() {
                 val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
                 val pointerIntent = battleInputRouter.pointerDown(world.x, world.y, inputSurface())
                 if (pointerIntent.capture in setOf(BattleInputCapture.MAP, BattleInputCapture.MINI_MAP, BattleInputCapture.MINI_MAP_SURFACE, BattleInputCapture.MENU_HUD, BattleInputCapture.COMMAND) &&
-                    scriptRuntime.state == PlaybackState.COMPLETE && !battleMenuOpen && (battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND || battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight) == BattleHudPanelController.Action.TOGGLE) &&
+                    scriptRuntime.state == PlaybackState.COMPLETE && !battleMenuOpen &&
                     battleHudPanel.contains(world.x, world.y, viewport.worldWidth, viewport.worldHeight)) {
                     hudPanelPressed = true
                     hudPressedAction = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
+                        ?.takeIf { battleCommandFlow.phase != BattleCommandFlow.Phase.COMMAND || it == BattleHudPanelController.Action.TOGGLE }
                     return true
                 }
                 if (pointerIntent.capture == BattleInputCapture.DIALOGUE) {
@@ -4845,6 +4847,7 @@ void main() {
                         BattleHudPanelController.Action.MENU -> openBattleMenu()
                         BattleHudPanelController.Action.RECORD -> openForcesListLayer()
                         BattleHudPanelController.Action.MAP -> miniMapLayer.touch(MiniMapLayer.TOUCH_END)
+                        BattleHudPanelController.Action.SETTINGS -> { openBattleMenu(); handleBattleMenuTap(3) }
                         BattleHudPanelController.Action.END_TURN -> requestEndRound()
                         BattleHudPanelController.Action.TOGGLE -> battleHudPanel.toggle()
                         null -> Unit
@@ -9971,6 +9974,7 @@ void main() {
         battleMapRenderer.drawTerrainImpacts(mapView)
         val actorView = battleActorEffectRenderView(visibleUnits)
         battleActorEffectRenderer.drawActors(actorView)
+        battleMapRenderer.drawSelectedUnit(mapView)
         battleMapRenderer.drawHarmNumbers(mapView)
         battleActorEffectRenderer.drawSayMarker(actorView)
     }
@@ -10242,12 +10246,75 @@ void main() {
     private val battleHudPanel = BattleHudPanelController()
     private var hudPanelPressed = false
     private var hudPressedAction: BattleHudPanelController.Action? = null
-    private val hudPanelRenderer by lazy { BattleHudPanelRenderer(batch, shapes, itemUpgradeFont) }
+    private val hudMission by lazy {
+        Gdx.files.internal("ui/battle-hud.yaml").takeIf { it.exists() }
+            ?.let { BattleHudMissions.parse(it.readString("UTF-8"))[sourceScenario] }
+    }
+    private var lastHudInspection: BattleHudContextView? = null
+    private val hudPanelRenderer by lazy { BattleHudPanelRenderer(batch, shapes, itemUpgradeFont, hudAssets.statusFrameTexture) }
+    /** Resolve the current screen pointer every frame so camera panning also refreshes inspection. */
+    private fun battleHudView(): BattleHudContextView {
+        val condition = scriptRuntime.stage.winCondition
+        val defeatStart = condition.indexOf("패배 조건")
+        val objective = hudMission?.victory ?: (if (defeatStart >= 0) condition.substring(0, defeatStart) else condition)
+            .removePrefix("승리 조건").trim().replace(Regex("\\s+"), " ")
+        val defeat = hudMission?.defeat ?: if (defeatStart >= 0) condition.substring(defeatStart)
+            .removePrefix("패배 조건").trim().replace(Regex("\\s+"), " ") else ""
+        val weatherIcon = hudAssets.menuWeatherTextures[WeatherTransitionLayout.sheet(battle.weather)]
+            ?.getOrNull(MenuLayer.weatherFrameAt(elapsed))
+        fun empty() = BattleHudContextView(objective = objective, defeat = defeat, weatherIcon = weatherIcon).also { lastHudInspection = it }
+        fun retained() = lastHudInspection?.copy(objective = objective, defeat = defeat, weatherIcon = weatherIcon) ?: empty()
+        if (scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
+            settingsOverlay.view() != null || forcesOverlay.view() != null || helperOverlay.view() != null ||
+            saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null ||
+            saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null ||
+            informationOverlay.propertyView() != null || informationOverlay.treasureView() != null ||
+            informationOverlay.terrainView() != null || usePropertyLayer != null || magickListLayer != null ||
+            winConditionOpen || autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return retained()
+        val sx = Gdx.input.x
+        val sy = Gdx.input.y
+        if (sx !in 0 until Gdx.graphics.width || sy !in 0 until Gdx.graphics.height) return empty()
+        val world = viewport.unproject(Vector2(sx.toFloat(), sy.toFloat()))
+        if (battleHudPanel.contains(world.x, world.y, viewport.worldWidth, viewport.worldHeight)) return empty()
+        // Check the real board bounds before the legacy tile conversion (which truncates negatives).
+        val mapBottom = boardBottom - boardMaxY * boardTile
+        if (world.x < boardLeft || world.x >= boardLeft + (boardMaxX + 1) * boardTile ||
+            world.y < mapBottom || world.y >= boardBottom + boardTile) return empty()
+        val tile = BattleTileInput.tileAt(world.x, world.y, boardLeft, boardBottom, boardTile, terrainGrid.height)
+        if (tile.x !in 0..boardMaxX || tile.y !in 0..boardMaxY) return empty()
+        val unit = battle.unitAt(tile.x, tile.y)?.takeIf { it.visible && it.hitPoints > 0 }
+        val terrain = terrainGrid.terrainAt(tile.x, tile.y)
+        val basis = unit ?: selectedUnitId?.let { battle.units[it] }?.takeIf { it.visible && it.hitPoints > 0 }
+        val cost = basis?.terrainMovementCosts?.get(terrain)
+        return BattleHudContextView(
+            unit = unit?.let {
+                BattleHudUnitView(it.displayName, gameDataCatalog.postsName(it.posts), it.level,
+                    it.hitPoints, it.maxHitPoints, it.magicPoints, it.maxMagicPoints,
+                    it.characterId?.let(gameDataCatalog::unitProfile)?.face?.plus(8)?.let(dynamicTextures::head))
+            },
+            terrain = BattleHudTerrainView(
+                name = gameDataCatalog.terrainRows().getOrNull(terrain)?.name ?: "지형 $terrain",
+                coordinates = "(${tile.x}, ${tile.y})",
+                effect = basis?.let { "${it.terrainImpacts[terrain] ?: 100}%" } ?: "—",
+                movementCost = when { basis == null -> "—"; cost == null || cost >= 255 -> "통행 불가"; else -> cost.toString() },
+                basis = basis?.let { "${it.displayName} 기준" } ?: "장수 선택 후 확인",
+                thumbnail = mapTexture?.let { texture ->
+                    val left = tile.x * texture.width / terrainGrid.width
+                    val top = tile.y * texture.height / terrainGrid.height
+                    TextureRegion(texture, left, top,
+                        ((tile.x + 1) * texture.width / terrainGrid.width - left).coerceAtLeast(1),
+                        ((tile.y + 1) * texture.height / terrainGrid.height - top).coerceAtLeast(1))
+                },
+            ),
+            objective = objective, defeat = defeat, weatherIcon = weatherIcon,
+        ).also { lastHudInspection = it }
+    }
+
     private fun drawBattleHudChrome() {
         batch.projectionMatrix = viewport.camera.combined
         if (!battleDialogueBlendRoute) hudPanelRenderer.draw(battleHudPanel, viewport.worldWidth, viewport.worldHeight,
             gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
-            when(battle.weather) { BattleWeather.CLEAR -> "맑음"; BattleWeather.CLOUDY -> "흐림"; BattleWeather.WINDY -> "바람"; BattleWeather.HEAVY_RAIN -> "비"; BattleWeather.SNOW -> "눈" }, battle.round, scenarioMaxRound())
+            when(battle.weather) { BattleWeather.CLEAR -> "맑음"; BattleWeather.CLOUDY -> "흐림"; BattleWeather.WINDY -> "바람"; BattleWeather.HEAVY_RAIN -> "비"; BattleWeather.SNOW -> "눈" }, battle.round, scenarioMaxRound(), battleHudView())
         batch.begin()
         battleGridMapSurfaceRenderer.drawOverlay(battleGridMapSurfaceView())
         batch.end()

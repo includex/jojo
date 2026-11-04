@@ -1,0 +1,9 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "intent": "generate",
+  "transparent_background": true,
+  "asset": "hud-frame.png",
+  "prompt": "Use case: stylized-concept. Asset type: production raster nine-patch border skin for a polished historical tactical RPG HUD. Generate ONE square border frame asset, 1024 by 1024 pixels, straight-on 2D orthographic UI art, frame aligned exactly to canvas edges. Entire center is genuinely TRANSPARENT, outside also transparent; ONLY the thin frame and tiny corner ornaments are visible. Very restrained premium graphite metal with hairline muted champagne bronze inlays, crisp pixel-clean edges, subtle brushed metal highlights, understated East Asian geometric corner engraving contained within 40-pixel corner areas. Frame thickness 8 pixels, no large decorations. All four edges straight, sides consistent so they can stretch as a nine-patch; center and long edge centers have no objects. A modern refined strategy game UI, elegant, quiet, high readability. This border will overlay a 94 percent opaque black panel in the game; do not fill the interior. No navy fill, no text, no letters, no numbers, no symbols representing buttons, no characters, no landscape, no mockup, no drop shadow, no perspective, no checkerboard drawn into the image, no watermark. The requested deliverable is only the production frame texture.",
+  "source": "/Users/ain/.codex/generated_images/01a19207-eef8-7f11-a5f9-6c79cf7e27a8/exec-edf3449a-97c9-48aa-941b-bc60cc489d23.png",
+  "usage": "NinePatch 64px splits, corners displayed at 14 logical pixels, transparent center over black 94% opacity"
+}

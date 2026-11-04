@@ -108,6 +108,7 @@ internal class BattleHudAssets : Disposable {
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
+    val statusFrameTexture = linearOptional("maps/ui/generated/hud-frame.png")
     val naturalWeatherTexture = linearOptional("maps/ui/battle-menu/weather_0.png")
 
     /**
@@ -402,7 +403,7 @@ internal class BattleHudAssets : Disposable {
             dialoguePanelTexture, fightSpeechLeftTexture, fightIntroTileTexture,
             yingchuan477BodyTexture, yingchuan477SpeakerTexture,
             battleMenuTexture, battleButtonBackgroundTexture,
-            battleRecordTexture, battleEndTurnTexture, naturalMiniMapTexture, naturalWeatherTexture,
+            battleRecordTexture, battleEndTurnTexture, naturalMiniMapTexture, naturalWeatherTexture, statusFrameTexture,
             menuBackgroundTexture, menuFrameTexture, menuBoxTexture, menuButtonTexture,
             menuTitleBarTexture, menuProgressBarTexture, menuHelpTexture,
             enemyHpBarTexture, famousEnemyHpBarTexture, friendHpBarTexture, mineHpBarTexture,

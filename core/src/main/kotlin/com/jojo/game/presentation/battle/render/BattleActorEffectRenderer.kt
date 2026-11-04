@@ -2,6 +2,7 @@
 package com.jojo.game.presentation.battle.render
 
 import com.badlogic.gdx.Gdx
+import com.jojo.game.presentation.battle.overlay.BattleOverlayPaper
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
@@ -138,6 +139,9 @@ internal class BattleActorEffectRenderer(
                 val width = 88f
                 val x = view.boardLeft + actor.tileX * view.tileSize + (view.tileSize - width) / 2f
                 val y = view.boardBottom - actor.tileY * view.tileSize - 1f
+                // Keep the full HP capacity readable even when the remaining fill is tiny.
+                BattleOverlayPaper.fill(batch, x - 1f, y - 1f, width + 2f, 8f, Color(.13f, .12f, .09f, 1f))
+                BattleOverlayPaper.fill(batch, x, y, width, 6f, Color(.20f, .20f, .17f, 1f))
                 batch.color = Color.WHITE
                 val preview = actor.attackPreview
                 if (preview == null) {
@@ -147,6 +151,8 @@ internal class BattleActorEffectRenderer(
                     hudAssets.previewLostHpBarTexture?.let { batch.draw(it, x, y, width * preview.currentRatio, 6f) }
                     batch.draw(texture, x, y, width * preview.afterRatio, 6f)
                 }
+                BattleOverlayPaper.fill(batch, x, y + 6f, width, 1f, Color(.89f, .86f, .73f, 1f))
+                BattleOverlayPaper.fill(batch, x, y - 1f, width, 1f, Color(.49f, .46f, .36f, 1f))
             }
             actor.attackPreview?.let { preview ->
                 val tileLeft = view.boardLeft + actor.tileX * view.tileSize

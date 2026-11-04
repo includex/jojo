@@ -1,0 +1,27 @@
+# Display-only summaries. Full conditions and outcome checks remain in scenarios/S_*.lua.
+version: 1
+missions:
+  S_90:
+    victory: "노지심 합류 후 임충 탈출"
+    defeat: "임충 전사 / 9턴 종료까지 미탈출"
+  S_91:
+    victory: "홍교두 제압 또는 일기토 승리"
+    defeat: "임충 패배 / 8턴 종료"
+  S_92:
+    victory: "6턴 동안 창고 사수·두목 격퇴"
+    defeat: "임충 전사·창고 파괴 / 7턴 종료"
+  S_93:
+    victory: "두목 격퇴·수레 1대 이상 보호"
+    defeat: "임충 전사·수레 전멸 / 11턴 종료"
+  S_94:
+    victory: "육겸 격퇴·임충 생존"
+    defeat: "임충 전사·고립 / 11턴 종료"
+  S_95:
+    victory: "임충 포함 아군 2명 선착장 도착"
+    defeat: "임충·주귀 전사 / 10턴 종료"
+  S_96:
+    victory: "장물 1개 이상 확보·두목 격퇴"
+    defeat: "임충 전사·장물 전멸 / 9턴 종료"
+  S_97:
+    victory: "양지와 비살상 결투 완수"
+    defeat: "임충·양지 전사 / 8턴 종료"
