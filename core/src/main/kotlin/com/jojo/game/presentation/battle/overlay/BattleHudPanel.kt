@@ -18,6 +18,7 @@ data class BattleHudContextView(
     val pointerX:Float?=null,val pointerY:Float?=null,
     val enabledActions:Set<BattleHudPanelController.Action>?=null,
     val weatherSymbol:TextureRegion?=null,val chapterEmblem:TextureRegion?=null,
+    val weatherPanel:TextureRegion?=null,val chapterPanel:TextureRegion?=null,
 )
 data class BattleHudUnitView(
     val name:String,val post:String,val level:Int,val hp:Int,val maxHp:Int,val mp:Int,val maxMp:Int,
@@ -57,9 +58,10 @@ object BattleHudPanelLayout {
     data class Button(val action:BattleHudPanelController.Action,val rect:Rect) {
         fun contains(x:Float,y:Float)=rect.contains(x,y)
     }
-    fun panel(width:Float,height:Float,expanded:Boolean)=Rect(8f,height-52f,minOf(544f,width*.43f),44f)
+    fun panel(width:Float,height:Float,expanded:Boolean)=Rect(8f,height-68f,minOf(650f,width*.48f),60f)
+    fun chapter(width:Float,height:Float)=Rect(8f,height-159f,minOf(650f,width*.48f),151f)
     fun weather(width:Float,height:Float)=Rect(width-244f,height-60f,236f,52f)
-    fun mission(width:Float,height:Float)=Rect(8f,height-124f,minOf(544f,width*.43f),66f)
+    fun mission(width:Float,height:Float)=Rect(8f,height-159f,minOf(650f,width*.48f)*.60f,87f)
     fun terrain(width:Float,height:Float)=Rect(8f,8f,minOf(560f,width*.42f),44f)
     fun buttons(width:Float,height:Float,expanded:Boolean):List<Button> {
         val header=panel(width,height,expanded);val weather=weather(width,height)
@@ -70,8 +72,8 @@ object BattleHudPanelLayout {
         }
         return bottom+listOf(
             Button(BattleHudPanelController.Action.MENU,Rect(header.x,header.y,header.width-34f,header.height)),
-            Button(BattleHudPanelController.Action.TOGGLE,Rect(header.x+header.width-30f,header.y+8f,24f,28f)),
-            Button(BattleHudPanelController.Action.HELP,Rect(weather.x+weather.width-42f,weather.y+10f,32f,32f)),
+            Button(BattleHudPanelController.Action.TOGGLE,Rect(header.x+header.width-30f,header.y+16f,24f,28f)),
+            Button(BattleHudPanelController.Action.HELP,Rect(weather.x+weather.width*.79f-16f,weather.y+10f,32f,32f)),
         )
     }
     /** Anchor beside the current cursor and flip left at the edge; leave corner HUD panels clear. */
@@ -95,12 +97,12 @@ class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:Sh
         val weatherRect=layout.weather(width,height);val mission=layout.mission(width,height)
         val terrain=context.terrain?.let{layout.terrain(width,height)};val card=layout.hoverCard(width,height,context)
         val buttons=layout.buttons(width,height,controller.expanded)
-        val panels=listOfNotNull(header,weatherRect,terrain,card)+(if(controller.expanded)listOf(mission)else emptyList())
+        val panels=listOfNotNull(header.takeIf{context.chapterPanel==null},weatherRect.takeIf{context.weatherPanel==null},terrain,card)+(if(controller.expanded && context.chapterPanel==null)listOf(mission)else emptyList())
         shapes.projectionMatrix=batch.projectionMatrix
         Gdx.gl.glEnable(GL20.GL_BLEND);Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA,GL20.GL_ONE_MINUS_SRC_ALPHA)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         panels.filter{it!=header}.forEach{panel(it)}
-        titlePanel(header)
+        if(context.chapterPanel==null)titlePanel(header)
         buttons.filter{it.action in shortcutActions}.forEach{panel(it.rect)}
         card?.let{r->
             shapes.color=PORTRAIT;shapes.rect(r.x+8f,r.y+66f,106f,132f)
@@ -121,22 +123,38 @@ class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:Sh
             batch.color=Color.WHITE
             panels.filter{it!=mission && it!=header}.forEach{frame?.draw(batch,it.x,it.y,it.width,it.height)}
             buttons.filter{it.action in shortcutActions}.forEach{frame?.draw(batch,it.rect.x,it.rect.y,it.rect.width,it.rect.height)}
-            context.chapterEmblem?.let{drawRegionFit(it,header.x+8f,header.y+5f,42f,34f)}
-                ?: text("◆",header.x+10f,header.y+29f,24f,GOLD)
+            context.chapterPanel?.let{image->
+                if(controller.expanded){
+                    val bounds=layout.chapter(width,height)
+                    drawRegionFit(image,bounds.x,bounds.y,bounds.width,bounds.height)
+                }else{
+                    val titleRegion=TextureRegion(image,0,0,image.regionWidth,(image.regionHeight*.40f).toInt())
+                    drawRegionFit(titleRegion,header.x,header.y,header.width,header.height)
+                }
+            }
+            if(context.chapterPanel==null){
+                context.chapterEmblem?.let{drawRegionFit(it,header.x+8f,header.y+11f,50f,40f)}
+                    ?: text("◆",header.x+16f,header.y+38f,24f,GOLD)
+            }
             font.data.setScale(24f/36f);font.color=IVORY
-            ellipsis(name,header.x+54f,header.y+30f,header.width-249f)
+            ellipsis(name,header.x+110f,header.y+39f,header.width*.66f-132f)
             font.data.setScale(21f/36f)
-            font.draw(batch,"$round 턴 / $limit 턴",header.x+header.width-190f,header.y+29f,150f,Align.center,false)
-            text(if(controller.expanded)"−"else"+",header.x+header.width-24f,header.y+29f,24f,GOLD)
-            context.weatherSymbol?.let{drawRegionFit(it,weatherRect.x+15f,weatherRect.y+7f,48f,38f)}
-                ?: context.weatherIcon?.let{t->val scale=minOf(48f/t.width,34f/t.height);batch.draw(t,weatherRect.x+18f,weatherRect.y+9f,t.width*scale,t.height*scale)}
-            text(weather,weatherRect.x+78f,weatherRect.y+34f,24f,IVORY)
-            text("?",weatherRect.x+weatherRect.width-32f,weatherRect.y+34f,24f,GOLD)
+            font.draw(batch,"$round 턴 / $limit 턴",header.x+header.width*.69f,header.y+38f,header.width*.25f,Align.center,false)
+            text(if(controller.expanded)"−"else"+",header.x+header.width-24f,header.y+38f,24f,GOLD)
+            context.weatherPanel?.let{drawRegionFit(it,weatherRect.x,weatherRect.y,weatherRect.width,weatherRect.height)} ?: run{
+                context.weatherSymbol?.let{drawRegionFit(it,weatherRect.x+15f,weatherRect.y+7f,48f,38f)}
+                    ?: context.weatherIcon?.let{t->val scale=minOf(48f/t.width,34f/t.height);batch.draw(t,weatherRect.x+18f,weatherRect.y+9f,t.width*scale,t.height*scale)}
+                text(weather,weatherRect.x+78f,weatherRect.y+34f,24f,IVORY)
+                text("?",weatherRect.x+weatherRect.width*.79f-6f,weatherRect.y+34f,24f,GOLD)
+            }
             if(controller.expanded){
-                text("◆ 승리 조건",mission.x+8f,mission.y+47f,18f,GOLD)
-                font.data.setScale(18f/36f);font.color=IVORY;ellipsis(context.objective,mission.x+108f,mission.y+47f,mission.width-118f)
-                text("◆ 패배 조건",mission.x+8f,mission.y+20f,18f,GOLD)
-                font.data.setScale(18f/36f);font.color=IVORY;ellipsis(context.defeat,mission.x+108f,mission.y+20f,mission.width-118f)
+                val decorated=context.chapterPanel!=null
+                text(if(decorated)"승리"else"◆ 승리 조건",mission.x+if(decorated)48f else 8f,mission.y+62f,18f,GOLD)
+                font.data.setScale(18f/36f);font.color=IVORY
+                ellipsis(context.objective,mission.x+if(decorated)93f else 108f,mission.y+62f,mission.width-if(decorated)110f else 118f)
+                text(if(decorated)"패배"else"◆ 패배 조건",mission.x+if(decorated)48f else 8f,mission.y+25f,18f,GOLD)
+                font.data.setScale(18f/36f);font.color=IVORY
+                ellipsis(context.defeat,mission.x+if(decorated)93f else 108f,mission.y+25f,mission.width-if(decorated)110f else 118f)
             }
             terrain?.let{r->context.terrain?.let{t->
                 t.thumbnail?.let{batch.draw(it,r.x+12f,r.y+8f,32f,28f)}

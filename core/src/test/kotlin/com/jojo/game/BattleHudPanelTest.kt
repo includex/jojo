@@ -30,6 +30,19 @@ class BattleHudPanelTest {
         }
         assertNull(controller.buttonAt(700f,300f,1488f,800f))
     }
+    @Test fun `chapter artwork aligns title and objective geometry without corner overlap`() {
+        for(width in listOf(1422f,1488f)) {
+            val image=BattleHudPanelLayout.chapter(width,800f)
+            val title=BattleHudPanelLayout.panel(width,800f,true)
+            val mission=BattleHudPanelLayout.mission(width,800f)
+            assertEquals(image.x,title.x)
+            assertEquals(image.width,title.width)
+            assertEquals(image.y+image.height,title.y+title.height)
+            assertEquals(image.y,mission.y)
+            assertTrue(mission.x+mission.width<=image.x+image.width*.61f)
+            assertTrue(image.x+image.width<BattleHudPanelLayout.weather(width,800f).x)
+        }
+    }
     @Test fun `floating unit card flips at viewport edge and disappears without a unit`() {
         val unit=BattleHudUnitView("임충","창병",1,61,96,22,22)
         for(x in listOf(0f,1422f))for(y in listOf(0f,800f)) {

@@ -10339,13 +10339,19 @@ void main() {
         val weatherSymbol = hudAssets.hudWeatherIcons.getOrNull(when(battle.weather) {
             BattleWeather.CLEAR -> 0; BattleWeather.CLOUDY -> 1; BattleWeather.WINDY -> 2
             BattleWeather.HEAVY_RAIN -> 3; BattleWeather.SNOW -> 4 })
+        val weatherPanel = when(battle.weather) {
+            BattleWeather.CLEAR -> hudAssets.weatherPanels.getOrNull(0)
+            BattleWeather.HEAVY_RAIN -> hudAssets.weatherPanels.getOrNull(1)
+            BattleWeather.SNOW -> hudAssets.weatherPanels.getOrNull(2)
+            else -> null
+        }
         val chapterEmblem = hudAssets.hudWeatherIcons.getOrNull(5)
-        fun empty() = BattleHudContextView(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem,
+        fun empty() = BattleHudContextView(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
             enabledActions = hudEnabledActions()).also {
             hudInspectedUnitId = null
             lastHudInspection = it
         }
-        fun retained() = lastHudInspection?.copy(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem,
+        fun retained() = lastHudInspection?.copy(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
             enabledActions = hudEnabledActions()) ?: empty()
         if (scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
             settingsOverlay.view() != null || forcesOverlay.view() != null || helperOverlay.view() != null ||
@@ -10402,7 +10408,7 @@ void main() {
                 },
             ),
             objective = objective, defeat = defeat, weatherIcon = weatherIcon,
-            weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem,
+            weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
             pointerX = world.x, pointerY = world.y, enabledActions = hudEnabledActions(),
         ).also { lastHudInspection = it }
     }

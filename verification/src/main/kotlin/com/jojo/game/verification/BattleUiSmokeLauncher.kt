@@ -78,7 +78,7 @@ object BattleUiSmokeLauncher {
       check(hud().unit?.portrait!=null) { "Hovered protagonist portrait missing" }
       check(hud().terrain!=null)
       check(hud().unit!!.statuses.size>=2) { "Actual buff and confusion icons missing" }
-      capture("hud-hover-unit")
+      capture("hud-hover-unit");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.SNOW.ordinal)
       val enemy=battle().units.values.single{it.characterId==522}
       pointerTile(enemy.tileX,enemy.tileY)
      }
@@ -86,7 +86,7 @@ object BattleUiSmokeLauncher {
       val enemy=battle().units.values.single{it.characterId==522}
       check(hud().unit?.name==enemy.displayName) { "HUD kept old unit while hovering enemy: ${hud()}" }
       check(hud().terrain?.basis?.contains(enemy.displayName)==true)
-      capture("hud-hover-enemy")
+      capture("hud-hover-enemy");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.HEAVY_RAIN.ordinal)
       val lin=battle().units.values.single{it.characterId==512}
       val empty=listOf(0 to 1,0 to -1,1 to 0,-1 to 0).map{lin.tileX+it.first to lin.tileY+it.second}.first{(x,y)->x>=0&&y>=0&&battle().unitAt(x,y)==null}
       pointerTile(empty.first,empty.second)
@@ -96,7 +96,7 @@ object BattleUiSmokeLauncher {
       check(hud().terrain!=null) { "Empty tile terrain information missing" }
       check(hud().terrain?.basis?.contains(battle().units.values.single{it.characterId==512}.displayName)==true) { "Terrain lost selected unit basis: ${hud()}" }
       retainedTerrain=null
-      capture("hud-hover-terrain")
+      capture("hud-hover-terrain");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.CLEAR.ordinal)
       val controller=field("battleHudPanel").get(screen) as BattleHudPanelController
       val panel=BattleHudPanelLayout.panel(vp.worldWidth,vp.worldHeight,controller.expanded)
       pointer(panel.x+16f,panel.y+16f)

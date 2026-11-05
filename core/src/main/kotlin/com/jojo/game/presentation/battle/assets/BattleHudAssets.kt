@@ -18,6 +18,10 @@ internal class BattleHudAssets : Disposable {
      */
 
     val dialoguePanelTexture = linearOptional("maps/ui/dialogue-panel.png")
+    private val chapterPanelTexture = linearOptional("maps/ui/weather-panels/chapter-panel.png")
+    val chapterPanel = chapterPanelTexture?.let { TextureRegion(it, 45, 120, 2085, 485) }
+    private val weatherPanelTextures = listOf("clear", "rain", "snow").map { linearOptional("maps/ui/weather-panels/$it.png") }
+    val weatherPanels = weatherPanelTextures.map { it?.let { texture -> TextureRegion(texture, 230, 160, 1720, 390) } }
     private val hudWeatherIconTexture = linearOptional("maps/ui/generated/weather-icons.png")
     val hudWeatherIcons: List<TextureRegion> = hudWeatherIconTexture?.let { texture ->
         (0 until 6).map { index ->
@@ -420,7 +424,7 @@ internal class BattleHudAssets : Disposable {
 
     override fun dispose() {
         listOf(
-            dialoguePanelTexture, hudStatusIconTexture, hudWeatherIconTexture, fightSpeechLeftTexture, fightIntroTileTexture,
+            dialoguePanelTexture, chapterPanelTexture, hudStatusIconTexture, hudWeatherIconTexture, fightSpeechLeftTexture, fightIntroTileTexture,
             yingchuan477BodyTexture, yingchuan477SpeakerTexture,
             battleMenuTexture, battleButtonBackgroundTexture,
             battleRecordTexture, battleEndTurnTexture, naturalMiniMapTexture, naturalWeatherTexture, statusFrameTexture,
@@ -429,6 +433,7 @@ internal class BattleHudAssets : Disposable {
             enemyHpBarTexture, famousEnemyHpBarTexture, friendHpBarTexture, mineHpBarTexture,
             terrainMask19, terrainMask21, battleCursorTexture, fireTexture, battleSayTexture,
         ).filterNotNull().forEach(Texture::dispose)
+        weatherPanelTextures.filterNotNull().forEach(Texture::dispose)
         naturalMiniMapMarkerTextures.values.filterNotNull().forEach(Texture::dispose)
         menuWeatherTextures.values.flatten().filterNotNull().forEach(Texture::dispose)
         menuToolTextures.filterNotNull().forEach(Texture::dispose)

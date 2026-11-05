@@ -1,0 +1,23 @@
+{
+  "source": "user-provided artwork",
+  "files": {
+    "clear": "ChatGPT 이미지 2026년 11월 5일 오후 11_25_57-1.png",
+    "rain": "ChatGPT 이미지 2026년 11월 5일 오후 11_25_57-2.png",
+    "snow": "ChatGPT 이미지 2026년 11월 5일 오후 11_25_58-3.png"
+  },
+  "displayRegion": {
+    "x": 230,
+    "y": 160,
+    "width": 1720,
+    "height": 390
+  },
+  "chapterPanel": {
+    "source": "반투명 골드 드래곤 UI 패널.png",
+    "displayRegion": {
+      "x": 45,
+      "y": 120,
+      "width": 2085,
+      "height": 485
+    }
+  }
+}
