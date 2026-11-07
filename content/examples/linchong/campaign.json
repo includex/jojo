@@ -335,6 +335,11 @@
           }
         }
       }
+    },
+    {
+      "id": "meditation",
+      "name": "운기행공",
+      "description": "다음 자기 턴까지 방어력 0, 받는 물리 공격의 공격력 2배. 다음 자기 턴에 해제하고 최대 체력 10%, 최대 내력 20% 회복."
     }
   ],
   "items": [
@@ -674,19 +679,18 @@
       "source": "원작 8회",
       "optional": false,
       "map": {
-        "width": 16,
-        "height": 12,
-        "turnLimit": 8,
+        "width": 36,
+        "height": 24,
+        "turnLimit": 19,
         "coordinateBase": 1
       },
       "synopsis": "죄수 임충을 호송하던 동초·설패가 숲속에서 살해를 시도한다. 노지심이 끼어들어 구출하며, 임충은 복수 대신 살아남는 길을 택한다.",
-      "victory": "임충 생존; 임충이 탈출칸 (15,6) 또는 (15,7) 도달; 노지심 등장 이벤트 완료",
-      "defeat": "임충 HP 0; 8턴 종료 시 미탈출",
+      "victory": "임충 생존; 노지심 합류 후 동쪽 끝 탈출칸 (35,12) 또는 (35,13) 도달",
+      "defeat": "임충 HP 0; 20턴 종료 시 미탈출",
       "terrain": [
-        "풀숲: x3~6,y2~4 / x9~12,y8~10 (회피 +10%)",
-        "숲 장애물: (7,3),(7,4),(10,5),(11,5), 통행불가",
-        "좁은 길: y6~7 전체, 일반 지형",
-        "탈출구: (15,6),(15,7)"
+        "동서 탈출로: y12~13, x1~36",
+        "탈출구: (35,12),(35,13)",
+        "동쪽 12·20·28열에 도달하면 매복 병력이 순차 등장"
       ],
       "objects": [
         {
@@ -694,12 +698,12 @@
           "type": "EXIT",
           "positions": [
             {
-              "x": 15,
-              "y": 6
+              "x": 35,
+              "y": 12
             },
             {
-              "x": 15,
-              "y": 7
+              "x": 35,
+              "y": 13
             }
           ],
           "condition": "activeAfter=B01_E02",
@@ -721,7 +725,7 @@
           "agility": 17,
           "move": 4,
           "x": 4,
-          "y": 6,
+          "y": 12,
           "ai": "hold",
           "notes": "hold; 초기 HP 61/96, 이동력 -2, 무기 봉인(노지심 구출 전)"
         },
@@ -739,7 +743,7 @@
           "agility": 10,
           "move": 4,
           "x": 7,
-          "y": 6,
+          "y": 12,
           "ai": "assassin",
           "notes": "assassin; HP 40% 이하 도주 가능"
         },
@@ -757,7 +761,7 @@
           "agility": 11,
           "move": 4,
           "x": 6,
-          "y": 7,
+          "y": 13,
           "ai": "assassin",
           "notes": "assassin; 임충 우선 공격"
         },
@@ -775,7 +779,7 @@
           "agility": 14,
           "move": 5,
           "x": 10,
-          "y": 6,
+          "y": 12,
           "ai": "rush",
           "notes": "rush"
         },
@@ -793,7 +797,7 @@
           "agility": 14,
           "move": 5,
           "x": 11,
-          "y": 7,
+          "y": 13,
           "ai": "rush",
           "notes": "rush"
         }
@@ -813,7 +817,7 @@
           "agility": 12,
           "move": 4,
           "x": 2,
-          "y": 8,
+          "y": 14,
           "ai": "player",
           "notes": "player"
         },
@@ -831,7 +835,7 @@
           "agility": 11,
           "move": 4,
           "x": 14,
-          "y": 4,
+          "y": 10,
           "ai": "intercept",
           "notes": "intercept"
         },
@@ -849,9 +853,102 @@
           "agility": 11,
           "move": 4,
           "x": 14,
-          "y": 9,
+          "y": 15,
           "ai": "intercept",
           "notes": "intercept"
+        },
+        {
+          "id": "raid1",
+          "name": "도적 갑",
+          "role": "도병",
+          "side": "ENEMY",
+          "level": 2,
+          "hp": 67,
+          "maxHp": 67,
+          "mp": 8,
+          "attack": 22,
+          "defense": 10,
+          "agility": 14,
+          "move": 4,
+          "x": 23,
+          "y": 10,
+          "ai": "intercept",
+          "notes": "rush_object",
+          "eventId": "B01_E08"
+        },
+        {
+          "id": "raid2",
+          "name": "도적 을",
+          "role": "도병",
+          "side": "ENEMY",
+          "level": 2,
+          "hp": 67,
+          "maxHp": 67,
+          "mp": 8,
+          "attack": 22,
+          "defense": 10,
+          "agility": 14,
+          "move": 4,
+          "x": 23,
+          "y": 15,
+          "ai": "intercept",
+          "notes": "rush_object",
+          "eventId": "B01_E08"
+        },
+        {
+          "id": "raid3",
+          "name": "도적 궁수",
+          "role": "궁병",
+          "side": "ENEMY",
+          "level": 2,
+          "hp": 56,
+          "maxHp": 56,
+          "mp": 18,
+          "attack": 21,
+          "defense": 8,
+          "agility": 17,
+          "move": 4,
+          "x": 31,
+          "y": 10,
+          "ai": "intercept",
+          "notes": "ranged",
+          "eventId": "B01_E09"
+        },
+        {
+          "eventId": "B01_E09",
+          "id": "raid4",
+          "name": "후속 도적 갑",
+          "side": "ENEMY",
+          "level": 2,
+          "hp": 63,
+          "maxHp": 63,
+          "mp": 8,
+          "attack": 22,
+          "defense": 9,
+          "agility": 15,
+          "move": 5,
+          "x": 31,
+          "y": 15,
+          "ai": "intercept",
+          "notes": "flank"
+        },
+        {
+          "eventId": "B01_E09",
+          "id": "raid5",
+          "name": "후속 도적 을",
+          "side": "ENEMY",
+          "level": 2,
+          "hp": 63,
+          "maxHp": 63,
+          "mp": 8,
+          "attack": 22,
+          "defense": 9,
+          "agility": 15,
+          "move": 5,
+          "x": 31,
+          "y": 11,
+          "ai": "intercept",
+          "notes": "flank"
         }
       ],
       "events": [
@@ -1075,7 +1172,7 @@
         },
         {
           "id": "B01_E04",
-          "trigger": "ON_ENTER_ZONE:lin:x>=11,y>=5,y<=8",
+          "trigger": "ON_ENTER_ZONE:lin:x>=12,y>=1,y<=24",
           "priority": 25,
           "once": true,
           "dialogue": [
@@ -1196,6 +1293,69 @@
           "notes": []
         },
         {
+          "id": "B01_E08",
+          "trigger": "ON_ENTER_ZONE:lin:x>=20,y>=1,y<=24",
+          "priority": 38,
+          "once": true,
+          "dialogue": [
+            {
+              "speaker": "임충",
+              "text": "앞에도 매복이 있다! 숲길을 따라 동쪽 끝까지 돌파하자."
+            }
+          ],
+          "actions": [
+            {
+              "command": "spawn",
+              "args": [
+                "raid1"
+              ],
+              "raw": "spawn:raid1"
+            },
+            {
+              "command": "spawn",
+              "args": [
+                "raid2"
+              ],
+              "raw": "spawn:raid2"
+            }
+          ]
+        },
+        {
+          "id": "B01_E09",
+          "trigger": "ON_ENTER_ZONE:lin:x>=28,y>=1,y<=24",
+          "priority": 39,
+          "once": true,
+          "dialogue": [
+            {
+              "speaker": "임충",
+              "text": "앞에도 매복이 있다! 숲길을 따라 동쪽 끝까지 돌파하자."
+            }
+          ],
+          "actions": [
+            {
+              "command": "spawn",
+              "args": [
+                "raid3"
+              ],
+              "raw": "spawn:raid3"
+            },
+            {
+              "command": "spawn",
+              "args": [
+                "raid4"
+              ],
+              "raw": "spawn:raid4"
+            },
+            {
+              "command": "spawn",
+              "args": [
+                "raid5"
+              ],
+              "raw": "spawn:raid5"
+            }
+          ]
+        },
+        {
           "id": "B01_E90",
           "trigger": "WIN_CONDITIONS_MET",
           "priority": 90,
@@ -1309,19 +1469,19 @@
         "blocked": [
           {
             "x": 7,
-            "y": 3
+            "y": 9
           },
           {
             "x": 7,
-            "y": 4
+            "y": 10
           },
           {
             "x": 10,
-            "y": 5
+            "y": 11
           },
           {
             "x": 11,
-            "y": 5
+            "y": 11
           }
         ],
         "initialStatuses": [
@@ -1359,7 +1519,7 @@
             },
             {
               "type": "turnEnd",
-              "value": 8
+              "value": 20
             }
           ]
         },
@@ -1369,99 +1529,99 @@
             "tiles": [
               {
                 "x": 3,
-                "y": 2
+                "y": 8
               },
               {
                 "x": 4,
-                "y": 2
+                "y": 8
               },
               {
                 "x": 5,
-                "y": 2
+                "y": 8
               },
               {
                 "x": 6,
-                "y": 2
+                "y": 8
               },
               {
                 "x": 3,
-                "y": 3
+                "y": 9
               },
               {
                 "x": 4,
-                "y": 3
+                "y": 9
               },
               {
                 "x": 5,
-                "y": 3
+                "y": 9
               },
               {
                 "x": 6,
-                "y": 3
+                "y": 9
               },
               {
                 "x": 3,
-                "y": 4
+                "y": 10
               },
               {
                 "x": 4,
-                "y": 4
+                "y": 10
               },
               {
                 "x": 5,
-                "y": 4
+                "y": 10
               },
               {
                 "x": 6,
-                "y": 4
+                "y": 10
               },
               {
                 "x": 9,
-                "y": 8
+                "y": 14
               },
               {
                 "x": 10,
-                "y": 8
+                "y": 14
               },
               {
                 "x": 11,
-                "y": 8
+                "y": 14
               },
               {
                 "x": 12,
-                "y": 8
+                "y": 14
               },
               {
                 "x": 9,
-                "y": 9
+                "y": 15
               },
               {
                 "x": 10,
-                "y": 9
+                "y": 15
               },
               {
                 "x": 11,
-                "y": 9
+                "y": 15
               },
               {
                 "x": 12,
-                "y": 9
+                "y": 15
               },
               {
                 "x": 9,
-                "y": 10
+                "y": 16
               },
               {
                 "x": 10,
-                "y": 10
+                "y": 16
               },
               {
                 "x": 11,
-                "y": 10
+                "y": 16
               },
               {
                 "x": 12,
-                "y": 10
+                "y": 16
               }
             ],
             "evasionBonus": 10
@@ -1470,18 +1630,18 @@
         "initialPlacement": {
           "lin": {
             "x": 6,
-            "y": 6,
+            "y": 12,
             "facing": "east",
             "avatarId": 622
           },
           "dong": {
             "x": 7,
-            "y": 6,
+            "y": 12,
             "facing": "east"
           },
           "xue": {
             "x": 5,
-            "y": 6,
+            "y": 12,
             "facing": "east"
           },
           "knife1": {

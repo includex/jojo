@@ -52,6 +52,9 @@ internal object MagicResolver {
         if (BattleStatus.PARALYSIS in attacker.statuses || BattleStatus.CONFUSION in attacker.statuses || BattleStatus.SILENCE in attacker.statuses) {
             return TacticalActionResult.Rejected(SystemMessage.S_DA89D1A923)
         }
+        if (magic.type == MagicEffects.id("typeMeditation") && (attacker.id != target.id || attacker.hitPoints <= 0)) {
+            return TacticalActionResult.Rejected("운기행공은 살아 있는 자신에게만 사용할 수 있습니다.")
+        }
         if (magic.target == 2) {
             if (attacker.magicPoints < magic.expendMp) return TacticalActionResult.Rejected(SystemMessage.S_6D37F45C92)
             attacker.addMpcur(-magic.expendMp)

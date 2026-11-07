@@ -70,7 +70,7 @@ def validate():
         source = (CONTENT / 'scenarios' / f'{module}.lua').read_text()
         for reference in __import__('re').findall(r'@dialogue:([^\'\"]+)', source):
             assert reference in dialogue['entries'], reference
-    print(f'Linchong package OK: {len(modules)} scenarios, 64 characters, {len(ITEM_IDS)} items, 10 techniques, 8 battles; no original campaign assets.')
+    print(f'Linchong package OK: {len(modules)} scenarios, 64 characters, {len(ITEM_IDS)} items, {len(SKILL_IDS)} techniques, 8 battles; no original campaign assets.')
 
 
 if __name__ == '__main__':

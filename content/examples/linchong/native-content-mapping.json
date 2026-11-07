@@ -40,7 +40,8 @@
     "water_stride": 106,
     "tiger_charge": 107,
     "swift_blade": 108,
-    "staff_combo": 109
+    "staff_combo": 109,
+    "meditation": 110
   },
   "characterIds": [
     512,

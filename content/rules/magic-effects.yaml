@@ -37,3 +37,6 @@ typePoisonCloud: 16
 typeArmyOrder: 17
 typeSealSpell: 18
 categorySandStorm: 1
+
+typeMeditation: 39
+spellMeditation: 110

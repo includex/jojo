@@ -19,7 +19,7 @@ for b in c['battles']:
    if 1<=nx<=w and 1<=ny<=h and (nx,ny) not in blocked|seen:seen.add((nx,ny));q.append((nx,ny))
  for o in b['objects']:
   assert any((p['x'],p['y']) in seen or any((p['x']+dx,p['y']+dy) in seen for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)]) for p in o['positions']),(b['id'],o['id'],'unreachable')
-assert len(actual)==217
+assert len(actual)==219
 for speaker,text in actual:assert f'> **{speaker}**: {text}' in src
 assert sum(len(v) for v in c['interludes'].values())==34
-print('PASS: 8 battles, 70 placements, 79 events, 217 source dialogue, 34 interlude lines; all spawns clear and all objects reachable.')
+print('PASS: 8 battles, 75 placements, 81 events, 219 source dialogue, 34 interlude lines; all spawns clear and all objects reachable.')

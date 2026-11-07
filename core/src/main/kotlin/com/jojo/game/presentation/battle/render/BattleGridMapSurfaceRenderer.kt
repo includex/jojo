@@ -54,6 +54,9 @@ data class BattleGridMiniMapBox(val x: Float, val y: Float, val width: Float, va
 /** BattleGridMiniMapView: 전투 화면에 전달할 불변 표시 상태를 보관한다. */
 data class BattleGridMiniMapView(
     val shown: Boolean,
+    val left: Float = 1246.3721f,
+    val bottom: Float = 558f,
+    val size: Float = 240f,
     val framePatch: NinePatch?,
     val boxPatch: NinePatch?,
     val mapTexture: Texture?,
@@ -129,11 +132,12 @@ class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
      */
 
     private fun drawMiniMap(view: BattleGridMiniMapView) {
-        val offset = if (view.shown) 0f else 244f
-        if (view.shown) view.framePatch?.draw(batch, 1244.3721f, 556f, 244f, 244f)
+        if (!view.shown) return
+        val offset = 0f
+        if (view.shown) view.framePatch?.draw(batch, view.left - 2f, view.bottom - 2f, view.size + 4f, view.size + 4f)
         view.mapTexture?.let { texture ->
             batch.color = Color(1f, 1f, 1f, 168f / 255f)
-            batch.draw(texture, 1246.3721f + offset, 558f, 240f, 240f)
+            batch.draw(texture, view.left, view.bottom, view.size, view.size)
             batch.color = Color.WHITE
             view.markers.forEach { marker ->
                 batch.draw(marker.texture, marker.x + offset, marker.y, 16f, 16f, 1, 1, 10, 10, false, false)
@@ -141,7 +145,7 @@ class BattleGridMapSurfaceRenderer(private val batch: SpriteBatch) {
         }
         view.weatherTexture?.let { texture ->
             batch.color = Color(1f, 1f, 1f, 127f / 255f)
-            batch.draw(texture, 1248.3721f + offset, 560f, 57.6f, 57.6f)
+            batch.draw(texture, view.left + 2f, view.bottom + 2f, 57.6f, 57.6f)
         }
         batch.color = Color.WHITE
         if (view.shown) view.box?.let { box -> view.boxPatch?.draw(batch, box.x, box.y, box.width, box.height) }

@@ -88,7 +88,7 @@ internal object PhysicalDamageCalculator {
 
         val intrinsicAttack = BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK)
         val attack = (attacker.onRuleAttackPower?.invoke(target, intrinsicAttack, "physical") ?: intrinsicAttack) *
-                context.attackTerrainImpact / 100
+                context.attackTerrainImpact / 100 * if (BattleStatus.MEDITATION in target.statuses) 2 else 1
         /**
          * `targetDefense` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
          * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.

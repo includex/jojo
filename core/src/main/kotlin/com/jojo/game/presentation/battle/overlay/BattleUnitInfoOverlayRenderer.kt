@@ -95,7 +95,7 @@ class BattleUnitInfoOverlayRenderer(
         val portrait=BattleUnitInfoLayout.portrait
         batch.begin()
         try {
-            BattleOverlayPaper.fill(batch,0f,0f,1488.3721f,800f,Color(0f,0f,0f,.32f))
+            BattleOverlayPaper.fill(batch,0f,0f,batch.overlayWidth,batch.overlayHeight,Color(0f,0f,0f,.32f))
             surface(panel.x,panel.y,panel.width,panel.height)
             assets.frame?.let { NinePatch(it,64,64,64,64).apply{scale(.22f,.22f)}.draw(batch,panel.x,panel.y,panel.width,panel.height) }
             text("장수 정보",panel.x,705f,panel.width,1.24f,GOLD,Align.center)

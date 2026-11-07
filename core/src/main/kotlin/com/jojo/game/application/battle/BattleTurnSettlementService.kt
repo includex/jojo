@@ -169,6 +169,7 @@ object BattleTurnSettlementService {
     fun settleCampStart(faction: Faction, env: BattleTurnSettlementEnvironment): CampSettlement =
         captureSettlement(CampSettlementStage.START_STATE, faction, env) { subflows ->
             val before = turnSnapshot(env.units())
+            env.units().filter { it.effectiveFaction() == faction }.forEach { BattleMeditation.recover(it) }
             processStartOfTurn(faction, subflows, env)
             env.units().filter { it.visible && it.hitPoints > 0 && it.effectiveFaction() == faction }
                 .forEach { unit ->
@@ -246,7 +247,7 @@ object BattleTurnSettlementService {
                  */
 
                 val before = turnSnapshot(allUnits)
-                caster.statuses.entries.toList().forEach { (status, rounds) ->
+                caster.statuses.entries.toList().filter { it.key != BattleStatus.MEDITATION }.forEach { (status, rounds) ->
                     if (rounds <= 1) caster.statuses.remove(status) else caster.statuses[status] = rounds - 1
                 }
                 caster.attributeLifts.keys.toList().forEach { attribute ->

@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'content/examples/linchong'
 ITEM_IDS={'advanced_wound_medicine':216,'healing_powder':200,'old_wrist_guard':137,'manual_circling_spear':202,'training_staff':59,'guardian_belt':141,'manual_guard_palm':205,'iron_shield':100,'manual_iron_guard':207,'manual_snow_resolve':208,'snow_boots':149,'burned_secret_letter':210,'marsh_token':256,'waterway_map':212,'marsh_compass':257,'manual_water_stride':214,'manual_tiger_charge':215,'leather_vest':101,'campaign_clear_token':217,'iron_spear':60,'prison_robe':102,'monk_staff':61,'monk_robe':103,'short_spear':62,'short_blade':63,'traveler_clothes':104,'green_steel_sword':64,'light_armor':105,'linen_robe':106}
 SKILL_IDS=dict(zip(['wind_spear','circling_spear','staff_smash','iron_guard','quick_step','snow_resolve','water_stride','tiger_charge','swift_blade','staff_combo'],range(100,110)))
+SKILL_IDS['meditation']=110
 
 def read_yaml(path):
     # Catalog values use the project's scalar + inline JSON YAML convention.
@@ -86,7 +87,7 @@ def main():
     # Keep each skill inside an existing, fully implemented native effect family.
     # PRD physical martial damage is adapted to native strategic damage; buffs use native statuses.
     skill_records={s['id']:s for s in campaign['skills']}
-    templates={'wind_spear':'damage','circling_spear':'damage','staff_smash':'damage','iron_guard':'defense','quick_step':'agility','snow_resolve':'recovery','water_stride':'agility','tiger_charge':'damage','swift_blade':'damage','staff_combo':'damage'}
+    templates={'wind_spear':'damage','circling_spear':'damage','staff_smash':'damage','iron_guard':'defense','quick_step':'agility','snow_resolve':'recovery','water_stride':'agility','tiger_charge':'damage','swift_blade':'damage','staff_combo':'damage','meditation':'meditation'}
     technique_templates=json.loads((SOURCE/'technique-templates.json').read_text())
     for key,skill_id in SKILL_IDS.items():
         item=skill_records.get(key,{})
@@ -95,6 +96,7 @@ def main():
         base.update(id=skill_id,name=item.get('name',params.get('name',key)),mpCost=params.get('mpCost',0),intro=({'iron_guard':'선택한 아군의 방어력을 일시적으로 높인다. 사용하면 행동을 마친다.','quick_step':'선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다.','water_stride':'선택한 아군의 순발력을 일시적으로 높인다. 사용하면 행동을 마친다.','snow_resolve':'선택한 아군의 독·마비·혼란을 해제한다. 사용하면 행동을 마친다.'}.get(key,'인접한 적을 중심으로 십자 범위에 전술 피해를 준다.' if key in ('circling_spear','staff_smash') else '직선 1~2칸의 적 하나에게 전술 피해를 준다.' if key=='wind_spear' else '3칸 이내의 적 하나에게 강한 전술 피해를 준다.' if key=='tiger_charge' else '인접한 적 하나에게 전술 피해를 준다.')+f' 기력 {params.get("mpCost",0)} 소비.'),learnLevels={})
         if key in ('wind_spear','tiger_charge','swift_blade','staff_combo'):base.update(hitArea=5 if key=='wind_spear' else 12 if key=='tiger_charge' else 0,effectArea=0,power=70 if key=='wind_spear' else 95 if key=='tiger_charge' else 80)
         if key in ('circling_spear','staff_smash'):base.update(hitArea=0,effectArea=1,power=60)
+        if key=='meditation':base.update(intro='자신에게 운기행공 1턴. 방어력 0, 피격 시 상대 물리 공격력 2배. 다음 자기 턴 시작에 해제하고 최대 체력 10%, 최대 내력 20% 회복. 내력 소모 없음. 행동 종료.')
         base['condition']=6
         write_yaml('skills/active',base)
     for battle in campaign['battles']:

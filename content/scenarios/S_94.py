@@ -23,15 +23,17 @@ def scene0():
     stage.infoTransfer(4, '100\n1\n512\nwind_spear')
     stage.infoTransfer(4, '103\n1\n514\niron_guard')
     stage.infoTransfer(4, '104\n1\n515\nquick_step')
+    stage.infoTransfer(4, '110\n1\n512\nmeditation')
+    stage.infoTransfer(4, '110\n1\n514\nmeditation')
     stage.loadBg(62)
     stage.draw()
     stage.setWinCondition('승리 조건\n육겸 격퇴; 임충 생존\n\n패배 조건\n임충 HP 0; 불길에 갇힌 임충에게 탈출 경로 없음; 11턴 종료')
-    stage.say('@dialogue:S_94.interlude.line001')
+    stage.info('창주 관영에서 겨울이 깊어졌다. 임충은 초료장 관리 임무를 받았고, 한때 벗이었던 육겸의 얼굴을 떠올렸다.')
     stage.say('@dialogue:S_94.interlude.line002')
     if gvars['linchong.recruited_hu']:
         stage.say('@dialogue:S_94.interlude.line003')
-    stage.say('@dialogue:S_94.interlude.line004')
-    stage.say('@dialogue:S_94.B04_E00.line001')
+    stage.info('바람이 일고 눈이 내렸다. 임충은 창을 집어 들었다.')
+    stage.info('그해 겨울, 창주의 바람은 칼날보다 차가웠다. 임충은 초료장의 부름을 받아 홀로 눈길을 걸었다.')
     stage.say('@dialogue:S_94.B04_E00.line002')
     stage.say('@dialogue:S_94.B04_E00.line003')
     stage.say('@dialogue:S_94.B04_E00.line004')
@@ -53,13 +55,13 @@ def scene0():
 
 def scene1():
     if (stage.unitStateTest(512, 7, 0, 2) or stage.round() > 11):
-        stage.say('@dialogue:S_94.B04_E99.line001')
+        stage.info('눈바람과 불길 속에서 길이 끊겼다. 다른 방법으로 결전을 치러야 한다.')
         stage.end()
         stage.lose()
         return True
     if not gvars['linchong.event_b04_e02'] and (stage.round() >= 3 and stage.curCamp() == 0):
         gvars['linchong.event_b04_e02'] = 1
-        stage.say('@dialogue:S_94.B04_E02.line001')
+        stage.info('눈보라가 거세지고 발자국들이 순식간에 지워진다.')
         stage.say('@dialogue:S_94.B04_E02.line002')
         pass
         # Existing-engine adaptation: apply_weather:SNOW_MOVE_MINUS_1
@@ -123,7 +125,7 @@ def scene1():
         gvars['linchong.event_b04_e08'] = 1
         stage.say('@dialogue:S_94.B04_E08.line001')
         stage.say('@dialogue:S_94.B04_E08.line002')
-        stage.say('@dialogue:S_94.B04_E08.line003')
+        stage.info('육겸이 쓰러지자, 임충은 오래 억눌렀던 분노가 자신에게 남긴 무게를 느꼈다.')
         pass
         gvars['linchong.b04_boss_down'] = 1
         # Existing-engine adaptation: stop_fire_expansion
@@ -160,11 +162,11 @@ def scene1():
             stage.say('@dialogue:S_94.B04_E90.line002')
         stage.say('@dialogue:S_94.B04_E90.line003')
         stage.say('@dialogue:S_94.B04_E90.line004')
-        stage.say('@dialogue:S_94.B04_E90.line005')
+        stage.info('눈 속의 임충은 더 이상 순종하는 유배수가 아니었다.')
         if (not (gvars['linchong.recruited_hu'] and not stage.unitStateTest(514, 7, 0, 2))):
             stage.say('@dialogue:S_94.B04_E90.HU_ABSENT.line001')
         if (not gvars['linchong.b04_jin_rescued']):
-            stage.say('@dialogue:S_94.B04_E90.JIN_NOT_RESCUED.line001')
+            stage.info('눈 속에서 사라진 인부 진오의 행방은 알 수 없었다.')
         pass
         stage.getItem(208, 0, True, 512)
         if not gvars['linchong.b04_early_boots']:

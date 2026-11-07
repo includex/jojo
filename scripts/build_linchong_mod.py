@@ -48,6 +48,9 @@ def say(lines,key,indent='    '):
   sid=f'{key}.line{i+1:03d}';speaker=l['speaker'];num={'아내':571,'고아내':572,'고태위':573,'하인':574,'관영 호위병':539,'호송관':526,'산적두목':540,'도적두목':533,'추격 대장':552,'밀수선 두목':559,'내레이션':575,'시스템':575,'관리':574,'군사':526}.get(speaker) or next((U[x['id']] for x in c['characters'] if x['name'].split('(')[0]==speaker and x['id'] in U),None)
   text=f'&{num or 575}\n'+(speaker+'\n' if num is None else '')+NATIVE_HELP.get(sid,l['text']);entries[sid]=text
   line=f"stage.say('@dialogue:{sid}')"
+  if speaker in ('내레이션', '나레이션'):
+   entries.pop(sid)
+   line=f'stage.info({l["text"]!r})'
   if l.get('when'):
    out += [indent+'if '+whenexpr(l['when'])+':',indent+'    '+line];continue
   if speaker in ['허정','진오']:
@@ -106,7 +109,11 @@ def condition(b,tr):
  if cmd=='ON_UNIT_ENTER':
   return onexit(b,a[1],a[2])
  if cmd=='ON_ALLY_EXIT_COUNT':return F('exit_count')+' >= '+a[1]
- if cmd=='ON_ENTER_ZONE':return 'stage.isInRect(512, 10, 4, 15, 7)'
+ if cmd=='ON_ENTER_ZONE':
+  match=re.fullmatch(r'x>=(\d+),y>=(\d+),y<=(\d+)',a[2])
+  if not match:raise ValueError('Unsupported zone: '+tr)
+  x,y1,y2=map(int,match.groups())
+  return f'stage.isInRect({unit(a[1])}, {x-1}, {y1-1}, {b["map"]["width"]-1}, {y2-1})'
  if cmd=='OBJECT_INTERACT':return nearobj(b,a[1])
  if cmd=='ON_FIRE_ENTER':return 'stage.round() >= 5'
  if cmd=='FIRST_EFFECTIVE_HIT':return 'stage.round() >= 2'
@@ -153,6 +160,7 @@ def actions(b,acts,indent='        '):
    u=next(u for u in b['spawns'] if u['id']==x);method='createMine' if u['side']=='ALLY' else 'createEnemy';i=next(j for j,z in enumerate(b['spawns']) if z['id']==x)+len(b['units'])
    out+=gear(x,indent)
    out.append(indent+f'stage.{method}([{placement(b,u,i)!r}])')
+   if u['side']=='ALLY':out.append(indent+f'stage.infoTransfer(4, {str(110)+chr(10)+str(1)+chr(10)+str(unit(x))+chr(10)+"meditation"!r})')
    loadout=next((l for l in c['startingLoadouts'] if l['unitId']==x),None)
    if loadout:
     payload=str(ids['skillIds'][loadout['skills']])+'\n1\n'+str(unit(x))+'\n'+loadout['skills'];out.append(indent+f'stage.infoTransfer(4, {payload!r})')
@@ -190,6 +198,7 @@ def opening_scenes():
  out=[]
  for scene in authored['scenes']:
   out += ['    stage.clsUnit()',f"    stage.loadBg(3, {scene['background']})",f"    stage.setStageName({scene['title']!r})"]
+  out.append(f"    stage.info({scene['title']!r})")
   for shot in scene['shots']:
    if shot.get('clear'):out.append('    stage.clsUnit()')
    for key in ('units','appear'):
@@ -235,6 +244,10 @@ for bi,b in enumerate(c['battles']):
   if any(u['id']==loadout['unitId'] for u in b['units']):
    sid=ids['skillIds'].get(loadout['skills']);payload=str(sid)+'\n1\n'+str(unit(loadout['unitId']))+'\n'+loadout['skills']
    init.append(f'    stage.infoTransfer(4, {payload!r})')
+ for u in b['units']:
+  if u['side']=='ALLY':
+   payload=f'110\n1\n{unit(u["id"])}\nmeditation'
+   init.append(f'    stage.infoTransfer(4, {payload!r})')
  init += [f'    stage.loadBg({58+bi})','    stage.draw()',f'    stage.setWinCondition({wintext!r})']
  interlude=b['runtime'].get('interludeBefore') or {'B02':'B01_TO_B02','B04':'B03_TO_B04','B05':'B04_TO_B05'}.get(b['id'])
  if interlude:init+=say(c['interludes'][interlude],mod+'.interlude')
@@ -276,7 +289,7 @@ for bi,b in enumerate(c['battles']):
    spawn=[a for a in event_actions if a['command']=='spawn' and a['args'][0]=='lu']
    event_actions=[a for a in event_actions if a not in spawn]
    code+=dialogue[:1]+actions(b,spawn)
-   code+=['        stage.giveUnitItem(513, 216, 4)', '        stage.center(1, 7)']
+   code+=['        stage.giveUnitItem(513, 216, 4)', f'        stage.center(1, {next(u["y"] for u in b["spawns"] if u["id"]=="lu")-1})']
    code+=dialogue[1:2]
    code+=['        stage.unit(513).setAction(6, 1, False)',
           '        stage.unit(513).setAction(7, 1, False)',

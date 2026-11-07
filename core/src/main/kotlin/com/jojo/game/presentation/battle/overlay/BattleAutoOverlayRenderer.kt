@@ -169,7 +169,7 @@ class BattleAutoOverlayRenderer(
      */
 
     private fun drawTuoGuan() {
-        batch.draw(assets.banner, 0f, 0f, 1488.372f, 264f)
+        batch.draw(assets.banner, 0f, 0f, batch.overlayWidth, 264f)
         batch.draw(assets.plate, 613.686f, 25.894f, 261f, 83f)
     }
 }

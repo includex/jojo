@@ -1,0 +1,17 @@
+# Lin Chong mod / native Jojo content catalog
+type: 39
+target: 1
+hitArea: 33
+effectArea: 0
+mpCost: 0
+icon: 16
+effect: 14
+power: 0
+harmType: 4
+condition: 6
+aiUse: 0
+category: 0
+id: 110
+name: "운기행공"
+intro: "자신에게 운기행공 1턴. 방어력 0, 피격 시 상대 물리 공격력 2배. 다음 자기 턴 시작에 해제하고 최대 체력 10%, 최대 내력 20% 회복. 내력 소모 없음. 행동 종료."
+learnLevels: {}

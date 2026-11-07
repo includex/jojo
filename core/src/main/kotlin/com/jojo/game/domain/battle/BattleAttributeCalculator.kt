@@ -13,6 +13,7 @@ internal object BattleAttributeCalculator {
      */
 
     fun effective(unit: BattleUnit, attribute: BattleAttribute): Int {
+        if (attribute == BattleAttribute.DEFENSE && BattleStatus.MEDITATION in unit.statuses) return 0
 
         /**
          * `baseOf`: 타입의 핵심 동작을 수행한다.

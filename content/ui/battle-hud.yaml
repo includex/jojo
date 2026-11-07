@@ -2,8 +2,8 @@
 version: 1
 missions:
   S_90:
-    victory: "노지심 합류 후 임충 탈출"
-    defeat: "임충 전사 / 9턴 종료까지 미탈출"
+    victory: "노지심 합류 후 동쪽 끝으로 탈출"
+    defeat: "임충 전사 / 20턴 종료까지 미탈출"
   S_91:
     victory: "홍교두 제압 또는 일기토 승리"
     defeat: "임충 패배 / 8턴 종료"

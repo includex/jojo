@@ -56,5 +56,19 @@
     "aiUse": 0,
     "hitRateLimit": 1,
     "category": 15
+  },
+  "meditation": {
+    "type": 39,
+    "target": 1,
+    "hitArea": 33,
+    "effectArea": 0,
+    "mpCost": 0,
+    "icon": 16,
+    "effect": 14,
+    "power": 0,
+    "harmType": 4,
+    "condition": 6,
+    "aiUse": 0,
+    "category": 0
   }
 }

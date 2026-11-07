@@ -332,5 +332,6 @@ val BattleStatus.sourceIndex: Int
         BattleStatus.SILENCE -> 8
         BattleStatus.CONFUSION -> 9
         BattleStatus.POISON -> 10
+        BattleStatus.MEDITATION -> 14
         BattleStatus.LOST -> 13
     }

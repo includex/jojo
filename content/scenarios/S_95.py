@@ -30,17 +30,20 @@ def scene0():
     stage.infoTransfer(4, '103\n1\n514\niron_guard')
     stage.infoTransfer(4, '104\n1\n515\nquick_step')
     stage.infoTransfer(4, '106\n1\n516\nwater_stride')
+    stage.infoTransfer(4, '110\n1\n512\nmeditation')
+    stage.infoTransfer(4, '110\n1\n514\nmeditation')
+    stage.infoTransfer(4, '110\n1\n515\nmeditation')
     stage.loadBg(63)
     stage.draw()
     stage.setWinCondition('승리 조건\n임충을 포함한 아군 2명 선착장 도착; 주귀 생존\n\n패배 조건\n임충 HP 0; 주귀 HP 0; 10턴 종료 시 미탈출')
-    stage.say('@dialogue:S_95.interlude.line001')
+    stage.info('풍설산신묘의 불길을 뒤로하고 임충은 창주를 떠났다.')
     stage.say('@dialogue:S_95.interlude.line002')
     if gvars['linchong.recruited_jin']:
         stage.say('@dialogue:S_95.interlude.line003')
     if gvars['linchong.recruited_hu']:
         stage.say('@dialogue:S_95.interlude.line004')
     stage.say('@dialogue:S_95.interlude.line005')
-    stage.say('@dialogue:S_95.B05_E00.line001')
+    stage.info('양산박 남쪽 수로, 갈대밭 사이에 작은 술집 하나가 외따로 서 있었다.')
     stage.say('@dialogue:S_95.B05_E00.line002')
     stage.say('@dialogue:S_95.B05_E00.line003')
     stage.say('@dialogue:S_95.B05_E00.line004')
@@ -136,7 +139,7 @@ def scene1():
     if (not stage.unitStateTest(512, 7, 0, 2) and (gvars['linchong.exit_count'] >= 2 and gvars['linchong.b05_lin_dock'] and not stage.unitStateTest(516, 7, 0, 2))):
         stage.say('@dialogue:S_95.B05_E90.line001')
         stage.say('@dialogue:S_95.B05_E90.line002')
-        stage.say('@dialogue:S_95.B05_E90.line003')
+        stage.info('물안개 너머로 양산박의 불빛이 모습을 드러냈다.')
         pass
         stage.getItem(256, 0, True, 512)
         # Existing-engine adaptation: expire_temp:zhu

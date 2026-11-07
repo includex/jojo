@@ -12,6 +12,18 @@ import kotlin.test.assertEquals
 
 class PhysicalDamageCalculatorTest {
 
+    @Test fun `meditation zeroes effective defense and doubles attack rather than final damage`() {
+        val attacker = unit(attack = 100, level = 10)
+        val target = unit(defense = 80, statuses = mapOf(BattleStatus.MEDITATION to 1))
+        target.attributeLifts[BattleAttribute.DEFENSE] = 1
+        assertEquals(0, BattleAttributeCalculator.effective(target, BattleAttribute.DEFENSE))
+        for (rule in PhysicalDefenseRule.entries) {
+            assertEquals(135, PhysicalDamageCalculator.basePhysicalDamage(attacker, target, BasePhysicalDamageContext(defenseRule = rule)))
+        }
+        target.statuses.clear()
+        assertEquals(100, BattleAttributeCalculator.effective(attacker, BattleAttribute.ATTACK))
+    }
+
     private fun unit(
         id: String = "unit",
         faction: Faction = Faction.PLAYER,

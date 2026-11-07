@@ -21,6 +21,21 @@ import kotlin.test.assertTrue
 
 class MagicResolverTest {
 
+    @Test fun `meditation consumes action without immediate recovery and only targets self`() {
+        val spell = magic(id = 110, type = 39, target = 1, expendMp = 0, offsets = setOf(0 to 0, 1 to 0))
+        val caster = unit("caster", hitPoints = 40, magicPoints = 0, magic = listOf(spell))
+        val ally = unit("ally", tileX = 3)
+        val env = createEnv(listOf(caster, ally))
+        assertIs<TacticalActionResult.Rejected>(MagicResolver.castMagic("caster", "ally", 110, env = env))
+        assertFalse(caster.hasActed)
+        assertIs<TacticalActionResult.Magic>(MagicResolver.castMagic("caster", "caster", 110, env = env))
+        assertEquals(1, caster.statuses[BattleStatus.MEDITATION])
+        assertEquals(40, caster.hitPoints)
+        assertEquals(0, caster.magicPoints)
+        assertTrue(caster.hasActed)
+        assertIs<TacticalActionResult.Rejected>(MagicResolver.castMagic("caster", "caster", 110, env = env))
+    }
+
     private fun unit(
         id: String,
         faction: Faction = Faction.PLAYER,

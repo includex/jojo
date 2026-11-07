@@ -408,7 +408,7 @@ class BattleScreen(
      * 값의 변경은 현재 패키지의 흐름과 후속 계산에 반영된다.
      */
 
-    private val miniMapLayer = MiniMapLayer(setting = 0)
+    private val miniMapLayer = MiniMapLayer(setting = 16)
 
     /**
      * `miniMapReady` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -538,9 +538,11 @@ class BattleScreen(
         )
     }
 
-    // Cocos는 SHOW_ALL 방식의 1280×800 기준 캔버스를 사용하므로, 1.86:1 데스크톱 창에서는
-    // 전투를 1280×688 FitViewport로 줄이지 않고 보이는 월드를 1488×800으로 넓힌다.
-    private val viewport = ExtendViewport(1280f, 800f, OrthographicCamera())
+    // 창 크기는 유지하고 전장 시야를 가로·세로 1.5배 확장한다. 상단 HUD는 기존 배율로 그린다.
+    private val viewExpansion = 1.5f
+    private val viewport = ExtendViewport(1280f * viewExpansion, 800f * viewExpansion, OrthographicCamera())
+    private val hudWidth get() = viewport.worldWidth / viewExpansion
+    private val hudHeight get() = viewport.worldHeight / viewExpansion
 
     /**
      * `shapes` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -4412,10 +4414,10 @@ void main() {
                     BattleInputHitRegion(BattleInputTarget.MENU_HUD, 1353.9535f, 8f, 1413.9535f, 68f),
                     BattleInputHitRegion(
                         BattleInputTarget.MINI_MAP,
-                        if (miniMapLayer.shown) 1174.372f else 1418.372f,
-                        730f,
-                        if (miniMapLayer.shown) 1244.372f else 1488.372f,
-                        800f,
+                        miniMapLeft - 72f,
+                        miniMapBottom + miniMapSize - 70f,
+                        miniMapLeft - 2f,
+                        miniMapBottom + miniMapSize,
                     ),
                 ) + if (miniMapLayer.shown) {
                     listOf(
@@ -4662,13 +4664,13 @@ void main() {
              */
 
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                 val pointerIntent = battleInputRouter.pointerDown(world.x, world.y, inputSurface())
                 if (pointerIntent.capture in setOf(BattleInputCapture.MAP, BattleInputCapture.MINI_MAP, BattleInputCapture.MINI_MAP_SURFACE, BattleInputCapture.MENU_HUD, BattleInputCapture.COMMAND) &&
                     scriptRuntime.state == PlaybackState.COMPLETE && !battleMenuOpen &&
                     hudContains(world.x, world.y)) {
                     hudPanelPressed = true
-                    hudPressedAction = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
+                    hudPressedAction = battleHudPanel.buttonAt(world.x / viewExpansion, world.y / viewExpansion, hudWidth, hudHeight)
 
                     return true
                 }
@@ -4832,7 +4834,7 @@ void main() {
 
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
                 if (hudPanelPressed) return true
-                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                 if (battleInputRouter.draggingMiniMapSurface()) {
                     battleInputRouter.pointerDragged(world.x, world.y, inputSurface())
                     focusCameraFromMiniMap(world.x, world.y)
@@ -4850,11 +4852,16 @@ void main() {
              */
 
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                scriptWinConditions?.let { it.cancel(WinConditionsLayer.TOUCH_END); return true }
+                if (scriptRuntime.state == PlaybackState.MODAL && scriptRuntime.currentModalKind == ScenarioModalKind.INFO) {
+                    if (!scriptRuntime.currentModalTextComplete) scriptRuntime.completeModalTyping() else scriptRuntime.resumeModal()
+                    return true
+                }
+                val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                 val pointerIntent = battleInputRouter.pointerUp(world.x, world.y, inputSurface())
                 if (hudPanelPressed) {
                     hudPanelPressed = false
-                    val action = battleHudPanel.buttonAt(world.x, world.y, viewport.worldWidth, viewport.worldHeight)
+                    val action = battleHudPanel.buttonAt(world.x / viewExpansion, world.y / viewExpansion, hudWidth, hudHeight)
                     if (action != null && action == hudPressedAction) dispatchHudAction(action)
                     hudPressedAction = null
                     return true
@@ -4887,7 +4894,7 @@ void main() {
                     return true
                 }
                 if (outcomePresentation.winPromptActive) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val answer = victorySaveAnswerAt(world.x, world.y)
                     if (answer != null && answer == outcomePresentation.victorySaveAnswerPressed) {
                         outcomePresentation.answerVictorySavePrompt(answer)
@@ -4896,14 +4903,14 @@ void main() {
                     return true
                 }
                 outcomePresentation.loseSceneFlow?.let { flow ->
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val released = loseAnswerAt(world.x, world.y)
                     if (released != null && released == losePressedAnswer) flow.answer(released)
                     losePressedAnswer = null
                     return true
                 }
                 if (commandMenuVisible()) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val released = battleCommandTagAt(world.x, world.y)
                     if (released != null && released == battleCommandPressedTag) dispatchBattleCommand(released)
                     battleCommandPressedTag = null
@@ -4915,7 +4922,7 @@ void main() {
                     return true
                 }
                 usePropertyLayer?.let { layer ->
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val released = usePropertyRowAt(world.x, world.y)
                     // 원본 `UsePropertyLayer`는 취소 단추가 깃발 2(취소음), 목록 줄이
                     // 깃발 1(클릭음)이다.
@@ -4943,7 +4950,7 @@ void main() {
                     return true
                 }
                 magickListLayer?.let { layer ->
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val released = magickRowAt(world.x, world.y)
                     // 원본 `MagickListLayer`는 취소 단추와 뒤쪽 막이 깃발 2(취소음),
                     // 목록 줄이 깃발 1(클릭음)이다.
@@ -5044,7 +5051,7 @@ void main() {
                 }
                 when (autoBattleFlow.view().overlay) {
                     AutoBattleFlow.Overlay.PROMPT -> {
-                        val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                        val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                         val released = autoBattlePromptButtonAt(world.x, world.y)
                         when {
                             autoBattleTogglePressed && autoBattleToggleAt(world.x, world.y) -> {
@@ -5072,7 +5079,7 @@ void main() {
                     AutoBattleFlow.Overlay.NONE -> Unit
                 }
                 if (battleMenuOpen) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val released = menuIndexAt(world.x, world.y)
                     val pressed = battleMenuPressedIndex
                     battleTraceCoordinator?.recordMenuTap(pressed, released, world.x, world.y)
@@ -5104,7 +5111,7 @@ void main() {
                         turnController.snapshot.phase
                     ) == BattleInteractiveInput.Route.PLAYER_INPUT
                 ) {
-                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
+                    val world = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat())).also { if (fixedDialogOpen()) it.sub(dialogOffsetX, dialogOffsetY) }
                     val tile = BattleTileInput.tileAt(
                         world.x, world.y, boardLeft, boardBottom, boardTile, terrainGrid.height,
                     )
@@ -5130,7 +5137,11 @@ void main() {
 
             override fun scrolled(amountX: Float, amountY: Float): Boolean {
                 if (saveLoadOverlay.dispatch(BattleSaveLoadOverlayController.Intent.Scroll(amountY.toInt())).consumed) return true
-                return informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(amountY.toInt())).consumed
+                if (informationOverlay.dispatch(BattleInformationOverlayController.Intent.Scroll(amountY.toInt())).consumed) return true
+                if (inputSurface().pointerCapture() != BattleInputCapture.MAP) return false
+                val horizontal = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
+                battleCamera.pan(-96f * (amountX + if (horizontal) amountY else 0f), if (horizontal) 0f else amountY * 96f)
+                return true
             }
         }
     }
@@ -5264,6 +5275,11 @@ void main() {
             }
         }
         if (itemUpgradeRouteState != null && !outcomePresentation.itemUpgradeRouteInstalled) installItemUpgradeRoute()
+        if (scriptRuntime.state == PlaybackState.COMPLETE && !fixedDialogOpen() && scriptWinConditions == null && !fightOverlayActive && !combatPresentationBusy() && activeRoundLayer == null && activeWeatherLayer == null) {
+            val horizontal = (if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) 1f else 0f) - (if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) 1f else 0f)
+            val vertical = (if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) 1f else 0f) - (if (Gdx.input.isKeyPressed(Input.Keys.UP)) 1f else 0f)
+            if (horizontal != 0f || vertical != 0f) battleCamera.pan(horizontal * 720f * rawDelta.coerceAtMost(.05f), vertical * 720f * rawDelta.coerceAtMost(.05f))
+        }
         val delta = rawDelta * (battleTraceCoordinator?.timeScale ?: 1f)
         elapsed += delta
         game.runtimeBattleDriver()?.commands(RuntimeBattleFrame(delta, elapsed), runtimeProbe())
@@ -5590,37 +5606,38 @@ void main() {
             drawBattleHudChrome()
             if (battleMenuOpen) drawBattleMenu()
             helperOverlay.view()?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battleHelperOverlayRenderer.draw(view)
             }
             informationOverlay.terrainView()?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battleTerrainOverlayRenderer.draw(view)
             }
             informationOverlay.propertyView()?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battlePropertyOverlayRenderer.draw(view)
             }
             informationOverlay.treasureView()?.let(::drawTreasureLayer)
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE)?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battleSaveLoadOverlayRenderer.draw(view)
             }
             settingsOverlay.view()?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battleSettingsOverlayRenderer.draw(view)
             }
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD)?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battleSaveLoadOverlayRenderer.draw(view)
             }
             forcesOverlay.view()?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 battleForcesOverlayRenderer.draw(view)
             }
             unitInfoOverlay.view()?.let { view ->
-                batch.projectionMatrix = viewport.camera.combined
+                batch.projectionMatrix = centeredDialogProjection()
                 val unit = battle.units.values.firstOrNull { it.characterId == view.unit.characterId }
+                batch.projectionMatrix = centeredDialogProjection()
                 battleUnitInfoOverlayRenderer.draw(view.copy(
                     portrait = gameDataCatalog.unitProfile(view.unit.characterId)?.face?.plus(8)?.let(dynamicTextures::head),
                     experience = unit?.experience,
@@ -6008,7 +6025,7 @@ void main() {
                 magicMode,
                 projectWorldPointAt(waitCommandCenter.first, waitCommandCenter.second),
                 projectWorldPointAt(15.13372f + 8f * 88f + 44f, 160.29f),
-                BattleHudPanelLayout.buttons(viewport.worldWidth, viewport.worldHeight, battleHudPanel.expanded).let { buttons -> (buttons.firstOrNull { it.action == BattleHudPanelController.Action.MENU } ?: buttons.first()).rect }.let { r -> projectWorldPointAt(r.x + r.width/2, r.y + r.height/2) },
+                BattleHudPanelLayout.buttons(hudWidth, hudHeight, battleHudPanel.expanded).let { buttons -> (buttons.firstOrNull { it.action == BattleHudPanelController.Action.MENU } ?: buttons.first()).rect }.let { r -> projectWorldPointAt((r.x + r.width/2) * viewExpansion, (r.y + r.height/2) * viewExpansion) },
                 projectWorldPointAt(579.4365f, 295.197f),
                 projectWorldPointAt(autoBattleConfirmCenter.first, autoBattleConfirmCenter.second),
                 // 승리 조건 안내를 닫는 버튼의 중심이다. 터치 판정 영역과 같은 값을 쓴다.
@@ -8401,7 +8418,7 @@ void main() {
         eventMessage = when (result) {
             TacticalActionResult.Success -> "$unitName 이동 완료"
             is TacticalActionResult.Attack -> "$unitName 공격 · ${result.damage + result.followUpDamage} 피해${if (result.followUpDamage > 0) " (연격 ${result.followUpDamage})" else ""}${if (result.counterDamage + result.counterFollowUpDamage > 0) " · 반격 ${result.counterDamage + result.counterFollowUpDamage}" else ""}${if (result.defeated) " · 격파" else ""}"
-            is TacticalActionResult.Magic -> "$unitName ${result.name} · MP ${result.cost} · ${if (result.targets.sumOf { it.healing } > 0) "${result.targets.sumOf { it.healing }} 회복" else "${result.targets.sumOf { it.damage }} 피해"}${if (result.targets.any { it.defeated }) " · 격파" else ""}"
+            is TacticalActionResult.Magic -> if (magicId == MagicEffects.id("spellMeditation")) "$unitName 운기행공 · 다음 자기 턴에 회복" else "$unitName ${result.name} · MP ${result.cost} · ${if (result.targets.sumOf { it.healing } > 0) "${result.targets.sumOf { it.healing }} 회복" else "${result.targets.sumOf { it.damage }} 피해"}${if (result.targets.any { it.defeated }) " · 격파" else ""}"
             is TacticalActionResult.Item -> "$unitName ${result.name} · ${result.effect}"
             is TacticalActionResult.Rejected -> result.reason
         }
@@ -8803,8 +8820,7 @@ void main() {
         }
         settlementPresentation.info2View()?.let { overlay ->
             val elapsed = (animationClock() - overlay.startedAt).coerceAtLeast(0f)
-            val visibleChars = (elapsed / .04f).toInt().coerceIn(0, overlay.text.length)
-            drawInfoLayerText(overlay.text.take(visibleChars))
+            drawInfoLayerContent(overlay.text, (elapsed / .04f).toInt())
         }
     }
 
@@ -9047,7 +9063,7 @@ void main() {
         shapes.projectionMatrix = viewport.camera.combined
         beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, .314f)
-        shapes.rect(0f, 0f, 1488.372f, 800f)
+        shapes.rect(0f, 0f, viewport.worldWidth, viewport.worldHeight)
         shapes.end()
         batch.begin()
         batch.color = Color.WHITE
@@ -9099,7 +9115,7 @@ void main() {
         batch.end()
         if (route == BattleEditLayer2Route.WEATHER) {
             beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
-                0f, 0f, 1488.372f, 800f
+                0f, 0f, viewport.worldWidth, viewport.worldHeight
             ); shapes.end()
             batch.begin(); batch.color = Color.WHITE
             NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 767.878f, 308.794f, 169.8f, 179.5f)
@@ -9127,7 +9143,7 @@ void main() {
 
     private fun drawBattleEdit3Child() {
         beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .314f); shapes.rect(
-            0f, 0f, 1488.372f, 800f
+            0f, 0f, viewport.worldWidth, viewport.worldHeight
         ); shapes.end()
         batch.begin(); batch.color = Color.WHITE
         var yy = 0f; while (yy < 410f) {
@@ -9177,7 +9193,7 @@ void main() {
 
     private fun drawBattleEdit3ScenePanel() {
         beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, .392f); shapes.rect(
-            0f, 0f, 1488.372f, 800f
+            0f, 0f, viewport.worldWidth, viewport.worldHeight
         ); shapes.end()
         batch.begin(); batch.color = Color.WHITE
         NinePatch(unitInfoAssets.unitInfoBox1, 3, 3, 3, 3).draw(batch, 715.136f, 298.894f, 250f, 179.5f)
@@ -9874,9 +9890,10 @@ void main() {
         }
         val miniMap = if (mapOnlyCapture || dialogueComponentStage != null) null else BattleGridMiniMapView(
             shown = miniMapLayer.shown,
+            left = miniMapLeft, bottom = miniMapBottom, size = miniMapSize,
             framePatch = hudAssets.menuFramePatch,
             boxPatch = hudAssets.menuBoxPatch,
-            mapTexture = hudAssets.naturalMiniMapTexture,
+            mapTexture = mapTexture,
             weatherTexture = hudAssets.naturalWeatherTexture,
             markers = miniMapMarkers(),
             box = miniMapViewportBox(),
@@ -9888,8 +9905,8 @@ void main() {
      * 미니맵이 화면에 차지하는 영역이다. 원본 `MiniMapLayer`는 `Smlmap_n-1`을 두 배로 키운
      * 크기(`_size`)로 지도를 그리고 그 주위에 2px 테두리를 둔다.
      */
-    private val miniMapLeft = 1246.3721f
-    private val miniMapBottom = 558f
+    private val miniMapLeft get() = viewport.worldWidth - miniMapSize - 20f
+    private val miniMapBottom get() = viewport.worldHeight - miniMapSize - 160f
     private val miniMapSize = 240f
 
     /** 미니맵 표식 한 변의 길이다. */
@@ -10277,9 +10294,9 @@ void main() {
     private var hoveredBattleTile: BattleMapCursor? = null
 
     private fun hudContains(x: Float, y: Float): Boolean =
-        battleHudPanel.contains(x, y, viewport.worldWidth, viewport.worldHeight, lastHudInspection) ||
-            BattleHudPanelLayout.hoverCard(viewport.worldWidth, viewport.worldHeight,
-                lastHudInspection ?: BattleHudContextView())?.contains(x, y) == true
+        battleHudPanel.contains(x / viewExpansion, y / viewExpansion, hudWidth, hudHeight, lastHudInspection) ||
+            BattleHudPanelLayout.hoverCard(hudWidth, hudHeight,
+                lastHudInspection ?: BattleHudContextView())?.contains(x / viewExpansion, y / viewExpansion) == true
 
     /** HUD buttons and keyboard shortcuts share the same battle-state checks and command flow. */
     private fun hudActionsReady(): Boolean {
@@ -10373,7 +10390,7 @@ void main() {
             battleInitRoute || battleInitLayer.view().attached || outcomePresentation.winPromptActive ||
             outcomePresentation.rewardActive || rewardRouteState != null || outcomePresentation.rewardFlow != null ||
             outcomePresentation.itemUpgradeFlow != null || itemUpgradeRouteState != null ||
-            commandMenuVisible() || miniMapLayer.shown || unitInfoPopup != null || battleEdit2 != null || battleEdit3Open || fightOverlayActive ||
+            commandMenuVisible() || unitInfoPopup != null || battleEdit2 != null || battleEdit3Open || fightOverlayActive ||
             settlementPresentation.infoView() != null || settlementPresentation.info2View() != null ||
             scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
             settingsOverlay.view() != null || forcesOverlay.view() != null || helperOverlay.view() != null ||
@@ -10397,16 +10414,16 @@ void main() {
             if (world.x in BattleCommandRenderModel.PANEL_LEFT + offset.first..BattleCommandRenderModel.PANEL_LEFT + offset.first + BattleCommandRenderModel.PANEL_WIDTH &&
                 world.y in BattleCommandRenderModel.PANEL_BOTTOM + offset.second..BattleCommandRenderModel.PANEL_BOTTOM + offset.second + BattleCommandRenderModel.PANEL_HEIGHT) return retained()
         }
-        if (BattleHudPanelLayout.hoverCard(viewport.worldWidth, viewport.worldHeight,
-                lastHudInspection ?: BattleHudContextView())?.contains(world.x, world.y) == true) {
+        if (BattleHudPanelLayout.hoverCard(hudWidth, hudHeight,
+                lastHudInspection ?: BattleHudContextView())?.contains(world.x / viewExpansion, world.y / viewExpansion) == true) {
             // Another actor under the card wins hover inspection; card clicks still cannot reach the map.
             val pointerTile = BattleTileInput.tileAt(world.x, world.y, boardLeft, boardBottom, boardTile, terrainGrid.height)
             val otherUnit = battle.unitAt(pointerTile.x, pointerTile.y)?.takeIf { it.visible && it.hitPoints > 0 }
             if (otherUnit == null || otherUnit.id == hudInspectedUnitId) return retained()
         }
-        if (lastHudInspection?.terrain != null && BattleHudPanelLayout.terrain(viewport.worldWidth, viewport.worldHeight).contains(world.x, world.y))
+        if (lastHudInspection?.terrain != null && BattleHudPanelLayout.terrain(hudWidth, hudHeight).contains(world.x / viewExpansion, world.y / viewExpansion))
             return retained().copy(unit = null).also { lastHudInspection = it }
-        if (battleHudPanel.contains(world.x, world.y, viewport.worldWidth, viewport.worldHeight)) return empty()
+        if (battleHudPanel.contains(world.x / viewExpansion, world.y / viewExpansion, hudWidth, hudHeight)) return empty()
         // Check the real board bounds before the legacy tile conversion (which truncates negatives).
         val mapBottom = boardBottom - boardMaxY * boardTile
         if (world.x < boardLeft || world.x >= boardLeft + (boardMaxX + 1) * boardTile ||
@@ -10443,14 +10460,14 @@ void main() {
             ),
             objective = objective, defeat = defeat, weatherIcon = weatherIcon,
             weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
-            pointerX = world.x, pointerY = world.y, enabledActions = hudEnabledActions(),
+            pointerX = world.x / viewExpansion, pointerY = world.y / viewExpansion, enabledActions = hudEnabledActions(),
             unitAnchor = unit?.let(::hudUnitAnchor),
         ).also { lastHudInspection = it }
     }
 
     private fun hudUnitAnchor(unit: BattleUnit): BattleHudPanelLayout.Rect {
         val (visualX, visualY) = visualTile(unit)
-        return BattleHudPanelLayout.Rect(boardLeft + visualX * boardTile, tileBottom(visualY), boardTile, boardTile)
+        return BattleHudPanelLayout.Rect((boardLeft + visualX * boardTile) / viewExpansion, tileBottom(visualY) / viewExpansion, boardTile / viewExpansion, boardTile / viewExpansion)
     }
 
     private fun hudStatuses(unit: BattleUnit): List<BattleHudStatusView> = buildList {
@@ -10460,6 +10477,7 @@ void main() {
                 BattleStatus.SILENCE -> 3
                 BattleStatus.CONFUSION -> 4
                 BattleStatus.POISON -> 5
+                BattleStatus.MEDITATION -> 0
                 BattleStatus.LOST -> 6
             }
             val label = status.label() + if (rounds > 0) " · ${rounds}턴" else ""
@@ -10478,17 +10496,23 @@ void main() {
 
     private fun drawBattleHudChrome() {
         batch.projectionMatrix = viewport.camera.combined
+        val previousTransform = batch.transformMatrix.cpy()
+        val previousShapeTransform = shapes.transformMatrix.cpy()
+        shapes.transformMatrix = previousShapeTransform.cpy().scale(viewExpansion, viewExpansion, 1f)
+        batch.transformMatrix = previousTransform.cpy().scale(viewExpansion, viewExpansion, 1f)
         if (!battleDialogueBlendRoute) {
             val context=battleHudView()
-            hudPanelRenderer.draw(battleHudPanel, viewport.worldWidth, viewport.worldHeight,
+            hudPanelRenderer.draw(battleHudPanel, hudWidth, hudHeight,
                 gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
                 when(battle.weather) { BattleWeather.CLEAR -> "맑음"; BattleWeather.CLOUDY -> "흐림"; BattleWeather.WINDY -> "바람"; BattleWeather.HEAVY_RAIN -> "비"; BattleWeather.SNOW -> "눈" }, battle.round, scenarioMaxRound(), context)
-            BattleHudPanelLayout.hoverCard(viewport.worldWidth,viewport.worldHeight,context)?.let { card ->
+            BattleHudPanelLayout.hoverCard(hudWidth,hudHeight,context)?.let { card ->
                 hudInspectedUnitId?.let(battle.units::get)?.let { unit ->
                     drawSettlementUnitPanel(unit,unit.displayName,context.unit!!.settlementPanel,card.x-736f to card.y-96f)
                 }
             }
         }
+        batch.transformMatrix = previousTransform
+        shapes.transformMatrix = previousShapeTransform
         batch.begin()
         battleGridMapSurfaceRenderer.drawOverlay(battleGridMapSurfaceView())
         batch.end()
@@ -10499,8 +10523,13 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    private val dialogOffsetX get() = (viewport.worldWidth - 1488.3721f) / 2f
+    private val dialogOffsetY get() = (viewport.worldHeight - 800f) / 2f
+    private fun centeredDialogProjection() = viewport.camera.combined.cpy().translate(dialogOffsetX, dialogOffsetY, 0f)
+    private fun fixedDialogOpen() = unitInfoOverlay.isVisible() || magickListLayer != null || magickInfoLayer != null || usePropertyLayer != null || usePropertyDetail != null || winConditionOpen || battleMenuOpen || settingsOverlay.view() != null || forcesOverlay.isVisible() || helperOverlay.view() != null || informationOverlay.terrainView() != null || informationOverlay.propertyView() != null || saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null || saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null
+
     private fun drawBattleMenu() {
-        batch.projectionMatrix = viewport.camera.combined
+        batch.projectionMatrix = centeredDialogProjection()
         batch.begin()
         batch.color = Color.WHITE
         hudAssets.menuBackgroundPatch?.draw(
@@ -11377,7 +11406,7 @@ void main() {
 
     private fun miniMapButtonAt(x: Float, y: Float): Boolean {
         if (y !in 730f..800f) return false
-        val left = if (miniMapLayer.shown) 1174.372f else 1418.372f
+        val left = miniMapLeft - 72f
         return x in left..(left + 70f)
     }
 
@@ -11401,7 +11430,7 @@ void main() {
     private fun drawRoundLayer(layer: RoundLayer) {
         shapes.projectionMatrix = viewport.camera.combined
         beginFilledShapes(); shapes.color = Color(0f, 0f, 0f, 80f / 255f); shapes.rect(
-            0f, 0f, 1488.372f, 800f
+            0f, 0f, viewport.worldWidth, viewport.worldHeight
         ); shapes.end()
         batch.projectionMatrix = viewport.camera.combined; batch.begin()
 
@@ -11755,9 +11784,9 @@ void main() {
         val commandChild = battleCommandRouteState == RuntimeBattleRoute.COMMAND_PROPERTY
         val ox = if (commandChild) -59.536f else 0f
         val oy = if (commandChild) -294f else 0f
-        shapes.projectionMatrix=viewport.camera.combined
+        shapes.projectionMatrix=centeredDialogProjection()
         beginFilledShapes()
-        shapes.color=Color(0f,0f,0f,.5f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.color=Color(0f,0f,0f,.5f);shapes.rect(0f,0f,viewport.worldWidth,viewport.worldHeight)
         shapes.color=Color.valueOf("b99b61");shapes.rect(795.536f+ox,390f+oy,491f,410f)
         shapes.color=Color.valueOf("dbc8a5");shapes.rect(797.536f+ox,392f+oy,487f,406f)
         layer.rows.take(3).forEachIndexed { index,_ ->
@@ -11765,7 +11794,7 @@ void main() {
         }
         shapes.color=Color.valueOf("493b24");shapes.rect(1131.145f+ox,394.896f+oy,150f,50f)
         shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        batch.projectionMatrix=centeredDialogProjection();batch.begin();batch.color=Color.WHITE
         layer.rows.take(3).forEachIndexed { index,item ->
             val y=681f+oy-index*112f
             dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it,820f+ox,y+27f,56f,56f) }
@@ -11789,14 +11818,14 @@ void main() {
     private fun drawUsePropertyDetail() {
         val item=usePropertyDetail ?: return
         val profile=gameDataCatalog.equipmentProfile(item.id) ?: return
-        shapes.projectionMatrix=viewport.camera.combined;beginFilledShapes()
-        shapes.color=Color(0f,0f,0f,.6f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.projectionMatrix=centeredDialogProjection();beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.6f);shapes.rect(0f,0f,viewport.worldWidth,viewport.worldHeight)
         shapes.color=Color.valueOf("b99b61");shapes.rect(253.186f,80f,982f,640f)
         shapes.color=Color.valueOf("dbc8a5");shapes.rect(255.186f,82f,978f,636f)
         shapes.color=Color.valueOf("eadbbd");shapes.rect(277f,215f,934f,330f)
         shapes.color=Color.valueOf("493b24");shapes.rect(1065.827f,97.824f,150f,50f)
         shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        batch.projectionMatrix=centeredDialogProjection();batch.begin();batch.color=Color.WHITE
         dynamicTextures.itemIcon(item.icon)?.let { batch.draw(it,285f,586f,96f,96f) }
         font.color=Color.valueOf("322719");font.data.setScale(32f/26f)
         font.draw(batch,item.name,405f,677f,770f,Align.left,false)
@@ -11870,7 +11899,7 @@ void main() {
         if (index < 0) return
         selectedMagicIndex = index
         val magic = unit.magic[index]
-        if (magic.target == 2) {
+        if (magic.target == 2 || magic.type == MagicEffects.id("typeMeditation")) {
             val hp = battle.units.mapValues { it.value.hitPoints }
             applyAction(
                 battle.presentation.castMagic(unit.id, unit.id, magic.id), unit.name, unit.id, magic.id, unit.id, hp
@@ -11925,8 +11954,8 @@ void main() {
 
     private fun drawMagickListLayer() {
         val layer=magickListLayer ?: return
-        shapes.projectionMatrix=viewport.camera.combined;beginFilledShapes()
-        shapes.color=Color(0f,0f,0f,.5f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.projectionMatrix=centeredDialogProjection();beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.5f);shapes.rect(0f,0f,viewport.worldWidth,viewport.worldHeight)
         shapes.color=Color.valueOf("b99b61");shapes.rect(474.186f,90.5f,540f,619f)
         shapes.color=Color.valueOf("dbc8a5");shapes.rect(476.186f,92.5f,536f,615f)
         layer.rows.take(10).forEachIndexed { index,_ ->
@@ -11935,7 +11964,7 @@ void main() {
         }
         shapes.color=Color.valueOf("493b24");shapes.rect(775.892f,97.683f,180f,50f)
         shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        batch.projectionMatrix=centeredDialogProjection();batch.begin();batch.color=Color.WHITE
         font.data.setScale(26f/26f);font.color=Color.valueOf("322719")
         val name=selectedUnitId?.let(battle.units::get)?.name ?: SystemMessage.S_F8BE692B65
         font.draw(batch,name,494f,688f,250f,Align.left,false)
@@ -11951,7 +11980,7 @@ void main() {
             font.data.setScale(21f/26f);font.color=Color.valueOf(if(enabled)"746247" else "8b2121")
             font.draw(batch,"MP ${magic.cost}",x+63f,y+29f,95f,Align.left,false)
             font.color=Color.valueOf("746247")
-            font.draw(batch,"${magic.power ?: 0}%",x+159f,y+29f,91f,Align.right,false)
+            font.draw(batch,if (magic.id == MagicEffects.id("spellMeditation")) "1턴" else "${magic.power ?: 0}%",x+159f,y+29f,91f,Align.right,false)
         }
         font.data.setScale(24f/26f);font.color=Color.valueOf("eee2c6")
         font.draw(batch,SystemMessage.S_19B2D19BC1,775.892f,132f,180f,Align.center,false)
@@ -11966,15 +11995,15 @@ void main() {
 
     private fun drawBattleMagicInfoLayer() {
         val magic=magickInfoLayer?.magic ?: return
-        shapes.projectionMatrix=viewport.camera.combined;beginFilledShapes()
-        shapes.color=Color(0f,0f,0f,.6f);shapes.rect(0f,0f,1488.372f,800f)
+        shapes.projectionMatrix=centeredDialogProjection();beginFilledShapes()
+        shapes.color=Color(0f,0f,0f,.6f);shapes.rect(0f,0f,viewport.worldWidth,viewport.worldHeight)
         shapes.color=Color.valueOf("b99b61");shapes.rect(452.686f,130f,583f,540f)
         shapes.color=Color.valueOf("dbc8a5");shapes.rect(454.686f,132f,579f,536f)
         shapes.color=Color.valueOf("eadbbd");shapes.rect(465.636f,147f,340.3f,274f)
         shapes.rect(814.213f,436.061f,200f,200f);shapes.rect(814.213f,204.673f,200f,200f)
         shapes.color=Color.valueOf("493b24");shapes.rect(874.764f,144.022f,147.6f,50f)
         shapes.end()
-        batch.projectionMatrix=viewport.camera.combined;batch.begin();batch.color=Color.WHITE
+        batch.projectionMatrix=centeredDialogProjection();batch.begin();batch.color=Color.WHITE
         BattleDialogRenderContract.magicDetailSprites(magic).forEach { sprite ->
             dynamicTextures.battleDialog(sprite.path)?.let { batch.draw(it,sprite.x,sprite.y,sprite.width,sprite.height) }
         }
@@ -12049,7 +12078,7 @@ void main() {
         shapes.projectionMatrix = viewport.camera.combined
         beginFilledShapes()
         shapes.color = Color(0f, 0f, 0f, 40f / 255f)
-        shapes.rect(0f, 0f, 1488.372f, 800f)
+        shapes.rect(0f, 0f, viewport.worldWidth, viewport.worldHeight)
         shapes.end()
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
@@ -12118,30 +12147,38 @@ void main() {
      */
 
     private fun drawScriptWinConditions(layer: WinConditionsLayer) {
-        // 문구는 증거 기록기와 같은 함수에서 나온다.
-        val lines = layer.childLabels()
+        val width = viewport.worldWidth
+        val height = viewport.worldHeight
+        val margin = width * .06f
+        val textWidth = width - margin * 2f
+        val oldX = font.data.scaleX
+        val oldY = font.data.scaleY
+        val oldColor = Color(font.color)
         shapes.projectionMatrix = viewport.camera.combined
         beginFilledShapes()
-        shapes.color = Color(0f, 0f, 0f, 80f / 255f)
-        shapes.rect(0f, 0f, 1488.3721f, 800f)
+        shapes.color = Color(0f, 0f, 0f, .65f)
+        shapes.rect(0f, 0f, width, height)
         shapes.end()
+        val lines = layer.childLabels()
+        var scale = 32f / 26f
+        fun measuredHeight(): Float {
+            font.data.setScale(scale)
+            return lines.sumOf { GlyphLayout(font, it, Color.WHITE, textWidth, Align.left, true).height.toDouble() }.toFloat() + lines.size * 24f
+        }
+        while (measuredHeight() > height * .7f && scale > .3f) scale *= .9f
+        var y = (height + measuredHeight()) / 2f
+        val colors = WinConditionsLayer.childColors(layer.view().second)
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
-        font.data.setScale(98.3f / 26f)
-        // 색은 서식 문자열의 `<color=..>` 태그에서 나온다. 증거 기록기도 같은 함수를 읽는다.
-        val shadowColors = WinConditionsLayer.childColors(layer.view().first)
         lines.forEachIndexed { index, text ->
-            font.color = Color.valueOf("${shadowColors.getOrElse(index) { "#ffffff" }}ff")
-            font.draw(batch, text, 39.467f, 771.28f - index * 120f)
+            font.color = Color.valueOf("${colors.getOrElse(index) { "#ffffff" }}ff")
+            val layout = GlyphLayout(font, text, font.color, textWidth, Align.left, true)
+            font.draw(batch, layout, margin, y)
+            y -= layout.height + 24f
         }
-        val topColors = WinConditionsLayer.childColors(layer.view().second)
-        lines.forEachIndexed { index, text ->
-            font.color = Color.valueOf("${topColors.getOrElse(index) { "#ffffff" }}ff")
-            font.draw(batch, text, 27.323f, 779.113f - index * 120f)
-        }
-        font.data.setScale(1f)
-        font.color = Color.WHITE
         batch.end()
+        font.data.setScale(oldX, oldY)
+        font.color = oldColor
     }
 
     /**
@@ -12150,7 +12187,7 @@ void main() {
      */
 
     private fun drawWinConditionBox() {
-        batch.projectionMatrix = viewport.camera.combined
+        batch.projectionMatrix = centeredDialogProjection()
         batch.begin()
         batch.color = Color.WHITE
         overlayAssets.winConditionBackgroundTexture?.let { texture ->
@@ -12411,7 +12448,7 @@ void main() {
      */
 
     private fun configureSourceCameraViewport() {
-        battleCamera.configureViewport(1488.3721f, 800f)
+        battleCamera.configureViewport(viewport.worldWidth, viewport.worldHeight)
     }
 
     /**
@@ -12425,7 +12462,12 @@ void main() {
             (battle.units.values + battle.presentation.pendingPresentationUnits())
                 .firstOrNull { it.characterId == characterId && it.visible }
         }
-        val placement = battleDialoguePlacement(speakerUnit)
+        val placement = battleDialoguePlacement(speakerUnit).copy(
+            panelX = 0f, panelY = 0f, panelWidth = viewport.worldWidth, panelHeight = 260f,
+            portraitX = viewport.worldWidth - 230f, portraitY = 10f,
+            speakerX = 36f, speakerDrawY = 228f,
+            textX = 36f, textDrawY = 172f, textWidth = viewport.worldWidth - 310f,
+        )
         batch.projectionMatrix = viewport.camera.combined
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         battleDialogueRendererAdapter.draw(
@@ -12624,35 +12666,45 @@ void main() {
 
     private fun drawScriptInfoLayer() {
         if (scriptRuntime.state != PlaybackState.MODAL || scriptRuntime.currentModalKind != ScenarioModalKind.INFO) return
-        drawInfoLayerText(scriptRuntime.currentModalVisibleText)
+        drawInfoLayerContent(scriptRuntime.currentModalText.orEmpty(), scriptRuntime.currentModalVisibleText.length)
     }
 
     /** Both scripted and settlement notices use the same source InfoLayer prefab. */
-    private fun drawInfoLayerText(text: String) {
-        val sourceCanvasWidth = 1488.3721f
+    private fun drawInfoLayerText(text: String) = drawInfoLayerContent(text, text.length)
+
+    private fun drawInfoLayerContent(text: String, visibleChars: Int) {
+        val sourceCanvasWidth = viewport.worldWidth
         val centreX = sourceCanvasWidth / 2f
-        val centreY = 400f
+        val centreY = viewport.worldHeight / 2f
         val previousScaleX = font.data.scaleX
         val previousScaleY = font.data.scaleY
         font.data.setScale(40f / 26f)
         val previousFontColor = Color(font.color)
-        val layout = GlyphLayout(font, text)
-        // 원본 InfoLayer Layout은 본문 좌우에 20씩 패딩을 둔다.
-        val panelWidth = (layout.width + 40f).coerceAtLeast(40f)
-        val panelHeight = 83f
+        val layout = GlyphLayout(font, text, Color.BLACK, viewport.worldWidth * .85f, Align.left, true)
+        val cache = com.badlogic.gdx.graphics.g2d.BitmapFontCache(font)
+        cache.setText(layout, 0f, 0f)
+        var left = Float.POSITIVE_INFINITY
+        var bottom = Float.POSITIVE_INFINITY
+        var right = Float.NEGATIVE_INFINITY
+        var top = Float.NEGATIVE_INFINITY
+        for (page in 0 until font.regions.size) {
+            val vertices = cache.getVertices(page)
+            for (index in 0 until cache.getVertexCount(page) step 5) {
+                left = minOf(left, vertices[index]); right = maxOf(right, vertices[index])
+                bottom = minOf(bottom, vertices[index + 1]); top = maxOf(top, vertices[index + 1])
+            }
+        }
+        if (!left.isFinite()) { left = 0f; right = 0f; bottom = 0f; top = 0f }
+        val padding = 20f
+        val panelWidth = right - left + padding * 2f
+        val panelHeight = top - bottom + padding * 2f
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         batch.color = Color.WHITE
-        // 원본 bg 앵커 (0.5, 0.28), 위치는 전장 캔버스 중앙이다.
-        scriptInfoPanelPatch.draw(
-            batch,
-            centreX - panelWidth / 2f,
-            centreY - panelHeight * .28f,
-            panelWidth,
-            panelHeight,
-        )
-        font.color = Color.BLACK
-        font.draw(batch, text, centreX - layout.width / 2f, centreY + 18.5f)
+        scriptInfoPanelPatch.draw(batch, centreX - panelWidth / 2f, centreY - panelHeight / 2f, panelWidth, panelHeight)
+        cache.setPosition(centreX - (left + right) / 2f, centreY - (bottom + top) / 2f)
+        val glyphCount = (0 until font.regions.size).sumOf { cache.getVertexCount(it) / 20 }
+        cache.draw(batch, 0, visibleChars.coerceIn(0, glyphCount))
         font.color = previousFontColor
         font.data.setScale(previousScaleX, previousScaleY)
         batch.end()
@@ -13053,6 +13105,7 @@ void main() {
         9 -> BattleStatus.CONFUSION
         10 -> BattleStatus.POISON
         13 -> BattleStatus.LOST
+        14 -> BattleStatus.MEDITATION
         else -> null
     }
 

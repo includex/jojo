@@ -32,6 +32,10 @@ def scene0():
     stage.infoTransfer(4, '103\n1\n514\niron_guard')
     stage.infoTransfer(4, '104\n1\n515\nquick_step')
     stage.infoTransfer(4, '106\n1\n516\nwater_stride')
+    stage.infoTransfer(4, '110\n1\n512\nmeditation')
+    stage.infoTransfer(4, '110\n1\n514\nmeditation')
+    stage.infoTransfer(4, '110\n1\n515\nmeditation')
+    stage.infoTransfer(4, '110\n1\n516\nmeditation')
     stage.loadBg(64)
     stage.draw()
     stage.setWinCondition('승리 조건\n장물 상자 2개 중 1개 이상 확보; 밀수선 두목 격퇴; 임충 생존\n\n패배 조건\n임충 HP 0; 모든 장물 상자 파괴; 9턴 종료')
@@ -66,6 +70,7 @@ def scene1():
         stage.say('@dialogue:S_96.EX02_E04.line003')
         pass
         stage.createMine([{'id': 521, 'i': 10, 'idx': 10, 'x': 6, 'y': 6, 'lv': 4, 'dir': 2, 'ai': 2}])
+        stage.infoTransfer(4, '110\n1\n521\nmeditation')
         gvars['linchong.ex02_song_support'] = 1
         # Existing-engine adaptation: codex:song:COMMANDABLE_TEMP
     if not gvars['linchong.event_ex02_e01'] and (stage.round() >= 2 and stage.curCamp() == 0):

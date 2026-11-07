@@ -21,7 +21,7 @@ fun Faction.isPlayerSide(): Boolean = !isEnemySide()
 
 /** BattleStatus: 유닛에게 적용되는 전투 상태 이상 종류를 나타내며, 턴 정산과 행동 제약에 사용한다. */
 enum class BattleStatus {
-    PARALYSIS, SILENCE, CONFUSION, POISON, LOST;
+    PARALYSIS, SILENCE, CONFUSION, POISON, LOST, MEDITATION;
 
     companion object {
         /**
@@ -34,6 +34,7 @@ enum class BattleStatus {
             8 -> SILENCE
             9 -> CONFUSION
             10 -> POISON
+            14 -> MEDITATION
             13 -> LOST
             else -> null
         }
@@ -56,6 +57,7 @@ fun BattleStatus.label(): String = when (this) {
     BattleStatus.SILENCE -> SystemMessage.S_682998EE62
     BattleStatus.CONFUSION -> SystemMessage.S_738A3F61E4
     BattleStatus.POISON -> SystemMessage.S_2B0B630E57
+    BattleStatus.MEDITATION -> "운기행공"
     BattleStatus.LOST -> SystemMessage.S_87F35DB204
 }
 

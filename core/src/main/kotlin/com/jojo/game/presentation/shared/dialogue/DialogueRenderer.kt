@@ -363,12 +363,6 @@ class DialogueRenderer(
     /** 모달 본문을 종류별 글꼴·위치 규칙으로 그린다. */
     private fun drawModalText(batch: SpriteBatch, assets: DialogueRenderAssets, model: ModalRenderModel) {
         val text = sanitize(model.fixedText + model.visibleText)
-        if (model.kind in setOf(DialogueModalKind.EVENT, DialogueModalKind.INFO)) {
-            assets.infoLabel(text)?.let { label ->
-                drawInfoLabel(batch, assets, label)
-                return
-            }
-        }
         when (model.kind) {
             DialogueModalKind.MAP_INFO -> {
                 assets.bodyFont.color = Color.WHITE
@@ -380,15 +374,31 @@ class DialogueRenderer(
                 assets.titleFont.draw(batch, glyph, (layout.width - glyph.width) / 2f, (layout.height + glyph.height) / 2f)
             }
             DialogueModalKind.EVENT, DialogueModalKind.INFO, DialogueModalKind.OTHER -> {
-                val glyph = GlyphLayout(assets.titleFont, sanitize(model.visibleText))
-                val width = (glyph.width + 42.4f).coerceIn(64.2f, layout.width - 64.2f)
-                val height = (glyph.height + 34.4f).coerceAtLeast(71.38f)
+                val font = assets.titleFont
+                val glyph = GlyphLayout(font, sanitize(model.fixedText + model.text), Color.BLACK, layout.width * .85f, Align.left, true)
+                val cache = com.badlogic.gdx.graphics.g2d.BitmapFontCache(font)
+                cache.setText(glyph, 0f, 0f)
+                var left = Float.POSITIVE_INFINITY; var right = Float.NEGATIVE_INFINITY
+                var bottom = Float.POSITIVE_INFINITY; var top = Float.NEGATIVE_INFINITY
+                var glyphCount = 0
+                for (page in 0 until font.regions.size) {
+                    val vertices = cache.getVertices(page)
+                    glyphCount += cache.getVertexCount(page) / 20
+                    for (index in 0 until cache.getVertexCount(page) step 5) {
+                        left = minOf(left, vertices[index]); right = maxOf(right, vertices[index])
+                        bottom = minOf(bottom, vertices[index + 1]); top = maxOf(top, vertices[index + 1])
+                    }
+                }
+                if (!left.isFinite()) { left = 0f; right = 0f; bottom = 0f; top = 0f }
+                val padding = 20f
+                val width = right - left + padding * 2f
+                val height = top - bottom + padding * 2f
                 val x = (layout.width - width) / 2f
-                val y = (layout.height - height) / 2f + height * .22f
+                val y = (layout.height - height) / 2f
                 assets.infoPanel?.draw(batch, x, y, width, height)
                     ?: assets.dialoguePanel?.let { batch.draw(it, x, y, width, height) }
-                assets.titleFont.color = Color.BLACK
-                assets.titleFont.draw(batch, glyph, (layout.width - glyph.width) / 2f, y + height / 2f + glyph.height / 2f)
+                cache.setPosition(layout.width / 2f - (left + right) / 2f, layout.height / 2f - (bottom + top) / 2f)
+                cache.draw(batch, 0, text.length.coerceIn(0, glyphCount))
             }
             DialogueModalKind.AMBITION -> Unit
         }
@@ -397,13 +407,18 @@ class DialogueRenderer(
     /** InfoLayer prefab: 20px horizontal/10px vertical padding, anchor (.5,.28), text y=18.5. */
     private fun drawInfoLabel(batch: SpriteBatch, assets: DialogueRenderAssets, label: DialogueInfoLabel) {
         val scale = .86
-        val width = label.width + 40.0
-        val height = label.height + 20.0
+        val minX = label.segments.minOfOrNull { it.x } ?: 0.0
+        val minY = label.segments.minOfOrNull { it.y } ?: 0.0
+        val maxX = label.segments.maxOfOrNull { it.x + it.texture.width } ?: 0.0
+        val maxY = label.segments.maxOfOrNull { it.y + it.texture.height } ?: 0.0
+        val padding = 20.0
+        val width = maxX - minX + padding * 2
+        val height = maxY - minY + padding * 2
         val x = (layout.width / scale - width) / 2
-        val y = layout.height / (2 * scale) - height * .28
+        val y = (layout.height / scale - height) / 2
         batch.color = Color.WHITE
-        val sourceLeft = (layout.width / scale - label.width) / 2
-        val sourceTop = layout.height / (2 * scale) + 18.5 + label.height / 2
+        val sourceLeft = layout.width / (2 * scale) - (minX + maxX) / 2
+        val sourceTop = layout.height / (2 * scale) - (minY + maxY) / 2
         savedBodyTransform.set(batch.transformMatrix)
         sourceBodyTransform.set(savedBodyTransform).scale(scale.toFloat(), scale.toFloat(), 1f)
         batch.transformMatrix = sourceBodyTransform

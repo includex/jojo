@@ -21,14 +21,15 @@ def scene0():
     stage.createFriend([{'id': 567, 'i': 10, 'x': 7, 'y': 6, 'ai': 2, 'lv': 0}])
     stage.infoTransfer(4, '100\n1\n512\nwind_spear')
     stage.infoTransfer(4, '103\n1\n514\niron_guard')
+    stage.infoTransfer(4, '110\n1\n512\nmeditation')
     stage.loadBg(61)
     stage.draw()
     stage.setWinCondition('승리 조건\n산적두목 격퇴; 수레 2대 중 1대 이상 생존; 임충 생존\n\n패배 조건\n임충 HP 0; 두 수레 HP 0; 11턴 종료')
-    stage.say('@dialogue:S_93.interlude.line001')
+    stage.info('시진 장원에서 떠난 임충은 창주에 도착해 노역을 이어 갔다.')
     stage.say('@dialogue:S_93.interlude.line002')
     stage.say('@dialogue:S_93.interlude.line003')
     stage.say('@dialogue:S_93.interlude.line004')
-    stage.say('@dialogue:S_93.B03_E00.line001')
+    stage.info('창주 관영. 유배수 임충은 관아의 물자를 옮기는 일에 배속된다.')
     stage.say('@dialogue:S_93.B03_E00.line002')
     stage.say('@dialogue:S_93.B03_E00.line003')
     stage.say('@dialogue:S_93.B03_E00.line004')
@@ -107,7 +108,7 @@ def scene1():
         # Existing-engine adaptation: buff:bandit_boss:attack:+3:2turn
     if not gvars['linchong.event_b03_e06'] and (stage.unitStateTest(566, 7, 0, 2) or stage.unitStateTest(567, 7, 0, 2)):
         gvars['linchong.event_b03_e06'] = 1
-        stage.say('@dialogue:S_93.B03_E06.line001')
+        stage.info('수레 하나가 부서졌다. 남은 물자라도 보전해야 한다.')
         stage.say('@dialogue:S_93.B03_E06.line002')
         pass
         gvars['linchong.b03_one_cart_lost'] = 1
@@ -119,7 +120,7 @@ def scene1():
         gvars['linchong.b03_boss_down'] = 1
     if not gvars['linchong.event_b03_e91'] and ((not stage.unitStateTest(512, 7, 0, 2) and (stage.unitStateTest(540, 7, 0, 2) and (not stage.unitStateTest(566, 7, 0, 2) or not stage.unitStateTest(567, 7, 0, 2)))) and (not gvars['linchong.b03_hu_rescued'])):
         gvars['linchong.event_b03_e91'] = 1
-        stage.say('@dialogue:S_93.B03_E91.line001')
+        stage.info('수레는 지켜 냈지만 구조하지 못한 인부는 어디론가 사라졌다.')
         pass
         # Existing-engine adaptation: codex:hu:ENCOUNTERED
         gvars['linchong.b03_hu_missed'] = 1
@@ -145,7 +146,7 @@ def scene1():
         if gvars['linchong.recruited_hu']:
             stage.say('@dialogue:S_93.B03_E90.afterChoice.line002')
         if gvars['linchong.recruited_hu']:
-            stage.say('@dialogue:S_93.B03_E90.afterChoice.line003')
+            stage.info('임충은 다시 고단한 창주의 일상으로 돌아갔다. 그러나 곁에 뜻을 나눌 사람이 하나 생겼다.')
         if (gvars['linchong.b03_hu_rescued'] and gvars['linchong.recruited_hu']):
             stage.say('@dialogue:S_93.B03_E90.HU_RESCUED_AND_ACCEPTED.line001')
             stage.say('@dialogue:S_93.B03_E90.HU_RESCUED_AND_ACCEPTED.line002')

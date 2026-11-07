@@ -111,7 +111,9 @@ internal class GameDataCatalogCombatDomain(tables: GameDataTableBundle) : GameDa
      */
 
     fun statusRound(status: BattleStatus, fallback: Int = 3): Int {
+        if (status == BattleStatus.MEDITATION) return 1
         val index = when (status) {
+            BattleStatus.MEDITATION -> 14
             BattleStatus.PARALYSIS -> 7; BattleStatus.SILENCE -> 8; BattleStatus.CONFUSION -> 9
             BattleStatus.POISON -> 10; BattleStatus.LOST -> 13
         }

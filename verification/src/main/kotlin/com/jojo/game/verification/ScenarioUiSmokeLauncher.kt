@@ -14,6 +14,8 @@ import com.jojo.game.domain.scenario.PlaybackState
 object ScenarioUiSmokeLauncher {
  @JvmStatic fun main(args:Array<String>) {
   val out=args.firstOrNull() ?: "verification/build/scenario-ui"
+  val noticeOnly=args.contains("--notice-only")
+  var noticeFrames=0
   val capturedBackgrounds=mutableSetOf<Int>()
   var phase=0;var ticks=0;var deadline=0;var stable=0;var nextTap=0f
   var background=-1;var backgroundFrames=0
@@ -23,6 +25,12 @@ object ScenarioUiSmokeLauncher {
    ticks++
    val screen=(Gdx.app.applicationListener as JojoGame).screen
    val r=screen.javaClass.getDeclaredField("playback").also{it.isAccessible=true}.get(screen) as ScenarioInterpreter
+   if(noticeOnly) {
+    if(r.currentModalText.orEmpty().contains("개봉부 변두리") && r.currentModalTextComplete) {
+     if(++noticeFrames>=3){capture("narration-padding");println("NOTICE_PADDING_PASS");Gdx.app.exit()}
+    } else if(r.state==PlaybackState.MODAL && r.currentModalTextComplete) r.resumeModal()
+    return@RuntimeScenarioDriver emptyList()
+   }
    stable=if(frame.dialogueTextComplete)stable+1 else 0
    backgroundFrames=if(background==r.stage.backgroundId)backgroundFrames+1 else 0
    background=r.stage.backgroundId

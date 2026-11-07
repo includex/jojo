@@ -73,6 +73,10 @@ internal object MagicTargetResolver {
             return result to entry
         }
 
+        if (magic.type == MagicEffects.id("typeMeditation")) {
+            victim.statuses[BattleStatus.MEDITATION] = 1
+            return wrap(MagicTarget(victim.id, damage = 0, hitRate = 100, hit = true, defeated = false))
+        }
         if (magic.type == MagicEffects.id("typeRestoreAction")) { // HUIGUI
             victim.hasActed = false
             attacker.ai = 0

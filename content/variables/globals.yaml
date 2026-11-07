@@ -202,6 +202,14 @@ variables:
     type: int
     default: 0
     description: Linchong story progression flag.
+  linchong.event_b01_e08:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
+  linchong.event_b01_e09:
+    type: int
+    default: 0
+    description: Linchong story progression flag.
   linchong.event_b02_e00:
     type: int
     default: 0

@@ -16,7 +16,7 @@ object BattleUiSmokeLauncher {
   val out=args.firstOrNull() ?: "verification/build/battle-ui"
   val width=args.getOrNull(1)?.toInt() ?:1280
   val height=args.getOrNull(2)?.toInt() ?:688
-  var phase=0;var frames=0;var next=0f;var dialogueCaptured=false;var stableDialogue=0;var phaseFrames=0;var retainedTerrain:BattleHudTerrainView?=null
+  var phase=0;var frames=0;var next=0f;var dialogueCaptured=false;var stableDialogue=0;var phaseFrames=0;var retainedTerrain:BattleHudTerrainView?=null;var meditationWait=0
   fun capture(name:String) { val p=ScreenUtils.getFrameBufferPixmap(0,0,Gdx.graphics.backBufferWidth,Gdx.graphics.backBufferHeight);val f=Gdx.files.absolute("$out/$name.png");f.parent().mkdirs();PixmapIO.writePNG(f,p,-1,true);p.dispose() }
   val driver=RuntimeBattleDriver { frame,probe ->
    check(frame.elapsed<100f) { "UI smoke timeout phase=$phase" }
@@ -33,6 +33,10 @@ object BattleUiSmokeLauncher {
     fun invoke(name:String,vararg values:Int) { screen.javaClass.getDeclaredMethod(name,*Array(values.size){Int::class.javaPrimitiveType!!}).also{it.isAccessible=true}.invoke(screen,*values.toTypedArray()) }
     fun field(name:String)=screen.javaClass.getDeclaredField(name).also{it.isAccessible=true}
     val vp=field("viewport").get(screen) as com.badlogic.gdx.utils.viewport.Viewport
+    val expansion=field("viewExpansion").getFloat(screen)
+    check(expansion==1.5f)
+    check(kotlin.math.abs(vp.worldHeight-1200f)<.01f)
+    val hudWidth=vp.worldWidth/expansion;val hudHeight=vp.worldHeight/expansion
     fun pointer(worldX:Float,worldY:Float) {
      val point=vp.project(com.badlogic.gdx.math.Vector2(worldX,worldY))
      val x=point.x.toInt();val y=(Gdx.graphics.height-point.y).toInt()
@@ -50,7 +54,7 @@ object BattleUiSmokeLauncher {
     when(phase++) {
      0->{ val live=battle().units.values.single{it.characterId==512};live.statuses[com.jojo.game.domain.battle.BattleStatus.CONFUSION]=2;live.attributeLifts[com.jojo.game.domain.battle.BattleAttribute.DEFENSE]=1;live.attributeLiftRounds[com.jojo.game.domain.battle.BattleAttribute.DEFENSE]=3;val lin=probe.battle.snapshot.units.single{it.characterId==512};invoke("handleTileClick",lin.x,lin.y);invoke("handleTileClick",lin.x,lin.y) }
      1->{check(hud().unit==null){"Command menu must suppress hover"};capture("command");invoke("dispatchBattleCommand",7)}
-     2->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.unit?.characterId==512);capture("info-base");val r=BattleUnitInfoLayout.tabs[2]; val vp=screen.javaClass.getDeclaredField("viewport").also{it.isAccessible=true}.get(screen) as com.badlogic.gdx.utils.viewport.Viewport;val point=vp.project(com.badlogic.gdx.math.Vector2(r.x+r.width/2,r.y+r.height/2));val x=point.x.toInt();val y=(Gdx.graphics.height-point.y).toInt();Gdx.input.inputProcessor?.let{it.touchDown(x,y,0,Input.Buttons.LEFT);it.touchUp(x,y,0,Input.Buttons.LEFT)}}
+     2->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.unit?.characterId==512);capture("info-base");val r=BattleUnitInfoLayout.tabs[2]; val vp=screen.javaClass.getDeclaredField("viewport").also{it.isAccessible=true}.get(screen) as com.badlogic.gdx.utils.viewport.Viewport;val point=vp.project(com.badlogic.gdx.math.Vector2(r.x+r.width/2+(vp.worldWidth-1488.3721f)/2,r.y+r.height/2+(vp.worldHeight-800f)/2));val x=point.x.toInt();val y=(Gdx.graphics.height-point.y).toInt();Gdx.input.inputProcessor?.let{it.touchDown(x,y,0,Input.Buttons.LEFT);it.touchUp(x,y,0,Input.Buttons.LEFT)}}
      3->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.tab==2) { "Equipment tab input failed" };capture("info-equipment");Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)}
      4->{check(!(overlay().javaClass.getMethod("isVisible").invoke(overlay()) as Boolean));capture("command-return");invoke("openUnitInfoLayer",522)}
      5->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.unit?.characterId==522);capture("info-enemy");Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE);invoke("openBattleMenu");invoke("handleBattleMenuTap",1)}
@@ -61,8 +65,8 @@ object BattleUiSmokeLauncher {
      10->{capture("help");Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)}
      11->{
       invoke("dispatchBattleCommand",6)
-      val settings=BattleHudPanelLayout.buttons(vp.worldWidth,vp.worldHeight,true).single{it.action==BattleHudPanelController.Action.HELP}.rect
-      val point=vp.project(com.badlogic.gdx.math.Vector2(settings.x+settings.width/2,settings.y+settings.height/2))
+      val settings=BattleHudPanelLayout.buttons(hudWidth,hudHeight,true).single{it.action==BattleHudPanelController.Action.HELP}.rect
+      val point=vp.project(com.badlogic.gdx.math.Vector2((settings.x+settings.width/2)*expansion,(settings.y+settings.height/2)*expansion))
       val px=point.x.toInt();val py=(Gdx.graphics.height-point.y).toInt()
       Gdx.input.inputProcessor?.let{it.touchDown(px,py,0,Input.Buttons.LEFT);it.touchUp(px,py,0,Input.Buttons.LEFT)}
       val settingsOverlay=field("helperOverlay").get(screen)
@@ -76,7 +80,7 @@ object BattleUiSmokeLauncher {
      12->{
       check(hud().unit?.name==battle().units.values.single{it.characterId==512}.displayName) { "Hovering Lin did not show Lin in HUD: ${hud()}" }
       check(hud().unit?.settlementPanel==SettlementInfoRenderContract.Panel.MINE)
-      val allyCard=BattleHudPanelLayout.hoverCard(vp.worldWidth,vp.worldHeight,hud())!!
+      val allyCard=BattleHudPanelLayout.hoverCard(hudWidth,hudHeight,hud())!!
       check(allyCard.width==471f&&allyCard.height==258f)
       for(faction in listOf(com.jojo.game.domain.battle.Faction.ENEMY,com.jojo.game.domain.battle.Faction.FRIEND)) {
        battle().javaClass.getDeclaredMethod("setActiveFaction",com.jojo.game.domain.battle.Faction::class.java).also{it.isAccessible=true}.invoke(battle(),faction);check(hud().unit==null){"Hover leaked during $faction turn"}
@@ -84,7 +88,7 @@ object BattleUiSmokeLauncher {
       battle().javaClass.getDeclaredMethod("setActiveFaction",com.jojo.game.domain.battle.Faction::class.java).also{it.isAccessible=true}.invoke(battle(),com.jojo.game.domain.battle.Faction.PLAYER)
       check(hud().unit!=null)
       invoke("openBattleMenu")
-      check(hud().unit==null&&BattleHudPanelLayout.hoverCard(vp.worldWidth,vp.worldHeight,hud())==null){"Visible hover persisted after opening battle menu"}
+      check(hud().unit==null&&BattleHudPanelLayout.hoverCard(hudWidth,hudHeight,hud())==null){"Visible hover persisted after opening battle menu"}
       Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)
       check(hud().unit!=null){"Hover did not return after closing battle menu"}
       check(hud().terrain!=null)
@@ -100,7 +104,7 @@ object BattleUiSmokeLauncher {
       check(hud().unit?.name==enemy.displayName) { "HUD kept old unit while hovering enemy: ${hud()}" }
       check(hud().terrain?.basis?.contains(enemy.displayName)==true)
       check(hud().unit?.settlementPanel==SettlementInfoRenderContract.Panel.OTHER)
-      check(BattleHudPanelLayout.hoverCard(vp.worldWidth,vp.worldHeight,hud())!!.height==193.5f)
+      check(BattleHudPanelLayout.hoverCard(hudWidth,hudHeight,hud())!!.height==193.5f)
       capture("hud-hover-enemy");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.HEAVY_RAIN.ordinal)
       val lin=battle().units.values.single{it.characterId==512}
       val empty=listOf(0 to 1,0 to -1,1 to 0,-1 to 0).map{lin.tileX+it.first to lin.tileY+it.second}.first{(x,y)->x>=0&&y>=0&&battle().unitAt(x,y)==null}
@@ -114,8 +118,8 @@ object BattleUiSmokeLauncher {
       retainedTerrain=null
       capture("hud-hover-terrain");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.CLEAR.ordinal)
       val controller=field("battleHudPanel").get(screen) as BattleHudPanelController
-      val panel=BattleHudPanelLayout.panel(vp.worldWidth,vp.worldHeight,controller.expanded)
-      pointer(panel.x+16f,panel.y+16f)
+      val panel=BattleHudPanelLayout.panel(hudWidth,hudHeight,controller.expanded)
+      pointer((panel.x+16f)*expansion,(panel.y+16f)*expansion)
      }
      15->{
       check(hud().unit==null&&hud().terrain==retainedTerrain) { "HUD surface must clear hover context: ${hud()}" }
@@ -132,7 +136,7 @@ object BattleUiSmokeLauncher {
       capture("hud-modal-context")
       Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)
       (field("battleHudPanel").get(screen) as BattleHudPanelController).toggle()
-      println("BATTLE_HUD_HOVER_PASS Lin -> Dong -> empty terrain; portrait present; HUD clears context; modal freezes context")
+      println("BATTLE_HUD_HOVER_PASS Mine -> Other -> empty terrain; command/modal suppress immediately; enemy/friend turns hide hover")
      }
      17->{battle().units.values.single{it.characterId==512}.statuses.clear();capture("hud-collapsed");invoke("dispatchBattleCommand",6)
       val campaign=screen.javaClass.getDeclaredField("campaign").also{it.isAccessible=true}.get(screen) as com.jojo.game.domain.campaign.CampaignState
@@ -151,7 +155,29 @@ object BattleUiSmokeLauncher {
       val tiles=screen.javaClass.getDeclaredMethod("selectableAreaTiles").also{it.isAccessible=true}.invoke(screen) as List<*>
       check(tiles.isEmpty()){ "Ranges visible while moving" }}
      22->{val moving=screen.javaClass.getDeclaredField("movementAnimation").also{it.isAccessible=true}.get(screen)
-      if(moving!=null)phase-- else{capture("move-arrived");println("BATTLE_UI_SMOKE_PASS ${width}x$height ranges=hidden-during-move");Gdx.app.exit()}}
+      if(moving!=null)phase-- else{capture("move-arrived");invoke("dispatchBattleCommand",1)}}
+     23->{
+      val layer=field("magickListLayer").get(screen) as com.jojo.game.presentation.shared.overlay.MagicUiList
+      val index=layer.rows.indexOfFirst{it.id==110}
+      check(index>=0){"Meditation is missing from the real magic menu"}
+      val card=BattlePickerGeometry.magicCard(index)
+      val point=vp.project(com.badlogic.gdx.math.Vector2(card.x+card.width/2+(vp.worldWidth-1488.3721f)/2,card.y+card.height/2+(vp.worldHeight-800f)/2))
+      val x=point.x.toInt();val y=(Gdx.graphics.height-point.y).toInt()
+      Gdx.input.inputProcessor?.let{it.touchDown(x,y,0,Input.Buttons.LEFT);it.touchUp(x,y,0,Input.Buttons.LEFT)}
+     }
+     24->{
+      val lin=battle().units.values.single{it.characterId==512}
+      if(lin.statuses[com.jojo.game.domain.battle.BattleStatus.MEDITATION]!=1 && ++meditationWait<120){phase--;return@RuntimeBattleDriver emptyList()}
+      check(lin.statuses[com.jojo.game.domain.battle.BattleStatus.MEDITATION]==1){"Magic menu did not apply meditation: ${field("eventMessage").get(screen)}"}
+      check(lin.hasActed)
+      capture("meditation")
+      val notice=screen.javaClass.getDeclaredMethod("drawInfoLayerText",String::class.java).also{it.isAccessible=true}
+      notice.invoke(screen,"임충 레벨 상승 · 2레벨")
+      capture("notice-padding")
+      println("BATTLE_MEDITATION_PASS self-cast via magic menu")
+      println("BATTLE_UI_SMOKE_PASS ${width}x$height ranges=hidden-during-move")
+      Gdx.app.exit()
+     }
 
     }
    }
