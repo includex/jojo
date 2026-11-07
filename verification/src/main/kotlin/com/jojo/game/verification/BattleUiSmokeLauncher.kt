@@ -77,6 +77,8 @@ object BattleUiSmokeLauncher {
       check(hud().unit?.name==battle().units.values.single{it.characterId==512}.displayName) { "Hovering Lin did not show Lin in HUD: ${hud()}" }
       check(hud().unit?.portrait!=null) { "Hovered protagonist portrait missing" }
       check(hud().terrain!=null)
+      check(hud().unitAnchor!=null) { "Unit corner anchor missing" }
+      check(field("hoveredBattleTile").get(screen)!=null) { "Unit hover corner missing" }
       check(hud().unit!!.statuses.size>=2) { "Actual buff and confusion icons missing" }
       capture("hud-hover-unit");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.SNOW.ordinal)
       val enemy=battle().units.values.single{it.characterId==522}
@@ -94,6 +96,7 @@ object BattleUiSmokeLauncher {
      14->{
       check(hud().unit==null) { "HUD retained a character on empty terrain: ${hud()}" }
       check(hud().terrain!=null) { "Empty tile terrain information missing" }
+      check(field("hoveredBattleTile").get(screen)!=null) { "Empty tile hover corner missing" }
       check(hud().terrain?.basis?.contains(battle().units.values.single{it.characterId==512}.displayName)==true) { "Terrain lost selected unit basis: ${hud()}" }
       retainedTerrain=null
       capture("hud-hover-terrain");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.CLEAR.ordinal)
@@ -104,6 +107,7 @@ object BattleUiSmokeLauncher {
      15->{
       check(hud().unit==null&&hud().terrain==retainedTerrain) { "HUD surface must clear hover context: ${hud()}" }
       check(hud().terrain?.basis==retainedTerrain?.basis) { "HUD changed terrain calculation basis" }
+      check(field("hoveredBattleTile").get(screen)==null) { "Hover corner leaked behind HUD" }
       capture("hud-empty-context")
       invoke("openHelperLayer")
       val enemy=battle().units.values.single{it.characterId==522}

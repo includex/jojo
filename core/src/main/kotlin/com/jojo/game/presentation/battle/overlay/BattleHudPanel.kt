@@ -19,6 +19,7 @@ data class BattleHudContextView(
     val enabledActions:Set<BattleHudPanelController.Action>?=null,
     val weatherSymbol:TextureRegion?=null,val chapterEmblem:TextureRegion?=null,
     val weatherPanel:TextureRegion?=null,val chapterPanel:TextureRegion?=null,
+    val unitAnchor:BattleHudPanelLayout.Rect?=null,
 )
 data class BattleHudUnitView(
     val name:String,val post:String,val level:Int,val hp:Int,val maxHp:Int,val mp:Int,val maxMp:Int,
@@ -76,14 +77,36 @@ object BattleHudPanelLayout {
             Button(BattleHudPanelController.Action.HELP,Rect(weather.x+weather.width*.79f-16f,weather.y+10f,32f,32f)),
         )
     }
-    /** Anchor beside the current cursor and flip left at the edge; leave corner HUD panels clear. */
+    /** Tile corners anchor the card, so moving the cursor within a unit never moves its card. */
     fun hoverCard(width:Float,height:Float,context:BattleHudContextView?):Rect? {
         if(context?.unit==null)return null
-        val w=minOf(400f,width-32f);val h=210f
-        val px=context.pointerX ?: width*.4f;val py=context.pointerY ?: height*.45f
-        val x=(if(px+26f+w<=width-12f)px+26f else px-w-26f).coerceIn(12f,maxOf(12f,width-w-12f))
-        val y=(py-18f).coerceIn(64f,maxOf(64f,height-h-132f))
-        return Rect(x,y,w,h)
+        val w=minOf(400f,width-24f);val h=minOf(210f,height-24f)
+        val unit=context.unitAnchor ?: Rect(width*.4f,height*.45f,0f,0f)
+        val left=unit.x;val right=unit.x+unit.width
+        val bottom=unit.y;val top=unit.y+unit.height
+        val minX=12f;val maxX=maxOf(minX,width-w-12f)
+        val minY=64f;val maxY=maxOf(minY,height-h-12f)
+        val hud=listOf(panel(width,height,true),mission(width,height),weather(width,height),terrain(width,height))+
+            buttons(width,height,true).take(4).map{it.rect}
+        fun at(x:Float,y:Float)=Rect(x,y,w,h)
+        fun fits(r:Rect)=r.x>=minX && r.y>=minY && r.x<=maxX && r.y<=maxY
+        fun overlap(a:Rect,b:Rect):Float =
+            (minOf(a.x+a.width,b.x+b.width)-maxOf(a.x,b.x)).coerceAtLeast(0f)*
+            (minOf(a.y+a.height,b.y+b.height)-maxOf(a.y,b.y)).coerceAtLeast(0f)
+        fun unobscured(r:Rect)=overlap(r,unit)==0f && hud.none{overlap(r,it)>0f}
+        val corners=listOf(at(right,top),at(left-w,top),at(right,bottom-h),at(left-w,bottom-h))
+        corners.firstOrNull{fits(it)&&unobscured(it)}?.let{return it}
+        // Near an edge, slide along a side while preserving the tile-to-card separation.
+        val ys=listOf(top,bottom-h,top.coerceIn(minY,maxY),bottom.coerceIn(minY,maxY),
+            mission(width,height).y-h,minY,maxY).map{it.coerceIn(minY,maxY)}
+        val xs=listOf(right,left-w,left.coerceIn(minX,maxX),right.coerceIn(minX,maxX),minX,maxX)
+            .map{it.coerceIn(minX,maxX)}
+        val alternatives=ys.flatMap{y->listOf(at(right,y),at(left-w,y))}+
+            xs.flatMap{x->listOf(at(x,top),at(x,bottom-h))}
+        alternatives.firstOrNull{fits(it)&&unobscured(it)}?.let{return it}
+        // A very small viewport may force a HUD overlap; the hovered tile still stays visible.
+        return (corners+alternatives).filter{fits(it)&&overlap(it,unit)==0f}
+            .minByOrNull{r->hud.sumOf{overlap(r,it).toDouble()}}
     }
     /** Compatibility for callers inspecting corner geometry. These are not one full-width strip. */
     fun contextColumns(width:Float,height:Float)=listOf(panel(width,height,true),weather(width,height),terrain(width,height),mission(width,height))

@@ -1,30 +1,46 @@
 {
   "991": {
-    "source": "/Users/ain/.codex/generated_images/01a19207-eef8-7f11-a5f9-6c79cf7e27a8/exec-4dd4978c-0b43-4bdd-8a32-730cff795f52.png",
-    "sha256": "4db7dedccd47b278977e2c637fc3f5e3a2fa7435e864800fb454a61b22eb45b0",
-    "generator": "built-in image_gen",
-    "style": "1998 Cao Cao tactical RPG pixel art; limited earthy palette; overhead orthographic tiled environments; no people",
-    "description": "peaceful thatched cottage"
+    "sha256": "7108f21ed3290966736a74da09c898f1ce0915599754c069aad2d658809d19dd",
+    "size": [
+      1671,
+      941
+    ],
+    "processing": "verbatim copy; existing stage.loadBg(3, id) rendering",
+    "source": "고요한 봄날의 전통 한옥 마당.png",
+    "description": "peaceful thatched cottage courtyard",
+    "generator": "user-provided existing image; not regenerated"
   },
   "992": {
-    "source": "/Users/ain/.codex/generated_images/01a19207-eef8-7f11-a5f9-6c79cf7e27a8/exec-9a653bdc-11eb-4a04-bc3a-f92eaab9ffbd.png",
-    "sha256": "493f9acc47f09859283d4cc3ec1c4c0ea8c073186cb8b37e51fceafb1c9aee50",
-    "generator": "built-in image_gen",
-    "style": "1998 Cao Cao tactical RPG pixel art; limited earthy palette; overhead orthographic tiled environments; no people",
-    "description": "corrupt official mansion"
+    "sha256": "19542a5bd8d55b01bbf5ba3bb760d92b37d1534cb4ba213ab783eb68b6966275",
+    "size": [
+      1448,
+      1086
+    ],
+    "processing": "verbatim copy; existing stage.loadBg(3, id) rendering",
+    "source": "대칭적인 황금빛 궁전 알현실.png",
+    "description": "official mansion / palace audience and judicial hall",
+    "generator": "user-provided existing image; not regenerated"
   },
   "993": {
-    "source": "/Users/ain/.codex/generated_images/01a19207-eef8-7f11-a5f9-6c79cf7e27a8/exec-e3ebf249-3bbb-4b5e-860e-1a17c63e1514.png",
-    "sha256": "d4ba09253b0f3e141605a302fd0b1625f3a390fa2f280401e1c14adfc67496e6",
-    "generator": "built-in image_gen",
-    "style": "1998 Cao Cao tactical RPG pixel art; limited earthy palette; overhead orthographic tiled environments; no people",
-    "description": "palace courtyard"
+    "sha256": "19542a5bd8d55b01bbf5ba3bb760d92b37d1534cb4ba213ab783eb68b6966275",
+    "size": [
+      1448,
+      1086
+    ],
+    "processing": "verbatim copy; existing stage.loadBg(3, id) rendering",
+    "source": "대칭적인 황금빛 궁전 알현실.png",
+    "description": "official mansion / palace audience and judicial hall",
+    "generator": "user-provided existing image; not regenerated"
   },
   "994": {
-    "source": "/Users/ain/.codex/generated_images/01a19207-eef8-7f11-a5f9-6c79cf7e27a8/exec-b8a2e508-15fc-487e-a098-abc9f99923a6.png",
-    "sha256": "fa0e44ee82069709b17e3bae34e48a699d117c4c4f7e41ba2b4f1a2afe414d74",
-    "generator": "built-in image_gen",
-    "style": "1998 Cao Cao tactical RPG pixel art; limited earthy palette; overhead orthographic tiled environments; no people",
-    "description": "judicial hall"
+    "sha256": "19542a5bd8d55b01bbf5ba3bb760d92b37d1534cb4ba213ab783eb68b6966275",
+    "size": [
+      1448,
+      1086
+    ],
+    "processing": "verbatim copy; existing stage.loadBg(3, id) rendering",
+    "source": "대칭적인 황금빛 궁전 알현실.png",
+    "description": "official mansion / palace audience and judicial hall",
+    "generator": "user-provided existing image; not regenerated"
   }
 }

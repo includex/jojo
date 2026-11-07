@@ -33,4 +33,18 @@ class BattleMapRendererTest {
             BattleMapRenderer.orderedEvents(view),
         )
     }
+    @Test
+    fun `hover marker works without selection and deduplicates the selected tile`() {
+        val hovered = BattleMapCursor(4, 7)
+        val view = BattleMapView(0f, 800f, 96f, emptyList(), null, emptyList(), emptyList(), hovered)
+        assertEquals(listOf(BattleMapRenderEvent(BattleMapRenderLayer.HOVER, 4f, 7f)),
+            BattleMapRenderer.orderedEvents(view))
+        assertEquals(listOf(BattleMapRenderEvent(BattleMapRenderLayer.CURSOR, 4f, 7f)),
+            BattleMapRenderer.orderedEvents(view.copy(cursor = hovered)))
+        assertEquals(listOf(
+            BattleMapRenderEvent(BattleMapRenderLayer.CURSOR, 1f, 2f),
+            BattleMapRenderEvent(BattleMapRenderLayer.HOVER, 4f, 7f)),
+            BattleMapRenderer.orderedEvents(view.copy(cursor = BattleMapCursor(1, 2))))
+    }
+
 }

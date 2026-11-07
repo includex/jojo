@@ -1,6 +1,8 @@
 // Battle
 package com.jojo.game.presentation.battle.fight
 
+import com.jojo.game.presentation.battle.assets.BattleSpriteResolutionSources
+
 import com.jojo.game.presentation.i18n.SystemMessage
 import com.jojo.game.presentation.battle.assets.*
 
@@ -271,10 +273,10 @@ internal class BattleFightRenderer(
 
             else -> {}
         }
+        val source = BattleSpriteResolutionSources.rect(texture, frame.sourceY, frame.sourceWidth, frame.sourceHeight)
         batch.draw(
             texture, worldCenterX - width / 2f, worldCenterY - height / 2f, width, height,
-            0, if (frame.sourceY + frame.sourceHeight > texture.height) 0 else frame.sourceY,
-            minOf(frame.sourceWidth, texture.width), minOf(frame.sourceHeight, texture.height),
+            source.x, source.y, source.width, source.height,
             scaleX < 0f, false,
         )
         if (frame.material == BattleCharacterMaterial.HIGHLIGHT || frame.material == BattleCharacterMaterial.GRAY) {

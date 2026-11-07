@@ -43,14 +43,34 @@ class BattleHudPanelTest {
             assertTrue(image.x+image.width<BattleHudPanelLayout.weather(width,800f).x)
         }
     }
-    @Test fun `floating unit card flips at viewport edge and disappears without a unit`() {
+    @Test fun `unit upper right corner exactly anchors card and cursor motion does not move it`() {
         val unit=BattleHudUnitView("임충","창병",1,61,96,22,22)
-        for(x in listOf(0f,1422f))for(y in listOf(0f,800f)) {
-            val context=BattleHudContextView(unit=unit,pointerX=x,pointerY=y)
-            val card=assertNotNull(BattleHudPanelLayout.hoverCard(1422f,800f,context))
-            assertTrue(card.x>=0 && card.y>=0)
-            assertTrue(card.x+card.width<=1422f && card.y+card.height<=800f)
-            assertTrue(BattleHudPanelController().contains(card.x+card.width/2,card.y+card.height/2,1422f,800f,context))
+        val tile=BattleHudPanelLayout.Rect(500f,300f,96f,96f)
+        val context=BattleHudContextView(unit=unit,unitAnchor=tile,pointerX=501f,pointerY=301f)
+        val card=assertNotNull(BattleHudPanelLayout.hoverCard(1422f,800f,context))
+        assertEquals(tile.x+tile.width,card.x)
+        assertEquals(tile.y+tile.height,card.y)
+        assertEquals(card,BattleHudPanelLayout.hoverCard(1422f,800f,context.copy(pointerX=590f,pointerY=390f)))
+    }
+    @Test fun `cards flip and slide at all viewport edges without covering the unit or HUD`() {
+        val unit=BattleHudUnitView("임충","창병",1,61,96,22,22)
+        fun overlaps(a:BattleHudPanelLayout.Rect,b:BattleHudPanelLayout.Rect)=
+            a.x<b.x+b.width && a.x+a.width>b.x && a.y<b.y+b.height && a.y+a.height>b.y
+        for(width in listOf(1422f,1488f)) {
+            val hud=listOf(BattleHudPanelLayout.panel(width,800f,true),BattleHudPanelLayout.mission(width,800f),
+                BattleHudPanelLayout.weather(width,800f),BattleHudPanelLayout.terrain(width,800f))+
+                BattleHudPanelLayout.buttons(width,800f,true).take(4).map{it.rect}
+            for(x in listOf(0f,12f,350f,width/2,width-108f,width-96f))
+                for(y in listOf(0f,12f,64f,350f,608f,704f)) {
+                    val tile=BattleHudPanelLayout.Rect(x,y,96f,96f)
+                    val context=BattleHudContextView(unit=unit,unitAnchor=tile)
+                    val card=assertNotNull(BattleHudPanelLayout.hoverCard(width,800f,context),"tile=$tile")
+                    assertTrue(card.x>=0 && card.y>=0)
+                    assertTrue(card.x+card.width<=width && card.y+card.height<=800f)
+                    assertFalse(overlaps(card,tile),"card=$card tile=$tile")
+                    assertTrue(hud.none{overlaps(card,it)},"card overlaps HUD: $card tile=$tile")
+                    assertTrue(BattleHudPanelController().contains(card.x+card.width/2,card.y+card.height/2,width,800f,context))
+                }
         }
         assertNull(BattleHudPanelLayout.hoverCard(1422f,800f,BattleHudContextView()))
     }

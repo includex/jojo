@@ -10151,6 +10151,8 @@ void main() {
          */
 
         val selected = selectedUnitId?.let(battle.units::get)
+        // Board and HUD inspection share one pointer conversion, including camera offsets.
+        battleHudView()
 
         /**
          * `terrainImpacts` (상태 값): 객체가 유지하는 구성·진행 상태를 보관한다.
@@ -10203,6 +10205,7 @@ void main() {
             cursor = selected?.let { BattleMapCursor(it.tileX, it.tileY) },
             terrainImpacts = terrainImpacts,
             harmNumbers = harmNumbers,
+            hoverCursor = hoveredBattleTile,
         )
     }
 
@@ -10261,6 +10264,7 @@ void main() {
     }
     private var lastHudInspection: BattleHudContextView? = null
     private var hudInspectedUnitId: String? = null
+    private var hoveredBattleTile: BattleMapCursor? = null
 
     private fun hudContains(x: Float, y: Float): Boolean =
         battleHudPanel.contains(x, y, viewport.worldWidth, viewport.worldHeight, lastHudInspection) ||
@@ -10328,6 +10332,8 @@ void main() {
     private val hudPanelRenderer by lazy { BattleHudPanelRenderer(batch, shapes, itemUpgradeFont, hudAssets.statusFrameTexture) }
     /** Resolve the current screen pointer every frame so camera panning also refreshes inspection. */
     private fun battleHudView(): BattleHudContextView {
+        // Never retain the hover marker behind a modal, HUD panel, or outside the viewport.
+        hoveredBattleTile = null
         val condition = scriptRuntime.stage.winCondition
         val defeatStart = condition.indexOf("패배 조건")
         val objective = hudMission?.victory ?: (if (defeatStart >= 0) condition.substring(0, defeatStart) else condition)
@@ -10351,19 +10357,30 @@ void main() {
             hudInspectedUnitId = null
             lastHudInspection = it
         }
-        fun retained() = lastHudInspection?.copy(objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
-            enabledActions = hudEnabledActions()) ?: empty()
+        fun retained() = lastHudInspection?.copy(unitAnchor = hudInspectedUnitId?.let(battle.units::get)?.let(::hudUnitAnchor), objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
+            enabledActions = hudEnabledActions())?.also { lastHudInspection = it } ?: empty()
         if (scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
             settingsOverlay.view() != null || forcesOverlay.view() != null || helperOverlay.view() != null ||
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null ||
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null ||
             informationOverlay.propertyView() != null || informationOverlay.treasureView() != null ||
             informationOverlay.terrainView() != null || usePropertyLayer != null || magickListLayer != null ||
+            usePropertyDetail != null || magickInfoLayer != null || jiqiLayer != null ||
+            activeRoundLayer != null || activeWeatherLayer != null || scriptWinConditions != null ||
+            returnToTitlePromptOpen || combatPresentationBusy() ||
             winConditionOpen || autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return retained()
         val sx = Gdx.input.x
         val sy = Gdx.input.y
         if (sx !in 0 until Gdx.graphics.width || sy !in 0 until Gdx.graphics.height) return empty()
         val world = viewport.unproject(Vector2(sx.toFloat(), sy.toFloat()))
+        if (world.x < 0f || world.x >= viewport.worldWidth || world.y < 0f || world.y >= viewport.worldHeight) return empty()
+        if (miniMapLayer.shown && world.x in miniMapLeft..miniMapLeft + miniMapSize &&
+            world.y in miniMapBottom..miniMapBottom + miniMapSize) return retained()
+        if (commandMenuVisible()) {
+            val offset = currentBattleCommandPlacementOffset()
+            if (world.x in BattleCommandRenderModel.PANEL_LEFT + offset.first..BattleCommandRenderModel.PANEL_LEFT + offset.first + BattleCommandRenderModel.PANEL_WIDTH &&
+                world.y in BattleCommandRenderModel.PANEL_BOTTOM + offset.second..BattleCommandRenderModel.PANEL_BOTTOM + offset.second + BattleCommandRenderModel.PANEL_HEIGHT) return retained()
+        }
         if (BattleHudPanelLayout.hoverCard(viewport.worldWidth, viewport.worldHeight,
                 lastHudInspection ?: BattleHudContextView())?.contains(world.x, world.y) == true) {
             // Another actor under the card wins hover inspection; card clicks still cannot reach the map.
@@ -10382,6 +10399,7 @@ void main() {
         if (tile.x !in 0..boardMaxX || tile.y !in 0..boardMaxY) return empty()
         val unit = battle.unitAt(tile.x, tile.y)?.takeIf { it.visible && it.hitPoints > 0 }
         hudInspectedUnitId = unit?.id
+        hoveredBattleTile = BattleMapCursor(tile.x, tile.y)
         val terrain = terrainGrid.terrainAt(tile.x, tile.y)
         val basis = unit ?: selectedUnitId?.let { battle.units[it] }?.takeIf { it.visible && it.hitPoints > 0 }
         val cost = basis?.terrainMovementCosts?.get(terrain)
@@ -10410,7 +10428,13 @@ void main() {
             objective = objective, defeat = defeat, weatherIcon = weatherIcon,
             weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
             pointerX = world.x, pointerY = world.y, enabledActions = hudEnabledActions(),
+            unitAnchor = unit?.let(::hudUnitAnchor),
         ).also { lastHudInspection = it }
+    }
+
+    private fun hudUnitAnchor(unit: BattleUnit): BattleHudPanelLayout.Rect {
+        val (visualX, visualY) = visualTile(unit)
+        return BattleHudPanelLayout.Rect(boardLeft + visualX * boardTile, tileBottom(visualY), boardTile, boardTile)
     }
 
     private fun hudStatuses(unit: BattleUnit): List<BattleHudStatusView> = buildList {

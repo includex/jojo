@@ -1,0 +1,15 @@
+{
+  "format": "battle-sprite-resolution/v1",
+  "requestedScale": 1.3,
+  "sourceSha256": "0f121b996e0ec66b0ffcc99a072ecec0950fb6bce5bffbf4d5f8d2a1a754dd63",
+  "sourceFrameSize": 64,
+  "sourcePitch": 66,
+  "sourceInsetY": 1,
+  "frameSize": 83,
+  "pitch": 85,
+  "insetY": 1,
+  "frameCount": 12,
+  "resampling": "premultiplied-alpha Lanczos",
+  "textureFilter": "nearest",
+  "displaySize": "unchanged; retain native frame geometry"
+}

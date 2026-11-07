@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.jojo.game.presentation.battle.assets.BattleHudAssets
+import com.jojo.game.presentation.battle.assets.BattleSpriteResolutionSources
 import com.jojo.game.presentation.battle.unit.BattleUnitAttributeStatusRender
 import com.jojo.game.presentation.battle.unit.BattleUnitStateRender
 
@@ -121,11 +122,10 @@ internal class BattleActorEffectRenderer(
                     (actor.colorRgb and 0xff) / 255f,
                     actor.opacity,
                 )
+                val source = BattleSpriteResolutionSources.rect(texture, actor.sourceY, actor.sourceWidth, actor.sourceHeight)
                 drawMasked(actor.terrainMask, x, y, actor.size, view.tileSize) {
                     batch.draw(
-                        texture, x, y, actor.size, actor.size, 0,
-                        if (actor.sourceY + actor.sourceHeight > texture.height) 0 else actor.sourceY,
-                        minOf(actor.sourceWidth, texture.width), minOf(actor.sourceHeight, texture.height),
+                        texture, x, y, actor.size, actor.size, source.x, source.y, source.width, source.height,
                         actor.flipX, false,
                     )
                 }

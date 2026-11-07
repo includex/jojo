@@ -18,6 +18,7 @@ data class BattleMapView(
     val cursor: BattleMapCursor?,
     val terrainImpacts: List<BattleMapTerrainImpact>,
     val harmNumbers: List<BattleMapHarmNumber>,
+    val hoverCursor: BattleMapCursor? = null,
 )
 /**
  * `BattleMapSelection`: 관련 상태와 동작을 묶는 class다.
@@ -56,7 +57,7 @@ data class BattleMapRendererAssets(
 )
 
 /** BattleMapRenderLayer: 선택 영역·커서·지형 영향·피해 숫자의 맵 그리기 순서를 구분한다. */
-enum class BattleMapRenderLayer { SELECTION, CURSOR, TERRAIN_IMPACT, HARM }
+enum class BattleMapRenderLayer { SELECTION, CURSOR, TERRAIN_IMPACT, HARM, HOVER }
 /** BattleMapRenderEvent: 맵 오버레이 한 요소의 레이어·좌표·프레임·문자열을 전달한다. */
 data class BattleMapRenderEvent(
     val layer: BattleMapRenderLayer,
@@ -105,6 +106,9 @@ class BattleMapRenderer(
                 )
             }
             view.cursor?.let { add(BattleMapRenderEvent(BattleMapRenderLayer.CURSOR, it.x.toFloat(), it.y.toFloat())) }
+            view.hoverCursor?.takeIf { it != view.cursor }?.let {
+                add(BattleMapRenderEvent(BattleMapRenderLayer.HOVER, it.x.toFloat(), it.y.toFloat()))
+            }
             view.terrainImpacts.forEach {
                 add(
                     BattleMapRenderEvent(
@@ -193,8 +197,38 @@ class BattleMapRenderer(
 
     /** Draw after actors so the selected unit remains identifiable on busy terrain. */
     fun drawSelectedUnit(view: BattleMapView) {
+        view.hoverCursor?.takeIf { it != view.cursor }?.let { drawGoldCorners(view, it) }
         val cursor = view.cursor ?: return
         selectionTime = (selectionTime + Gdx.graphics.deltaTime.coerceIn(0f, .1f)) % 4f
+        val size = view.tileSize
+        val x = view.boardLeft + cursor.x * size
+        val y = tileBottom(view, cursor.y)
+        drawGoldCorners(view, cursor)
+        val dark = Color(.22f, .14f, .025f, 1f)
+        val gold = Color(1f, .73f, .08f, 1f)
+        val light = Color(1f, .94f, .48f, 1f)
+
+        // Pixel-stepped downward arrow, gently bobbing above the selected tile.
+        val pixel = (size / 32f).coerceAtLeast(2f)
+        val arrowBottom = y + size + pixel * (2f + sin(selectionTime * Math.PI.toFloat()) * 1.2f)
+        val center = x + size / 2f
+        for (row in 0..4) {
+            val width = pixel * (row * 2 + 1)
+            BattleOverlayPaper.fill(batch, center - width / 2f - 1f,
+                arrowBottom + row * pixel - 1f, width + 2f, pixel + 2f, dark)
+        }
+        for (row in 0..4) {
+            val width = pixel * (row * 2 + 1)
+            BattleOverlayPaper.fill(batch, center - width / 2f,
+                arrowBottom + row * pixel, width, pixel, gold)
+        }
+        BattleOverlayPaper.fill(batch, center - pixel * 4.5f,
+            arrowBottom + pixel * 4f, pixel * 9f, 1f, light)
+        batch.color = Color.WHITE
+    }
+
+    /** Hover and selection use identical corners; only selection receives an arrow. */
+    private fun drawGoldCorners(view: BattleMapView, cursor: BattleMapCursor) {
         val size = view.tileSize
         val x = view.boardLeft + cursor.x * size
         val y = tileBottom(view, cursor.y)
@@ -223,23 +257,6 @@ class BattleMapRenderer(
         segment(right - length + stroke, top, length, stroke)
         segment(right, top - length + stroke, stroke, length)
 
-        // Pixel-stepped downward arrow, gently bobbing above the selected tile.
-        val pixel = (size / 32f).coerceAtLeast(2f)
-        val arrowBottom = y + size + pixel * (2f + sin(selectionTime * Math.PI.toFloat()) * 1.2f)
-        val center = x + size / 2f
-        for (row in 0..4) {
-            val width = pixel * (row * 2 + 1)
-            BattleOverlayPaper.fill(batch, center - width / 2f - 1f,
-                arrowBottom + row * pixel - 1f, width + 2f, pixel + 2f, dark)
-        }
-        for (row in 0..4) {
-            val width = pixel * (row * 2 + 1)
-            BattleOverlayPaper.fill(batch, center - width / 2f,
-                arrowBottom + row * pixel, width, pixel, gold)
-        }
-        BattleOverlayPaper.fill(batch, center - pixel * 4.5f,
-            arrowBottom + pixel * 4f, pixel * 9f, 1f, light)
-        batch.color = Color.WHITE
     }
 
     /**

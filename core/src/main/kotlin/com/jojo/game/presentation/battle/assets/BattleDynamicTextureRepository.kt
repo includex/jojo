@@ -83,7 +83,7 @@ internal class BattleDynamicTextureRepository : Disposable {
     fun unitMovement(avatarId: Int): Texture? {
         unitTextures[avatarId]?.let { return it }
         val handle = firstExisting(BattleDynamicTexturePaths.movement(avatarId))
-        return handle?.let(::linearTexture)
+        return handle?.let(::spriteTexture)
             ?.also { unitTextures[avatarId] = it }
     }
 
@@ -187,7 +187,31 @@ internal class BattleDynamicTextureRepository : Disposable {
     private fun actionTexture(kind: String, avatarId: Int, cache: MutableMap<Int, Texture>): Texture? {
         cache[avatarId]?.let { return it }
         val handle = firstExisting(BattleDynamicTexturePaths.action(kind, avatarId))
-        return handle?.let(::linearTexture)?.also { cache[avatarId] = it }
+        return handle?.let(::spriteTexture)?.also { cache[avatarId] = it }
+    }
+
+    /** Load a frame-isolated resolution variant only when it matches the unchanged native file. */
+    private fun spriteTexture(handle: com.badlogic.gdx.files.FileHandle): Texture {
+        val path = BattleSpriteResolution.variantPath(handle.path()) ?: return linearTexture(handle)
+        val image = Gdx.files.internal(path)
+        val sidecar = Gdx.files.internal(path.removeSuffix(".png") + ".json")
+        if (!image.exists() || !sidecar.exists()) return linearTexture(handle)
+        var texture: Texture? = null
+        try {
+            val json = JsonReader().parse(sidecar)
+            val hash = MessageDigest.getInstance("SHA-256").digest(handle.readBytes())
+                .joinToString("") { "%02x".format(it) }
+            if (hash != json.getString("sourceSha256")) return linearTexture(handle)
+            val mapping = BattleSpriteResolution.parse(json)
+            val variant = nearestTexture(image)
+            texture = variant
+            BattleSpriteResolutionSources.register(variant, mapping)
+            return variant
+        } catch (error: Exception) {
+            texture?.dispose()
+            Gdx.app.log("BattleSprites", "Using native sprite: invalid resolution variant $path", error)
+            return linearTexture(handle)
+        }
     }
 
     /**
@@ -232,7 +256,7 @@ internal class BattleDynamicTextureRepository : Disposable {
     override fun dispose() {
         sequenceOf(unitTextures, attackTextures, specialTextures, effectTextures, headTextures)
             .flatMap { it.values.asSequence() }
-            .forEach(Texture::dispose)
+            .forEach { BattleSpriteResolutionSources.forget(it); it.dispose() }
         battleDialogTextures.values.filterNotNull().forEach(Texture::dispose)
         richTextTextures.values.forEach { it.texture.dispose() }
         sequenceOf(gateTextures, terrainIconTextures, itemIconTextures)

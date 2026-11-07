@@ -35,7 +35,11 @@ internal object ScenarioBattlefieldRenderer {
         val background = assets.backgroundTexture(view.backgroundId)
         batch.projectionMatrix = camera.combined
         batch.begin()
-        background?.let { batch.color = Color.WHITE; batch.draw(it, 0f, 0f, 1280f, 688f) }
+        background?.let {
+            val crop = ScenarioBackgroundCrop.cover(it.width, it.height)
+            batch.color = Color.WHITE
+            batch.draw(it, 0f, 0f, 1280f, 688f, crop.left, crop.bottom, crop.right, crop.top)
+        }
         batch.end()
         shapes.projectionMatrix = camera.combined
         Gdx.gl.glEnable(GL20.GL_BLEND)
@@ -164,4 +168,18 @@ internal object ScenarioBattlefieldRenderer {
      */
 
     private data class Entry(val zIndex: Float, val siblingOrder: Int, val unit: ScenarioBattlefieldUnitView? = null, val head: ScenarioBattlefieldHeadView? = null)
+}
+
+/** Centered cover affects only background sampling; stage and unit coordinates stay unchanged. */
+internal object ScenarioBackgroundCrop {
+    data class Uv(val left:Float,val top:Float,val right:Float,val bottom:Float)
+    fun cover(sourceWidth:Int,sourceHeight:Int,targetWidth:Float=1280f,targetHeight:Float=688f):Uv {
+        require(sourceWidth>0 && sourceHeight>0 && targetWidth>0f && targetHeight>0f)
+        val scale=maxOf(targetWidth/sourceWidth,targetHeight/sourceHeight)
+        val visibleWidth=targetWidth/(sourceWidth*scale)
+        val visibleHeight=targetHeight/(sourceHeight*scale)
+        val left=(1f-visibleWidth)/2f
+        val top=(1f-visibleHeight)/2f
+        return Uv(left,top,1f-left,1f-top)
+    }
 }
