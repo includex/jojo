@@ -52,18 +52,27 @@ class BattleHudPanelTest {
         assertEquals(tile.y+tile.height,card.y)
         assertEquals(card,BattleHudPanelLayout.hoverCard(1422f,800f,context.copy(pointerX=590f,pointerY=390f)))
     }
+    @Test fun `hover uses the actual Mine and Other settlement panel bounds`() {
+        for(panel in SettlementInfoRenderContract.Panel.entries) {
+            val unit=BattleHudUnitView("임충","창병",1,61,96,22,22,settlementPanel=panel)
+            val card=assertNotNull(BattleHudPanelLayout.hoverCard(1488f,800f,BattleHudContextView(unit=unit)))
+            val background=SettlementInfoRenderContract.sprites(panel).first()
+            assertEquals(background.width,card.width)
+            assertEquals(background.height,card.height)
+        }
+    }
     @Test fun `cards flip and slide at all viewport edges without covering the unit or HUD`() {
         val unit=BattleHudUnitView("임충","창병",1,61,96,22,22)
         fun overlaps(a:BattleHudPanelLayout.Rect,b:BattleHudPanelLayout.Rect)=
             a.x<b.x+b.width && a.x+a.width>b.x && a.y<b.y+b.height && a.y+a.height>b.y
-        for(width in listOf(1422f,1488f)) {
+        for(panel in SettlementInfoRenderContract.Panel.entries) for(width in listOf(1422f,1488f)) {
             val hud=listOf(BattleHudPanelLayout.panel(width,800f,true),BattleHudPanelLayout.mission(width,800f),
                 BattleHudPanelLayout.weather(width,800f),BattleHudPanelLayout.terrain(width,800f))+
                 BattleHudPanelLayout.buttons(width,800f,true).take(4).map{it.rect}
             for(x in listOf(0f,12f,350f,width/2,width-108f,width-96f))
                 for(y in listOf(0f,12f,64f,350f,608f,704f)) {
                     val tile=BattleHudPanelLayout.Rect(x,y,96f,96f)
-                    val context=BattleHudContextView(unit=unit,unitAnchor=tile)
+                    val context=BattleHudContextView(unit=unit.copy(settlementPanel=panel),unitAnchor=tile)
                     val card=assertNotNull(BattleHudPanelLayout.hoverCard(width,800f,context),"tile=$tile")
                     assertTrue(card.x>=0 && card.y>=0)
                     assertTrue(card.x+card.width<=width && card.y+card.height<=800f)

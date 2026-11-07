@@ -49,7 +49,7 @@ object BattleUiSmokeLauncher {
     if (++phaseFrames % 3 != 0) return@RuntimeBattleDriver emptyList()
     when(phase++) {
      0->{ val live=battle().units.values.single{it.characterId==512};live.statuses[com.jojo.game.domain.battle.BattleStatus.CONFUSION]=2;live.attributeLifts[com.jojo.game.domain.battle.BattleAttribute.DEFENSE]=1;live.attributeLiftRounds[com.jojo.game.domain.battle.BattleAttribute.DEFENSE]=3;val lin=probe.battle.snapshot.units.single{it.characterId==512};invoke("handleTileClick",lin.x,lin.y);invoke("handleTileClick",lin.x,lin.y) }
-     1->{capture("command");invoke("dispatchBattleCommand",7)}
+     1->{check(hud().unit==null){"Command menu must suppress hover"};capture("command");invoke("dispatchBattleCommand",7)}
      2->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.unit?.characterId==512);capture("info-base");val r=BattleUnitInfoLayout.tabs[2]; val vp=screen.javaClass.getDeclaredField("viewport").also{it.isAccessible=true}.get(screen) as com.badlogic.gdx.utils.viewport.Viewport;val point=vp.project(com.badlogic.gdx.math.Vector2(r.x+r.width/2,r.y+r.height/2));val x=point.x.toInt();val y=(Gdx.graphics.height-point.y).toInt();Gdx.input.inputProcessor?.let{it.touchDown(x,y,0,Input.Buttons.LEFT);it.touchUp(x,y,0,Input.Buttons.LEFT)}}
      3->{check((overlay().javaClass.getMethod("view").invoke(overlay()) as BattleUnitInfoOverlayView?)?.tab==2) { "Equipment tab input failed" };capture("info-equipment");Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)}
      4->{check(!(overlay().javaClass.getMethod("isVisible").invoke(overlay()) as Boolean));capture("command-return");invoke("openUnitInfoLayer",522)}
@@ -75,7 +75,18 @@ object BattleUiSmokeLauncher {
      }
      12->{
       check(hud().unit?.name==battle().units.values.single{it.characterId==512}.displayName) { "Hovering Lin did not show Lin in HUD: ${hud()}" }
-      check(hud().unit?.portrait!=null) { "Hovered protagonist portrait missing" }
+      check(hud().unit?.settlementPanel==SettlementInfoRenderContract.Panel.MINE)
+      val allyCard=BattleHudPanelLayout.hoverCard(vp.worldWidth,vp.worldHeight,hud())!!
+      check(allyCard.width==471f&&allyCard.height==258f)
+      for(faction in listOf(com.jojo.game.domain.battle.Faction.ENEMY,com.jojo.game.domain.battle.Faction.FRIEND)) {
+       battle().javaClass.getDeclaredMethod("setActiveFaction",com.jojo.game.domain.battle.Faction::class.java).also{it.isAccessible=true}.invoke(battle(),faction);check(hud().unit==null){"Hover leaked during $faction turn"}
+      }
+      battle().javaClass.getDeclaredMethod("setActiveFaction",com.jojo.game.domain.battle.Faction::class.java).also{it.isAccessible=true}.invoke(battle(),com.jojo.game.domain.battle.Faction.PLAYER)
+      check(hud().unit!=null)
+      invoke("openBattleMenu")
+      check(hud().unit==null&&BattleHudPanelLayout.hoverCard(vp.worldWidth,vp.worldHeight,hud())==null){"Visible hover persisted after opening battle menu"}
+      Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)
+      check(hud().unit!=null){"Hover did not return after closing battle menu"}
       check(hud().terrain!=null)
       check(hud().unitAnchor!=null) { "Unit corner anchor missing" }
       check(field("hoveredBattleTile").get(screen)!=null) { "Unit hover corner missing" }
@@ -88,6 +99,8 @@ object BattleUiSmokeLauncher {
       val enemy=battle().units.values.single{it.characterId==522}
       check(hud().unit?.name==enemy.displayName) { "HUD kept old unit while hovering enemy: ${hud()}" }
       check(hud().terrain?.basis?.contains(enemy.displayName)==true)
+      check(hud().unit?.settlementPanel==SettlementInfoRenderContract.Panel.OTHER)
+      check(BattleHudPanelLayout.hoverCard(vp.worldWidth,vp.worldHeight,hud())!!.height==193.5f)
       capture("hud-hover-enemy");check(hud().weatherPanel!=null);battle().applyEditedWeather(com.jojo.game.domain.battle.BattleWeather.HEAVY_RAIN.ordinal)
       val lin=battle().units.values.single{it.characterId==512}
       val empty=listOf(0 to 1,0 to -1,1 to 0,-1 to 0).map{lin.tileX+it.first to lin.tileY+it.second}.first{(x,y)->x>=0&&y>=0&&battle().unitAt(x,y)==null}
@@ -114,7 +127,7 @@ object BattleUiSmokeLauncher {
       pointerTile(enemy.tileX,enemy.tileY)
      }
      16->{
-      check(hud().unit==null&&hud().terrain==retainedTerrain) { "A modal must freeze battlefield context while cursor moves to another unit: ${hud()}" }
+      check(hud().unit==null&&hud().terrain==retainedTerrain) { "A modal must hide unit inspection while cursor moves to another unit: ${hud()}" }
       check(hud().terrain?.basis==retainedTerrain?.basis) { "Modal changed terrain calculation basis" }
       capture("hud-modal-context")
       Gdx.input.inputProcessor?.keyDown(Input.Keys.ESCAPE)

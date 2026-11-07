@@ -8669,6 +8669,119 @@ void main() {
      * 입력값을 현재 타입의 규칙에 따라 처리하고 결과 또는 상태 변화를 남긴다.
      */
 
+    /** Hover and animated settlement use precisely the same sprites, labels, rows and bar drawing. */
+    private fun drawSettlementUnitPanel(
+        unit: BattleUnit, title: String, panel: SettlementInfoRenderContract.Panel,
+        offset: Pair<Float,Float>, overlay: SettlementInfoView? = null,
+        frame: SettlementAnimationFrame = SettlementAnimationFrame(emptyMap(),emptyMap()),
+    ) {
+        val mine = panel == SettlementInfoRenderContract.Panel.MINE
+        val previousTransform = batch.transformMatrix.cpy()
+        batch.transformMatrix = previousTransform.cpy().translate(
+            offset.first, offset.second, 0f,
+        )
+        try {
+            batch.projectionMatrix = viewport.camera.combined
+            batch.begin()
+            batch.color = Color.WHITE
+            // 원본 프리팹 좌표는 `SettlementInfoRenderContract`가 들고 있다. 배경·상태 아이콘·
+            // 진행 막대 바탕을 그 순서 그대로 깔고, 값에 따라 길이가 변하는 막대만 따로 덮는다.
+            val sprites = SettlementInfoRenderContract.sprites(panel)
+            sprites.forEach { sprite ->
+                if (sprite.path in SETTLEMENT_VALUE_BARS) return@forEach
+                settlementInfoAssets.draw(
+                    batch, sprite.path, sprite.x, sprite.y, sprite.width, sprite.height, sprite.capInset,
+                )
+            }
+            // 원본 프리팹: 라벨은 모두 fontSize 40에 2px 테두리, 이름(label0)·병종(label2)은 굵게.
+            // 레벨(label1)은 anchor (1, 0.5)로 오른쪽 정렬이다.
+            val titleY = if (mine) 294.5f + settlementLabelBaseline else 226.85f + settlementLabelBaseline
+            settlementNameFont.color = settlementLabelColor
+            run {
+                // label0은 anchor (0, 0.5)로 왼쪽에 붙지만 가로 정렬은 CENTER(1)라 노드(146.2/148.3 너비) 안에서 가운데다.
+                val nameLeft = if (mine) 744.4f else 744.9f
+                val nameWidth = if (mine) 146.2f else 148.3f
+                val layout = GlyphLayout(settlementNameFont, title)
+                drawSettlementLabel(settlementNameFont, title, nameLeft + (nameWidth - layout.width) / 2f, titleY)
+            }
+            settlementFont.color = settlementLabelColor
+            drawSettlementLabel(settlementFont, "Lv", if (mine) 911.105f else 912.256f, titleY)
+            drawSettlementRightAligned(unit.level.toString(), 1030.87f, titleY)
+            settlementBoldFont.color = settlementLabelColor
+            run {
+                val posts = gameDataCatalog.postsName(unit.posts)
+                val layout = GlyphLayout(settlementBoldFont, posts)
+                drawSettlementLabel(
+                    settlementBoldFont, posts,
+                    971.5f + (if (mine) 150.8f else 151.6f) - layout.width / 2f, titleY,
+                )
+            }
+            // 원본 Mine/OtherUnitInfoLayer.onCreate는 변화가 없어도 HP·MP(아군은 EXP·무기·방어구 경험치까지)를
+            // 항상 채우고, 변화가 있는 항목만 `_kvs`로 애니메이션한다.
+            val hpDelta = overlay?.deltas?.firstOrNull { it.kind == SettlementInfoKind.HP }
+            val mpDelta = overlay?.deltas?.firstOrNull { it.kind != SettlementInfoKind.HP }
+            val rows = buildList {
+                add(SettlementRow(0, "HP", frame.numbers[0] ?: hpDelta?.before ?: unit.hitPoints, unit.maxHitPoints))
+                add(SettlementRow(1, "MP", frame.numbers[1] ?: mpDelta?.before ?: unit.magicPoints, unit.maxMagicPoints))
+                if (mine) {
+                    val expGrant = overlay?.grants?.firstOrNull { it.kind == SettlementGrowthKind.UNIT_EXP }?.unitResult
+                    add(
+                        SettlementRow(
+                            2, "EXP", frame.numbers[2] ?: expGrant?.oldExperience ?: unit.experience,
+                            gameDataCatalog.unitExperienceLimit(unit.level).coerceAtLeast(1),
+                        )
+                    )
+                    val equipment = unit.characterId?.let { campaign.inventory.equipmentFor(it) }
+                    val weaponGrant = overlay?.grants?.firstOrNull { it.kind == SettlementGrowthKind.WEAPON_EXP }?.equipmentResult
+                    val armorGrant = overlay?.grants?.firstOrNull { it.kind == SettlementGrowthKind.ARMOR_EXP }?.equipmentResult
+                    add(
+                        SettlementRow(
+                            3, "WQ", frame.numbers[3] ?: weaponGrant?.oldExperience ?: equipment?.weaponExperience ?: 0,
+                            equipmentExperienceLimit(unit.characterId, CampaignEquipmentSlot.WEAPON),
+                        )
+                    )
+                    add(
+                        SettlementRow(
+                            4, "HJ", frame.numbers[4] ?: armorGrant?.oldExperience ?: equipment?.armorExperience ?: 0,
+                            equipmentExperienceLimit(unit.characterId, CampaignEquipmentSlot.ARMOR),
+                        )
+                    )
+                }
+            }
+            // 값 막대는 원본 `ProgressBar`처럼 바탕 위에서 progress 비율만큼만 채운다.
+            // 길이는 숫자와 달리 1초짜리 트윈이 정한다.
+            rows.forEach { entry ->
+                val slot = settlementBarSlot(panel, entry.label, entry.index) ?: return@forEach
+                val ratio = frame.ratios[entry.index]
+                    ?: (entry.value.toFloat() / entry.max.coerceAtLeast(1)).coerceIn(0f, 1f)
+                settlementInfoAssets.texture(slot.barAsset)?.let {
+                    batch.draw(it, slot.barX, slot.barY, 370f * ratio, 20f)
+                }
+                settlementFont.color = settlementLabelColor
+                if (entry.label == "WQ" || entry.label == "HJ") {
+                    // 원본 `MineUnitInfoLayer.js:173-176`: 무기·방어구 경험치(label3/label4)는 상한에
+                    // 닿으면 숫자 대신 "MAX"를 cc.color(17,17,251)로 쓰고, 그 외에는 현재 값만 보여 준다.
+                    settlementFont.color =
+                        Color.valueOf(SettlementInfoRenderContract.equipmentExperienceColor(entry.value, entry.max))
+                    drawSettlementLabel(
+                        settlementFont,
+                        SettlementInfoRenderContract.equipmentExperienceText(entry.value, entry.max),
+                        slot.valueX, slot.labelY,
+                    )
+                } else {
+                    // label0은 anchor (1, 0.5)로 막대 중심-21에 오른쪽 정렬, label1은 중심+21에서 왼쪽 정렬이다.
+                    // 막대 중심은 "/" 라벨(15.11 너비)의 중심과 같다.
+                    drawSettlementRightAligned(entry.value.toString(), slot.slashX + 15.11f / 2f - 21f, slot.labelY)
+                    drawSettlementLabel(settlementFont, "/", slot.slashX, slot.labelY)
+                    drawSettlementLabel(settlementFont, entry.max.toString(), slot.maxX, slot.labelY)
+                }
+            }
+            batch.end()
+        } finally {
+            batch.transformMatrix = previousTransform
+        }
+    }
+
     private fun drawSettlementOverlays() {
         if (settlementPresentation.infoView() == null) settlementPlacementKey = null
         settlementPresentation.infoView()?.let { overlay ->
@@ -8686,110 +8799,7 @@ void main() {
                 )
                 settlementPlacementKey = placementKey
             }
-            val previousTransform = batch.transformMatrix.cpy()
-            batch.transformMatrix = previousTransform.cpy().translate(
-                settlementPlacementOffset.first, settlementPlacementOffset.second, 0f,
-            )
-            try {
-                batch.projectionMatrix = viewport.camera.combined
-                batch.begin()
-                batch.color = Color.WHITE
-                // 원본 프리팹 좌표는 `SettlementInfoRenderContract`가 들고 있다. 배경·상태 아이콘·
-                // 진행 막대 바탕을 그 순서 그대로 깔고, 값에 따라 길이가 변하는 막대만 따로 덮는다.
-                val sprites = SettlementInfoRenderContract.sprites(panel)
-                sprites.forEach { sprite ->
-                    if (sprite.path in SETTLEMENT_VALUE_BARS) return@forEach
-                    settlementInfoAssets.draw(
-                        batch, sprite.path, sprite.x, sprite.y, sprite.width, sprite.height, sprite.capInset,
-                    )
-                }
-                // 원본 프리팹: 라벨은 모두 fontSize 40에 2px 테두리, 이름(label0)·병종(label2)은 굵게.
-                // 레벨(label1)은 anchor (1, 0.5)로 오른쪽 정렬이다.
-                val titleY = if (mine) 294.5f + settlementLabelBaseline else 226.85f + settlementLabelBaseline
-                settlementNameFont.color = settlementLabelColor
-                run {
-                    // label0은 anchor (0, 0.5)로 왼쪽에 붙지만 가로 정렬은 CENTER(1)라 노드(146.2/148.3 너비) 안에서 가운데다.
-                    val nameLeft = if (mine) 744.4f else 744.9f
-                    val nameWidth = if (mine) 146.2f else 148.3f
-                    val layout = GlyphLayout(settlementNameFont, overlay.title)
-                    drawSettlementLabel(settlementNameFont, overlay.title, nameLeft + (nameWidth - layout.width) / 2f, titleY)
-                }
-                settlementFont.color = settlementLabelColor
-                drawSettlementLabel(settlementFont, "Lv", if (mine) 911.105f else 912.256f, titleY)
-                drawSettlementRightAligned(unit.level.toString(), 1030.87f, titleY)
-                settlementBoldFont.color = settlementLabelColor
-                run {
-                    val posts = gameDataCatalog.postsName(unit.posts)
-                    val layout = GlyphLayout(settlementBoldFont, posts)
-                    drawSettlementLabel(
-                        settlementBoldFont, posts,
-                        971.5f + (if (mine) 150.8f else 151.6f) - layout.width / 2f, titleY,
-                    )
-                }
-                // 원본 Mine/OtherUnitInfoLayer.onCreate는 변화가 없어도 HP·MP(아군은 EXP·무기·방어구 경험치까지)를
-                // 항상 채우고, 변화가 있는 항목만 `_kvs`로 애니메이션한다.
-                val hpDelta = overlay.deltas.firstOrNull { it.kind == SettlementInfoKind.HP }
-                val mpDelta = overlay.deltas.firstOrNull { it.kind != SettlementInfoKind.HP }
-                val rows = buildList {
-                    add(SettlementRow(0, "HP", frame.numbers[0] ?: hpDelta?.before ?: unit.hitPoints, unit.maxHitPoints))
-                    add(SettlementRow(1, "MP", frame.numbers[1] ?: mpDelta?.before ?: unit.magicPoints, unit.maxMagicPoints))
-                    if (mine) {
-                        val expGrant = overlay.grants.firstOrNull { it.kind == SettlementGrowthKind.UNIT_EXP }?.unitResult
-                        add(
-                            SettlementRow(
-                                2, "EXP", frame.numbers[2] ?: expGrant?.oldExperience ?: unit.experience,
-                                gameDataCatalog.unitExperienceLimit(unit.level).coerceAtLeast(1),
-                            )
-                        )
-                        val equipment = unit.characterId?.let { campaign.inventory.equipmentFor(it) }
-                        val weaponGrant = overlay.grants.firstOrNull { it.kind == SettlementGrowthKind.WEAPON_EXP }?.equipmentResult
-                        val armorGrant = overlay.grants.firstOrNull { it.kind == SettlementGrowthKind.ARMOR_EXP }?.equipmentResult
-                        add(
-                            SettlementRow(
-                                3, "WQ", frame.numbers[3] ?: weaponGrant?.oldExperience ?: equipment?.weaponExperience ?: 0,
-                                equipmentExperienceLimit(unit.characterId, CampaignEquipmentSlot.WEAPON),
-                            )
-                        )
-                        add(
-                            SettlementRow(
-                                4, "HJ", frame.numbers[4] ?: armorGrant?.oldExperience ?: equipment?.armorExperience ?: 0,
-                                equipmentExperienceLimit(unit.characterId, CampaignEquipmentSlot.ARMOR),
-                            )
-                        )
-                    }
-                }
-                // 값 막대는 원본 `ProgressBar`처럼 바탕 위에서 progress 비율만큼만 채운다.
-                // 길이는 숫자와 달리 1초짜리 트윈이 정한다.
-                rows.forEach { entry ->
-                    val slot = settlementBarSlot(panel, entry.label, entry.index) ?: return@forEach
-                    val ratio = frame.ratios[entry.index]
-                        ?: (entry.value.toFloat() / entry.max.coerceAtLeast(1)).coerceIn(0f, 1f)
-                    settlementInfoAssets.texture(slot.barAsset)?.let {
-                        batch.draw(it, slot.barX, slot.barY, 370f * ratio, 20f)
-                    }
-                    settlementFont.color = settlementLabelColor
-                    if (entry.label == "WQ" || entry.label == "HJ") {
-                        // 원본 `MineUnitInfoLayer.js:173-176`: 무기·방어구 경험치(label3/label4)는 상한에
-                        // 닿으면 숫자 대신 "MAX"를 cc.color(17,17,251)로 쓰고, 그 외에는 현재 값만 보여 준다.
-                        settlementFont.color =
-                            Color.valueOf(SettlementInfoRenderContract.equipmentExperienceColor(entry.value, entry.max))
-                        drawSettlementLabel(
-                            settlementFont,
-                            SettlementInfoRenderContract.equipmentExperienceText(entry.value, entry.max),
-                            slot.valueX, slot.labelY,
-                        )
-                    } else {
-                        // label0은 anchor (1, 0.5)로 막대 중심-21에 오른쪽 정렬, label1은 중심+21에서 왼쪽 정렬이다.
-                        // 막대 중심은 "/" 라벨(15.11 너비)의 중심과 같다.
-                        drawSettlementRightAligned(entry.value.toString(), slot.slashX + 15.11f / 2f - 21f, slot.labelY)
-                        drawSettlementLabel(settlementFont, "/", slot.slashX, slot.labelY)
-                        drawSettlementLabel(settlementFont, entry.max.toString(), slot.maxX, slot.labelY)
-                    }
-                }
-                batch.end()
-            } finally {
-                batch.transformMatrix = previousTransform
-            }
+            drawSettlementUnitPanel(unit,overlay.title,panel,settlementPlacementOffset,overlay,frame)
         }
         settlementPresentation.info2View()?.let { overlay ->
             val elapsed = (animationClock() - overlay.startedAt).coerceAtLeast(0f)
@@ -10359,7 +10369,13 @@ void main() {
         }
         fun retained() = lastHudInspection?.copy(unitAnchor = hudInspectedUnitId?.let(battle.units::get)?.let(::hudUnitAnchor), objective = objective, defeat = defeat, weatherIcon = weatherIcon, weatherSymbol = weatherSymbol, chapterEmblem = chapterEmblem, weatherPanel = weatherPanel, chapterPanel = hudAssets.chapterPanel,
             enabledActions = hudEnabledActions())?.also { lastHudInspection = it } ?: empty()
-        if (scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
+        if (battle.activeFaction != Faction.PLAYER || turnController.snapshot.phase != BattleTurnPhase.PLAYER_INPUT ||
+            battleInitRoute || battleInitLayer.view().attached || outcomePresentation.winPromptActive ||
+            outcomePresentation.rewardActive || rewardRouteState != null || outcomePresentation.rewardFlow != null ||
+            outcomePresentation.itemUpgradeFlow != null || itemUpgradeRouteState != null ||
+            commandMenuVisible() || miniMapLayer.shown || unitInfoPopup != null || battleEdit2 != null || battleEdit3Open || fightOverlayActive ||
+            settlementPresentation.infoView() != null || settlementPresentation.info2View() != null ||
+            scriptRuntime.state != PlaybackState.COMPLETE || battleMenuOpen || unitInfoOverlay.isVisible() ||
             settingsOverlay.view() != null || forcesOverlay.view() != null || helperOverlay.view() != null ||
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.SAVE) != null ||
             saveLoadOverlay.view(BattleSaveLoadOverlayController.Mode.LOAD) != null ||
@@ -10368,7 +10384,7 @@ void main() {
             usePropertyDetail != null || magickInfoLayer != null || jiqiLayer != null ||
             activeRoundLayer != null || activeWeatherLayer != null || scriptWinConditions != null ||
             returnToTitlePromptOpen || combatPresentationBusy() ||
-            winConditionOpen || autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return retained()
+            winConditionOpen || autoBattleFlow.view().overlay != AutoBattleFlow.Overlay.NONE) return retained().copy(unit=null,unitAnchor=null).also { lastHudInspection=it; hudInspectedUnitId=null }
         val sx = Gdx.input.x
         val sy = Gdx.input.y
         if (sx !in 0 until Gdx.graphics.width || sy !in 0 until Gdx.graphics.height) return empty()
@@ -10409,7 +10425,7 @@ void main() {
                     it.hitPoints, it.maxHitPoints, it.magicPoints, it.maxMagicPoints,
                     it.characterId?.let(gameDataCatalog::unitProfile)?.face?.plus(8)?.let(dynamicTextures::head),
                     faction = when(it.type()) { Faction.PLAYER -> "아군"; Faction.FRIEND -> "우군"; else -> "적군" },
-                    statuses = hudStatuses(it))
+                    statuses = hudStatuses(it), settlementPanel = if(it.type()==Faction.PLAYER) SettlementInfoRenderContract.Panel.MINE else SettlementInfoRenderContract.Panel.OTHER)
             },
             terrain = BattleHudTerrainView(
                 name = gameDataCatalog.terrainRows().getOrNull(terrain)?.name ?: "지형 $terrain",
@@ -10462,9 +10478,17 @@ void main() {
 
     private fun drawBattleHudChrome() {
         batch.projectionMatrix = viewport.camera.combined
-        if (!battleDialogueBlendRoute) hudPanelRenderer.draw(battleHudPanel, viewport.worldWidth, viewport.worldHeight,
-            gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
-            when(battle.weather) { BattleWeather.CLEAR -> "맑음"; BattleWeather.CLOUDY -> "흐림"; BattleWeather.WINDY -> "바람"; BattleWeather.HEAVY_RAIN -> "비"; BattleWeather.SNOW -> "눈" }, battle.round, scenarioMaxRound(), battleHudView())
+        if (!battleDialogueBlendRoute) {
+            val context=battleHudView()
+            hudPanelRenderer.draw(battleHudPanel, viewport.worldWidth, viewport.worldHeight,
+                gameDataCatalog.battleName(scriptRuntime.stage.battleMapIndex),
+                when(battle.weather) { BattleWeather.CLEAR -> "맑음"; BattleWeather.CLOUDY -> "흐림"; BattleWeather.WINDY -> "바람"; BattleWeather.HEAVY_RAIN -> "비"; BattleWeather.SNOW -> "눈" }, battle.round, scenarioMaxRound(), context)
+            BattleHudPanelLayout.hoverCard(viewport.worldWidth,viewport.worldHeight,context)?.let { card ->
+                hudInspectedUnitId?.let(battle.units::get)?.let { unit ->
+                    drawSettlementUnitPanel(unit,unit.displayName,context.unit!!.settlementPanel,card.x-736f to card.y-96f)
+                }
+            }
+        }
         batch.begin()
         battleGridMapSurfaceRenderer.drawOverlay(battleGridMapSurfaceView())
         batch.end()

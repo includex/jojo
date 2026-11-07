@@ -24,6 +24,7 @@ data class BattleHudContextView(
 data class BattleHudUnitView(
     val name:String,val post:String,val level:Int,val hp:Int,val maxHp:Int,val mp:Int,val maxMp:Int,
     val portrait:Texture?=null,val faction:String="",val statuses:List<BattleHudStatusView> = emptyList(),
+    val settlementPanel:SettlementInfoRenderContract.Panel=SettlementInfoRenderContract.Panel.MINE,
 )
 data class BattleHudStatusView(val label:String,val icon:TextureRegion?=null)
 data class BattleHudTerrainView(
@@ -80,7 +81,7 @@ object BattleHudPanelLayout {
     /** Tile corners anchor the card, so moving the cursor within a unit never moves its card. */
     fun hoverCard(width:Float,height:Float,context:BattleHudContextView?):Rect? {
         if(context?.unit==null)return null
-        val w=minOf(400f,width-24f);val h=minOf(210f,height-24f)
+        val w=471f;val h=if(context.unit.settlementPanel==SettlementInfoRenderContract.Panel.MINE)258f else 193.5f
         val unit=context.unitAnchor ?: Rect(width*.4f,height*.45f,0f,0f)
         val left=unit.x;val right=unit.x+unit.width
         val bottom=unit.y;val top=unit.y+unit.height
@@ -118,27 +119,15 @@ class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:Sh
              context:BattleHudContextView=BattleHudContextView()) {
         val layout=BattleHudPanelLayout;val header=layout.panel(width,height,controller.expanded)
         val weatherRect=layout.weather(width,height);val mission=layout.mission(width,height)
-        val terrain=context.terrain?.let{layout.terrain(width,height)};val card=layout.hoverCard(width,height,context)
+        val terrain=context.terrain?.let{layout.terrain(width,height)}
         val buttons=layout.buttons(width,height,controller.expanded)
-        val panels=listOfNotNull(header.takeIf{context.chapterPanel==null},weatherRect.takeIf{context.weatherPanel==null},terrain,card)+(if(controller.expanded && context.chapterPanel==null)listOf(mission)else emptyList())
+        val panels=listOfNotNull(header.takeIf{context.chapterPanel==null},weatherRect.takeIf{context.weatherPanel==null},terrain)+(if(controller.expanded && context.chapterPanel==null)listOf(mission)else emptyList())
         shapes.projectionMatrix=batch.projectionMatrix
         Gdx.gl.glEnable(GL20.GL_BLEND);Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA,GL20.GL_ONE_MINUS_SRC_ALPHA)
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         panels.filter{it!=header}.forEach{panel(it)}
         if(context.chapterPanel==null)titlePanel(header)
         buttons.filter{it.action in shortcutActions}.forEach{panel(it.rect)}
-        card?.let{r->
-            shapes.color=PORTRAIT;shapes.rect(r.x+8f,r.y+66f,106f,132f)
-            shapes.color=LINE;shapes.rect(r.x+8f,r.y+62f,r.width-16f,1f)
-            context.unit?.let{u->
-                val x=r.x+158f;val barWidth=(r.width-216f)/2f
-                statBar(x,r.y+82f,barWidth,u.hp,u.maxHp,HP)
-                statBar(r.x+r.width-barWidth-8f,r.y+82f,barWidth,u.mp,u.maxMp,MP)
-                u.statuses.take(5).forEachIndexed{i,_->
-                    shapes.color=ICON_BG;shapes.rect(r.x+52f+i*58f,r.y+12f,40f,40f)
-                }
-            }
-        }
         shapes.end()
         val sx=font.data.scaleX;val sy=font.data.scaleY;val fc=Color(font.color);val bc=Color(batch.color)
         batch.begin()
@@ -194,23 +183,7 @@ class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:Sh
                 font.color=if(enabled)IVORY else MUTED;font.data.setScale(20f/36f)
                 font.draw(batch,b.action.label,b.rect.x+40f,b.rect.y+29f,b.rect.width-45f,Align.center,false)
             }
-            card?.let{drawUnitCard(it,context.unit!!)}
         }finally{font.data.setScale(sx,sy);font.color=fc;batch.color=bc;batch.end()}
-    }
-    private fun drawUnitCard(r:BattleHudPanelLayout.Rect,u:BattleHudUnitView){
-        u.portrait?.let{t->val scale=minOf(102f/t.width,128f/t.height);val w=t.width*scale;val h=t.height*scale;batch.color=Color.WHITE;batch.draw(t,r.x+10f+(102f-w)/2f,r.y+68f+(128f-h)/2f,w,h)}
-        font.data.setScale(26f/36f);font.color=GOLD;ellipsis(u.name,r.x+128f,r.y+180f,r.width-228f)
-        text("Lv.${u.level}",r.x+r.width-90f,r.y+179f,21f,IVORY)
-        font.data.setScale(19f/36f);font.color=IVORY;ellipsis(listOf(u.faction,u.post).filter{it.isNotBlank()}.joinToString("  "),r.x+128f,r.y+142f,r.width-145f)
-        text("HP",r.x+127f,r.y+108f,18f,IVORY);text("기력",r.x+r.width-136f,r.y+108f,18f,IVORY)
-        font.data.setScale(17f/36f);font.color=IVORY
-        val barWidth=(r.width-216f)/2f
-        font.draw(batch,"${u.hp}/${u.maxHp}",r.x+158f,r.y+108f,barWidth,Align.center,false)
-        font.draw(batch,"${u.mp}/${u.maxMp}",r.x+r.width-barWidth-8f,r.y+108f,barWidth,Align.center,false)
-        u.statuses.take(5).forEachIndexed{i,status->
-            val x=r.x+52f+i*58f
-            status.icon?.let{batch.draw(it,x-2f,r.y+10f,44f,44f)} ?: run{font.data.setScale(13f/36f);font.color=IVORY;ellipsis(status.label,x+3f,r.y+37f,34f)}
-        }
     }
     private fun drawRegionFit(region:TextureRegion,x:Float,y:Float,width:Float,height:Float){
         val scale=minOf(width/region.regionWidth,height/region.regionHeight)
@@ -231,7 +204,6 @@ class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:Sh
     }
     private fun panel(r:BattleHudPanelLayout.Rect){shapes.color=BACKGROUND;shapes.rect(r.x,r.y,r.width,r.height);shapes.color=GOLD;outline(r)}
     private fun outline(r:BattleHudPanelLayout.Rect){shapes.rect(r.x,r.y,r.width,1f);shapes.rect(r.x,r.y+r.height-1f,r.width,1f);shapes.rect(r.x,r.y,1f,r.height);shapes.rect(r.x+r.width-1f,r.y,1f,r.height)}
-    private fun statBar(x:Float,y:Float,w:Float,value:Int,max:Int,fill:Color){shapes.color=LINE;shapes.rect(x,y,w,9f);shapes.color=TRACK;shapes.rect(x+1f,y+1f,w-2f,7f);shapes.color=fill;shapes.rect(x+1f,y+1f,(w-2f)*(value.toFloat()/max.coerceAtLeast(1)).coerceIn(0f,1f),7f)}
     private fun text(value:String,x:Float,y:Float,size:Float,color:Color){font.data.setScale(size/36f);font.color=color;font.draw(batch,value,x,y)}
     private fun ellipsis(value:String,x:Float,y:Float,width:Float){font.draw(batch,value,x,y,0,value.length,width.coerceAtLeast(1f),Align.left,false,"...")}
     companion object{
@@ -241,12 +213,6 @@ class BattleHudPanelRenderer(private val batch:SpriteBatch,private val shapes:Sh
         private val GOLD=Color.valueOf("bfa265")
         private val IVORY=Color.valueOf("f3ebd8")
         private val MUTED=Color.valueOf("aeb4bc")
-        private val PORTRAIT=Color.valueOf("202225")
-        private val ICON_BG=Color.valueOf("171b23")
-        private val LINE=Color.valueOf("8c826d")
-        private val TRACK=Color.valueOf("33363a")
-        private val HP=Color.valueOf("7ca44c")
-        private val MP=Color.valueOf("5a94bc")
     }
 }
 
